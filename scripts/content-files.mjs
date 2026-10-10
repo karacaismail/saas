@@ -28,18 +28,19 @@ export async function readContentSources(directory = process.cwd()) {
     manifest.roadmap,
     manifest.interface,
     manifest.messages,
+    manifest.review,
     ...manifest.clusters,
   ];
   if (new Set(paths).size !== paths.length)
     throw new TypeError('Duplicate content file');
-  const [metadata, roadmap, copy, messages, ...clusters] = await Promise.all(
-    paths.map(read),
-  );
+  const [metadata, roadmap, copy, messages, review, ...clusters] =
+    await Promise.all(paths.map(read));
   return assembleAtlas({
     metadata,
     roadmap,
     interface: copy,
     messages,
+    review,
     clusters,
   });
 }

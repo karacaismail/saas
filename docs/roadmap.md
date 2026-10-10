@@ -60,3 +60,7 @@ CSV v2'de “Küme kimliği” kararlı eski kimliktir; “Küme sırası” gü
 Metni yalnız tıklamada JavaScript ile üretmek tekrar miktarını azaltır ancak belgenin JavaScript'siz okunmasını kaybettirir. Veri adasında DOM referansları tutmak taşınabilir veri/export sözleşmesini karmaşıklaştırır. İstenen kapsam için statik belge ve kayıpsız veri korunarak repo bütçesi açıkça HTML 144 KiB / toplam 200 KiB olarak güncellendi. CSS 12 KiB, JS 12 KiB, self-hosted fontlar ve 9 dosyalık yayın allowlist'i korundu; yeni runtime paketi veya üçüncü taraf isteği eklenmedi. Kesin son ölçüm doğrulama kaydındadır; zlib gzip bütçesi CDN veya gerçek cihaz performans iddiası değildir.
 
 2026-10-10 sınıflandırılmış JSON engine geçişiyle ayrıca17JSON ve2engine modülü teslim edilir; tam statik/ağ-hatası snapshot'ı korunur. Önceki paragraf ilk yol haritası tesliminin ölçümüdür. Güncel tek bütçe toplam300KiB/HTML144/JS16/JSON80/CSS12KiB ve28dosya allowlist'idir; kapsam ve ölçüm [content-model.md](content-model.md) içinde açıklanır.
+
+## 402 maddelik kaynak haritasıyla karşılaştırma
+
+Kullanıcının yeni içerik güncellemesi kapsamında326 özgün madde korunarak18 madde eklendi: güncel12küme/49başlık/344madde. Kaynaktaki17küme mevcut sorumluluk gruplarına bağlanır; tekrarlar ikinci modül veya geliştirme işi oluşturmaz. `data/review.json` plan kapsamını Frappe yeterliliğinden ayrı tutar. JSONv3 veMarkdown seçimin gerekçelerini ve ilgili inceleme kararlarını taşır; CSVv3 18sütun, legacyv2 16sütundur. [İnceleme kararları](source-review.md) ve [veri koruma sözleşmesi](content-model.md) günceldir.

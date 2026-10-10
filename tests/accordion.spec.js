@@ -9,7 +9,7 @@ test('320px groups start collapsed with a native full-row accordion and rotating
   await expect(page.locator('#search')).toBeEnabled();
   await expect(page.locator('.group')).toHaveCount(49);
   await expect(page.locator('.group[open]')).toHaveCount(0);
-  await expect(page.locator('.feature')).toHaveCount(326);
+  await expect(page.locator('.feature')).toHaveCount(344);
   const accessibility = await new AxeBuilder({ page })
     .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
     .analyze();

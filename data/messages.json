@@ -46,7 +46,8 @@
         "Kaynaklar",
         "Etap",
         "Küme sırası"
-      ]
+      ],
+      "reviewColumns": ["Plan kapsamı", "Kapsam gerekçesi"]
     },
     "markdown": {
       "target": "Hedef",
@@ -72,7 +73,11 @@
       "generated": "İçerik tarihi",
       "classification": "Sınıf açıklamaları",
       "sourceRegistry": "Kaynak dizini",
-      "sequence": "Yol haritası bağımlılıkları"
+      "sequence": "Yol haritası bağımlılıkları",
+      "scope": "Plan kapsamı",
+      "scopeReason": "Kapsam gerekçesi",
+      "reviewDecisions": "Kapsam kararları",
+      "reviewSource": "İncelenen kaynak"
     },
     "unsupportedFormat": "Desteklenmeyen dışa aktarma biçimi: {format}"
   }

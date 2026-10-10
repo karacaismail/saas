@@ -186,6 +186,28 @@
               }
             ]
           }
+        },
+        {
+          "kind": "g",
+          "text": "SaaS iş metrikleri: MRR, ARR, müşteri/gelir kaybı ve LTV; tanım, dönem ve kaynak uzlaştırması.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Raporlama ve domain ekipleri",
+            "confidence": "design",
+            "note": "Frappe rapor altyapısı veri sunabilir; sağlayıcı abonelik analitiği de kaynak olabilir. Ürüne ait MRR, ARR, churn ve LTV tanımları, kur, deneme, indirim, iade ve dönem sınırlarıyla ayrıca belirlenmelidir.",
+            "acceptance": "Örnek abonelik kümesinde MRR/ARR ve müşteri/gelir kaybı beklenen sonuçla eşleşsin; LTV varsayımları görünür olsun; geciken olay, iade ve kur etkisi kaynak kayıtlarla uzlaşsın.",
+            "sources": [
+              {
+                "title": "Frappe Reports",
+                "url": "https://docs.frappe.io/framework/user/en/desk/reports"
+              },
+              {
+                "title": "Stripe Subscription Analytics",
+                "url": "https://docs.stripe.com/billing/subscriptions/analytics"
+              }
+            ]
+          }
         }
       ],
       "sources": ["tenant"],

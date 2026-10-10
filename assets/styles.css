@@ -919,6 +919,81 @@ summary::-webkit-details-marker {
   max-width: var(--reading);
   padding-block: var(--space-5);
 }
+/* Planning is independent of origin colors and framework support. */
+.review-body {
+  display: grid;
+  gap: var(--space-4);
+  max-width: var(--reading);
+  padding-block: var(--space-5);
+}
+.review-body h2 {
+  font-size: var(--font-section);
+}
+.scope-distribution {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(min(100%, var(--filter-min)), 1fr)
+  );
+  gap: var(--space-4);
+  margin: 0;
+}
+.scope-distribution dd {
+  margin: 0;
+  font-size: var(--font-section);
+  font-weight: var(--weight-strong);
+}
+.review-decisions,
+.review-coverage {
+  display: grid;
+  gap: var(--space-5);
+  padding-left: var(--space-5);
+  margin: 0;
+}
+.review-decisions li p + p,
+.review-coverage li p + p {
+  margin-top: var(--space-2);
+}
+.review-source {
+  color: var(--muted);
+}
+.scope-note {
+  margin-top: var(--space-2);
+  color: var(--ink);
+}
+.scope-label {
+  display: inline-block;
+  font-size: var(--font-label);
+  font-weight: var(--weight-label);
+  color: var(--tag-ink);
+  background: var(--tag-bg);
+  padding: var(--tag-padding-block) var(--tag-padding-inline);
+  border-radius: var(--radius-pill);
+}
+[data-scope-label='required'],
+[data-scope-filter='required'] {
+  --tag-ink: var(--tag-mint-ink);
+  --tag-bg: var(--tag-mint-bg);
+}
+[data-scope-label='conditional'],
+[data-scope-filter='conditional'] {
+  --tag-ink: var(--tag-amber-ink);
+  --tag-bg: var(--tag-amber-bg);
+}
+[data-scope-label='advanced'],
+[data-scope-filter='advanced'] {
+  --tag-ink: var(--tag-lavender-ink);
+  --tag-bg: var(--tag-lavender-bg);
+}
+[data-scope-label='implementation'],
+[data-scope-filter='implementation'] {
+  --tag-ink: var(--tag-slate-ink);
+  --tag-bg: var(--tag-slate-bg);
+}
+.tag-filters button[data-scope-filter]:not([data-scope-filter='all']) {
+  color: var(--tag-ink);
+  background: var(--tag-bg);
+}
 .context-disclosure {
   padding-block: var(--space-3);
   border-bottom: var(--control-width) solid var(--line);
@@ -1446,6 +1521,7 @@ summary::-webkit-details-marker {
   .feature {
     padding-inline: var(--space-4);
   }
+  .scope-note,
   .assessment-tags,
   .assessment {
     margin-inline-start: calc(var(--hit) + var(--space-2));

@@ -26,7 +26,18 @@ test('all original item identities, wording and classifications survive roadmap 
     ...('raw' in item ? { raw: item.raw } : {}),
   }));
   const sort = (list) => list.sort((a, b) => a.id.localeCompare(b.id));
-  assert.deepEqual(sort(actual), sort(original));
+  const originalIds = new Set(original.map((row) => row.id));
+  assert.deepEqual(
+    sort(actual.filter((row) => originalIds.has(row.id))),
+    sort(original),
+  );
+  assert.deepEqual(
+    actual
+      .filter((row) => !originalIds.has(row.id))
+      .map((row) => row.id)
+      .sort(),
+    [...data.review.addedItemIds].sort(),
+  );
 });
 
 test('every feature has a complete source-bounded Frappe assessment and acceptance gate', () => {

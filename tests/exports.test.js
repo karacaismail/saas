@@ -127,6 +127,76 @@ function roadmapAtlas() {
   return data;
 }
 
+function reviewedAtlas() {
+  const data = roadmapAtlas();
+  data.review = {
+    version: 1,
+    reviewedAt: '2026-10-11',
+    scopeLabels: {
+      required: 'Zorunlu temel',
+      conditional: 'Ürüne bağlı',
+      advanced: 'İleri aşama',
+      implementation: 'Teknik tercih',
+    },
+    groupDefaults: {
+      tenant: {
+        scope: 'conditional',
+        reason: 'Birden çok kurum varsa planlanır.',
+      },
+      identity: { scope: 'required', reason: 'Kimlik sınırı korunmalıdır.' },
+      'module-catalog': {
+        scope: 'implementation',
+        reason: 'Modül dağıtım yöntemi ürün kararına bağlıdır.',
+      },
+    },
+    itemOverrides: {
+      'tenant-1': {
+        scope: 'required',
+        reason: 'Seçilen mimarinin izolasyon sınırıdır.',
+      },
+    },
+    decisions: [
+      {
+        id: 'merge-tenant',
+        kind: 'merge',
+        title: 'Kimlik ve kiracı sınırı birlikte ele alınır.',
+        reason: 'Tek güvenlik kabulüne bağlanır.',
+        itemIds: ['tenant-1', 'identity-1'],
+        internal: 'Must not leak',
+      },
+      {
+        id: 'defer-team',
+        kind: 'defer',
+        title: 'Ekip katmanı ürün kapsamına bağlıdır.',
+        reason: 'Gereksinim doğunca ele alınır.',
+        itemIds: ['tenant-2'],
+      },
+      {
+        id: 'unrelated-module',
+        kind: 'correct',
+        title: 'Unrelated source item content',
+        reason: 'Bu seçimde yer almayan karar.',
+        itemIds: ['module-catalog-1'],
+      },
+    ],
+    source: {
+      title: 'SaaS Paneli Özellik Haritası',
+      itemCount: 402,
+      clusterCount: 17,
+      documents: [
+        {
+          name: 'kaynak.md',
+          sha256: 'a'.repeat(64),
+          internal: 'Must not leak',
+        },
+      ],
+      internal: 'Must not leak',
+    },
+    copy: { title: 'Unrelated interface copy' },
+  };
+  return data;
+}
+
 function freezeDeep(value) {
   Object.freeze(value);
   for (const child of Object.values(value)) {
@@ -680,4 +750,137 @@ test('selected roadmap Markdown retains original text, ownership, relationships 
     1,
   );
   assert.ok(!text.includes('İki aşamalı doğrulama'));
+});
+
+test('reviewed JSON v3 resolves planning per selected item and retains only relevant public review decisions', () => {
+  const data = reviewedAtlas();
+  const before = structuredClone(data);
+  freezeDeep(data);
+  const payload = buildSelection(data, ['tenant-1', 'tenant-2']);
+  assert.equal(payload.schemaVersion, 3);
+  assert.equal(payload.selectedCount, 2);
+  const items = payload.clusters[0].groups[0].items;
+  assert.deepEqual(items[0].planning, {
+    scope: 'required',
+    label: 'Zorunlu temel',
+    reason: 'Seçilen mimarinin izolasyon sınırıdır.',
+  });
+  assert.deepEqual(items[1].planning, {
+    scope: 'conditional',
+    label: 'Ürüne bağlı',
+    reason: 'Birden çok kurum varsa planlanır.',
+  });
+  assert.deepEqual(payload.review, {
+    version: 1,
+    reviewedAt: '2026-10-11',
+    scopeLabels: data.review.scopeLabels,
+    source: {
+      title: 'SaaS Paneli Özellik Haritası',
+      itemCount: 402,
+      clusterCount: 17,
+      documents: [{ name: 'kaynak.md', sha256: 'a'.repeat(64) }],
+    },
+    decisions: data.review.decisions
+      .slice(0, 2)
+      .map(({ id, kind, title, reason, itemIds }) => ({
+        id,
+        kind,
+        title,
+        reason,
+        itemIds,
+      })),
+  });
+  assert.equal(items[0].raw, data.clusters[1].groups[0].items[0].raw);
+  assert.equal(
+    items[0].assessment.note,
+    data.clusters[1].groups[0].items[0].assessment.note,
+  );
+  assert.notEqual(payload.review.scopeLabels, data.review.scopeLabels);
+  assert.notEqual(
+    payload.review.source.documents,
+    data.review.source.documents,
+  );
+  assert.notEqual(
+    payload.review.decisions[0].itemIds,
+    data.review.decisions[0].itemIds,
+  );
+  const json = serializeExport(payload, 'json').text;
+  assert.deepEqual(JSON.parse(json), payload);
+  assert.ok(!json.includes('Unrelated source item content'));
+  assert.ok(!json.includes('Unrelated interface copy'));
+  assert.ok(!json.includes('Must not leak'));
+  assert.ok(!Object.hasOwn(payload.review, 'groupDefaults'));
+  assert.ok(!Object.hasOwn(payload.review, 'itemOverrides'));
+  assert.deepEqual(data, before);
+});
+
+test('reviewed CSV v3 appends planning columns while legacy v2 keeps exactly sixteen columns', () => {
+  const data = reviewedAtlas();
+  data.review.itemOverrides['tenant-1'].reason = '=HYPERLINK("unsafe")';
+  const rows = readCsv(
+    serializeExport(buildSelection(data, ['tenant-1']), 'csv').text,
+  );
+  assert.equal(rows[0].length, 18);
+  assert.deepEqual(rows[0].slice(16), ['Plan kapsamı', 'Kapsam gerekçesi']);
+  assert.deepEqual(rows[1].slice(16), [
+    'Zorunlu temel',
+    '\'=HYPERLINK("unsafe")',
+  ]);
+  assert.equal(rows[1][4], '01.1.1');
+  assert.equal(
+    readCsv(
+      serializeExport(buildSelection(roadmapAtlas(), ['tenant-1']), 'csv').text,
+    )[0].length,
+    16,
+  );
+});
+
+test('reviewed Markdown contains planning and relevant review provenance with safe escaped decision text', () => {
+  const data = reviewedAtlas();
+  data.review.itemOverrides['tenant-1'].reason =
+    '<script>Plan</script>\n# forged heading';
+  data.review.decisions[0].title = '*Birleştir* <img src=x>';
+  data.review.decisions[0].reason = 'Açıklama\n- forged item';
+  const text = serializeExport(buildSelection(data, ['tenant-1']), 'md').text;
+  for (const content of [
+    'Plan kapsamı: Zorunlu temel',
+    'Kapsam gerekçesi: &lt;script&gt;Plan&lt;/script&gt;&#10;\\# forged heading',
+    'SaaS Paneli Özellik Haritası',
+    'kaynak\\.md',
+    'a'.repeat(64),
+    '\\*Birleştir\\* &lt;img src\\=x&gt;',
+    'Açıklama&#10;\\- forged item',
+    'tenant\\-1',
+    'identity\\-1',
+  ])
+    assert.ok(text.includes(content), `Reviewed Markdown retains ${content}`);
+  assert.ok(!text.includes('Unrelated source item content'));
+  assert.ok(!text.includes('<script>'));
+  assert.equal(
+    text.split('\n').filter((line) => line.startsWith('- [x]')).length,
+    1,
+  );
+});
+
+test('empty reviewed selection keeps source context but has no item decisions or selected source content', () => {
+  const payload = buildSelection(reviewedAtlas(), []);
+  assert.equal(payload.schemaVersion, 3);
+  assert.equal(payload.selectedCount, 0);
+  assert.deepEqual(payload.clusters, []);
+  assert.deepEqual(payload.review.decisions, []);
+  assert.equal(payload.review.source.itemCount, 402);
+  assert.equal(readCsv(serializeExport(payload, 'csv').text)[0].length, 18);
+  assert.ok(!serializeExport(payload, 'md').text.includes('- [x]'));
+  assert.deepEqual(JSON.parse(serializeExport(payload, 'json').text), payload);
+  const data = reviewedAtlas();
+  data.review.decisions.push({
+    id: 'invalid-reference',
+    kind: 'add',
+    title: 'Invalid selected source item content',
+    reason: 'Unknown IDs are ignored.',
+    itemIds: ['missing-1'],
+  });
+  const invalid = buildSelection(data, ['missing-1']);
+  assert.equal(invalid.selectedCount, 0);
+  assert.deepEqual(invalid.review.decisions, []);
 });

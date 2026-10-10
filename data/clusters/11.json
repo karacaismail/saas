@@ -223,6 +223,68 @@
               }
             ]
           }
+        },
+        {
+          "kind": "g",
+          "text": "Kiracıya özel şifreleme anahtarı ve anahtar sürümü; döndürme, iptal ve kurtarma yönetimi.",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "DevOps ekibi ve veri güvenliği",
+            "confidence": "design",
+            "note": "Genel şifreleme ve gizli anahtar saklama, kiracıya özel veri anahtarı yaşam döngüsünü kanıtlamaz. KMS veya eşdeğer anahtar yönetimiyle veri ve yedek çözme zinciri hedef ortamda doğrulanmalıdır; kaynak bir sağlayıcı örneğidir.",
+            "acceptance": "İki kiracının anahtar yetkileri ayrışsın; döndürme sonrası eski veri ve yetkili yedek okunabilsin; iptal erişimi kessin; kurtarma ve işlem izi sınansın.",
+            "sources": [
+              {
+                "title": "Frappe Security FAQs",
+                "url": "https://docs.frappe.io/framework/user/en/security-faqs"
+              },
+              {
+                "title": "AWS KMS key rotation",
+                "url": "https://docs.aws.amazon.com/kms/latest/developerguide/rotate-keys.html"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Kaynak kodu, bağımlılık ve dağıtım imajlarında güvenlik açığı taraması; bulgu önceliği ve düzeltme takibi.",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "Güvenlik operasyonu",
+            "confidence": "design",
+            "note": "Framework güvenlik özellikleri teslim edilen özel uygulama ve bağımlılıkların tarandığını göstermez. CI güvenlik kontrolleri, risk eşiği, istisna süresi ve düzeltme kanıtı ayrı bir süreçtir; tek araç tüm tarama türlerini kapsamaz.",
+            "acceptance": "Bilinen zafiyet örneği ilgili taramada yakalansın; belirlenen risk eşiği yayını durdursun; gerekçeli süreli istisna ve giderilmiş bulgunun yeniden kontrolü kaydedilsin.",
+            "sources": [
+              {
+                "title": "GitHub Dependency Review",
+                "url": "https://docs.github.com/en/code-security/concepts/supply-chain-security/dependency-review"
+              },
+              {
+                "title": "OWASP Web Security Testing Guide",
+                "url": "https://owasp.org/projects/web-security-testing-guide"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Risk temelli penetrasyon testi; kapsam, bağımsız bulgu, düzeltme ve yeniden test kanıtı.",
+          "assessment": {
+            "support": "external",
+            "action": "validate",
+            "owner": "Güvenlik operasyonu",
+            "confidence": "design",
+            "note": "Frappe ve Keycloak kullanımı ürünün güvenlik testini geçmiş olduğu anlamına gelmez. Kiracı sınırı, headless API, kimlik geçişi ve ayrıcalıklı işlemler için yetkili test kapsamı ve yeniden doğrulama planlanmalıdır.",
+            "acceptance": "Onaylı kapsamda tenant aşımı, yetki yükseltme ve oturum akışları sınansın; bulgular önem ve sorumluya bağlansın; kritik düzeltmeler bağımsız yeniden testle kapatılsın.",
+            "sources": [
+              {
+                "title": "OWASP Web Security Testing Guide",
+                "url": "https://owasp.org/projects/web-security-testing-guide"
+              }
+            ]
+          }
         }
       ],
       "sources": ["tenant", "session"],
@@ -515,6 +577,28 @@
               {
                 "title": "Frappe Users and Permissions",
                 "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Uygulanabilir Türkiye ticari ileti süreçleri için İYS izin eşitleme ve gönderim öncesi kontrolü.",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "Frontend ve hukuk",
+            "confidence": "design",
+            "note": "İYS izin sorgu ve aktarım servisleri için dış entegrasyon sağlar. Hizmet sağlayıcı veya aracı rolü, kanal, marka, erişim şartı ve hukuki kapsam belirlenmeden tüm iletilere aynı onay kuralı uygulanmamalıdır.",
+            "acceptance": "Uygulanabilir rol ve marka için verilen/geri çekilen izin eşitlensin; gönderim öncesi geçerli izin denetlensin; İYS erişim hatasında belgelenmiş güvenli politika çalışsın; işlemsel ileti ayrımı hukuk incelemesiyle kaydedilsin.",
+            "sources": [
+              {
+                "title": "İYS Kurumsal Hizmetler",
+                "url": "https://iys.org.tr/hizmet-saglayici/kurumsal-hizmetler"
+              },
+              {
+                "title": "İYS Sık Sorulan Sorular",
+                "url": "https://iys.org.tr/iys/sss"
               }
             ]
           }

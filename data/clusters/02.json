@@ -732,6 +732,28 @@
               }
             ]
           }
+        },
+        {
+          "kind": "g",
+          "text": "Ön ödemeli kredi veya ek kota satın alma; bakiye yükleme, geçerlilik ve iade uzlaştırması.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Faturalama backend",
+            "confidence": "design",
+            "note": "Framework uçtan uca kredi yükleme defteri sağlamaz. Harici ödeme veya billing sağlayıcısının kredi kabiliyeti seçilse bile ödeme, kredi tahsisi, kullanım ve iade hareketleri uygulamanın yetkili defterinde uzlaştırılmalıdır.",
+            "acceptance": "Aynı ödeme bildirimi tek bakiye artışı üretsin; kredi kaynağı ve son kullanım tarihi izlensin; ödeme iadesi ile tüketilmiş kredi kuralı tutarlı çalışsın; kiracı bakiyesi başka kiracıyı etkilemesin.",
+            "sources": [
+              {
+                "title": "Stripe Billing Credits",
+                "url": "https://docs.stripe.com/billing/subscriptions/usage-based/billing-credits"
+              },
+              {
+                "title": "Frappe REST API",
+                "url": "https://docs.frappe.io/framework/user/en/api/rest"
+              }
+            ]
+          }
         }
       ],
       "sources": ["tenant", "subscription"],
@@ -844,6 +866,24 @@
               {
                 "title": "Stripe: iade sözleşmesi örneği",
                 "url": "https://docs.stripe.com/refunds"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "n",
+          "text": "Referans ve iş ortağı programı; ilişkilendirme, hak ediş ve suistimal denetimi.",
+          "assessment": {
+            "support": "ecosystem",
+            "action": "extend",
+            "owner": "Frappe backend",
+            "confidence": "design",
+            "note": "ERPNext Sales Partner komisyon kaydı bir başlangıç olabilir; SaaS referans bağlantısı, atıf süresi, ödül koşulu, iade düzeltmesi ve kendi kendine referans koruması ayrıca tasarlanmalıdır.",
+            "acceptance": "Referans yalnız tanımlı atıf kuralıyla ilişkilensin; ödül geçerli satış veya etkinleşme koşulunda bir kez doğsun; iptal/iade ve kendi kendine referans doğru işlensin; hak ediş denetlenebilsin.",
+            "sources": [
+              {
+                "title": "ERPNext Sales Partner Commission",
+                "url": "https://docs.frappe.io/erpnext/sales-partner"
               }
             ]
           }

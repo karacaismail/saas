@@ -1,0 +1,1122 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-10",
+  "expectedItems": 344,
+  "expectedGroups": 49,
+  "source": {
+    "title": "SaaS Paneli Özellik Haritası",
+    "itemCount": 402,
+    "clusterCount": 17,
+    "documents": [
+      {
+        "name": "SaaS Paneli Özellik Haritası.md",
+        "sha256": "5bf5bea175f9d520d3e319f804b1b167c106bfb87c80fb80cd818aad3f287d24"
+      },
+      {
+        "name": "SaaS Paneli Özellik Haritası.html",
+        "sha256": "ce219f51ae64bae3ab3121302603bacf0dda89cf26175e553a87d3cae28674cc"
+      }
+    ]
+  },
+  "scopeLabels": {
+    "required": "Zorunlu temel",
+    "conditional": "Ürüne bağlı",
+    "advanced": "İleri aşama",
+    "implementation": "Teknik tercih"
+  },
+  "groupDefaults": {
+    "tenant": {
+      "scope": "required",
+      "reason": "Müşteri bağlamı, üyelik ve veri izolasyonu bütün headless işlemlerin güven sınırını kurar."
+    },
+    "identity": {
+      "scope": "required",
+      "reason": "Giriş ve oturum yaşam döngüsü Keycloak tarafından yürütülür; backend kimlik bağını ve geçerli oturumu doğrulamalıdır."
+    },
+    "access": {
+      "scope": "required",
+      "reason": "Kayıt ve işlem yetkisi her sunucu girişinde uygulanmalıdır; arayüzde menü gizlemek erişim denetimi sağlamaz."
+    },
+    "security": {
+      "scope": "required",
+      "reason": "Girdi, secret, şifreleme, istek sınırı ve olay müdahalesi canlı hizmetin temel güvenlik koşullarıdır."
+    },
+    "audit": {
+      "scope": "required",
+      "reason": "Önemli yönetici, erişim ve veri değişiklikleri aktör ve kiracı bağlamıyla izlenebilir olmalıdır."
+    },
+    "legal": {
+      "scope": "required",
+      "reason": "İşlenen veri ve sunulan hizmet için uygulanabilir politika, hukuki dayanak ve kabul kanıtı tanımlanmalıdır; yükümlülükler ülke ve role göre doğrulanır."
+    },
+    "governance": {
+      "scope": "required",
+      "reason": "Veri sahipliği, saklama, silme ve ilgili kişi talebinin hizmetin tüm kopyalarında yönetilmesi gerekir."
+    },
+    "integrity": {
+      "scope": "required",
+      "reason": "Yetkili veri yazımı, çakışma ve düzeltme davranışları sessiz veri kaybını önlemelidir."
+    },
+    "model": {
+      "scope": "required",
+      "reason": "Ürünün iş kayıtları, alanları, ilişkileri ve sunucu doğrulamaları açık bir veri modeline dayanmalıdır."
+    },
+    "files": {
+      "scope": "conditional",
+      "reason": "Dosya kabul eden veya medya kullanan ürünlerde gerekir; bu kapsam açıldığında tür, zararlı içerik ve erişim korumaları birlikte uygulanır."
+    },
+    "search": {
+      "scope": "conditional",
+      "reason": "Veri hacmi ve kullanıcı bulma yolculuğu arama gerektiriyorsa uygulanır; harici arama motoru her ürünün zorunlu bağımlılığı değildir."
+    },
+    "transfer": {
+      "scope": "required",
+      "reason": "Yetkili veri teslimi ve taşınabilirlik için temel dışa aktarım gerekir; kapsam ve hassas alanlar sunucu politikasına bağlıdır."
+    },
+    "integration": {
+      "scope": "required",
+      "reason": "Bağımsız frontend ile Frappe arasındaki API, kimlik doğrulama, hata ve sürüm sözleşmeleri temel mimari bağımlılıktır."
+    },
+    "events": {
+      "scope": "required",
+      "reason": "Modüller arası yayımlanmış sınır ve kiracı bağlamı açık olmalıdır; her etkileşimi asenkron olay yapmak zorunlu değildir."
+    },
+    "ai": {
+      "scope": "advanced",
+      "reason": "Yapay zekâ sağlayıcıları ürün ihtiyacı, veri politikası ve maliyet kanıtı oluştuğunda eklenir; temel SaaS işletimi bunlara bağlı değildir."
+    },
+    "rag": {
+      "scope": "advanced",
+      "reason": "Bilgi getirmeyle üretim senaryosu seçilirse kaynak, yetki, güncellik ve kalite sözleşmeleriyle uygulanır."
+    },
+    "agents": {
+      "scope": "advanced",
+      "reason": "Araç kullanan ajanlar yetki, insan onayı, bütçe ve durdurma sınırları doğrulandıktan sonra ileri aşamada açılır."
+    },
+    "shell": {
+      "scope": "required",
+      "reason": "Bağımsız panelin gezinme, hesap, kapsam ve temel işlem yüzeyleri kullanıcı yolculuğunu taşımalıdır."
+    },
+    "views": {
+      "scope": "required",
+      "reason": "İş kayıtlarının okunabilir liste/detay sunumu ve güvenilir işlem geri bildirimi temel panel deneyimidir."
+    },
+    "forms": {
+      "scope": "required",
+      "reason": "Kullanıcı girdisi alan ürünlerde sunucu doğrulamasıyla tutarlı, erişilebilir ve veri kaybetmeyen temel form akışı gerekir."
+    },
+    "locale": {
+      "scope": "conditional",
+      "reason": "Desteklenen dil ve bölgeler ürün kapsamıyla belirlenir; seçilen kapsamda biçim, çeviri ve yön tutarlılığı sağlanır."
+    },
+    "channels": {
+      "scope": "required",
+      "reason": "Headless web paneli dar ekran, klavye, dokunma ve erişilebilirlik temel yolculuklarını sağlamalıdır."
+    },
+    "workflow": {
+      "scope": "conditional",
+      "reason": "Ürün iş nesneleri durum veya süreç yönetimi gerektiriyorsa uygulanır; basit CRUD ürünü için tam süreç motoru zorunlu değildir."
+    },
+    "rules": {
+      "scope": "conditional",
+      "reason": "Kullanıcı tanımlı otomasyon ve koşullu eylem ihtiyacı varsa eklenir; sabit iş doğrulamasıyla karıştırılmaz."
+    },
+    "approvals": {
+      "scope": "conditional",
+      "reason": "İş modeli onay veya görev ayrılığı istiyorsa uygulanır; tüm kayıtlara genel onay zinciri zorlanmaz."
+    },
+    "jobs": {
+      "scope": "required",
+      "reason": "Frappe zamanlayıcı ve kuyruk kullanılan işlemlerde hata, tekrar, kaynak ve kiracı bağlamı güvenilir biçimde yönetilmelidir."
+    },
+    "notifications": {
+      "scope": "conditional",
+      "reason": "Ürünün kullanıcıya olay duyurma ihtiyacına göre kanal seçilir; her mesajlaşma sağlayıcısı zorunlu değildir."
+    },
+    "email": {
+      "scope": "required",
+      "reason": "Kimlik e-postaları Keycloak sorumluluğunda, gerekli işlemsel iletiler ürün backendinde izlenebilir biçimde teslim edilmelidir."
+    },
+    "realtime": {
+      "scope": "conditional",
+      "reason": "Canlı veri veya ortak çalışma yolculuğu varsa eklenir; her panel ekranı sürekli bağlantı gerektirmez."
+    },
+    "modules": {
+      "scope": "implementation",
+      "reason": "Modüler ürünün bağımlılık ve yayımlanmış sözleşme yöntemidir; Frappe uygulama mekanizmalarıyla uyumlu olmalıdır."
+    },
+    "catalog": {
+      "scope": "conditional",
+      "reason": "Paketli satış ve ek hizmet fiyatlama sunuluyorsa uygulanır; her iç kullanım ürünü ticari katalog gerektirmez."
+    },
+    "subscriptions": {
+      "scope": "conditional",
+      "reason": "Abonelik modeli seçilirse yaşam döngüsü ve tahsilat bağı açıkça uygulanır; framework kurulumu abonelik ürünü sağlamaz."
+    },
+    "entitlements": {
+      "scope": "conditional",
+      "reason": "Paket veya sözleşmeye bağlı kullanım hakları satılıyorsa gerekir; teknik feature flag ve kullanıcı izni ayrı kalır."
+    },
+    "usage": {
+      "scope": "conditional",
+      "reason": "Kaynak sınırı veya tüketim bazlı fiyatlama ihtiyacı varsa uygulanır; ölçüm ile ücretlendirme ayrı sözleşmelerdir."
+    },
+    "campaigns": {
+      "scope": "conditional",
+      "reason": "İndirim ve büyüme kampanyaları ticari stratejiye bağlıdır; zorunlu platform çekirdeğine alınmaz."
+    },
+    "payments": {
+      "scope": "conditional",
+      "reason": "Ürün tahsilat yapıyorsa sağlayıcı tokenı, tekilleştirme, bildirim doğrulama ve uzlaştırma birlikte gerekir."
+    },
+    "finance": {
+      "scope": "conditional",
+      "reason": "İşletmecinin fatura ve muhasebe sorumluluğuna göre ERPNext veya muhasebe entegrasyonu seçilir; Framework bu ürünü tek başına sağlamaz."
+    },
+    "crm": {
+      "scope": "conditional",
+      "reason": "Satış veya müşteri başarısı süreçleri ürün kapsamında yönetilecekse ayrı iş modülü olarak uygulanır."
+    },
+    "support": {
+      "scope": "conditional",
+      "reason": "Müşteri destek hizmetinin seçilen kanal ve hizmet modeli bu iş modülünün kapsamını belirler."
+    },
+    "calendar": {
+      "scope": "conditional",
+      "reason": "Randevu veya kaynak rezervasyonu sunan ürünlerde gerekir; tüm SaaS ürünlerinin çekirdeği değildir."
+    },
+    "content": {
+      "scope": "conditional",
+      "reason": "Herkese açık içerik, yardım veya yayın yüzeyi işletilecekse CMS, arama görünürlüğü ve moderasyon ihtiyacına göre uygulanır."
+    },
+    "reports": {
+      "scope": "conditional",
+      "reason": "İş alanının karar ve mevzuat raporları ihtiyaca göre seçilir; ayrı BI ürünü temel panel için zorunlu değildir."
+    },
+    "analytics": {
+      "scope": "conditional",
+      "reason": "Ürün veya pazarlama ölçümü açık hedef ve geçerli izin politikasıyla seçilir; izleme sağlayıcıları zorunlu bağımlılık değildir."
+    },
+    "observability": {
+      "scope": "required",
+      "reason": "Hizmetin sağlık, hata ve kiracı etkisi ölçülmeli; sorumlu müdahaleye yönlenen temel alarm bulunmalıdır."
+    },
+    "performance": {
+      "scope": "required",
+      "reason": "Kritik yolculuklarda yanıt, kaynak adaleti ve aşırı yük davranışı ölçülebilir sınırlarla korunmalıdır."
+    },
+    "deployment": {
+      "scope": "required",
+      "reason": "Seçilmiş çalışma ortamında tekrarlanabilir kurulum, güvenli alan adı, kaynak ve erişim yaşam döngüsü gerekir."
+    },
+    "releases": {
+      "scope": "required",
+      "reason": "Uygulama ve veri değişikliklerinin sürüm uyumu, güvenli geçiş ve geri dönüş sınırları doğrulanmalıdır."
+    },
+    "backup": {
+      "scope": "required",
+      "reason": "Gerçek geri yükleme denemesi ve veri bütünlüğüyle kanıtlanmış yedekleme canlı hizmetin temel koşuludur."
+    },
+    "service": {
+      "scope": "required",
+      "reason": "Kesinti etkisi, sorumlu müdahale ve müşteriye gereken durum iletişimi tanımlanmalıdır."
+    }
+  },
+  "itemOverrides": {
+    "identity-3": {
+      "scope": "conditional",
+      "reason": "OTP, passkey/sosyal giriş veya kurumsal SSO yöntemi müşteri ihtiyacına göre seçilir; seçilen akış Keycloak üzerinde doğrulanır."
+    },
+    "identity-6": {
+      "scope": "conditional",
+      "reason": "OTP, passkey/sosyal giriş veya kurumsal SSO yöntemi müşteri ihtiyacına göre seçilir; seçilen akış Keycloak üzerinde doğrulanır."
+    },
+    "identity-7": {
+      "scope": "conditional",
+      "reason": "OTP, passkey/sosyal giriş veya kurumsal SSO yöntemi müşteri ihtiyacına göre seçilir; seçilen akış Keycloak üzerinde doğrulanır."
+    },
+    "identity-8": {
+      "scope": "conditional",
+      "reason": "SCIM kurumsal kullanıcı yaşam döngüsü isteniyorsa gerekir; Keycloak hedef sürümündeki destek/preview durumu ve iki yönlü üyelik iptali PoC ile doğrulanır."
+    },
+    "access-4": {
+      "scope": "conditional",
+      "reason": "Destek adına erişim hizmet modeli gerektiriyorsa ancak izin, süre ve denetim sınırlarıyla açılır."
+    },
+    "access-5": {
+      "scope": "conditional",
+      "reason": "Destek adına erişim hizmet modeli gerektiriyorsa ancak izin, süre ve denetim sınırlarıyla açılır."
+    },
+    "security-2": {
+      "scope": "conditional",
+      "reason": "WAF ve bot korumasının kapsamı dış erişim, tehdit modeli ve yükle belirlenir; temel girdi ve hız korumasını kaldırmaz."
+    },
+    "security-3": {
+      "scope": "conditional",
+      "reason": "WAF ve bot korumasının kapsamı dış erişim, tehdit modeli ve yükle belirlenir; temel girdi ve hız korumasını kaldırmaz."
+    },
+    "legal-6": {
+      "scope": "conditional",
+      "reason": "Müşteri sözleşmesi, hukuki saklama veya veri yerleşimi yükümlülüğü uygulanıyorsa ilgili koşul ve kanıt ayrıca tanımlanır."
+    },
+    "governance-5": {
+      "scope": "conditional",
+      "reason": "Müşteri sözleşmesi, hukuki saklama veya veri yerleşimi yükümlülüğü uygulanıyorsa ilgili koşul ve kanıt ayrıca tanımlanır."
+    },
+    "governance-6": {
+      "scope": "conditional",
+      "reason": "Müşteri sözleşmesi, hukuki saklama veya veri yerleşimi yükümlülüğü uygulanıyorsa ilgili koşul ve kanıt ayrıca tanımlanır."
+    },
+    "model-5": {
+      "scope": "conditional",
+      "reason": "Müşteriye özel şema özelleştirmesi ürün tarafından sunuluyorsa sürüm ve geçiş kurallarıyla uygulanır."
+    },
+    "model-7": {
+      "scope": "implementation",
+      "reason": "Modül sahipliği ve genişletme sınırı mimari uygulama sözleşmesidir; kullanıcıya yeni alan satışı anlamına gelmez."
+    },
+    "search-1": {
+      "scope": "implementation",
+      "reason": "Arama yeteneği seçildiğinde Meilisearch veya Qdrant adaptörü teknik seçenektir; sağlayıcı adı zorunlu ürün çekirdeği oluşturmaz."
+    },
+    "search-3": {
+      "scope": "implementation",
+      "reason": "Arama yeteneği seçildiğinde Meilisearch veya Qdrant adaptörü teknik seçenektir; sağlayıcı adı zorunlu ürün çekirdeği oluşturmaz."
+    },
+    "transfer-2": {
+      "scope": "conditional",
+      "reason": "Toplu veri içe aktarma ürün yolculuğunda açılırsa şablon, doğrulama, yetki ve kota birlikte gerekir."
+    },
+    "transfer-3": {
+      "scope": "conditional",
+      "reason": "Toplu veri içe aktarma ürün yolculuğunda açılırsa şablon, doğrulama, yetki ve kota birlikte gerekir."
+    },
+    "transfer-5": {
+      "scope": "conditional",
+      "reason": "Toplu veri içe aktarma ürün yolculuğunda açılırsa şablon, doğrulama, yetki ve kota birlikte gerekir."
+    },
+    "transfer-4": {
+      "scope": "advanced",
+      "reason": "Büyük aktarımda devam ve iptal davranışı veri hacmi ve işlem riski bu ihtiyacı doğurduğunda eklenir."
+    },
+    "integration-2": {
+      "scope": "implementation",
+      "reason": "Activepieces seçilebilen harici otomasyon aracıdır; API sözleşmesi korunarak başka bir uygulama yöntemi değerlendirilebilir."
+    },
+    "events-1": {
+      "scope": "implementation",
+      "reason": "Dağıtım ve kalıcı olay teslimi yöntemi işlem sınırı ve güvenilirlik ihtiyacına göre seçilir; tüm modülleri asenkron yapma zorunluluğu değildir."
+    },
+    "events-4": {
+      "scope": "implementation",
+      "reason": "Dağıtım ve kalıcı olay teslimi yöntemi işlem sınırı ve güvenilirlik ihtiyacına göre seçilir; tüm modülleri asenkron yapma zorunluluğu değildir."
+    },
+    "events-6": {
+      "scope": "implementation",
+      "reason": "Dağıtım ve kalıcı olay teslimi yöntemi işlem sınırı ve güvenilirlik ihtiyacına göre seçilir; tüm modülleri asenkron yapma zorunluluğu değildir."
+    },
+    "ai-1": {
+      "scope": "advanced",
+      "reason": "Yapay zekâ kullanım senaryosu ve veri/maliyet politikası onaylandığında sağlayıcı adaptörü seçilir; temel platformun önkoşulu değildir."
+    },
+    "shell-3": {
+      "scope": "conditional",
+      "reason": "Özet pano, tema, kişiselleştirme veya kiracı markası ilgili ürün yolculuğu ve satış kapsamı gerektiriyorsa açılır."
+    },
+    "shell-5": {
+      "scope": "conditional",
+      "reason": "Özet pano, tema, kişiselleştirme veya kiracı markası ilgili ürün yolculuğu ve satış kapsamı gerektiriyorsa açılır."
+    },
+    "shell-6": {
+      "scope": "conditional",
+      "reason": "Özet pano, tema, kişiselleştirme veya kiracı markası ilgili ürün yolculuğu ve satış kapsamı gerektiriyorsa açılır."
+    },
+    "shell-8": {
+      "scope": "conditional",
+      "reason": "Özet pano, tema, kişiselleştirme veya kiracı markası ilgili ürün yolculuğu ve satış kapsamı gerektiriyorsa açılır."
+    },
+    "views-2": {
+      "scope": "conditional",
+      "reason": "Görünüm çeşitleri, toplu işlem ve karşılaştırma ilgili kayıt işinin gerçek ihtiyacına göre seçilir; temel liste/detay korunur."
+    },
+    "views-3": {
+      "scope": "conditional",
+      "reason": "Görünüm çeşitleri, toplu işlem ve karşılaştırma ilgili kayıt işinin gerçek ihtiyacına göre seçilir; temel liste/detay korunur."
+    },
+    "views-4": {
+      "scope": "conditional",
+      "reason": "Görünüm çeşitleri, toplu işlem ve karşılaştırma ilgili kayıt işinin gerçek ihtiyacına göre seçilir; temel liste/detay korunur."
+    },
+    "views-7": {
+      "scope": "conditional",
+      "reason": "Görünüm çeşitleri, toplu işlem ve karşılaştırma ilgili kayıt işinin gerçek ihtiyacına göre seçilir; temel liste/detay korunur."
+    },
+    "forms-3": {
+      "scope": "conditional",
+      "reason": "Çok adımlı veya sürümlenebilir form ürün tarafından sunuluyorsa taslak ve geriye uyum sözleşmesiyle uygulanır."
+    },
+    "forms-4": {
+      "scope": "conditional",
+      "reason": "Çok adımlı veya sürümlenebilir form ürün tarafından sunuluyorsa taslak ve geriye uyum sözleşmesiyle uygulanır."
+    },
+    "locale-4": {
+      "scope": "required",
+      "reason": "Tek dilde dahi tarih, saat dilimi, sayı ve para biçimi tutarlı olmalı; sunucu ile istemci sınırı açık olmalıdır."
+    },
+    "locale-2": {
+      "scope": "conditional",
+      "reason": "Yazı sistemleri arasında dönüşüm arama veya veri girişi ihtiyacı doğurduğunda eklenir; çeviri ile aynı iş değildir."
+    },
+    "channels-2": {
+      "scope": "conditional",
+      "reason": "Web dışı uygulama kanalı veya kanallar arası devam ürün hedefi olarak seçilirse kapsam ve oturum davranışı ayrıca doğrulanır."
+    },
+    "channels-3": {
+      "scope": "conditional",
+      "reason": "Web dışı uygulama kanalı veya kanallar arası devam ürün hedefi olarak seçilirse kapsam ve oturum davranışı ayrıca doğrulanır."
+    },
+    "channels-8": {
+      "scope": "conditional",
+      "reason": "Web dışı uygulama kanalı veya kanallar arası devam ürün hedefi olarak seçilirse kapsam ve oturum davranışı ayrıca doğrulanır."
+    },
+    "channels-7": {
+      "scope": "advanced",
+      "reason": "Çevrimdışı yazım ve uzlaştırma gerçek saha gereksinimi ve veri çakışması politikasıyla ileri aşamada açılır."
+    },
+    "workflow-5": {
+      "scope": "advanced",
+      "reason": "BPMN uyumlu modelleme/yürütüm gerektiren süreç varsa uygun motor ve desteklenen alt küme doğrulanır; Frappe Workflow tek başına BPMN kanıtı değildir."
+    },
+    "workflow-6": {
+      "scope": "advanced",
+      "reason": "Uzun süreli süreçte telafi ve yeniden başlatma ihtiyacı oluştuğunda kalıcı yürütüm sözleşmesiyle eklenir."
+    },
+    "email-2": {
+      "scope": "required",
+      "reason": "Giriş, doğrulama ve kurtarma e-postası Keycloak akışının parçasıdır; Frappe üzerinde ikinci bağımsız kimlik akışı kurulmaz."
+    },
+    "email-3": {
+      "scope": "implementation",
+      "reason": "Mailgun veya Postfix teslimat yöntemidir; gerekli e-posta yeteneği sağlayıcı seçimine indirgenmez."
+    },
+    "realtime-1": {
+      "scope": "implementation",
+      "reason": "Canlı iletim gerekiyorsa WebSocket ve SSE arasında akışa uygun yöntem seçilir; ikisini birlikte kurmak zorunlu değildir."
+    },
+    "realtime-2": {
+      "scope": "implementation",
+      "reason": "Canlı iletim gerekiyorsa WebSocket ve SSE arasında akışa uygun yöntem seçilir; ikisini birlikte kurmak zorunlu değildir."
+    },
+    "modules-2": {
+      "scope": "implementation",
+      "reason": "module.manifest.yml özel platform sözleşmesidir; Frappe native apps, hooks ve migration mekanizmalarının hazır dosyası değildir."
+    },
+    "modules-5": {
+      "scope": "conditional",
+      "reason": "Kiracı bazlı kontrollü özellik açılışı ürün ve yayın riski gerektiriyorsa uygulanır; ticari kullanım hakkı veya kullanıcı yetkisi yerine geçmez."
+    },
+    "entitlements-6": {
+      "scope": "conditional",
+      "reason": "Müşteri ortamına kurulum ve ticari lisans doğrulama seçilirse çevrimdışı tolerans ve hizmet kesme politikası ayrıca belirlenir."
+    },
+    "campaigns-2": {
+      "scope": "conditional",
+      "reason": "BOGO yalnız uygun ürün veya kampanya modeli varsa uygulanır; abonelik temelli her SaaS için anlamlı değildir."
+    },
+    "reports-2": {
+      "scope": "implementation",
+      "reason": "BI veya analitik ihtiyacı seçildiğinde bu araç ve sağlayıcılar uygulama seçenekleridir; zorunlu çekirdeğin parçası sayılmaz."
+    },
+    "reports-3": {
+      "scope": "implementation",
+      "reason": "BI veya analitik ihtiyacı seçildiğinde bu araç ve sağlayıcılar uygulama seçenekleridir; zorunlu çekirdeğin parçası sayılmaz."
+    },
+    "analytics-1": {
+      "scope": "implementation",
+      "reason": "BI veya analitik ihtiyacı seçildiğinde bu araç ve sağlayıcılar uygulama seçenekleridir; zorunlu çekirdeğin parçası sayılmaz."
+    },
+    "analytics-2": {
+      "scope": "implementation",
+      "reason": "BI veya analitik ihtiyacı seçildiğinde bu araç ve sağlayıcılar uygulama seçenekleridir; zorunlu çekirdeğin parçası sayılmaz."
+    },
+    "content-3": {
+      "scope": "advanced",
+      "reason": "Şablonla ölçekli SEO üretimi yeterli kaliteli veri ve yayın/indeks politikası oluştuğunda değerlendirilir."
+    },
+    "performance-2": {
+      "scope": "implementation",
+      "reason": "Redis Frappe çalışma yığınının teknik bileşenidir; cluster/topoloji seçimi yük ve erişilebilirlik ihtiyacına göre yapılır."
+    },
+    "performance-7": {
+      "scope": "conditional",
+      "reason": "Medya ve herkese açık içerik hacmi gerektiriyorsa CDN/uç önbelleği uygulanır; özel veri için erişim ve önbellek sınırı korunur."
+    },
+    "deployment-1": {
+      "scope": "conditional",
+      "reason": "Müşteri kendi ortamında kurulum istiyorsa destek matrisi ve teknik sınırlar ayrıca belirlenir."
+    },
+    "deployment-2": {
+      "scope": "advanced",
+      "reason": "Küme ve yüksek erişilebilirlik topolojisi hizmet hedefi ve kapasite gerektiriyorsa eklenir; ilk kurulumun otomatik önkoşulu değildir."
+    },
+    "deployment-7": {
+      "scope": "advanced",
+      "reason": "Küme ve yüksek erişilebilirlik topolojisi hizmet hedefi ve kapasite gerektiriyorsa eklenir; ilk kurulumun otomatik önkoşulu değildir."
+    },
+    "deployment-4": {
+      "scope": "implementation",
+      "reason": "Kaynak tahsisi ve teslimat aracı seçimi tekrarlanabilir işletim yöntemidir; son kullanıcı yeteneği ile ayrı izlenir."
+    },
+    "releases-1": {
+      "scope": "implementation",
+      "reason": "Kaynak tahsisi ve teslimat aracı seçimi tekrarlanabilir işletim yöntemidir; son kullanıcı yeteneği ile ayrı izlenir."
+    },
+    "releases-2": {
+      "scope": "implementation",
+      "reason": "Kaynak tahsisi ve teslimat aracı seçimi tekrarlanabilir işletim yöntemidir; son kullanıcı yeteneği ile ayrı izlenir."
+    },
+    "releases-5": {
+      "scope": "conditional",
+      "reason": "Demo veya eğitim ortamı sunulacaksa veri oluşturma ve sıfırlama gerçek müşteri verisinden ayrılır."
+    },
+    "releases-8": {
+      "scope": "conditional",
+      "reason": "Demo veya eğitim ortamı sunulacaksa veri oluşturma ve sıfırlama gerçek müşteri verisinden ayrılır."
+    },
+    "backup-3": {
+      "scope": "advanced",
+      "reason": "Kiracı bazlı veya belirli zamana geri yükleme hedefi sözleşme ve veri kaybı riski gerektiriyorsa ayrı altyapı ve denemeyle sağlanır."
+    },
+    "service-1": {
+      "scope": "conditional",
+      "reason": "Herkese açık durum sayfası veya hizmet kredisi müşteri iletişimi ve sözleşme modeline göre seçilir; iç kesinti yönetimi temel kapsamda kalır."
+    },
+    "service-4": {
+      "scope": "conditional",
+      "reason": "Herkese açık durum sayfası veya hizmet kredisi müşteri iletişimi ve sözleşme modeline göre seçilir; iç kesinti yönetimi temel kapsamda kalır."
+    },
+    "tenant-7": {
+      "scope": "conditional",
+      "reason": "Tekrarlanabilir demo, şablon veya müşteri ortamı üretimi istendiğinde gerekir; tenant-3 yaşam döngüsü ve tenant-6 taşıma, seçmeli klonlama değildir."
+    },
+    "security-10": {
+      "scope": "conditional",
+      "reason": "Müşteri sözleşmesi, veri hassasiyeti veya ayrık anahtar yönetimi gerektiren kurulumlarda etkinleştirilir; security-5 ve security-6 genel korumayı kapsar."
+    },
+    "security-11": {
+      "scope": "required",
+      "reason": "Temel güvenlik kontrolleri özel headless frontend, backend ve tedarik zincirinin her sürümünde gerekir; security-1 genel yönetimi bu somut denetimin yerine geçmez."
+    },
+    "security-12": {
+      "scope": "conditional",
+      "reason": "Bağımsız testin sıklığı ve kapsamı risk, önemli değişiklik ve müşteri yükümlülüğüyle belirlenir; günlük güvenlik taraması security-11 kapsamında ayrıca zorunludur."
+    },
+    "deployment-9": {
+      "scope": "conditional",
+      "reason": "Yalıtılmış müşteri ortamı açıkça isteniyorsa gerekir; deployment-1 on-premises desteği kendiliğinden çevrimdışı çalışmayı içermez."
+    },
+    "deployment-10": {
+      "scope": "implementation",
+      "reason": "Tekrarlanabilir altyapı tesliminin uygulama yöntemidir; Terraform kaynak örneğidir ve zorunlu ürün bağımlılığı seçimi değildir."
+    },
+    "releases-10": {
+      "scope": "required",
+      "reason": "Güvenli işletim, kullanılan bileşenlerin destek durumunu ve müşterinin geçiş yolunu bilmesini gerektirir; releases-6 uyum kontrolü destek yaşam döngüsü politikasını kapsamaz."
+    },
+    "access-8": {
+      "scope": "conditional",
+      "reason": "Kurumsal güvence, ayrıcalıklı erişim riski veya müşteri denetim şartı gerektiriyorsa uygulanır; access-6 görev ayrılığı, zaman içindeki erişim tasdikinden farklıdır."
+    },
+    "shell-10": {
+      "scope": "required",
+      "reason": "Bağımsız frontend yüzeylerinin tutarlı ve erişilebilir davranması için ortak sözleşme gerekir; shell-5 tema motoru yalnız görünüm özelleştirmesini karşılar."
+    },
+    "views-10": {
+      "scope": "conditional",
+      "reason": "Yoğun veri girişinin ürün yolculuğunda gerekmesi halinde uygulanır; views-3 toplu işlem ve integrity-1 çakışma koruması tekil hücre düzenleme deneyimi değildir."
+    },
+    "notifications-9": {
+      "scope": "conditional",
+      "reason": "Müşterinin ekip iletişim kanalları istiyorsa eklenir; notifications-4 mevcut diğer mesajlaşma kanallarıdır ve Slack/Teams bağlantısını içermez."
+    },
+    "legal-7": {
+      "scope": "conditional",
+      "reason": "Türkiye ticari elektronik ileti yükümlülüğü ilgili işletmeye ve ileti türüne uygulanıyorsa gerekir; legal-5 yerel tercih kaydı, İYS ile dış izin eşitlemesinin yerine geçmez."
+    },
+    "usage-8": {
+      "scope": "conditional",
+      "reason": "Ön ödemeli veya tüketim bazlı ticari model seçilirse gerekir; catalog-5 ek kota teklifi ve usage-6 kredi tüketimi, kredi yükleme hareketini tamamlamaz."
+    },
+    "campaigns-6": {
+      "scope": "conditional",
+      "reason": "Referans veya affiliate satış kanalı ürün stratejisinde seçilirse uygulanır; campaigns-1 kupon indirimi, ortak bazlı atıf ve hak ediş değildir."
+    },
+    "finance-9": {
+      "scope": "conditional",
+      "reason": "Hizmet dönemi gelir tanımasını gerektiren muhasebe politikası ve ticari model varsa uygulanır; finance-1 genel muhasebeleştirme bu dönem planını açıkça tanımlamaz."
+    },
+    "reports-8": {
+      "scope": "conditional",
+      "reason": "Tekrarlayan gelir iş modelinde karar ihtiyacı varsa gerekir; reports-7 metrik sözleşmesi bu belirli SaaS hesaplarını henüz tanımlamaz."
+    },
+    "support-8": {
+      "scope": "conditional",
+      "reason": "Canlı temsilci desteği hizmet modelinde sunulacaksa uygulanır; realtime-4 ekip yorumları ve support-1 ticket farklı iletişim akışlarıdır."
+    },
+    "observability-8": {
+      "scope": "advanced",
+      "reason": "Temel ölçüm ve alarm observability-5/7 kapsamında kalır; resmî hata bütçesi ve yayın yönetişimi güvenilirlik olgunluğu aşamasında eklenir."
+    }
+  },
+  "addedItemIds": [
+    "tenant-7",
+    "security-10",
+    "security-11",
+    "security-12",
+    "deployment-9",
+    "deployment-10",
+    "releases-10",
+    "access-8",
+    "shell-10",
+    "views-10",
+    "notifications-9",
+    "legal-7",
+    "usage-8",
+    "campaigns-6",
+    "finance-9",
+    "reports-8",
+    "support-8",
+    "observability-8"
+  ],
+  "decisions": [
+    {
+      "id": "merge-core-boundaries",
+      "kind": "merge",
+      "title": "Çekirdek yetenekleri mevcut sahiplik sınırlarında birleştir",
+      "reason": "Kaynakta bir arada geçen type engine, iş nesnesi state machine ve arayüz state management farklı sorumluluklardır; mevcut maddeler korunur, ikinci envanter oluşturulmaz.",
+      "itemIds": ["model-2", "workflow-3", "views-5", "modules-6", "events-2"]
+    },
+    {
+      "id": "merge-delivery",
+      "kind": "merge",
+      "title": "Olay güvenilirliği ve zamanlama tekrarlarını mevcut maddelere bağla",
+      "reason": "Outbox, tekilleştirme, şema sürümü, yeniden deneme ve başarısız iş kuyruğu zaten tanımlıdır; kaynakta parçalanmış ifadeler yeni özellik sayılmaz.",
+      "itemIds": [
+        "events-3",
+        "events-4",
+        "events-5",
+        "events-6",
+        "jobs-3",
+        "jobs-5"
+      ]
+    },
+    {
+      "id": "merge-content-growth",
+      "kind": "merge",
+      "title": "SEO ve büyüme alt başlıklarını mevcut kapsamda tut",
+      "reason": "Canonical, hreflang, sosyal meta, site haritası ve dönüşüm olayları mevcut SEO, yayın ve analitik sözleşmelerinin kabul ayrıntılarıdır; ayrı zorunlu çekirdek maddeleri üretilmez.",
+      "itemIds": [
+        "content-2",
+        "content-7",
+        "analytics-3",
+        "analytics-4",
+        "analytics-6"
+      ]
+    },
+    {
+      "id": "merge-ai-controls",
+      "kind": "merge",
+      "title": "AI alt kabiliyetlerini mevcut sınırlarla koru",
+      "reason": "Sağlayıcı, prompt, maliyet, vektör yetkisi ve ajan onay/bütçe sınırları zaten ayrıdır; kaynak farklı kelimeler kullandığı için yeni kopyalar eklenmez.",
+      "itemIds": [
+        "ai-1",
+        "ai-3",
+        "ai-4",
+        "ai-5",
+        "ai-6",
+        "rag-4",
+        "agents-2",
+        "agents-3",
+        "agents-5"
+      ]
+    },
+    {
+      "id": "defer-product-modules",
+      "kind": "defer",
+      "title": "Ticari ve alan modüllerini ürün koşuluna bağla",
+      "reason": "Paket, abonelik, tahsilat, muhasebe, CRM, takvim ve kampanya yalnız ilgili iş modeli seçilirse gerekir; envanterden silinmez ve zorunlu çekirdek olarak sunulmaz.",
+      "itemIds": [
+        "catalog-1",
+        "subscriptions-1",
+        "payments-1",
+        "finance-1",
+        "crm-1",
+        "calendar-1",
+        "campaigns-1",
+        "campaigns-2"
+      ]
+    },
+    {
+      "id": "defer-platforms-ai",
+      "kind": "defer",
+      "title": "Ek uygulama kanalları ve yapay zekâyı aşamalandır",
+      "reason": "Mobil/masaüstü/eklenti dağıtımı, çevrimdışı yazım, BPMN ve ajanlar ayrı gereksinim ve kanıtla açılır; başlangıçtaki headless web yolculuğunun önkoşulu değildir.",
+      "itemIds": [
+        "channels-2",
+        "channels-7",
+        "workflow-5",
+        "ai-1",
+        "rag-1",
+        "agents-1"
+      ]
+    },
+    {
+      "id": "defer-assurance-register",
+      "kind": "defer",
+      "title": "ISO 27001, SOC 2 ve VERBİS hedefini uygulanabilir koşula bağla",
+      "reason": "ISO 27001 sertifikasyonu ve SOC 2 güvence raporu müşteri, pazar ve organizasyon hedefi seçilirse ayrı program olarak planlanır. VERBİS kayıt yükümlülüğü ilgili işletmenin rolü, kapsamı ve istisnalarıyla hukuk tarafından doğrulanır; hiçbiri her SaaS için otomatik zorunlu ürün özelliği değildir. Mevcut hukuk, denetim ve veri envanteri maddeleri kanıtı destekler.",
+      "itemIds": ["legal-1", "audit-4", "governance-1", "governance-6"]
+    },
+    {
+      "id": "defer-visual-process-design",
+      "kind": "defer",
+      "title": "BPMN ve görsel süreç tasarımcısını ayrı ürün ihtiyacına bağla",
+      "reason": "Temel durum geçişi ve onay için görsel editör veya tam BPMN motoru zorunlu değildir. İş kullanıcılarının süreç çizmesi, desteklenen BPMN alt kümesi ve yürütüm/sürüm ihtiyacı doğrulanırsa mevcut workflow ve rules kapsamı altında ileri aşamada ele alınır.",
+      "itemIds": [
+        "workflow-1",
+        "workflow-4",
+        "workflow-5",
+        "rules-2",
+        "approvals-1"
+      ]
+    },
+    {
+      "id": "defer-specific-tools",
+      "kind": "defer",
+      "title": "Belirli araçların kurulumunu zorunlu çekirdekten çıkar",
+      "reason": "Activepieces, Metabase, Meilisearch/Qdrant, Mailgun/Postfix ve Redis küme topolojisi ilgili yetenek ve kapasite ihtiyacı seçildikten sonra değerlendirilen teknik yollardır. Kayıtlar korunur; araç adlarının kaynakta bulunması hepsini kurma yükümlülüğü oluşturmaz.",
+      "itemIds": [
+        "integration-2",
+        "reports-3",
+        "search-1",
+        "search-3",
+        "email-3",
+        "performance-2",
+        "deployment-2"
+      ]
+    },
+    {
+      "id": "correct-headless",
+      "kind": "correct",
+      "title": "Desk yeteneğini bağımsız frontend teslimi sayma",
+      "reason": "Frappe Desk liste, form veya tema altyapısının bulunması bağımsız panelin aynı davranışı hazır sunduğunu kanıtlamaz; API temeli ve frontend geliştirme sorumluluğu ayrı değerlendirilir.",
+      "itemIds": ["views-1", "forms-1", "shell-5", "shell-10", "channels-5"]
+    },
+    {
+      "id": "correct-identity-boundary",
+      "kind": "correct",
+      "title": "Kimlik ile iş kaydı yetkilendirmesini ayır",
+      "reason": "Giriş, kurtarma, MFA, SSO ve kimlik e-postası Keycloak sorumluluğundadır. Frappe kayıt/alan/kurum yetkisi her sunucu işleminde devam eder; menü görünürlüğü güvenlik sınırı değildir.",
+      "itemIds": [
+        "identity-1",
+        "identity-2",
+        "identity-5",
+        "identity-7",
+        "access-2",
+        "access-3",
+        "email-2"
+      ]
+    },
+    {
+      "id": "correct-scim",
+      "kind": "correct",
+      "title": "SCIM için hedef sürümde kanıt iste",
+      "reason": "Keycloak güncel feature listesinde SCIM bulunur; sürüm ve preview durumu değişebildiğinden bütünüyle yok veya koşulsuz hazır denmez. Hedef sürümde eşleme, silme ve üyelik iptali PoC ile doğrulanır.",
+      "itemIds": ["identity-8", "tenant-4", "access-1"]
+    },
+    {
+      "id": "correct-manifest",
+      "kind": "correct",
+      "title": "Özel modül manifestini Frappe standardı gibi sunma",
+      "reason": "module.manifest.yml özel ürün sözleşmesidir. Frappe uygulama, hooks ve migration mekanizmalarıyla eşleştirilmesi bir uygulama kararıdır; hazır Framework dosyası olduğu iddia edilmez.",
+      "itemIds": ["modules-2", "modules-6", "modules-7", "releases-4"]
+    },
+    {
+      "id": "correct-async",
+      "kind": "correct",
+      "title": "Tüm modülleri yalnız olay bus üzerinden konuşturmayı zorunlu tutma",
+      "reason": "Yayımlanmış modül sınırı korunur; eşzamanlı komut/sorgu ile arka plan olayı işlem gereksinimine göre seçilir. Kaynağın genel olay bus ifadesi mikroservis veya zorunlu asenkron mimari kararı değildir.",
+      "itemIds": ["events-1", "events-2", "events-7"]
+    },
+    {
+      "id": "correct-ecosystem",
+      "kind": "correct",
+      "title": "Framework ile ekosistem ürününü ayır",
+      "reason": "ERPNext, CRM, Helpdesk ve Insights ayrı uygulama/ürünlerdir; kurulum, sürüm, lisans ve headless/Keycloak entegrasyonu doğrulanmadan Framework içinde hazır teslim sayılmaz.",
+      "itemIds": ["finance-1", "finance-9", "crm-1", "support-1", "reports-2"]
+    },
+    {
+      "id": "correct-provider-choice",
+      "kind": "correct",
+      "title": "Araç ve sağlayıcı adlarını teknik seçenek olarak göster",
+      "reason": "Redis topolojisi, Meilisearch/Qdrant, Activepieces, Metabase, Mailgun/Postfix ve depolama adaptörleri ihtiyaca bağlı uygulama yollarıdır; aynı anda hepsinin kurulması zorunlu değildir.",
+      "itemIds": [
+        "performance-2",
+        "search-1",
+        "search-3",
+        "integration-2",
+        "reports-3",
+        "email-3",
+        "files-4"
+      ]
+    },
+    {
+      "id": "correct-http",
+      "kind": "correct",
+      "title": "HTTP davranışını API ve yayın kapsamlarına ayır",
+      "reason": "Kimlik, yetki, doğrulama ve hız sınırı hataları headless API sözleşmesidir; herkese açık sayfa yönlendirme ve indeks davranışı ayrıca SEO kapsamındadır.",
+      "itemIds": ["integration-4", "integration-8", "content-7"]
+    },
+    {
+      "id": "correct-legal-notification",
+      "kind": "correct",
+      "title": "İhlal bildirimini evrensel otomatik 72 saat kuralına indirgeme",
+      "reason": "Bildirim süresi, alıcı, başlangıç koşulu ve istisna ülke, veri sorumlusu/işleyen rolü ve uygulanabilir yükümlülükle hukuk tarafından doğrulanmalıdır. Olay kaydı kanıtı destekler; tek süre veya otomatik bildirim her senaryo için geçerli sayılmaz.",
+      "itemIds": ["legal-1", "security-9", "governance-1"]
+    },
+    {
+      "id": "correct-assurance",
+      "kind": "correct",
+      "title": "Uyumluluk ve sertifikasyon iddiasını özellik listesinden üretme",
+      "reason": "KVKK/GDPR kapsamı, VERBİS yükümlülüğü veya ISO/SOC güvence hedefi organizasyon ve işleme bağlamına göre doğrulanır; politika kaydı ya da güvenlik aracı tek başına uyum veya sertifika kanıtı değildir.",
+      "itemIds": ["legal-1", "legal-2", "audit-4", "governance-6", "security-1"]
+    },
+    {
+      "id": "correct-locale",
+      "kind": "correct",
+      "title": "GILT çevirisi ile transliteration ayrımını koru",
+      "reason": "Translation (t9n) içerik çevirisidir; transliteration (t13n) yazı sistemleri arasında harf dönüşümüdür. Kaynak başlıkları tek bir eş anlamlı özellik gibi birleştirilmez.",
+      "itemIds": ["locale-1", "locale-2", "locale-3"]
+    },
+    {
+      "id": "add-tenant-7",
+      "kind": "add",
+      "title": "Kiracı klonlama; yapılandırma ve şablon verisini seçerek yeni kiracı oluşturma.",
+      "reason": "Tekrarlanabilir demo, şablon veya müşteri ortamı üretimi istendiğinde gerekir; tenant-3 yaşam döngüsü ve tenant-6 taşıma, seçmeli klonlama değildir.",
+      "itemIds": ["tenant-7"]
+    },
+    {
+      "id": "add-security-10",
+      "kind": "add",
+      "title": "Kiracıya özel şifreleme anahtarı ve anahtar sürümü; döndürme, iptal ve kurtarma yönetimi.",
+      "reason": "Müşteri sözleşmesi, veri hassasiyeti veya ayrık anahtar yönetimi gerektiren kurulumlarda etkinleştirilir; security-5 ve security-6 genel korumayı kapsar.",
+      "itemIds": ["security-10"]
+    },
+    {
+      "id": "add-security-11",
+      "kind": "add",
+      "title": "Kaynak kodu, bağımlılık ve dağıtım imajlarında güvenlik açığı taraması; bulgu önceliği ve düzeltme takibi.",
+      "reason": "Temel güvenlik kontrolleri özel headless frontend, backend ve tedarik zincirinin her sürümünde gerekir; security-1 genel yönetimi bu somut denetimin yerine geçmez.",
+      "itemIds": ["security-11"]
+    },
+    {
+      "id": "add-security-12",
+      "kind": "add",
+      "title": "Risk temelli penetrasyon testi; kapsam, bağımsız bulgu, düzeltme ve yeniden test kanıtı.",
+      "reason": "Bağımsız testin sıklığı ve kapsamı risk, önemli değişiklik ve müşteri yükümlülüğüyle belirlenir; günlük güvenlik taraması security-11 kapsamında ayrıca zorunludur.",
+      "itemIds": ["security-12"]
+    },
+    {
+      "id": "add-deployment-9",
+      "kind": "add",
+      "title": "İnternetten yalıtılmış ortamda kurulum, güncelleme ve bağımlılık teslimi.",
+      "reason": "Yalıtılmış müşteri ortamı açıkça isteniyorsa gerekir; deployment-1 on-premises desteği kendiliğinden çevrimdışı çalışmayı içermez.",
+      "itemIds": ["deployment-9"]
+    },
+    {
+      "id": "add-deployment-10",
+      "kind": "add",
+      "title": "Infrastructure as Code (IaC — altyapının kodla tanımı), ortam farkı ve yapılandırma sapması takibi.",
+      "reason": "Tekrarlanabilir altyapı tesliminin uygulama yöntemidir; Terraform kaynak örneğidir ve zorunlu ürün bağımlılığı seçimi değildir.",
+      "itemIds": ["deployment-10"]
+    },
+    {
+      "id": "add-releases-10",
+      "kind": "add",
+      "title": "Desteklenen sürümler, güvenlik güncelleme dönemi ve yaşam sonu (EOL) geçiş politikası.",
+      "reason": "Güvenli işletim, kullanılan bileşenlerin destek durumunu ve müşterinin geçiş yolunu bilmesini gerektirir; releases-6 uyum kontrolü destek yaşam döngüsü politikasını kapsamaz.",
+      "itemIds": ["releases-10"]
+    },
+    {
+      "id": "add-access-8",
+      "kind": "add",
+      "title": "Periyodik erişim gözden geçirme; sahip onayı, süreli istisna ve gereksiz yetkinin kaldırılması.",
+      "reason": "Kurumsal güvence, ayrıcalıklı erişim riski veya müşteri denetim şartı gerektiriyorsa uygulanır; access-6 görev ayrılığı, zaman içindeki erişim tasdikinden farklıdır.",
+      "itemIds": ["access-8"]
+    },
+    {
+      "id": "add-shell-10",
+      "kind": "add",
+      "title": "Ortak tasarım sistemi; semantik tokenlar, onaylı bileşen kataloğu ve erişilebilir etkileşim sözleşmeleri.",
+      "reason": "Bağımsız frontend yüzeylerinin tutarlı ve erişilebilir davranması için ortak sözleşme gerekir; shell-5 tema motoru yalnız görünüm özelleştirmesini karşılar.",
+      "itemIds": ["shell-10"]
+    },
+    {
+      "id": "add-views-10",
+      "kind": "add",
+      "title": "Liste içinde satır/hücre düzenleme; alan doğrulama, kaydetme, iptal ve çakışma geri bildirimi.",
+      "reason": "Yoğun veri girişinin ürün yolculuğunda gerekmesi halinde uygulanır; views-3 toplu işlem ve integrity-1 çakışma koruması tekil hücre düzenleme deneyimi değildir.",
+      "itemIds": ["views-10"]
+    },
+    {
+      "id": "add-notifications-9",
+      "kind": "add",
+      "title": "Slack ve Microsoft Teams bildirim bağlayıcıları; kanal eşleme ve bağlantı yaşam döngüsü.",
+      "reason": "Müşterinin ekip iletişim kanalları istiyorsa eklenir; notifications-4 mevcut diğer mesajlaşma kanallarıdır ve Slack/Teams bağlantısını içermez.",
+      "itemIds": ["notifications-9"]
+    },
+    {
+      "id": "add-legal-7",
+      "kind": "add",
+      "title": "Uygulanabilir Türkiye ticari ileti süreçleri için İYS izin eşitleme ve gönderim öncesi kontrolü.",
+      "reason": "Türkiye ticari elektronik ileti yükümlülüğü ilgili işletmeye ve ileti türüne uygulanıyorsa gerekir; legal-5 yerel tercih kaydı, İYS ile dış izin eşitlemesinin yerine geçmez.",
+      "itemIds": ["legal-7"]
+    },
+    {
+      "id": "add-usage-8",
+      "kind": "add",
+      "title": "Ön ödemeli kredi veya ek kota satın alma; bakiye yükleme, geçerlilik ve iade uzlaştırması.",
+      "reason": "Ön ödemeli veya tüketim bazlı ticari model seçilirse gerekir; catalog-5 ek kota teklifi ve usage-6 kredi tüketimi, kredi yükleme hareketini tamamlamaz.",
+      "itemIds": ["usage-8"]
+    },
+    {
+      "id": "add-campaigns-6",
+      "kind": "add",
+      "title": "Referans ve iş ortağı programı; ilişkilendirme, hak ediş ve suistimal denetimi.",
+      "reason": "Referans veya affiliate satış kanalı ürün stratejisinde seçilirse uygulanır; campaigns-1 kupon indirimi, ortak bazlı atıf ve hak ediş değildir.",
+      "itemIds": ["campaigns-6"]
+    },
+    {
+      "id": "add-finance-9",
+      "kind": "add",
+      "title": "Ertelenmiş gelir; hizmet dönemine göre gelir tanıma planı ve dönemsel muhasebeleştirme.",
+      "reason": "Hizmet dönemi gelir tanımasını gerektiren muhasebe politikası ve ticari model varsa uygulanır; finance-1 genel muhasebeleştirme bu dönem planını açıkça tanımlamaz.",
+      "itemIds": ["finance-9"]
+    },
+    {
+      "id": "add-reports-8",
+      "kind": "add",
+      "title": "SaaS iş metrikleri: MRR, ARR, müşteri/gelir kaybı ve LTV; tanım, dönem ve kaynak uzlaştırması.",
+      "reason": "Tekrarlayan gelir iş modelinde karar ihtiyacı varsa gerekir; reports-7 metrik sözleşmesi bu belirli SaaS hesaplarını henüz tanımlamaz.",
+      "itemIds": ["reports-8"]
+    },
+    {
+      "id": "add-support-8",
+      "kind": "add",
+      "title": "Canlı destek sohbeti; temsilciye aktarım, görüşme geçmişi ve destek talebine dönüşüm.",
+      "reason": "Canlı temsilci desteği hizmet modelinde sunulacaksa uygulanır; realtime-4 ekip yorumları ve support-1 ticket farklı iletişim akışlarıdır.",
+      "itemIds": ["support-8"]
+    },
+    {
+      "id": "add-observability-8",
+      "kind": "add",
+      "title": "Hizmet seviyesi göstergesi ve hedefi (SLI/SLO); hata bütçesi, tüketim alarmı ve yayın kararları.",
+      "reason": "Temel ölçüm ve alarm observability-5/7 kapsamında kalır; resmî hata bütçesi ve yayın yönetişimi güvenilirlik olgunluğu aşamasında eklenir.",
+      "itemIds": ["observability-8"]
+    }
+  ],
+  "coverage": [
+    {
+      "id": "01",
+      "title": "Çekirdek Platform",
+      "reason": "Modül, olay, zamanlama, tip, durum, ayar ve migration yetenekleri mevcut gruplarda ayrı sorumluluklarla karşılanır; aynı yetenekler yeniden eklenmez.",
+      "groupIds": [
+        "modules",
+        "events",
+        "jobs",
+        "workflow",
+        "model",
+        "shell",
+        "performance",
+        "releases"
+      ]
+    },
+    {
+      "id": "02",
+      "title": "Tenancy & Dağıtım Modeli",
+      "reason": "Kiracı yaşam döngüsü, alan adı, izolasyon ve on-premises mevcut kapsamdır; seçmeli klonlama, kiracı anahtarı ve yalıtılmış kurulum gerçek boşluk olarak eklenir.",
+      "groupIds": [
+        "tenant",
+        "deployment",
+        "entitlements",
+        "releases",
+        "security",
+        "governance",
+        "shell"
+      ]
+    },
+    {
+      "id": "03",
+      "title": "Kimlik, Erişim & Hesap",
+      "reason": "Kimlik akışları Keycloak, kayıt/alan yetkisi backend sorumluluğunda kalır; periyodik erişim tasdiki ayrı ek yetenektir.",
+      "groupIds": ["identity", "access", "tenant", "shell", "governance"]
+    },
+    {
+      "id": "04",
+      "title": "Veri Modeli & İçerik Altyapısı",
+      "reason": "Varlık, alan, toplu aktarım, dosya, arama ve kayıt bütünlüğü mevcut başlıklara bağlanır; motor ve sağlayıcı adları teknik tercih olarak ayrılır.",
+      "groupIds": [
+        "model",
+        "integrity",
+        "governance",
+        "transfer",
+        "files",
+        "search",
+        "performance",
+        "shell"
+      ]
+    },
+    {
+      "id": "05",
+      "title": "Arayüz Çatısı & Platformlar",
+      "reason": "Liste, form, kabuk ve erişilebilirlik mevcut kapsamdır; ortak headless tasarım sözleşmesi ve satır içi düzenleme ayrıca eklenir; native uygulamalar ürüne bağlıdır.",
+      "groupIds": ["views", "forms", "shell", "channels", "locale", "security"]
+    },
+    {
+      "id": "06",
+      "title": "Bildirim & İletişim",
+      "reason": "Mevcut kanal, e-posta, teslimat ve tercih yetenekleri korunur; Slack/Teams bağlayıcısı eklenir; kimlik e-postasının sahibi Keycloak olarak kalır.",
+      "groupIds": ["notifications", "email", "realtime", "legal"]
+    },
+    {
+      "id": "07",
+      "title": "Otomasyon, İş Akışı & Entegrasyon",
+      "reason": "ECA, iş akışı, onay, API ve takvim mevcut gruplara eşlenir; BPMN ileri aşama, harici otomasyon aracı teknik seçimdir.",
+      "groupIds": [
+        "rules",
+        "workflow",
+        "approvals",
+        "integration",
+        "calendar",
+        "events",
+        "security"
+      ]
+    },
+    {
+      "id": "08",
+      "title": "Abonelik, Paket & Limit",
+      "reason": "Paket, abonelik, hak, ödeme, kota ve kampanya zaten ayrıdır; kredi yükleme ile referans hak edişi ayrı eksik akışlar olarak eklenir.",
+      "groupIds": [
+        "catalog",
+        "subscriptions",
+        "entitlements",
+        "usage",
+        "campaigns",
+        "payments"
+      ]
+    },
+    {
+      "id": "09",
+      "title": "Finans & Ön Muhasebe",
+      "reason": "Fatura, cari, vergi ve mutabakat mevcut finance/payments kapsamındadır; dönemlere yayılan gelir tanıma ERPNext entegrasyonuna bağlı ek yetenektir.",
+      "groupIds": ["finance", "payments", "reports", "analytics"]
+    },
+    {
+      "id": "10",
+      "title": "Süper Admin",
+      "reason": "Tenant operasyonu, panel, erişim, modül, kota, sürüm ve kesinti sorumlulukları mevcut gruplarda kalır; ikinci bir süper admin envanteri üretilmez.",
+      "groupIds": [
+        "shell",
+        "tenant",
+        "access",
+        "modules",
+        "usage",
+        "service",
+        "crm",
+        "releases"
+      ]
+    },
+    {
+      "id": "11",
+      "title": "CRM, Destek & Müşteri Başarısı",
+      "reason": "CRM, onboarding, ticket, SLA, anket ve müşteri sağlığı mevcut iş modülleridir; canlı temsilci sohbeti ayrı kanal akışı olarak eklenir.",
+      "groupIds": [
+        "crm",
+        "support",
+        "content",
+        "service",
+        "calendar",
+        "analytics"
+      ]
+    },
+    {
+      "id": "12",
+      "title": "Ön Yüz, İçerik & Büyüme",
+      "reason": "Herkese açık içerik, SEO, moderasyon, changelog, fiyat sayfası ve analitik mevcut kapsamdır; HTTP API hataları SEO ile tek başlıkta birleştirilmez.",
+      "groupIds": [
+        "content",
+        "shell",
+        "catalog",
+        "integration",
+        "analytics",
+        "security"
+      ]
+    },
+    {
+      "id": "13",
+      "title": "Raporlama & BI",
+      "reason": "Rapor, gömme, dışa aktarım ve yetki mevcut kapsamdır; MRR/ARR/churn/LTV tanımlı SaaS raporu olarak eklenir; BI araçları teknik tercihtir.",
+      "groupIds": ["reports", "transfer", "access"]
+    },
+    {
+      "id": "14",
+      "title": "Yapay Zekâ",
+      "reason": "Sağlayıcı, yönlendirme, prompt, RAG, vektör yetkisi ve ajan kontrolü mevcut maddelerde korunur; tümü ürün ihtiyacına bağlı ileri aşamadır.",
+      "groupIds": ["ai", "rag", "agents", "search", "usage"]
+    },
+    {
+      "id": "15",
+      "title": "Güvenlik & Uyum",
+      "reason": "Güvenlik, denetim ve veri politikaları mevcut kapsamdır; tarama, penetrasyon testi ve İYS eklenir; uyumluluk etiketi otomatik hukuk veya sertifika kanıtı sayılmaz.",
+      "groupIds": ["security", "audit", "legal", "governance", "access"]
+    },
+    {
+      "id": "16",
+      "title": "Operasyon",
+      "reason": "Dağıtım, performans, gözlem, sürüm ve geri yükleme mevcut kapsamdır; IaC, EOL ve SLO/hata bütçesi ayrı boşluklardır.",
+      "groupIds": [
+        "observability",
+        "performance",
+        "deployment",
+        "releases",
+        "backup",
+        "service",
+        "jobs"
+      ]
+    },
+    {
+      "id": "17",
+      "title": "Yerelleştirme (GILT)",
+      "reason": "Dil, biçim, RTL ve çok dilli içerik mevcut locale kapsamına bağlanır; çeviri ile transliteration ayrı tutulur.",
+      "groupIds": ["locale", "shell", "channels", "content"]
+    }
+  ],
+  "copy": {
+    "title": "Kapsam ve kaynak incelemesi",
+    "summary": "Özgün 326 madde korunarak 18 ayrı yetenek eklendi. Toplam 344 madde, 49 başlık altında ürün kapsamına göre değerlendirildi.",
+    "intro": "Frappe içinde hazır bulunma, ürün için zorunlu olma ve tamamlanmış olma ayrı değerlendirmelerdir. Kapsam etiketi tamamlanma kanıtı değildir; zorunlu temel, ürüne bağlı, ileri aşama ve teknik tercih kararları kaynak sınıfı ve Frappe yeterliliğinden bağımsızdır.",
+    "filterLabel": "Geliştirme kapsamı",
+    "allScopes": "Tüm kapsamlar",
+    "scopeReason": "Kapsam gerekçesi",
+    "decisions": "Birleştirme, aşamalandırma ve düzeltme kararları",
+    "coverage": "Kaynak bölümlerinin mevcut başlıklardaki karşılığı",
+    "source": "İncelenen kaynak",
+    "unchanged": "Özgün maddeler, kimlikleri, sıraları ve değerlendirmeleri korunmuştur. Kaynaktaki 402 ifade yeni 402 gereksinim olarak aktarılmamıştır; eşleme 17 bölüm düzeyinde anlamsal incelemedir.",
+    "decisionLabels": {
+      "merge": "Mevcut kapsamla birleştir",
+      "defer": "Koşula veya ileri aşamaya bağla",
+      "correct": "Sınırı veya varsayımı düzelt",
+      "add": "Ayrı boşluk olarak ekle"
+    }
+  }
+}

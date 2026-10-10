@@ -61,6 +61,7 @@ async function fixture(t) {
     manifest.roadmap,
     manifest.interface,
     manifest.messages,
+    manifest.review,
     ...manifest.clusters,
   ].map((path) => path.replace(/^\.\//, ''));
   const paths = [

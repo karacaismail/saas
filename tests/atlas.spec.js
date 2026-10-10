@@ -33,7 +33,7 @@ const sizes = [
 
 async function visit(page) {
   await page.goto('./');
-  await expect(page.locator('.feature')).toHaveCount(326);
+  await expect(page.locator('.feature')).toHaveCount(344);
   await expect(page.locator('#search')).toBeEnabled();
   await page.evaluate(() => document.fonts.ready);
 }
@@ -184,11 +184,11 @@ async function expectClearSearchTarget(page, testInfo) {
   return clear;
 }
 
-test('all 326 original entries have an accessible square selection control', async ({
+test('all 344 entries have an accessible square selection control', async ({
   page,
 }) => {
   await visit(page);
-  await expect(page.locator('.feature-check')).toHaveCount(326);
+  await expect(page.locator('.feature-check')).toHaveCount(344);
   await expect(page.locator('.cluster')).toHaveCount(12);
   await expect(page.locator('#export-selected')).toBeDisabled();
   const failures = await page.locator('.feature').evaluateAll((rows) =>
@@ -315,7 +315,7 @@ test('JSON, CSV and Markdown export selected entries with cluster and heading hi
   await page.locator('#search').fill('yedek');
   await expect(page.locator(`#${selectedIds[0]}`)).toBeHidden();
   const json = JSON.parse(await exportText(page, 'json'));
-  expect(json.schemaVersion).toBe(2);
+  expect(json.schemaVersion).toBe(3);
   expect(json.selectedCount).toBe(2);
   expect(json.clusters.map((cluster) => cluster.id)).toEqual(['12', '01']);
   const items = json.clusters.flatMap((cluster) =>
@@ -352,6 +352,8 @@ test('JSON, CSV and Markdown export selected entries with cluster and heading hi
     'Kaynaklar',
     'Etap',
     'Küme sırası',
+    'Plan kapsamı',
+    'Kapsam gerekçesi',
   ]);
   expect(csv).toHaveLength(3);
   expect(csv.slice(1).map((row) => row[0])).toEqual(['12', '01']);
@@ -361,9 +363,12 @@ test('JSON, CSV and Markdown export selected entries with cluster and heading hi
     csv
       .slice(1)
       .every(
-        (row) => row.length === 16 && row[1] && row[2] && row[3] && row[5],
+        (row) => row.length === 18 && row[1] && row[2] && row[3] && row[5],
       ),
   ).toBeTruthy();
+  expect(csv.slice(1).map((row) => row.slice(16))).toEqual(
+    items.map((item) => [item.planning.label, item.planning.reason]),
+  );
 
   const markdown = await exportText(page, 'md');
   expect(markdown.match(/^## /gm)).toHaveLength(2);
@@ -578,6 +583,14 @@ test('colored feature text has full saturation and readable contrast; checkboxes
     }
   }
   expect(new Set(result.map((row) => JSON.stringify(row.color))).size).toBe(3);
+  expect(
+    Object.fromEntries(
+      ['o', 'g', 'n'].map((kind) => [
+        kind,
+        result.filter((row) => row.kind === kind).length,
+      ]),
+    ),
+  ).toEqual({ o: 105, g: 205, n: 34 });
   expect(
     new Set(result.map((row) => JSON.stringify(row.checkboxColor))).size,
   ).toBe(3);
@@ -1009,8 +1022,27 @@ test('coarse and hybrid input use real touch with reachable targets and preserve
     );
   expect(external).toBe(true);
   await page.locator('#reset-all').tap();
-  await expect(page.locator('.feature:not([hidden])')).toHaveCount(326);
+  await expect(page.locator('.feature:not([hidden])')).toHaveCount(344);
   await expect(page.locator('.group:visible')).toHaveCount(49);
+  const scope = page.locator('[data-scope-filter="conditional"]');
+  expect((await scope.boundingBox()).height).toBeGreaterThanOrEqual(48);
+  await scope.tap();
+  expect(
+    await page
+      .locator('.feature:not([hidden])')
+      .evaluateAll((rows) =>
+        rows.every((row) => row.dataset.scope === 'conditional'),
+      ),
+  ).toBe(true);
+  await expect(page.locator('.group[open]')).toHaveCount(1);
+  await page.locator('#reset-all').tap();
+  await expect(page.locator('.feature:not([hidden])')).toHaveCount(344);
+  const review = page.locator('#scope-review > summary');
+  expect((await review.boundingBox()).height).toBeGreaterThanOrEqual(48);
+  await review.tap();
+  await expect(page.locator('#scope-review')).toHaveAttribute('open', '');
+  await review.tap();
+  await expect(page.locator('#scope-review')).not.toHaveAttribute('open');
   await page.locator('#roadmap-filters > summary').tap();
   await groupSummary.tap();
   await expect(group).toHaveAttribute('open', '');
@@ -1083,6 +1115,7 @@ test('cold navigation and bounded interactions request only local shared product
     'data/roadmap.json',
     'data/interface.json',
     'data/messages.json',
+    'data/review.json',
     ...[
       '12',
       '01',

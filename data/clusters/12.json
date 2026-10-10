@@ -186,6 +186,28 @@
               }
             ]
           }
+        },
+        {
+          "kind": "g",
+          "text": "Hizmet seviyesi göstergesi ve hedefi (SLI/SLO); hata bütçesi, tüketim alarmı ve yayın kararları.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "DevOps ekibi ve backend",
+            "confidence": "design",
+            "note": "Gecikme ve hata ölçümü tek başına SLO yönetimi değildir. Kullanıcı yolculuğuna bağlı gösterge, ölçüm penceresi, hedef ve hata bütçesi politikası gözlem altyapısı ile yayın sürecinde birlikte kurulmalıdır.",
+            "acceptance": "Seçilmiş yolculuk için gösterge ve pencere tekrar hesaplanabilsin; hızlı/yavaş bütçe tüketimi alarmı sınansın; bütçe ihlalinde yayın ve iyileştirme kararı kaydedilsin; sözleşmesel SLA ayrı tutulsun.",
+            "sources": [
+              {
+                "title": "Google SRE Implementing SLOs",
+                "url": "https://sre.google/workbook/implementing-slos/"
+              },
+              {
+                "title": "Google SRE Error Budget Policy",
+                "url": "https://sre.google/workbook/error-budget-policy/"
+              }
+            ]
+          }
         }
       ],
       "sources": ["telemetry"],
@@ -583,6 +605,46 @@
               }
             ]
           }
+        },
+        {
+          "kind": "g",
+          "text": "İnternetten yalıtılmış ortamda kurulum, güncelleme ve bağımlılık teslimi.",
+          "assessment": {
+            "support": "external",
+            "action": "validate",
+            "owner": "DevOps ekibi",
+            "confidence": "design",
+            "note": "Resmî kurulum bileşenleri tek başına air-gap desteğini kanıtlamaz. İmaj, paket, sertifika, kimlik sağlayıcısı, lisans ve güncelleme bağımlılıkları için çevrimdışı tedarik ve doğrulama süreci gerekir.",
+            "acceptance": "İnternet çıkışı kapalı temiz ortamda imzalı veya özeti doğrulanmış paketlerle kurulum ve güncelleme tamamlansın; gereken iç servisler ve destek sınırları kaydedilsin.",
+            "sources": [
+              {
+                "title": "Official Frappe container deployment repository",
+                "url": "https://github.com/frappe/frappe_docker"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Infrastructure as Code (IaC — altyapının kodla tanımı), ortam farkı ve yapılandırma sapması takibi.",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "DevOps ekibi",
+            "confidence": "design",
+            "note": "Frappe dağıtım dosyaları uygulama bileşenlerine temel sağlar. Sunucu, ağ, depolama ve erişim kaynaklarının tekrar üretilebilir tanımı ile plan ve sapma incelemesi seçilen IaC aracında ayrıca kurulmalıdır.",
+            "acceptance": "Aynı tanımdan boş ortam tekrar üretilebilsin; plan beklenen kaynak farkını göstersin; manuel sapma yakalansın; secret değerleri kaynak koduna yazılmasın.",
+            "sources": [
+              {
+                "title": "Official Frappe container deployment repository",
+                "url": "https://github.com/frappe/frappe_docker"
+              },
+              {
+                "title": "HashiCorp Terraform Introduction",
+                "url": "https://developer.hashicorp.com/terraform/intro"
+              }
+            ]
+          }
         }
       ],
       "sources": ["tenant"],
@@ -823,6 +885,28 @@
               {
                 "title": "NGINX HTTP Upstream Module",
                 "url": "https://nginx.org/en/docs/http/ngx_http_upstream_module.html"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Desteklenen sürümler, güvenlik güncelleme dönemi ve yaşam sonu (EOL) geçiş politikası.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "DevOps ekibi ve ürün ekibi",
+            "confidence": "design",
+            "note": "Frappe migrate veri ve uygulama geçişini çalıştırır; ürünün Frappe, Keycloak, frontend ve bağımlılık sürümlerine ilişkin destek taahhüdünü yönetmez. Destek matrisi ve yaşam sonu bildirimi işletmeci tarafından tanımlanmalıdır.",
+            "acceptance": "Desteklenen bileşimler ve bakım bitişleri yayımlansın; güvenlik güncellemesi ve EOL bildirimi izlenebilsin; hedef sürüme geçiş ile geri dönüş denemesi kaydedilsin.",
+            "sources": [
+              {
+                "title": "Frappe bench migrate",
+                "url": "https://docs.frappe.io/framework/user/en/bench/reference/migrate"
+              },
+              {
+                "title": "Keycloak 26.7 Server Administration",
+                "url": "https://www.keycloak.org/docs/26.7.0/server_admin/index.html"
               }
             ]
           }

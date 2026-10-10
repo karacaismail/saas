@@ -1,4 +1,4 @@
-import { loadAtlas } from './content-engine.js';
+import { loadAtlas, resolvePlanning } from './content-engine.js';
 import {
   buildSelection,
   configureExportMessages,
@@ -20,6 +20,7 @@ let kind = 'all';
 let clusterFilter = 'all';
 let supportFilter = 'all';
 let actionFilter = 'all';
+let scopeFilter = 'all';
 let selectedOnly = false;
 let timer;
 let printState;
@@ -47,6 +48,9 @@ for (const c of data.clusters) {
       const row = {
         id,
         data: item,
+        planning: data.review
+          ? resolvePlanning(data.review, g.id, id)
+          : undefined,
         el,
         input: $('.feature-check', el),
         group,
@@ -55,6 +59,9 @@ for (const c of data.clusters) {
           [
             item.text,
             item.raw || '',
+            ...(data.review
+              ? Object.values(resolvePlanning(data.review, g.id, id))
+              : []),
             g.title,
             g.id,
             c.title,
@@ -120,7 +127,8 @@ function apply({ revealGroups = false } = {}) {
     kind !== 'all' ||
     selectedOnly ||
     supportFilter !== 'all' ||
-    actionFilter !== 'all';
+    actionFilter !== 'all' ||
+    scopeFilter !== 'all';
   let visible = 0;
   let visibleGroups = 0;
   for (const row of rows) {
@@ -129,6 +137,7 @@ function apply({ revealGroups = false } = {}) {
       (supportFilter === 'all' ||
         row.data.assessment.support === supportFilter) &&
       (actionFilter === 'all' || row.data.assessment.action === actionFilter) &&
+      (scopeFilter === 'all' || row.planning?.scope === scopeFilter) &&
       tokens.every((token) => row.hay.includes(token)) &&
       (!selectedOnly || selected.has(row.id));
     if (match) {
@@ -173,6 +182,11 @@ function apply({ revealGroups = false } = {}) {
       'aria-pressed',
       String(button.dataset.action === actionFilter),
     );
+  for (const button of $$('button[data-scope-filter]'))
+    button.setAttribute(
+      'aria-pressed',
+      String(button.dataset.scopeFilter === scopeFilter),
+    );
   $('#roadmap-filter-status').textContent = [
     supportFilter === 'all'
       ? messages.allSupport
@@ -180,6 +194,7 @@ function apply({ revealGroups = false } = {}) {
     actionFilter === 'all'
       ? messages.allActions
       : data.roadmap.actionLabels[actionFilter],
+    ...(scopeFilter === 'all' ? [] : [data.review.scopeLabels[scopeFilter]]),
   ].join(' · ');
   status.textContent = message('visibleStatus', {
     visible,
@@ -201,6 +216,7 @@ function reset() {
   clusterFilter = 'all';
   supportFilter = 'all';
   actionFilter = 'all';
+  scopeFilter = 'all';
   $('[name=cluster][value=all]').checked = true;
   $('#cluster-value').textContent = messages.allClusters;
   kind = 'all';
@@ -232,6 +248,8 @@ function jump(target) {
   });
   if (element.matches('.group'))
     $('summary', element).focus({ preventScroll: true });
+  else if (element.matches('.feature'))
+    $('.feature-check', element).focus({ preventScroll: true });
   try {
     history.replaceState(null, '', '#' + target);
   } catch {
@@ -266,6 +284,11 @@ for (const button of $$('button[data-support]'))
 for (const button of $$('button[data-action]'))
   button.addEventListener('click', () => {
     actionFilter = button.dataset.action;
+    apply({ revealGroups: true });
+  });
+for (const button of $$('button[data-scope-filter]'))
+  button.addEventListener('click', () => {
+    scopeFilter = button.dataset.scopeFilter;
     apply({ revealGroups: true });
   });
 search.addEventListener('input', () => apply({ revealGroups: true }));
@@ -376,13 +399,15 @@ $('#export-selected').addEventListener('click', () => {
 $('#print').addEventListener('click', () => window.print());
 window.addEventListener('beforeprint', () => {
   if (printState) return;
-  printState = [$('#context-details'), ...groups.map((group) => group.el)].map(
-    (element) => ({
-      element,
-      open: element.open,
-      name: element.getAttribute('name'),
-    }),
-  );
+  printState = [
+    $('#context-details'),
+    ...($('#scope-review') ? [$('#scope-review')] : []),
+    ...groups.map((group) => group.el),
+  ].map((element) => ({
+    element,
+    open: element.open,
+    name: element.getAttribute('name'),
+  }));
   for (const { element } of printState) element.removeAttribute('name');
   for (const { element } of printState) element.open = true;
 });

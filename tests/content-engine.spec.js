@@ -7,6 +7,24 @@ const originalInventory = JSON.parse(
     'utf8',
   ),
 );
+const originalIds = new Set(originalInventory.map((item) => item.id));
+
+function expectPreservedInventory(clusters, review) {
+  expect(originalIds.size).toBe(326);
+  const entries = flattenInventory(clusters);
+  expect(entries).toHaveLength(344);
+  expect(new Set(entries.map((item) => item.id)).size).toBe(344);
+  expect(entries.filter((item) => originalIds.has(item.id))).toEqual(
+    [...originalInventory].sort((left, right) =>
+      left.id.localeCompare(right.id),
+    ),
+  );
+  const additions = entries.filter((item) => !originalIds.has(item.id));
+  expect(additions).toHaveLength(18);
+  expect(additions.map((item) => item.id).sort()).toEqual(
+    [...review.addedItemIds].sort(),
+  );
+}
 
 async function visit(page, source = 'json') {
   await page.setViewportSize({ width: 320, height: 568 });
@@ -16,7 +34,7 @@ async function visit(page, source = 'json') {
     'data-content-source',
     source,
   );
-  await expect(page.locator('.feature')).toHaveCount(326);
+  await expect(page.locator('.feature')).toHaveCount(344);
 }
 
 async function openFirstFeature(page) {
@@ -89,14 +107,20 @@ test('classified JSON drives all 12 clusters without changing the 326 original c
     manifest.roadmap,
     manifest.interface,
     manifest.messages,
+    manifest.review,
     ...manifest.clusters,
   ].map((path) => new URL(path, manifestUrl).href);
+  expect(paths).toHaveLength(17);
   expect(new Set(paths).size).toBe(paths.length);
   for (const url of paths) expect(documents.has(url), url).toBe(true);
+  expect(documents.size).toBe(18);
   const clusters = await Promise.all(
     manifest.clusters.map((path) =>
       documents.get(new URL(path, manifestUrl).href),
     ),
+  );
+  const review = await documents.get(
+    new URL(manifest.review, manifestUrl).href,
   );
   expect(clusters.map((cluster) => cluster.id)).toEqual(
     await page
@@ -105,11 +129,7 @@ test('classified JSON drives all 12 clusters without changing the 326 original c
         elements.map((element) => element.dataset.cluster),
       ),
   );
-  expect(flattenInventory(clusters)).toEqual(
-    [...originalInventory].sort((left, right) =>
-      left.id.localeCompare(right.id),
-    ),
-  );
+  expectPreservedInventory(clusters, review);
   const rendered = await page.evaluate(() => ({
     data: JSON.parse(document.querySelector('#atlas-data').textContent),
     entries: [...document.querySelectorAll('.feature')].map((element) => ({
@@ -119,6 +139,7 @@ test('classified JSON drives all 12 clusters without changing the 326 original c
     })),
   }));
   expect(rendered.data.clusters).toEqual(clusters);
+  expect(rendered.data.review).toEqual(review);
   expect(rendered.entries).toEqual(
     clusters.flatMap((cluster) =>
       cluster.groups.flatMap((group) =>
@@ -132,7 +153,13 @@ test('classified JSON drives all 12 clusters without changing the 326 original c
   );
   await testInfo.attach('classified-json-browser-inventory', {
     body: JSON.stringify(
-      { manifestUrl, documents: [...documents.keys()], itemCount: 326 },
+      {
+        manifestUrl,
+        documents: [...documents.keys()],
+        itemCount: 344,
+        originalItemCount: originalIds.size,
+        addedItemIds: review.addedItemIds,
+      },
       null,
       2,
     ),
@@ -480,15 +507,11 @@ test('the JSON loading deadline keeps all fallback content and working selection
     await expect(page.locator('#search')).toBeEnabled();
     releaseResponse();
     await routeFinished;
-    await expect(page.locator('.feature')).toHaveCount(326);
+    await expect(page.locator('.feature')).toHaveCount(344);
     const data = await page
       .locator('#atlas-data')
       .evaluate((element) => JSON.parse(element.textContent));
-    expect(flattenInventory(data.clusters)).toEqual(
-      [...originalInventory].sort((left, right) =>
-        left.id.localeCompare(right.id),
-      ),
-    );
+    expectPreservedInventory(data.clusters, data.review);
     const row = await openFirstFeature(page);
     const text = await row.locator('.feature-title').textContent();
     await row.locator('.feature-label').click();
@@ -543,11 +566,7 @@ for (const { name, mutate } of invalidMessages) {
     const data = await page
       .locator('#atlas-data')
       .evaluate((element) => JSON.parse(element.textContent));
-    expect(flattenInventory(data.clusters)).toEqual(
-      [...originalInventory].sort((left, right) =>
-        left.id.localeCompare(right.id),
-      ),
-    );
+    expectPreservedInventory(data.clusters, data.review);
     const row = await openFirstFeature(page);
     const text = await row.locator('.feature-title').textContent();
     await row.locator('.feature-label').click();
@@ -588,11 +607,7 @@ for (const failure of ['network', 'malformed JSON', 'invalid schema']) {
     const data = await page
       .locator('#atlas-data')
       .evaluate((element) => JSON.parse(element.textContent));
-    expect(flattenInventory(data.clusters)).toEqual(
-      [...originalInventory].sort((left, right) =>
-        left.id.localeCompare(right.id),
-      ),
-    );
+    expectPreservedInventory(data.clusters, data.review);
     const row = await openFirstFeature(page);
     await expect(row.locator('.feature-title')).toBeVisible();
     await row.locator('.feature-label').click();

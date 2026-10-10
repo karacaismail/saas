@@ -332,6 +332,24 @@
               }
             ]
           }
+        },
+        {
+          "kind": "g",
+          "text": "Ertelenmiş gelir; hizmet dönemine göre gelir tanıma planı ve dönemsel muhasebeleştirme.",
+          "assessment": {
+            "support": "ecosystem",
+            "action": "integrate",
+            "owner": "ERPNext + finans",
+            "confidence": "design",
+            "note": "ERPNext Deferred Revenue hizmet dönemine yayılan gelir tanımaya temel sağlar; Frappe Framework tek başına muhasebe ürünü değildir. İşletmecinin hesap politikası, abonelik verisi ve kurulu ERPNext sürümüyle entegrasyon doğrulanmalıdır.",
+            "acceptance": "Yıllık peşin tahsilatın gelir planı hizmet dönemine ayrılsın; dönem toplamları faturayla uzlaşsın; iptal/iade düzeltmesi ve kapalı dönem politikası finans incelemesiyle sınansın.",
+            "sources": [
+              {
+                "title": "ERPNext Deferred Revenue",
+                "url": "https://docs.frappe.io/erpnext/deferred-revenue"
+              }
+            ]
+          }
         }
       ],
       "sources": ["subscription"],

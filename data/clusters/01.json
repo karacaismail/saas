@@ -149,6 +149,28 @@
               }
             ]
           }
+        },
+        {
+          "kind": "g",
+          "text": "Kiracı klonlama; yapılandırma ve şablon verisini seçerek yeni kiracı oluşturma.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Platform",
+            "confidence": "design",
+            "note": "Frappe site oluşturma ve yedekten geri yükleme temel sağlar. Üretim verisini, kimlik eşlemelerini ve gizli anahtarları ayıklayan seçmeli kiracı klonlama akışı ayrıca tasarlanmalıdır.",
+            "acceptance": "Yetkili klonlama yeni kiracı kimliğiyle tamamlansın; kişisel veri, oturum, API anahtarı ve canlı entegrasyonlar varsayılan olarak aktarılmasın; kaynak kiracı değişmesin.",
+            "sources": [
+              {
+                "title": "Frappe Create a Site",
+                "url": "https://docs.frappe.io/framework/user/en/tutorial/create-a-site"
+              },
+              {
+                "title": "Frappe bench restore",
+                "url": "https://docs.frappe.io/framework/user/en/bench/reference/restore"
+              }
+            ]
+          }
         }
       ],
       "sources": ["tenant"],
@@ -497,6 +519,28 @@
               {
                 "title": "Frappe: REST API",
                 "url": "https://docs.frappe.io/framework/user/en/api/rest"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Periyodik erişim gözden geçirme; sahip onayı, süreli istisna ve gereksiz yetkinin kaldırılması.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Keycloak + backend",
+            "confidence": "design",
+            "note": "Keycloak rol ve kullanıcı yönetimi ile Frappe izinleri mevcut yetkileri temsil eder. Erişimlerin dönemsel sahip onayıyla yeniden değerlendirilmesi, kanıtı ve iptalinin iki tarafta uzlaştırılması ayrıca geliştirilmelidir.",
+            "acceptance": "Dönem sonunda üyelik ve ayrıcalıklı yetki listesi sahibine sunulsun; süreli istisna kaydedilsin; reddedilen yetki Keycloak ve backend kapsamından kalksın; denetim izi oluşsun.",
+            "sources": [
+              {
+                "title": "Keycloak 26.7 Server Administration",
+                "url": "https://www.keycloak.org/docs/26.7.0/server_admin/index.html"
+              },
+              {
+                "title": "Frappe Users and Permissions",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
               }
             ]
           }

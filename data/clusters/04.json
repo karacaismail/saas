@@ -213,6 +213,28 @@
               }
             ]
           }
+        },
+        {
+          "kind": "n",
+          "text": "Ortak tasarım sistemi; semantik tokenlar, onaylı bileşen kataloğu ve erişilebilir etkileşim sözleşmeleri.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "Headless frontend",
+            "confidence": "design",
+            "note": "Frappe Desk bileşenleri bağımsız headless panelin tasarım sistemini sağlamaz. Seçilmiş Ant Design ailesi üzerinde token, bileşen ve etkileşim sözleşmeleri ortaklaştırılmalı; hazır tema tek başına kabul kanıtı sayılmamalıdır.",
+            "acceptance": "Ortak bileşenler aynı semantik tokenları kullansın; 320 piksel, klavye odağı, hata ve büyütme durumları doğrulansın; bileşen kataloğu sürümlensin; minimum metin boyutu korunsun.",
+            "sources": [
+              {
+                "title": "Ant Design Theme Customization",
+                "url": "https://ant.design/docs/react/customize-theme/"
+              },
+              {
+                "title": "W3C WCAG 2.2",
+                "url": "https://www.w3.org/TR/WCAG22/"
+              }
+            ]
+          }
         }
       ],
       "sources": [],
@@ -420,6 +442,28 @@
               },
               {
                 "title": "W3C: WCAG 2.2",
+                "url": "https://www.w3.org/TR/WCAG22/"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Liste içinde satır/hücre düzenleme; alan doğrulama, kaydetme, iptal ve çakışma geri bildirimi.",
+          "assessment": {
+            "support": "partial",
+            "action": "build",
+            "owner": "Headless frontend + backend",
+            "confidence": "design",
+            "note": "Frappe REST kayıt güncelleme temeli sağlar; Desk içi düzenleme bağımsız frontendde hazır ekran anlamına gelmez. Hücre etkileşimi, sunucu yetkisi, doğrulama ve sürüm çakışması birlikte tasarlanmalıdır.",
+            "acceptance": "Yetkili hücre klavyeyle düzenlenebilsin; Enter kaydetsin ve Escape iptal etsin; hatalı alan ile eşzamanlı değişiklik veri kaybetmeden açıklansın; yetkisiz yazma sunucuda reddedilsin.",
+            "sources": [
+              {
+                "title": "Frappe REST API",
+                "url": "https://docs.frappe.io/framework/user/en/api/rest"
+              },
+              {
+                "title": "W3C WCAG 2.2",
                 "url": "https://www.w3.org/TR/WCAG22/"
               }
             ]

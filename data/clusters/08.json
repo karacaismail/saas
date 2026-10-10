@@ -329,6 +329,28 @@
               }
             ]
           }
+        },
+        {
+          "kind": "g",
+          "text": "Canlı destek sohbeti; temsilciye aktarım, görüşme geçmişi ve destek talebine dönüşüm.",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "Destek uygulaması",
+            "confidence": "design",
+            "note": "Helpdesk talep yönetimi canlı sohbet kanalını otomatik olarak kanıtlamaz. Seçilecek sohbet hizmeti veya özel uygulama; kiracı kimliği, temsilci erişimi, mesaj geçmişi ve ticket dönüşümüyle doğrulanmalıdır.",
+            "acceptance": "Yetkili temsilci doğru kiracının görüşmesini görsün; çevrimdışı durumda talep alınsın; sohbet tek destek talebine bağlansın; saklama ve silme politikası geçmişe uygulansın.",
+            "sources": [
+              {
+                "title": "Frappe Helpdesk Settings",
+                "url": "https://docs.frappe.io/helpdesk/settings"
+              },
+              {
+                "title": "Frappe REST API",
+                "url": "https://docs.frappe.io/framework/user/en/api/rest"
+              }
+            ]
+          }
         }
       ],
       "sources": [],

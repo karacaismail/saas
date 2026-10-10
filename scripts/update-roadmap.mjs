@@ -14,5 +14,7 @@ if (process.argv.includes('--check')) {
   );
 } else {
   await writeFile('index.html', output);
-  console.log('326 items rendered from classified JSON content.');
+  console.log(
+    `${data.clusters.flatMap((c) => c.groups.flatMap((g) => g.items)).length} items rendered from classified JSON content.`,
+  );
 }

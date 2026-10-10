@@ -1,3 +1,5 @@
+import { resolvePlanning } from './content-engine.js';
+
 let exportMessages;
 
 /** Configure user-facing export copy from the content engine's JSON source. */
@@ -54,6 +56,32 @@ function copyRoadmap(roadmap) {
   return result;
 }
 
+function copyReview(review, selectedIds) {
+  return {
+    version: review.version,
+    reviewedAt: review.reviewedAt,
+    scopeLabels: { ...review.scopeLabels },
+    source: {
+      title: review.source.title,
+      itemCount: review.source.itemCount,
+      clusterCount: review.source.clusterCount,
+      documents: review.source.documents.map(({ name, sha256 }) => ({
+        name,
+        sha256,
+      })),
+    },
+    decisions: review.decisions
+      .filter((decision) => decision.itemIds.some((id) => selectedIds.has(id)))
+      .map(({ id, kind, title, reason, itemIds }) => ({
+        id,
+        kind,
+        title,
+        reason,
+        itemIds: [...itemIds],
+      })),
+  };
+}
+
 function assessmentLabel(labels, value) {
   // Unknown future codes remain visible rather than becoming an empty or
   // misleadingly positive label in a roadmap export.
@@ -64,6 +92,7 @@ function assessmentLabel(labels, value) {
 export function buildSelection(data, selectedIds = []) {
   const copy = messages();
   const selected = new Set(selectedIds);
+  const exportedIds = new Set();
   const clusters = [];
   let selectedCount = 0;
 
@@ -89,7 +118,16 @@ export function buildSelection(data, selectedIds = []) {
         if (item.assessment) {
           exportedItem.assessment = copyAssessment(item.assessment);
         }
+        if (data.review) {
+          const planning = resolvePlanning(data.review, group.id, id);
+          exportedItem.planning = {
+            scope: planning.scope,
+            label: planning.label,
+            reason: planning.reason,
+          };
+        }
         items.push(exportedItem);
+        exportedIds.add(id);
       });
 
       if (items.length > 0) {
@@ -125,7 +163,7 @@ export function buildSelection(data, selectedIds = []) {
   }
 
   const payload = {
-    schemaVersion: data.roadmap ? 2 : 1,
+    schemaVersion: data.review ? 3 : data.roadmap ? 2 : 1,
     title: copy.title,
     ...(data.roadmap ? { roadmap: copyRoadmap(data.roadmap) } : {}),
     selectedCount,
@@ -136,6 +174,7 @@ export function buildSelection(data, selectedIds = []) {
       if (Object.hasOwn(data, key)) payload[key] = structuredClone(data[key]);
     }
   }
+  if (data.review) payload.review = copyReview(data.review, exportedIds);
   return payload;
 }
 
@@ -160,6 +199,7 @@ function toCsv(payload) {
     copy.item,
   ];
   if (roadmap) headers.push(...copy.roadmapColumns);
+  if (payload.review) headers.push(...copy.reviewColumns);
   const lines = [headers.join(',')];
 
   for (const cluster of payload.clusters) {
@@ -191,6 +231,8 @@ function toCsv(payload) {
             cluster.roadmapOrder ?? '',
           );
         }
+        if (payload.review)
+          fields.push(item.planning?.label ?? '', item.planning?.reason ?? '');
         lines.push(fields.map(csvCell).join(','));
       }
     }
@@ -252,6 +294,32 @@ function markdownAssessment(assessment, roadmap) {
   return lines;
 }
 
+function markdownReview(review) {
+  const copy = messages().markdown;
+  const csv = messages().csv;
+  const source = review.source;
+  const lines = [
+    '',
+    `#### ${markdownText(copy.reviewSource)}`,
+    '',
+    `${markdownText(source.title)} · ${markdownText(source.itemCount)} ${markdownText(csv.item)} · ${markdownText(source.clusterCount)} ${markdownText(csv.cluster)}`,
+    '',
+    `${markdownText(copy.reviewedAt)}: ${markdownText(review.reviewedAt)}`,
+    '',
+    ...source.documents.map(
+      ({ name, sha256 }) => `- ${markdownText(name)} · ${markdownText(sha256)}`,
+    ),
+  ];
+  if (review.decisions.length) {
+    lines.push('', `#### ${markdownText(copy.reviewDecisions)}`, '');
+    for (const decision of review.decisions)
+      lines.push(
+        `- **${markdownText(decision.title)}** (${markdownText(decision.id)} · ${markdownText(decision.kind)}): ${markdownText(decision.reason)}; ${decision.itemIds.map(markdownText).join(', ')}`,
+      );
+  }
+  return lines;
+}
+
 function toMarkdown(payload) {
   const copy = messages().markdown;
   const lines = [`# ${markdownText(payload.title)}`];
@@ -290,6 +358,7 @@ function toMarkdown(payload) {
         lines.push(`- ${markdownText(id)}: ${markdownSource({ title, url })}`);
     }
   }
+  if (payload.review) lines.push(...markdownReview(payload.review));
 
   for (const cluster of payload.clusters) {
     lines.push(
@@ -350,6 +419,12 @@ function toMarkdown(payload) {
           lines.push(
             `  - ${markdownText(copy.raw)}: ${markdownText(item.raw)}`,
           );
+        if (item.planning) {
+          lines.push(
+            `  - ${markdownText(copy.scope)}: ${markdownText(item.planning.label)}`,
+            `  - ${markdownText(copy.scopeReason)}: ${markdownText(item.planning.reason)}`,
+          );
+        }
         if (roadmap && item.assessment) {
           lines.push(...markdownAssessment(item.assessment, roadmap));
         }

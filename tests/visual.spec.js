@@ -12,17 +12,15 @@ for (const width of [320, 1280]) {
   }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.goto('./');
-    await expect(page.locator('.feature-check')).toHaveCount(326);
+    await expect(page.locator('.feature-check')).toHaveCount(344);
     await expect(page.locator('#search')).toBeEnabled();
     await page.evaluate(() => document.fonts.ready);
-    await expect(page.locator('.toolbar')).toHaveScreenshot(
-      `tools-${width}.png`,
-      { animations: 'disabled' },
-    );
-    await expect(page.locator('.selection-bar')).toHaveScreenshot(
-      `export-${width}.png`,
-      { animations: 'disabled' },
-    );
+    await expect
+      .soft(page.locator('.toolbar'))
+      .toHaveScreenshot(`tools-${width}.png`, { animations: 'disabled' });
+    await expect
+      .soft(page.locator('.selection-bar'))
+      .toHaveScreenshot(`export-${width}.png`, { animations: 'disabled' });
     for (const id of ['tenant-1', 'tenant-2', 'channels-5']) {
       const row = page.locator(`#feature-${id}`);
       const group = row.locator(
@@ -52,9 +50,8 @@ for (const width of [320, 1280]) {
         ),
       ),
     ).toBe(true);
-    await expect(page.locator('#inventory')).toHaveScreenshot(
-      `selection-${width}.png`,
-      { animations: 'disabled' },
-    );
+    await expect
+      .soft(page.locator('#inventory'))
+      .toHaveScreenshot(`selection-${width}.png`, { animations: 'disabled' });
   });
 }

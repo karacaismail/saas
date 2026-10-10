@@ -24,6 +24,7 @@ const contentFiles = [
   manifest.roadmap,
   manifest.interface,
   manifest.messages,
+  manifest.review,
   ...manifest.clusters,
 ];
 for (const path of contentFiles) {

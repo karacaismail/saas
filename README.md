@@ -2,13 +2,13 @@
 
 [Canlı site](https://karacaismail.github.io/saas/) · [MIT lisansı](LICENSE)
 
-Frappe Framework backend, bağımsız headless frontend ve Keycloak için 12 küme, 49 başlık ve 326 maddelik geliştirme yol haritası. Her maddede Frappe yeterliliği, yapılacak iş, sorumlu katman, dayanak, kabul ölçütü ve kaynak bulunur. Özellikleri yeterlilik/iş/kaynak/küme ile süzün ve seçilenleri JSON, CSV veya Markdown olarak indirin.
+Frappe Framework backend, bağımsız headless frontend ve Keycloak için 12 küme, 49 başlık ve 344 maddelik geliştirme yol haritası. Her maddede Frappe yeterliliği, yapılacak iş, sorumlu katman, dayanak, kabul ölçütü ve kaynak bulunur. Özellikleri plan kapsamı/yeterlilik/iş/kaynak/küme ile süzün ve seçilenleri JSON, CSV veya Markdown olarak indirin.
 
 Mavi **özgün kapsamı**, yeşil **kapsam içi eksikleri**, kırmızı **yeni alanları** gösterir. Üç sınıfta madde metni, kaynak etiketi ve checkbox aynı rengi taşır; renkler %100 doygundur ve normal metin kontrastı en az4.5:1'dir. Kaynak renkleri madde, legend ve filtre zeminlerinde%5 opaklıkla da kullanılır; yazılar tam opaktır. Yeterlilik ve iş etiketleri kategoriye göre pastel, sorumlu etiketleri ortak sakin tondadır. Renkler Frappe yeterliliği değildir. Yeterlilik etiketleri: **Çekirdekte var / Kısmen var / Ek Frappe uygulaması / Çekirdekte hazır değil / Harici sorumluluk / Doğrulanmalı**. Küme sırası altyapı ve güven sınırlarından ürün ve gelir modeline ilerler. ERPNext ve diğer ek uygulamalar Framework çekirdeği sayılmaz; Desk ekranları headless frontend'de otomatik hazır değildir.
 
 Hedef Frappe/Keycloak release'leri seçilmedi. 2026-10-10 tarihli değerlendirme resmî dokümanlara dayanır; kurulu özellik, üretim güvenilirliği veya tamamlanmış iş kanıtı değildir. Etiketlerin anlamı ve mimari karar kapıları [yol haritası rehberinde](docs/roadmap.md) bulunur.
 
-Seçimler tarayıcıda saklanır; sunucuya gönderilmez ve tamamlanma durumu değildir. Eski madde kimlikleri korunduğu için önceki seçimler devam eder. Filtreleri değiştirmek seçimi temizlemez. Dışa aktarma, aktif filtrede görünmese de işaretlenmiş tüm maddeleri içerir. JSON v2/Markdown küme → başlık → madde hiyerarşisini ve değerlendirme bağlamını, 16 sütunlu CSV bu yapıyı ve karar dayanağını korur. CSV Türkçe karakterler için UTF-8 BOM kullanır ve formül hücrelerini nötrler.
+Seçimler tarayıcıda saklanır; sunucuya gönderilmez ve tamamlanma durumu değildir. Eski madde kimlikleri korunduğu için önceki seçimler devam eder. Filtreleri değiştirmek seçimi temizlemez. Dışa aktarma, aktif filtrede görünmese de işaretlenmiş tüm maddeleri içerir. JSON v3/Markdown küme → başlık → madde hiyerarşisini ve değerlendirme bağlamını, 18 sütunlu CSV bu yapıyı ve karar dayanağını korur. CSV Türkçe karakterler için UTF-8 BOM kullanır ve formül hücrelerini nötrler.
 
 ## Yerel geliştirme
 
@@ -42,3 +42,5 @@ Outfit dosyaları Google Fonts'tan alınmıştır ve [SIL Open Font License](ass
 ## İçerik kaynağı
 
 Görünen bütün metinler sınıflandırılmış JSON dosyalarından gelir. `data/clusters/` altında 12 tam küme; `data/interface.json` ve `data/messages.json` içinde arayüz/rehber/çıktı metinleri bulunur. HTML ve JS kaynaklarına içerik eklemeyin. `npm run roadmap` ortak JS engine ile yayın görünümünü üretir; tarayıcı aynı engine ile JSON'u yükler. Veri koruma ve düzenleme sözleşmesi [docs/content-model.md](docs/content-model.md) içindedir.
+
+2026-10-10 karşılaştırması: sağlanan HTML ve Markdown aynı 402 maddelik, 17 kümeli kaynak haritadır. Mevcut 326 madde ve kimlikleri korunarak 18 gerçek boşluk eklendi. `data/review.json` zorunlu temel, ürüne bağlı, ileri aşama ve teknik tercih kapsamlarını; ekleme/birleştirme/erteleme/düzeltme kararlarını ve 17 kaynak kümesinin atlas karşılığını taşır. Ayrıntılar [kaynak incelemesinde](docs/source-review.md).

@@ -17,5 +17,6 @@
     "./clusters/03.json",
     "./clusters/08.json",
     "./clusters/10.json"
-  ]
+  ],
+  "review": "./review.json"
 }

@@ -17,9 +17,12 @@ assert.equal(data.clusters.length, 12);
 assert.equal(data.clusters.flatMap((c) => c.groups).length, 49);
 assert.equal(
   data.clusters.flatMap((c) => c.groups.flatMap((g) => g.items)).length,
-  326,
+  data.review.expectedItems,
 );
-assert.equal((output.match(/class="feature-check"/g) || []).length, 326);
+assert.equal(
+  (output.match(/class="feature-check"/g) || []).length,
+  data.review.expectedItems,
+);
 const files = [];
 async function walk(dir) {
   for (const name of await readdir(dir)) {
@@ -36,6 +39,7 @@ const contentPaths = [
   manifest.roadmap,
   manifest.interface,
   manifest.messages,
+  manifest.review,
   ...manifest.clusters,
 ].map((path) => `data/${path.replace(/^\.\//, '')}`);
 for (const path of contentPaths)
@@ -90,17 +94,17 @@ for (const [name, paths] of Object.entries(groups)) {
 // Classified JSON is fetched by the browser engine. The generated snapshot keeps
 // the complete experience readable and exportable when JSON requests fail.
 // The explicit delivery-scope budget revision is recorded in docs/content-model.md.
-assert.ok(sizes.html.gzip <= 144 * 1024, 'HTML gzip budget 144 KiB');
+assert.ok(sizes.html.gzip <= 184 * 1024, 'HTML gzip budget 184 KiB');
 assert.ok(sizes.css.gzip <= 12 * 1024, 'CSS gzip budget12 KiB');
-assert.ok(sizes.js.gzip <= 16 * 1024, 'JS gzip budget16 KiB');
-assert.ok(sizes.json.gzip <= 80 * 1024, 'Content JSON gzip budget80 KiB');
+assert.ok(sizes.js.gzip <= 24 * 1024, 'JS gzip budget24 KiB');
+assert.ok(sizes.json.gzip <= 104 * 1024, 'Content JSON gzip budget104 KiB');
 const total = Object.values(sizes).reduce((sum, s) => sum + s.gzip, 0);
-assert.ok(total <= 300 * 1024, 'Initial shared assets gzip budget300 KiB');
+assert.ok(total <= 360 * 1024, 'Initial shared assets gzip budget360 KiB');
 console.log(
   JSON.stringify(
     {
       status: 'pass',
-      data: { clusters: 12, groups: 49, items: 326 },
+      data: { clusters: 12, groups: 49, items: data.review.expectedItems },
       sizes,
       totalGzip: total,
       unnecessaryProfileAssets: 0,
