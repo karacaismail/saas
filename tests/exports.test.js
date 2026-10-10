@@ -50,6 +50,69 @@ function atlas() {
   };
 }
 
+function roadmapAtlas() {
+  const data = atlas();
+  data.roadmap = {
+    version: 1,
+    reviewedAt: '2026-10-10',
+    target: 'Frappe Framework; headless frontend; Keycloak',
+    baseline: 'Hedef sürüm seçilmedi; runtime kabulü değil.',
+    supportLabels: {
+      native: 'Çekirdekte var',
+      external: 'Harici sorumluluk',
+      verify: 'Doğrulanmalı',
+    },
+    actionLabels: { configure: 'Yapılandır', integrate: 'Entegre et' },
+    confidenceLabels: {
+      documented: 'Belge dayanağı',
+      design: 'Mimari karar',
+      verify: 'Doğrulama bekliyor',
+    },
+    internal: 'Must not leak',
+  };
+  Object.assign(data.clusters[0], {
+    phase: 'Temel mimari',
+    roadmapOrder: 2,
+    rationale: 'Keycloak kimliği sağlar; Frappe yetki kontrolünü uygular.',
+    dependsOn: ['02'],
+    internal: 'Must not leak',
+  });
+  Object.assign(data.clusters[1], {
+    phase: 'Temel mimari',
+    roadmapOrder: 1,
+    rationale: 'Önce platform sınırını tanımla.',
+    dependsOn: [],
+  });
+  data.clusters[0].groups[0].items[0].assessment = {
+    support: 'native',
+    action: 'configure',
+    owner: 'Frappe backend',
+    confidence: 'documented',
+    note: 'Çekirdek yeteneği var; hedef sürümde doğrulanacak.',
+    acceptance: 'İki kiracının verileri API üzerinden izole kalır.',
+    sources: [
+      {
+        title: 'Frappe belgeleri',
+        url: 'https://docs.frappe.io/framework/user/en/basics/sites',
+        internal: 'Must not leak',
+      },
+    ],
+    internal: 'Must not leak',
+  };
+  data.clusters[1].groups[0].items[0].assessment = {
+    support: 'external',
+    action: 'integrate',
+    owner: 'Keycloak + headless frontend',
+    confidence: 'verify',
+    note: 'Sürüm, token ve oturum entegrasyonu henüz doğrulanmadı.',
+    acceptance: 'Süresi dolan token her API çağrısında reddedilir.',
+    sources: [],
+  };
+  // Source order is the display/roadmap order; the stable IDs do not change.
+  data.clusters.reverse();
+  return data;
+}
+
 function freezeDeep(value) {
   Object.freeze(value);
   for (const child of Object.values(value)) {
@@ -330,4 +393,170 @@ test('unsupported formats fail explicitly', () => {
     () => serializeExport(buildSelection(atlas(), []), 'pdf'),
     RangeError,
   );
+});
+
+test('roadmap JSON keeps stable IDs, display order, context and complete assessment evidence', () => {
+  const data = freezeDeep(roadmapAtlas());
+  const payload = buildSelection(data, ['tenant-1', 'module-catalog-1']);
+  assert.equal(payload.schemaVersion, 2);
+  assert.equal(payload.selectedCount, 2);
+  assert.deepEqual(
+    payload.clusters.map((cluster) => [cluster.id, cluster.roadmapOrder]),
+    [
+      ['02', 1],
+      ['01', 2],
+    ],
+  );
+  assert.equal(payload.roadmap.baseline, data.roadmap.baseline);
+  assert.equal(payload.roadmap.target, data.roadmap.target);
+  assert.equal(payload.roadmap.reviewedAt, '2026-10-10');
+  assert.deepEqual(payload.roadmap.supportLabels, data.roadmap.supportLabels);
+  assert.equal(payload.clusters[1].phase, 'Temel mimari');
+  assert.deepEqual(payload.clusters[1].dependsOn, ['02']);
+  assert.equal(payload.clusters[1].rationale, data.clusters[1].rationale);
+  const exported = payload.clusters[1].groups[0].items[0];
+  const original = data.clusters[1].groups[0].items[0];
+  assert.equal(exported.id, 'tenant-1');
+  assert.equal(exported.kind, 'o');
+  assert.equal(exported.assessment.note, original.assessment.note);
+  assert.equal(exported.assessment.acceptance, original.assessment.acceptance);
+  assert.deepEqual(exported.assessment.sources, [
+    {
+      title: 'Frappe belgeleri',
+      url: 'https://docs.frappe.io/framework/user/en/basics/sites',
+    },
+  ]);
+  assert.notEqual(exported.assessment, original.assessment);
+  assert.notEqual(exported.assessment.sources, original.assessment.sources);
+  assert.notEqual(
+    exported.assessment.sources[0],
+    original.assessment.sources[0],
+  );
+  assert.notEqual(payload.roadmap.supportLabels, data.roadmap.supportLabels);
+  const json = serializeExport(payload, 'json').text;
+  assert.deepEqual(JSON.parse(json), payload);
+  assert.ok(!json.includes('Must not leak'));
+  assert.ok(!json.includes('tenant-2'));
+});
+
+test('roadmap CSV appends labeled decision evidence without changing stable item numbering', () => {
+  const data = roadmapAtlas();
+  const assessment = data.clusters[1].groups[0].items[0].assessment;
+  assessment.owner = '=HYPERLINK("unsafe")';
+  assessment.note = 'Kısmen hazır, "özel" entegrasyon\nPoC gerekiyor.';
+  const rows = readCsv(
+    serializeExport(buildSelection(data, ['tenant-1']), 'csv').text,
+  );
+  assert.equal(rows[0][0], 'Küme kimliği');
+  assert.deepEqual(rows[0].slice(7), [
+    'Frappe yeterliliği',
+    'Yapılacak iş',
+    'Sorumlu',
+    'Kanıt durumu',
+    'Değerlendirme',
+    'Kabul ölçütü',
+    'Kaynaklar',
+    'Etap',
+    'Küme sırası',
+  ]);
+  assert.equal(rows[1][0], '01');
+  assert.equal(rows[1][4], '01.1.1');
+  assert.deepEqual(rows[1].slice(7), [
+    'Çekirdekte var',
+    'Yapılandır',
+    `'${assessment.owner}`,
+    'Belge dayanağı',
+    assessment.note,
+    assessment.acceptance,
+    'Frappe belgeleri — https://docs.frappe.io/framework/user/en/basics/sites',
+    'Temel mimari',
+    '2',
+  ]);
+});
+
+test('roadmap Markdown separates implementation decisions from original scope classification', () => {
+  const data = roadmapAtlas();
+  const text = serializeExport(
+    buildSelection(data, ['module-catalog-1', 'tenant-1']),
+    'md',
+  ).text;
+  assert.ok(text.includes('Frappe Framework; headless frontend; Keycloak'));
+  assert.ok(text.includes('Hedef sürüm seçilmedi; runtime kabulü değil\\.'));
+  assert.ok(text.includes('2026\\-10\\-10'));
+  assert.ok(text.indexOf('## 02 · Modüller') < text.indexOf('## 01 · Müşteri'));
+  assert.ok(text.includes('Etap: Temel mimari'));
+  assert.ok(text.includes('Yol haritası sırası: 2'));
+  assert.ok(text.includes('Bağımlılıklar: 02'));
+  assert.ok(text.includes('- [x] **Özgün kapsam** Kiracılık modelleri\\.'));
+  assert.ok(text.includes('Frappe yeterliliği: Çekirdekte var'));
+  assert.ok(text.includes('Yapılacak iş: Yapılandır'));
+  assert.ok(text.includes('Sorumlu: Frappe backend'));
+  assert.ok(text.includes('Kanıt durumu: Belge dayanağı'));
+  assert.ok(
+    text.includes(
+      'Değerlendirme: Çekirdek yeteneği var; hedef sürümde doğrulanacak\\.',
+    ),
+  );
+  assert.ok(
+    text.includes(
+      'Kabul ölçütü: İki kiracının verileri API üzerinden izole kalır\\.',
+    ),
+  );
+  assert.ok(
+    text.includes('https://docs.frappe.io/framework/user/en/basics/sites'),
+  );
+  assert.ok(text.includes('Harici sorumluluk'));
+  assert.ok(text.includes('Doğrulama bekliyor'));
+});
+
+test('roadmap exports preserve unknown assessments and escape unsafe metadata and source links', () => {
+  const data = roadmapAtlas();
+  const assessment = data.clusters[1].groups[0].items[0].assessment;
+  assessment.support = 'future-support';
+  assessment.action = 'future-action';
+  assessment.confidence = 'future-confidence';
+  assessment.note = '<script>unsafe</script>\n# forged heading';
+  assessment.sources = [
+    { title: '[unsafe](link)', url: 'javascript:alert(1)' },
+    {
+      title: 'Frappe API',
+      url: 'https://docs.frappe.io/framework/api/(version)?q=source',
+    },
+  ];
+  const payload = buildSelection(data, ['tenant-1']);
+  assert.equal(
+    payload.clusters[0].groups[0].items[0].assessment.support,
+    'future-support',
+  );
+  const rows = readCsv(serializeExport(payload, 'csv').text);
+  assert.equal(rows[1][7], 'future-support');
+  assert.equal(rows[1][8], 'future-action');
+  assert.equal(rows[1][10], 'future-confidence');
+  const text = serializeExport(payload, 'md').text;
+  assert.ok(
+    text.includes('&lt;script&gt;unsafe&lt;/script&gt;&#10;\\# forged heading'),
+  );
+  assert.ok(!text.includes('](javascript:'));
+  assert.ok(text.includes('javascript:alert\\(1\\)'));
+  assert.ok(
+    text.includes(
+      '[Frappe API](https://docs.frappe.io/framework/api/%28version%29?q=source)',
+    ),
+  );
+  assert.equal(
+    text.split('\n').filter((line) => line.startsWith('- [x]')).length,
+    1,
+  );
+});
+
+test('empty roadmap selections retain version and decision baseline in every format', () => {
+  const payload = buildSelection(roadmapAtlas(), []);
+  assert.equal(payload.schemaVersion, 2);
+  assert.equal(payload.selectedCount, 0);
+  assert.deepEqual(payload.clusters, []);
+  assert.equal(readCsv(serializeExport(payload, 'csv').text)[0].length, 16);
+  assert.ok(
+    serializeExport(payload, 'md').text.includes('runtime kabulü değil'),
+  );
+  assert.deepEqual(JSON.parse(serializeExport(payload, 'json').text), payload);
 });

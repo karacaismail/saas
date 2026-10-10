@@ -9,6 +9,8 @@ const picker = $('#cluster-picker');
 const status = $('#visible-status');
 let kind = 'all';
 let clusterFilter = 'all';
+let supportFilter = 'all';
+let actionFilter = 'all';
 let selectedOnly = false;
 let timer;
 let printState;
@@ -41,7 +43,18 @@ for (const c of data.clusters) {
         group,
         cluster,
         hay: norm(
-          [item.text, item.raw || '', g.title, g.id, c.title].join(' '),
+          [
+            item.text,
+            item.raw || '',
+            g.title,
+            g.id,
+            c.title,
+            item.assessment.note,
+            item.assessment.acceptance,
+            item.assessment.owner,
+            data.roadmap.supportLabels[item.assessment.support],
+            data.roadmap.actionLabels[item.assessment.action],
+          ].join(' '),
         ),
       };
       rows.push(row);
@@ -79,12 +92,20 @@ function apply() {
   const tokens = norm(search.value).split(' ').filter(Boolean);
   const counts = { all: 0, o: 0, g: 0, n: 0 };
   const filtering =
-    tokens.length || clusterFilter !== 'all' || kind !== 'all' || selectedOnly;
+    tokens.length ||
+    clusterFilter !== 'all' ||
+    kind !== 'all' ||
+    selectedOnly ||
+    supportFilter !== 'all' ||
+    actionFilter !== 'all';
   let visible = 0;
   let visibleGroups = 0;
   for (const row of rows) {
     const match =
       (clusterFilter === 'all' || row.cluster.data.id === clusterFilter) &&
+      (supportFilter === 'all' ||
+        row.data.assessment.support === supportFilter) &&
+      (actionFilter === 'all' || row.data.assessment.action === actionFilter) &&
       tokens.every((token) => row.hay.includes(token)) &&
       (!selectedOnly || selected.has(row.id));
     if (match) {
@@ -117,6 +138,24 @@ function apply() {
     $('.count', button).textContent = counts[button.dataset.kind];
     button.setAttribute('aria-pressed', String(button.dataset.kind === kind));
   }
+  for (const button of $$('button[data-support]'))
+    button.setAttribute(
+      'aria-pressed',
+      String(button.dataset.support === supportFilter),
+    );
+  for (const button of $$('button[data-action]'))
+    button.setAttribute(
+      'aria-pressed',
+      String(button.dataset.action === actionFilter),
+    );
+  $('#roadmap-filter-status').textContent = [
+    supportFilter === 'all'
+      ? 'Bütün yeterlilikler'
+      : data.roadmap.supportLabels[supportFilter],
+    actionFilter === 'all'
+      ? 'Bütün işler'
+      : data.roadmap.actionLabels[actionFilter],
+  ].join(' · ');
   status.textContent = `${visible} / ${rows.length} madde · ${visibleGroups} başlık`;
   $('#empty').hidden = Boolean(visible);
   $('#clear-search').hidden = !search.value;
@@ -130,6 +169,8 @@ function apply() {
 function reset() {
   search.value = '';
   clusterFilter = 'all';
+  supportFilter = 'all';
+  actionFilter = 'all';
   $('[name=cluster][value=all]').checked = true;
   $('#cluster-value').textContent = 'Bütün kümeler';
   kind = 'all';
@@ -181,6 +222,16 @@ for (const row of rows) {
 for (const button of $$('.filter'))
   button.addEventListener('click', () => {
     kind = button.dataset.kind;
+    apply();
+  });
+for (const button of $$('button[data-support]'))
+  button.addEventListener('click', () => {
+    supportFilter = button.dataset.support;
+    apply();
+  });
+for (const button of $$('button[data-action]'))
+  button.addEventListener('click', () => {
+    actionFilter = button.dataset.action;
     apply();
   });
 search.addEventListener('input', apply);

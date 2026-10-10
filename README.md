@@ -2,11 +2,13 @@
 
 [Canlı site](https://karacaismail.github.io/saas/) · [MIT lisansı](LICENSE)
 
-12 küme, 49 başlık ve 326 maddeden oluşan Türkçe SaaS özellik envanteri. Özellikleri arayın, sınıfına veya kümesine göre süzün, ihtiyacınız olanları işaretleyin ve seçili listeyi JSON, CSV veya Markdown olarak indirin.
+Frappe Framework backend, bağımsız headless frontend ve Keycloak için 12 küme, 49 başlık ve 326 maddelik geliştirme yol haritası. Her maddede Frappe yeterliliği, yapılacak iş, sorumlu katman, dayanak, kabul ölçütü ve kaynak bulunur. Özellikleri yeterlilik/iş/kaynak/küme ile süzün ve seçilenleri JSON, CSV veya Markdown olarak indirin.
 
-Siyah **özgün kapsamı**, yeşil **kapsam içi eksikleri**, kırmızı **yeni alanları** gösterir. Renkler öncelik belirtmez. Sınıf etiketleri rengin yanında metinle bulunur. Envanter başlıkları ürün kapsamı önerileridir; kurulu veya çalışan yetenekleri göstermez.
+Siyah **özgün kapsamı**, yeşil **kapsam içi eksikleri**, kırmızı **yeni alanları** gösterir. Renkler Frappe yeterliliği değildir. Yeterlilik etiketleri: **Çekirdekte var / Kısmen var / Ek Frappe uygulaması / Çekirdekte hazır değil / Harici sorumluluk / Doğrulanmalı**. Küme sırası altyapı ve güven sınırlarından ürün ve gelir modeline ilerler. ERPNext ve diğer ek uygulamalar Framework çekirdeği sayılmaz; Desk ekranları headless frontend'de otomatik hazır değildir.
 
-Seçimler tarayıcıda saklanır; sunucuya gönderilmez. Filtreleri değiştirmek seçimi temizlemez. Dışa aktarma, aktif filtrede görünmese de işaretlenmiş tüm maddeleri içerir. JSON/Markdown küme → başlık → madde hiyerarşisini, CSV bu yapının sütunlarını korur. CSV Türkçe karakterler için UTF-8 BOM kullanır ve formül hücrelerini nötrler.
+Hedef Frappe/Keycloak release'leri seçilmedi. 2026-10-10 tarihli değerlendirme resmî dokümanlara dayanır; kurulu özellik, üretim güvenilirliği veya tamamlanmış iş kanıtı değildir. Etiketlerin anlamı ve mimari karar kapıları [yol haritası rehberinde](docs/roadmap.md) bulunur.
+
+Seçimler tarayıcıda saklanır; sunucuya gönderilmez ve tamamlanma durumu değildir. Eski madde kimlikleri korunduğu için önceki seçimler devam eder. Filtreleri değiştirmek seçimi temizlemez. Dışa aktarma, aktif filtrede görünmese de işaretlenmiş tüm maddeleri içerir. JSON v2/Markdown küme → başlık → madde hiyerarşisini ve değerlendirme bağlamını, 16 sütunlu CSV bu yapıyı ve karar dayanağını korur. CSV Türkçe karakterler için UTF-8 BOM kullanır ve formül hücrelerini nötrler.
 
 ## Yerel geliştirme
 
@@ -14,12 +16,15 @@ Node >=22, npm; yerelde doğrulanan Node24.21.0. Üretimde sunucu veya runtime b
 
 ```sh
 npm ci
+npm run roadmap
 npm run check
 npm run build
 npm run dev
 ```
 
 Tarayıcıda `http://127.0.0.1:4173` adresini açın. `dist/` yalnız yayın dosyalarını içerir.
+
+Değerlendirmeler `data/assessments-*.json`, etiketler ve sıra `data/roadmap.json` içindedir. `npm run roadmap` statik HTML ve veri adasını üretir; build eski veri/görünüm eşleşmesini reddeder. 326 özgün madde fixture ile korunur.
 
 ```sh
 npx playwright install chromium firefox webkit

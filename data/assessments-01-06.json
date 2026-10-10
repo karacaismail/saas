@@ -1,0 +1,2784 @@
+{
+  "tenant-1": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Platform",
+    "confidence": "documented",
+    "note": "Site başına veritabanı ve ortak Bench belgelenmiştir. Tek veritabanında satır kiracılığı ve karma topoloji ayrıca tasarlanır.",
+    "acceptance": "İki site arasında veri sızıntısı olmamalı; karma modelin taşıma ve yönlendirme sınırı belgelenmeli.",
+    "sources": [
+      {
+        "title": "Frappe: site oluşturma ve site başına veritabanı",
+        "url": "https://docs.frappe.io/framework/user/en/tutorial/create-a-site"
+      },
+      {
+        "title": "Frappe: çok kiracılı Bench kurulumu",
+        "url": "https://docs.frappe.io/framework/user/en/bench/guides/setup-multitenancy"
+      }
+    ]
+  },
+  "tenant-2": {
+    "support": "absent",
+    "action": "build",
+    "owner": "Frappe backend",
+    "confidence": "design",
+    "note": "DocType ilişkileri yapı taşıdır. İncelenen çekirdek belgelerde SaaS kurum–şube–ekip üyelik ürünü hazır saptanmadı.",
+    "acceptance": "Şube taşıma, çoklu ekip üyeliği ve kurum sınırı API testleriyle korunmalı.",
+    "sources": [
+      {
+        "title": "Frappe: DocType veri modeli",
+        "url": "https://docs.frappe.io/framework/user/en/basics/doctypes"
+      },
+      {
+        "title": "Frappe: kullanıcılar ve izinler",
+        "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+      }
+    ]
+  },
+  "tenant-3": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Platform",
+    "confidence": "documented",
+    "note": "Site oluşturma araçları vardır. Müşteri aktivasyonu, askıya alma ve saklama kurallı çıkış akışı ürünleştirilir.",
+    "acceptance": "Oluşturma tekrarında ikinci kiracı açılmamalı; çıkıştan önce veri teslimi ve saklama kararı kaydedilmeli.",
+    "sources": [
+      {
+        "title": "Frappe: site oluşturma ve site başına veritabanı",
+        "url": "https://docs.frappe.io/framework/user/en/tutorial/create-a-site"
+      },
+      {
+        "title": "Frappe: site ve ortak yapılandırma",
+        "url": "https://docs.frappe.io/framework/user/en/basics/site_config"
+      }
+    ]
+  },
+  "tenant-4": {
+    "support": "external",
+    "action": "integrate",
+    "owner": "Keycloak + backend",
+    "confidence": "design",
+    "note": "Kimlik ve davet Keycloak'ta yönetilir. Ürün kurum üyeliği, kurum geçişi ve sahiplik devri backend sözleşmesi ister.",
+    "acceptance": "Davet tek kullanımda üyelik açmalı; sahiplik devrinde eski yetki ve kurum bağlamı güncellenmeli.",
+    "sources": [
+      {
+        "title": "Keycloak 26.7.0: kimlik, oturum ve organizasyon yönetimi",
+        "url": "https://www.keycloak.org/docs/26.7.0/server_admin/index.html"
+      },
+      {
+        "title": "Frappe: kullanıcılar ve izinler",
+        "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+      }
+    ]
+  },
+  "tenant-5": {
+    "support": "partial",
+    "action": "validate",
+    "owner": "Platform + backend",
+    "confidence": "documented",
+    "note": "Site veritabanı ve dosya alanı ayrıdır. Özel önbellek, harici arama ve iş yükü izolasyonu otomatik kabul edilemez.",
+    "acceptance": "İki kiracı için kayıt, özel dosya, cache anahtarı, arama sonucu ve job bağlamı çapraz erişimi reddedilmeli.",
+    "sources": [
+      {
+        "title": "Frappe: site oluşturma ve site başına veritabanı",
+        "url": "https://docs.frappe.io/framework/user/en/tutorial/create-a-site"
+      },
+      {
+        "title": "Frappe: genişletme ve izin hookları",
+        "url": "https://docs.frappe.io/framework/user/en/python-api/hooks"
+      },
+      {
+        "title": "Frappe: arka plan işleri ve zamanlayıcı",
+        "url": "https://docs.frappe.io/framework/user/en/api/background_jobs"
+      }
+    ]
+  },
+  "tenant-6": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Platform",
+    "confidence": "documented",
+    "note": "Bench yedekleme/geri yükleme araçları bulunur. Kesintisiz topoloji geçişi ve harici servis eşlemesi ayrıca yönetilir.",
+    "acceptance": "Deneme taşımasında dosya, kimlik eşlemesi ve indeks tutarlı kalmalı; geri dönüş denenmeli.",
+    "sources": [
+      {
+        "title": "Frappe: CLI ve sürüme bağlı Gettext araçları",
+        "url": "https://docs.frappe.io/framework/user/en/bench/frappe-commands"
+      },
+      {
+        "title": "Frappe: çok kiracılı Bench kurulumu",
+        "url": "https://docs.frappe.io/framework/user/en/bench/guides/setup-multitenancy"
+      }
+    ]
+  },
+  "identity-1": {
+    "support": "external",
+    "action": "integrate",
+    "owner": "Keycloak + backend",
+    "confidence": "documented",
+    "note": "Kayıt, giriş ve e-posta doğrulaması Keycloak sorumluluğudur. Backend doğrulanmış subject'i Frappe kullanıcısına bağlar.",
+    "acceptance": "Doğrulanmamış hesap politikası uygulanmalı; hatalı issuer/audience ve süresi dolan token reddedilmeli.",
+    "sources": [
+      {
+        "title": "Keycloak 26.7.0: kimlik, oturum ve organizasyon yönetimi",
+        "url": "https://www.keycloak.org/docs/26.7.0/server_admin/index.html"
+      },
+      {
+        "title": "Frappe: REST API",
+        "url": "https://docs.frappe.io/framework/user/en/api/rest"
+      }
+    ]
+  },
+  "identity-2": {
+    "support": "external",
+    "action": "validate",
+    "owner": "Keycloak",
+    "confidence": "verify",
+    "note": "Parola ve sıfırlama akışları belgeli. Magic link için incelenen kılavuzda hazır akış kanıtı yok; eklenti/özel akış ayrıca değerlendirilir.",
+    "acceptance": "Parola sıfırlama sonrası oturum politikası ve seçilen magic linkin süre/tek kullanım davranışı doğrulanmalı.",
+    "sources": [
+      {
+        "title": "Keycloak 26.7.0: kimlik, oturum ve organizasyon yönetimi",
+        "url": "https://www.keycloak.org/docs/26.7.0/server_admin/index.html"
+      }
+    ]
+  },
+  "identity-3": {
+    "support": "external",
+    "action": "configure",
+    "owner": "Keycloak",
+    "confidence": "documented",
+    "note": "TOTP/HOTP politikası Keycloak'ta belgeli. SMS/e-posta OTP bu kanıttan türetilmez.",
+    "acceptance": "Süre dışı kod ve yeniden kullanım reddedilmeli; saat kayması ve kurtarma akışı denenmeli.",
+    "sources": [
+      {
+        "title": "Keycloak 26.7.0: kimlik, oturum ve organizasyon yönetimi",
+        "url": "https://www.keycloak.org/docs/26.7.0/server_admin/index.html"
+      }
+    ]
+  },
+  "identity-4": {
+    "support": "external",
+    "action": "integrate",
+    "owner": "Keycloak + backend",
+    "confidence": "documented",
+    "note": "Oturum görüntüleme ve iptal Keycloak'ta vardır. Headless cihaz sunumu ve backend iptal gecikmesi ayrıca yönetilir.",
+    "acceptance": "Tüm oturumları kapatınca frontend ve backend eski oturumu belirlenen süre içinde reddetmeli.",
+    "sources": [
+      {
+        "title": "Keycloak 26.7.0: kimlik, oturum ve organizasyon yönetimi",
+        "url": "https://www.keycloak.org/docs/26.7.0/server_admin/index.html"
+      }
+    ]
+  },
+  "identity-5": {
+    "support": "external",
+    "action": "validate",
+    "owner": "Keycloak",
+    "confidence": "documented",
+    "note": "OTP/WebAuthn ve recovery codes belgeli; kurtarma kodları için 26.3.0 sürüm sınırı vardır. Hedef sürüm henüz seçilmedi.",
+    "acceptance": "İkinci faktör zorunlu olmalı; kurtarma kodu bir kez kullanılmalı ve yenilemede eskiler geçersizleşmeli.",
+    "sources": [
+      {
+        "title": "Keycloak 26.7.0: kimlik, oturum ve organizasyon yönetimi",
+        "url": "https://www.keycloak.org/docs/26.7.0/server_admin/index.html"
+      },
+      {
+        "title": "Keycloak: recovery codes sürüm sınırı",
+        "url": "https://www.keycloak.org/2025/10/recovery-codes"
+      }
+    ]
+  },
+  "identity-6": {
+    "support": "external",
+    "action": "configure",
+    "owner": "Keycloak + frontend",
+    "confidence": "documented",
+    "note": "WebAuthn/passkey ve sosyal sağlayıcılar Keycloak kapsamındadır. RP ID, yönlendirme ve hesap bağlama yapılandırılır.",
+    "acceptance": "Passkey kayıt/giriş ve sosyal hesap çakışması denenmeli; kontrolsüz otomatik hesap birleştirme olmamalı.",
+    "sources": [
+      {
+        "title": "Keycloak 26.7.0: kimlik, oturum ve organizasyon yönetimi",
+        "url": "https://www.keycloak.org/docs/26.7.0/server_admin/index.html"
+      },
+      {
+        "title": "Keycloak: sürümlü özelliklerin etkinlik durumu",
+        "url": "https://www.keycloak.org/server/features"
+      }
+    ]
+  },
+  "identity-7": {
+    "support": "external",
+    "action": "integrate",
+    "owner": "Keycloak + backend",
+    "confidence": "documented",
+    "note": "OIDC/SAML brokering Keycloak'ta belgeli. Kurumsal claim'ler Frappe üyelik ve rol kurallarına eşlenir.",
+    "acceptance": "Kurumsal SSO ve logout uçtan uca çalışmalı; başka kurum claim'iyle erişim reddedilmeli.",
+    "sources": [
+      {
+        "title": "Keycloak 26.7.0: kimlik, oturum ve organizasyon yönetimi",
+        "url": "https://www.keycloak.org/docs/26.7.0/server_admin/index.html"
+      },
+      {
+        "title": "Frappe: kullanıcılar ve izinler",
+        "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+      }
+    ]
+  },
+  "identity-8": {
+    "support": "verify",
+    "action": "validate",
+    "owner": "Keycloak + backend",
+    "confidence": "verify",
+    "note": "Okunan Keycloak 26.7.0 belgesi ve features listesi SCIM API içeriyor. Seçilecek sürüm, etkinlik ve Frappe eşitleme adaptörü doğrulanmadı.",
+    "acceptance": "Seçilen release'te Users/Groups oluşturma, değiştirme ve devre dışı bırakma Frappe yetkilerine tutarlı yansımalı.",
+    "sources": [
+      {
+        "title": "Keycloak 26.7.0: kimlik, oturum ve organizasyon yönetimi",
+        "url": "https://www.keycloak.org/docs/26.7.0/server_admin/index.html"
+      },
+      {
+        "title": "Keycloak: sürümlü özelliklerin etkinlik durumu",
+        "url": "https://www.keycloak.org/server/features"
+      }
+    ]
+  },
+  "access-1": {
+    "support": "native",
+    "action": "configure",
+    "owner": "Frappe backend",
+    "confidence": "documented",
+    "note": "Role ve DocType işlem izinleri çekirdektedir. Keycloak girişi backend izinlerini kaldırmaz; rol eşlemesi yapılandırılır.",
+    "acceptance": "Her API rolü için okuma/yazma/oluşturma/silme olumlu ve olumsuz senaryolar geçmeli.",
+    "sources": [
+      {
+        "title": "Frappe: kullanıcılar ve izinler",
+        "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+      }
+    ]
+  },
+  "access-2": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Frappe backend",
+    "confidence": "documented",
+    "note": "Permlevel, owner ve User Permission araçları vardır. Ürünün kurum/şube kapsamı ayrıca modellenir.",
+    "acceptance": "Başka kurum kaydı, gizli alanı ve ilişki seçeneği liste ve tek kayıt API'sinde görünmemeli.",
+    "sources": [
+      {
+        "title": "Frappe: kullanıcılar ve izinler",
+        "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+      },
+      {
+        "title": "Frappe: genişletme ve izin hookları",
+        "url": "https://docs.frappe.io/framework/user/en/python-api/hooks"
+      }
+    ]
+  },
+  "access-3": {
+    "support": "partial",
+    "action": "validate",
+    "owner": "Frappe backend",
+    "confidence": "documented",
+    "note": "Document izin denetimleri ve izinli sorgular vardır; get_all ve ignore_permissions yolları denetimi atlayabilir. Özel uçlar incelenir.",
+    "acceptance": "Tüm özel RPC/job yollarında kimlik, tenant ve işlem denetimi olmalı; yetkisiz isteğin yan etkisi olmamalı.",
+    "sources": [
+      {
+        "title": "Frappe: Document API",
+        "url": "https://docs.frappe.io/framework/user/en/api/document"
+      },
+      {
+        "title": "Frappe: Database API ve izin sınırları",
+        "url": "https://docs.frappe.io/framework/user/en/api/database"
+      }
+    ]
+  },
+  "access-4": {
+    "support": "external",
+    "action": "integrate",
+    "owner": "Keycloak + backend",
+    "confidence": "documented",
+    "note": "Keycloak impersonation belgeli. Frappe işleminde gerçek destek görevlisi ile temsil edilen kullanıcı birlikte izlenmelidir.",
+    "acceptance": "Destek oturumu yetkisiz açılmamalı; log her işlemde asıl ve temsil edilen kimliği ayırmalı.",
+    "sources": [
+      {
+        "title": "Keycloak 26.7.0: kimlik, oturum ve organizasyon yönetimi",
+        "url": "https://www.keycloak.org/docs/26.7.0/server_admin/index.html"
+      },
+      {
+        "title": "Keycloak: sürümlü özelliklerin etkinlik durumu",
+        "url": "https://www.keycloak.org/server/features"
+      }
+    ]
+  },
+  "access-5": {
+    "support": "absent",
+    "action": "build",
+    "owner": "Platform + backend",
+    "confidence": "design",
+    "note": "Çekirdek izinler kullanılabilir. İncelenen kaynaklarda müşteri izinli, süreli destek erişimi ürün akışı hazır saptanmadı.",
+    "acceptance": "Gerekçe, müşteri onayı ve süre zorunlu olmalı; süre sonunda erişim ve hassas işlemler kesilmeli.",
+    "sources": [
+      {
+        "title": "Frappe: kullanıcılar ve izinler",
+        "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+      },
+      {
+        "title": "Frappe: Document API",
+        "url": "https://docs.frappe.io/framework/user/en/api/document"
+      }
+    ]
+  },
+  "access-6": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Keycloak + backend",
+    "confidence": "documented",
+    "note": "Rol ayrımı Frappe'ta, step-up kimlik doğrulama Keycloak'ta belgeli. Süreli yetki devri ve görev ayrılığı politikası eklenir.",
+    "acceptance": "Talep eden kendi kritik işlemini onaylayamamalı; eski step-up kanıtı hassas işlemde reddedilmeli.",
+    "sources": [
+      {
+        "title": "Frappe: kullanıcılar ve izinler",
+        "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+      },
+      {
+        "title": "Keycloak 26.7.0: kimlik, oturum ve organizasyon yönetimi",
+        "url": "https://www.keycloak.org/docs/26.7.0/server_admin/index.html"
+      },
+      {
+        "title": "Frappe version-15: Allow Self Approval alanı",
+        "url": "https://github.com/frappe/frappe/blob/version-15/frappe/workflow/doctype/workflow_transition/workflow_transition.json"
+      }
+    ]
+  },
+  "access-7": {
+    "support": "external",
+    "action": "integrate",
+    "owner": "Keycloak + backend",
+    "confidence": "documented",
+    "note": "Servis kimliği ve kısa ömürlü token Keycloak üzerinden yönetilir. Token kapsamı Frappe işlem izinleriyle ayrıca sınırlandırılır.",
+    "acceptance": "Servis tokenı yalnız tanımlı tenant/eylemlerde çalışmalı; süresi dolan veya iptal edilen token reddedilmeli.",
+    "sources": [
+      {
+        "title": "Keycloak 26.7.0: kimlik, oturum ve organizasyon yönetimi",
+        "url": "https://www.keycloak.org/docs/26.7.0/server_admin/index.html"
+      },
+      {
+        "title": "Frappe: REST API",
+        "url": "https://docs.frappe.io/framework/user/en/api/rest"
+      }
+    ]
+  },
+  "modules-1": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Frappe backend",
+    "confidence": "documented",
+    "note": "Uygulama kurulum ve görünürlük araçları bulunur. Ürün modülünü kapatmak API ve iş çalışmasını durduran ayrı durum gerektirir.",
+    "acceptance": "Modül kapanınca yeni API/job çalışması reddedilmeli; kayıtlar ve geçmiş korunmalı.",
+    "sources": [
+      {
+        "title": "Frappe: uygulama yapısı ve kurulum",
+        "url": "https://docs.frappe.io/framework/user/en/basics/apps"
+      },
+      {
+        "title": "Frappe: kullanıcılar ve izinler",
+        "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+      }
+    ]
+  },
+  "modules-2": {
+    "support": "absent",
+    "action": "build",
+    "owner": "Platform",
+    "confidence": "design",
+    "note": "Frappe apps; hooks.py, modules.txt ve patches.txt kullanır. İncelenen resmî yapı module.manifest.yml sözleşmesi tanımlamaz.",
+    "acceptance": "YAML kullanılacaksa şeması doğrulanmalı ve Frappe app/hook kayıtlarına deterministik çevrilmeli.",
+    "sources": [
+      {
+        "title": "Frappe: uygulama yapısı ve kurulum",
+        "url": "https://docs.frappe.io/framework/user/en/basics/apps"
+      }
+    ]
+  },
+  "modules-3": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Platform",
+    "confidence": "documented",
+    "note": "App bağımlılığı, kurulum ve kaldırma araçları vardır. SaaS katalog ve sürüm uyumu politikası eklenir; uninstall veri silme riski taşır.",
+    "acceptance": "Bağımlılığı eksik sürüm kurulmadan durmalı; kaldırma öncesi veri koruma ve geri dönüş denenmeli.",
+    "sources": [
+      {
+        "title": "Frappe: uygulama yapısı ve kurulum",
+        "url": "https://docs.frappe.io/framework/user/en/basics/apps"
+      },
+      {
+        "title": "Frappe: genişletme ve izin hookları",
+        "url": "https://docs.frappe.io/framework/user/en/python-api/hooks"
+      },
+      {
+        "title": "Frappe: uninstall-app",
+        "url": "https://docs.frappe.io/framework/user/en/bench/reference/uninstall-app"
+      }
+    ]
+  },
+  "modules-4": {
+    "support": "absent",
+    "action": "build",
+    "owner": "Frappe backend",
+    "confidence": "design",
+    "note": "Uninstall devre dışı bırakmanın karşılığı değildir. İncelenen kaynaklarda veri koruyan modül askı ve job boşaltma akışı hazır saptanmadı.",
+    "acceptance": "Devam eden iş güvenli noktada bitmeli/durmalı; kapalı modüle yazma engellenirken mevcut veri okunabilmeli.",
+    "sources": [
+      {
+        "title": "Frappe: uninstall-app",
+        "url": "https://docs.frappe.io/framework/user/en/bench/reference/uninstall-app"
+      },
+      {
+        "title": "Frappe: arka plan işleri ve zamanlayıcı",
+        "url": "https://docs.frappe.io/framework/user/en/api/background_jobs"
+      }
+    ]
+  },
+  "modules-5": {
+    "support": "absent",
+    "action": "build",
+    "owner": "Platform + backend",
+    "confidence": "design",
+    "note": "Site config ve hooklar temel sağlar. İncelenen kaynaklarda tenant/cohort bazlı ürün feature flag servisi hazır saptanmadı.",
+    "acceptance": "Aynı sürümde yalnız seçilen kiracı özelliği açabilmeli; backend ve frontend aynı kararı kullanmalı.",
+    "sources": [
+      {
+        "title": "Frappe: site ve ortak yapılandırma",
+        "url": "https://docs.frappe.io/framework/user/en/basics/site_config"
+      },
+      {
+        "title": "Frappe: genişletme ve izin hookları",
+        "url": "https://docs.frappe.io/framework/user/en/python-api/hooks"
+      }
+    ]
+  },
+  "modules-6": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Platform + frontend",
+    "confidence": "documented",
+    "note": "Hooklar olay, izin ve app metaverisini kaydeder. Headless ekran ve capability registry sözleşmesi ayrıca kurulur.",
+    "acceptance": "Modül kayıtları benzersiz kimlikle yüklenmeli; yetkisiz capability çağrısı sunucuda reddedilmeli.",
+    "sources": [
+      {
+        "title": "Frappe: genişletme ve izin hookları",
+        "url": "https://docs.frappe.io/framework/user/en/python-api/hooks"
+      },
+      {
+        "title": "Frappe: uygulama yapısı ve kurulum",
+        "url": "https://docs.frappe.io/framework/user/en/basics/apps"
+      }
+    ]
+  },
+  "modules-7": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Platform",
+    "confidence": "documented",
+    "note": "Patches ve migrate hookları vardır. Müşteriye sürüm bildirimi ve migration ilerlemesi için ürün akışı eklenir.",
+    "acceptance": "Başarısız geçiş yeni sürümü etkinleştirmemeli; bildirim sürüm ve etkilenen kiracıya bağlanmalı.",
+    "sources": [
+      {
+        "title": "Frappe: veritabanı geçişleri",
+        "url": "https://docs.frappe.io/framework/user/en/database-migrations"
+      },
+      {
+        "title": "Frappe: genişletme ve izin hookları",
+        "url": "https://docs.frappe.io/framework/user/en/python-api/hooks"
+      }
+    ]
+  },
+  "catalog-1": {
+    "support": "ecosystem",
+    "action": "integrate",
+    "owner": "Faturalama + frontend",
+    "confidence": "documented",
+    "note": "ERPNext Subscription Plan ücret ve dönem tanımlar. SaaS özellik matrisi ve headless pricing table ayrıca hazırlanır.",
+    "acceptance": "Plan, para birimi ve dönem fiyatı API/panel/pricing table üzerinde aynı sürümü göstermeli.",
+    "sources": [
+      {
+        "title": "ERPNext: Subscription Plan",
+        "url": "https://docs.frappe.io/erpnext/subscription-plan"
+      }
+    ]
+  },
+  "catalog-2": {
+    "support": "absent",
+    "action": "build",
+    "owner": "Frappe backend + frontend",
+    "confidence": "design",
+    "note": "REST kayıt erişimi sağlar. İncelenen kaynaklarda panel ile bağımsız frontpage'i bağlayan tek SaaS paket yayın sözleşmesi saptanmadı.",
+    "acceptance": "Taslak paket herkese açık olmamalı; yayınlanan paket sürümü iki yüzeyde birebir eşleşmeli.",
+    "sources": [
+      {
+        "title": "Frappe: REST API",
+        "url": "https://docs.frappe.io/framework/user/en/api/rest"
+      },
+      {
+        "title": "ERPNext: Subscription Plan",
+        "url": "https://docs.frappe.io/erpnext/subscription-plan"
+      }
+    ]
+  },
+  "catalog-3": {
+    "support": "absent",
+    "action": "build",
+    "owner": "Faturalama backend",
+    "confidence": "design",
+    "note": "ERPNext plan değişikliği eski faturayı yeniden yazmaz. Eski müşterinin gelecekteki koşullarını koruyan paket sürümleme ayrıca modellenir.",
+    "acceptance": "Yeni fiyat yayınlanınca grandfathered müşteri eski koşulla, yeni müşteri yeni koşulla faturalanmalı.",
+    "sources": [
+      {
+        "title": "ERPNext: Subscription Plan",
+        "url": "https://docs.frappe.io/erpnext/subscription-plan"
+      }
+    ]
+  },
+  "catalog-4": {
+    "support": "ecosystem",
+    "action": "extend",
+    "owner": "Faturalama backend",
+    "confidence": "documented",
+    "note": "ERPNext dönem, fiyat ve miktar yapılarını sunar. Ölçülen kullanım ve karma fiyat hesapları ayrıca tasarlanır.",
+    "acceptance": "Aylık/yıllık, koltuk ve tüketim örneklerinde hesaplanan tutar kabul edilen fiyat sürümüyle eşleşmeli.",
+    "sources": [
+      {
+        "title": "ERPNext: Subscription Plan",
+        "url": "https://docs.frappe.io/erpnext/subscription-plan"
+      },
+      {
+        "title": "ERPNext: Subscription",
+        "url": "https://docs.frappe.io/erpnext/subscription"
+      }
+    ]
+  },
+  "catalog-5": {
+    "support": "ecosystem",
+    "action": "extend",
+    "owner": "Faturalama backend",
+    "confidence": "documented",
+    "note": "ERPNext aboneliğe birden çok plan ve miktar ekleyebilir. Kota ve müşteri özel teklifin ürün haklarına eşlemesi eklenir.",
+    "acceptance": "Ek hizmet satın alımı tek fatura ve doğru hak artışı üretmeli; teklife özel fiyat başka müşteriye uygulanmamalı.",
+    "sources": [
+      {
+        "title": "ERPNext: Subscription",
+        "url": "https://docs.frappe.io/erpnext/subscription"
+      },
+      {
+        "title": "ERPNext: Subscription Plan",
+        "url": "https://docs.frappe.io/erpnext/subscription-plan"
+      }
+    ]
+  },
+  "catalog-6": {
+    "support": "absent",
+    "action": "build",
+    "owner": "Faturalama backend",
+    "confidence": "design",
+    "note": "Plan kaydı bulunur. İncelenen kaynaklarda herkese açık/gizli/emekli/sözleşmeli SaaS satış durumları bütünü hazır saptanmadı.",
+    "acceptance": "Emekli plan yeni satışta seçilememeli; mevcut sözleşmedeki müşteri erişimini korumalı.",
+    "sources": [
+      {
+        "title": "ERPNext: Subscription Plan",
+        "url": "https://docs.frappe.io/erpnext/subscription-plan"
+      }
+    ]
+  },
+  "subscriptions-1": {
+    "support": "ecosystem",
+    "action": "extend",
+    "owner": "Faturalama + backend",
+    "confidence": "documented",
+    "note": "ERPNext tekrar fatura ve abonelik durumlarını yönetir. Hizmetin askıya alınması ürün erişim politikasıyla bağlanır.",
+    "acceptance": "Başlatma/iptal tekrarında ikinci abonelik oluşmamalı; askı kararı API haklarına aynı anda yansımalı.",
+    "sources": [
+      {
+        "title": "ERPNext: Subscription",
+        "url": "https://docs.frappe.io/erpnext/subscription"
+      }
+    ]
+  },
+  "subscriptions-2": {
+    "support": "ecosystem",
+    "action": "extend",
+    "owner": "Faturalama + backend",
+    "confidence": "documented",
+    "note": "ERPNext Trialing ve dönem akışları sunar. Ücretsiz plan hakları ve ödeme sonrası ürün geçişi ayrıca uygulanır.",
+    "acceptance": "Deneme bitiş sınırında doğru haklar uygulanmalı; ücretliye geçiş veri ve üyeliği korumalı.",
+    "sources": [
+      {
+        "title": "ERPNext: Subscription",
+        "url": "https://docs.frappe.io/erpnext/subscription"
+      }
+    ]
+  },
+  "subscriptions-3": {
+    "support": "ecosystem",
+    "action": "extend",
+    "owner": "Faturalama backend",
+    "confidence": "documented",
+    "note": "ERPNext plan ve dönem sonu iptalini destekler. Upgrade/downgrade etkinlik zamanı için ürün değişim kaydı eklenir.",
+    "acceptance": "Hemen ve dönem sonu değişim ayrı denenmeli; düşürmede fazla veri sessizce silinmemeli.",
+    "sources": [
+      {
+        "title": "ERPNext: Subscription",
+        "url": "https://docs.frappe.io/erpnext/subscription"
+      },
+      {
+        "title": "ERPNext: Subscription Plan",
+        "url": "https://docs.frappe.io/erpnext/subscription-plan"
+      }
+    ]
+  },
+  "subscriptions-4": {
+    "support": "ecosystem",
+    "action": "extend",
+    "owner": "Faturalama backend",
+    "confidence": "documented",
+    "note": "ERPNext proration/grace ayarları belgeli. Tahsilat sonucu ile hizmetin yeniden açılması bağlanır.",
+    "acceptance": "Dönem ortası fark, başarısız ödeme ek süresi ve yeniden ödeme sonucu tutar/hak bakımından uzlaşmalı.",
+    "sources": [
+      {
+        "title": "ERPNext: Subscription Settings",
+        "url": "https://docs.frappe.io/erpnext/subscription-settings"
+      },
+      {
+        "title": "ERPNext: Subscription",
+        "url": "https://docs.frappe.io/erpnext/subscription"
+      }
+    ]
+  },
+  "subscriptions-5": {
+    "support": "external",
+    "action": "build",
+    "owner": "Headless frontend + backend",
+    "confidence": "design",
+    "note": "ERPNext müşteri portalı belgeli; bağımsız headless abonelik ve ödeme yöntemi yüzeyi hazır kabul edilmez.",
+    "acceptance": "Müşteri yalnız kendi faturalarını görmeli; ödeme yöntemi değişimi sağlayıcı akışıyla güvenli tamamlanmalı.",
+    "sources": [
+      {
+        "title": "ERPNext: Customer Portal",
+        "url": "https://docs.frappe.io/erpnext/customer-portal"
+      },
+      {
+        "title": "Stripe: sağlayıcı ödeme yöntemleri örneği",
+        "url": "https://docs.stripe.com/payments/payment-methods"
+      }
+    ]
+  },
+  "subscriptions-6": {
+    "support": "ecosystem",
+    "action": "extend",
+    "owner": "Faturalama backend",
+    "confidence": "documented",
+    "note": "ERPNext bitiş/iptal durumları sağlar. İptal nedeni, duraklatma ve tekrar abonelik ürün politikası eklenir.",
+    "acceptance": "Dönem sonunda iptal ile hemen iptal ayrılmalı; yeniden abonelik geçmiş kayıtları bozmamalı.",
+    "sources": [
+      {
+        "title": "ERPNext: Subscription",
+        "url": "https://docs.frappe.io/erpnext/subscription"
+      }
+    ]
+  },
+  "entitlements-1": {
+    "support": "absent",
+    "action": "build",
+    "owner": "Frappe backend",
+    "confidence": "design",
+    "note": "Rol izinleri vardır. İncelenen kaynaklarda paket/sözleşme kaynaklı SaaS entitlement motoru hazır saptanmadı.",
+    "acceptance": "Paket hakkı olmayan işlem kullanıcı rolü yetkili olsa da backend tarafından reddedilmeli.",
+    "sources": [
+      {
+        "title": "Frappe: kullanıcılar ve izinler",
+        "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+      },
+      {
+        "title": "ERPNext: Subscription Plan",
+        "url": "https://docs.frappe.io/erpnext/subscription-plan"
+      }
+    ]
+  },
+  "entitlements-2": {
+    "support": "absent",
+    "action": "build",
+    "owner": "Frappe backend",
+    "confidence": "design",
+    "note": "DocType izinleri ve app kayıtları ayrı araçlardır. Ticari hak, teknik modül ve kullanıcı yetkisini birlikte değerlendiren politika eklenir.",
+    "acceptance": "Üç denetimden biri olumsuzsa işlem reddedilmeli; frontend görünürlüğü tek denetim olmamalı.",
+    "sources": [
+      {
+        "title": "Frappe: kullanıcılar ve izinler",
+        "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+      },
+      {
+        "title": "Frappe: uygulama yapısı ve kurulum",
+        "url": "https://docs.frappe.io/framework/user/en/basics/apps"
+      }
+    ]
+  },
+  "entitlements-3": {
+    "support": "absent",
+    "action": "build",
+    "owner": "Frappe backend",
+    "confidence": "design",
+    "note": "DocType ile hak kaydı modellenebilir. İncelenen kaynaklarda süreli tenant özel hak ve geri alma akışı hazır saptanmadı.",
+    "acceptance": "Hak başlangıç/bitiş sınırında değişmeli; geri alma sonrası cache ve çalışan işlem politikası tutarlı olmalı.",
+    "sources": [
+      {
+        "title": "Frappe: DocType veri modeli",
+        "url": "https://docs.frappe.io/framework/user/en/basics/doctypes"
+      },
+      {
+        "title": "Frappe: sunucu controller doğrulamaları",
+        "url": "https://docs.frappe.io/framework/user/en/basics/doctypes/controllers"
+      }
+    ]
+  },
+  "entitlements-4": {
+    "support": "absent",
+    "action": "build",
+    "owner": "Frappe backend",
+    "confidence": "design",
+    "note": "Hook ve job araçları vardır. İncelenen kaynaklarda aynı entitlement kararını tüm yürütüm yollarına yayan katman hazır saptanmadı.",
+    "acceptance": "Hak kaldırıldıktan sonra panel, RPC, queue ve entegrasyon aynı yetkisiz sonucu üretmeli.",
+    "sources": [
+      {
+        "title": "Frappe: genişletme ve izin hookları",
+        "url": "https://docs.frappe.io/framework/user/en/python-api/hooks"
+      },
+      {
+        "title": "Frappe: arka plan işleri ve zamanlayıcı",
+        "url": "https://docs.frappe.io/framework/user/en/api/background_jobs"
+      }
+    ]
+  },
+  "entitlements-5": {
+    "support": "absent",
+    "action": "build",
+    "owner": "Frappe backend",
+    "confidence": "design",
+    "note": "İzinler işlemleri ayırabilir. Askıdaki müşteriye salt okunur veri teslimi ve ödeme istisnası veren hazır SaaS politikası saptanmadı.",
+    "acceptance": "Askıdayken iş yazmaları engellenmeli; yetkili export ve ödeme akışı çalışırken tenant sınırı korunmalı.",
+    "sources": [
+      {
+        "title": "Frappe: kullanıcılar ve izinler",
+        "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+      },
+      {
+        "title": "Frappe: REST API",
+        "url": "https://docs.frappe.io/framework/user/en/api/rest"
+      }
+    ]
+  },
+  "entitlements-6": {
+    "support": "absent",
+    "action": "build",
+    "owner": "Platform",
+    "confidence": "design",
+    "note": "App kurulum yapısı belgeli. İncelenen kaynaklarda müşteri ortamı için imzalı lisans ve çevrimdışı tolerans sistemi hazır saptanmadı.",
+    "acceptance": "İmzası bozuk/süresi dolan lisans ve ağ kesintisi denenmeli; kararlaştırılmış grace süresi deterministik uygulanmalı.",
+    "sources": [
+      {
+        "title": "Frappe: uygulama yapısı ve kurulum",
+        "url": "https://docs.frappe.io/framework/user/en/basics/apps"
+      }
+    ]
+  },
+  "usage-1": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Platform + backend",
+    "confidence": "documented",
+    "note": "Çekirdekte dosya başına boyut sınırı vardır. AI kredi ve müşteri trafik tüketimi için ayrı sayaç ve yaptırım gerekir.",
+    "acceptance": "Dosya sınırı aşımı reddedilmeli; AI/traffic limitine eşzamanlı erişim kotayı aşamamalı.",
+    "sources": [
+      {
+        "title": "Frappe: dosya ekleri ve görsel iyileştirme",
+        "url": "https://docs.frappe.io/framework/user/en/desk/attachments"
+      },
+      {
+        "title": "Frappe: site HTTP zaman bütçesi",
+        "url": "https://docs.frappe.io/framework/deployment/rate-limiting"
+      }
+    ]
+  },
+  "usage-2": {
+    "support": "absent",
+    "action": "build",
+    "owner": "Frappe backend",
+    "confidence": "design",
+    "note": "DocType ve site yapıları kullanılır. İncelenen kaynaklarda şirket/koltuk/kayıt/depolama ticari kotası hazır saptanmadı.",
+    "acceptance": "Son koltuk veya kota için iki eşzamanlı istekte yalnız izin verilen sayı oluşturulmalı.",
+    "sources": [
+      {
+        "title": "Frappe: DocType veri modeli",
+        "url": "https://docs.frappe.io/framework/user/en/basics/doctypes"
+      },
+      {
+        "title": "Frappe: site oluşturma ve site başına veritabanı",
+        "url": "https://docs.frappe.io/framework/user/en/tutorial/create-a-site"
+      }
+    ]
+  },
+  "usage-3": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Platform + backend",
+    "confidence": "documented",
+    "note": "Frappe site HTTP rate limit'i süre tüketimine dayanır. Paket bazlı çağrı sayısı ve entegrasyon kotası ayrıca tutulur.",
+    "acceptance": "Süre bütçesiyle çağrı adedi ayrılmalı; 429 ve dönem sıfırlama kiracıya doğru uygulanmalı.",
+    "sources": [
+      {
+        "title": "Frappe: site HTTP zaman bütçesi",
+        "url": "https://docs.frappe.io/framework/deployment/rate-limiting"
+      }
+    ]
+  },
+  "usage-4": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Platform + backend",
+    "confidence": "documented",
+    "note": "Queue ve timeout yapılandırması vardır. Tenant başına otomasyon, eşzamanlılık ve bildirim hakkı ayrıca sınırlandırılır.",
+    "acceptance": "Bir kiracının yoğun işi diğerini aç bırakmamalı; görev ve bildirim sınırı aşımı açık hata üretmeli.",
+    "sources": [
+      {
+        "title": "Frappe: arka plan işleri ve zamanlayıcı",
+        "url": "https://docs.frappe.io/framework/user/en/api/background_jobs"
+      }
+    ]
+  },
+  "usage-5": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Frappe backend",
+    "confidence": "documented",
+    "note": "Rate limiter pencere sıfırlaması sunar. Faturalama dönemi tüketimi, eşik bildirimi ve aşım kuralları ayrı hesaplanır.",
+    "acceptance": "Dönem sınırı, gecikmiş olay ve aynı ölçümün tekrarı toplamı bozmamalı; eşik uyarısı bir kez oluşmalı.",
+    "sources": [
+      {
+        "title": "Frappe: site HTTP zaman bütçesi",
+        "url": "https://docs.frappe.io/framework/deployment/rate-limiting"
+      },
+      {
+        "title": "ERPNext: Subscription",
+        "url": "https://docs.frappe.io/erpnext/subscription"
+      }
+    ]
+  },
+  "usage-6": {
+    "support": "absent",
+    "action": "build",
+    "owner": "Frappe backend",
+    "confidence": "design",
+    "note": "Veritabanı işlemleri yapı taşıdır. İncelenen kaynaklarda reserve/consume/refund durumlu SaaS kredi defteri hazır saptanmadı.",
+    "acceptance": "Aynı işlem anahtarı ikinci tüketim yaratmamalı; başarısız işlem rezervasyonu yalnız bir kez iade edilmeli.",
+    "sources": [
+      {
+        "title": "Frappe: Database API ve izin sınırları",
+        "url": "https://docs.frappe.io/framework/user/en/api/database"
+      }
+    ]
+  },
+  "usage-7": {
+    "support": "absent",
+    "action": "build",
+    "owner": "Platform + backend",
+    "confidence": "design",
+    "note": "Site/job araçları vardır. İncelenen kaynaklarda tenant-özellik maliyet defteri ve anlık harcama durdurucu hazır saptanmadı.",
+    "acceptance": "Gecikmeli maliyet kaydı ve eşzamanlı çağrıda tavan politikası uygulanmalı; durdurma yeni ücretli işi engellemeli.",
+    "sources": [
+      {
+        "title": "Frappe: arka plan işleri ve zamanlayıcı",
+        "url": "https://docs.frappe.io/framework/user/en/api/background_jobs"
+      },
+      {
+        "title": "Frappe: DocType veri modeli",
+        "url": "https://docs.frappe.io/framework/user/en/basics/doctypes"
+      }
+    ]
+  },
+  "campaigns-1": {
+    "support": "ecosystem",
+    "action": "integrate",
+    "owner": "Faturalama backend",
+    "confidence": "documented",
+    "note": "ERPNext Coupon Code ve Pricing Rule vardır. SaaS checkout ve plan kapsamı için adaptasyon gerekir.",
+    "acceptance": "Geçerli kod yalnız uygun plan ve müşteri için indirime dönüşmeli; kodsuz fiyat korunmalı.",
+    "sources": [
+      {
+        "title": "ERPNext: Coupon Code",
+        "url": "https://docs.frappe.io/erpnext/coupon-code"
+      },
+      {
+        "title": "ERPNext: Pricing Rule",
+        "url": "https://docs.frappe.io/erpnext/pricing-rule"
+      }
+    ]
+  },
+  "campaigns-2": {
+    "support": "ecosystem",
+    "action": "extend",
+    "owner": "Faturalama backend",
+    "confidence": "documented",
+    "note": "ERPNext ürün indirimi ücretsiz ürün kuralı sunar. SaaS ek koltuk/modül ödülünün entitlement karşılığı eklenir.",
+    "acceptance": "BOGO koşulu sağlanınca yalnız tanımlı ödül verilmeli; iptalde hak politikası uygulanmalı.",
+    "sources": [
+      {
+        "title": "ERPNext: Pricing Rule",
+        "url": "https://docs.frappe.io/erpnext/pricing-rule"
+      }
+    ]
+  },
+  "campaigns-3": {
+    "support": "ecosystem",
+    "action": "extend",
+    "owner": "Faturalama backend",
+    "confidence": "documented",
+    "note": "ERPNext hedef, tarih ve kullanım sınırı araçları sunar. Kampanya para bütçesi ve eşzamanlı tüketim ayrıca doğrulanır.",
+    "acceptance": "Son kupon kullanımı ve bütçe sınırında eşzamanlı istekler limite uymalı.",
+    "sources": [
+      {
+        "title": "ERPNext: Coupon Code",
+        "url": "https://docs.frappe.io/erpnext/coupon-code"
+      },
+      {
+        "title": "ERPNext: Pricing Rule",
+        "url": "https://docs.frappe.io/erpnext/pricing-rule"
+      }
+    ]
+  },
+  "campaigns-4": {
+    "support": "ecosystem",
+    "action": "configure",
+    "owner": "Faturalama backend",
+    "confidence": "documented",
+    "note": "ERPNext öncelik ve çoklu fiyat kuralı seçenekleri vardır. SaaS ürün/plan istisnaları tanımlanır.",
+    "acceptance": "Çakışan iki indirimde kabul edilen birleşim uygulanmalı; kapsam dışı plan etkilenmemeli.",
+    "sources": [
+      {
+        "title": "ERPNext: Pricing Rule",
+        "url": "https://docs.frappe.io/erpnext/pricing-rule"
+      }
+    ]
+  },
+  "campaigns-5": {
+    "support": "ecosystem",
+    "action": "extend",
+    "owner": "Faturalama backend",
+    "confidence": "documented",
+    "note": "Kupon kullanım sayısı ERPNext siparişlerine bağlıdır. İade/iptal sonrası hak düzeltmesi ve kötüye kullanım politikası ayrıca kurulur.",
+    "acceptance": "Kısmi/tam iade ve yeniden denemede kupon hakkı yanlışlıkla çoğalmamalı.",
+    "sources": [
+      {
+        "title": "ERPNext: Coupon Code",
+        "url": "https://docs.frappe.io/erpnext/coupon-code"
+      },
+      {
+        "title": "Stripe: iade sözleşmesi örneği",
+        "url": "https://docs.stripe.com/refunds"
+      }
+    ]
+  },
+  "payments-1": {
+    "support": "ecosystem",
+    "action": "integrate",
+    "owner": "Ödeme entegrasyonu",
+    "confidence": "documented",
+    "note": "Frappe Payments ayrı uygulamadır. Sağlayıcı seçimi, desteklenen yöntemler ve SaaS tahsilat adaptörü ayrıca belirlenir.",
+    "acceptance": "Seçilen sağlayıcı test ortamında başarılı/başarısız tahsilatı tek ödeme kaydıyla yansıtmalı.",
+    "sources": [
+      {
+        "title": "Frappe Payments: ayrı ödeme uygulaması",
+        "url": "https://github.com/frappe/payments"
+      },
+      {
+        "title": "Stripe: sağlayıcı ödeme yöntemleri örneği",
+        "url": "https://docs.stripe.com/payments/payment-methods"
+      }
+    ]
+  },
+  "payments-2": {
+    "support": "external",
+    "action": "integrate",
+    "owner": "Ödeme entegrasyonu",
+    "confidence": "design",
+    "note": "Yetkilendirme ve doğrulama sağlayıcı sözleşmesine bağlıdır. Tekrar deneme ve başarısız tahsilat ürün akışı backend'e eklenir.",
+    "acceptance": "Ek doğrulama, zaman aşımı ve başarısız ödeme senaryolarında yanlış Paid durumu oluşmamalı.",
+    "sources": [
+      {
+        "title": "Stripe: sağlayıcı ödeme yöntemleri örneği",
+        "url": "https://docs.stripe.com/payments/payment-methods"
+      },
+      {
+        "title": "Stripe: webhook doğrulama ve teslim sözleşmesi örneği",
+        "url": "https://docs.stripe.com/webhooks"
+      }
+    ]
+  },
+  "payments-3": {
+    "support": "external",
+    "action": "integrate",
+    "owner": "Ödeme + finans",
+    "confidence": "design",
+    "note": "İade ve dispute sağlayıcı süreçleridir. Finans kaydı ve müşteri hakkı etkisi backend'de uzlaştırılır.",
+    "acceptance": "Kısmi/tam iade ve ters ibraz olayları bakiye/hizmet kararını tutarlı güncellemeli.",
+    "sources": [
+      {
+        "title": "Stripe: iade sözleşmesi örneği",
+        "url": "https://docs.stripe.com/refunds"
+      },
+      {
+        "title": "Stripe: webhook doğrulama ve teslim sözleşmesi örneği",
+        "url": "https://docs.stripe.com/webhooks"
+      }
+    ]
+  },
+  "payments-4": {
+    "support": "external",
+    "action": "integrate",
+    "owner": "Ödeme entegrasyonu",
+    "confidence": "design",
+    "note": "Sağlayıcı idempotency sözleşmesi kullanılabilir. Kalıcı işlem anahtarı, event tekilleştirme ve yerel uzlaştırma ayrıca gerekir.",
+    "acceptance": "Aynı istek ve yinelenen webhook tek tahsilat üretmeli; bağlantı kopunca sağlayıcı durumu uzlaştırılmalı.",
+    "sources": [
+      {
+        "title": "Stripe: idempotent istek sözleşmesi örneği",
+        "url": "https://docs.stripe.com/api/idempotent_requests"
+      },
+      {
+        "title": "Stripe: webhook doğrulama ve teslim sözleşmesi örneği",
+        "url": "https://docs.stripe.com/webhooks"
+      }
+    ]
+  },
+  "payments-5": {
+    "support": "external",
+    "action": "integrate",
+    "owner": "Ödeme entegrasyonu",
+    "confidence": "design",
+    "note": "Ödeme aracı sağlayıcı referansıyla tutulur. Kart ayrıntılarını ürüne taşıyan akış yerine sağlayıcının güvenli toplama yüzeyi seçilir.",
+    "acceptance": "Backend, log ve export içinde PAN/CVV bulunmamalı; yalnız sağlayıcı referansı ve izinli metadata saklanmalı.",
+    "sources": [
+      {
+        "title": "Stripe: sağlayıcı ödeme yöntemleri örneği",
+        "url": "https://docs.stripe.com/payments/payment-methods"
+      }
+    ]
+  },
+  "payments-6": {
+    "support": "external",
+    "action": "integrate",
+    "owner": "Ödeme entegrasyonu",
+    "confidence": "design",
+    "note": "Webhook imza ve teslim kuralları sağlayıcıya bağlıdır. Geç/sırasız olaylarda yerel ödeme durum makinesi korunur.",
+    "acceptance": "Yanlış imza reddedilmeli; eski ve yinelenen olay Paid kaydını hatalı geriye çevirmemeli.",
+    "sources": [
+      {
+        "title": "Stripe: webhook doğrulama ve teslim sözleşmesi örneği",
+        "url": "https://docs.stripe.com/webhooks"
+      }
+    ]
+  },
+  "finance-1": {
+    "support": "ecosystem",
+    "action": "integrate",
+    "owner": "ERPNext + finans",
+    "confidence": "documented",
+    "note": "Sipariş, fatura ve muhasebe ERPNext uygulamasındadır. Framework veri modeli tek başına muhasebe ürünü değildir.",
+    "acceptance": "Sipariş–fatura–tahsilat zinciri doğru cari ve dengeli defter kaydı üretmeli.",
+    "sources": [
+      {
+        "title": "ERPNext: Sales Invoice",
+        "url": "https://docs.frappe.io/erpnext/sales-invoice"
+      },
+      {
+        "title": "ERPNext: Accounting Entries",
+        "url": "https://docs.frappe.io/erpnext/accounting-entries"
+      }
+    ]
+  },
+  "finance-2": {
+    "support": "ecosystem",
+    "action": "configure",
+    "owner": "ERPNext + finans",
+    "confidence": "documented",
+    "note": "ERPNext para birimi, dönüşüm ve vergi şablonları sağlar. Ülke ve işlem politikası ayrıca seçilir.",
+    "acceptance": "Örnek dövizli/vergi dahil/yuvarlanan işlemde beklenen tutar ve hesap kayıtları eşleşmeli.",
+    "sources": [
+      {
+        "title": "ERPNext: Sales Invoice",
+        "url": "https://docs.frappe.io/erpnext/sales-invoice"
+      },
+      {
+        "title": "ERPNext: Accounts Settings",
+        "url": "https://docs.frappe.io/erpnext/accounts-settings"
+      }
+    ]
+  },
+  "finance-3": {
+    "support": "ecosystem",
+    "action": "extend",
+    "owner": "ERPNext + platform",
+    "confidence": "documented",
+    "note": "ERPNext cari ve mutabakat araçları vardır. İşletmecinin tüm SaaS müşterilerine erişimi ayrı headless yetki yüzeyi ister.",
+    "acceptance": "Süper admin müşterileri uzlaştırabilmeli; tenant kullanıcısı işletmeci carisini görememeli.",
+    "sources": [
+      {
+        "title": "ERPNext: Payment Reconciliation",
+        "url": "https://docs.frappe.io/erpnext/payment-reconciliation"
+      },
+      {
+        "title": "Frappe: kullanıcılar ve izinler",
+        "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+      }
+    ]
+  },
+  "finance-4": {
+    "support": "ecosystem",
+    "action": "configure",
+    "owner": "ERPNext + finans",
+    "confidence": "documented",
+    "note": "ERPNext fatura alanları, vergiler ve numaralandırma araçları sağlar. Yerel e-belge koşulları ayrıca doğrulanır.",
+    "acceptance": "Numara benzersizliği, vergi profili ve küsurat örnekleri seçilen ülke senaryosuyla onaylanmalı.",
+    "sources": [
+      {
+        "title": "ERPNext: Sales Invoice",
+        "url": "https://docs.frappe.io/erpnext/sales-invoice"
+      },
+      {
+        "title": "ERPNext: Accounts Settings",
+        "url": "https://docs.frappe.io/erpnext/accounts-settings"
+      }
+    ]
+  },
+  "finance-5": {
+    "support": "ecosystem",
+    "action": "configure",
+    "owner": "ERPNext + finans",
+    "confidence": "documented",
+    "note": "ERPNext avans, vade, credit/debit note ve açık bakiye araçları sunar. SaaS erişim etkisi ayrıca bağlanır.",
+    "acceptance": "Avans mahsup, kısmi ödeme ve düzeltmede cari bakiyesi ile fatura kalanı eşleşmeli.",
+    "sources": [
+      {
+        "title": "ERPNext: Sales Invoice",
+        "url": "https://docs.frappe.io/erpnext/sales-invoice"
+      },
+      {
+        "title": "ERPNext: Payment Reconciliation",
+        "url": "https://docs.frappe.io/erpnext/payment-reconciliation"
+      }
+    ]
+  },
+  "finance-6": {
+    "support": "ecosystem",
+    "action": "integrate",
+    "owner": "ERPNext + ödeme",
+    "confidence": "documented",
+    "note": "ERPNext ödeme–fatura tahsis mutabakatı sunar. Banka ekstresi ve sağlayıcı settlement akışı ayrıca bağlanır.",
+    "acceptance": "Sağlayıcı ücretleri dahil settlement toplamı banka ve defterle uzlaşmalı; fark açıklanmalı.",
+    "sources": [
+      {
+        "title": "ERPNext: Payment Reconciliation",
+        "url": "https://docs.frappe.io/erpnext/payment-reconciliation"
+      },
+      {
+        "title": "ERPNext: Accounting Entries",
+        "url": "https://docs.frappe.io/erpnext/accounting-entries"
+      }
+    ]
+  },
+  "finance-7": {
+    "support": "verify",
+    "action": "validate",
+    "owner": "Finans entegrasyonu",
+    "confidence": "verify",
+    "note": "ERPNext muhasebe modeli belgeli. Hedef ülke, e-belge sağlayıcısı ve sürüm seçilmediği için yerel uyumluluk sonucu verilemez.",
+    "acceptance": "Seçilen ülkenin sağlayıcı test ortamında belge kabul/iptal ve finans eşleme senaryoları doğrulanmalı.",
+    "sources": [
+      {
+        "title": "ERPNext: Sales Invoice",
+        "url": "https://docs.frappe.io/erpnext/sales-invoice"
+      },
+      {
+        "title": "ERPNext: Accounts Settings",
+        "url": "https://docs.frappe.io/erpnext/accounts-settings"
+      }
+    ]
+  },
+  "finance-8": {
+    "support": "absent",
+    "action": "build",
+    "owner": "Platform + ERPNext",
+    "confidence": "design",
+    "note": "Site ve şirket ayrımı yapı taşıdır. İşletmeci finansı ile müşterinin ürün muhasebesi için hazır ayrıştırma politikası saptanmadı.",
+    "acceptance": "İşletmeci faturası tenant muhasebesine istemeden yazılmamalı; çapraz rapor erişimi engellenmeli.",
+    "sources": [
+      {
+        "title": "Frappe: site oluşturma ve site başına veritabanı",
+        "url": "https://docs.frappe.io/framework/user/en/tutorial/create-a-site"
+      },
+      {
+        "title": "ERPNext: Accounting Entries",
+        "url": "https://docs.frappe.io/erpnext/accounting-entries"
+      }
+    ]
+  },
+  "shell-1": {
+    "support": "external",
+    "action": "build",
+    "owner": "Headless frontend + backend",
+    "confidence": "design",
+    "note": "Frappe Desk yönetim yüzeyi vardır. Seçilen bağımsız frontend'de SaaS süper admin akışı ve toplu kiracı API'si oluşturulur.",
+    "acceptance": "Süper admin tenant seçip yönetebilmeli; müşteri rolü bu API/yüzeye erişememeli.",
+    "sources": [
+      {
+        "title": "Frappe: Desk kapsamı",
+        "url": "https://docs.frappe.io/framework/user/en/desk"
+      },
+      {
+        "title": "Frappe: kullanıcılar ve izinler",
+        "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+      }
+    ]
+  },
+  "shell-2": {
+    "support": "external",
+    "action": "build",
+    "owner": "Headless frontend + backend",
+    "confidence": "design",
+    "note": "Backend rol izinleri kullanılabilir. Müşteri yöneticisi ve son kullanıcı kabukları headless uygulamada hazırlanır.",
+    "acceptance": "Aynı hesap rol değişiminde doğru yüzeyi görmeli; gizlenen işlemin API'si de erişimi reddetmeli.",
+    "sources": [
+      {
+        "title": "Frappe: kullanıcılar ve izinler",
+        "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+      },
+      {
+        "title": "Frappe: REST API",
+        "url": "https://docs.frappe.io/framework/user/en/api/rest"
+      }
+    ]
+  },
+  "shell-3": {
+    "support": "external",
+    "action": "build",
+    "owner": "Headless frontend",
+    "confidence": "design",
+    "note": "Desk dashboard örnekleri bağımsız UI teslimi sayılmaz. Headless metrik sözleşmesi ve görselleştirme geliştirilir.",
+    "acceptance": "Metrik tenant kapsamına uymalı; boş, gecikmiş ve hatalı veri durumu açık gösterilmeli.",
+    "sources": [
+      {
+        "title": "Frappe: Desk kapsamı",
+        "url": "https://docs.frappe.io/framework/user/en/desk"
+      },
+      {
+        "title": "Frappe: REST API",
+        "url": "https://docs.frappe.io/framework/user/en/api/rest"
+      }
+    ]
+  },
+  "shell-4": {
+    "support": "external",
+    "action": "integrate",
+    "owner": "Headless frontend + Keycloak",
+    "confidence": "design",
+    "note": "Kimlik profili Keycloak'ta, ürün tercihleri backend'de tutulur. İki profil alanının sahipliği ayrılır.",
+    "acceptance": "E-posta/kimlik değişikliği Keycloak politikasıyla; ürün tercihi doğru tenant/kullanıcı kapsamında kaydedilmeli.",
+    "sources": [
+      {
+        "title": "Keycloak 26.7.0: kimlik, oturum ve organizasyon yönetimi",
+        "url": "https://www.keycloak.org/docs/26.7.0/server_admin/index.html"
+      },
+      {
+        "title": "Frappe: REST API",
+        "url": "https://docs.frappe.io/framework/user/en/api/rest"
+      }
+    ]
+  },
+  "shell-5": {
+    "support": "external",
+    "action": "build",
+    "owner": "Headless frontend",
+    "confidence": "design",
+    "note": "Frappe Desk/website stilleri kendi yüzeyleridir. Headless panel ve frontpage için ortak semantik tema katmanı oluşturulur.",
+    "acceptance": "Tema değişimi tüm kontrol durumlarına uygulanmalı; kontrast ve klavye odağı korunmalı.",
+    "sources": [
+      {
+        "title": "Frappe: Desk kapsamı",
+        "url": "https://docs.frappe.io/framework/user/en/desk"
+      },
+      {
+        "title": "W3C: WCAG 2.2",
+        "url": "https://www.w3.org/TR/WCAG22/"
+      }
+    ]
+  },
+  "shell-6": {
+    "support": "external",
+    "action": "build",
+    "owner": "Headless frontend + backend",
+    "confidence": "design",
+    "note": "Desk kişiselleştirmesi seçilen frontend'e kendiliğinden taşınmaz. Kısayol/favori tercih API'si ve UI hazırlanır.",
+    "acceptance": "Favoriler kullanıcıya özel kalmalı; yetkisi kalkmış kayıt kısayolu veri sızdırmamalı.",
+    "sources": [
+      {
+        "title": "Frappe: Desk kapsamı",
+        "url": "https://docs.frappe.io/framework/user/en/desk"
+      },
+      {
+        "title": "Frappe: kullanıcılar ve izinler",
+        "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+      }
+    ]
+  },
+  "shell-7": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Frappe backend",
+    "confidence": "documented",
+    "note": "Ortak Bench ve site config kapsamları belgeli. Platform–kiracı–kullanıcı ayar mirası ürün düzeyinde eklenir.",
+    "acceptance": "Kullanıcı override'ı kaldırınca doğru tenant/platform değeri dönmeli; başka tenant ayarı değişmemeli.",
+    "sources": [
+      {
+        "title": "Frappe: site ve ortak yapılandırma",
+        "url": "https://docs.frappe.io/framework/user/en/basics/site_config"
+      }
+    ]
+  },
+  "shell-8": {
+    "support": "external",
+    "action": "build",
+    "owner": "Headless frontend + platform",
+    "confidence": "design",
+    "note": "Site/domain ayrımı kullanılabilir. Tenant markasının güvenilir domain eşlemesi ve tokenları bağımsız frontend'de yönetilir.",
+    "acceptance": "Domain–tenant eşlemesi doğrulanmalı; hatalı host başka tenant logosu veya özel verisi göstermemeli.",
+    "sources": [
+      {
+        "title": "Frappe: çok kiracılı Bench kurulumu",
+        "url": "https://docs.frappe.io/framework/user/en/bench/guides/setup-multitenancy"
+      },
+      {
+        "title": "Frappe: site ve ortak yapılandırma",
+        "url": "https://docs.frappe.io/framework/user/en/basics/site_config"
+      }
+    ]
+  },
+  "shell-9": {
+    "support": "external",
+    "action": "build",
+    "owner": "Headless frontend + backend",
+    "confidence": "design",
+    "note": "Desk gezinmesi hazır headless komut kataloğu değildir. Menü, geçmiş ve izinli eylem araması oluşturulur.",
+    "acceptance": "Yetkisiz komut sonuçlarda görünmemeli; klavye araması odağı ve geri dönüş konumunu korumalı.",
+    "sources": [
+      {
+        "title": "Frappe: Desk kapsamı",
+        "url": "https://docs.frappe.io/framework/user/en/desk"
+      },
+      {
+        "title": "Frappe: kullanıcılar ve izinler",
+        "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+      }
+    ]
+  },
+  "views-1": {
+    "support": "external",
+    "action": "build",
+    "owner": "Headless frontend",
+    "confidence": "design",
+    "note": "Frappe REST liste/tek kayıt verisi sağlar. Seçilen frontend'in liste ve detay ekranları ayrıca geliştirilir.",
+    "acceptance": "Doğrudan detay URL'si ve listeden geçiş çalışmalı; yetkisiz kayıt ve 404 ayrı sunulmalı.",
+    "sources": [
+      {
+        "title": "Frappe: REST API",
+        "url": "https://docs.frappe.io/framework/user/en/api/rest"
+      }
+    ]
+  },
+  "views-2": {
+    "support": "external",
+    "action": "build",
+    "owner": "Headless frontend",
+    "confidence": "design",
+    "note": "Desk liste/kanban yetenekleri vardır. Bağımsız frontend için görünüm bileşenleri ve durum eşlemesi gerekir.",
+    "acceptance": "Aynı veri liste/kart/kanban geçişinde korunmalı; durum sürükleme yetkisi backend'de doğrulanmalı.",
+    "sources": [
+      {
+        "title": "Frappe: Desk kapsamı",
+        "url": "https://docs.frappe.io/framework/user/en/desk"
+      },
+      {
+        "title": "Frappe: Desk List API",
+        "url": "https://docs.frappe.io/framework/user/en/api/list"
+      }
+    ]
+  },
+  "views-3": {
+    "support": "external",
+    "action": "build",
+    "owner": "Headless frontend + backend",
+    "confidence": "design",
+    "note": "Tek kayıt REST işlemleri temel sağlar. Headless seçim ve toplu işlem sonucu/izin sözleşmesi geliştirilir.",
+    "acceptance": "Karma yetkili seçimin her kaydı denetlenmeli; kısmi hata hangi kayıtların işlendiğini göstermeli.",
+    "sources": [
+      {
+        "title": "Frappe: REST API",
+        "url": "https://docs.frappe.io/framework/user/en/api/rest"
+      },
+      {
+        "title": "Frappe: Document API",
+        "url": "https://docs.frappe.io/framework/user/en/api/document"
+      }
+    ]
+  },
+  "views-4": {
+    "support": "external",
+    "action": "build",
+    "owner": "Headless frontend + backend",
+    "confidence": "design",
+    "note": "Veri alanları API'den alınabilir. İncelenen kaynaklarda genel headless iş varlığı karşılaştırma ekranı hazır saptanmadı.",
+    "acceptance": "Yalnız ortak ve yetkili alanlar karşılaştırılmalı; gizli çalışan alanı sızmamalı.",
+    "sources": [
+      {
+        "title": "Frappe: REST API",
+        "url": "https://docs.frappe.io/framework/user/en/api/rest"
+      },
+      {
+        "title": "Frappe: kullanıcılar ve izinler",
+        "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+      }
+    ]
+  },
+  "views-5": {
+    "support": "external",
+    "action": "build",
+    "owner": "Headless frontend",
+    "confidence": "design",
+    "note": "Backend REST sözleşmesi UI state yönetimi değildir. Seçilen frontend'de URL, server cache ve yerel form durumu ayrılır.",
+    "acceptance": "Geri/ileri gezinme, tenant değişimi ve eşzamanlı yanıtlar yanlış kayıt durumunu göstermemeli.",
+    "sources": [
+      {
+        "title": "Frappe: REST API",
+        "url": "https://docs.frappe.io/framework/user/en/api/rest"
+      }
+    ]
+  },
+  "views-6": {
+    "support": "external",
+    "action": "build",
+    "owner": "Headless frontend",
+    "confidence": "design",
+    "note": "Desk mesaj API'si kendi istemcisine bağlıdır. Headless toast/snackbar ve erişilebilir canlı bildirim tasarlanır.",
+    "acceptance": "Başarı/hata metni ekran okuyucuda duyurulmalı; kalıcı hatanın ayrıntısı toast kapanınca kaybolmamalı.",
+    "sources": [
+      {
+        "title": "Frappe: Form Scripts",
+        "url": "https://docs.frappe.io/framework/user/en/api/form"
+      },
+      {
+        "title": "W3C: WCAG 2.2",
+        "url": "https://www.w3.org/TR/WCAG22/"
+      }
+    ]
+  },
+  "views-7": {
+    "support": "external",
+    "action": "build",
+    "owner": "Headless frontend + backend",
+    "confidence": "design",
+    "note": "REST filtre, sıralama ve sayfalama sunar. Kolon seçimi ve kayıtlı görünümün headless deneyimi/kalıcılığı eklenir.",
+    "acceptance": "Filtre URL'de geri yüklenmeli; kayıtlı görünüm tenant ve alan izinlerini aşmamalı.",
+    "sources": [
+      {
+        "title": "Frappe: REST API",
+        "url": "https://docs.frappe.io/framework/user/en/api/rest"
+      },
+      {
+        "title": "Frappe: Desk List API",
+        "url": "https://docs.frappe.io/framework/user/en/api/list"
+      }
+    ]
+  },
+  "views-8": {
+    "support": "external",
+    "action": "build",
+    "owner": "Headless frontend",
+    "confidence": "design",
+    "note": "API sonuçları ekran durumuna veri sağlar. Headless loading/empty/error/forbidden/offline durumları açıkça geliştirilir.",
+    "acceptance": "Yavaş ağ, 0 kayıt, 403, 500 ve bağlantı kesintisi ayırt edilmeli; yeniden deneme erişilebilir olmalı.",
+    "sources": [
+      {
+        "title": "Frappe: REST API",
+        "url": "https://docs.frappe.io/framework/user/en/api/rest"
+      },
+      {
+        "title": "W3C: WCAG 2.2",
+        "url": "https://www.w3.org/TR/WCAG22/"
+      }
+    ]
+  },
+  "views-9": {
+    "support": "external",
+    "action": "build",
+    "owner": "Headless frontend + backend",
+    "confidence": "design",
+    "note": "Document değişim araçları vardır. Kaydedilmemiş form, onay ve geri alma davranışları frontend/işlem sözleşmesi ister.",
+    "acceptance": "Gezinmede taslak kaybolmamalı; iptal edilen onay yan etki üretmemeli; undo yalnız desteklenen işlemde sunulmalı.",
+    "sources": [
+      {
+        "title": "Frappe: Document API",
+        "url": "https://docs.frappe.io/framework/user/en/api/document"
+      },
+      {
+        "title": "W3C: WCAG 2.2",
+        "url": "https://www.w3.org/TR/WCAG22/"
+      }
+    ]
+  },
+  "forms-1": {
+    "support": "external",
+    "action": "build",
+    "owner": "Headless frontend + backend",
+    "confidence": "design",
+    "note": "DocType/Web Form tanımları bulunur. Headless form tasarımcısı ve onaylı renderer bağımsız geliştirilir.",
+    "acceptance": "Yeni form metadata'dan güvenli render edilmeli; izin dışı alan oluşturma/yazma engellenmeli.",
+    "sources": [
+      {
+        "title": "Frappe: DocType veri modeli",
+        "url": "https://docs.frappe.io/framework/user/en/basics/doctypes"
+      },
+      {
+        "title": "Frappe: Web Form",
+        "url": "https://docs.frappe.io/framework/user/en/web-form"
+      }
+    ]
+  },
+  "forms-2": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Frontend + Frappe backend",
+    "confidence": "documented",
+    "note": "DocField koşulları ve controller validate vardır. Headless renderer koşulları uygular; iş doğrulaması sunucuda kalır.",
+    "acceptance": "Koşullu zorunlu alan ve çapraz alan kuralı UI atlanınca da backend'de reddedilmeli.",
+    "sources": [
+      {
+        "title": "Frappe: DocField metaverisi",
+        "url": "https://docs.frappe.io/framework/user/en/basics/doctypes/docfield"
+      },
+      {
+        "title": "Frappe: sunucu controller doğrulamaları",
+        "url": "https://docs.frappe.io/framework/user/en/basics/doctypes/controllers"
+      }
+    ]
+  },
+  "forms-3": {
+    "support": "external",
+    "action": "build",
+    "owner": "Headless frontend + backend",
+    "confidence": "design",
+    "note": "Kayıt saklama temel sağlar. Çok adımlı taslak ve güvenli kaldığı yerden devam akışı bağımsız hazırlanır.",
+    "acceptance": "Sayfa yenileme ve oturum yenilemede taslak doğru kullanıcıya dönmeli; eksik adım final submit'i engellemeli.",
+    "sources": [
+      {
+        "title": "Frappe: Document API",
+        "url": "https://docs.frappe.io/framework/user/en/api/document"
+      },
+      {
+        "title": "Frappe: Web Form",
+        "url": "https://docs.frappe.io/framework/user/en/web-form"
+      }
+    ]
+  },
+  "forms-4": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Platform + frontend",
+    "confidence": "documented",
+    "note": "DocType schema migration ve custom field araçları vardır. Yayınlanmış form sürümü ve eski taslak uyumu ayrı sözleşme ister.",
+    "acceptance": "Eski taslak yeni sürümle açıldığında dönüşüm deterministik olmalı; kırıcı değişim yayınlanmadan yakalanmalı.",
+    "sources": [
+      {
+        "title": "Frappe: veritabanı geçişleri",
+        "url": "https://docs.frappe.io/framework/user/en/database-migrations"
+      },
+      {
+        "title": "Frappe: site özel DocType genişletmeleri",
+        "url": "https://docs.frappe.io/framework/user/en/basics/doctypes/customize"
+      }
+    ]
+  },
+  "forms-5": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Frontend + Frappe backend",
+    "confidence": "documented",
+    "note": "Attach, Link ve child/table veri tipleri çekirdektedir. Headless alan bileşenleri ve yetkili seçim API'si bağlanır.",
+    "acceptance": "Dosya/tekrarlı satır kaydı korunmalı; ilişki araması yalnız yetkili kayıtları döndürmeli.",
+    "sources": [
+      {
+        "title": "Frappe: alan türleri",
+        "url": "https://docs.frappe.io/framework/user/en/basics/doctypes/fieldtypes"
+      },
+      {
+        "title": "Frappe: child/table DocType",
+        "url": "https://docs.frappe.io/framework/user/en/basics/doctypes/child-doctype"
+      },
+      {
+        "title": "Frappe: kullanıcılar ve izinler",
+        "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+      }
+    ]
+  },
+  "locale-1": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Frontend + Frappe backend",
+    "confidence": "documented",
+    "note": "Frappe çeviri araçları sağlar. Headless metinler, ülke içerikleri ve küreselleştirme kapsamı ayrıca hazırlanır.",
+    "acceptance": "Türkçe ve ikinci dilde UI/API hata metni, içerik ve biçimler aynı dil tercihine uymalı.",
+    "sources": [
+      {
+        "title": "Frappe: çeviri sistemi",
+        "url": "https://docs.frappe.io/framework/user/en/translations"
+      },
+      {
+        "title": "Frappe: tarih ve biçimlendirme yardımcıları",
+        "url": "https://docs.frappe.io/framework/user/en/api/utils"
+      }
+    ]
+  },
+  "locale-2": {
+    "support": "absent",
+    "action": "build",
+    "owner": "Dil altyapısı",
+    "confidence": "design",
+    "note": "Çeviri metin değiştirmedir. İncelenen kaynaklarda genel t13n/transliterasyon servisi hazır saptanmadı.",
+    "acceptance": "Seçilen alfabeler için dönüşüm örnekleri belirlenmeli; özgün metin ve arama eşlemesi korunmalı.",
+    "sources": [
+      {
+        "title": "Frappe: çeviri sistemi",
+        "url": "https://docs.frappe.io/framework/user/en/translations"
+      }
+    ]
+  },
+  "locale-3": {
+    "support": "verify",
+    "action": "validate",
+    "owner": "Dil altyapısı",
+    "confidence": "verify",
+    "note": "Belgeler CSV ve v16'dan itibaren Gettext/PO yollarını ayırır. Hedef sürümün çoğul/fallback ve frontend katalog sözleşmesi seçilmedi.",
+    "acceptance": "Seçilen release'te eksik anahtar, çoğul sayılar ve eski/yeni çeviri kataloğu uyumu denenmeli.",
+    "sources": [
+      {
+        "title": "Frappe: çeviri sistemi",
+        "url": "https://docs.frappe.io/framework/user/en/translations"
+      },
+      {
+        "title": "Frappe: CLI ve sürüme bağlı Gettext araçları",
+        "url": "https://docs.frappe.io/framework/user/en/bench/frappe-commands"
+      }
+    ]
+  },
+  "locale-4": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Frontend + Frappe backend",
+    "confidence": "documented",
+    "note": "Tarih, saat ve para biçim yardımcıları vardır. Ülke adres/telefon şeması ile frontend Intl sözleşmesi ayrıca tasarlanır.",
+    "acceptance": "Farklı saat dilimi, ondalık, para ve telefon/adres örnekleri kaydetme/okuma döngüsünde bozulmamalı.",
+    "sources": [
+      {
+        "title": "Frappe: tarih ve biçimlendirme yardımcıları",
+        "url": "https://docs.frappe.io/framework/user/en/api/utils"
+      },
+      {
+        "title": "Frappe: alan türleri",
+        "url": "https://docs.frappe.io/framework/user/en/basics/doctypes/fieldtypes"
+      }
+    ]
+  },
+  "locale-5": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Frontend + Frappe backend",
+    "confidence": "documented",
+    "note": "Frappe dil çevirisi sağlar. Headless RTL yerleşimi ve kayıt bazında çok dilli içerik ayrı model/renderer ister.",
+    "acceptance": "Arapça RTL'de gezinme/odak çalışmalı; aynı kaydın iki dilde içerik alanı karışmamalı.",
+    "sources": [
+      {
+        "title": "Frappe: çeviri sistemi",
+        "url": "https://docs.frappe.io/framework/user/en/translations"
+      },
+      {
+        "title": "Frappe: DocType veri modeli",
+        "url": "https://docs.frappe.io/framework/user/en/basics/doctypes"
+      },
+      {
+        "title": "W3C: WCAG 2.2",
+        "url": "https://www.w3.org/TR/WCAG22/"
+      }
+    ]
+  },
+  "channels-1": {
+    "support": "external",
+    "action": "build",
+    "owner": "Headless frontend + platform",
+    "confidence": "design",
+    "note": "Frappe backend API sağlar. SaaS web kabuğu, route ve Keycloak giriş bağlama bağımsız frontend kapsamıdır.",
+    "acceptance": "İlk ziyaret, giriş, tenant seçimi ve yetkili kayıt işlemi üretim API sözleşmesiyle uçtan uca çalışmalı.",
+    "sources": [
+      {
+        "title": "Frappe: REST API",
+        "url": "https://docs.frappe.io/framework/user/en/api/rest"
+      },
+      {
+        "title": "Keycloak 26.7.0: kimlik, oturum ve organizasyon yönetimi",
+        "url": "https://www.keycloak.org/docs/26.7.0/server_admin/index.html"
+      }
+    ]
+  },
+  "channels-2": {
+    "support": "external",
+    "action": "build",
+    "owner": "İstemci uygulamaları",
+    "confidence": "design",
+    "note": "Frappe API farklı istemcilere bağlanabilir. Mobil, eklenti ve masaüstü paketleri çekirdek hazır uygulama sayılmaz.",
+    "acceptance": "Her hedef kanalın kurulum/güncelleme, login callback ve izin modeli ayrı doğrulanmalı.",
+    "sources": [
+      {
+        "title": "Frappe: REST API",
+        "url": "https://docs.frappe.io/framework/user/en/api/rest"
+      },
+      {
+        "title": "Keycloak 26.7.0: kimlik, oturum ve organizasyon yönetimi",
+        "url": "https://www.keycloak.org/docs/26.7.0/server_admin/index.html"
+      }
+    ]
+  },
+  "channels-3": {
+    "support": "external",
+    "action": "integrate",
+    "owner": "Keycloak + istemciler",
+    "confidence": "design",
+    "note": "Keycloak client ve oturum kavramları sunar. Cihaz izinleri ve API sürüm uyumu her kanalın entegrasyon sözleşmesidir.",
+    "acceptance": "Destek dışı istemci sürümü açıklanmalı; kanalların token kapsamı ve logout davranışı ayrı denenmeli.",
+    "sources": [
+      {
+        "title": "Keycloak 26.7.0: kimlik, oturum ve organizasyon yönetimi",
+        "url": "https://www.keycloak.org/docs/26.7.0/server_admin/index.html"
+      },
+      {
+        "title": "Frappe: REST API",
+        "url": "https://docs.frappe.io/framework/user/en/api/rest"
+      }
+    ]
+  },
+  "channels-4": {
+    "support": "external",
+    "action": "build",
+    "owner": "Headless frontend",
+    "confidence": "design",
+    "note": "Backend UI reflow sağlamaz. 320 CSS px, zoom ve alan yeteneğine uyarlama frontend kabul ölçütüdür.",
+    "acceptance": "320/360/375/390, yatay telefon ve %400 zoom'da ana yolculuk ve içerik kaybı olmadan yeniden akış doğrulanmalı.",
+    "sources": [
+      {
+        "title": "W3C: WCAG 2.2",
+        "url": "https://www.w3.org/TR/WCAG22/"
+      }
+    ]
+  },
+  "channels-5": {
+    "support": "external",
+    "action": "build",
+    "owner": "Headless frontend",
+    "confidence": "design",
+    "note": "Frappe izinleri erişilebilir frontend kanıtı değildir. Semantik kontrol, klavye ve ekran okuyucu davranışı uygulanır.",
+    "acceptance": "Tab/Shift+Tab, odak sırası ve ekran okuyucu adları doğrulanmalı; durum yalnız renkle aktarılmamalı.",
+    "sources": [
+      {
+        "title": "W3C: WCAG 2.2",
+        "url": "https://www.w3.org/TR/WCAG22/"
+      }
+    ]
+  },
+  "channels-6": {
+    "support": "external",
+    "action": "build",
+    "owner": "Headless frontend",
+    "confidence": "design",
+    "note": "Kontrast ve hareket tercihleri UI sorumluluğudur. Tokenlar, reduced motion ve erişilebilir hata bağları geliştirilir.",
+    "acceptance": "Metin büyütme, reduced motion, kontrast ve hata odağı gerçek etkileşimlerle kontrol edilmeli.",
+    "sources": [
+      {
+        "title": "W3C: WCAG 2.2",
+        "url": "https://www.w3.org/TR/WCAG22/"
+      }
+    ]
+  },
+  "channels-7": {
+    "support": "external",
+    "action": "build",
+    "owner": "Frontend + Frappe backend",
+    "confidence": "design",
+    "note": "REST CRUD çevrimdışı uzlaştırma motoru değildir. Yerel queue, sürüm çakışması ve idempotent senkronizasyon tasarlanır.",
+    "acceptance": "Çevrimdışı işlem tekrar bağlanınca bir kez uygulanmalı; iki cihaz çakışması kullanıcıya çözüm sunmalı.",
+    "sources": [
+      {
+        "title": "Frappe: REST API",
+        "url": "https://docs.frappe.io/framework/user/en/api/rest"
+      },
+      {
+        "title": "Frappe: Document API",
+        "url": "https://docs.frappe.io/framework/user/en/api/document"
+      }
+    ]
+  },
+  "channels-8": {
+    "support": "external",
+    "action": "build",
+    "owner": "İstemci uygulamaları",
+    "confidence": "design",
+    "note": "API kayıt kimliği ve OIDC callback'leri temel sağlar. Kanal deep link ve güvenli oturum sonrası devam geliştirilir.",
+    "acceptance": "Oturumsuz deep link girişten sonra aynı yetkili kayda dönmeli; başka tenant kaydını açmamalı.",
+    "sources": [
+      {
+        "title": "Frappe: REST API",
+        "url": "https://docs.frappe.io/framework/user/en/api/rest"
+      },
+      {
+        "title": "Keycloak 26.7.0: kimlik, oturum ve organizasyon yönetimi",
+        "url": "https://www.keycloak.org/docs/26.7.0/server_admin/index.html"
+      }
+    ]
+  },
+  "model-1": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Frappe backend",
+    "confidence": "documented",
+    "note": "DocType varlık tanımı ve metaverisi çekirdektedir. Bağımsız entity manager ekranı ve güvenli şema yönetim akışı ayrıca geliştirilir.",
+    "acceptance": "Yeni DocType alanlarıyla kayıt oluşturma/okuma/yazma izinli API üzerinden doğrulanmalı.",
+    "sources": [
+      {
+        "title": "Frappe: DocType veri modeli",
+        "url": "https://docs.frappe.io/framework/user/en/basics/doctypes"
+      }
+    ]
+  },
+  "model-2": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Frappe backend",
+    "confidence": "documented",
+    "note": "DocField ve hazır fieldtype motoru çekirdektedir. Headless alan yöneticisi ve kontrollü şema değişim akışı ayrıca geliştirilir.",
+    "acceptance": "Alan türü, zorunluluk ve saklama biçimi metadata ile API davranışında eşleşmeli.",
+    "sources": [
+      {
+        "title": "Frappe: DocField metaverisi",
+        "url": "https://docs.frappe.io/framework/user/en/basics/doctypes/docfield"
+      },
+      {
+        "title": "Frappe: alan türleri",
+        "url": "https://docs.frappe.io/framework/user/en/basics/doctypes/fieldtypes"
+      }
+    ]
+  },
+  "model-3": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Frappe backend",
+    "confidence": "documented",
+    "note": "Ağaç veri/görünüm araçları vardır. İş kategorileri, etiket ilişkileri ve genel taxonomy politikası ayrıca modellenir.",
+    "acceptance": "Kategori döngüsü engellenmeli; kategori taşıma ve çoklu etiket araması doğru kayıtları döndürmeli.",
+    "sources": [
+      {
+        "title": "Frappe: ağaç görünümü API",
+        "url": "https://docs.frappe.io/framework/user/en/api/tree"
+      },
+      {
+        "title": "Frappe: DocType veri modeli",
+        "url": "https://docs.frappe.io/framework/user/en/basics/doctypes"
+      }
+    ]
+  },
+  "model-4": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Frappe backend",
+    "confidence": "documented",
+    "note": "Link/child alanları ve zorunlu/link doğrulamaları vardır. İlişki türleri, benzersizlik ve silme politikası hedef şema üzerinde ayrıca uygulanıp doğrulanır.",
+    "acceptance": "Geçersiz Link, eksik zorunlu değer ve yinelenen benzersiz alan reddedilmeli; bağlı kayıt silme politikası denenmeli.",
+    "sources": [
+      {
+        "title": "Frappe: Document API",
+        "url": "https://docs.frappe.io/framework/user/en/api/document"
+      },
+      {
+        "title": "Frappe: alan türleri",
+        "url": "https://docs.frappe.io/framework/user/en/basics/doctypes/fieldtypes"
+      },
+      {
+        "title": "Frappe: child/table DocType",
+        "url": "https://docs.frappe.io/framework/user/en/basics/doctypes/child-doctype"
+      }
+    ]
+  },
+  "model-5": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Frappe backend + platform",
+    "confidence": "documented",
+    "note": "Site özel Custom Field ve Property Setter belgeli. Veri tipi dönüşümünün güvenli migration ve headless uyumu ayrıca yönetilir.",
+    "acceptance": "Bir sitenin özel alanı diğerine sızmamalı; tip değişiminde uyumsuz veri kayıpsız raporlanmalı.",
+    "sources": [
+      {
+        "title": "Frappe: site özel DocType genişletmeleri",
+        "url": "https://docs.frappe.io/framework/user/en/basics/doctypes/customize"
+      },
+      {
+        "title": "Frappe: veritabanı geçişleri",
+        "url": "https://docs.frappe.io/framework/user/en/database-migrations"
+      }
+    ]
+  },
+  "model-6": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Frappe backend",
+    "confidence": "documented",
+    "note": "DocField default ve controller validate yapı taşlarıdır. Hesaplanan alanın iş formülü ve yeniden hesaplama politikası eklenir.",
+    "acceptance": "Alan hesapları API/job/import yollarında aynı sonucu vermeli; türetilmiş değer kullanıcı girdisiyle atlanamamalı.",
+    "sources": [
+      {
+        "title": "Frappe: DocField metaverisi",
+        "url": "https://docs.frappe.io/framework/user/en/basics/doctypes/docfield"
+      },
+      {
+        "title": "Frappe: sunucu controller doğrulamaları",
+        "url": "https://docs.frappe.io/framework/user/en/basics/doctypes/controllers"
+      }
+    ]
+  },
+  "model-7": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Frappe backend + platform",
+    "confidence": "documented",
+    "note": "Custom Field/Property Setter temel DocType'ı değiştirmeden genişletir. Modül sahipliği ve extension çatışma politikası ayrıca uygulanır.",
+    "acceptance": "İki modülün alan uzantısı çakışınca kurulum durmalı; yükseltme özgün kayıt sahipliğini korumalı.",
+    "sources": [
+      {
+        "title": "Frappe: site özel DocType genişletmeleri",
+        "url": "https://docs.frappe.io/framework/user/en/basics/doctypes/customize"
+      },
+      {
+        "title": "Frappe: genişletme ve izin hookları",
+        "url": "https://docs.frappe.io/framework/user/en/python-api/hooks"
+      }
+    ]
+  },
+  "files-1": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Frappe backend + frontend",
+    "confidence": "documented",
+    "note": "File Manager ve kayıt eki vardır. Tam DAM için varlık metadata'sı, haklar ve headless kütüphane eklenir.",
+    "acceptance": "Varlık arama/ekleme ve kayıt ilişkilendirme çalışmalı; özel varlık başka tenant'a görünmemeli.",
+    "sources": [
+      {
+        "title": "Frappe: dosya ekleri ve görsel iyileştirme",
+        "url": "https://docs.frappe.io/framework/user/en/desk/attachments"
+      }
+    ]
+  },
+  "files-2": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Frappe backend",
+    "confidence": "documented",
+    "note": "Okunan version-15 File kaynağı MIME'ı dosya adından tahmin eder ve uzantı denetler. Gerçek içerik/MIME doğrulaması ayrıca gerekir.",
+    "acceptance": "Uzantısı değiştirilmiş veya MIME başlığı sahte dosya politikaya göre reddedilmeli; kontrol sunucuda yapılmalı.",
+    "sources": [
+      {
+        "title": "Frappe version-15: File controller kaynak sınırı",
+        "url": "https://github.com/frappe/frappe/blob/version-15/frappe/core/doctype/file/file.py"
+      }
+    ]
+  },
+  "files-3": {
+    "support": "external",
+    "action": "integrate",
+    "owner": "Platform + backend",
+    "confidence": "design",
+    "note": "ClamAV ayrı tarama hizmetidir. İncelenen Frappe kaynaklarında hazır ClamAV upload hattı saptanmadı; karantina entegrasyonu kurulur.",
+    "acceptance": "EICAR test dosyası yayınlanmamalı; scanner erişilemezken dosya onaylı görünmemeli.",
+    "sources": [
+      {
+        "title": "ClamAV: tarama hizmeti",
+        "url": "https://docs.clamav.net/manual/Usage/Scanning.html"
+      },
+      {
+        "title": "Frappe: genişletme ve izin hookları",
+        "url": "https://docs.frappe.io/framework/user/en/python-api/hooks"
+      }
+    ]
+  },
+  "files-4": {
+    "support": "ecosystem",
+    "action": "integrate",
+    "owner": "Depolama entegrasyonu",
+    "confidence": "documented",
+    "note": "Frappe Drive ayrı uygulamasının S3 ayarı belgeli. Framework File ve MinIO uyumluluğu için adaptör/sürüm doğrulanır.",
+    "acceptance": "S3/MinIO üzerinde upload/download/delete, özel ACL ve backup/restore senaryoları seçilen adaptörle denenmeli.",
+    "sources": [
+      {
+        "title": "Frappe Drive: S3 ayrı uygulama entegrasyonu",
+        "url": "https://docs.frappe.io/drive/s3-integration"
+      },
+      {
+        "title": "Frappe: genişletme ve izin hookları",
+        "url": "https://docs.frappe.io/framework/user/en/python-api/hooks"
+      }
+    ]
+  },
+  "files-5": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Frappe backend",
+    "confidence": "documented",
+    "note": "Boyut ve uzantı sınırı araçları bulunur. Tüm dosya türlerinin byte doğrulaması ve tarama karantinası ayrıca tasarlanır.",
+    "acceptance": "Boyut, uzantı/içerik uyuşmazlığı ve tarama hatasında dosya erişime açılmamalı.",
+    "sources": [
+      {
+        "title": "Frappe: dosya ekleri ve görsel iyileştirme",
+        "url": "https://docs.frappe.io/framework/user/en/desk/attachments"
+      },
+      {
+        "title": "Frappe version-15: File controller kaynak sınırı",
+        "url": "https://github.com/frappe/frappe/blob/version-15/frappe/core/doctype/file/file.py"
+      },
+      {
+        "title": "ClamAV: tarama hizmeti",
+        "url": "https://docs.clamav.net/manual/Usage/Scanning.html"
+      }
+    ]
+  },
+  "files-6": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Frappe backend",
+    "confidence": "documented",
+    "note": "Özel/genel dosya ve bağlı kayıt erişimi belgeli. Süreli URL ve harici storage güvenli indirme sözleşmesi ayrıca kurulur.",
+    "acceptance": "Özel dosya yetkisiz ve başka tenant isteğinde reddedilmeli; süreli link bitişte geçersiz olmalı.",
+    "sources": [
+      {
+        "title": "Frappe: site oluşturma ve site başına veritabanı",
+        "url": "https://docs.frappe.io/framework/user/en/tutorial/create-a-site"
+      },
+      {
+        "title": "Frappe: dosya ekleri ve görsel iyileştirme",
+        "url": "https://docs.frappe.io/framework/user/en/desk/attachments"
+      }
+    ]
+  },
+  "files-7": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Medya işleme",
+    "confidence": "documented",
+    "note": "Frappe görsel kırpma ve optimizasyon sunar. Sürümlü orijinal, türev yönetimi ve format pipeline'ı ayrıca eklenir.",
+    "acceptance": "Orijinal korunmalı; yeni sürüm/türev doğru varlığa bağlanmalı ve başarısız dönüşüm yayınlanmamalı.",
+    "sources": [
+      {
+        "title": "Frappe: dosya ekleri ve görsel iyileştirme",
+        "url": "https://docs.frappe.io/framework/user/en/desk/attachments"
+      },
+      {
+        "title": "Frappe version-15: File controller kaynak sınırı",
+        "url": "https://github.com/frappe/frappe/blob/version-15/frappe/core/doctype/file/file.py"
+      }
+    ]
+  },
+  "files-8": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Frappe backend + platform",
+    "confidence": "documented",
+    "note": "File kayıt–ek ilişkileri çekirdektedir. Sahipsizlik, saklama ve güvenli temizleme politikası ayrıca gerekir.",
+    "acceptance": "Kullanılan dosya temizlenmemeli; retention biten sahipsiz dosya denetlenebilir ve geri dönüş politikasıyla işlenmeli.",
+    "sources": [
+      {
+        "title": "Frappe: dosya ekleri ve görsel iyileştirme",
+        "url": "https://docs.frappe.io/framework/user/en/desk/attachments"
+      },
+      {
+        "title": "Frappe version-15: File controller kaynak sınırı",
+        "url": "https://github.com/frappe/frappe/blob/version-15/frappe/core/doctype/file/file.py"
+      }
+    ]
+  },
+  "search-1": {
+    "support": "partial",
+    "action": "integrate",
+    "owner": "Arama entegrasyonu",
+    "confidence": "documented",
+    "note": "FullTextSearch genişletme API'si vardır. Meilisearch motoru ve senkronizasyon adaptörü haricen bağlanır.",
+    "acceptance": "Seçilen alanlar indekslenmeli; Türkçe sorgu ve silinen kayıt sonrası sonuçlar doğrulanmalı.",
+    "sources": [
+      {
+        "title": "Frappe: FullTextSearch genişletme API",
+        "url": "https://docs.frappe.io/framework/user/en/python-api/search"
+      },
+      {
+        "title": "Meilisearch: facet filtreleme",
+        "url": "https://www.meilisearch.com/docs/capabilities/filtering_sorting_faceting/how_to/filter_with_facets"
+      }
+    ]
+  },
+  "search-2": {
+    "support": "external",
+    "action": "integrate",
+    "owner": "Arama entegrasyonu",
+    "confidence": "documented",
+    "note": "Meilisearch facet yeteneği harici motor kapsamındadır. Frappe alan/tenant izinleri filtre sözleşmesine eklenir.",
+    "acceptance": "Facet sayıları yetkisiz kayıtları ifşa etmemeli; çoklu filtre sonuçla aynı kapsamı kullanmalı.",
+    "sources": [
+      {
+        "title": "Meilisearch: facet filtreleme",
+        "url": "https://www.meilisearch.com/docs/capabilities/filtering_sorting_faceting/how_to/filter_with_facets"
+      },
+      {
+        "title": "Frappe: kullanıcılar ve izinler",
+        "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+      }
+    ]
+  },
+  "search-3": {
+    "support": "external",
+    "action": "integrate",
+    "owner": "Arama + AI altyapısı",
+    "confidence": "documented",
+    "note": "Qdrant çok kiracılı vektör indeksleme sunar. Embedding üretimi, güncelleme ve Frappe adaptörü ayrı geliştirilir.",
+    "acceptance": "Başka tenant vektörü sonuçta görünmemeli; model değişiminde indeks sürümü izlenmeli.",
+    "sources": [
+      {
+        "title": "Qdrant: çok kiracılı vektör indeksleme",
+        "url": "https://qdrant.tech/documentation/manage-data/multitenancy/"
+      }
+    ]
+  },
+  "search-4": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Arama + Frappe backend",
+    "confidence": "documented",
+    "note": "Frappe izin araçları ve SQLiteSearch filtre uzantısı belgeli. Harici indeks için aynı kayıt/alan politikası uygulanır.",
+    "acceptance": "Sonuç, snippet, facet ve sayılar gizli alan/kurum verisini sızdırmamalı; izin kaldırılması sonuçlara yansımalı.",
+    "sources": [
+      {
+        "title": "Frappe: kullanıcılar ve izinler",
+        "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+      },
+      {
+        "title": "Frappe: SQLite Search",
+        "url": "https://docs.frappe.io/framework/sqlite-search"
+      }
+    ]
+  },
+  "search-5": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Arama entegrasyonu",
+    "confidence": "documented",
+    "note": "FTS build/update API'si vardır. Harici indeks yaşam döngüsü ve silme olayları ayrıca bağlanır.",
+    "acceptance": "Insert/update/delete ve tam rebuild sonrası indeks kaynak kayıtlarla uzlaşmalı; hata tekrar edilebilir olmalı.",
+    "sources": [
+      {
+        "title": "Frappe: FullTextSearch genişletme API",
+        "url": "https://docs.frappe.io/framework/user/en/python-api/search"
+      },
+      {
+        "title": "Frappe: genişletme ve izin hookları",
+        "url": "https://docs.frappe.io/framework/user/en/python-api/hooks"
+      }
+    ]
+  },
+  "search-6": {
+    "support": "verify",
+    "action": "validate",
+    "owner": "Arama entegrasyonu",
+    "confidence": "verify",
+    "note": "Güncel SQLite Search belgesi yazım/ranking araçları içerir; hedef sürüm ve Meilisearch seçimi kesinleşmedi. Eş anlamlı sözlüğü ayrıca tanımlanır.",
+    "acceptance": "Türkçe yazım hatası, eş anlamlı ve otomatik tamamlama örnekleri seçilen motor/release üzerinde ölçülmeli.",
+    "sources": [
+      {
+        "title": "Frappe: SQLite Search",
+        "url": "https://docs.frappe.io/framework/sqlite-search"
+      },
+      {
+        "title": "Meilisearch: facet filtreleme",
+        "url": "https://www.meilisearch.com/docs/capabilities/filtering_sorting_faceting/how_to/filter_with_facets"
+      }
+    ]
+  },
+  "search-7": {
+    "support": "absent",
+    "action": "build",
+    "owner": "Arama entegrasyonu",
+    "confidence": "design",
+    "note": "Hooklar indeks olayına temel olabilir. İncelenen kaynaklarda ürün genelinde indeks gecikme SLO ve uzlaştırma servisi hazır saptanmadı.",
+    "acceptance": "Kayıt sürümü ile indeks sürümü karşılaştırılmalı; eksik/gecikmiş olay alarmı ve güvenli rebuild çalışmalı.",
+    "sources": [
+      {
+        "title": "Frappe: genişletme ve izin hookları",
+        "url": "https://docs.frappe.io/framework/user/en/python-api/hooks"
+      },
+      {
+        "title": "Frappe: FullTextSearch genişletme API",
+        "url": "https://docs.frappe.io/framework/user/en/python-api/search"
+      }
+    ]
+  },
+  "transfer-1": {
+    "support": "partial",
+    "action": "integrate",
+    "owner": "Frappe backend + frontend",
+    "confidence": "documented",
+    "note": "Data Import ve export komutları çekirdektedir. Bağımsız frontend için yetkili upload/download akışı ve export uçları ayrıca bağlanır.",
+    "acceptance": "CSV/XLSX örneği izinli içe alınmalı; seçilen alanlar doğru encoding ve kayıtlarla dışa çıkmalı.",
+    "sources": [
+      {
+        "title": "Frappe version-15: çekirdek Data Import kaynağı",
+        "url": "https://github.com/frappe/frappe/blob/version-15/frappe/core/doctype/data_import/data_import.py"
+      },
+      {
+        "title": "Frappe: CLI ve sürüme bağlı Gettext araçları",
+        "url": "https://docs.frappe.io/framework/user/en/bench/frappe-commands"
+      }
+    ]
+  },
+  "transfer-2": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Frappe backend + frontend",
+    "confidence": "documented",
+    "note": "Data Import şablon, kolon eşleme ve import öncesi doğrulama sunar. Headless eşleme/önizleme ve kullanıcı onayı yüzeyi ayrıca hazırlanır.",
+    "acceptance": "Eksik/yeniden adlandırılmış kolon eşlenmeli; kullanıcı onayından önce kayıt yazılmamalı.",
+    "sources": [
+      {
+        "title": "ERPNext belgesi: çekirdek Data Import akışı",
+        "url": "https://docs.frappe.io/erpnext/data-import"
+      },
+      {
+        "title": "Frappe version-15: çekirdek Data Import kaynağı",
+        "url": "https://github.com/frappe/frappe/blob/version-15/frappe/core/doctype/data_import/data_import.py"
+      }
+    ]
+  },
+  "transfer-3": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Frappe backend",
+    "confidence": "documented",
+    "note": "Satır/kolon uyarıları, import log ve yinelenen isim denetimi belgeli. Hata dosyası ve iş anahtarı tekilleştirmesi genişletilir.",
+    "acceptance": "Karışık geçerli/hatalı satırlarda sonuçlar izlenmeli; tekrar import mükerrer iş kaydı üretmemeli.",
+    "sources": [
+      {
+        "title": "ERPNext belgesi: çekirdek Data Import akışı",
+        "url": "https://docs.frappe.io/erpnext/data-import"
+      },
+      {
+        "title": "Frappe version-15: çekirdek Data Import kaynağı",
+        "url": "https://github.com/frappe/frappe/blob/version-15/frappe/core/doctype/data_import/data_import.py"
+      }
+    ]
+  },
+  "transfer-4": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Frappe backend + frontend",
+    "confidence": "documented",
+    "note": "Büyük CSV için CLI/job araçları vardır. Kullanıcı iptali, checkpoint ve kesinti sonrası devam ayrıca ürünleştirilir.",
+    "acceptance": "Büyük iş kesilip devam ettiğinde başarılı satırlar yeniden yazılmamalı; iptal durumu gerçek iş sonucunu yansıtmalı.",
+    "sources": [
+      {
+        "title": "Frappe: büyük veri aktarımı",
+        "url": "https://docs.frappe.io/framework/user/en/guides/data/import-large-csv-file"
+      },
+      {
+        "title": "Frappe: arka plan işleri ve zamanlayıcı",
+        "url": "https://docs.frappe.io/framework/user/en/api/background_jobs"
+      }
+    ]
+  },
+  "transfer-5": {
+    "support": "partial",
+    "action": "validate",
+    "owner": "Frappe backend",
+    "confidence": "documented",
+    "note": "Import izni ve Document doğrulamaları vardır. Ticari kota ve tenant kuralları import yolunda ayrıca uygulanır.",
+    "acceptance": "Import ile zorunlu iş kuralı, tenant sınırı veya paket kotası atlanamamalı.",
+    "sources": [
+      {
+        "title": "Frappe: kullanıcılar ve izinler",
+        "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+      },
+      {
+        "title": "Frappe: Document API",
+        "url": "https://docs.frappe.io/framework/user/en/api/document"
+      },
+      {
+        "title": "Frappe version-15: çekirdek Data Import kaynağı",
+        "url": "https://github.com/frappe/frappe/blob/version-15/frappe/core/doctype/data_import/data_import.py"
+      }
+    ]
+  },
+  "transfer-6": {
+    "support": "verify",
+    "action": "validate",
+    "owner": "Frappe backend",
+    "confidence": "verify",
+    "note": "Export izinleri vardır; veri maskeleme belgesi sürüm/deneysel sınırı ve raw SQL istisnası bildirir. Süreli teslim ayrıca tasarlanır.",
+    "acceptance": "Seçilen release'te export gizli alanı maskelemeli; raw SQL sonuçları da denetlenmeli ve teslim linki sürede bitmeli.",
+    "sources": [
+      {
+        "title": "Frappe: kullanıcılar ve izinler",
+        "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+      },
+      {
+        "title": "Frappe: sürüm ve raw SQL sınırı olan veri maskeleme",
+        "url": "https://docs.frappe.io/framework/data-masking"
+      }
+    ]
+  },
+  "workflow-1": {
+    "support": "native",
+    "action": "configure",
+    "owner": "Frappe backend + frontend",
+    "confidence": "documented",
+    "note": "Workflow durum ve rol/koşul geçişleri Framework çekirdeğinde bulunur. Headless action ekranı API'ye bağlanır.",
+    "acceptance": "İzinli geçiş uygulanmalı; izin dışı action ve yanlış mevcut durum sunucuda reddedilmeli.",
+    "sources": [
+      {
+        "title": "Frappe version-15: çekirdek workflow ve geçiş denetimi",
+        "url": "https://github.com/frappe/frappe/blob/version-15/frappe/model/workflow.py"
+      },
+      {
+        "title": "ERPNext belgesi: çekirdek Workflow yapılandırması",
+        "url": "https://docs.frappe.io/erpnext/workflows"
+      }
+    ]
+  },
+  "workflow-2": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Süreç backend",
+    "confidence": "documented",
+    "note": "Belge workflow'u vardır. Kurumlar arası uzun süreç, görev sahipliği ve süreç ölçümü tam BPM ürünü olarak ayrıca tasarlanır.",
+    "acceptance": "Çok belgeli örnek süreçte görev, yetki ve süreç sonucu uçtan uca izlenebilmeli.",
+    "sources": [
+      {
+        "title": "Frappe version-15: çekirdek workflow ve geçiş denetimi",
+        "url": "https://github.com/frappe/frappe/blob/version-15/frappe/model/workflow.py"
+      },
+      {
+        "title": "Frappe: beta Automation Flow kapsamı",
+        "url": "https://docs.frappe.io/framework/automations"
+      }
+    ]
+  },
+  "workflow-3": {
+    "support": "native",
+    "action": "configure",
+    "owner": "Frappe backend",
+    "confidence": "documented",
+    "note": "Çekirdek workflow mevcut durum, geçiş ve docstatus denetler. İş nesnesine uygun durum tablosu yapılandırılır.",
+    "acceptance": "Geçersiz durum sıçraması ve eşzamanlı eski durum isteği reddedilmeli.",
+    "sources": [
+      {
+        "title": "Frappe version-15: çekirdek workflow ve geçiş denetimi",
+        "url": "https://github.com/frappe/frappe/blob/version-15/frappe/model/workflow.py"
+      }
+    ]
+  },
+  "workflow-4": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Süreç backend",
+    "confidence": "documented",
+    "note": "Workflow tanımı ve geçiş yorumu vardır. Çalışan instance'a bağlı sürüm, durdurma ve kapsamlı yürütüm geçmişi ayrıca gerekir.",
+    "acceptance": "Eski süreç örneği yeni tanımla sessizce değişmemeli; durdurma/yürütüm geçmişi izlenmeli.",
+    "sources": [
+      {
+        "title": "Frappe version-15: çekirdek workflow ve geçiş denetimi",
+        "url": "https://github.com/frappe/frappe/blob/version-15/frappe/model/workflow.py"
+      },
+      {
+        "title": "Frappe: beta Automation Flow kapsamı",
+        "url": "https://docs.frappe.io/framework/automations"
+      }
+    ]
+  },
+  "workflow-5": {
+    "support": "absent",
+    "action": "integrate",
+    "owner": "Süreç altyapısı",
+    "confidence": "design",
+    "note": "İncelenen Workflow/Automation kaynakları BPMN yürütüm uyumluluğu belgelemiyor. Gerekliyse BPMN motoru ve Frappe adaptörü seçilir.",
+    "acceptance": "Kapsamdaki BPMN öğeleri ve import/export aynı davranışı korumalı; desteklenmeyen öğe açıkça reddedilmeli.",
+    "sources": [
+      {
+        "title": "Frappe version-15: çekirdek workflow ve geçiş denetimi",
+        "url": "https://github.com/frappe/frappe/blob/version-15/frappe/model/workflow.py"
+      },
+      {
+        "title": "Frappe: beta Automation Flow kapsamı",
+        "url": "https://docs.frappe.io/framework/automations"
+      }
+    ]
+  },
+  "workflow-6": {
+    "support": "verify",
+    "action": "validate",
+    "owner": "Süreç backend",
+    "confidence": "verify",
+    "note": "Güncel beta Automation Flow bekleme ve hata davranışı belgeliyor. Hedef release, yeniden başlatma ve iş telafisi kapsamı doğrulanmadı.",
+    "acceptance": "Kesinti sonrası wait/timeout güvenli sürmeli; dış yan etkiler çift çalışmamalı ve telafi sonucu kaydedilmeli.",
+    "sources": [
+      {
+        "title": "Frappe: beta Automation Flow kapsamı",
+        "url": "https://docs.frappe.io/framework/automations"
+      },
+      {
+        "title": "Frappe: otomasyon adımları ve Test Run",
+        "url": "https://docs.frappe.io/framework/automations/steps-and-actions"
+      }
+    ]
+  },
+  "workflow-7": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Frappe backend",
+    "confidence": "documented",
+    "note": "Workflow Document save/submit/cancel yollarından controller doğrulamalarına ulaşır. İlgili modülün geçiş kuralları ve tüm çağrı yolları için denetim ayrıca yazılır.",
+    "acceptance": "Headless veya job geçişi aynı iş doğrulamasını tetiklemeli; geçersiz değişiklik kaydedilmemeli.",
+    "sources": [
+      {
+        "title": "Frappe version-15: çekirdek workflow ve geçiş denetimi",
+        "url": "https://github.com/frappe/frappe/blob/version-15/frappe/model/workflow.py"
+      },
+      {
+        "title": "Frappe: sunucu controller doğrulamaları",
+        "url": "https://docs.frappe.io/framework/user/en/basics/doctypes/controllers"
+      }
+    ]
+  },
+  "rules-1": {
+    "support": "verify",
+    "action": "validate",
+    "owner": "Frappe backend",
+    "confidence": "verify",
+    "note": "Doc event hook/Server Script vardır; güncel Automation Flow beta olarak ECA adımları sunar. Hedef release kapsamı doğrulanmalı.",
+    "acceptance": "Seçilen release'te olay–koşul–eylem ve commit sonrası çalışma kanıtlanmalı; eksikse app tabanlı motor tanımlanmalı.",
+    "sources": [
+      {
+        "title": "Frappe: Server Script ve v15 varsayılan kısıtı",
+        "url": "https://docs.frappe.io/framework/user/en/desk/scripting/server-script"
+      },
+      {
+        "title": "Frappe: beta Automation Flow kapsamı",
+        "url": "https://docs.frappe.io/framework/automations"
+      }
+    ]
+  },
+  "rules-2": {
+    "support": "verify",
+    "action": "validate",
+    "owner": "Süreç backend",
+    "confidence": "verify",
+    "note": "Beta otomasyon belgeleri trigger, condition ve action uzantıları sunar. Kural gruplama/öncelik/kapsam ürünü ayrıca doğrulanır.",
+    "acceptance": "Çakışan iki kuralın sırası deterministik olmalı; izin dışı eylem kataloğa alınmamalı.",
+    "sources": [
+      {
+        "title": "Frappe: otomasyon tetikleyici ve koşulları",
+        "url": "https://docs.frappe.io/framework/automations/triggers-and-conditions"
+      },
+      {
+        "title": "Frappe: otomasyon genişletme sözleşmesi",
+        "url": "https://docs.frappe.io/framework/automations/extending-automations"
+      }
+    ]
+  },
+  "rules-3": {
+    "support": "verify",
+    "action": "validate",
+    "owner": "Süreç backend",
+    "confidence": "verify",
+    "note": "Beta belgede olay birleştirme ve bazı replay sınırları var. Genel döngü/çakışma koruması hedef release'te kanıtlanmadı.",
+    "acceptance": "Birbirini tetikleyen iki kural sınırlı çalışmalı; yinelenen olay ikinci dış etki üretmemeli.",
+    "sources": [
+      {
+        "title": "Frappe: beta Automation Flow kapsamı",
+        "url": "https://docs.frappe.io/framework/automations"
+      },
+      {
+        "title": "Frappe: otomasyon adımları ve Test Run",
+        "url": "https://docs.frappe.io/framework/automations/steps-and-actions"
+      }
+    ]
+  },
+  "rules-4": {
+    "support": "verify",
+    "action": "validate",
+    "owner": "Süreç backend + frontend",
+    "confidence": "verify",
+    "note": "Güncel beta adım belgesi rollback yapan Test Run ve koşul sonucu içerir. Hedef release ve headless deneme ekranı doğrulanmalı.",
+    "acceptance": "Deneme kalıcı kayıt/webhook etkisi bırakmamalı; her koşul ve adım sonucu kullanıcıya gösterilmeli.",
+    "sources": [
+      {
+        "title": "Frappe: otomasyon adımları ve Test Run",
+        "url": "https://docs.frappe.io/framework/automations/steps-and-actions"
+      }
+    ]
+  },
+  "rules-5": {
+    "support": "absent",
+    "action": "build",
+    "owner": "Süreç backend",
+    "confidence": "design",
+    "note": "System Manager sınırı ve Server Script kontrolleri vardır. İncelenen kaynaklarda bütüncül kural sürümü/zaman/kota ürünü saptanmadı.",
+    "acceptance": "Kural eski sürümü izlenmeli; zaman dışı, yetkisiz ve kota üstü çalışma yan etkisiz durmalı.",
+    "sources": [
+      {
+        "title": "Frappe: beta Automation Flow kapsamı",
+        "url": "https://docs.frappe.io/framework/automations"
+      },
+      {
+        "title": "Frappe: Server Script ve v15 varsayılan kısıtı",
+        "url": "https://docs.frappe.io/framework/user/en/desk/scripting/server-script"
+      }
+    ]
+  },
+  "approvals-1": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Frappe backend + frontend",
+    "confidence": "documented",
+    "note": "Workflow çok durumlu ve rol koşullu onay temeli sağlar. İşe özgü onay zinciri, işlemsel doğrulama ve headless eylem yüzeyi ayrıca tamamlanır.",
+    "acceptance": "İki seviyeli onayda ikinci adım ilk onaydan önce açılamamalı; API geçişi aynı kurala uymalı.",
+    "sources": [
+      {
+        "title": "Frappe version-15: çekirdek workflow ve geçiş denetimi",
+        "url": "https://github.com/frappe/frappe/blob/version-15/frappe/model/workflow.py"
+      },
+      {
+        "title": "ERPNext belgesi: çekirdek Workflow yapılandırması",
+        "url": "https://docs.frappe.io/erpnext/workflows"
+      }
+    ]
+  },
+  "approvals-2": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Süreç backend",
+    "confidence": "documented",
+    "note": "Workflow rol/koşul ve sıralı geçiş sağlar. Paralel quorum ve kişi bazlı yönlendirme ayrıca modellenir.",
+    "acceptance": "Tutar eşiği doğru onaycıya gitmeli; paralel onay tüm gerekli kararlar gelmeden bitmemeli.",
+    "sources": [
+      {
+        "title": "Frappe version-15: çekirdek workflow ve geçiş denetimi",
+        "url": "https://github.com/frappe/frappe/blob/version-15/frappe/model/workflow.py"
+      },
+      {
+        "title": "ERPNext belgesi: çekirdek Workflow yapılandırması",
+        "url": "https://docs.frappe.io/erpnext/workflows"
+      }
+    ]
+  },
+  "approvals-3": {
+    "support": "absent",
+    "action": "build",
+    "owner": "Süreç backend",
+    "confidence": "design",
+    "note": "Workflow ve scheduler yapı taşlarıdır. İncelenen kaynaklarda vekalet–timeout–escalation zinciri bütünü hazır saptanmadı.",
+    "acceptance": "Vekalet başlangıç/bitişi ve timeout'ta yalnız yetkili kişiye yükseltme çalışmalı.",
+    "sources": [
+      {
+        "title": "Frappe version-15: çekirdek workflow ve geçiş denetimi",
+        "url": "https://github.com/frappe/frappe/blob/version-15/frappe/model/workflow.py"
+      },
+      {
+        "title": "Frappe: arka plan işleri ve zamanlayıcı",
+        "url": "https://docs.frappe.io/framework/user/en/api/background_jobs"
+      }
+    ]
+  },
+  "approvals-4": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Süreç backend + frontend",
+    "confidence": "documented",
+    "note": "Workflow farklı aksiyon/durumlar ve geçiş yorumu sunar. Gerekçe zorunluluğu ve geri çekme iş politikası eklenir.",
+    "acceptance": "Ret/geri gönderme/geri çekme yetkileri ayrılmalı; gerekçesiz karar reddedilmeli ve geçmiş korunmalı.",
+    "sources": [
+      {
+        "title": "Frappe version-15: çekirdek workflow ve geçiş denetimi",
+        "url": "https://github.com/frappe/frappe/blob/version-15/frappe/model/workflow.py"
+      }
+    ]
+  },
+  "approvals-5": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Frappe backend",
+    "confidence": "documented",
+    "note": "Workflow duruma göre düzenlemeyi denetler. Değişen kritik alanın önceki onayı geçersiz kılması ayrıca iş kuralıdır.",
+    "acceptance": "Onay beklerken tutar değişince eski karar kullanılamamalı; yeniden onay sürüme bağlanmalı.",
+    "sources": [
+      {
+        "title": "Frappe version-15: çekirdek workflow ve geçiş denetimi",
+        "url": "https://github.com/frappe/frappe/blob/version-15/frappe/model/workflow.py"
+      },
+      {
+        "title": "Frappe: Document API",
+        "url": "https://docs.frappe.io/framework/user/en/api/document"
+      }
+    ]
+  },
+  "approvals-6": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Frappe backend",
+    "confidence": "documented",
+    "note": "Allow Self Approval denetimi incelenen version-15 apply_workflow yolunda owner ile karşılaştırılır ve Administrator istisnası taşır. Talep eden owner’dan farklı olabilir; normal save doğrulaması aynı öz-onay kontrolünü çağırmaz. Ürün politikası tüm yazma yollarında genişletilecek.",
+    "acceptance": "Talep eden ile owner aynı ve farklıyken apply_workflow, genel REST/save ve toplu geçiş yollarında öz-onay reddedilmeli; bağımsız yetkili onaylayabilmeli. Administrator ve servis hesabı istisnaları açık politikayla sınırlandırılıp audit edilmeli.",
+    "sources": [
+      {
+        "title": "Frappe version-15: Allow Self Approval alanı",
+        "url": "https://github.com/frappe/frappe/blob/version-15/frappe/workflow/doctype/workflow_transition/workflow_transition.json"
+      },
+      {
+        "title": "Frappe version-15: çekirdek workflow ve geçiş denetimi",
+        "url": "https://github.com/frappe/frappe/blob/version-15/frappe/model/workflow.py"
+      }
+    ]
+  },
+  "jobs-1": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Platform + backend",
+    "confidence": "documented",
+    "note": "Scheduler hookları ve cron aralıkları çekirdektedir. Headless zamanlama yönetimi, izinli değişiklik ve operasyon görünürlüğü ayrıca geliştirilir.",
+    "acceptance": "Test job'ı beklenen dönemde bir kez çalışmalı; scheduler/worker kapalı durumu izlenebilmeli.",
+    "sources": [
+      {
+        "title": "Frappe: arka plan işleri ve zamanlayıcı",
+        "url": "https://docs.frappe.io/framework/user/en/api/background_jobs"
+      }
+    ]
+  },
+  "jobs-2": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Platform + backend",
+    "confidence": "documented",
+    "note": "Short/default/long queue, timeout ve custom worker ayarları vardır. Tenant eşzamanlılık sınırı ayrıca yönetilir.",
+    "acceptance": "Aynı tenant sınırı aşmamalı; uzun iş kısa iş kuyruğunu bloke etmemeli.",
+    "sources": [
+      {
+        "title": "Frappe: arka plan işleri ve zamanlayıcı",
+        "url": "https://docs.frappe.io/framework/user/en/api/background_jobs"
+      }
+    ]
+  },
+  "jobs-3": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Platform + backend",
+    "confidence": "documented",
+    "note": "Arka plan iş yürütümü vardır. Otomatik retry/backoff ve dead-letter ürün politikası resmî temel API'den çıkarılamaz.",
+    "acceptance": "Geçici hata tanımlı artan beklemeyle denenmeli; kalıcı hata sınırlı denemeden sonra incelenebilir kalmalı.",
+    "sources": [
+      {
+        "title": "Frappe: arka plan işleri ve zamanlayıcı",
+        "url": "https://docs.frappe.io/framework/user/en/api/background_jobs"
+      }
+    ]
+  },
+  "jobs-4": {
+    "support": "partial",
+    "action": "extend",
+    "owner": "Platform + backend + frontend",
+    "confidence": "documented",
+    "note": "Queue ve timeout araçları vardır. İşe özgü checkpoint, güvenli iptal ve kullanıcı ilerleme sözleşmesi ayrıca kurulur.",
+    "acceptance": "İptal job'ı güvenli noktada durdurmalı; devam/elle tekrar başarılı adımları çoğaltmamalı.",
+    "sources": [
+      {
+        "title": "Frappe: arka plan işleri ve zamanlayıcı",
+        "url": "https://docs.frappe.io/framework/user/en/api/background_jobs"
+      },
+      {
+        "title": "Frappe: Document API",
+        "url": "https://docs.frappe.io/framework/user/en/api/document"
+      }
+    ]
+  },
+  "jobs-5": {
+    "support": "absent",
+    "action": "build",
+    "owner": "Frappe backend",
+    "confidence": "design",
+    "note": "Job adı/queue ayarları tek başına iş etkisini tekilleştirmez. İncelenen temel belgede genel exactly-once iş sözleşmesi saptanmadı.",
+    "acceptance": "Aynı job iki worker'da/tekrar çalışınca tek iş etkisi doğmalı; kilit çökme sonrası güvenli serbest kalmalı.",
+    "sources": [
+      {
+        "title": "Frappe: arka plan işleri ve zamanlayıcı",
+        "url": "https://docs.frappe.io/framework/user/en/api/background_jobs"
+      },
+      {
+        "title": "Frappe: sunucu controller doğrulamaları",
+        "url": "https://docs.frappe.io/framework/user/en/basics/doctypes/controllers"
+      }
+    ]
+  },
+  "jobs-6": {
+    "support": "partial",
+    "action": "validate",
+    "owner": "Platform + backend",
+    "confidence": "documented",
+    "note": "Cron ve tarih yardımcıları vardır. Yaz saati ve kaçırılan tetiklemenin ürün catch-up politikası ayrıca belirlenir.",
+    "acceptance": "DST ileri/geri geçişi, saat dilimi değişimi ve scheduler kesintisinde beklenen sayıda çalışma doğrulanmalı.",
+    "sources": [
+      {
+        "title": "Frappe: arka plan işleri ve zamanlayıcı",
+        "url": "https://docs.frappe.io/framework/user/en/api/background_jobs"
+      },
+      {
+        "title": "Frappe: tarih ve biçimlendirme yardımcıları",
+        "url": "https://docs.frappe.io/framework/user/en/api/utils"
+      }
+    ]
+  },
+  "jobs-7": {
+    "support": "absent",
+    "action": "build",
+    "owner": "Platform",
+    "confidence": "design",
+    "note": "Custom queue ve worker sayısı yapılandırılabilir. İncelenen kaynaklarda tenant başına adil zamanlama garantisi hazır saptanmadı.",
+    "acceptance": "Yoğun kiracı yükünde küçük kiracının bekleme SLO'su korunmalı; kaynak sınırı ölçülmeli.",
+    "sources": [
+      {
+        "title": "Frappe: arka plan işleri ve zamanlayıcı",
+        "url": "https://docs.frappe.io/framework/user/en/api/background_jobs"
+      }
+    ]
+  }
+}

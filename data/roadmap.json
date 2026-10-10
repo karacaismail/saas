@@ -1,0 +1,100 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-10",
+  "target": "Frappe Framework backend · bağımsız headless frontend · Keycloak kimlik doğrulama",
+  "baseline": "Hedef Frappe ve Keycloak sürümü seçilmedi. Güncel resmî dokümanlara dayalı tasarım değerlendirmesidir; kurulu özellik, üretim güvenilirliği veya tamamlanmış iş kanıtı değildir.",
+  "supportLabels": {
+    "native": "Çekirdekte var",
+    "partial": "Kısmen var",
+    "ecosystem": "Ek Frappe uygulaması",
+    "absent": "Çekirdekte hazır değil",
+    "external": "Harici sorumluluk",
+    "verify": "Doğrulanmalı"
+  },
+  "actionLabels": {
+    "configure": "Yapılandır",
+    "extend": "Genişlet",
+    "integrate": "Entegre et",
+    "build": "Geliştir",
+    "validate": "PoC ile doğrula"
+  },
+  "confidenceLabels": {
+    "documented": "Belge dayanağı",
+    "design": "Mimari karar",
+    "verify": "Doğrulama bekliyor"
+  },
+  "sequence": [
+    {
+      "id": "12",
+      "phase": "Temel",
+      "rationale": "İlk günden tekrarlanabilir kurulum, sürüm sabitleme, yedekten dönüş ve temel gözlem kurulur. İleri ölçekleme ihtiyaç doğdukça açılır.",
+      "dependsOn": []
+    },
+    {
+      "id": "01",
+      "phase": "Temel",
+      "rationale": "Kiracı/site modeli, Keycloak kimliği ve Frappe yetki eşlemesi diğer bütün özelliklerin güven sınırını belirler.",
+      "dependsOn": ["12"]
+    },
+    {
+      "id": "11",
+      "phase": "Temel",
+      "rationale": "İzolasyon, audit, veri yaşam döngüsü ve güvenlik kabulü ilk dikey dilimde başlar; her etapta devam eder.",
+      "dependsOn": ["01"]
+    },
+    {
+      "id": "05",
+      "phase": "Çekirdek",
+      "rationale": "DocType, alanlar, dosya sahipliği ve veri sözleşmeleri kurulur. Harici arama ve büyük aktarımlar ihtiyaçla büyür.",
+      "dependsOn": ["01", "11"]
+    },
+    {
+      "id": "09",
+      "phase": "Çekirdek → ileri yetenekler",
+      "rationale": "Önce headless API, Keycloak token köprüsü ve olay sözleşmeleri. AI, RAG ve ajanlar veri/izinler ile maliyet sınırları doğrulandıktan sonra ayrı dilimlerdir.",
+      "dependsOn": ["01", "05"]
+    },
+    {
+      "id": "04",
+      "phase": "Çekirdek",
+      "rationale": "Frappe Desk'ten bağımsız panel, API sözleşmeleri üzerinde ilk uçtan uca kullanıcı yolculuğunu tamamlar.",
+      "dependsOn": ["01", "05", "09"]
+    },
+    {
+      "id": "06",
+      "phase": "Ürün",
+      "rationale": "Doğrulanmış kayıt modeli üzerinde iş geçişleri, onaylar ve güvenli arka plan işleri kurulur.",
+      "dependsOn": ["05", "09"]
+    },
+    {
+      "id": "07",
+      "phase": "Ürün",
+      "rationale": "Keycloak kimlik e-postaları ile ürün bildirimleri ayrılır. Panel canlı iletimi ve teslimat kuralları ortak sözleşmeye bağlanır.",
+      "dependsOn": ["01", "04", "06"]
+    },
+    {
+      "id": "02",
+      "phase": "Gelir modeli",
+      "rationale": "Paket, entitlement ve kota politikası tahsilattan önce tanımlanır; kullanıcı rolünden bağımsız sunucuda uygulanır.",
+      "dependsOn": ["01", "05", "06"]
+    },
+    {
+      "id": "03",
+      "phase": "Gelir modeli",
+      "rationale": "Abonelik ve kullanım hakkı sözleşmesine ödeme, fatura ve mutabakat eklenir. ERPNext ayrı uygulama kararıdır.",
+      "dependsOn": ["02", "09"]
+    },
+    {
+      "id": "08",
+      "phase": "İş alanları",
+      "rationale": "CRM, destek ve içerik için ek Frappe uygulaması mı özel geliştirme mi seçilir; headless uyarlama kabulü ayrıca yapılır.",
+      "dependsOn": ["04", "06", "07"]
+    },
+    {
+      "id": "10",
+      "phase": "Ölçüm ve iyileştirme",
+      "rationale": "Temel teknik telemetri ilk etaptadır. İş raporları ve ürün analitiği, tutarlı olay ve alan verisi oluşunca genişletilir.",
+      "dependsOn": ["05", "09", "02", "08"]
+    }
+  ]
+}

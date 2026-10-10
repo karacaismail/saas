@@ -291,15 +291,16 @@ test('JSON, CSV and Markdown export selected entries with cluster and heading hi
     expected.push((await row.locator('.feature-title').innerText()).trim());
     await selectFeature(page, id);
   }
+  const expectedInRoadmapOrder = [...expected].reverse();
   const unselectedText = (
     await page.locator('#feature-tenant-2 .feature-title').innerText()
   ).trim();
   await page.locator('#search').fill('yedek');
   await expect(page.locator(`#${selectedIds[0]}`)).toBeHidden();
   const json = JSON.parse(await exportText(page, 'json'));
-  expect(json.schemaVersion).toBe(1);
+  expect(json.schemaVersion).toBe(2);
   expect(json.selectedCount).toBe(2);
-  expect(json.clusters.map((cluster) => cluster.id)).toEqual(['01', '12']);
+  expect(json.clusters.map((cluster) => cluster.id)).toEqual(['12', '01']);
   const items = json.clusters.flatMap((cluster) =>
     cluster.groups.flatMap((group) => {
       expect(cluster.title).toBeTruthy();
@@ -309,31 +310,42 @@ test('JSON, CSV and Markdown export selected entries with cluster and heading hi
     }),
   );
   expect(items.map((item) => item.id)).toEqual(
-    selectedIds.map((id) => id.replace(/^feature-/, '')),
+    [...selectedIds].reverse().map((id) => id.replace(/^feature-/, '')),
   );
-  expect(items.map((item) => item.text)).toEqual(expected);
+  expect(items.map((item) => item.text)).toEqual(expectedInRoadmapOrder);
   expect(
     items.every((item) => ['o', 'g', 'n'].includes(item.kind) && item.label),
   ).toBeTruthy();
 
   const csv = parseCsv(await exportText(page, 'csv'));
   expect(csv[0]).toEqual([
-    'Küme no',
+    'Küme kimliği',
     'Küme',
     'Başlık no',
     'Başlık',
     'Madde no',
     'Sınıf',
     'Madde',
+    'Frappe yeterliliği',
+    'Yapılacak iş',
+    'Sorumlu',
+    'Kanıt durumu',
+    'Değerlendirme',
+    'Kabul ölçütü',
+    'Kaynaklar',
+    'Etap',
+    'Küme sırası',
   ]);
   expect(csv).toHaveLength(3);
-  expect(csv.slice(1).map((row) => row[0])).toEqual(['01', '12']);
-  expect(csv.slice(1).map((row) => row[4])).toEqual(['01.1.1', '12.5.1']);
-  expect(csv.slice(1).map((row) => row[6])).toEqual(expected);
+  expect(csv.slice(1).map((row) => row[0])).toEqual(['12', '01']);
+  expect(csv.slice(1).map((row) => row[4])).toEqual(['01.5.1', '02.1.1']);
+  expect(csv.slice(1).map((row) => row[6])).toEqual(expectedInRoadmapOrder);
   expect(
     csv
       .slice(1)
-      .every((row) => row.length === 7 && row[1] && row[2] && row[3] && row[5]),
+      .every(
+        (row) => row.length === 16 && row[1] && row[2] && row[3] && row[5],
+      ),
   ).toBeTruthy();
 
   const markdown = await exportText(page, 'md');
@@ -378,7 +390,7 @@ test('branded cluster disclosure uses native open state, keyboard radios and Esc
   await first.focus();
   await page.keyboard.press('ArrowDown');
   await expect(
-    picker.locator('input[name="cluster"][value="01"]'),
+    picker.locator('input[name="cluster"][value="12"]'),
   ).toBeChecked();
   await page.keyboard.press('Escape');
   await expect(summary).toBeFocused();
@@ -888,6 +900,18 @@ test('coarse and hybrid input use real touch with reachable targets and preserve
   );
   await page.setViewportSize({ width: 390, height: 844 });
   await visit(page);
+  await page.locator('#roadmap-filters > summary').tap();
+  await page.locator('button[data-support="external"]').tap();
+  await expect(page.locator('#feature-identity-1')).toBeVisible();
+  const external = await page
+    .locator('.feature:visible')
+    .evaluateAll((rows) =>
+      rows.every((row) => row.dataset.support === 'external'),
+    );
+  expect(external).toBe(true);
+  await page.locator('#reset-all').tap();
+  await expect(page.locator('.feature:visible')).toHaveCount(326);
+  await page.locator('#roadmap-filters > summary').tap();
   const row = await openFeature(page, selectedIds[0]);
   const label = row.locator('label').first();
   const box = await label.boundingBox();

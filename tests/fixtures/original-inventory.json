@@ -1,0 +1,1737 @@
+[
+  {
+    "id": "tenant-1",
+    "kind": "o",
+    "text": "Kiracılık modelleri: single-tenant (tek kiracılı), multi-tenant (çok kiracılı), hybrid (karma).",
+    "raw": "single tenant, Multi tenancy, hybrit; Multi tenancy"
+  },
+  {
+    "id": "tenant-2",
+    "kind": "g",
+    "text": "Kurum, şirket, şube, ekip ve çalışma alanı hiyerarşisi."
+  },
+  {
+    "id": "tenant-3",
+    "kind": "g",
+    "text": "Kiracı oluşturma, etkinleştirme, kapatma ve güvenli müşteri çıkışı."
+  },
+  {
+    "id": "tenant-4",
+    "kind": "g",
+    "text": "Kullanıcı daveti, kurum üyeliği, kurum değiştirme ve sahiplik devri."
+  },
+  {
+    "id": "tenant-5",
+    "kind": "g",
+    "text": "Veri, dosya, önbellek, arama ve görevlerde kiracı izolasyonu."
+  },
+  {
+    "id": "tenant-6",
+    "kind": "g",
+    "text": "Kiracı taşıma ve paylaşımlı / ayrılmış kurulum arasında geçiş."
+  },
+  {
+    "id": "identity-1",
+    "kind": "o",
+    "text": "Authentication (kimlik doğrulama), üyelik ve e-posta doğrulama.",
+    "raw": "User auth; User authorization, middleware, Rol yetki, üyelik, email"
+  },
+  {
+    "id": "identity-2",
+    "kind": "o",
+    "text": "Parolalı giriş, parola kurtarma ve magic link (tek kullanımlık giriş bağlantısı).",
+    "raw": "email senaryoları(login, magic link, password recovery)"
+  },
+  {
+    "id": "identity-3",
+    "kind": "o",
+    "text": "OTP (One-Time Password — tek kullanımlık parola) ile doğrulama.",
+    "raw": "otp"
+  },
+  {
+    "id": "identity-4",
+    "kind": "g",
+    "text": "Oturum ve cihaz listesi; süre aşımı ve tüm oturumları sonlandırma."
+  },
+  {
+    "id": "identity-5",
+    "kind": "g",
+    "text": "MFA (Multi-Factor Authentication — çok faktörlü kimlik doğrulama) ve kurtarma kodları."
+  },
+  {
+    "id": "identity-6",
+    "kind": "g",
+    "text": "Passkey (cihaza bağlı giriş anahtarı) ve sosyal hesapla giriş."
+  },
+  {
+    "id": "identity-7",
+    "kind": "g",
+    "text": "SSO (Single Sign-On — tek oturum açma) ve kurumsal kimlik sağlayıcısı bağlantıları."
+  },
+  {
+    "id": "identity-8",
+    "kind": "g",
+    "text": "SCIM (System for Cross-domain Identity Management — sistemler arası kimlik yönetimi) ile kullanıcı eşitleme."
+  },
+  {
+    "id": "access-1",
+    "kind": "o",
+    "text": "Authorization (yetkilendirme): kullanıcı, rol ve işlem yetkileri.",
+    "raw": "User authorization; Rol yetki"
+  },
+  {
+    "id": "access-2",
+    "kind": "g",
+    "text": "Kayıt, alan, sahiplik ve organizasyon kapsamına göre erişim."
+  },
+  {
+    "id": "access-3",
+    "kind": "g",
+    "text": "Her sunucu işleminde yetki denetimi ve varsayılan erişim reddi."
+  },
+  {
+    "id": "access-4",
+    "kind": "o",
+    "text": "Impersonation (destek amacıyla kullanıcı adına geçici erişim).",
+    "raw": "impersonate"
+  },
+  {
+    "id": "access-5",
+    "kind": "g",
+    "text": "Destek erişiminde izin, gerekçe, süre, hassas işlem sınırı ve denetim izi."
+  },
+  {
+    "id": "access-6",
+    "kind": "g",
+    "text": "Yetki devri, görev ayrılığı ve hassas işlemde yeniden doğrulama."
+  },
+  {
+    "id": "access-7",
+    "kind": "g",
+    "text": "Servis hesapları ve süreli, kapsamı sınırlandırılmış erişim anahtarları."
+  },
+  {
+    "id": "modules-1",
+    "kind": "o",
+    "text": "Modül açma ve kapatma.",
+    "raw": "Modül aç kapat"
+  },
+  {
+    "id": "modules-2",
+    "kind": "o",
+    "text": "Modül tanım dosyası: module.manifest.yml.",
+    "raw": "module.manifest.yml"
+  },
+  {
+    "id": "modules-3",
+    "kind": "g",
+    "text": "Modül kataloğu, kurulum, bağımlılık, sürüm uyumu ve güvenli kaldırma."
+  },
+  {
+    "id": "modules-4",
+    "kind": "g",
+    "text": "Modül kapanırken kayıt koruma ve devam eden işlemleri durdurma."
+  },
+  {
+    "id": "modules-5",
+    "kind": "g",
+    "text": "Feature flags (özellik açma-kapama anahtarları) ve kiracı bazlı kademeli açılış."
+  },
+  {
+    "id": "modules-6",
+    "kind": "g",
+    "text": "Modülün yayımladığı işlev, olay, yetki ve ekran kayıtları."
+  },
+  {
+    "id": "modules-7",
+    "kind": "g",
+    "text": "Modüle ait kurulum, güncelleme ve veri geçişi bildirimleri."
+  },
+  {
+    "id": "catalog-1",
+    "kind": "o",
+    "text": "Paket, plan, fiyat ve pricing table (paket-fiyat karşılaştırma tablosu) yönetimi.",
+    "raw": "Paket yönetimi; abonelik+plan+pricing table yönetimi"
+  },
+  {
+    "id": "catalog-2",
+    "kind": "o",
+    "text": "Paneldeki paket içeriklerinin frontpages (herkese açık sayfalar) ile eşleşmesi.",
+    "raw": "pricing table(admin panelinden paket içeriklerini yönet, dinamik olarak frontpages güncelle)"
+  },
+  {
+    "id": "catalog-3",
+    "kind": "g",
+    "text": "Paket ve fiyat sürümleri; mevcut müşterinin eski koşullarını koruma."
+  },
+  {
+    "id": "catalog-4",
+    "kind": "g",
+    "text": "Aylık/yıllık, kullanıcı başına, kullanım bazlı ve karma fiyat modelleri."
+  },
+  {
+    "id": "catalog-5",
+    "kind": "g",
+    "text": "Ek modül, ek kullanıcı, ek kota ve müşteri özel fiyat teklifi."
+  },
+  {
+    "id": "catalog-6",
+    "kind": "g",
+    "text": "Satışa açık, gizli, kullanımdan kaldırılmış ve sözleşmeye özel paketler."
+  },
+  {
+    "id": "subscriptions-1",
+    "kind": "o",
+    "text": "Abonelik başlatma, yenileme, iptal ve suspend (hizmeti askıya alma).",
+    "raw": "Ödeme / abonelik / suspend; abonelik+plan+pricing table"
+  },
+  {
+    "id": "subscriptions-2",
+    "kind": "g",
+    "text": "Ücretsiz plan, deneme süresi ve denemeden ücretli plana geçiş."
+  },
+  {
+    "id": "subscriptions-3",
+    "kind": "g",
+    "text": "Paket yükseltme/düşürme; hemen veya dönem sonunda değiştirme."
+  },
+  {
+    "id": "subscriptions-4",
+    "kind": "g",
+    "text": "Dönem içi fiyat farkı, ödeme ek süresi ve yeniden etkinleştirme."
+  },
+  {
+    "id": "subscriptions-5",
+    "kind": "g",
+    "text": "Müşterinin abonelik, fatura ve ödeme yöntemlerini yönetebildiği portal."
+  },
+  {
+    "id": "subscriptions-6",
+    "kind": "g",
+    "text": "İptal nedeni, duraklatma, bitiş tarihi ve yeniden abonelik."
+  },
+  {
+    "id": "entitlements-1",
+    "kind": "g",
+    "text": "Entitlements (paket veya sözleşmeden doğan özellik kullanım hakları)."
+  },
+  {
+    "id": "entitlements-2",
+    "kind": "g",
+    "text": "Paket hakları, teknik modül anahtarları ve kullanıcı yetkilerinin ayrı denetimi."
+  },
+  {
+    "id": "entitlements-3",
+    "kind": "g",
+    "text": "Kiracı özel hak tanımlama; başlangıç, bitiş ve geri alma."
+  },
+  {
+    "id": "entitlements-4",
+    "kind": "g",
+    "text": "Hak değişikliğinin panel, arka plan işi ve entegrasyonda uygulanması."
+  },
+  {
+    "id": "entitlements-5",
+    "kind": "g",
+    "text": "Askıdaki hesap için salt okunur erişim, veri dışa aktarma ve ödeme istisnaları."
+  },
+  {
+    "id": "entitlements-6",
+    "kind": "g",
+    "text": "Müşteri ortamına kurulum için lisans doğrulama ve çevrimdışı tolerans."
+  },
+  {
+    "id": "usage-1",
+    "kind": "o",
+    "text": "Dosya yükleme, AI (Artificial Intelligence — yapay zekâ) kredisi ve trafik limitleri.",
+    "raw": "limit yönetimi [file upload, ai credit, hosting trafik]"
+  },
+  {
+    "id": "usage-2",
+    "kind": "g",
+    "text": "Kullanıcı, şirket, çalışma alanı, kayıt ve depolama kotaları."
+  },
+  {
+    "id": "usage-3",
+    "kind": "g",
+    "text": "API (Application Programming Interface — uygulama programlama arayüzü) çağrısı ve entegrasyon kotaları."
+  },
+  {
+    "id": "usage-4",
+    "kind": "g",
+    "text": "Otomasyon, eşzamanlı görev, işlem süresi ve bildirim gönderim kotaları."
+  },
+  {
+    "id": "usage-5",
+    "kind": "g",
+    "text": "Kullanım ölçümü, dönemsel sıfırlama, eşik uyarıları ve aşım kuralları."
+  },
+  {
+    "id": "usage-6",
+    "kind": "g",
+    "text": "Krediyi ayırma, tüketme ve başarısız işlemde iade etme."
+  },
+  {
+    "id": "usage-7",
+    "kind": "g",
+    "text": "Kiracı ve özellik bazlı maliyet; harcama üst sınırı ve anlık durdurma."
+  },
+  {
+    "id": "campaigns-1",
+    "kind": "o",
+    "text": "Kupon, kampanya ve indirim yönetimi.",
+    "raw": "Coupon, kampanya, indirim; kupon kampanya indirim yönetimi"
+  },
+  {
+    "id": "campaigns-2",
+    "kind": "o",
+    "text": "BOGO (Buy One, Get One — bir alana ek ürün) kampanyaları.",
+    "raw": "bogo"
+  },
+  {
+    "id": "campaigns-3",
+    "kind": "g",
+    "text": "Hedef kitle, geçerlilik süresi, bütçe ve kullanım sınırları."
+  },
+  {
+    "id": "campaigns-4",
+    "kind": "g",
+    "text": "İndirim birleştirme, öncelik ve kapsam dışı ürün kuralları."
+  },
+  {
+    "id": "campaigns-5",
+    "kind": "g",
+    "text": "İade/iptalde kupon haklarının düzeltilmesi ve suistimal denetimi."
+  },
+  {
+    "id": "payments-1",
+    "kind": "o",
+    "text": "Ödeme sağlayıcısı, ödeme yöntemi ve tahsilat yönetimi.",
+    "raw": "Ödeme / abonelik / suspend; Ödeme / abonelik+plan+pricing table"
+  },
+  {
+    "id": "payments-2",
+    "kind": "g",
+    "text": "Ödeme yetkilendirme, doğrulama, tekrar deneme ve başarısız tahsilat takibi."
+  },
+  {
+    "id": "payments-3",
+    "kind": "g",
+    "text": "Tam/kısmi iade, ters ibraz ve ödeme itirazı yönetimi."
+  },
+  {
+    "id": "payments-4",
+    "kind": "g",
+    "text": "Tekrarlanan istekte ikinci tahsilatı önleme ve ödeme durumu uzlaştırma."
+  },
+  {
+    "id": "payments-5",
+    "kind": "g",
+    "text": "Kart verisi yerine sağlayıcı tokenı (güvenli ödeme referansı) saklama."
+  },
+  {
+    "id": "payments-6",
+    "kind": "g",
+    "text": "Sağlayıcı bildirimini doğrulama; geciken veya sırasız sonuçları işleme."
+  },
+  {
+    "id": "finance-1",
+    "kind": "o",
+    "text": "Sipariş, fatura, muhasebeleştirme ve ön muhasebe.",
+    "raw": "Muhasebeleştirme (fatura, sipariş); Muhasebeleştirme"
+  },
+  {
+    "id": "finance-2",
+    "kind": "o",
+    "text": "Para birimi, döviz kuru ve vergilendirme yönetimi.",
+    "raw": "döviz, vergilendirme"
+  },
+  {
+    "id": "finance-3",
+    "kind": "o",
+    "text": "Süper admin için SaaS müşterilerinin cari, finans ve mutabakat yönetimi.",
+    "raw": "superAdmin tarafından, saas müşterisinin Cari yönetimi ve ön muhasebesi, finans ve mutabakat yönetimi"
+  },
+  {
+    "id": "finance-4",
+    "kind": "g",
+    "text": "Fatura bilgileri, numaralandırma, vergi profili ve yuvarlama kuralları."
+  },
+  {
+    "id": "finance-5",
+    "kind": "g",
+    "text": "Alacak/borç düzeltmeleri, ön ödeme, vade ve gecikme takibi."
+  },
+  {
+    "id": "finance-6",
+    "kind": "g",
+    "text": "Banka, ödeme sağlayıcısı ve muhasebe kayıtlarını uzlaştırma."
+  },
+  {
+    "id": "finance-7",
+    "kind": "g",
+    "text": "Muhasebe sistemi ve uygulanabilir e-belge entegrasyonları."
+  },
+  {
+    "id": "finance-8",
+    "kind": "g",
+    "text": "İşletmecinin finans kayıtları ile müşterinin ürün içi muhasebesini ayırma."
+  },
+  {
+    "id": "shell-1",
+    "kind": "o",
+    "text": "Süper admin paneli.",
+    "raw": "Süper Admin panel; admin panel"
+  },
+  {
+    "id": "shell-2",
+    "kind": "g",
+    "text": "Müşteri yöneticisi ve son kullanıcı için ayrı yönetim yüzeyleri."
+  },
+  {
+    "id": "shell-3",
+    "kind": "o",
+    "text": "Dashboard (özet gösterge paneli).",
+    "raw": "Dashboard"
+  },
+  {
+    "id": "shell-4",
+    "kind": "o",
+    "text": "Profil, hesap ve ayarlar.",
+    "raw": "Ayarlar; Profile; Account"
+  },
+  {
+    "id": "shell-5",
+    "kind": "o",
+    "text": "Theme engine (tema motoru): yönetim paneli ve herkese açık sayfa temaları.",
+    "raw": "theme engine (admin theme + frontpage theme)"
+  },
+  {
+    "id": "shell-6",
+    "kind": "o",
+    "text": "Panel kısayolları, favoriler ve kişiselleştirme.",
+    "raw": "add shortcuts favorites in admin panel"
+  },
+  {
+    "id": "shell-7",
+    "kind": "g",
+    "text": "Platform, kiracı ve kullanıcı ayarlarının ayrı kapsamları ve önceliği."
+  },
+  {
+    "id": "shell-8",
+    "kind": "g",
+    "text": "Kiracı markası, logo, renkler ve alan adına göre görünüm."
+  },
+  {
+    "id": "shell-9",
+    "kind": "g",
+    "text": "Menü kaydı, gezinme geçmişi ve merkezi komut/işlem arama."
+  },
+  {
+    "id": "views-1",
+    "kind": "o",
+    "text": "Listing page (liste sayfası) ve single/detail page (tek kayıt/detay sayfası).",
+    "raw": "Listing page; single page"
+  },
+  {
+    "id": "views-2",
+    "kind": "o",
+    "text": "Tablo, liste, kart ve Kanban (durum sütunlarından oluşan pano) görünümleri.",
+    "raw": "Form, table, listing, views(table, listing, card, kanban) types"
+  },
+  {
+    "id": "views-3",
+    "kind": "o",
+    "text": "Bulk operations (toplu işlemler) ve çoklu kayıt seçimi.",
+    "raw": "bulk operations"
+  },
+  {
+    "id": "views-4",
+    "kind": "o",
+    "text": "Kayıt karşılaştırma: çalışan, ürün ve diğer iş varlıkları.",
+    "raw": "Karşılaştır (mesela hrms, iki çalışanı karşılaştır, yada eticaret ürünü karşılaştır)"
+  },
+  {
+    "id": "views-5",
+    "kind": "o",
+    "text": "State management (arayüz durumu yönetimi).",
+    "raw": "State management"
+  },
+  {
+    "id": "views-6",
+    "kind": "o",
+    "text": "Toast / Snackbar (kısa süreli işlem sonucu mesajları).",
+    "raw": "Toast / Snackbar"
+  },
+  {
+    "id": "views-7",
+    "kind": "g",
+    "text": "Filtreleme, sıralama, sayfalama, sütun seçimi ve kayıtlı görünümler."
+  },
+  {
+    "id": "views-8",
+    "kind": "g",
+    "text": "Yükleniyor, boş, hatalı, yetkisiz ve çevrimdışı ekran durumları."
+  },
+  {
+    "id": "views-9",
+    "kind": "g",
+    "text": "Kaydedilmemiş değişiklik uyarısı, işlem onayı ve geri alınabilir işlemler."
+  },
+  {
+    "id": "forms-1",
+    "kind": "o",
+    "text": "Form manager (form oluşturma ve yönetim aracı).",
+    "raw": "form manager; Form"
+  },
+  {
+    "id": "forms-2",
+    "kind": "g",
+    "text": "Alan doğrulama, koşullu görünürlük ve alanlar arası bağımlılık."
+  },
+  {
+    "id": "forms-3",
+    "kind": "g",
+    "text": "Çok adımlı form, taslak kaydı ve kaldığı yerden devam."
+  },
+  {
+    "id": "forms-4",
+    "kind": "g",
+    "text": "Form sürümü, yayınlama ve geriye uyumlu değişiklik."
+  },
+  {
+    "id": "forms-5",
+    "kind": "g",
+    "text": "Dosya alanı, tekrarlanabilir alan grubu ve ilişkili kayıt seçimi."
+  },
+  {
+    "id": "locale-1",
+    "kind": "o",
+    "text": "GILT (Globalization, Internationalization, Localization, Translation — küreselleştirme, uluslararasılaştırma, yerelleştirme, çeviri): g11n, i18n, l10n, t9n.",
+    "raw": "GILT (g10n, i11n, l10n, t13n)"
+  },
+  {
+    "id": "locale-2",
+    "kind": "o",
+    "text": "Transliteration / t13n (yazı sistemleri arasında harf dönüşümü).",
+    "raw": "t13n"
+  },
+  {
+    "id": "locale-3",
+    "kind": "g",
+    "text": "Dil anahtarları, yedek dil, çoğul kuralları ve çeviri sürümleri."
+  },
+  {
+    "id": "locale-4",
+    "kind": "g",
+    "text": "Saat dilimi, tarih, sayı, para, adres ve telefon biçimleri."
+  },
+  {
+    "id": "locale-5",
+    "kind": "g",
+    "text": "Sağdan sola yazım ve çok dilli içerik alanları."
+  },
+  {
+    "id": "channels-1",
+    "kind": "o",
+    "text": "SaaS (Software as a Service — hizmet olarak yazılım) web uygulaması.",
+    "raw": "platform (Mobile app, saas web, browser extension, desktop)"
+  },
+  {
+    "id": "channels-2",
+    "kind": "o",
+    "text": "Mobile app (mobil uygulama), browser extension (tarayıcı eklentisi) ve desktop app (masaüstü uygulaması).",
+    "raw": "Mobile app; browser extension; desktop"
+  },
+  {
+    "id": "channels-3",
+    "kind": "g",
+    "text": "Kanal bazlı oturum, cihaz izinleri ve istemci sürüm uyumluluğu."
+  },
+  {
+    "id": "channels-4",
+    "kind": "g",
+    "text": "320 pikselden başlayan uyarlanabilir ekranlar ve büyütmede yeniden akış."
+  },
+  {
+    "id": "channels-5",
+    "kind": "n",
+    "text": "Erişilebilirlik: klavye, odak sırası, ekran okuyucu ve renk dışı durum işaretleri."
+  },
+  {
+    "id": "channels-6",
+    "kind": "n",
+    "text": "Hareket azaltma, kontrast, metin büyütme ve erişilebilir hata sunumu."
+  },
+  {
+    "id": "channels-7",
+    "kind": "n",
+    "text": "Çevrimdışı çalışma, yerel işlem kuyruğu ve yeniden bağlanınca uzlaştırma."
+  },
+  {
+    "id": "channels-8",
+    "kind": "n",
+    "text": "Deep link (uygulama içindeki belirli kayda doğrudan bağlantı) ve kanal devamlılığı."
+  },
+  {
+    "id": "model-1",
+    "kind": "o",
+    "text": "Entity manager (iş varlığı tanımı yönetimi).",
+    "raw": "Field, entity, manager"
+  },
+  {
+    "id": "model-2",
+    "kind": "o",
+    "text": "Field manager (alan yönetimi) ve type engine (veri tipi motoru).",
+    "raw": "Field, entity, manager; type engine"
+  },
+  {
+    "id": "model-3",
+    "kind": "o",
+    "text": "Taxonomy management (kategori, etiket ve sınıflandırma yönetimi).",
+    "raw": "Taxonomy management"
+  },
+  {
+    "id": "model-4",
+    "kind": "g",
+    "text": "İlişki tipleri, zorunlu alan, benzersizlik ve referans bütünlüğü."
+  },
+  {
+    "id": "model-5",
+    "kind": "g",
+    "text": "Kiracı özel alanları; şema sürümü ve veri tipi değişikliği."
+  },
+  {
+    "id": "model-6",
+    "kind": "g",
+    "text": "Hesaplanan alanlar, varsayılan değerler ve doğrulama kuralları."
+  },
+  {
+    "id": "model-7",
+    "kind": "g",
+    "text": "Modülün kayıt sahipliğini koruyan alan/varlık genişletmeleri."
+  },
+  {
+    "id": "files-1",
+    "kind": "o",
+    "text": "DAM (Digital Asset Management — dijital varlık yönetimi), dosya ve medya kütüphanesi.",
+    "raw": "Dam, file, Media management"
+  },
+  {
+    "id": "files-2",
+    "kind": "o",
+    "text": "Dosya türü denetimi: MIME (Multipurpose Internet Mail Extensions — çok amaçlı internet posta uzantıları) türleri; mime_types.",
+    "raw": "mime_types management"
+  },
+  {
+    "id": "files-3",
+    "kind": "o",
+    "text": "ClamAV ile zararlı dosya taraması.",
+    "raw": "ClamAV"
+  },
+  {
+    "id": "files-4",
+    "kind": "o",
+    "text": "Depolama adaptörleri: MinIO ve Amazon S3 (Simple Storage Service — basit depolama hizmeti).",
+    "raw": "minio, s3, adapter"
+  },
+  {
+    "id": "files-5",
+    "kind": "g",
+    "text": "Dosya boyutu, uzantı ve gerçek içerik doğrulama; karantina."
+  },
+  {
+    "id": "files-6",
+    "kind": "g",
+    "text": "Özel/genel erişim, süreli bağlantı ve güvenli indirme."
+  },
+  {
+    "id": "files-7",
+    "kind": "g",
+    "text": "Medya sürümleri, önizleme, küçük görsel ve biçim dönüştürme."
+  },
+  {
+    "id": "files-8",
+    "kind": "g",
+    "text": "Dosya-kayıt kullanım ilişkileri; sahipsiz dosya temizliği ve saklama süresi."
+  },
+  {
+    "id": "search-1",
+    "kind": "o",
+    "text": "Tam metin arama ve Meilisearch adaptörü.",
+    "raw": "Search; meilisearch"
+  },
+  {
+    "id": "search-2",
+    "kind": "o",
+    "text": "Facets (alan değerlerine göre çok boyutlu filtreleme).",
+    "raw": "Facets"
+  },
+  {
+    "id": "search-3",
+    "kind": "o",
+    "text": "Vector search (vektör benzerlik araması) ve Qdrant adaptörü.",
+    "raw": "Search, vector, qdrant"
+  },
+  {
+    "id": "search-4",
+    "kind": "g",
+    "text": "Kiracı, kayıt ve alan yetkisine göre sonuç/gösterim filtreleme."
+  },
+  {
+    "id": "search-5",
+    "kind": "g",
+    "text": "İndeks oluşturma, güncelleme, silme ve yeniden indeksleme."
+  },
+  {
+    "id": "search-6",
+    "kind": "g",
+    "text": "Otomatik tamamlama, yazım toleransı, eş anlamlılar ve sonuç sıralama."
+  },
+  {
+    "id": "search-7",
+    "kind": "g",
+    "text": "Kaynak kayıtla indeks tutarlılığı ve gecikme takibi."
+  },
+  {
+    "id": "transfer-1",
+    "kind": "o",
+    "text": "Data import/export (veri içe ve dışa aktarma).",
+    "raw": "Data import export"
+  },
+  {
+    "id": "transfer-2",
+    "kind": "g",
+    "text": "Alan eşleme, dosya şablonları ve aktarım önizlemesi."
+  },
+  {
+    "id": "transfer-3",
+    "kind": "g",
+    "text": "Satır bazlı doğrulama, hata dosyası ve yinelenen kayıt denetimi."
+  },
+  {
+    "id": "transfer-4",
+    "kind": "g",
+    "text": "Büyük aktarımda ilerleme, iptal ve kaldığı yerden devam."
+  },
+  {
+    "id": "transfer-5",
+    "kind": "g",
+    "text": "İçe aktarmada yetki, kota ve iş kurallarının korunması."
+  },
+  {
+    "id": "transfer-6",
+    "kind": "g",
+    "text": "Yetkili veri teslimi; hassas alan maskeleme ve süreli dışa aktarım."
+  },
+  {
+    "id": "workflow-1",
+    "kind": "o",
+    "text": "Workflow engine (iş akışı motoru).",
+    "raw": "Workflow engine; BPN(business worklow management)"
+  },
+  {
+    "id": "workflow-2",
+    "kind": "o",
+    "text": "BPM (Business Process Management — iş süreci yönetimi).",
+    "raw": "BPN(business worklow management)"
+  },
+  {
+    "id": "workflow-3",
+    "kind": "o",
+    "text": "State machine (iş nesnesi durumlarını ve izinli geçişleri yöneten mekanizma).",
+    "raw": "State management machine; State management"
+  },
+  {
+    "id": "workflow-4",
+    "kind": "g",
+    "text": "Süreç tanımı, sürümleme, başlatma, durdurma ve yürütüm geçmişi."
+  },
+  {
+    "id": "workflow-5",
+    "kind": "g",
+    "text": "BPMN (Business Process Model and Notation — iş süreci modelleme ve gösterimi) desteği."
+  },
+  {
+    "id": "workflow-6",
+    "kind": "g",
+    "text": "Bekleme, süre aşımı, yeniden başlatma ve telafi adımları."
+  },
+  {
+    "id": "workflow-7",
+    "kind": "g",
+    "text": "Durum geçişinin ilgili iş modülünün kurallarıyla doğrulanması."
+  },
+  {
+    "id": "rules-1",
+    "kind": "o",
+    "text": "ECA (Event–Condition–Action — olay–koşul–eylem) kural motoru.",
+    "raw": "eca engine, rules, condition management; eca rules"
+  },
+  {
+    "id": "rules-2",
+    "kind": "g",
+    "text": "Koşul/eylem kataloğu; gruplama, öncelik ve kapsam."
+  },
+  {
+    "id": "rules-3",
+    "kind": "g",
+    "text": "Kural çakışması, döngü ve tekrar tetikleme koruması."
+  },
+  {
+    "id": "rules-4",
+    "kind": "g",
+    "text": "Kuralları örnek veriyle deneme ve sonucu açıklama."
+  },
+  {
+    "id": "rules-5",
+    "kind": "g",
+    "text": "Kural sürümü, zaman aralığı, yetki sınırı ve çalışma kotası."
+  },
+  {
+    "id": "approvals-1",
+    "kind": "o",
+    "text": "Onay sistemi, işlemsel doğrulama ve approval chain (onay zinciri).",
+    "raw": "onay ve doğrulama sistemi; Aproval Chain"
+  },
+  {
+    "id": "approvals-2",
+    "kind": "g",
+    "text": "Sıralı/paralel onay; kişi, rol, tutar ve koşul bazlı yönlendirme."
+  },
+  {
+    "id": "approvals-3",
+    "kind": "g",
+    "text": "Vekil onaylayıcı, süre aşımı ve üst yetkiliye yönlendirme."
+  },
+  {
+    "id": "approvals-4",
+    "kind": "g",
+    "text": "Reddetme, geri gönderme, geri çekme ve gerekçe kaydı."
+  },
+  {
+    "id": "approvals-5",
+    "kind": "g",
+    "text": "Onay beklerken kayıt değişikliği ve yeniden onay gereksinimi."
+  },
+  {
+    "id": "approvals-6",
+    "kind": "g",
+    "text": "Talep edenin kendi işlemini onaylamasını sınırlama."
+  },
+  {
+    "id": "jobs-1",
+    "kind": "o",
+    "text": "Cron (periyodik görev tetikleme) ve schedule (zamanlama) yönetimi.",
+    "raw": "Cron, schedule"
+  },
+  {
+    "id": "jobs-2",
+    "kind": "g",
+    "text": "İş kuyruğu, öncelik, zaman aşımı ve kiracı başına eşzamanlılık."
+  },
+  {
+    "id": "jobs-3",
+    "kind": "g",
+    "text": "Yeniden deneme, artan bekleme ve başarısız işler kuyruğu."
+  },
+  {
+    "id": "jobs-4",
+    "kind": "g",
+    "text": "İş iptali, ilerleme, kaldığı yerden devam ve elle yeniden çalıştırma."
+  },
+  {
+    "id": "jobs-5",
+    "kind": "g",
+    "text": "Tekrarlı çalıştırmada mükerrer etkiyi önleme ve görev kilidi."
+  },
+  {
+    "id": "jobs-6",
+    "kind": "g",
+    "text": "Saat dilimi, yaz saati değişikliği ve kaçırılan tetiklemeler."
+  },
+  {
+    "id": "jobs-7",
+    "kind": "g",
+    "text": "Kiracılar arasında adil kuyruk ve kaynak kullanımı."
+  },
+  {
+    "id": "notifications-1",
+    "kind": "o",
+    "text": "In-app notification (uygulama içi bildirim) merkezi.",
+    "raw": "In-App Notification; in-app"
+  },
+  {
+    "id": "notifications-2",
+    "kind": "o",
+    "text": "SMS (Short Message Service — kısa mesaj hizmeti) ve mobil push (anlık cihaz bildirimi).",
+    "raw": "email, sms, push; Push Notification"
+  },
+  {
+    "id": "notifications-3",
+    "kind": "o",
+    "text": "Web push (tarayıcı bildirimi) ve desktop notification (masaüstü sistem bildirimi).",
+    "raw": "Web Push Browser Notification; Desktop Notification"
+  },
+  {
+    "id": "notifications-4",
+    "kind": "o",
+    "text": "WhatsApp Business API, Telegram Bot ve Discord kanalları.",
+    "raw": "WhatsApp Business API; Telegram Bot; Discord"
+  },
+  {
+    "id": "notifications-5",
+    "kind": "o",
+    "text": "Bildirim kanal yönetimi.",
+    "raw": "bildirim kanal yönetimi"
+  },
+  {
+    "id": "notifications-6",
+    "kind": "g",
+    "text": "Konu/kanal tercihleri, izinler, sessiz saatler ve özet gönderim."
+  },
+  {
+    "id": "notifications-7",
+    "kind": "g",
+    "text": "Okundu bilgisi, teslimat geçmişi, yeniden deneme ve alternatif kanal."
+  },
+  {
+    "id": "notifications-8",
+    "kind": "g",
+    "text": "Bildirim tekilleştirme, sıklık sınırı ve pazarlama/işlemsel ayrımı."
+  },
+  {
+    "id": "email-1",
+    "kind": "o",
+    "text": "Transactional email (işlemsel e-posta) ve sistem e-posta şablonları.",
+    "raw": "Transactional Email; System E-mail templates"
+  },
+  {
+    "id": "email-2",
+    "kind": "o",
+    "text": "Giriş, kayıt, magic link, doğrulama ve parola kurtarma e-posta senaryoları.",
+    "raw": "email senaryolarına uygun email template; login, magic link, password recovery"
+  },
+  {
+    "id": "email-3",
+    "kind": "o",
+    "text": "Mailgun adaptörü ve Postfix sunucu bağlantısı.",
+    "raw": "mailgun; postfix"
+  },
+  {
+    "id": "email-4",
+    "kind": "g",
+    "text": "Ödeme, fatura, onay, güvenlik ve destek e-posta senaryoları."
+  },
+  {
+    "id": "email-5",
+    "kind": "g",
+    "text": "Şablon değişkeni denetimi, önizleme, dil ve marka sürümleri."
+  },
+  {
+    "id": "email-6",
+    "kind": "g",
+    "text": "Gönderen alan adı doğrulama; imza ve teslim edilebilirlik ayarları."
+  },
+  {
+    "id": "email-7",
+    "kind": "g",
+    "text": "Geri dönen ileti, spam şikâyeti ve gönderim engelleme listesi."
+  },
+  {
+    "id": "realtime-1",
+    "kind": "o",
+    "text": "WebSocket (çift yönlü canlı bağlantı) ile güncellemeler.",
+    "raw": "WebSocket / SSE ile canlı bildirim"
+  },
+  {
+    "id": "realtime-2",
+    "kind": "o",
+    "text": "SSE (Server-Sent Events — sunucudan gönderilen olaylar) ile canlı iletim.",
+    "raw": "WebSocket / SSE ile canlı bildirim"
+  },
+  {
+    "id": "realtime-3",
+    "kind": "g",
+    "text": "Bağlantı yetkisi, yeniden bağlanma ve kaçırılan olayları tamamlama."
+  },
+  {
+    "id": "realtime-4",
+    "kind": "n",
+    "text": "Kayıt üzerinde ekip yorumları, bahsetme ve takip etme."
+  },
+  {
+    "id": "realtime-5",
+    "kind": "n",
+    "text": "Kimin görüntülediği/düzenlediği bilgisi ve eşzamanlı düzenleme uyarısı."
+  },
+  {
+    "id": "realtime-6",
+    "kind": "n",
+    "text": "Paylaşımlı çalışma alanı etkinlik akışı ve kayıt abonelikleri."
+  },
+  {
+    "id": "crm-1",
+    "kind": "o",
+    "text": "CRM (Customer Relationship Management — müşteri ilişkileri yönetimi) ve satış.",
+    "raw": "Crm/Sales; Crm"
+  },
+  {
+    "id": "crm-2",
+    "kind": "g",
+    "text": "Müşteri adayı, kişi, firma, fırsat ve satış aşamaları."
+  },
+  {
+    "id": "crm-3",
+    "kind": "g",
+    "text": "Görüşme/not, hatırlatma, sorumlu atama ve iletişim geçmişi."
+  },
+  {
+    "id": "crm-4",
+    "kind": "g",
+    "text": "Müşteri tekilleştirme, kayıt birleştirme ve sahiplik değişikliği."
+  },
+  {
+    "id": "crm-5",
+    "kind": "n",
+    "text": "Müşteri başarısı: hesap sağlığı, kullanım düşüşü ve yenileme riski."
+  },
+  {
+    "id": "crm-6",
+    "kind": "n",
+    "text": "Müşteri devreye alma kontrol listesi ve yenileme müdahale görevleri."
+  },
+  {
+    "id": "support-1",
+    "kind": "o",
+    "text": "Helpdesk (destek merkezi), support (destek) ve ticket (destek talebi).",
+    "raw": "Helpdesk, support, ticket"
+  },
+  {
+    "id": "support-2",
+    "kind": "o",
+    "text": "Onboarding (ilk kullanım yönlendirmesi) ve uygulama içi yardım.",
+    "raw": "helper onboarding cms(saas içi yardım, cms’si)"
+  },
+  {
+    "id": "support-3",
+    "kind": "o",
+    "text": "Survey (anket) ve NPS (Net Promoter Score — tavsiye skoru).",
+    "raw": "survey / nps"
+  },
+  {
+    "id": "support-4",
+    "kind": "g",
+    "text": "SLA (Service Level Agreement — hizmet seviyesi anlaşması), öncelik ve yanıt süresi."
+  },
+  {
+    "id": "support-5",
+    "kind": "g",
+    "text": "Talep atama, kuyruk, durum, etiket, iç not ve üst yetkiliye aktarma."
+  },
+  {
+    "id": "support-6",
+    "kind": "g",
+    "text": "Bağlama duyarlı yardım, ilk kurulum adımları ve tamamlanma takibi."
+  },
+  {
+    "id": "support-7",
+    "kind": "g",
+    "text": "Özellik talepleri, geri bildirim toplama ve memnuniyet geçmişi."
+  },
+  {
+    "id": "calendar-1",
+    "kind": "o",
+    "text": "Calendar (takvim) ve appointment (randevu) yönetimi.",
+    "raw": "Calender; appointment"
+  },
+  {
+    "id": "calendar-2",
+    "kind": "g",
+    "text": "Uygunluk, katılımcılar, kaynak rezervasyonu ve çakışma denetimi."
+  },
+  {
+    "id": "calendar-3",
+    "kind": "g",
+    "text": "Tekrarlayan etkinlik, saat dilimi ve davet yanıtları."
+  },
+  {
+    "id": "calendar-4",
+    "kind": "g",
+    "text": "İptal/erteleme, hatırlatma ve dış takvim eşitleme."
+  },
+  {
+    "id": "content-1",
+    "kind": "o",
+    "text": "CMS (Content Management System — içerik yönetim sistemi) ve yardım bilgi bankası.",
+    "raw": "helper onboarding cms(saas içi yardım, cms’si)"
+  },
+  {
+    "id": "content-2",
+    "kind": "o",
+    "text": "SEO (Search Engine Optimization — arama motoru optimizasyonu).",
+    "raw": "seo"
+  },
+  {
+    "id": "content-3",
+    "kind": "o",
+    "text": "Programmatic SEO (veri/şablonla ölçekli arama odaklı sayfa üretimi).",
+    "raw": "programatic seo"
+  },
+  {
+    "id": "content-4",
+    "kind": "o",
+    "text": "İçerik ve yorum moderation (yayına uygunluk denetimi).",
+    "raw": "moderation (content, comment)"
+  },
+  {
+    "id": "content-5",
+    "kind": "o",
+    "text": "Changelog (değişiklik günlüğü) ve müşteri panelinde “Neler yeni?”.",
+    "raw": "Changelog for customer(ve neler yeni görebilmeli kullanıcı panelde)"
+  },
+  {
+    "id": "content-6",
+    "kind": "g",
+    "text": "Taslak, önizleme, yayın zamanı, sürüm geçmişi ve geri alma."
+  },
+  {
+    "id": "content-7",
+    "kind": "g",
+    "text": "Sayfa adresi, yönlendirme, site haritası ve indeksleme kontrolleri."
+  },
+  {
+    "id": "content-8",
+    "kind": "g",
+    "text": "Moderasyon kuyruğu, gerekçe, itiraz ve ihlal geçmişi."
+  },
+  {
+    "id": "integration-1",
+    "kind": "o",
+    "text": "API entegrasyon katmanı ve adaptör yönetimi.",
+    "raw": "API integration layer; adapter"
+  },
+  {
+    "id": "integration-2",
+    "kind": "o",
+    "text": "Activepieces ile entegrasyon otomasyonları.",
+    "raw": "API integration layer(active pieces) workflow"
+  },
+  {
+    "id": "integration-3",
+    "kind": "o",
+    "text": "Middleware (istek işleme ara katmanı) ve handler (istek/olay işleyicisi) kayıtları.",
+    "raw": "middleware; handler"
+  },
+  {
+    "id": "integration-4",
+    "kind": "o",
+    "text": "HTTP (Hypertext Transfer Protocol — hiper metin aktarım protokolü) durum/yönlendirme yönetimi: 200, 301, 303, 404, 410, 503.",
+    "raw": "http status code ve status management; http status codes (404, 410, seo, 503, 200, 301, 303)"
+  },
+  {
+    "id": "integration-5",
+    "kind": "g",
+    "text": "Webhook (olay gerçekleşince dış sisteme bildirim) alma/gönderme; imza ve tekrar saldırısı denetimi."
+  },
+  {
+    "id": "integration-6",
+    "kind": "g",
+    "text": "API sürümü, standart hata yanıtı, sözleşme dokümanı ve kullanımdan kaldırma."
+  },
+  {
+    "id": "integration-7",
+    "kind": "g",
+    "text": "Veri eşleme, çift yönlü eşitleme, bağlantı sağlığı ve yeniden yetkilendirme."
+  },
+  {
+    "id": "integration-8",
+    "kind": "g",
+    "text": "401/403 yetki, 409 çakışma, 422 doğrulama, 429 hız sınırı ve 500 hata yanıtları."
+  },
+  {
+    "id": "events-1",
+    "kind": "o",
+    "text": "Event bus (modüller arası olay dağıtım altyapısı).",
+    "raw": "event bus"
+  },
+  {
+    "id": "events-2",
+    "kind": "g",
+    "text": "Modülün yayımlanmış işlevleri; komut, sorgu ve olay kayıtları."
+  },
+  {
+    "id": "events-3",
+    "kind": "g",
+    "text": "Olay kimliği, kiracı bağlamı, ilişkilendirme kimliği ve şema sürümü."
+  },
+  {
+    "id": "events-4",
+    "kind": "g",
+    "text": "Transactional outbox (veri değişikliğiyle aynı işlemde kaydedilen olay kutusu)."
+  },
+  {
+    "id": "events-5",
+    "kind": "g",
+    "text": "Idempotency (aynı işlemin tekrarında mükerrer etkiyi önleme) ve tüketici tekilleştirme."
+  },
+  {
+    "id": "events-6",
+    "kind": "g",
+    "text": "Kalıcı olayda yeniden deneme, sıralama kapsamı ve yeniden işleme."
+  },
+  {
+    "id": "events-7",
+    "kind": "g",
+    "text": "Hata yayılımını sınırlama; eşzamanlı çağrı/arka plan olayı seçimi."
+  },
+  {
+    "id": "ai-1",
+    "kind": "o",
+    "text": "AI providers (yapay zekâ sağlayıcıları) ve model bağlantıları.",
+    "raw": "AI providers"
+  },
+  {
+    "id": "ai-2",
+    "kind": "g",
+    "text": "Model yönlendirme, alternatif sağlayıcı ve zaman aşımı."
+  },
+  {
+    "id": "ai-3",
+    "kind": "g",
+    "text": "Prompt (modele verilen talimat) şablonu, sürümü ve değişkenleri."
+  },
+  {
+    "id": "ai-4",
+    "kind": "g",
+    "text": "Model girdisi/çıktısı, maliyet, kalite değerlendirmesi ve tekrar üretilebilir kayıt."
+  },
+  {
+    "id": "ai-5",
+    "kind": "g",
+    "text": "Hassas veri maskeleme ve sağlayıcıya gönderilebilecek veri sınırları."
+  },
+  {
+    "id": "ai-6",
+    "kind": "g",
+    "text": "Prompt injection (içerikle modele yetkisiz talimat verme) koruması ve çıktı denetimi."
+  },
+  {
+    "id": "rag-1",
+    "kind": "o",
+    "text": "RAG (Retrieval-Augmented Generation — bilgi getirmeyle desteklenen üretim) sunucusu.",
+    "raw": "rag server"
+  },
+  {
+    "id": "rag-2",
+    "kind": "g",
+    "text": "Kaynak bağlama, belge ayrıştırma, parçalara ayırma ve güncelleme."
+  },
+  {
+    "id": "rag-3",
+    "kind": "g",
+    "text": "Embedding (içeriği sayısal benzerlik vektörüne dönüştürme) sürümü ve yeniden üretim."
+  },
+  {
+    "id": "rag-4",
+    "kind": "g",
+    "text": "Kiracı/kullanıcı yetkisini kaynak parçası düzeyinde koruma."
+  },
+  {
+    "id": "rag-5",
+    "kind": "g",
+    "text": "Kaynak atfı, güncellik, silinen içeriği indeksten çıkarma ve kalite ölçümü."
+  },
+  {
+    "id": "agents-1",
+    "kind": "o",
+    "text": "Agents (yapay zekâ çalışanları): idari işler, satın alma ve diğer görevler.",
+    "raw": "Agents (ai workers(idari işler, satınalma,))"
+  },
+  {
+    "id": "agents-2",
+    "kind": "g",
+    "text": "Ajan rolü, araç kataloğu ve izin verilen işlem kapsamı."
+  },
+  {
+    "id": "agents-3",
+    "kind": "g",
+    "text": "Hassas eylemde insan onayı ve çalışmayı durdurma."
+  },
+  {
+    "id": "agents-4",
+    "kind": "g",
+    "text": "Görev hafızası, yürütüm geçmişi, yeniden deneme ve devretme."
+  },
+  {
+    "id": "agents-5",
+    "kind": "g",
+    "text": "Adım, süre, kaynak ve harcama üst sınırları."
+  },
+  {
+    "id": "agents-6",
+    "kind": "g",
+    "text": "Talimat, veri ve araç çıktılarının güven sınırları."
+  },
+  {
+    "id": "reports-1",
+    "kind": "o",
+    "text": "Her modül/özellik için raporlama; muhasebe, CRM ve diğer alan raporları.",
+    "raw": "saas module/feature base Raporlama; Raporlama modülü(her modülün raporu olmalı)"
+  },
+  {
+    "id": "reports-2",
+    "kind": "o",
+    "text": "BI (Business Intelligence — iş zekâsı) panoları; BI Board.",
+    "raw": "BI Board"
+  },
+  {
+    "id": "reports-3",
+    "kind": "o",
+    "text": "Metabase adaptörü ve gömülü raporlar.",
+    "raw": "MetaBase"
+  },
+  {
+    "id": "reports-4",
+    "kind": "g",
+    "text": "Filtre, tarih aralığı, kaydedilmiş rapor ve zamanlanmış gönderim."
+  },
+  {
+    "id": "reports-5",
+    "kind": "g",
+    "text": "Kiracı/kayıt/alan yetkisiyle raporlama ve dışa aktarma."
+  },
+  {
+    "id": "reports-6",
+    "kind": "g",
+    "text": "Kaynak modüllerden gelen olaylarla güncellenen ayrı okuma modelleri."
+  },
+  {
+    "id": "reports-7",
+    "kind": "g",
+    "text": "Metrik tanımı, veri güncelliği ve hesaplama tutarlılığı."
+  },
+  {
+    "id": "analytics-1",
+    "kind": "o",
+    "text": "GTM (Google Tag Manager — Google etiket yöneticisi) bağlantısı.",
+    "raw": "gtm"
+  },
+  {
+    "id": "analytics-2",
+    "kind": "o",
+    "text": "Google Analytics ve Yandex Metrica adaptörleri.",
+    "raw": "yandex metrica, google analytics"
+  },
+  {
+    "id": "analytics-3",
+    "kind": "o",
+    "text": "UTM (Urchin Tracking Module — kampanya kaynağı etiketleme sistemi) kod yönetimi.",
+    "raw": "UTM code management"
+  },
+  {
+    "id": "analytics-4",
+    "kind": "g",
+    "text": "Analitik olay kataloğu, dönüşüm hedefleri ve kampanya adlandırma."
+  },
+  {
+    "id": "analytics-5",
+    "kind": "g",
+    "text": "Kullanıcı etkinleşmesi, özellik kullanımı, elde tutma ve dönüşüm akışları."
+  },
+  {
+    "id": "analytics-6",
+    "kind": "g",
+    "text": "İzin durumuna göre etiket çalıştırma; hassas veriyi ölçümden çıkarma."
+  },
+  {
+    "id": "analytics-7",
+    "kind": "n",
+    "text": "Deney yönetimi: kullanıcı gruplarına ayırma, karşılaştırma ve sonuç izleme."
+  },
+  {
+    "id": "security-1",
+    "kind": "o",
+    "text": "Security management (güvenlik yönetimi).",
+    "raw": "Security management"
+  },
+  {
+    "id": "security-2",
+    "kind": "o",
+    "text": "WAF (Web Application Firewall — web uygulaması güvenlik duvarı).",
+    "raw": "waf"
+  },
+  {
+    "id": "security-3",
+    "kind": "o",
+    "text": "Bot ve scraping (otomatik veri toplama) engelleme.",
+    "raw": "bot scraping block"
+  },
+  {
+    "id": "security-4",
+    "kind": "o",
+    "text": "Rate limit (istek hızını sınırlandırma).",
+    "raw": "rate limit"
+  },
+  {
+    "id": "security-5",
+    "kind": "g",
+    "text": "Gizli anahtar kasası, erişim kapsamı, yenileme ve iptal."
+  },
+  {
+    "id": "security-6",
+    "kind": "g",
+    "text": "Aktarımda/depolamada şifreleme ve hassas alan koruması."
+  },
+  {
+    "id": "security-7",
+    "kind": "g",
+    "text": "Girdi/çıktı güvenliği, güvenlik başlıkları ve oturum koruması."
+  },
+  {
+    "id": "security-8",
+    "kind": "g",
+    "text": "Kullanıcı/kiracı/istemci bazlı hız sınırı ve kötüye kullanım sinyalleri."
+  },
+  {
+    "id": "security-9",
+    "kind": "g",
+    "text": "Güvenlik olayı kaydı, inceleme, müdahale ve kontrollü erişim engeli."
+  },
+  {
+    "id": "audit-1",
+    "kind": "o",
+    "text": "Audit (denetim izi) ve kullanıcı/işlem kayıtları.",
+    "raw": "audit"
+  },
+  {
+    "id": "audit-2",
+    "kind": "g",
+    "text": "Eski/yeni değer, kullanıcı, kiracı, işlem kaynağı ve gerekçe."
+  },
+  {
+    "id": "audit-3",
+    "kind": "g",
+    "text": "Destek erişimi, yönetici işlemi ve yetki değişikliği denetimi."
+  },
+  {
+    "id": "audit-4",
+    "kind": "g",
+    "text": "Kayıt değişikliğine karşı koruma, saklama süresi ve erişim sınırı."
+  },
+  {
+    "id": "audit-5",
+    "kind": "g",
+    "text": "Denetim araması, dışa aktarım ve hassas veri maskeleme."
+  },
+  {
+    "id": "legal-1",
+    "kind": "o",
+    "text": "KVKK (Kişisel Verilerin Korunması Kanunu) ve GDPR (General Data Protection Regulation — Genel Veri Koruma Tüzüğü) kapsamı.",
+    "raw": "Policy (cokies, gpdr, privacy, contract, agreement); Sözleşmeler (kvkk üyelik)"
+  },
+  {
+    "id": "legal-2",
+    "kind": "o",
+    "text": "Gizlilik, çerez, üyelik, hizmet sözleşmesi ve anlaşma yönetimi.",
+    "raw": "Policy (cokies, privacy, contract, agreement); Sözleşmeler"
+  },
+  {
+    "id": "legal-3",
+    "kind": "g",
+    "text": "Metin sürümü, dil, yürürlük tarihi, kabul kanıtı ve yeniden kabul."
+  },
+  {
+    "id": "legal-4",
+    "kind": "g",
+    "text": "Aydınlatma, açık rıza ve sözleşme kabulünün ayrı kayıtları."
+  },
+  {
+    "id": "legal-5",
+    "kind": "g",
+    "text": "Çerez tercihleri, ticari ileti izinleri ve geri çekme."
+  },
+  {
+    "id": "legal-6",
+    "kind": "g",
+    "text": "Müşteri özel sözleşmeleri, veri işleme şartları ve taahhüt kaydı."
+  },
+  {
+    "id": "governance-1",
+    "kind": "n",
+    "text": "Veri envanteri, hassasiyet sınıfı ve hangi modülün verinin sahibi olduğu kaydı."
+  },
+  {
+    "id": "governance-2",
+    "kind": "n",
+    "text": "Arşivleme, saklama süresi, anonimleştirme ve kalıcı silme."
+  },
+  {
+    "id": "governance-3",
+    "kind": "n",
+    "text": "Silme işlemini dosya, arama, önbellek ve yapay zekâ bilgi tabanına yayma."
+  },
+  {
+    "id": "governance-4",
+    "kind": "n",
+    "text": "İlgili kişinin erişim, düzeltme, silme ve taşınabilirlik talepleri."
+  },
+  {
+    "id": "governance-5",
+    "kind": "n",
+    "text": "Hukuki saklama kilidi ve silme istisnaları."
+  },
+  {
+    "id": "governance-6",
+    "kind": "n",
+    "text": "Veri yerleşimi, ülke/bölge kısıtları ve alt işleyen envanteri."
+  },
+  {
+    "id": "governance-7",
+    "kind": "n",
+    "text": "Yedekten dönüşte daha önce silinmiş verilerin yeniden silinmesi."
+  },
+  {
+    "id": "integrity-1",
+    "kind": "n",
+    "text": "Eşzamanlı düzenleme çakışması ve optimistic locking (kayıt sürümünü karşılaştırarak yazma)."
+  },
+  {
+    "id": "integrity-2",
+    "kind": "n",
+    "text": "Kayıt sürüm geçmişi, önceki sürümü görüntüleme ve kontrollü geri alma."
+  },
+  {
+    "id": "integrity-3",
+    "kind": "n",
+    "text": "Mükerrer kayıt tespiti, birleştirme ve ilişkileri koruma."
+  },
+  {
+    "id": "integrity-4",
+    "kind": "n",
+    "text": "Toplu işlemde kısmi başarı, iptal ve telafi sonucu."
+  },
+  {
+    "id": "integrity-5",
+    "kind": "n",
+    "text": "Finansal ve kritik iş kayıtlarında değişmezlik ve düzeltme hareketi."
+  },
+  {
+    "id": "observability-1",
+    "kind": "o",
+    "text": "Observability (gözlemlenebilirlik) ve kaynak takibi.",
+    "raw": "Observebility; Observebility (cpu, network, ssd)"
+  },
+  {
+    "id": "observability-2",
+    "kind": "o",
+    "text": "CPU (Central Processing Unit — merkezi işlem birimi), ağ ve SSD (Solid State Drive — katı hâl disk) ölçümleri.",
+    "raw": "cpu, network, ssd"
+  },
+  {
+    "id": "observability-3",
+    "kind": "o",
+    "text": "Logging (teknik kayıt üretimi), log manager (kayıt yönetimi) ve Sentry adaptörü.",
+    "raw": "log manager, logging; sentry adapter"
+  },
+  {
+    "id": "observability-4",
+    "kind": "g",
+    "text": "Bellek, veri tabanı, kuyruk, önbellek ve dış servis sağlık ölçümleri."
+  },
+  {
+    "id": "observability-5",
+    "kind": "g",
+    "text": "Yanıt süresi, hata oranı, erişilebilirlik ve işlem izleri."
+  },
+  {
+    "id": "observability-6",
+    "kind": "g",
+    "text": "Kullanıcı/istek/kiracı ilişkilendirme ve hassas veriyi kayıttan çıkarma."
+  },
+  {
+    "id": "observability-7",
+    "kind": "g",
+    "text": "Alarm eşikleri, bildirim rotası ve olay inceleme ekranı."
+  },
+  {
+    "id": "performance-1",
+    "kind": "o",
+    "text": "Performance management (performans yönetimi).",
+    "raw": "Performance management"
+  },
+  {
+    "id": "performance-2",
+    "kind": "o",
+    "text": "Sunucu tarafı Redis önbellekleme.",
+    "raw": "redis; backend redis caching"
+  },
+  {
+    "id": "performance-3",
+    "kind": "g",
+    "text": "Kiracı bazlı önbellek anahtarı, süre, temizleme ve geçersizleştirme."
+  },
+  {
+    "id": "performance-4",
+    "kind": "g",
+    "text": "Veri tabanı sorgu, indeks ve bağlantı havuzu yönetimi."
+  },
+  {
+    "id": "performance-5",
+    "kind": "g",
+    "text": "Zaman aşımı, bağlantı sınırı ve arızalı bağımlılığa çağrıyı geçici kesme."
+  },
+  {
+    "id": "performance-6",
+    "kind": "g",
+    "text": "Aşırı yükte bekletme, kontrollü kapasite azaltma ve kiracı kaynak adaleti."
+  },
+  {
+    "id": "performance-7",
+    "kind": "g",
+    "text": "Uç içerik önbelleği, sıkıştırma ve medya dağıtımı."
+  },
+  {
+    "id": "deployment-1",
+    "kind": "o",
+    "text": "On-premises (müşterinin kendi ortamında kurulum) desteği.",
+    "raw": "On-premise server"
+  },
+  {
+    "id": "deployment-2",
+    "kind": "o",
+    "text": "Cluster (sunucu kümesi) yönetimi.",
+    "raw": "cluster"
+  },
+  {
+    "id": "deployment-3",
+    "kind": "o",
+    "text": "Subdomain (alt alan adı) ve multi-domain (çoklu alan adı).",
+    "raw": "Subdomain, multi-domain"
+  },
+  {
+    "id": "deployment-4",
+    "kind": "g",
+    "text": "Paylaşımlı/ayrılmış uygulama ve veri tabanı kaynak tahsisi."
+  },
+  {
+    "id": "deployment-5",
+    "kind": "g",
+    "text": "Alan adı sahipliği doğrulama; güvenlik sertifikası oluşturma ve yenileme."
+  },
+  {
+    "id": "deployment-6",
+    "kind": "g",
+    "text": "Kurulum sihirbazı, ortam yapılandırması ve kurulum sağlık denetimi."
+  },
+  {
+    "id": "deployment-7",
+    "kind": "g",
+    "text": "Yatay ölçekleme, yük dağıtımı ve yüksek erişilebilirlik."
+  },
+  {
+    "id": "deployment-8",
+    "kind": "g",
+    "text": "Alan adı/kurulum kaldırma; artık kaynak ve erişim temizliği."
+  },
+  {
+    "id": "releases-1",
+    "kind": "o",
+    "text": "DevOps (Development and Operations — geliştirme ve işletim birlikteliği) araç bağlantıları.",
+    "raw": "devops"
+  },
+  {
+    "id": "releases-2",
+    "kind": "o",
+    "text": "CI/CD (Continuous Integration / Continuous Delivery — sürekli entegrasyon / sürekli teslimat) güncelleme bağlantısı.",
+    "raw": "ci cd güncelleme; ci/cd"
+  },
+  {
+    "id": "releases-3",
+    "kind": "o",
+    "text": "Rollback (önceki sürüme dönüş) yönetimi.",
+    "raw": "rollback"
+  },
+  {
+    "id": "releases-4",
+    "kind": "o",
+    "text": "Migration engine (veri ve şema geçiş motoru).",
+    "raw": "migration engine"
+  },
+  {
+    "id": "releases-5",
+    "kind": "o",
+    "text": "Demo verisi etkinleştirme.",
+    "raw": "Demo data aktif etmek"
+  },
+  {
+    "id": "releases-6",
+    "kind": "g",
+    "text": "Sürüm paketi doğrulama, modül uyumu ve geçiş ilerlemesi."
+  },
+  {
+    "id": "releases-7",
+    "kind": "g",
+    "text": "Geçiş önkontrolü; uygulama geri dönüşü ile veri geri dönüşünü ayırma."
+  },
+  {
+    "id": "releases-8",
+    "kind": "g",
+    "text": "Demo verisini oluşturma/sıfırlama; gerçek veriden ayırma."
+  },
+  {
+    "id": "releases-9",
+    "kind": "g",
+    "text": "Bakım modu, kademeli güncelleme ve yayın sonrası sağlık kontrolü."
+  },
+  {
+    "id": "backup-1",
+    "kind": "n",
+    "text": "Veri tabanı, dosya, yapılandırma ve anahtar referanslarının yedeklenmesi."
+  },
+  {
+    "id": "backup-2",
+    "kind": "n",
+    "text": "Şifreli, ayrı ortamda ve değiştirilmeye karşı korumalı yedek saklama."
+  },
+  {
+    "id": "backup-3",
+    "kind": "n",
+    "text": "Kiracı bazlı ve belirli zamana geri yükleme."
+  },
+  {
+    "id": "backup-4",
+    "kind": "n",
+    "text": "Otomatik geri yükleme doğrulaması ve veri bütünlüğü denetimi."
+  },
+  {
+    "id": "backup-5",
+    "kind": "n",
+    "text": "RPO (Recovery Point Objective — kabul edilebilir veri kaybı hedefi) takibi."
+  },
+  {
+    "id": "backup-6",
+    "kind": "n",
+    "text": "RTO (Recovery Time Objective — hizmeti geri getirme süresi hedefi) takibi."
+  },
+  {
+    "id": "service-1",
+    "kind": "n",
+    "text": "İç/dış status page (hizmet durumu sayfası)."
+  },
+  {
+    "id": "service-2",
+    "kind": "n",
+    "text": "Planlı bakım, bileşen arızası ve etkilenen kiracı görünümü."
+  },
+  {
+    "id": "service-3",
+    "kind": "n",
+    "text": "Kesinti iletişimi, güncelleme geçmişi ve olay sonrası açıklama."
+  },
+  {
+    "id": "service-4",
+    "kind": "n",
+    "text": "Hizmet hedefi ihlali ve sözleşmeye bağlı hizmet kredisi kaydı."
+  }
+]

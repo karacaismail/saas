@@ -85,6 +85,7 @@
   --panel-shadow: 0 0.75rem 2rem #17191618;
   --sticky: 0px;
   --sticky-max-fraction: 0.5;
+  --tag-padding: 0.375rem;
   --transition: 140ms;
 }
 * {
@@ -787,6 +788,106 @@ summary::-webkit-details-marker {
   font-size: var(--font-label);
   font-weight: var(--weight-strong);
   line-height: var(--leading-control);
+}
+.roadmap-intro {
+  display: grid;
+  gap: var(--space-4);
+  max-width: var(--reading);
+  padding-block: var(--space-8);
+}
+.roadmap-intro h2 {
+  font-size: var(--font-cluster);
+}
+.baseline,
+.cluster-rationale,
+.cluster-dependencies {
+  color: var(--muted);
+}
+.support-overview,
+.tag-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.support-overview > span {
+  background: var(--surface-hover);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius);
+}
+.roadmap-guide > summary,
+.roadmap-filters > summary,
+.assessment > summary {
+  min-height: var(--hit);
+  padding-block: var(--space-3);
+  list-style: none;
+  text-decoration: underline;
+  text-underline-offset: var(--space-1);
+}
+.roadmap-guide dl {
+  margin: 0;
+}
+.roadmap-guide dt {
+  font-weight: var(--weight-strong);
+  color: var(--ink);
+}
+.roadmap-guide dd {
+  margin: 0 0 var(--space-4);
+}
+.roadmap-filter-body {
+  display: grid;
+  gap: var(--space-4);
+  padding-bottom: var(--space-4);
+}
+.filter-status {
+  display: block;
+  color: var(--muted);
+  text-decoration: none;
+  margin-top: var(--space-1);
+}
+.roadmap-filter-body legend {
+  margin-bottom: var(--space-2);
+  font-weight: var(--weight-strong);
+}
+.tag-filters button {
+  text-align: start;
+  max-width: 100%;
+}
+.phase {
+  color: var(--muted);
+  font-weight: var(--weight-strong);
+  margin-bottom: var(--space-2);
+}
+.cluster-rationale,
+.cluster-dependencies {
+  margin-top: var(--space-3);
+}
+.assessment-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  color: var(--ink);
+  margin-top: var(--space-2);
+}
+.assessment-tags > span {
+  background: var(--surface-hover);
+  padding: var(--tag-padding) var(--space-2);
+  border-radius: var(--radius-small);
+  max-width: 100%;
+}
+.support-tag {
+  font-weight: var(--weight-strong);
+}
+.assessment {
+  color: var(--ink);
+}
+.assessment-body {
+  display: grid;
+  gap: var(--space-3);
+  padding-block: var(--space-2) var(--space-4);
+}
+.assessment-body ul {
+  padding-inline-start: var(--space-5);
+  margin: 0;
 }
 .original-trace {
   display: none;
