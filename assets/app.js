@@ -335,13 +335,16 @@ $('#export-selected').addEventListener('click', () => {
 });
 $('#print').addEventListener('click', () => window.print());
 window.addEventListener('beforeprint', () => {
-  printState = groups.map((group) => group.el.open);
-  for (const group of groups) group.el.open = true;
+  if (printState) return;
+  printState = [$('#context-details'), ...groups.map((group) => group.el)].map(
+    (element) => ({ element, open: element.open }),
+  );
+  for (const { element } of printState) element.open = true;
 });
 window.addEventListener('afterprint', () => {
   if (printState)
-    groups.forEach((group, index) => {
-      group.el.open = printState[index];
+    printState.forEach(({ element, open }) => {
+      element.open = open;
     });
   printState = undefined;
 });

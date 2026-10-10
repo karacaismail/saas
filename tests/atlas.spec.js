@@ -18,6 +18,9 @@ const sizes = [
   [567, 800],
   [568, 800],
   [569, 800],
+  [607, 800],
+  [608, 800],
+  [609, 800],
   [639, 800],
   [640, 800],
   [641, 800],
@@ -904,6 +907,18 @@ test('coarse and hybrid input use real touch with reachable targets and preserve
   );
   await page.setViewportSize({ width: 390, height: 844 });
   await visit(page);
+  const start = page.locator('.start-link');
+  const context = page.locator('#context-details > summary');
+  for (const target of [start, context]) {
+    const targetBox = await target.boundingBox();
+    expect(targetBox.height).toBeGreaterThanOrEqual(48);
+  }
+  await start.tap();
+  await expect(page).toHaveURL(/#inventory$/);
+  await context.tap();
+  await expect(page.locator('#context-details')).toHaveAttribute('open', '');
+  await context.tap();
+  await expect(page.locator('#context-details')).not.toHaveAttribute('open');
   await page.locator('#roadmap-filters > summary').tap();
   await page.locator('button[data-support="external"]').tap();
   await expect(page.locator('#feature-identity-1')).toBeVisible();
