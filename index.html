@@ -59,16 +59,40 @@
     <section class="toolbar" aria-label="Envanter araçları">
       <div class="wrap">
         <div class="filter-row" role="group" aria-label="Kaynağa göre filtrele">
-          <button class="filter" data-kind="all" aria-pressed="true">
+          <button
+            class="filter"
+            data-kind="all"
+            aria-pressed="true"
+            data-content-pending
+            disabled
+          >
             <span class="filter-label">Tümü</span
             ><span class="count">326</span></button
-          ><button class="filter" data-kind="o" aria-pressed="false">
+          ><button
+            class="filter"
+            data-kind="o"
+            aria-pressed="false"
+            data-content-pending
+            disabled
+          >
             <span class="filter-label">Özgün kapsam</span
             ><span class="count">105</span></button
-          ><button class="filter" data-kind="g" aria-pressed="false">
+          ><button
+            class="filter"
+            data-kind="g"
+            aria-pressed="false"
+            data-content-pending
+            disabled
+          >
             <span class="filter-label">İç eksikler</span
             ><span class="count">189</span></button
-          ><button class="filter" data-kind="n" aria-pressed="false">
+          ><button
+            class="filter"
+            data-kind="n"
+            aria-pressed="false"
+            data-content-pending
+            disabled
+          >
             <span class="filter-label">Yeni alanlar</span
             ><span class="count">32</span>
           </button>
@@ -87,19 +111,54 @@
             <fieldset>
               <legend>Frappe yeterliliği</legend>
               <div class="tag-filters">
-                <button data-support="all" aria-pressed="true">
+                <button
+                  data-support="all"
+                  aria-pressed="true"
+                  data-content-pending
+                  disabled
+                >
                   Bütün yeterlilikler</button
-                ><button data-support="native" aria-pressed="false">
+                ><button
+                  data-support="native"
+                  aria-pressed="false"
+                  data-content-pending
+                  disabled
+                >
                   Çekirdekte var</button
-                ><button data-support="partial" aria-pressed="false">
+                ><button
+                  data-support="partial"
+                  aria-pressed="false"
+                  data-content-pending
+                  disabled
+                >
                   Kısmen var</button
-                ><button data-support="ecosystem" aria-pressed="false">
+                ><button
+                  data-support="ecosystem"
+                  aria-pressed="false"
+                  data-content-pending
+                  disabled
+                >
                   Ek Frappe uygulaması</button
-                ><button data-support="absent" aria-pressed="false">
+                ><button
+                  data-support="absent"
+                  aria-pressed="false"
+                  data-content-pending
+                  disabled
+                >
                   Çekirdekte hazır değil</button
-                ><button data-support="external" aria-pressed="false">
+                ><button
+                  data-support="external"
+                  aria-pressed="false"
+                  data-content-pending
+                  disabled
+                >
                   Harici sorumluluk</button
-                ><button data-support="verify" aria-pressed="false">
+                ><button
+                  data-support="verify"
+                  aria-pressed="false"
+                  data-content-pending
+                  disabled
+                >
                   Doğrulanmalı
                 </button>
               </div>
@@ -107,17 +166,47 @@
             <fieldset>
               <legend>Yapılacak iş</legend>
               <div class="tag-filters">
-                <button data-action="all" aria-pressed="true">
+                <button
+                  data-action="all"
+                  aria-pressed="true"
+                  data-content-pending
+                  disabled
+                >
                   Bütün işler</button
-                ><button data-action="configure" aria-pressed="false">
+                ><button
+                  data-action="configure"
+                  aria-pressed="false"
+                  data-content-pending
+                  disabled
+                >
                   Yapılandır</button
-                ><button data-action="extend" aria-pressed="false">
+                ><button
+                  data-action="extend"
+                  aria-pressed="false"
+                  data-content-pending
+                  disabled
+                >
                   Genişlet</button
-                ><button data-action="integrate" aria-pressed="false">
+                ><button
+                  data-action="integrate"
+                  aria-pressed="false"
+                  data-content-pending
+                  disabled
+                >
                   Entegre et</button
-                ><button data-action="build" aria-pressed="false">
+                ><button
+                  data-action="build"
+                  aria-pressed="false"
+                  data-content-pending
+                  disabled
+                >
                   Geliştir</button
-                ><button data-action="validate" aria-pressed="false">
+                ><button
+                  data-action="validate"
+                  aria-pressed="false"
+                  data-content-pending
+                  disabled
+                >
                   PoC ile doğrula
                 </button>
               </div>
@@ -130,6 +219,7 @@
             <div class="search-wrap">
               <input
                 id="search"
+                disabled
                 type="search"
                 autocomplete="off"
                 placeholder="Kavram, özellik veya araç"
@@ -138,6 +228,8 @@
                 class="clear-search"
                 aria-label="Aramayı temizle"
                 hidden
+                data-content-pending
+                disabled
               >
                 Sil
               </button>
@@ -159,53 +251,117 @@
                       name="cluster"
                       value="all"
                       checked
+                      data-content-pending
+                      disabled
                     /><span>Bütün kümeler</span></label
                   ><label class="cluster-option"
-                    ><input type="radio" name="cluster" value="12" /><span
-                      >01 · İşletim, dağıtım ve süreklilik</span
-                    ></label
+                    ><input
+                      type="radio"
+                      name="cluster"
+                      value="12"
+                      data-content-pending
+                      disabled
+                    /><span>01 · İşletim, dağıtım ve süreklilik</span></label
                   ><label class="cluster-option"
-                    ><input type="radio" name="cluster" value="01" /><span
-                      >02 · Müşteri, kimlik ve erişim</span
-                    ></label
+                    ><input
+                      type="radio"
+                      name="cluster"
+                      value="01"
+                      data-content-pending
+                      disabled
+                    /><span>02 · Müşteri, kimlik ve erişim</span></label
                   ><label class="cluster-option"
-                    ><input type="radio" name="cluster" value="11" /><span
+                    ><input
+                      type="radio"
+                      name="cluster"
+                      value="11"
+                      data-content-pending
+                      disabled
+                    /><span
                       >03 · Güvenlik, gizlilik ve veri yönetişimi</span
                     ></label
                   ><label class="cluster-option"
-                    ><input type="radio" name="cluster" value="05" /><span
-                      >04 · Veri modeli, dosyalar ve arama</span
-                    ></label
+                    ><input
+                      type="radio"
+                      name="cluster"
+                      value="05"
+                      data-content-pending
+                      disabled
+                    /><span>04 · Veri modeli, dosyalar ve arama</span></label
                   ><label class="cluster-option"
-                    ><input type="radio" name="cluster" value="09" /><span
+                    ><input
+                      type="radio"
+                      name="cluster"
+                      value="09"
+                      data-content-pending
+                      disabled
+                    /><span
                       >05 · Entegrasyonlar, olaylar ve yapay zekâ</span
                     ></label
                   ><label class="cluster-option"
-                    ><input type="radio" name="cluster" value="04" /><span
+                    ><input
+                      type="radio"
+                      name="cluster"
+                      value="04"
+                      data-content-pending
+                      disabled
+                    /><span
                       >06 · Panel, ekranlar ve kişiselleştirme</span
                     ></label
                   ><label class="cluster-option"
-                    ><input type="radio" name="cluster" value="06" /><span
+                    ><input
+                      type="radio"
+                      name="cluster"
+                      value="06"
+                      data-content-pending
+                      disabled
+                    /><span
                       >07 · İş süreçleri, kurallar ve zamanlama</span
                     ></label
                   ><label class="cluster-option"
-                    ><input type="radio" name="cluster" value="07" /><span
+                    ><input
+                      type="radio"
+                      name="cluster"
+                      value="07"
+                      data-content-pending
+                      disabled
+                    /><span
                       >08 · Bildirim, e-posta ve ortak çalışma</span
                     ></label
                   ><label class="cluster-option"
-                    ><input type="radio" name="cluster" value="02" /><span
+                    ><input
+                      type="radio"
+                      name="cluster"
+                      value="02"
+                      data-content-pending
+                      disabled
+                    /><span
                       >09 · Modüller, paketler ve kullanım hakları</span
                     ></label
                   ><label class="cluster-option"
-                    ><input type="radio" name="cluster" value="03" /><span
-                      >10 · Tahsilat, faturalama ve finans</span
-                    ></label
+                    ><input
+                      type="radio"
+                      name="cluster"
+                      value="03"
+                      data-content-pending
+                      disabled
+                    /><span>10 · Tahsilat, faturalama ve finans</span></label
                   ><label class="cluster-option"
-                    ><input type="radio" name="cluster" value="08" /><span
-                      >11 · Müşteri operasyonları ve içerik</span
-                    ></label
+                    ><input
+                      type="radio"
+                      name="cluster"
+                      value="08"
+                      data-content-pending
+                      disabled
+                    /><span>11 · Müşteri operasyonları ve içerik</span></label
                   ><label class="cluster-option"
-                    ><input type="radio" name="cluster" value="10" /><span
+                    ><input
+                      type="radio"
+                      name="cluster"
+                      value="10"
+                      data-content-pending
+                      disabled
+                    /><span
                       >12 · Raporlama, ürün ve pazarlama ölçümü</span
                     ></label
                   >
@@ -214,8 +370,16 @@
             </details>
           </div>
           <div class="tool-actions">
-            <button id="reset-all" class="text-btn">Filtreleri sıfırla</button
-            ><button id="print" class="text-btn">Yazdır</button>
+            <button
+              id="reset-all"
+              class="text-btn"
+              data-content-pending
+              disabled
+            >
+              Filtreleri sıfırla</button
+            ><button id="print" class="text-btn" data-content-pending disabled>
+              Yazdır
+            </button>
           </div>
         </div>
         <div class="toolbar-sub">
@@ -228,13 +392,28 @@
             326 / 326 madde · 49 grup
           </p>
           <div class="toggles">
-            <button id="toggle-relations" aria-pressed="false">
+            <button
+              id="toggle-relations"
+              aria-pressed="false"
+              data-content-pending
+              disabled
+            >
               İlişkileri göster</button
-            ><button id="selected-only" aria-pressed="false">
+            ><button
+              id="selected-only"
+              aria-pressed="false"
+              data-content-pending
+              disabled
+            >
               Yalnızca seçilenler</button
-            ><button id="toggle-original" aria-pressed="false">
+            ><button
+              id="toggle-original"
+              aria-pressed="false"
+              data-content-pending
+              disabled
+            >
               Özgün ifadeleri göster</button
-            ><button id="collapse-all">Tüm başlıkları genişlet</button>
+            ><button id="collapse-all" disabled>Tüm başlıkları daralt</button>
           </div>
         </div>
       </div>
@@ -380,7 +559,8 @@
           <p id="selection-note">Seçimleriniz bu tarayıcıda saklanır.</p>
         </div>
         <div class="selection-actions">
-          <button id="select-visible">Eşleşenleri seç</button
+          <button id="select-visible" data-content-pending disabled>
+            Eşleşenleri seç</button
           ><button id="clear-selection" class="text-btn" disabled>
             Seçimi temizle
           </button>
@@ -395,15 +575,25 @@
                   name="export-format"
                   value="json"
                   checked
+                  data-content-pending
+                  disabled
                 /><span>JSON</span></label
               ><label
-                ><input type="radio" name="export-format" value="csv" /><span
-                  >CSV</span
-                ></label
+                ><input
+                  type="radio"
+                  name="export-format"
+                  value="csv"
+                  data-content-pending
+                  disabled
+                /><span>CSV</span></label
               ><label
-                ><input type="radio" name="export-format" value="md" /><span
-                  >MD</span
-                ></label
+                ><input
+                  type="radio"
+                  name="export-format"
+                  value="md"
+                  data-content-pending
+                  disabled
+                /><span>MD</span></label
               >
             </div>
           </fieldset>
@@ -536,6 +726,7 @@
                 class="group"
                 id="group-observability"
                 data-group="observability"
+                name="atlas-groups"
               >
                 <summary>
                   <div>
@@ -1205,6 +1396,7 @@
                 class="group"
                 id="group-performance"
                 data-group="performance"
+                name="atlas-groups"
               >
                 <summary>
                   <div>
@@ -1841,6 +2033,7 @@
                 class="group"
                 id="group-deployment"
                 data-group="deployment"
+                name="atlas-groups"
               >
                 <summary>
                   <div>
@@ -2616,7 +2809,12 @@
                   </p>
                 </div>
               </details>
-              <details class="group" id="group-releases" data-group="releases">
+              <details
+                class="group"
+                id="group-releases"
+                data-group="releases"
+                name="atlas-groups"
+              >
                 <summary>
                   <div>
                     <h3>
@@ -3463,7 +3661,12 @@
                   <p class="source-links"></p>
                 </div>
               </details>
-              <details class="group" id="group-backup" data-group="backup">
+              <details
+                class="group"
+                id="group-backup"
+                data-group="backup"
+                name="atlas-groups"
+              >
                 <summary>
                   <div>
                     <h3>
@@ -4036,7 +4239,12 @@
                   </p>
                 </div>
               </details>
-              <details class="group" id="group-service" data-group="service">
+              <details
+                class="group"
+                id="group-service"
+                data-group="service"
+                name="atlas-groups"
+              >
                 <summary>
                   <div>
                     <h3>
@@ -4460,7 +4668,12 @@
                   </p>
                 </div>
               </header>
-              <details class="group" id="group-tenant" data-group="tenant">
+              <details
+                class="group"
+                id="group-tenant"
+                data-group="tenant"
+                name="atlas-groups"
+              >
                 <summary>
                   <div>
                     <h3>
@@ -5011,7 +5224,12 @@
                   </p>
                 </div>
               </details>
-              <details class="group" id="group-identity" data-group="identity">
+              <details
+                class="group"
+                id="group-identity"
+                data-group="identity"
+                name="atlas-groups"
+              >
                 <summary>
                   <div>
                     <h3>
@@ -5712,7 +5930,12 @@
                   </p>
                 </div>
               </details>
-              <details class="group" id="group-access" data-group="access">
+              <details
+                class="group"
+                id="group-access"
+                data-group="access"
+                name="atlas-groups"
+              >
                 <summary>
                   <div>
                     <h3>
@@ -6366,7 +6589,12 @@
                   </p>
                 </div>
               </header>
-              <details class="group" id="group-security" data-group="security">
+              <details
+                class="group"
+                id="group-security"
+                data-group="security"
+                name="atlas-groups"
+              >
                 <summary>
                   <div>
                     <h3>
@@ -7187,7 +7415,12 @@
                   </p>
                 </div>
               </details>
-              <details class="group" id="group-audit" data-group="audit">
+              <details
+                class="group"
+                id="group-audit"
+                data-group="audit"
+                name="atlas-groups"
+              >
                 <summary>
                   <div>
                     <h3>
@@ -7673,7 +7906,12 @@
                   </p>
                 </div>
               </details>
-              <details class="group" id="group-legal" data-group="legal">
+              <details
+                class="group"
+                id="group-legal"
+                data-group="legal"
+                name="atlas-groups"
+              >
                 <summary>
                   <div>
                     <h3>
@@ -8241,6 +8479,7 @@
                 class="group"
                 id="group-governance"
                 data-group="governance"
+                name="atlas-groups"
               >
                 <summary>
                   <div>
@@ -8922,6 +9161,7 @@
                 class="group"
                 id="group-integrity"
                 data-group="integrity"
+                name="atlas-groups"
               >
                 <summary>
                   <div>
@@ -9403,7 +9643,12 @@
                   </p>
                 </div>
               </header>
-              <details class="group" id="group-model" data-group="model">
+              <details
+                class="group"
+                id="group-model"
+                data-group="model"
+                name="atlas-groups"
+              >
                 <summary>
                   <div>
                     <h3>
@@ -10021,7 +10266,12 @@
                   <p class="source-links"></p>
                 </div>
               </details>
-              <details class="group" id="group-files" data-group="files">
+              <details
+                class="group"
+                id="group-files"
+                data-group="files"
+                name="atlas-groups"
+              >
                 <summary>
                   <div>
                     <h3>
@@ -10737,7 +10987,12 @@
                   </p>
                 </div>
               </details>
-              <details class="group" id="group-search" data-group="search">
+              <details
+                class="group"
+                id="group-search"
+                data-group="search"
+                name="atlas-groups"
+              >
                 <summary>
                   <div>
                     <h3>
@@ -11356,7 +11611,12 @@
                   </p>
                 </div>
               </details>
-              <details class="group" id="group-transfer" data-group="transfer">
+              <details
+                class="group"
+                id="group-transfer"
+                data-group="transfer"
+                name="atlas-groups"
+              >
                 <summary>
                   <div>
                     <h3>
@@ -11937,6 +12197,7 @@
                 class="group"
                 id="group-integration"
                 data-group="integration"
+                name="atlas-groups"
               >
                 <summary>
                   <div>
@@ -12700,7 +12961,12 @@
                   </p>
                 </div>
               </details>
-              <details class="group" id="group-events" data-group="events">
+              <details
+                class="group"
+                id="group-events"
+                data-group="events"
+                name="atlas-groups"
+              >
                 <summary>
                   <div>
                     <h3>
@@ -13324,7 +13590,12 @@
                   </p>
                 </div>
               </details>
-              <details class="group" id="group-ai" data-group="ai">
+              <details
+                class="group"
+                id="group-ai"
+                data-group="ai"
+                name="atlas-groups"
+              >
                 <summary>
                   <div>
                     <h3>
@@ -13884,7 +14155,12 @@
                   </p>
                 </div>
               </details>
-              <details class="group" id="group-rag" data-group="rag">
+              <details
+                class="group"
+                id="group-rag"
+                data-group="rag"
+                name="atlas-groups"
+              >
                 <summary>
                   <div>
                     <h3>
@@ -14355,7 +14631,12 @@
                   </p>
                 </div>
               </details>
-              <details class="group" id="group-agents" data-group="agents">
+              <details
+                class="group"
+                id="group-agents"
+                data-group="agents"
+                name="atlas-groups"
+              >
                 <summary>
                   <div>
                     <h3>
@@ -14954,7 +15235,12 @@
                   </p>
                 </div>
               </header>
-              <details class="group" id="group-shell" data-group="shell">
+              <details
+                class="group"
+                id="group-shell"
+                data-group="shell"
+                name="atlas-groups"
+              >
                 <summary>
                   <div>
                     <h3>
@@ -15742,7 +16028,12 @@
                   <p class="source-links"></p>
                 </div>
               </details>
-              <details class="group" id="group-views" data-group="views">
+              <details
+                class="group"
+                id="group-views"
+                data-group="views"
+                name="atlas-groups"
+              >
                 <summary>
                   <div>
                     <h3>
@@ -16524,7 +16815,12 @@
                   </p>
                 </div>
               </details>
-              <details class="group" id="group-forms" data-group="forms">
+              <details
+                class="group"
+                id="group-forms"
+                data-group="forms"
+                name="atlas-groups"
+              >
                 <summary>
                   <div>
                     <h3>
@@ -16983,7 +17279,12 @@
                   <p class="source-links"></p>
                 </div>
               </details>
-              <details class="group" id="group-locale" data-group="locale">
+              <details
+                class="group"
+                id="group-locale"
+                data-group="locale"
+                name="atlas-groups"
+              >
                 <summary>
                   <div>
                     <h3>
@@ -17431,7 +17732,12 @@
                   <p class="source-links"></p>
                 </div>
               </details>
-              <details class="group" id="group-channels" data-group="channels">
+              <details
+                class="group"
+                id="group-channels"
+                data-group="channels"
+                name="atlas-groups"
+              >
                 <summary>
                   <div>
                     <h3>
@@ -18146,7 +18452,12 @@
                   </p>
                 </div>
               </header>
-              <details class="group" id="group-workflow" data-group="workflow">
+              <details
+                class="group"
+                id="group-workflow"
+                data-group="workflow"
+                name="atlas-groups"
+              >
                 <summary>
                   <div>
                     <h3>
@@ -18774,7 +19085,12 @@
                   </p>
                 </div>
               </details>
-              <details class="group" id="group-rules" data-group="rules">
+              <details
+                class="group"
+                id="group-rules"
+                data-group="rules"
+                name="atlas-groups"
+              >
                 <summary>
                   <div>
                     <h3>
@@ -19222,6 +19538,7 @@
                 class="group"
                 id="group-approvals"
                 data-group="approvals"
+                name="atlas-groups"
               >
                 <summary>
                   <div>
@@ -19765,7 +20082,12 @@
                   <p class="source-links"></p>
                 </div>
               </details>
-              <details class="group" id="group-jobs" data-group="jobs">
+              <details
+                class="group"
+                id="group-jobs"
+                data-group="jobs"
+                name="atlas-groups"
+              >
                 <summary>
                   <div>
                     <h3>
@@ -20386,6 +20708,7 @@
                 class="group"
                 id="group-notifications"
                 data-group="notifications"
+                name="atlas-groups"
               >
                 <summary>
                   <div>
@@ -21111,7 +21434,12 @@
                   <p class="source-links"></p>
                 </div>
               </details>
-              <details class="group" id="group-email" data-group="email">
+              <details
+                class="group"
+                id="group-email"
+                data-group="email"
+                name="atlas-groups"
+              >
                 <summary>
                   <div>
                     <h3>
@@ -21740,7 +22068,12 @@
                   <p class="source-links"></p>
                 </div>
               </details>
-              <details class="group" id="group-realtime" data-group="realtime">
+              <details
+                class="group"
+                id="group-realtime"
+                data-group="realtime"
+                name="atlas-groups"
+              >
                 <summary>
                   <div>
                     <h3>
@@ -22320,7 +22653,12 @@
                   </p>
                 </div>
               </header>
-              <details class="group" id="group-modules" data-group="modules">
+              <details
+                class="group"
+                id="group-modules"
+                data-group="modules"
+                name="atlas-groups"
+              >
                 <summary>
                   <div>
                     <h3>
@@ -22930,7 +23268,12 @@
                   </p>
                 </div>
               </details>
-              <details class="group" id="group-catalog" data-group="catalog">
+              <details
+                class="group"
+                id="group-catalog"
+                data-group="catalog"
+                name="atlas-groups"
+              >
                 <summary>
                   <div>
                     <h3>
@@ -23453,6 +23796,7 @@
                 class="group"
                 id="group-subscriptions"
                 data-group="subscriptions"
+                name="atlas-groups"
               >
                 <summary>
                   <div>
@@ -23969,6 +24313,7 @@
                 class="group"
                 id="group-entitlements"
                 data-group="entitlements"
+                name="atlas-groups"
               >
                 <summary>
                   <div>
@@ -24494,7 +24839,12 @@
                   </p>
                 </div>
               </details>
-              <details class="group" id="group-usage" data-group="usage">
+              <details
+                class="group"
+                id="group-usage"
+                data-group="usage"
+                name="atlas-groups"
+              >
                 <summary>
                   <div>
                     <h3>
@@ -25101,6 +25451,7 @@
                 class="group"
                 id="group-campaigns"
                 data-group="campaigns"
+                name="atlas-groups"
               >
                 <summary>
                   <div>
@@ -25559,7 +25910,12 @@
                   </p>
                 </div>
               </header>
-              <details class="group" id="group-payments" data-group="payments">
+              <details
+                class="group"
+                id="group-payments"
+                data-group="payments"
+                name="atlas-groups"
+              >
                 <summary>
                   <div>
                     <h3>
@@ -26090,7 +26446,12 @@
                   </p>
                 </div>
               </details>
-              <details class="group" id="group-finance" data-group="finance">
+              <details
+                class="group"
+                id="group-finance"
+                data-group="finance"
+                name="atlas-groups"
+              >
                 <summary>
                   <div>
                     <h3>
@@ -26841,7 +27202,12 @@
                   </p>
                 </div>
               </header>
-              <details class="group" id="group-crm" data-group="crm">
+              <details
+                class="group"
+                id="group-crm"
+                data-group="crm"
+                name="atlas-groups"
+              >
                 <summary>
                   <div>
                     <h3>
@@ -27386,7 +27752,12 @@
                   <p class="source-links"></p>
                 </div>
               </details>
-              <details class="group" id="group-support" data-group="support">
+              <details
+                class="group"
+                id="group-support"
+                data-group="support"
+                name="atlas-groups"
+              >
                 <summary>
                   <div>
                     <h3>
@@ -28032,7 +28403,12 @@
                   <p class="source-links"></p>
                 </div>
               </details>
-              <details class="group" id="group-calendar" data-group="calendar">
+              <details
+                class="group"
+                id="group-calendar"
+                data-group="calendar"
+                name="atlas-groups"
+              >
                 <summary>
                   <div>
                     <h3>
@@ -28407,7 +28783,12 @@
                   <p class="source-links"></p>
                 </div>
               </details>
-              <details class="group" id="group-content" data-group="content">
+              <details
+                class="group"
+                id="group-content"
+                data-group="content"
+                name="atlas-groups"
+              >
                 <summary>
                   <div>
                     <h3>
@@ -29164,7 +29545,12 @@
                   </p>
                 </div>
               </header>
-              <details class="group" id="group-reports" data-group="reports">
+              <details
+                class="group"
+                id="group-reports"
+                data-group="reports"
+                name="atlas-groups"
+              >
                 <summary>
                   <div>
                     <h3>
@@ -29836,6 +30222,7 @@
                 class="group"
                 id="group-analytics"
                 data-group="analytics"
+                name="atlas-groups"
               >
                 <summary>
                   <div>
@@ -30494,7 +30881,9 @@
           <div class="empty" id="empty" hidden>
             <h2>Eşleşen madde bulunamadı.</h2>
             <p>Aramayı değiştir veya filtreleri temizle.</p>
-            <button id="reset-empty">Bütün envanteri göster</button>
+            <button id="reset-empty" data-content-pending disabled>
+              Bütün envanteri göster
+            </button>
           </div>
           <details class="bottom-section" id="sources">
             <summary>
@@ -30690,6 +31079,178 @@
     <div id="toast" class="toast" role="status" hidden></div>
     <script id="atlas-data" type="application/json">
       {
+        "sources": {
+          "tenant": [
+            "OWASP — Kiracı izolasyonu",
+            "https://cheatsheetseries.owasp.org/cheatsheets/Multi_Tenant_Security_Cheat_Sheet.html"
+          ],
+          "session": [
+            "OWASP — Oturum yönetimi",
+            "https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html"
+          ],
+          "entitlements": [
+            "Stripe — Özellik kullanım hakları",
+            "https://docs.stripe.com/billing/entitlements"
+          ],
+          "subscription": [
+            "Stripe — Abonelik yaşam döngüsü",
+            "https://docs.stripe.com/billing/subscriptions/overview"
+          ],
+          "flags": [
+            "OpenFeature — Özellik anahtarı değerlendirmesi",
+            "https://openfeature.dev/specification/sections/flag-evaluation/"
+          ],
+          "outbox": [
+            "AWS — İşlemsel olay kutusu",
+            "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html"
+          ],
+          "reflow": [
+            "W3C — Dar ekranda yeniden akış",
+            "https://www.w3.org/WAI/WCAG22/Understanding/reflow.html"
+          ],
+          "files": [
+            "OWASP — Güvenli dosya yükleme",
+            "https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html"
+          ],
+          "ai": [
+            "OWASP — Yapay zekâ talimat saldırıları",
+            "https://cheatsheetseries.owasp.org/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.html"
+          ],
+          "telemetry": [
+            "OpenTelemetry — Metrikler, kayıtlar ve izler",
+            "https://opentelemetry.io/docs/concepts/signals/"
+          ],
+          "bpmn": [
+            "OMG — İş süreci modelleme standardı",
+            "https://www.omg.org/spec/BPMN/"
+          ],
+          "recovery": [
+            "AWS — Yedekten geri yükleme doğrulaması",
+            "https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/rel_backing_up_data_periodic_recovery_testing_data.html"
+          ],
+          "scim": [
+            "IETF — Kurumsal kimlik eşitleme protokolü",
+            "https://www.rfc-editor.org/rfc/rfc7644.html"
+          ],
+          "events": [
+            "CloudEvents — Olay zarfı standardı",
+            "https://cloudevents.io/"
+          ],
+          "kvkk": [
+            "KVKK — Kişisel verilerin işlenmesi",
+            "https://www.kvkk.gov.tr/Icerik/2048/Kisisel-Verilerin-Islenmesi"
+          ],
+          "gdpr": [
+            "Avrupa Birliği — Genel Veri Koruma Tüzüğü",
+            "https://eur-lex.europa.eu/eli/reg/2016/679/oj/eng"
+          ]
+        },
+        "generated": "2026-10-10",
+        "classification": {
+          "o": "Kullanıcının ilk envanteri; ifade düzenlemesi veya birleştirme.",
+          "g": "Adı geçen özelliğin kapsam içi tamamlayıcısı.",
+          "n": "İlk envanterde bağımsız olarak adlandırılmamış yetenek ailesi; doğrulanacak öneri."
+        },
+        "roadmap": {
+          "version": 1,
+          "reviewedAt": "2026-10-10",
+          "target": "Frappe Framework backend · bağımsız headless frontend · Keycloak kimlik doğrulama",
+          "baseline": "Hedef Frappe ve Keycloak sürümü seçilmedi. Güncel resmî dokümanlara dayalı tasarım değerlendirmesidir; kurulu özellik, üretim güvenilirliği veya tamamlanmış iş kanıtı değildir.",
+          "supportLabels": {
+            "native": "Çekirdekte var",
+            "partial": "Kısmen var",
+            "ecosystem": "Ek Frappe uygulaması",
+            "absent": "Çekirdekte hazır değil",
+            "external": "Harici sorumluluk",
+            "verify": "Doğrulanmalı"
+          },
+          "actionLabels": {
+            "configure": "Yapılandır",
+            "extend": "Genişlet",
+            "integrate": "Entegre et",
+            "build": "Geliştir",
+            "validate": "PoC ile doğrula"
+          },
+          "confidenceLabels": {
+            "documented": "Belge dayanağı",
+            "design": "Mimari karar",
+            "verify": "Doğrulama bekliyor"
+          },
+          "sequence": [
+            {
+              "id": "12",
+              "phase": "Temel",
+              "rationale": "İlk günden tekrarlanabilir kurulum, sürüm sabitleme, yedekten dönüş ve temel gözlem kurulur. İleri ölçekleme ihtiyaç doğdukça açılır.",
+              "dependsOn": []
+            },
+            {
+              "id": "01",
+              "phase": "Temel",
+              "rationale": "Kiracı/site modeli, Keycloak kimliği ve Frappe yetki eşlemesi diğer bütün özelliklerin güven sınırını belirler.",
+              "dependsOn": ["12"]
+            },
+            {
+              "id": "11",
+              "phase": "Temel",
+              "rationale": "İzolasyon, audit, veri yaşam döngüsü ve güvenlik kabulü ilk dikey dilimde başlar; her etapta devam eder.",
+              "dependsOn": ["01"]
+            },
+            {
+              "id": "05",
+              "phase": "Çekirdek",
+              "rationale": "DocType, alanlar, dosya sahipliği ve veri sözleşmeleri kurulur. Harici arama ve büyük aktarımlar ihtiyaçla büyür.",
+              "dependsOn": ["01", "11"]
+            },
+            {
+              "id": "09",
+              "phase": "Çekirdek → ileri yetenekler",
+              "rationale": "Önce headless API, Keycloak token köprüsü ve olay sözleşmeleri. AI, RAG ve ajanlar veri/izinler ile maliyet sınırları doğrulandıktan sonra ayrı dilimlerdir.",
+              "dependsOn": ["01", "05"]
+            },
+            {
+              "id": "04",
+              "phase": "Çekirdek",
+              "rationale": "Frappe Desk'ten bağımsız panel, API sözleşmeleri üzerinde ilk uçtan uca kullanıcı yolculuğunu tamamlar.",
+              "dependsOn": ["01", "05", "09"]
+            },
+            {
+              "id": "06",
+              "phase": "Ürün",
+              "rationale": "Doğrulanmış kayıt modeli üzerinde iş geçişleri, onaylar ve güvenli arka plan işleri kurulur.",
+              "dependsOn": ["05", "09"]
+            },
+            {
+              "id": "07",
+              "phase": "Ürün",
+              "rationale": "Keycloak kimlik e-postaları ile ürün bildirimleri ayrılır. Panel canlı iletimi ve teslimat kuralları ortak sözleşmeye bağlanır.",
+              "dependsOn": ["01", "04", "06"]
+            },
+            {
+              "id": "02",
+              "phase": "Gelir modeli",
+              "rationale": "Paket, entitlement ve kota politikası tahsilattan önce tanımlanır; kullanıcı rolünden bağımsız sunucuda uygulanır.",
+              "dependsOn": ["01", "05", "06"]
+            },
+            {
+              "id": "03",
+              "phase": "Gelir modeli",
+              "rationale": "Abonelik ve kullanım hakkı sözleşmesine ödeme, fatura ve mutabakat eklenir. ERPNext ayrı uygulama kararıdır.",
+              "dependsOn": ["02", "09"]
+            },
+            {
+              "id": "08",
+              "phase": "İş alanları",
+              "rationale": "CRM, destek ve içerik için ek Frappe uygulaması mı özel geliştirme mi seçilir; headless uyarlama kabulü ayrıca yapılır.",
+              "dependsOn": ["04", "06", "07"]
+            },
+            {
+              "id": "10",
+              "phase": "Ölçüm ve iyileştirme",
+              "rationale": "Temel teknik telemetri ilk etaptadır. İş raporları ve ürün analitiği, tutarlı olay ve alan verisi oluşunca genişletilir.",
+              "dependsOn": ["05", "09", "02", "08"]
+            }
+          ]
+        },
         "clusters": [
           {
             "id": "12",
@@ -38937,177 +39498,271 @@
             "roadmapOrder": 12
           }
         ],
-        "sources": {
-          "tenant": [
-            "OWASP — Kiracı izolasyonu",
-            "https://cheatsheetseries.owasp.org/cheatsheets/Multi_Tenant_Security_Cheat_Sheet.html"
-          ],
-          "session": [
-            "OWASP — Oturum yönetimi",
-            "https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html"
-          ],
-          "entitlements": [
-            "Stripe — Özellik kullanım hakları",
-            "https://docs.stripe.com/billing/entitlements"
-          ],
-          "subscription": [
-            "Stripe — Abonelik yaşam döngüsü",
-            "https://docs.stripe.com/billing/subscriptions/overview"
-          ],
-          "flags": [
-            "OpenFeature — Özellik anahtarı değerlendirmesi",
-            "https://openfeature.dev/specification/sections/flag-evaluation/"
-          ],
-          "outbox": [
-            "AWS — İşlemsel olay kutusu",
-            "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html"
-          ],
-          "reflow": [
-            "W3C — Dar ekranda yeniden akış",
-            "https://www.w3.org/WAI/WCAG22/Understanding/reflow.html"
-          ],
-          "files": [
-            "OWASP — Güvenli dosya yükleme",
-            "https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html"
-          ],
-          "ai": [
-            "OWASP — Yapay zekâ talimat saldırıları",
-            "https://cheatsheetseries.owasp.org/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.html"
-          ],
-          "telemetry": [
-            "OpenTelemetry — Metrikler, kayıtlar ve izler",
-            "https://opentelemetry.io/docs/concepts/signals/"
-          ],
-          "bpmn": [
-            "OMG — İş süreci modelleme standardı",
-            "https://www.omg.org/spec/BPMN/"
-          ],
-          "recovery": [
-            "AWS — Yedekten geri yükleme doğrulaması",
-            "https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/rel_backing_up_data_periodic_recovery_testing_data.html"
-          ],
-          "scim": [
-            "IETF — Kurumsal kimlik eşitleme protokolü",
-            "https://www.rfc-editor.org/rfc/rfc7644.html"
-          ],
-          "events": [
-            "CloudEvents — Olay zarfı standardı",
-            "https://cloudevents.io/"
-          ],
-          "kvkk": [
-            "KVKK — Kişisel verilerin işlenmesi",
-            "https://www.kvkk.gov.tr/Icerik/2048/Kisisel-Verilerin-Islenmesi"
-          ],
-          "gdpr": [
-            "Avrupa Birliği — Genel Veri Koruma Tüzüğü",
-            "https://eur-lex.europa.eu/eli/reg/2016/679/oj/eng"
-          ]
+        "interface": {
+          "meta": {
+            "content_1": "Frappe backend, headless frontend ve Keycloak için 326 maddelik SaaS geliştirme yol haritası. Yeterlilik, geliştirme işi ve kabul ölçütleri.",
+            "text_2": "SaaS Atlas — Frappe geliştirme yol haritası",
+            "skip_3": "Envantere geç"
+          },
+          "shell": {
+            "wordmark_4": "SaaS Atlas ana sayfa",
+            "wordmark_5": "SaaS",
+            "brand_light_6": "Atlas",
+            "edition_7": "İsmail Karaca · Açık geliştirme yol haritası"
+          },
+          "hero": {
+            "eyebrow_8": "Frappe geliştirme yol haritası",
+            "page_title_9": "Hazır olanı kullanın. Kalan işi görün.",
+            "desc_10": "Frappe yeterliliğini değerlendirin, kalan geliştirme işini planlayın. Seçtiğiniz maddeleri dışa aktarın.",
+            "start_link_11": "Özellikleri incele",
+            "numbers_12": "12",
+            "numbers_13": "küme",
+            "numbers_14": "49",
+            "numbers_15": "başlık",
+            "numbers_16": "326",
+            "numbers_17": "madde",
+            "structure_18": "Küme → Başlık → Madde",
+            "legend_19": "Madde sınıfları",
+            "legend_item_20": "Özgün kapsam",
+            "legend_item_21": "Kapsam içi eksik",
+            "legend_item_22": "Yeni alan",
+            "reading_note_23": "Renkler kapsamın kaynağını, etiketler Frappe yeterliliğini gösterir. Kareler yalnızca dışa aktarma seçimidir; tamamlanma durumu değildir."
+          },
+          "toolbar": {
+            "toolbar_24": "Envanter araçları",
+            "filter_row_25": "Kaynağa göre filtrele",
+            "filter_label_26": "Tümü",
+            "count_27": "326",
+            "filter_label_28": "Özgün kapsam",
+            "count_29": "105",
+            "filter_label_30": "İç eksikler",
+            "count_31": "189",
+            "filter_label_32": "Yeni alanlar",
+            "count_33": "32",
+            "roadmap_filters_34": "Frappe ve iş filtreleri",
+            "roadmap_filter_status_35": "Bütün yeterlilikler · Bütün işler",
+            "roadmap_filter_body_36": "Frappe yeterliliği",
+            "tag_filters_37": "Bütün yeterlilikler",
+            "roadmap_filter_body_38": "Yapılacak iş",
+            "tag_filters_39": "Bütün işler",
+            "field_label_40": "Envanterde ara",
+            "search_41": "Kavram, özellik veya araç",
+            "clear_search_42": "Aramayı temizle",
+            "clear_search_43": "Sil",
+            "cluster_label_44": "Kümeye odaklan",
+            "cluster_value_45": "Bütün kümeler",
+            "reset_all_46": "Filtreleri sıfırla",
+            "print_47": "Yazdır",
+            "visible_status_48": "326 / 326 madde · 49 grup",
+            "toggle_relations_49": "İlişkileri göster",
+            "selected_only_50": "Yalnızca seçilenler",
+            "toggle_original_51": "Özgün ifadeleri göster",
+            "collapse_all_52": "Tüm başlıkları genişlet"
+          },
+          "context": {
+            "context_details_53": "Teknik yaklaşım ve etiket rehberi",
+            "context_description_54": "Frappe backend · Keycloak auth · Headless panel",
+            "roadmap_title_55": "Frappe ile geliştirme yol haritası",
+            "roadmap_56": "Backend:",
+            "roadmap_57": "Frappe Framework",
+            "roadmap_58": ". SaaS admin paneli:",
+            "roadmap_59": "bağımsız headless frontend",
+            "roadmap_60": ". Giriş, MFA ve oturum:",
+            "roadmap_61": "Keycloak",
+            "roadmap_62": ". Backend yetkilendirmesi Frappe'te kalır.",
+            "baseline": "{baseline} İnceleme: {reviewedAt}.",
+            "support_overview_63": "Frappe yeterlilik dağılımı",
+            "roadmap_guide_64": "Etiketleri ve geliştirme sırasını nasıl okumalı?",
+            "note_body_65": "Belgelenmiş backend kabiliyeti yeniden yazılmaz; yapılandırma, headless bağlama ve kabul testi yapılır.",
+            "note_body_66": "Alt yapı hazırdır; maddede istenen bütün alt işlevler hazır değildir. Kalan iş değerlendirmede belirtilir.",
+            "note_body_67": "ERPNext, CRM, Helpdesk, Insights veya Press gibi ayrı uygulama kararıdır. Framework kurulumu tek başına bu özelliği getirmez.",
+            "note_body_68": "İncelenen kaynaklarda hazır uçtan uca ürün kabiliyeti saptanmadı; özel geliştirme veya ayrı hizmet seçilir. Evrensel bir yokluk iddiası değildir.",
+            "note_body_69": "Keycloak, headless frontend veya altyapı hizmeti bu işi üstlenir. Bağlantı ve sunucu izin denetimi yine geliştirme kapsamındadır.",
+            "note_body_70": "Hedef sürüm, deneysel özellik veya kapsam kararı net değildir; PoC sonucu olmadan hazır kabul edilmez.",
+            "note_body_71": "İş etiketi:",
+            "note_body_72": "Yapılandır / Genişlet / Entegre et / Geliştir / PoC ile doğrula. Her maddede sorumlu katman, dayanak ve ayrı kabul ölçütü vardır. Yeterlilik etiketi planlama veya tamamlanma durumu değildir; checkbox yalnız dışa aktarım seçimidir.",
+            "note_body_73": "Güvenilirlik:",
+            "note_body_74": "Kanıtsız “güvenilmez” etiketi verilmez. Belge dayanağı üretim yeterliliği anlamına gelmez; yetki, izolasyon, hata ve yük kabulü hedef kurulumda ayrıca geçmelidir.",
+            "note_body_75": "Sıralama:",
+            "note_body_76": "Temel işletim → kimlik/izolasyon → güvenlik → veri → API sözleşmeleri → headless panel → süreç/iletişim → paket/tahsilat → iş alanları → ölçüm. Etaplar takvim veya efor tahmini değildir. Güvenlik ve işletim tüm etaplarda sürer; AI/RAG/ajanlar çekirdek API'den sonra ayrıca açılır. Eski madde kimlikleri ve tarayıcı seçimleri korunur.",
+            "note_body_77": "İlk karar kapısı:",
+            "note_body_78": "Frappe/Keycloak release'lerini sabitle; site başına kiracı modelini ve Keycloak subject → Frappe User eşlemesini doğrula. Issuer, audience, imza/JWKS, süre, token iptali, kiracı üyeliği ve her API'de kayıt/alan yetkisini test et. Frappe OAuth desteği Keycloak JWT'lerinin doğrudan kabul edildiğini kanıtlamaz. Tarayıcıya servis API anahtarı veya admin secret koyma.",
+            "note_body_79": "Frappe Auth Hooks",
+            "note_body_80": "·",
+            "note_body_81": "Frappe Sites",
+            "note_body_82": "·",
+            "note_body_83": "Keycloak OIDC istemcisi"
+          },
+          "selection": {
+            "selection_bar_84": "Seçim ve dışa aktarma",
+            "selection_count_85": "0 madde seçildi",
+            "selection_note_86": "Seçimleriniz bu tarayıcıda saklanır.",
+            "select_visible_87": "Eşleşenleri seç",
+            "clear_selection_88": "Seçimi temizle",
+            "export_formats_89": "Dosya biçimi",
+            "format_options_90": "JSON",
+            "format_options_91": "CSV",
+            "format_options_92": "MD",
+            "export_selected_93": "Seçilenleri dışa aktar"
+          },
+          "reading": {
+            "reading_options_94": "Renklerin ve bağlantıların anlamı",
+            "o_95": "Özgün / mavi:",
+            "o_96": "İlk mesajındaki konular; yazımı düzeltilmiş, tekrarı birleştirilmiş veya farklı sorumluluklara ayrılmış hâli. Önceki yanıtlarda eklenen başlıklar özgün sayılmadı.",
+            "g_97": "İç eksik / yeşil:",
+            "g_98": "Gap analysis (mevcut kapsam içindeki boşlukların analizi). Zaten adını verdiğin bir yeteneğin eksik işlevleri.",
+            "n_99": "Yeni alan / kırmızı:",
+            "n_100": "Unknown unknowns (henüz fark edilmemiş olabilecek ihtiyaçlar) için adaylar. İlk listede bağımsız bir yetenek ailesi olarak adlandırılmayan konular; kesin bir eksiksizlik iddiası değil.",
+            "note_body_101": "İlişkiler:",
+            "note_body_102": "Her grubun yönettiği kayıtlar, aldığı bilgi ve sunduğu işlev gösterilir. Bağlantılardaki numaralar ilgili gruba götürür. Bunlar önerilen sorumluluk sınırlarıdır; geliştirme sırası değildir.",
+            "note_body_103": "Modular monolith (tek uygulama içinde ayrışan modüller) ve low coupling (düşük bağımlılık):",
+            "note_body_104": "Modüller yayımlanmış işlev/olay sözleşmeleriyle bağlanır; birbirinin tablolarına doğrudan yazmaz. Alır bağlantıları doğrudan çağrı ya da olay tüketimi olabilir; süreçlerin yönettiği iş kayıtları kendi modüllerinde kalır.",
+            "note_body_105": "Kapsam:",
+            "note_body_106": "Başlıklar özellik envanteridir; her satır ayrı modül, ekran veya zorunlu teknoloji değildir. Ürün isimleri mevcut tercihler olarak korunmuştur. Yeni alanların gerekliliği ürün, müşteri ve dağıtım koşullarına bağlıdır."
+          },
+          "print": {
+            "o_107": "Mavi: özgün kapsam",
+            "g_108": "Yeşil: kapsam içi eksik",
+            "n_109": "Kırmızı: yeni alan önerisi",
+            "reading_note_110": "Envanterin tamamı aşağıdadır. Arama, filtreleme ve seçim ve dışa aktarma için tarayıcıda JavaScript etkin olmalıdır."
+          },
+          "navigation": {
+            "rail_111": "Küme gezinmesi",
+            "rail_title_112": "KÜMELER",
+            "rail_bottom_113": "Bir özellik, bir ana grup.",
+            "rail_bottom_114": "Kaynaklar ve kapsam notu",
+            "empty_115": "Eşleşen madde bulunamadı.",
+            "empty_116": "Aramayı değiştir veya filtreleri temizle.",
+            "reset_empty_117": "Bütün envanteri göster"
+          },
+          "sources": {
+            "sources_118": "Kaynaklar",
+            "explanation_119": "Teknik dayanaklar ve kapsam notu",
+            "bottom_copy_120": "Mavi maddelerin kaynağı senin ilk envanterindir. Yeşil/kırmızı sınıflandırma, kümeleme ve bağlantılar bu çalışma için hazırlanmış önerilerdir. Kaynaklar ilgili teknik kavramları destekler; bu envanteri bütünüyle zorunlu kılmaz. Mevzuat kapsamı ürün ve veri işleme koşullarına göre ayrıca belirlenir.",
+            "source_id_121": "01",
+            "source_id_122": "02",
+            "source_id_123": "03",
+            "source_id_124": "04",
+            "source_id_125": "05",
+            "source_id_126": "06",
+            "source_id_127": "07",
+            "source_id_128": "08",
+            "source_id_129": "09",
+            "source_id_130": "10",
+            "source_id_131": "11",
+            "source_id_132": "12",
+            "source_id_133": "13",
+            "source_id_134": "14",
+            "source_id_135": "15",
+            "source_id_136": "16",
+            "bottom_copy_137": "Terim düzeltmeleri: “BPN” iş süreci yönetimi anlamıyla BPM olarak düzenlendi; BPMN modelleme desteği ayrı bir tamamlayıcıdır. GILT kısaltmaları g11n, i18n, l10n, t9n olarak düzeltildi; t13n ayrı bir harf dönüşümü yeteneği olarak korundu. GTM ve pazarlama analitiği teknik gözlemlenebilirlikten; canlı iletim, bildirim kanallarından ayrıldı.",
+            "bottom_copy_138": "Renk değerlendirmesi ilk listenin açıklık düzeyine dayanır. “Güvenlik yönetimi” gibi geniş bir başlık, güvenlikle ilişkili her yeni yeteneğin önceden tanımlandığı anlamına gelmez. Kırmızı başlıklar, bu nedenle bağımsız yeni yetenek aileleri olarak ayrılmıştır.",
+            "bottom_copy_139": "Envanter kaynak notları: 10 Ekim 2026. Seçimler yalnızca bu tarayıcıda saklanır; sunucuya gönderilmez. Yazı tipleri ve uygulama dosyaları bu siteden yüklenir."
+          },
+          "footer": {
+            "footer_140": "SaaS Özellik Atlası · MIT lisansı",
+            "footer_141": "GitHub kaynak kodu",
+            "footer_142": "Sayfanın başına dön"
+          },
+          "inventory": {
+            "originLabels": { "o": "Özgün", "g": "İç eksik", "n": "Yeni alan" },
+            "assessmentLabel": "Frappe yeterliliği ve yapılacak iş",
+            "assessmentSummary": "Değerlendirme ve kabul ölçütü",
+            "acceptance": "Kabul ölçütü:",
+            "basis": "Dayanak:",
+            "pending": "Hedef sürüm ve kurulumda kabul bekliyor.",
+            "itemSources": "Madde kaynakları",
+            "raw": "İlk listedeki ifade:",
+            "item": "madde",
+            "groups": "grup",
+            "owns": "Yönettiği kayıtlar:",
+            "takes": "Alır:",
+            "provides": "Sunar:",
+            "prerequisite": "Ön koşul:",
+            "pickerLegend": "Küme seçimi",
+            "allClusters": "Bütün kümeler"
+          },
+          "links": {
+            "external_1": "https://docs.frappe.io/framework/user/en/python-api/hooks#auth-hooks",
+            "external_2": "https://docs.frappe.io/framework/user/en/basics/sites",
+            "external_3": "https://www.keycloak.org/securing-apps/javascript-adapter",
+            "external_4": "https://github.com/karacaismail/saas"
+          }
         },
-        "generated": "2026-10-10",
-        "classification": {
-          "o": "Kullanıcının ilk envanteri; ifade düzenlemesi veya birleştirme.",
-          "g": "Adı geçen özelliğin kapsam içi tamamlayıcısı.",
-          "n": "İlk envanterde bağımsız olarak adlandırılmamış yetenek ailesi; doğrulanacak öneri."
-        },
-        "roadmap": {
-          "version": 1,
-          "reviewedAt": "2026-10-10",
-          "target": "Frappe Framework backend · bağımsız headless frontend · Keycloak kimlik doğrulama",
-          "baseline": "Hedef Frappe ve Keycloak sürümü seçilmedi. Güncel resmî dokümanlara dayalı tasarım değerlendirmesidir; kurulu özellik, üretim güvenilirliği veya tamamlanmış iş kanıtı değildir.",
-          "supportLabels": {
-            "native": "Çekirdekte var",
-            "partial": "Kısmen var",
-            "ecosystem": "Ek Frappe uygulaması",
-            "absent": "Çekirdekte hazır değil",
-            "external": "Harici sorumluluk",
-            "verify": "Doğrulanmalı"
+        "messages": {
+          "app": {
+            "storageUnavailable": "Seçimler bu oturumda korunur; kalıcı saklama kullanılamıyor.",
+            "selectionCount": "{count} madde seçildi",
+            "collapseAll": "Tüm başlıkları daralt",
+            "allSupport": "Bütün yeterlilikler",
+            "allActions": "Bütün işler",
+            "visibleStatus": "{visible} / {total} madde · {groups} başlık",
+            "allClusters": "Bütün kümeler",
+            "matchingSelected": "Eşleşen maddeler seçildi.",
+            "selectionCleared": "Seçim temizlendi.",
+            "relationsShow": "İlişkileri göster",
+            "relationsShown": "İlişkiler açık",
+            "originalShow": "Özgün ifadeleri göster",
+            "originalShown": "Özgün ifadeler açık",
+            "exported": "{count} seçili madde {format} olarak dışa aktarıldı."
           },
-          "actionLabels": {
-            "configure": "Yapılandır",
-            "extend": "Genişlet",
-            "integrate": "Entegre et",
-            "build": "Geliştir",
-            "validate": "PoC ile doğrula"
-          },
-          "confidenceLabels": {
-            "documented": "Belge dayanağı",
-            "design": "Mimari karar",
-            "verify": "Doğrulama bekliyor"
-          },
-          "sequence": [
-            {
-              "id": "12",
-              "phase": "Temel",
-              "rationale": "İlk günden tekrarlanabilir kurulum, sürüm sabitleme, yedekten dönüş ve temel gözlem kurulur. İleri ölçekleme ihtiyaç doğdukça açılır.",
-              "dependsOn": []
+          "export": {
+            "title": "SaaS özellik atlası",
+            "kindLabels": {
+              "o": "Özgün kapsam",
+              "g": "Kapsam içi eksik",
+              "n": "Yeni alan"
             },
-            {
-              "id": "01",
-              "phase": "Temel",
-              "rationale": "Kiracı/site modeli, Keycloak kimliği ve Frappe yetki eşlemesi diğer bütün özelliklerin güven sınırını belirler.",
-              "dependsOn": ["12"]
+            "formatNames": { "json": "JSON", "csv": "CSV", "md": "Markdown" },
+            "csv": {
+              "clusterId": "Küme kimliği",
+              "clusterNumber": "Küme no",
+              "cluster": "Küme",
+              "groupNumber": "Başlık no",
+              "group": "Başlık",
+              "itemNumber": "Madde no",
+              "kind": "Sınıf",
+              "item": "Madde",
+              "roadmapColumns": [
+                "Frappe yeterliliği",
+                "Yapılacak iş",
+                "Sorumlu",
+                "Kanıt durumu",
+                "Değerlendirme",
+                "Kabul ölçütü",
+                "Kaynaklar",
+                "Etap",
+                "Küme sırası"
+              ]
             },
-            {
-              "id": "11",
-              "phase": "Temel",
-              "rationale": "İzolasyon, audit, veri yaşam döngüsü ve güvenlik kabulü ilk dikey dilimde başlar; her etapta devam eder.",
-              "dependsOn": ["01"]
+            "markdown": {
+              "target": "Hedef",
+              "reviewedAt": "Değerlendirme tarihi",
+              "baseline": "Sürüm ve kanıt sınırı",
+              "phase": "Etap",
+              "roadmapOrder": "Yol haritası sırası",
+              "rationale": "Gerekçe",
+              "dependsOn": "Bağımlılıklar",
+              "support": "Frappe yeterliliği",
+              "action": "Yapılacak iş",
+              "owner": "Sorumlu",
+              "confidence": "Kanıt durumu",
+              "note": "Değerlendirme",
+              "acceptance": "Kabul ölçütü",
+              "source": "Kaynak",
+              "short": "Küme özeti",
+              "owns": "Sahiplik",
+              "provides": "Sağladığı hizmet",
+              "links": "İlişkiler",
+              "sources": "Başlık kaynakları",
+              "raw": "Özgün ifade",
+              "generated": "İçerik tarihi",
+              "classification": "Sınıf açıklamaları",
+              "sourceRegistry": "Kaynak dizini",
+              "sequence": "Yol haritası bağımlılıkları"
             },
-            {
-              "id": "05",
-              "phase": "Çekirdek",
-              "rationale": "DocType, alanlar, dosya sahipliği ve veri sözleşmeleri kurulur. Harici arama ve büyük aktarımlar ihtiyaçla büyür.",
-              "dependsOn": ["01", "11"]
-            },
-            {
-              "id": "09",
-              "phase": "Çekirdek → ileri yetenekler",
-              "rationale": "Önce headless API, Keycloak token köprüsü ve olay sözleşmeleri. AI, RAG ve ajanlar veri/izinler ile maliyet sınırları doğrulandıktan sonra ayrı dilimlerdir.",
-              "dependsOn": ["01", "05"]
-            },
-            {
-              "id": "04",
-              "phase": "Çekirdek",
-              "rationale": "Frappe Desk'ten bağımsız panel, API sözleşmeleri üzerinde ilk uçtan uca kullanıcı yolculuğunu tamamlar.",
-              "dependsOn": ["01", "05", "09"]
-            },
-            {
-              "id": "06",
-              "phase": "Ürün",
-              "rationale": "Doğrulanmış kayıt modeli üzerinde iş geçişleri, onaylar ve güvenli arka plan işleri kurulur.",
-              "dependsOn": ["05", "09"]
-            },
-            {
-              "id": "07",
-              "phase": "Ürün",
-              "rationale": "Keycloak kimlik e-postaları ile ürün bildirimleri ayrılır. Panel canlı iletimi ve teslimat kuralları ortak sözleşmeye bağlanır.",
-              "dependsOn": ["01", "04", "06"]
-            },
-            {
-              "id": "02",
-              "phase": "Gelir modeli",
-              "rationale": "Paket, entitlement ve kota politikası tahsilattan önce tanımlanır; kullanıcı rolünden bağımsız sunucuda uygulanır.",
-              "dependsOn": ["01", "05", "06"]
-            },
-            {
-              "id": "03",
-              "phase": "Gelir modeli",
-              "rationale": "Abonelik ve kullanım hakkı sözleşmesine ödeme, fatura ve mutabakat eklenir. ERPNext ayrı uygulama kararıdır.",
-              "dependsOn": ["02", "09"]
-            },
-            {
-              "id": "08",
-              "phase": "İş alanları",
-              "rationale": "CRM, destek ve içerik için ek Frappe uygulaması mı özel geliştirme mi seçilir; headless uyarlama kabulü ayrıca yapılır.",
-              "dependsOn": ["04", "06", "07"]
-            },
-            {
-              "id": "10",
-              "phase": "Ölçüm ve iyileştirme",
-              "rationale": "Temel teknik telemetri ilk etaptadır. İş raporları ve ürün analitiği, tutarlı olay ve alan verisi oluşunca genişletilir.",
-              "dependsOn": ["05", "09", "02", "08"]
-            }
-          ]
+            "unsupportedFormat": "Desteklenmeyen dışa aktarma biçimi: {format}"
+          }
         }
       }
     </script>

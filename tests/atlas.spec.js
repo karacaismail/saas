@@ -266,25 +266,33 @@ test('selected-only and select-visible respect Turkish search and classification
   await selectFeature(page, selectedIds[0]);
   await page.locator('#search').fill('kiraci');
   await page.locator('.filter[data-kind="g"]').click();
+  const matchingIds = await page
+    .locator('.feature:not([hidden])')
+    .evaluateAll((rows) => rows.map((row) => row.id));
+  expect(matchingIds.length).toBeGreaterThan(0);
+  expect(matchingIds).not.toContain(selectedIds[0]);
+  await expect(page.locator('.group[open]')).toHaveCount(1);
   const visibleIds = await page
     .locator('.feature:visible')
     .evaluateAll((rows) => rows.map((row) => row.id));
-  expect(visibleIds.length).toBeGreaterThan(0);
-  expect(visibleIds).not.toContain(selectedIds[0]);
+  expect(visibleIds.every((id) => matchingIds.includes(id))).toBe(true);
   await page.locator('#select-visible').click();
   const checkedIds = await page
     .locator('.feature-check:checked')
     .evaluateAll((inputs) =>
       inputs.map((input) => input.closest('.feature').id),
     );
-  expect(checkedIds.sort()).toEqual([selectedIds[0], ...visibleIds].sort());
+  expect(checkedIds.sort()).toEqual([selectedIds[0], ...matchingIds].sort());
   await page.locator('#reset-all').click();
   await page.locator('#selected-only').click();
   await expect(page.locator('#selected-only')).toHaveAttribute(
     'aria-pressed',
     'true',
   );
-  await expect(page.locator('.feature:visible')).toHaveCount(checkedIds.length);
+  await expect(page.locator('.feature:not([hidden])')).toHaveCount(
+    checkedIds.length,
+  );
+  await expect(page.locator('.group[open]')).toHaveCount(1);
   await page.locator('#clear-selection').click();
   await expect(page.locator('.feature:visible')).toHaveCount(0);
   await expect(page.locator('#empty')).toBeVisible();
@@ -302,7 +310,7 @@ test('JSON, CSV and Markdown export selected entries with cluster and heading hi
   }
   const expectedInRoadmapOrder = [...expected].reverse();
   const unselectedText = (
-    await page.locator('#feature-tenant-2 .feature-title').innerText()
+    await page.locator('#feature-tenant-2 .feature-title').textContent()
   ).trim();
   await page.locator('#search').fill('yedek');
   await expect(page.locator(`#${selectedIds[0]}`)).toBeHidden();
@@ -360,7 +368,7 @@ test('JSON, CSV and Markdown export selected entries with cluster and heading hi
   const markdown = await exportText(page, 'md');
   expect(markdown.match(/^## /gm)).toHaveLength(2);
   expect(markdown.match(/^### /gm)).toHaveLength(2);
-  expect(markdown.match(/^- /gm)).toHaveLength(2);
+  expect(markdown.match(/^- \[x\] /gm)).toHaveLength(2);
   const readableMarkdown = markdown.replace(
     /\\([\\`*_{}[\]()#+.!|~=-])/g,
     '$1',
@@ -990,6 +998,9 @@ test('coarse and hybrid input use real touch with reachable targets and preserve
   await expect(page.locator('#context-details')).not.toHaveAttribute('open');
   await page.locator('#roadmap-filters > summary').tap();
   await page.locator('button[data-support="external"]').tap();
+  const identityGroup = page.locator('#group-identity');
+  if ((await identityGroup.getAttribute('open')) === null)
+    await identityGroup.locator(':scope > summary').tap();
   await expect(page.locator('#feature-identity-1')).toBeVisible();
   const external = await page
     .locator('.feature:visible')
@@ -1001,6 +1012,7 @@ test('coarse and hybrid input use real touch with reachable targets and preserve
   await expect(page.locator('.feature:not([hidden])')).toHaveCount(326);
   await expect(page.locator('.group:visible')).toHaveCount(49);
   await page.locator('#roadmap-filters > summary').tap();
+  await groupSummary.tap();
   await expect(group).toHaveAttribute('open', '');
   const label = row.locator('label').first();
   const box = await label.boundingBox();
@@ -1030,10 +1042,29 @@ test('cold navigation and bounded interactions request only local shared product
   page,
 }, testInfo) => {
   const requests = [];
+  const responseBodies = [];
   page.on('request', (request) =>
     requests.push({ url: request.url(), type: request.resourceType() }),
   );
+  page.on('response', (response) => {
+    if (!/\.(?:js|json)$/.test(new URL(response.url()).pathname)) return;
+    responseBodies.push(
+      response.text().then(
+        (body) => ({
+          url: response.url(),
+          status: response.status(),
+          contentType: response.headers()['content-type'] || '',
+          body,
+        }),
+        (error) => ({ url: response.url(), error: error.message }),
+      ),
+    );
+  });
   await visit(page);
+  await expect(page.locator('body')).toHaveAttribute(
+    'data-content-source',
+    'json',
+  );
   const origin = new URL(page.url()).origin;
   await page.locator('#search').fill('kiracı');
   await page.locator('#cluster-picker > summary').click();
@@ -1046,6 +1077,78 @@ test('cold navigation and bounded interactions request only local shared product
     return new URL(url).origin !== origin;
   });
   expect(invalid).toEqual([]);
+  const contentPaths = [
+    'data/manifest.json',
+    'data/atlas.json',
+    'data/roadmap.json',
+    'data/interface.json',
+    'data/messages.json',
+    ...[
+      '12',
+      '01',
+      '11',
+      '05',
+      '09',
+      '04',
+      '06',
+      '07',
+      '02',
+      '03',
+      '08',
+      '10',
+    ].map((id) => `data/clusters/${id}.json`),
+  ];
+  const scriptPaths = [
+    'assets/app.js',
+    'assets/exports.js',
+    'assets/content-engine.js',
+    'assets/content-templates.js',
+  ];
+  const allowedUrls = new Set(
+    [
+      './',
+      'assets/styles.css',
+      'assets/favicon.svg',
+      'assets/fonts/outfit-latin.woff2',
+      'assets/fonts/outfit-latin-ext.woff2',
+      ...scriptPaths,
+      ...contentPaths,
+    ].map((path) => new URL(path, page.url()).href),
+  );
+  expect(
+    requests.filter(
+      ({ url }) =>
+        !url.startsWith('data:') &&
+        !url.startsWith('blob:') &&
+        !allowedUrls.has(url),
+    ),
+    'Only the common production allowlist may be requested',
+  ).toEqual([]);
+  const requestedUrls = new Set(requests.map(({ url }) => url));
+  for (const path of [...scriptPaths, ...contentPaths, 'assets/styles.css'])
+    expect(
+      requestedUrls.has(new URL(path, page.url()).href),
+      `Required shared asset: ${path}`,
+    ).toBe(true);
+  const responses = await Promise.all(responseBodies);
+  expect(responses).toHaveLength(scriptPaths.length + contentPaths.length);
+  for (const response of responses) {
+    expect(response.error, response.url).toBeUndefined();
+    expect(response.status, response.url).toBe(200);
+    if (new URL(response.url).pathname.endsWith('.json')) {
+      expect(response.contentType, response.url).toMatch(
+        /^application\/json(?:;|$)/i,
+      );
+      expect(() => JSON.parse(response.body), response.url).not.toThrow();
+    } else {
+      expect(response.contentType, response.url).toMatch(
+        /^(?:text|application)\/(?:javascript|ecmascript)(?:;|$)/i,
+      );
+      expect(response.body, response.url).not.toMatch(
+        /^\s*(?:<!doctype|<html)/i,
+      );
+    }
+  }
   expect(requests.some(({ type }) => type === 'font')).toBeTruthy();
   expect(
     requests.filter(({ url }) =>
@@ -1059,6 +1162,10 @@ test('cold navigation and bounded interactions request only local shared product
         serviceWorkers:
           testInfo.project.use.serviceWorkers || 'Playwright default',
         requests,
+        responses: responses.map(({ body, ...response }) => ({
+          ...response,
+          decodedUtf8Bytes: Buffer.byteLength(body, 'utf8'),
+        })),
       },
       null,
       2,

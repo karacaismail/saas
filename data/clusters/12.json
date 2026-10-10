@@ -1,0 +1,1117 @@
+{
+  "id": "12",
+  "title": "İşletim, dağıtım ve süreklilik",
+  "short": "İşletim ve süreklilik",
+  "groups": [
+    {
+      "id": "observability",
+      "title": "Teknik gözlemlenebilirlik ve hata izleme",
+      "owns": "Teknik metrikler, işlem izleri, hata kayıtları ve alarm tanımları.",
+      "links": [],
+      "provides": "Hizmet sağlık görünümü, kiracı bazlı teknik ölçüm ve alarm.",
+      "items": [
+        {
+          "kind": "o",
+          "text": "Observability (gözlemlenebilirlik) ve kaynak takibi.",
+          "raw": "Observebility; Observebility (cpu, network, ssd)",
+          "assessment": {
+            "support": "partial",
+            "action": "integrate",
+            "owner": "DevOps ekibi",
+            "confidence": "documented",
+            "note": "Framework Monitor/Recorder ve loglar uygulama gözlemi sağlar; bütün altyapı kaynak görünümü ayrı ölçüm/izleme katmanıyla birleştirilecek.",
+            "acceptance": "API ve worker örneği ilgili kaynak metriğine bağlansın; ölçüm kesintisi görünür olsun.",
+            "sources": [
+              {
+                "title": "Frappe Profiling",
+                "url": "https://docs.frappe.io/framework/user/en/profiling"
+              },
+              {
+                "title": "Frappe Logging API",
+                "url": "https://docs.frappe.io/framework/user/en/api/logging"
+              },
+              {
+                "title": "Prometheus Overview",
+                "url": "https://prometheus.io/docs/introduction/overview/"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "CPU (Central Processing Unit — merkezi işlem birimi), ağ ve SSD (Solid State Drive — katı hâl disk) ölçümleri.",
+          "raw": "cpu, network, ssd",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "DevOps ekibi",
+            "confidence": "design",
+            "note": "CPU, ağ ve SSD ölçümü host/container gözlem altyapısı sorumluluğudur; Framework uygulama profili bu ölçümlerin tamamı değildir. Exporter ve saklama seçilecek.",
+            "acceptance": "Her hedef sunucunun CPU, ağ ve disk serisi zaman/etiketleriyle görülsün; kayıp hedef alarm üretsin.",
+            "sources": [
+              {
+                "title": "Prometheus Overview",
+                "url": "https://prometheus.io/docs/introduction/overview/"
+              },
+              {
+                "title": "Frappe Docker resmî dağıtım deposu",
+                "url": "https://github.com/frappe/frappe_docker"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "Logging (teknik kayıt üretimi), log manager (kayıt yönetimi) ve Sentry adaptörü.",
+          "raw": "log manager, logging; sentry adapter",
+          "assessment": {
+            "support": "partial",
+            "action": "integrate",
+            "owner": "DevOps ekibi ve backend",
+            "confidence": "documented",
+            "note": "Çekirdekte site/bench dönen loglar ve log APIleri var; merkezi log manager ve Sentry SDK entegrasyonu ayrıca kurulacak.",
+            "acceptance": "Örnek API/worker hatası merkezi kayıtta ve Sentryde correlation ile görülsün; secret alanlar çıkarılsın.",
+            "sources": [
+              {
+                "title": "Frappe Logging API",
+                "url": "https://docs.frappe.io/framework/user/en/api/logging"
+              },
+              {
+                "title": "Frappe Logging",
+                "url": "https://docs.frappe.io/framework/user/en/logging"
+              },
+              {
+                "title": "Sentry resmî Python SDK deposu",
+                "url": "https://github.com/getsentry/sentry-python"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Bellek, veri tabanı, kuyruk, önbellek ve dış servis sağlık ölçümleri.",
+          "assessment": {
+            "support": "partial",
+            "action": "integrate",
+            "owner": "DevOps ekibi",
+            "confidence": "documented",
+            "note": "Framework Monitor uygulama/iş verisi sağlar; bellek, DB, Redis, kuyruk ve dış servis sağlığını exporter/probe katmanında tamamlamak gerekir.",
+            "acceptance": "DB/Redis veya dış servis kesintisi doğru bileşen metriği ve alarmında görülsün.",
+            "sources": [
+              {
+                "title": "Frappe Profiling",
+                "url": "https://docs.frappe.io/framework/user/en/profiling"
+              },
+              {
+                "title": "Prometheus Overview",
+                "url": "https://prometheus.io/docs/introduction/overview/"
+              },
+              {
+                "title": "Frappe Background Jobs",
+                "url": "https://docs.frappe.io/framework/user/en/api/background_jobs"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Yanıt süresi, hata oranı, erişilebilirlik ve işlem izleri.",
+          "assessment": {
+            "support": "partial",
+            "action": "integrate",
+            "owner": "DevOps ekibi ve backend",
+            "confidence": "documented",
+            "note": "Profiling istek süresi/sorgu bilgisi sunar; hata oranı, sentetik erişilebilirlik ve uçtan uca dağıtık trace ayrı izleme entegrasyonudur.",
+            "acceptance": "Headless → API → worker zinciri trace ile izlenebilsin; hata ve uptime ölçümü bağımsız probe ile doğrulansın.",
+            "sources": [
+              {
+                "title": "Frappe Profiling",
+                "url": "https://docs.frappe.io/framework/user/en/profiling"
+              },
+              {
+                "title": "OpenTelemetry Traces",
+                "url": "https://opentelemetry.io/docs/concepts/signals/traces/"
+              },
+              {
+                "title": "Prometheus Overview",
+                "url": "https://prometheus.io/docs/introduction/overview/"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Kullanıcı/istek/kiracı ilişkilendirme ve hassas veriyi kayıttan çıkarma.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Backend gözlem güvenliği",
+            "confidence": "documented",
+            "note": "Frappe logger filtreleri temel sağlar; Keycloak kullanıcı eşlemesi, request/tenant correlation ve hassas alan redaksiyonu ortak sözleşmeyle eklenecek.",
+            "acceptance": "Bir kullanıcı işlemi API/worker boyunca ilişkilensin; token, parola ve yasak PII loglarda bulunmasın.",
+            "sources": [
+              {
+                "title": "Frappe Logging API",
+                "url": "https://docs.frappe.io/framework/user/en/api/logging"
+              },
+              {
+                "title": "OpenTelemetry Traces",
+                "url": "https://opentelemetry.io/docs/concepts/signals/traces/"
+              },
+              {
+                "title": "Keycloak OIDC Layers",
+                "url": "https://www.keycloak.org/securing-apps/oidc-layers"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Alarm eşikleri, bildirim rotası ve olay inceleme ekranı.",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "DevOps ekibi",
+            "confidence": "design",
+            "note": "Alarm eşikleri ve rotalar ayrı gözlem altyapısında yönetilecek; Framework Notification iş olayları operasyon vakası ekranını tek başına sağlamaz.",
+            "acceptance": "Eşik aşımında doğru nöbet rotasına tek alarm gitsin; çözüm ve inceleme bağlantısı kaydedilsin.",
+            "sources": [
+              {
+                "title": "Prometheus Overview",
+                "url": "https://prometheus.io/docs/introduction/overview/"
+              },
+              {
+                "title": "Frappe Notifications",
+                "url": "https://docs.frappe.io/framework/notifications"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": ["telemetry"],
+      "num": "01.1"
+    },
+    {
+      "id": "performance",
+      "title": "Performans, önbellek ve kapasite",
+      "owns": "Önbellek politikaları, kapasite sınırları ve performans eşikleri.",
+      "links": [],
+      "provides": "Önbellek hizmeti ve aşırı yük koruması; kapasite sinyalleri.",
+      "items": [
+        {
+          "kind": "o",
+          "text": "Performance management (performans yönetimi).",
+          "raw": "Performance management",
+          "assessment": {
+            "support": "partial",
+            "action": "validate",
+            "owner": "Backend ve DevOps ekibi",
+            "confidence": "documented",
+            "note": "Framework profiling/performance teşhisi araçları sağlar; ürün kapasite hedefi ve iyileştirme programı gerçek yük testiyle belirlenecek.",
+            "acceptance": "Kritik yolun p95, hata ve kaynak hedefi seçilsin; temsilî yükte ölçüm ve darboğaz kaydı alınsın.",
+            "sources": [
+              {
+                "title": "Frappe Profiling",
+                "url": "https://docs.frappe.io/framework/user/en/profiling"
+              },
+              {
+                "title": "Frappe Docker resmî dağıtım deposu",
+                "url": "https://github.com/frappe/frappe_docker"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "Sunucu tarafı Redis önbellekleme.",
+          "raw": "redis; backend redis caching",
+          "assessment": {
+            "support": "native",
+            "action": "configure",
+            "owner": "Backend önbellek",
+            "confidence": "documented",
+            "note": "Sunucu tarafı Redis cache, değer/hash saklama ve TTL araçları çekirdekte var; cache bağlantısı ve uygun veri politikası yapılandırılacak.",
+            "acceptance": "Cache hit/miss ve TTL ölçülsün; aynı veri kaynağı güncellenince uygulama belirlenen tazelik kuralını korusun.",
+            "sources": [
+              {
+                "title": "Frappe Caching",
+                "url": "https://docs.frappe.io/framework/user/en/guides/caching"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Kiracı bazlı önbellek anahtarı, süre, temizleme ve geçersizleştirme.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Backend önbellek",
+            "confidence": "documented",
+            "note": "Cache API site bağlamı, süre ve temizleme temeli sağlar; aynı site içindeki iş tenantları için anahtar kapsamı ve domain invalidation kuralları ayrıca kurulacak.",
+            "acceptance": "Aynı anahtar adı iki tenantta veri karıştırmasın; yazma/silme sonrası ilgili anahtar geçersizleşsin.",
+            "sources": [
+              {
+                "title": "Frappe Caching",
+                "url": "https://docs.frappe.io/framework/user/en/guides/caching"
+              },
+              {
+                "title": "Bench Multitenancy",
+                "url": "https://docs.frappe.io/framework/user/en/bench/guides/setup-multitenancy"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Veri tabanı sorgu, indeks ve bağlantı havuzu yönetimi.",
+          "assessment": {
+            "support": "partial",
+            "action": "integrate",
+            "owner": "Backend ve DevOps ekibi",
+            "confidence": "documented",
+            "note": "Database API indeks ekleme ve sorgu araçları sunar; veritabanı bağlantı havuzu, kapasite ve operasyon izleme seçilen DB/dağıtımda tamamlanacak.",
+            "acceptance": "Kritik sorgunun planı/indeksi doğrulansın; bağlantı baskısında kontrollü sınır ve kuyruk davranışı ölçülsün.",
+            "sources": [
+              {
+                "title": "Frappe Database API",
+                "url": "https://docs.frappe.io/framework/user/en/api/database"
+              },
+              {
+                "title": "Frappe Profiling",
+                "url": "https://docs.frappe.io/framework/user/en/profiling"
+              },
+              {
+                "title": "Frappe Docker resmî dağıtım deposu",
+                "url": "https://github.com/frappe/frappe_docker"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Zaman aşımı, bağlantı sınırı ve arızalı bağımlılığa çağrıyı geçici kesme.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Backend dayanıklılık",
+            "confidence": "documented",
+            "note": "Job timeout ve reverse proxy bağlantı araçları temel olur; tüm dış çağrılar için timeout bütçesi ve circuit breaker politikası ayrıca geliştirilecek.",
+            "acceptance": "Arızalı bağımlılığa çağrı belirlenen sürede kesilsin; devre açılınca yeni çağrılar kontrollü reddedilsin.",
+            "sources": [
+              {
+                "title": "Frappe Background Jobs",
+                "url": "https://docs.frappe.io/framework/user/en/api/background_jobs"
+              },
+              {
+                "title": "NGINX HTTP Upstream Module",
+                "url": "https://nginx.org/en/docs/http/ngx_http_upstream_module.html"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Aşırı yükte bekletme, kontrollü kapasite azaltma ve kiracı kaynak adaleti.",
+          "assessment": {
+            "support": "partial",
+            "action": "build",
+            "owner": "Backend ve DevOps ekibi",
+            "confidence": "documented",
+            "note": "Özel iş kuyrukları ve rate limit araçları var; tenant kaynak adaleti, backpressure ve kontrollü hizmet azaltma ürüne özel tasarlanacak.",
+            "acceptance": "Aşırı yükte bir tenant diğerini aç bırakmasın; kuyruk sınırı aşımı görünür ve tanımlı yanıt üretsin.",
+            "sources": [
+              {
+                "title": "Frappe Background Jobs",
+                "url": "https://docs.frappe.io/framework/user/en/api/background_jobs"
+              },
+              {
+                "title": "Frappe Rate Limiting",
+                "url": "https://docs.frappe.io/framework/deployment/rate-limiting"
+              },
+              {
+                "title": "Prometheus Overview",
+                "url": "https://prometheus.io/docs/introduction/overview/"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Uç içerik önbelleği, sıkıştırma ve medya dağıtımı.",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "Frontend ve DevOps ekibi",
+            "confidence": "design",
+            "note": "Edge cache, sıkıştırma ve medya dağıtımı reverse proxy/CDN sorumluluğudur; kişisel ve yetkili içeriğin cache sınırı ayrıca uygulanacak.",
+            "acceptance": "Genel asset cache/compress olsun; özel yanıt başka kullanıcıya cache üzerinden sızmasın.",
+            "sources": [
+              {
+                "title": "NGINX HTTP Upstream Module",
+                "url": "https://nginx.org/en/docs/http/ngx_http_upstream_module.html"
+              },
+              {
+                "title": "Frappe Docker resmî dağıtım deposu",
+                "url": "https://github.com/frappe/frappe_docker"
+              },
+              {
+                "title": "Frappe Users and Permissions",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": ["tenant"],
+      "num": "01.2"
+    },
+    {
+      "id": "deployment",
+      "title": "Kurulum, alan adı ve çalışma ortamı",
+      "owns": "Kurulum hedefleri, alan adları, sertifikalar ve çalışma ortamı yapılandırması.",
+      "links": [],
+      "provides": "Kiracıya kurulum/alan adı bağlama; ortam ve altyapı sağlık sonucu.",
+      "items": [
+        {
+          "kind": "o",
+          "text": "On-premises (müşterinin kendi ortamında kurulum) desteği.",
+          "raw": "On-premise server",
+          "assessment": {
+            "support": "external",
+            "action": "configure",
+            "owner": "DevOps ekibi",
+            "confidence": "design",
+            "note": "Resmî self-host dağıtım araçları mevcut; on-prem ürün paketi, bağımlılık matrisi ve işletim kabulü ayrı dağıtım işidir. Macte Colima tercihi korunur.",
+            "acceptance": "Belirlenen müşteri ortamında kurulum, Keycloak erişimi, backup ve sağlık kontrolü belgelenen adımlarla geçsin.",
+            "sources": [
+              {
+                "title": "Frappe Docker resmî dağıtım deposu",
+                "url": "https://github.com/frappe/frappe_docker"
+              },
+              {
+                "title": "Bench resmî CLI tanıtımı",
+                "url": "https://frappe.io/bench"
+              },
+              {
+                "title": "Keycloak OIDC Layers",
+                "url": "https://www.keycloak.org/securing-apps/oidc-layers"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "Cluster (sunucu kümesi) yönetimi.",
+          "raw": "cluster",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "DevOps ekibi",
+            "confidence": "design",
+            "note": "Sunucu kümesi yönetimi Framework uygulama çekirdeğinden ayrıdır; Press ayrı kontrol düzlemi seçeneğidir. Orkestrasyon ve yetki sınırları ayrıca seçilecek.",
+            "acceptance": "Düğüm ekleme/çıkarma kontrollü yapılsın; servis ve tenant yerleşimi izlenebilir kalsın.",
+            "sources": [
+              {
+                "title": "Frappe Press resmî deposu",
+                "url": "https://github.com/frappe/press"
+              },
+              {
+                "title": "Frappe Docker resmî dağıtım deposu",
+                "url": "https://github.com/frappe/frappe_docker"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "Subdomain (alt alan adı) ve multi-domain (çoklu alan adı).",
+          "raw": "Subdomain, multi-domain",
+          "assessment": {
+            "support": "partial",
+            "action": "integrate",
+            "owner": "DevOps ekibi ve DNS operasyon ekibi",
+            "confidence": "documented",
+            "note": "Bench site/domain yönlendirme desteği sağlar; headless domainleri ve Keycloak redirect izinleri ayrıca bağlanır. Teknik DNS değerlerini DevOps ekibi hazırlar, DNS operasyon ekibi uygular.",
+            "acceptance": "Alt alan ve özel domain doğru site/frontend tenantına gitsin; yanlış host başka tenant verisi açmasın.",
+            "sources": [
+              {
+                "title": "Bench Multitenancy",
+                "url": "https://docs.frappe.io/framework/user/en/bench/guides/setup-multitenancy"
+              },
+              {
+                "title": "Bench Custom Domains",
+                "url": "https://docs.frappe.io/framework/user/en/bench/guides/adding-custom-domains"
+              },
+              {
+                "title": "Keycloak OIDC Layers",
+                "url": "https://www.keycloak.org/securing-apps/oidc-layers"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Paylaşımlı/ayrılmış uygulama ve veri tabanı kaynak tahsisi.",
+          "assessment": {
+            "support": "partial",
+            "action": "integrate",
+            "owner": "DevOps ekibi",
+            "confidence": "documented",
+            "note": "Site başına DB ve Bench yerleşimi temel sağlar; paylaşımlı/dedike kaynak ürün planı, kota ve taşınma yaşam döngüsü ayrıca kurulur. Site ile iş tenantı aynı kabul edilmez.",
+            "acceptance": "Paylaşımlıdan ayrılmış yerleşime geçişte veriler/izinler korunsun; kaynak tahsisi kayıtlı ve ölçülebilir olsun.",
+            "sources": [
+              {
+                "title": "Bench Multitenancy",
+                "url": "https://docs.frappe.io/framework/user/en/bench/guides/setup-multitenancy"
+              },
+              {
+                "title": "Frappe Press resmî deposu",
+                "url": "https://github.com/frappe/press"
+              },
+              {
+                "title": "Frappe Docker resmî dağıtım deposu",
+                "url": "https://github.com/frappe/frappe_docker"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Alan adı sahipliği doğrulama; güvenlik sertifikası oluşturma ve yenileme.",
+          "assessment": {
+            "support": "partial",
+            "action": "integrate",
+            "owner": "DevOps ekibi ve DNS operasyon ekibi",
+            "confidence": "documented",
+            "note": "Bench HTTPS/custom-domain araçları sertifika kurulumuna temel olur; otomatik sahiplik doğrulama ve yenileme ürünü ayrıca bağlanır. DNS işlemini DNS operasyon ekibi yapar.",
+            "acceptance": "Doğrulanmamış domain bağlanmasın; sertifika yenileme kesintisiz çalışsın ve başarısızlık alarmı versin.",
+            "sources": [
+              {
+                "title": "Bench Custom Domains",
+                "url": "https://docs.frappe.io/framework/user/en/bench/guides/adding-custom-domains"
+              },
+              {
+                "title": "Bench HTTPS",
+                "url": "https://docs.frappe.io/framework/user/en/bench/guides/configuring-https"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Kurulum sihirbazı, ortam yapılandırması ve kurulum sağlık denetimi.",
+          "assessment": {
+            "support": "partial",
+            "action": "build",
+            "owner": "DevOps ekibi ve ürün ekibi",
+            "confidence": "documented",
+            "note": "Bench kurulum komutları ve site config mevcut; headless kurulum sihirbazı, Keycloak bağlantı testi ve birleşik sağlık kabulü ayrı ürün geliştirmesidir.",
+            "acceptance": "Eksik zorunlu ayar kurulumu tamamlatmasın; backend, worker, DB, Redis ve Keycloak sağlık sonucu görülsün.",
+            "sources": [
+              {
+                "title": "Bench resmî CLI tanıtımı",
+                "url": "https://frappe.io/bench"
+              },
+              {
+                "title": "Frappe site_config",
+                "url": "https://docs.frappe.io/framework/user/en/basics/site_config"
+              },
+              {
+                "title": "Frappe Docker resmî dağıtım deposu",
+                "url": "https://github.com/frappe/frappe_docker"
+              },
+              {
+                "title": "Keycloak OIDC Layers",
+                "url": "https://www.keycloak.org/securing-apps/oidc-layers"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Yatay ölçekleme, yük dağıtımı ve yüksek erişilebilirlik.",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "DevOps ekibi",
+            "confidence": "design",
+            "note": "Yatay ölçekleme ve HA web/worker, DB, Redis, dosya ve load balancer topolojisine bağlıdır; Framework kurulumundan otomatik yüksek erişilebilirlik sonucu çıkarılmaz.",
+            "acceptance": "Bir düğüm kaybında tanımlı süre/hedef içinde kritik akış sürsün; DB ve oturum tek hata noktaları sınansın.",
+            "sources": [
+              {
+                "title": "Frappe Docker resmî dağıtım deposu",
+                "url": "https://github.com/frappe/frappe_docker"
+              },
+              {
+                "title": "NGINX HTTP Upstream Module",
+                "url": "https://nginx.org/en/docs/http/ngx_http_upstream_module.html"
+              },
+              {
+                "title": "Frappe Press resmî deposu",
+                "url": "https://github.com/frappe/press"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Alan adı/kurulum kaldırma; artık kaynak ve erişim temizliği.",
+          "assessment": {
+            "support": "partial",
+            "action": "build",
+            "owner": "DevOps ekibi ve DNS operasyon ekibi",
+            "confidence": "documented",
+            "note": "Bench/Press site yaşam döngüsüne temel sağlar; domain/DNS, sertifika, Keycloak client ve artık kaynak temizliği bütünleşik ürün akışıyla tamamlanacak.",
+            "acceptance": "İzinli kaldırma sonrası artık yönlendirme/erişim kalmasın; saklanması gereken yedek ve denetim kanıtı politikaya göre korunsun.",
+            "sources": [
+              {
+                "title": "Bench resmî CLI tanıtımı",
+                "url": "https://frappe.io/bench"
+              },
+              {
+                "title": "Frappe Press resmî deposu",
+                "url": "https://github.com/frappe/press"
+              },
+              {
+                "title": "Bench Custom Domains",
+                "url": "https://docs.frappe.io/framework/user/en/bench/guides/adding-custom-domains"
+              },
+              {
+                "title": "Keycloak OIDC Layers",
+                "url": "https://www.keycloak.org/securing-apps/oidc-layers"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": ["tenant"],
+      "num": "01.3"
+    },
+    {
+      "id": "releases",
+      "title": "Sürüm, güncelleme ve veri geçişleri",
+      "owns": "Sürüm paketleri, kurulum geçmişi, geçiş ve demo veri iş kayıtları.",
+      "links": [
+        ["modules", "Modül geçiş bildirimi"],
+        ["deployment", "Kurulum hedefi"],
+        ["jobs", "Yürütüm"],
+        ["backup", "Geri yükleme noktası"]
+      ],
+      "provides": "Güncelleme sonucu, modül şema sürümü ve demo ortamı.",
+      "items": [
+        {
+          "kind": "o",
+          "text": "DevOps (Development and Operations — geliştirme ve işletim birlikteliği) araç bağlantıları.",
+          "raw": "devops",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "DevOps ekibi",
+            "confidence": "design",
+            "note": "DevOps araç bağlantıları dağıtım altyapısının sorumluluğudur; Press ve resmî container araçları seçenek sağlar. Repo/build/registry yetkileri ayrıca kurulacak.",
+            "acceptance": "Seçilen araçlar sürüm kaynağına bağlansın; servis hesabı yalnız gerekli repo/artifact kapsamına erişsin.",
+            "sources": [
+              {
+                "title": "Frappe Press resmî deposu",
+                "url": "https://github.com/frappe/press"
+              },
+              {
+                "title": "Frappe Docker resmî dağıtım deposu",
+                "url": "https://github.com/frappe/frappe_docker"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "CI/CD (Continuous Integration / Continuous Delivery — sürekli entegrasyon / sürekli teslimat) güncelleme bağlantısı.",
+          "raw": "ci cd güncelleme; ci/cd",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "DevOps ekibi",
+            "confidence": "design",
+            "note": "CI/CD pipeline Framework uygulama çekirdeği değildir; test, paket, onaylı dağıtım ve sağlık aşamaları seçilen altyapıya bağlanacak.",
+            "acceptance": "Başarısız kontrol dağıtımı engellesin; kabul edilen artifact sürümü ve dağıtım sonucu izlenebilsin.",
+            "sources": [
+              {
+                "title": "Frappe Docker resmî dağıtım deposu",
+                "url": "https://github.com/frappe/frappe_docker"
+              },
+              {
+                "title": "Frappe Press resmî deposu",
+                "url": "https://github.com/frappe/press"
+              },
+              {
+                "title": "Bench migrate",
+                "url": "https://docs.frappe.io/framework/user/en/bench/reference/migrate"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "Rollback (önceki sürüme dönüş) yönetimi.",
+          "raw": "rollback",
+          "assessment": {
+            "support": "partial",
+            "action": "build",
+            "owner": "DevOps ekibi",
+            "confidence": "documented",
+            "note": "Sabit uygulama sürümü ve Bench restore geri dönüşe temel olur; güvenli rollback orkestrasyonu ayrıca yapılır. Kod sürümü düşürmek şema/veriyi otomatik geri döndürmez.",
+            "acceptance": "Geri dönüş provasında doğru artifact, veritabanı snapshotı ve anahtarlar eşleşsin; sağlık koşulları geçsin.",
+            "sources": [
+              {
+                "title": "Bench restore",
+                "url": "https://docs.frappe.io/framework/user/en/bench/reference/restore"
+              },
+              {
+                "title": "Frappe Database Migrations",
+                "url": "https://docs.frappe.io/framework/user/en/database-migrations"
+              },
+              {
+                "title": "Frappe site_config",
+                "url": "https://docs.frappe.io/framework/user/en/basics/site_config"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "Migration engine (veri ve şema geçiş motoru).",
+          "raw": "migration engine",
+          "assessment": {
+            "support": "native",
+            "action": "configure",
+            "owner": "Backend ve DevOps ekibi",
+            "confidence": "documented",
+            "note": "Framework patch/schema migration motoru ve bench migrate mevcut; özel uygulamanın geçişleri bu sözleşmede hazırlanıp sürümle sabitlenecek.",
+            "acceptance": "Örnek patch ve şema geçişi staging kopyasında çalışsın; hata üretimde atlanmasın ve sonuç sürümü kaydedilsin.",
+            "sources": [
+              {
+                "title": "Frappe Database Migrations",
+                "url": "https://docs.frappe.io/framework/user/en/database-migrations"
+              },
+              {
+                "title": "Bench migrate",
+                "url": "https://docs.frappe.io/framework/user/en/bench/reference/migrate"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "Demo verisi etkinleştirme.",
+          "raw": "Demo data aktif etmek",
+          "assessment": {
+            "support": "ecosystem",
+            "action": "extend",
+            "owner": "Ürün ve demo verisi",
+            "confidence": "documented",
+            "note": "Frappe CRMde demo veri adımı vardır; bu ayrı uygulama özelliği genel Framework demo aktivasyonu değildir. Özel modüllerin demo paketleri ayrıca hazırlanacak.",
+            "acceptance": "Demo etkinleştirme yalnız demo tenantında çalışsın; örnek senaryolar ve gerçek servis bağlantıları ayrışsın.",
+            "sources": [
+              {
+                "title": "Frappe CRM: Your First Steps",
+                "url": "https://docs.frappe.io/crm/setup-guide/your-first-steps-with-frappe-crm"
+              },
+              {
+                "title": "Frappe Database Migrations",
+                "url": "https://docs.frappe.io/framework/user/en/database-migrations"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Sürüm paketi doğrulama, modül uyumu ve geçiş ilerlemesi.",
+          "assessment": {
+            "support": "partial",
+            "action": "build",
+            "owner": "DevOps ekibi ve backend",
+            "confidence": "documented",
+            "note": "migrate app sürümleri ve aşamalarla temel sağlar; paket imzası/doğrulaması, modül uyum matrisi ve headless ilerleme ürünü ayrıca kurulacak.",
+            "acceptance": "Uyumsuz veya doğrulanmamış paket dağıtılamasın; başarısız aşama ve kurulu sürümler açık görülsün.",
+            "sources": [
+              {
+                "title": "Bench migrate",
+                "url": "https://docs.frappe.io/framework/user/en/bench/reference/migrate"
+              },
+              {
+                "title": "Frappe Database Migrations",
+                "url": "https://docs.frappe.io/framework/user/en/database-migrations"
+              },
+              {
+                "title": "Frappe Press resmî deposu",
+                "url": "https://github.com/frappe/press"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Geçiş önkontrolü; uygulama geri dönüşü ile veri geri dönüşünü ayırma.",
+          "assessment": {
+            "support": "partial",
+            "action": "build",
+            "owner": "DevOps ekibi ve backend",
+            "confidence": "documented",
+            "note": "Migration/backup/restore araçları mevcut; kapasite ve veri önkontrolü ile uygulama rollbacki/veri restore kararını ayıran plan ayrıca hazırlanacak.",
+            "acceptance": "Geçiş öncesi yedek/kapasite kontrolü geçsin; iki geri dönüş yolu ve kayıp hedefleri provada ayrı doğrulansın.",
+            "sources": [
+              {
+                "title": "Frappe Database Migrations",
+                "url": "https://docs.frappe.io/framework/user/en/database-migrations"
+              },
+              {
+                "title": "Bench backup",
+                "url": "https://docs.frappe.io/framework/user/en/bench/reference/backup"
+              },
+              {
+                "title": "Bench restore",
+                "url": "https://docs.frappe.io/framework/user/en/bench/reference/restore"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Demo verisini oluşturma/sıfırlama; gerçek veriden ayırma.",
+          "assessment": {
+            "support": "partial",
+            "action": "build",
+            "owner": "Demo veri ekibi",
+            "confidence": "documented",
+            "note": "Fixture ve site yaşam döngüsü araçları başlangıç sağlar; özel demo veri üretme/sıfırlama ve gerçek tenantı dışlayan koruma ayrıca geliştirilecek.",
+            "acceptance": "Demo reset yalnız etiketli demo tenantında çalışsın; gerçek veriye ve canlı ödeme/e-posta servislerine dokunmasın.",
+            "sources": [
+              {
+                "title": "Frappe Database Migrations",
+                "url": "https://docs.frappe.io/framework/user/en/database-migrations"
+              },
+              {
+                "title": "Bench resmî CLI tanıtımı",
+                "url": "https://frappe.io/bench"
+              },
+              {
+                "title": "Frappe Users and Permissions",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Bakım modu, kademeli güncelleme ve yayın sonrası sağlık kontrolü.",
+          "assessment": {
+            "support": "partial",
+            "action": "integrate",
+            "owner": "DevOps ekibi",
+            "confidence": "documented",
+            "note": "site_config bakım modu sağlar; canary dağıtım, trafik geçişi ve yayın sonrası sağlık kararları CI/CD altyapısında ayrıca kurulacak.",
+            "acceptance": "Bakımda tanımlı yanıt dönsün; canary sağlık eşiğini geçmeden trafik artmasın; hata rollbacki tetiklesin.",
+            "sources": [
+              {
+                "title": "Frappe site_config",
+                "url": "https://docs.frappe.io/framework/user/en/basics/site_config"
+              },
+              {
+                "title": "Frappe Docker resmî dağıtım deposu",
+                "url": "https://github.com/frappe/frappe_docker"
+              },
+              {
+                "title": "NGINX HTTP Upstream Module",
+                "url": "https://nginx.org/en/docs/http/ngx_http_upstream_module.html"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": [],
+      "num": "01.4"
+    },
+    {
+      "id": "backup",
+      "title": "Yedekleme ve felaket kurtarma",
+      "owns": "Yedek politikaları, kurtarma noktaları ve geri yükleme denemeleri.",
+      "links": [
+        ["deployment", "Veri/ortam konumu"],
+        ["security", "Şifreleme anahtarı"],
+        ["governance", "Silme ve saklama kısıtları"]
+      ],
+      "provides": "Doğrulanmış geri yükleme noktası; kurtarma sonucu ve kanıtı.",
+      "items": [
+        {
+          "kind": "n",
+          "text": "Veri tabanı, dosya, yapılandırma ve anahtar referanslarının yedeklenmesi.",
+          "assessment": {
+            "support": "partial",
+            "action": "configure",
+            "owner": "DevOps ekibi",
+            "confidence": "documented",
+            "note": "Bench backup DB, dosya ve site yapılandırmasına temel sağlar; gerekli anahtar referansları, harici servis yapılandırması ve eksiksiz restore manifesti ayrıca yönetilecek.",
+            "acceptance": "Snapshot DB/dosyalar/config ve gerekli anahtar erişimiyle izole ortamda açılabilsin; secretlar public artifacta girmesin.",
+            "sources": [
+              {
+                "title": "Bench backup",
+                "url": "https://docs.frappe.io/framework/user/en/bench/reference/backup"
+              },
+              {
+                "title": "Frappe site_config",
+                "url": "https://docs.frappe.io/framework/user/en/basics/site_config"
+              },
+              {
+                "title": "Bench restore",
+                "url": "https://docs.frappe.io/framework/user/en/bench/reference/restore"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "n",
+          "text": "Şifreli, ayrı ortamda ve değiştirilmeye karşı korumalı yedek saklama.",
+          "assessment": {
+            "support": "partial",
+            "action": "integrate",
+            "owner": "DevOps ekibi",
+            "confidence": "documented",
+            "note": "Frappe şifreli backup desteği sunar; ayrı ortam, erişim ayrımı ve değişmez saklama otomatik tamamlanmaz. Harici storage/retention politikası kurulacak.",
+            "acceptance": "Yedek anahtarsız okunamasın; offsite kopya üretim hesabının silmesine karşı belirlenen süre korunabilsin.",
+            "sources": [
+              {
+                "title": "Frappe Backup Encryption",
+                "url": "https://docs.frappe.io/framework/user/en/guides/basics/how-to-enable-backup-encryption"
+              },
+              {
+                "title": "Frappe Cloud Backups",
+                "url": "https://docs.frappe.io/cloud/sites/backups"
+              },
+              {
+                "title": "Amazon S3 Object Lock",
+                "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lock.html"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "n",
+          "text": "Kiracı bazlı ve belirli zamana geri yükleme.",
+          "assessment": {
+            "support": "partial",
+            "action": "integrate",
+            "owner": "DevOps ekibi",
+            "confidence": "documented",
+            "note": "Bench site snapshot restore sağlar; aynı site içindeki iş tenantını seçici restore ve PITR ayrı DB/uygulama tasarımıdır. DB motoru seçilmeden zaman hedefi varsayılmaz.",
+            "acceptance": "Seçilen DBde hedef zamana restore provası geçsin; tenant kapsamı ve diğer tenantların etkilenmemesi doğrulansın.",
+            "sources": [
+              {
+                "title": "Bench restore",
+                "url": "https://docs.frappe.io/framework/user/en/bench/reference/restore"
+              },
+              {
+                "title": "Bench Multitenancy",
+                "url": "https://docs.frappe.io/framework/user/en/bench/guides/setup-multitenancy"
+              },
+              {
+                "title": "PostgreSQL Continuous Archiving and PITR",
+                "url": "https://www.postgresql.org/docs/current/continuous-archiving.html"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "n",
+          "text": "Otomatik geri yükleme doğrulaması ve veri bütünlüğü denetimi.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "DevOps ekibi",
+            "confidence": "design",
+            "note": "Restore aracı mevcut; incelenen çekirdek kaynaklarda düzenli otomatik kurtarma/bütünlük kabul sistemi saptanmadı. İzole restore ve doğrulama pipelineı kurulacak.",
+            "acceptance": "Zamanlanmış prova snapshotı açsın; ilişki/toplam/dosya kontrollerini kaydetsin; bozuk yedek alarm üretsin.",
+            "sources": [
+              {
+                "title": "Bench restore",
+                "url": "https://docs.frappe.io/framework/user/en/bench/reference/restore"
+              },
+              {
+                "title": "Bench backup",
+                "url": "https://docs.frappe.io/framework/user/en/bench/reference/backup"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "n",
+          "text": "RPO (Recovery Point Objective — kabul edilebilir veri kaybı hedefi) takibi.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "DevOps ekibi",
+            "confidence": "design",
+            "note": "RPO işletim hedefidir; backup komutu hedefin tutulduğunu kanıtlamaz. Son kurtarılabilir veri noktası ölçülüp iş hedefiyle karşılaştırılacak.",
+            "acceptance": "Kurtarma provasında gerçek veri kaybı penceresi hesaplanıp kararlaştırılmış RPOya göre alarm üretsin.",
+            "sources": [
+              {
+                "title": "Bench backup",
+                "url": "https://docs.frappe.io/framework/user/en/bench/reference/backup"
+              },
+              {
+                "title": "PostgreSQL Continuous Archiving and PITR",
+                "url": "https://www.postgresql.org/docs/current/continuous-archiving.html"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "n",
+          "text": "RTO (Recovery Time Objective — hizmeti geri getirme süresi hedefi) takibi.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "DevOps ekibi",
+            "confidence": "design",
+            "note": "RTO servis kurtarma hedefidir; restore komutu uygulama, Keycloak ve dış bağımlılıkların tamamının hazır olma süresini garanti etmez. Uçtan uca prova ölçülecek.",
+            "acceptance": "Kesinti başlangıcından kritik kullanıcı akışının hazır olmasına kadar süre ölçülüp RTO hedefiyle karşılaştırılsın.",
+            "sources": [
+              {
+                "title": "Bench restore",
+                "url": "https://docs.frappe.io/framework/user/en/bench/reference/restore"
+              },
+              {
+                "title": "Frappe Docker resmî dağıtım deposu",
+                "url": "https://github.com/frappe/frappe_docker"
+              },
+              {
+                "title": "Keycloak OIDC Layers",
+                "url": "https://www.keycloak.org/securing-apps/oidc-layers"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": ["recovery"],
+      "num": "01.5"
+    },
+    {
+      "id": "service",
+      "title": "Hizmet durumu ve kesinti iletişimi",
+      "owns": "Hizmet olayları, bakım duyuruları ve etkilenen müşteri kayıtları.",
+      "links": [
+        ["observability", "Hizmet alarmı"],
+        ["deployment", "Ortam durumu"],
+        ["notifications", "Müşteri duyurusu"]
+      ],
+      "provides": "Müşteriye hizmet durumu; kesinti ve bakım bildirimleri.",
+      "items": [
+        {
+          "kind": "n",
+          "text": "İç/dış status page (hizmet durumu sayfası).",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "DevOps ekibi ve ürün iletişimi",
+            "confidence": "design",
+            "note": "İncelenen Framework kaynaklarında müşteri kapsamlı iç/dış status-page ürünü saptanmadı; sağlık kaynakları, görünürlük ve ayrı durum yayını geliştirilecek.",
+            "acceptance": "Dış sayfa yalnız kamu bileşenlerini, iç sayfa yetkili ayrıntıyı göstersin; ana uygulama arızasında erişilebilir kalsın.",
+            "sources": [
+              {
+                "title": "Frappe Profiling",
+                "url": "https://docs.frappe.io/framework/user/en/profiling"
+              },
+              {
+                "title": "Prometheus Overview",
+                "url": "https://prometheus.io/docs/introduction/overview/"
+              },
+              {
+                "title": "Frappe Users and Permissions",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "n",
+          "text": "Planlı bakım, bileşen arızası ve etkilenen kiracı görünümü.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "DevOps ekibi ve müşteri operasyonu",
+            "confidence": "design",
+            "note": "Bakım modu mevcut bir araçtır; planlı bakım/arıza ve etkilenen tenantı birleştiren hazır durum ürünü saptanmadı. Etki modeli kurulacak.",
+            "acceptance": "Bir bileşen kesintisi yalnız ilişkili tenantları etkilenmiş göstersin; bakım zaman penceresi doğru yayımlansın.",
+            "sources": [
+              {
+                "title": "Frappe site_config",
+                "url": "https://docs.frappe.io/framework/user/en/basics/site_config"
+              },
+              {
+                "title": "Bench Multitenancy",
+                "url": "https://docs.frappe.io/framework/user/en/bench/guides/setup-multitenancy"
+              },
+              {
+                "title": "Prometheus Overview",
+                "url": "https://prometheus.io/docs/introduction/overview/"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "n",
+          "text": "Kesinti iletişimi, güncelleme geçmişi ve olay sonrası açıklama.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "DevOps ekibi ve ürün iletişimi",
+            "confidence": "design",
+            "note": "Bildirim araçları iletişim zemini sağlar; kesinti yaşam döngüsü, güncelleme geçmişi ve olay sonrası açıklama ürünü ayrıca yapılacak.",
+            "acceptance": "İlk bildirim, güncellemeler ve çözüm zamanları korunup doğru hedef kitleye yayımlansın; olay sonrası rapor bağlansın.",
+            "sources": [
+              {
+                "title": "Frappe Notifications",
+                "url": "https://docs.frappe.io/framework/notifications"
+              },
+              {
+                "title": "Frappe Logging",
+                "url": "https://docs.frappe.io/framework/user/en/logging"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "n",
+          "text": "Hizmet hedefi ihlali ve sözleşmeye bağlı hizmet kredisi kaydı.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Müşteri sözleşmeleri ve finans",
+            "confidence": "design",
+            "note": "Helpdesk SLA ticket sürelerini kapsar; platform erişilebilirliği ihlali ve sözleşmeli hizmet kredisi hesaplayan hazır Framework ürünü saptanmadı. Sözleşme kuralı geliştirilecek.",
+            "acceptance": "Örnek erişilebilirlik ihlalinde sözleşme dönemine göre kredi hesaplansın; onay ve muhasebe bağlantısı denetlensin.",
+            "sources": [
+              {
+                "title": "Frappe Helpdesk Service Level Agreement",
+                "url": "https://docs.frappe.io/helpdesk/service-level-agreement"
+              },
+              {
+                "title": "ERPNext Immutable Ledger",
+                "url": "https://docs.frappe.io/erpnext/immutable-ledger-in-erpnext"
+              },
+              {
+                "title": "GDPR resmî AB metni",
+                "url": "https://eur-lex.europa.eu/eli/reg/2016/679/oj/eng"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": [],
+      "num": "01.6"
+    }
+  ],
+  "phase": "Temel",
+  "rationale": "İlk günden tekrarlanabilir kurulum, sürüm sabitleme, yedekten dönüş ve temel gözlem kurulur. İleri ölçekleme ihtiyaç doğdukça açılır.",
+  "dependsOn": [],
+  "roadmapOrder": 1
+}

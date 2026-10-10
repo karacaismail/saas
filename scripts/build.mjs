@@ -17,5 +17,24 @@ const html = source
   .replace('<!--ATLAS_DATA_ISLAND-->', dataIsland);
 await writeFile('dist/index.html', html);
 await cp('assets', 'dist/assets', { recursive: true });
+const manifest = JSON.parse(await readFile('data/manifest.json', 'utf8'));
+const contentFiles = [
+  './manifest.json',
+  manifest.metadata,
+  manifest.roadmap,
+  manifest.interface,
+  manifest.messages,
+  ...manifest.clusters,
+];
+for (const path of contentFiles) {
+  const relative = path.replace(/^\.\//, '');
+  const target = `dist/data/${relative}`;
+  await mkdir(target.slice(0, target.lastIndexOf('/')), { recursive: true });
+  await writeFile(
+    target,
+    JSON.stringify(JSON.parse(await readFile(`data/${relative}`, 'utf8'))) +
+      '\n',
+  );
+}
 await writeFile('dist/.nojekyll', '');
 console.log('Statik site dist/ içinde hazır.');

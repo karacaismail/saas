@@ -217,20 +217,28 @@ test('public roadmap ownership uses approved roles instead of personal identitie
     'İş olayı ve e-posta',
     'Şablon yönetimi',
   ]);
-  const assessmentFiles = (await readdir(new URL('../data/', import.meta.url)))
-    .filter((name) => /^assessments-.*\.json$/.test(name))
+  const assessmentFiles = (
+    await readdir(new URL('../data/clusters/', import.meta.url))
+  )
+    .filter((name) => /^\d+\.json$/.test(name))
     .sort();
   assert.ok(assessmentFiles.length > 0, 'assessment sources must be checked');
   for (const name of assessmentFiles) {
-    const assessments = JSON.parse(
-      await readFile(new URL(`../data/${name}`, import.meta.url), 'utf8'),
+    const cluster = JSON.parse(
+      await readFile(
+        new URL(`../data/clusters/${name}`, import.meta.url),
+        'utf8',
+      ),
     );
-    for (const [id, assessment] of Object.entries(assessments)) {
-      assert.ok(
-        approvedRoles.has(assessment.owner),
-        `${name}:${id}: owner must be an approved public role`,
-      );
-    }
+    for (const group of cluster.groups)
+      for (const [index, item] of group.items.entries()) {
+        const id = `${group.id}-${index + 1}`,
+          assessment = item.assessment;
+        assert.ok(
+          approvedRoles.has(assessment.owner),
+          `${name}:${id}: owner must be an approved public role`,
+        );
+      }
   }
   for (const { id, item } of rows) {
     assert.ok(

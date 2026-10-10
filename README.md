@@ -24,7 +24,7 @@ npm run dev
 
 Tarayıcıda `http://127.0.0.1:4173` adresini açın. `dist/` yalnız yayın dosyalarını içerir.
 
-Değerlendirmeler `data/assessments-*.json`, etiketler ve sıra `data/roadmap.json` içindedir. `npm run roadmap` statik HTML ve veri adasını üretir; build eski veri/görünüm eşleşmesini reddeder. 326 özgün madde fixture ile korunur.
+Kümeler, başlıklar, maddeler ve tüm değerlendirmeler `data/clusters/<id>.json`; etiketler ve sıra `data/roadmap.json`; arayüz ve rehber metinleri `data/interface.json` ve `data/messages.json` içindedir. `npm run roadmap` aynı JS engine ile statik görünüm ve yükleme-hatası snapshot'ını üretir; build eski görünümü reddeder. Tam veri ve görünen metinler değişmez fixture'larla korunur.
 
 ```sh
 npx playwright install chromium firefox webkit
@@ -38,3 +38,7 @@ Playwright testleri gerçek Safari/iOS/Android sertifikasyonu değildir. Çalı�
 `main` dalına push, `.github/workflows/pages.yml` aracılığıyla kontrolleri çalıştırır, statik siteyi paketler ve GitHub Pages'e dağıtır. Workflow Git commit üretmez. Public kaynak kodu servis veya kullanıcı verilerine erişim sağlamaz.
 
 Outfit dosyaları Google Fonts'tan alınmıştır ve [SIL Open Font License](assets/fonts/OFL.txt) kapsamında dağıtılır. Proje kodunun lisansı MIT'dir. Font kaynağı: [Google Fonts Outfit](https://github.com/google/fonts/tree/main/ofl/outfit).
+
+## İçerik kaynağı
+
+Görünen bütün metinler sınıflandırılmış JSON dosyalarından gelir. `data/clusters/` altında 12 tam küme; `data/interface.json` ve `data/messages.json` içinde arayüz/rehber/çıktı metinleri bulunur. HTML ve JS kaynaklarına içerik eklemeyin. `npm run roadmap` ortak JS engine ile yayın görünümünü üretir; tarayıcı aynı engine ile JSON'u yükler. Veri koruma ve düzenleme sözleşmesi [docs/content-model.md](docs/content-model.md) içindedir.

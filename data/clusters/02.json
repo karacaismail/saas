@@ -1,0 +1,860 @@
+{
+  "id": "02",
+  "title": "Modüller, paketler ve kullanım hakları",
+  "short": "Modül ve abonelik",
+  "groups": [
+    {
+      "id": "modules",
+      "title": "Modül kataloğu ve etkinleştirme",
+      "owns": "Modül tanımları, kurulum durumu ve teknik özellik anahtarları.",
+      "links": [],
+      "provides": "Etkin modül ve özellik bilgisi; modül yaşam döngüsü olayları.",
+      "items": [
+        {
+          "kind": "o",
+          "text": "Modül açma ve kapatma.",
+          "raw": "Modül aç kapat",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Frappe backend",
+            "confidence": "documented",
+            "note": "Uygulama kurulum ve görünürlük araçları bulunur. Ürün modülünü kapatmak API ve iş çalışmasını durduran ayrı durum gerektirir.",
+            "acceptance": "Modül kapanınca yeni API/job çalışması reddedilmeli; kayıtlar ve geçmiş korunmalı.",
+            "sources": [
+              {
+                "title": "Frappe: uygulama yapısı ve kurulum",
+                "url": "https://docs.frappe.io/framework/user/en/basics/apps"
+              },
+              {
+                "title": "Frappe: kullanıcılar ve izinler",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "Modül tanım dosyası: module.manifest.yml.",
+          "raw": "module.manifest.yml",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Platform",
+            "confidence": "design",
+            "note": "Frappe apps; hooks.py, modules.txt ve patches.txt kullanır. İncelenen resmî yapı module.manifest.yml sözleşmesi tanımlamaz.",
+            "acceptance": "YAML kullanılacaksa şeması doğrulanmalı ve Frappe app/hook kayıtlarına deterministik çevrilmeli.",
+            "sources": [
+              {
+                "title": "Frappe: uygulama yapısı ve kurulum",
+                "url": "https://docs.frappe.io/framework/user/en/basics/apps"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Modül kataloğu, kurulum, bağımlılık, sürüm uyumu ve güvenli kaldırma.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Platform",
+            "confidence": "documented",
+            "note": "App bağımlılığı, kurulum ve kaldırma araçları vardır. SaaS katalog ve sürüm uyumu politikası eklenir; uninstall veri silme riski taşır.",
+            "acceptance": "Bağımlılığı eksik sürüm kurulmadan durmalı; kaldırma öncesi veri koruma ve geri dönüş denenmeli.",
+            "sources": [
+              {
+                "title": "Frappe: uygulama yapısı ve kurulum",
+                "url": "https://docs.frappe.io/framework/user/en/basics/apps"
+              },
+              {
+                "title": "Frappe: genişletme ve izin hookları",
+                "url": "https://docs.frappe.io/framework/user/en/python-api/hooks"
+              },
+              {
+                "title": "Frappe: uninstall-app",
+                "url": "https://docs.frappe.io/framework/user/en/bench/reference/uninstall-app"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Modül kapanırken kayıt koruma ve devam eden işlemleri durdurma.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Frappe backend",
+            "confidence": "design",
+            "note": "Uninstall devre dışı bırakmanın karşılığı değildir. İncelenen kaynaklarda veri koruyan modül askı ve job boşaltma akışı hazır saptanmadı.",
+            "acceptance": "Devam eden iş güvenli noktada bitmeli/durmalı; kapalı modüle yazma engellenirken mevcut veri okunabilmeli.",
+            "sources": [
+              {
+                "title": "Frappe: uninstall-app",
+                "url": "https://docs.frappe.io/framework/user/en/bench/reference/uninstall-app"
+              },
+              {
+                "title": "Frappe: arka plan işleri ve zamanlayıcı",
+                "url": "https://docs.frappe.io/framework/user/en/api/background_jobs"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Feature flags (özellik açma-kapama anahtarları) ve kiracı bazlı kademeli açılış.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Platform + backend",
+            "confidence": "design",
+            "note": "Site config ve hooklar temel sağlar. İncelenen kaynaklarda tenant/cohort bazlı ürün feature flag servisi hazır saptanmadı.",
+            "acceptance": "Aynı sürümde yalnız seçilen kiracı özelliği açabilmeli; backend ve frontend aynı kararı kullanmalı.",
+            "sources": [
+              {
+                "title": "Frappe: site ve ortak yapılandırma",
+                "url": "https://docs.frappe.io/framework/user/en/basics/site_config"
+              },
+              {
+                "title": "Frappe: genişletme ve izin hookları",
+                "url": "https://docs.frappe.io/framework/user/en/python-api/hooks"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Modülün yayımladığı işlev, olay, yetki ve ekran kayıtları.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Platform + frontend",
+            "confidence": "documented",
+            "note": "Hooklar olay, izin ve app metaverisini kaydeder. Headless ekran ve capability registry sözleşmesi ayrıca kurulur.",
+            "acceptance": "Modül kayıtları benzersiz kimlikle yüklenmeli; yetkisiz capability çağrısı sunucuda reddedilmeli.",
+            "sources": [
+              {
+                "title": "Frappe: genişletme ve izin hookları",
+                "url": "https://docs.frappe.io/framework/user/en/python-api/hooks"
+              },
+              {
+                "title": "Frappe: uygulama yapısı ve kurulum",
+                "url": "https://docs.frappe.io/framework/user/en/basics/apps"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Modüle ait kurulum, güncelleme ve veri geçişi bildirimleri.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Platform",
+            "confidence": "documented",
+            "note": "Patches ve migrate hookları vardır. Müşteriye sürüm bildirimi ve migration ilerlemesi için ürün akışı eklenir.",
+            "acceptance": "Başarısız geçiş yeni sürümü etkinleştirmemeli; bildirim sürüm ve etkilenen kiracıya bağlanmalı.",
+            "sources": [
+              {
+                "title": "Frappe: veritabanı geçişleri",
+                "url": "https://docs.frappe.io/framework/user/en/database-migrations"
+              },
+              {
+                "title": "Frappe: genişletme ve izin hookları",
+                "url": "https://docs.frappe.io/framework/user/en/python-api/hooks"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": ["flags"],
+      "num": "09.1"
+    },
+    {
+      "id": "catalog",
+      "title": "Paket, fiyat ve ek hizmet kataloğu",
+      "owns": "Paket sürümleri, fiyatlar, özellik eşlemeleri ve satışa açık sunumlar.",
+      "links": [["modules", "Özellik kimlikleri"]],
+      "provides": "Sürümlü paket/fiyat verisi; satış sayfası ve abonelik için aynı katalog.",
+      "items": [
+        {
+          "kind": "o",
+          "text": "Paket, plan, fiyat ve pricing table (paket-fiyat karşılaştırma tablosu) yönetimi.",
+          "raw": "Paket yönetimi; abonelik+plan+pricing table yönetimi",
+          "assessment": {
+            "support": "ecosystem",
+            "action": "integrate",
+            "owner": "Faturalama + frontend",
+            "confidence": "documented",
+            "note": "ERPNext Subscription Plan ücret ve dönem tanımlar. SaaS özellik matrisi ve headless pricing table ayrıca hazırlanır.",
+            "acceptance": "Plan, para birimi ve dönem fiyatı API/panel/pricing table üzerinde aynı sürümü göstermeli.",
+            "sources": [
+              {
+                "title": "ERPNext: Subscription Plan",
+                "url": "https://docs.frappe.io/erpnext/subscription-plan"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "Paneldeki paket içeriklerinin frontpages (herkese açık sayfalar) ile eşleşmesi.",
+          "raw": "pricing table(admin panelinden paket içeriklerini yönet, dinamik olarak frontpages güncelle)",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Frappe backend + frontend",
+            "confidence": "design",
+            "note": "REST kayıt erişimi sağlar. İncelenen kaynaklarda panel ile bağımsız frontpage'i bağlayan tek SaaS paket yayın sözleşmesi saptanmadı.",
+            "acceptance": "Taslak paket herkese açık olmamalı; yayınlanan paket sürümü iki yüzeyde birebir eşleşmeli.",
+            "sources": [
+              {
+                "title": "Frappe: REST API",
+                "url": "https://docs.frappe.io/framework/user/en/api/rest"
+              },
+              {
+                "title": "ERPNext: Subscription Plan",
+                "url": "https://docs.frappe.io/erpnext/subscription-plan"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Paket ve fiyat sürümleri; mevcut müşterinin eski koşullarını koruma.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Faturalama backend",
+            "confidence": "design",
+            "note": "ERPNext plan değişikliği eski faturayı yeniden yazmaz. Eski müşterinin gelecekteki koşullarını koruyan paket sürümleme ayrıca modellenir.",
+            "acceptance": "Yeni fiyat yayınlanınca grandfathered müşteri eski koşulla, yeni müşteri yeni koşulla faturalanmalı.",
+            "sources": [
+              {
+                "title": "ERPNext: Subscription Plan",
+                "url": "https://docs.frappe.io/erpnext/subscription-plan"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Aylık/yıllık, kullanıcı başına, kullanım bazlı ve karma fiyat modelleri.",
+          "assessment": {
+            "support": "ecosystem",
+            "action": "extend",
+            "owner": "Faturalama backend",
+            "confidence": "documented",
+            "note": "ERPNext dönem, fiyat ve miktar yapılarını sunar. Ölçülen kullanım ve karma fiyat hesapları ayrıca tasarlanır.",
+            "acceptance": "Aylık/yıllık, koltuk ve tüketim örneklerinde hesaplanan tutar kabul edilen fiyat sürümüyle eşleşmeli.",
+            "sources": [
+              {
+                "title": "ERPNext: Subscription Plan",
+                "url": "https://docs.frappe.io/erpnext/subscription-plan"
+              },
+              {
+                "title": "ERPNext: Subscription",
+                "url": "https://docs.frappe.io/erpnext/subscription"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Ek modül, ek kullanıcı, ek kota ve müşteri özel fiyat teklifi.",
+          "assessment": {
+            "support": "ecosystem",
+            "action": "extend",
+            "owner": "Faturalama backend",
+            "confidence": "documented",
+            "note": "ERPNext aboneliğe birden çok plan ve miktar ekleyebilir. Kota ve müşteri özel teklifin ürün haklarına eşlemesi eklenir.",
+            "acceptance": "Ek hizmet satın alımı tek fatura ve doğru hak artışı üretmeli; teklife özel fiyat başka müşteriye uygulanmamalı.",
+            "sources": [
+              {
+                "title": "ERPNext: Subscription",
+                "url": "https://docs.frappe.io/erpnext/subscription"
+              },
+              {
+                "title": "ERPNext: Subscription Plan",
+                "url": "https://docs.frappe.io/erpnext/subscription-plan"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Satışa açık, gizli, kullanımdan kaldırılmış ve sözleşmeye özel paketler.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Faturalama backend",
+            "confidence": "design",
+            "note": "Plan kaydı bulunur. İncelenen kaynaklarda herkese açık/gizli/emekli/sözleşmeli SaaS satış durumları bütünü hazır saptanmadı.",
+            "acceptance": "Emekli plan yeni satışta seçilememeli; mevcut sözleşmedeki müşteri erişimini korumalı.",
+            "sources": [
+              {
+                "title": "ERPNext: Subscription Plan",
+                "url": "https://docs.frappe.io/erpnext/subscription-plan"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": ["entitlements", "subscription"],
+      "num": "09.2"
+    },
+    {
+      "id": "subscriptions",
+      "title": "Abonelik yaşam döngüsü",
+      "owns": "Abonelik, dönem, plan değişikliği ve ticari hizmet durumu.",
+      "links": [
+        ["catalog", "Paket ve fiyat sürümü"],
+        ["payments", "Tahsilat sonucu olayları"]
+      ],
+      "provides": "Abonelik durumu ve dönem olayları; kullanım haklarına ticari durum bildirimi.",
+      "items": [
+        {
+          "kind": "o",
+          "text": "Abonelik başlatma, yenileme, iptal ve suspend (hizmeti askıya alma).",
+          "raw": "Ödeme / abonelik / suspend; abonelik+plan+pricing table",
+          "assessment": {
+            "support": "ecosystem",
+            "action": "extend",
+            "owner": "Faturalama + backend",
+            "confidence": "documented",
+            "note": "ERPNext tekrar fatura ve abonelik durumlarını yönetir. Hizmetin askıya alınması ürün erişim politikasıyla bağlanır.",
+            "acceptance": "Başlatma/iptal tekrarında ikinci abonelik oluşmamalı; askı kararı API haklarına aynı anda yansımalı.",
+            "sources": [
+              {
+                "title": "ERPNext: Subscription",
+                "url": "https://docs.frappe.io/erpnext/subscription"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Ücretsiz plan, deneme süresi ve denemeden ücretli plana geçiş.",
+          "assessment": {
+            "support": "ecosystem",
+            "action": "extend",
+            "owner": "Faturalama + backend",
+            "confidence": "documented",
+            "note": "ERPNext Trialing ve dönem akışları sunar. Ücretsiz plan hakları ve ödeme sonrası ürün geçişi ayrıca uygulanır.",
+            "acceptance": "Deneme bitiş sınırında doğru haklar uygulanmalı; ücretliye geçiş veri ve üyeliği korumalı.",
+            "sources": [
+              {
+                "title": "ERPNext: Subscription",
+                "url": "https://docs.frappe.io/erpnext/subscription"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Paket yükseltme/düşürme; hemen veya dönem sonunda değiştirme.",
+          "assessment": {
+            "support": "ecosystem",
+            "action": "extend",
+            "owner": "Faturalama backend",
+            "confidence": "documented",
+            "note": "ERPNext plan ve dönem sonu iptalini destekler. Upgrade/downgrade etkinlik zamanı için ürün değişim kaydı eklenir.",
+            "acceptance": "Hemen ve dönem sonu değişim ayrı denenmeli; düşürmede fazla veri sessizce silinmemeli.",
+            "sources": [
+              {
+                "title": "ERPNext: Subscription",
+                "url": "https://docs.frappe.io/erpnext/subscription"
+              },
+              {
+                "title": "ERPNext: Subscription Plan",
+                "url": "https://docs.frappe.io/erpnext/subscription-plan"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Dönem içi fiyat farkı, ödeme ek süresi ve yeniden etkinleştirme.",
+          "assessment": {
+            "support": "ecosystem",
+            "action": "extend",
+            "owner": "Faturalama backend",
+            "confidence": "documented",
+            "note": "ERPNext proration/grace ayarları belgeli. Tahsilat sonucu ile hizmetin yeniden açılması bağlanır.",
+            "acceptance": "Dönem ortası fark, başarısız ödeme ek süresi ve yeniden ödeme sonucu tutar/hak bakımından uzlaşmalı.",
+            "sources": [
+              {
+                "title": "ERPNext: Subscription Settings",
+                "url": "https://docs.frappe.io/erpnext/subscription-settings"
+              },
+              {
+                "title": "ERPNext: Subscription",
+                "url": "https://docs.frappe.io/erpnext/subscription"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Müşterinin abonelik, fatura ve ödeme yöntemlerini yönetebildiği portal.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "Headless frontend + backend",
+            "confidence": "design",
+            "note": "ERPNext müşteri portalı belgeli; bağımsız headless abonelik ve ödeme yöntemi yüzeyi hazır kabul edilmez.",
+            "acceptance": "Müşteri yalnız kendi faturalarını görmeli; ödeme yöntemi değişimi sağlayıcı akışıyla güvenli tamamlanmalı.",
+            "sources": [
+              {
+                "title": "ERPNext: Customer Portal",
+                "url": "https://docs.frappe.io/erpnext/customer-portal"
+              },
+              {
+                "title": "Stripe: sağlayıcı ödeme yöntemleri örneği",
+                "url": "https://docs.stripe.com/payments/payment-methods"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "İptal nedeni, duraklatma, bitiş tarihi ve yeniden abonelik.",
+          "assessment": {
+            "support": "ecosystem",
+            "action": "extend",
+            "owner": "Faturalama backend",
+            "confidence": "documented",
+            "note": "ERPNext bitiş/iptal durumları sağlar. İptal nedeni, duraklatma ve tekrar abonelik ürün politikası eklenir.",
+            "acceptance": "Dönem sonunda iptal ile hemen iptal ayrılmalı; yeniden abonelik geçmiş kayıtları bozmamalı.",
+            "sources": [
+              {
+                "title": "ERPNext: Subscription",
+                "url": "https://docs.frappe.io/erpnext/subscription"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": ["subscription"],
+      "num": "09.3"
+    },
+    {
+      "id": "entitlements",
+      "title": "Özellik kullanım hakları",
+      "owns": "Kiracıya tanınmış ticari haklar ve süreli istisnalar.",
+      "links": [
+        ["catalog", "Paket-özellik eşlemesi"],
+        ["subscriptions", "Abonelik durumu olayları"]
+      ],
+      "provides": "Kiracı bu özelliği kullanabilir mi kararı; hak değişikliği olayları.",
+      "items": [
+        {
+          "kind": "g",
+          "text": "Entitlements (paket veya sözleşmeden doğan özellik kullanım hakları).",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Frappe backend",
+            "confidence": "design",
+            "note": "Rol izinleri vardır. İncelenen kaynaklarda paket/sözleşme kaynaklı SaaS entitlement motoru hazır saptanmadı.",
+            "acceptance": "Paket hakkı olmayan işlem kullanıcı rolü yetkili olsa da backend tarafından reddedilmeli.",
+            "sources": [
+              {
+                "title": "Frappe: kullanıcılar ve izinler",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              },
+              {
+                "title": "ERPNext: Subscription Plan",
+                "url": "https://docs.frappe.io/erpnext/subscription-plan"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Paket hakları, teknik modül anahtarları ve kullanıcı yetkilerinin ayrı denetimi.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Frappe backend",
+            "confidence": "design",
+            "note": "DocType izinleri ve app kayıtları ayrı araçlardır. Ticari hak, teknik modül ve kullanıcı yetkisini birlikte değerlendiren politika eklenir.",
+            "acceptance": "Üç denetimden biri olumsuzsa işlem reddedilmeli; frontend görünürlüğü tek denetim olmamalı.",
+            "sources": [
+              {
+                "title": "Frappe: kullanıcılar ve izinler",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              },
+              {
+                "title": "Frappe: uygulama yapısı ve kurulum",
+                "url": "https://docs.frappe.io/framework/user/en/basics/apps"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Kiracı özel hak tanımlama; başlangıç, bitiş ve geri alma.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Frappe backend",
+            "confidence": "design",
+            "note": "DocType ile hak kaydı modellenebilir. İncelenen kaynaklarda süreli tenant özel hak ve geri alma akışı hazır saptanmadı.",
+            "acceptance": "Hak başlangıç/bitiş sınırında değişmeli; geri alma sonrası cache ve çalışan işlem politikası tutarlı olmalı.",
+            "sources": [
+              {
+                "title": "Frappe: DocType veri modeli",
+                "url": "https://docs.frappe.io/framework/user/en/basics/doctypes"
+              },
+              {
+                "title": "Frappe: sunucu controller doğrulamaları",
+                "url": "https://docs.frappe.io/framework/user/en/basics/doctypes/controllers"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Hak değişikliğinin panel, arka plan işi ve entegrasyonda uygulanması.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Frappe backend",
+            "confidence": "design",
+            "note": "Hook ve job araçları vardır. İncelenen kaynaklarda aynı entitlement kararını tüm yürütüm yollarına yayan katman hazır saptanmadı.",
+            "acceptance": "Hak kaldırıldıktan sonra panel, RPC, queue ve entegrasyon aynı yetkisiz sonucu üretmeli.",
+            "sources": [
+              {
+                "title": "Frappe: genişletme ve izin hookları",
+                "url": "https://docs.frappe.io/framework/user/en/python-api/hooks"
+              },
+              {
+                "title": "Frappe: arka plan işleri ve zamanlayıcı",
+                "url": "https://docs.frappe.io/framework/user/en/api/background_jobs"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Askıdaki hesap için salt okunur erişim, veri dışa aktarma ve ödeme istisnaları.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Frappe backend",
+            "confidence": "design",
+            "note": "İzinler işlemleri ayırabilir. Askıdaki müşteriye salt okunur veri teslimi ve ödeme istisnası veren hazır SaaS politikası saptanmadı.",
+            "acceptance": "Askıdayken iş yazmaları engellenmeli; yetkili export ve ödeme akışı çalışırken tenant sınırı korunmalı.",
+            "sources": [
+              {
+                "title": "Frappe: kullanıcılar ve izinler",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              },
+              {
+                "title": "Frappe: REST API",
+                "url": "https://docs.frappe.io/framework/user/en/api/rest"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Müşteri ortamına kurulum için lisans doğrulama ve çevrimdışı tolerans.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Platform",
+            "confidence": "design",
+            "note": "App kurulum yapısı belgeli. İncelenen kaynaklarda müşteri ortamı için imzalı lisans ve çevrimdışı tolerans sistemi hazır saptanmadı.",
+            "acceptance": "İmzası bozuk/süresi dolan lisans ve ağ kesintisi denenmeli; kararlaştırılmış grace süresi deterministik uygulanmalı.",
+            "sources": [
+              {
+                "title": "Frappe: uygulama yapısı ve kurulum",
+                "url": "https://docs.frappe.io/framework/user/en/basics/apps"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": ["entitlements"],
+      "num": "09.4"
+    },
+    {
+      "id": "usage",
+      "title": "Kota, tüketim ve kredi hesabı",
+      "owns": "Kullanım kayıtları, sayaçlar, kota rezervasyonları ve kredi hareketleri.",
+      "links": [
+        ["entitlements", "Kullanım hakları"],
+        ["catalog", "Kota ve fiyat tanımları"]
+      ],
+      "provides": "Kota kararı, tüketim olayları ve faturalamaya ölçülmüş kullanım.",
+      "items": [
+        {
+          "kind": "o",
+          "text": "Dosya yükleme, AI (Artificial Intelligence — yapay zekâ) kredisi ve trafik limitleri.",
+          "raw": "limit yönetimi [file upload, ai credit, hosting trafik]",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Platform + backend",
+            "confidence": "documented",
+            "note": "Çekirdekte dosya başına boyut sınırı vardır. AI kredi ve müşteri trafik tüketimi için ayrı sayaç ve yaptırım gerekir.",
+            "acceptance": "Dosya sınırı aşımı reddedilmeli; AI/traffic limitine eşzamanlı erişim kotayı aşamamalı.",
+            "sources": [
+              {
+                "title": "Frappe: dosya ekleri ve görsel iyileştirme",
+                "url": "https://docs.frappe.io/framework/user/en/desk/attachments"
+              },
+              {
+                "title": "Frappe: site HTTP zaman bütçesi",
+                "url": "https://docs.frappe.io/framework/deployment/rate-limiting"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Kullanıcı, şirket, çalışma alanı, kayıt ve depolama kotaları.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Frappe backend",
+            "confidence": "design",
+            "note": "DocType ve site yapıları kullanılır. İncelenen kaynaklarda şirket/koltuk/kayıt/depolama ticari kotası hazır saptanmadı.",
+            "acceptance": "Son koltuk veya kota için iki eşzamanlı istekte yalnız izin verilen sayı oluşturulmalı.",
+            "sources": [
+              {
+                "title": "Frappe: DocType veri modeli",
+                "url": "https://docs.frappe.io/framework/user/en/basics/doctypes"
+              },
+              {
+                "title": "Frappe: site oluşturma ve site başına veritabanı",
+                "url": "https://docs.frappe.io/framework/user/en/tutorial/create-a-site"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "API (Application Programming Interface — uygulama programlama arayüzü) çağrısı ve entegrasyon kotaları.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Platform + backend",
+            "confidence": "documented",
+            "note": "Frappe site HTTP rate limit'i süre tüketimine dayanır. Paket bazlı çağrı sayısı ve entegrasyon kotası ayrıca tutulur.",
+            "acceptance": "Süre bütçesiyle çağrı adedi ayrılmalı; 429 ve dönem sıfırlama kiracıya doğru uygulanmalı.",
+            "sources": [
+              {
+                "title": "Frappe: site HTTP zaman bütçesi",
+                "url": "https://docs.frappe.io/framework/deployment/rate-limiting"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Otomasyon, eşzamanlı görev, işlem süresi ve bildirim gönderim kotaları.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Platform + backend",
+            "confidence": "documented",
+            "note": "Queue ve timeout yapılandırması vardır. Tenant başına otomasyon, eşzamanlılık ve bildirim hakkı ayrıca sınırlandırılır.",
+            "acceptance": "Bir kiracının yoğun işi diğerini aç bırakmamalı; görev ve bildirim sınırı aşımı açık hata üretmeli.",
+            "sources": [
+              {
+                "title": "Frappe: arka plan işleri ve zamanlayıcı",
+                "url": "https://docs.frappe.io/framework/user/en/api/background_jobs"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Kullanım ölçümü, dönemsel sıfırlama, eşik uyarıları ve aşım kuralları.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Frappe backend",
+            "confidence": "documented",
+            "note": "Rate limiter pencere sıfırlaması sunar. Faturalama dönemi tüketimi, eşik bildirimi ve aşım kuralları ayrı hesaplanır.",
+            "acceptance": "Dönem sınırı, gecikmiş olay ve aynı ölçümün tekrarı toplamı bozmamalı; eşik uyarısı bir kez oluşmalı.",
+            "sources": [
+              {
+                "title": "Frappe: site HTTP zaman bütçesi",
+                "url": "https://docs.frappe.io/framework/deployment/rate-limiting"
+              },
+              {
+                "title": "ERPNext: Subscription",
+                "url": "https://docs.frappe.io/erpnext/subscription"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Krediyi ayırma, tüketme ve başarısız işlemde iade etme.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Frappe backend",
+            "confidence": "design",
+            "note": "Veritabanı işlemleri yapı taşıdır. İncelenen kaynaklarda reserve/consume/refund durumlu SaaS kredi defteri hazır saptanmadı.",
+            "acceptance": "Aynı işlem anahtarı ikinci tüketim yaratmamalı; başarısız işlem rezervasyonu yalnız bir kez iade edilmeli.",
+            "sources": [
+              {
+                "title": "Frappe: Database API ve izin sınırları",
+                "url": "https://docs.frappe.io/framework/user/en/api/database"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Kiracı ve özellik bazlı maliyet; harcama üst sınırı ve anlık durdurma.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Platform + backend",
+            "confidence": "design",
+            "note": "Site/job araçları vardır. İncelenen kaynaklarda tenant-özellik maliyet defteri ve anlık harcama durdurucu hazır saptanmadı.",
+            "acceptance": "Gecikmeli maliyet kaydı ve eşzamanlı çağrıda tavan politikası uygulanmalı; durdurma yeni ücretli işi engellemeli.",
+            "sources": [
+              {
+                "title": "Frappe: arka plan işleri ve zamanlayıcı",
+                "url": "https://docs.frappe.io/framework/user/en/api/background_jobs"
+              },
+              {
+                "title": "Frappe: DocType veri modeli",
+                "url": "https://docs.frappe.io/framework/user/en/basics/doctypes"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": ["tenant", "subscription"],
+      "num": "09.5"
+    },
+    {
+      "id": "campaigns",
+      "title": "Kupon, kampanya ve indirim",
+      "owns": "Promosyon kuralları, kuponlar ve kullanım hakedişleri.",
+      "links": [["catalog", "Uygun ürün ve fiyatlar"]],
+      "provides": "İndirim uygunluğu ve tutarı; kupon kullanım sonucu.",
+      "items": [
+        {
+          "kind": "o",
+          "text": "Kupon, kampanya ve indirim yönetimi.",
+          "raw": "Coupon, kampanya, indirim; kupon kampanya indirim yönetimi",
+          "assessment": {
+            "support": "ecosystem",
+            "action": "integrate",
+            "owner": "Faturalama backend",
+            "confidence": "documented",
+            "note": "ERPNext Coupon Code ve Pricing Rule vardır. SaaS checkout ve plan kapsamı için adaptasyon gerekir.",
+            "acceptance": "Geçerli kod yalnız uygun plan ve müşteri için indirime dönüşmeli; kodsuz fiyat korunmalı.",
+            "sources": [
+              {
+                "title": "ERPNext: Coupon Code",
+                "url": "https://docs.frappe.io/erpnext/coupon-code"
+              },
+              {
+                "title": "ERPNext: Pricing Rule",
+                "url": "https://docs.frappe.io/erpnext/pricing-rule"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "BOGO (Buy One, Get One — bir alana ek ürün) kampanyaları.",
+          "raw": "bogo",
+          "assessment": {
+            "support": "ecosystem",
+            "action": "extend",
+            "owner": "Faturalama backend",
+            "confidence": "documented",
+            "note": "ERPNext ürün indirimi ücretsiz ürün kuralı sunar. SaaS ek koltuk/modül ödülünün entitlement karşılığı eklenir.",
+            "acceptance": "BOGO koşulu sağlanınca yalnız tanımlı ödül verilmeli; iptalde hak politikası uygulanmalı.",
+            "sources": [
+              {
+                "title": "ERPNext: Pricing Rule",
+                "url": "https://docs.frappe.io/erpnext/pricing-rule"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Hedef kitle, geçerlilik süresi, bütçe ve kullanım sınırları.",
+          "assessment": {
+            "support": "ecosystem",
+            "action": "extend",
+            "owner": "Faturalama backend",
+            "confidence": "documented",
+            "note": "ERPNext hedef, tarih ve kullanım sınırı araçları sunar. Kampanya para bütçesi ve eşzamanlı tüketim ayrıca doğrulanır.",
+            "acceptance": "Son kupon kullanımı ve bütçe sınırında eşzamanlı istekler limite uymalı.",
+            "sources": [
+              {
+                "title": "ERPNext: Coupon Code",
+                "url": "https://docs.frappe.io/erpnext/coupon-code"
+              },
+              {
+                "title": "ERPNext: Pricing Rule",
+                "url": "https://docs.frappe.io/erpnext/pricing-rule"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "İndirim birleştirme, öncelik ve kapsam dışı ürün kuralları.",
+          "assessment": {
+            "support": "ecosystem",
+            "action": "configure",
+            "owner": "Faturalama backend",
+            "confidence": "documented",
+            "note": "ERPNext öncelik ve çoklu fiyat kuralı seçenekleri vardır. SaaS ürün/plan istisnaları tanımlanır.",
+            "acceptance": "Çakışan iki indirimde kabul edilen birleşim uygulanmalı; kapsam dışı plan etkilenmemeli.",
+            "sources": [
+              {
+                "title": "ERPNext: Pricing Rule",
+                "url": "https://docs.frappe.io/erpnext/pricing-rule"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "İade/iptalde kupon haklarının düzeltilmesi ve suistimal denetimi.",
+          "assessment": {
+            "support": "ecosystem",
+            "action": "extend",
+            "owner": "Faturalama backend",
+            "confidence": "documented",
+            "note": "Kupon kullanım sayısı ERPNext siparişlerine bağlıdır. İade/iptal sonrası hak düzeltmesi ve kötüye kullanım politikası ayrıca kurulur.",
+            "acceptance": "Kısmi/tam iade ve yeniden denemede kupon hakkı yanlışlıkla çoğalmamalı.",
+            "sources": [
+              {
+                "title": "ERPNext: Coupon Code",
+                "url": "https://docs.frappe.io/erpnext/coupon-code"
+              },
+              {
+                "title": "Stripe: iade sözleşmesi örneği",
+                "url": "https://docs.stripe.com/refunds"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": [],
+      "num": "09.6"
+    }
+  ],
+  "phase": "Gelir modeli",
+  "rationale": "Paket, entitlement ve kota politikası tahsilattan önce tanımlanır; kullanıcı rolünden bağımsız sunucuda uygulanır.",
+  "dependsOn": ["01", "05", "06"],
+  "roadmapOrder": 9
+}

@@ -1,0 +1,690 @@
+{
+  "id": "05",
+  "title": "Veri modeli, dosyalar ve arama",
+  "short": "Veri ve arama",
+  "groups": [
+    {
+      "id": "model",
+      "title": "Varlık, alan ve sınıflandırma",
+      "owns": "Varlık/alan şemaları ve ortak sınıflandırmalar; asıl iş kaydı kendi modülünde.",
+      "links": [],
+      "provides": "Sürümlü şema, alan tipi, doğrulama ve sınıflandırma hizmetleri.",
+      "items": [
+        {
+          "kind": "o",
+          "text": "Entity manager (iş varlığı tanımı yönetimi).",
+          "raw": "Field, entity, manager",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Frappe backend",
+            "confidence": "documented",
+            "note": "DocType varlık tanımı ve metaverisi çekirdektedir. Bağımsız entity manager ekranı ve güvenli şema yönetim akışı ayrıca geliştirilir.",
+            "acceptance": "Yeni DocType alanlarıyla kayıt oluşturma/okuma/yazma izinli API üzerinden doğrulanmalı.",
+            "sources": [
+              {
+                "title": "Frappe: DocType veri modeli",
+                "url": "https://docs.frappe.io/framework/user/en/basics/doctypes"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "Field manager (alan yönetimi) ve type engine (veri tipi motoru).",
+          "raw": "Field, entity, manager; type engine",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Frappe backend",
+            "confidence": "documented",
+            "note": "DocField ve hazır fieldtype motoru çekirdektedir. Headless alan yöneticisi ve kontrollü şema değişim akışı ayrıca geliştirilir.",
+            "acceptance": "Alan türü, zorunluluk ve saklama biçimi metadata ile API davranışında eşleşmeli.",
+            "sources": [
+              {
+                "title": "Frappe: DocField metaverisi",
+                "url": "https://docs.frappe.io/framework/user/en/basics/doctypes/docfield"
+              },
+              {
+                "title": "Frappe: alan türleri",
+                "url": "https://docs.frappe.io/framework/user/en/basics/doctypes/fieldtypes"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "Taxonomy management (kategori, etiket ve sınıflandırma yönetimi).",
+          "raw": "Taxonomy management",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Frappe backend",
+            "confidence": "documented",
+            "note": "Ağaç veri/görünüm araçları vardır. İş kategorileri, etiket ilişkileri ve genel taxonomy politikası ayrıca modellenir.",
+            "acceptance": "Kategori döngüsü engellenmeli; kategori taşıma ve çoklu etiket araması doğru kayıtları döndürmeli.",
+            "sources": [
+              {
+                "title": "Frappe: ağaç görünümü API",
+                "url": "https://docs.frappe.io/framework/user/en/api/tree"
+              },
+              {
+                "title": "Frappe: DocType veri modeli",
+                "url": "https://docs.frappe.io/framework/user/en/basics/doctypes"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "İlişki tipleri, zorunlu alan, benzersizlik ve referans bütünlüğü.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Frappe backend",
+            "confidence": "documented",
+            "note": "Link/child alanları ve zorunlu/link doğrulamaları vardır. İlişki türleri, benzersizlik ve silme politikası hedef şema üzerinde ayrıca uygulanıp doğrulanır.",
+            "acceptance": "Geçersiz Link, eksik zorunlu değer ve yinelenen benzersiz alan reddedilmeli; bağlı kayıt silme politikası denenmeli.",
+            "sources": [
+              {
+                "title": "Frappe: Document API",
+                "url": "https://docs.frappe.io/framework/user/en/api/document"
+              },
+              {
+                "title": "Frappe: alan türleri",
+                "url": "https://docs.frappe.io/framework/user/en/basics/doctypes/fieldtypes"
+              },
+              {
+                "title": "Frappe: child/table DocType",
+                "url": "https://docs.frappe.io/framework/user/en/basics/doctypes/child-doctype"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Kiracı özel alanları; şema sürümü ve veri tipi değişikliği.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Frappe backend + platform",
+            "confidence": "documented",
+            "note": "Site özel Custom Field ve Property Setter belgeli. Veri tipi dönüşümünün güvenli migration ve headless uyumu ayrıca yönetilir.",
+            "acceptance": "Bir sitenin özel alanı diğerine sızmamalı; tip değişiminde uyumsuz veri kayıpsız raporlanmalı.",
+            "sources": [
+              {
+                "title": "Frappe: site özel DocType genişletmeleri",
+                "url": "https://docs.frappe.io/framework/user/en/basics/doctypes/customize"
+              },
+              {
+                "title": "Frappe: veritabanı geçişleri",
+                "url": "https://docs.frappe.io/framework/user/en/database-migrations"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Hesaplanan alanlar, varsayılan değerler ve doğrulama kuralları.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Frappe backend",
+            "confidence": "documented",
+            "note": "DocField default ve controller validate yapı taşlarıdır. Hesaplanan alanın iş formülü ve yeniden hesaplama politikası eklenir.",
+            "acceptance": "Alan hesapları API/job/import yollarında aynı sonucu vermeli; türetilmiş değer kullanıcı girdisiyle atlanamamalı.",
+            "sources": [
+              {
+                "title": "Frappe: DocField metaverisi",
+                "url": "https://docs.frappe.io/framework/user/en/basics/doctypes/docfield"
+              },
+              {
+                "title": "Frappe: sunucu controller doğrulamaları",
+                "url": "https://docs.frappe.io/framework/user/en/basics/doctypes/controllers"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Modülün kayıt sahipliğini koruyan alan/varlık genişletmeleri.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Frappe backend + platform",
+            "confidence": "documented",
+            "note": "Custom Field/Property Setter temel DocType'ı değiştirmeden genişletir. Modül sahipliği ve extension çatışma politikası ayrıca uygulanır.",
+            "acceptance": "İki modülün alan uzantısı çakışınca kurulum durmalı; yükseltme özgün kayıt sahipliğini korumalı.",
+            "sources": [
+              {
+                "title": "Frappe: site özel DocType genişletmeleri",
+                "url": "https://docs.frappe.io/framework/user/en/basics/doctypes/customize"
+              },
+              {
+                "title": "Frappe: genişletme ve izin hookları",
+                "url": "https://docs.frappe.io/framework/user/en/python-api/hooks"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": [],
+      "num": "04.1"
+    },
+    {
+      "id": "files",
+      "title": "Dosya, medya ve dijital varlıklar",
+      "owns": "Dosya kimlikleri, sürümler, türevler, erişim politikaları ve depolama referansları.",
+      "links": [
+        ["access", "Dosya erişimi"],
+        ["usage", "Depolama kotası"],
+        ["security", "Anahtar erişimi"]
+      ],
+      "provides": "Güvenli dosya referansı; tarama ve dönüşüm sonuçları.",
+      "items": [
+        {
+          "kind": "o",
+          "text": "DAM (Digital Asset Management — dijital varlık yönetimi), dosya ve medya kütüphanesi.",
+          "raw": "Dam, file, Media management",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Frappe backend + frontend",
+            "confidence": "documented",
+            "note": "File Manager ve kayıt eki vardır. Tam DAM için varlık metadata'sı, haklar ve headless kütüphane eklenir.",
+            "acceptance": "Varlık arama/ekleme ve kayıt ilişkilendirme çalışmalı; özel varlık başka tenant'a görünmemeli.",
+            "sources": [
+              {
+                "title": "Frappe: dosya ekleri ve görsel iyileştirme",
+                "url": "https://docs.frappe.io/framework/user/en/desk/attachments"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "Dosya türü denetimi: MIME (Multipurpose Internet Mail Extensions — çok amaçlı internet posta uzantıları) türleri; mime_types.",
+          "raw": "mime_types management",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Frappe backend",
+            "confidence": "documented",
+            "note": "Okunan version-15 File kaynağı MIME'ı dosya adından tahmin eder ve uzantı denetler. Gerçek içerik/MIME doğrulaması ayrıca gerekir.",
+            "acceptance": "Uzantısı değiştirilmiş veya MIME başlığı sahte dosya politikaya göre reddedilmeli; kontrol sunucuda yapılmalı.",
+            "sources": [
+              {
+                "title": "Frappe version-15: File controller kaynak sınırı",
+                "url": "https://github.com/frappe/frappe/blob/version-15/frappe/core/doctype/file/file.py"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "ClamAV ile zararlı dosya taraması.",
+          "raw": "ClamAV",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "Platform + backend",
+            "confidence": "design",
+            "note": "ClamAV ayrı tarama hizmetidir. İncelenen Frappe kaynaklarında hazır ClamAV upload hattı saptanmadı; karantina entegrasyonu kurulur.",
+            "acceptance": "EICAR test dosyası yayınlanmamalı; scanner erişilemezken dosya onaylı görünmemeli.",
+            "sources": [
+              {
+                "title": "ClamAV: tarama hizmeti",
+                "url": "https://docs.clamav.net/manual/Usage/Scanning.html"
+              },
+              {
+                "title": "Frappe: genişletme ve izin hookları",
+                "url": "https://docs.frappe.io/framework/user/en/python-api/hooks"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "Depolama adaptörleri: MinIO ve Amazon S3 (Simple Storage Service — basit depolama hizmeti).",
+          "raw": "minio, s3, adapter",
+          "assessment": {
+            "support": "ecosystem",
+            "action": "integrate",
+            "owner": "Depolama entegrasyonu",
+            "confidence": "documented",
+            "note": "Frappe Drive ayrı uygulamasının S3 ayarı belgeli. Framework File ve MinIO uyumluluğu için adaptör/sürüm doğrulanır.",
+            "acceptance": "S3/MinIO üzerinde upload/download/delete, özel ACL ve backup/restore senaryoları seçilen adaptörle denenmeli.",
+            "sources": [
+              {
+                "title": "Frappe Drive: S3 ayrı uygulama entegrasyonu",
+                "url": "https://docs.frappe.io/drive/s3-integration"
+              },
+              {
+                "title": "Frappe: genişletme ve izin hookları",
+                "url": "https://docs.frappe.io/framework/user/en/python-api/hooks"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Dosya boyutu, uzantı ve gerçek içerik doğrulama; karantina.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Frappe backend",
+            "confidence": "documented",
+            "note": "Boyut ve uzantı sınırı araçları bulunur. Tüm dosya türlerinin byte doğrulaması ve tarama karantinası ayrıca tasarlanır.",
+            "acceptance": "Boyut, uzantı/içerik uyuşmazlığı ve tarama hatasında dosya erişime açılmamalı.",
+            "sources": [
+              {
+                "title": "Frappe: dosya ekleri ve görsel iyileştirme",
+                "url": "https://docs.frappe.io/framework/user/en/desk/attachments"
+              },
+              {
+                "title": "Frappe version-15: File controller kaynak sınırı",
+                "url": "https://github.com/frappe/frappe/blob/version-15/frappe/core/doctype/file/file.py"
+              },
+              {
+                "title": "ClamAV: tarama hizmeti",
+                "url": "https://docs.clamav.net/manual/Usage/Scanning.html"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Özel/genel erişim, süreli bağlantı ve güvenli indirme.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Frappe backend",
+            "confidence": "documented",
+            "note": "Özel/genel dosya ve bağlı kayıt erişimi belgeli. Süreli URL ve harici storage güvenli indirme sözleşmesi ayrıca kurulur.",
+            "acceptance": "Özel dosya yetkisiz ve başka tenant isteğinde reddedilmeli; süreli link bitişte geçersiz olmalı.",
+            "sources": [
+              {
+                "title": "Frappe: site oluşturma ve site başına veritabanı",
+                "url": "https://docs.frappe.io/framework/user/en/tutorial/create-a-site"
+              },
+              {
+                "title": "Frappe: dosya ekleri ve görsel iyileştirme",
+                "url": "https://docs.frappe.io/framework/user/en/desk/attachments"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Medya sürümleri, önizleme, küçük görsel ve biçim dönüştürme.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Medya işleme",
+            "confidence": "documented",
+            "note": "Frappe görsel kırpma ve optimizasyon sunar. Sürümlü orijinal, türev yönetimi ve format pipeline'ı ayrıca eklenir.",
+            "acceptance": "Orijinal korunmalı; yeni sürüm/türev doğru varlığa bağlanmalı ve başarısız dönüşüm yayınlanmamalı.",
+            "sources": [
+              {
+                "title": "Frappe: dosya ekleri ve görsel iyileştirme",
+                "url": "https://docs.frappe.io/framework/user/en/desk/attachments"
+              },
+              {
+                "title": "Frappe version-15: File controller kaynak sınırı",
+                "url": "https://github.com/frappe/frappe/blob/version-15/frappe/core/doctype/file/file.py"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Dosya-kayıt kullanım ilişkileri; sahipsiz dosya temizliği ve saklama süresi.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Frappe backend + platform",
+            "confidence": "documented",
+            "note": "File kayıt–ek ilişkileri çekirdektedir. Sahipsizlik, saklama ve güvenli temizleme politikası ayrıca gerekir.",
+            "acceptance": "Kullanılan dosya temizlenmemeli; retention biten sahipsiz dosya denetlenebilir ve geri dönüş politikasıyla işlenmeli.",
+            "sources": [
+              {
+                "title": "Frappe: dosya ekleri ve görsel iyileştirme",
+                "url": "https://docs.frappe.io/framework/user/en/desk/attachments"
+              },
+              {
+                "title": "Frappe version-15: File controller kaynak sınırı",
+                "url": "https://github.com/frappe/frappe/blob/version-15/frappe/core/doctype/file/file.py"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": ["files"],
+      "num": "04.2"
+    },
+    {
+      "id": "search",
+      "title": "Arama, indeksleme ve filtreler",
+      "owns": "Türetilmiş arama indeksleri; kaynak iş kayıtları ilgili modülde.",
+      "links": [
+        ["events", "Kayıt değişikliği olayları"],
+        ["access", "Sonuç yetkileri"],
+        ["model", "Aranabilir alanlar"]
+      ],
+      "provides": "Yetkilendirilmiş arama sonuçları; indeks sağlık bilgisi.",
+      "items": [
+        {
+          "kind": "o",
+          "text": "Tam metin arama ve Meilisearch adaptörü.",
+          "raw": "Search; meilisearch",
+          "assessment": {
+            "support": "partial",
+            "action": "integrate",
+            "owner": "Arama entegrasyonu",
+            "confidence": "documented",
+            "note": "FullTextSearch genişletme API'si vardır. Meilisearch motoru ve senkronizasyon adaptörü haricen bağlanır.",
+            "acceptance": "Seçilen alanlar indekslenmeli; Türkçe sorgu ve silinen kayıt sonrası sonuçlar doğrulanmalı.",
+            "sources": [
+              {
+                "title": "Frappe: FullTextSearch genişletme API",
+                "url": "https://docs.frappe.io/framework/user/en/python-api/search"
+              },
+              {
+                "title": "Meilisearch: facet filtreleme",
+                "url": "https://www.meilisearch.com/docs/capabilities/filtering_sorting_faceting/how_to/filter_with_facets"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "Facets (alan değerlerine göre çok boyutlu filtreleme).",
+          "raw": "Facets",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "Arama entegrasyonu",
+            "confidence": "documented",
+            "note": "Meilisearch facet yeteneği harici motor kapsamındadır. Frappe alan/tenant izinleri filtre sözleşmesine eklenir.",
+            "acceptance": "Facet sayıları yetkisiz kayıtları ifşa etmemeli; çoklu filtre sonuçla aynı kapsamı kullanmalı.",
+            "sources": [
+              {
+                "title": "Meilisearch: facet filtreleme",
+                "url": "https://www.meilisearch.com/docs/capabilities/filtering_sorting_faceting/how_to/filter_with_facets"
+              },
+              {
+                "title": "Frappe: kullanıcılar ve izinler",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "Vector search (vektör benzerlik araması) ve Qdrant adaptörü.",
+          "raw": "Search, vector, qdrant",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "Arama + AI altyapısı",
+            "confidence": "documented",
+            "note": "Qdrant çok kiracılı vektör indeksleme sunar. Embedding üretimi, güncelleme ve Frappe adaptörü ayrı geliştirilir.",
+            "acceptance": "Başka tenant vektörü sonuçta görünmemeli; model değişiminde indeks sürümü izlenmeli.",
+            "sources": [
+              {
+                "title": "Qdrant: çok kiracılı vektör indeksleme",
+                "url": "https://qdrant.tech/documentation/manage-data/multitenancy/"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Kiracı, kayıt ve alan yetkisine göre sonuç/gösterim filtreleme.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Arama + Frappe backend",
+            "confidence": "documented",
+            "note": "Frappe izin araçları ve SQLiteSearch filtre uzantısı belgeli. Harici indeks için aynı kayıt/alan politikası uygulanır.",
+            "acceptance": "Sonuç, snippet, facet ve sayılar gizli alan/kurum verisini sızdırmamalı; izin kaldırılması sonuçlara yansımalı.",
+            "sources": [
+              {
+                "title": "Frappe: kullanıcılar ve izinler",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              },
+              {
+                "title": "Frappe: SQLite Search",
+                "url": "https://docs.frappe.io/framework/sqlite-search"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "İndeks oluşturma, güncelleme, silme ve yeniden indeksleme.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Arama entegrasyonu",
+            "confidence": "documented",
+            "note": "FTS build/update API'si vardır. Harici indeks yaşam döngüsü ve silme olayları ayrıca bağlanır.",
+            "acceptance": "Insert/update/delete ve tam rebuild sonrası indeks kaynak kayıtlarla uzlaşmalı; hata tekrar edilebilir olmalı.",
+            "sources": [
+              {
+                "title": "Frappe: FullTextSearch genişletme API",
+                "url": "https://docs.frappe.io/framework/user/en/python-api/search"
+              },
+              {
+                "title": "Frappe: genişletme ve izin hookları",
+                "url": "https://docs.frappe.io/framework/user/en/python-api/hooks"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Otomatik tamamlama, yazım toleransı, eş anlamlılar ve sonuç sıralama.",
+          "assessment": {
+            "support": "verify",
+            "action": "validate",
+            "owner": "Arama entegrasyonu",
+            "confidence": "verify",
+            "note": "Güncel SQLite Search belgesi yazım/ranking araçları içerir; hedef sürüm ve Meilisearch seçimi kesinleşmedi. Eş anlamlı sözlüğü ayrıca tanımlanır.",
+            "acceptance": "Türkçe yazım hatası, eş anlamlı ve otomatik tamamlama örnekleri seçilen motor/release üzerinde ölçülmeli.",
+            "sources": [
+              {
+                "title": "Frappe: SQLite Search",
+                "url": "https://docs.frappe.io/framework/sqlite-search"
+              },
+              {
+                "title": "Meilisearch: facet filtreleme",
+                "url": "https://www.meilisearch.com/docs/capabilities/filtering_sorting_faceting/how_to/filter_with_facets"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Kaynak kayıtla indeks tutarlılığı ve gecikme takibi.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Arama entegrasyonu",
+            "confidence": "design",
+            "note": "Hooklar indeks olayına temel olabilir. İncelenen kaynaklarda ürün genelinde indeks gecikme SLO ve uzlaştırma servisi hazır saptanmadı.",
+            "acceptance": "Kayıt sürümü ile indeks sürümü karşılaştırılmalı; eksik/gecikmiş olay alarmı ve güvenli rebuild çalışmalı.",
+            "sources": [
+              {
+                "title": "Frappe: genişletme ve izin hookları",
+                "url": "https://docs.frappe.io/framework/user/en/python-api/hooks"
+              },
+              {
+                "title": "Frappe: FullTextSearch genişletme API",
+                "url": "https://docs.frappe.io/framework/user/en/python-api/search"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": ["tenant"],
+      "num": "04.3"
+    },
+    {
+      "id": "transfer",
+      "title": "İçe/dışa aktarma ve toplu veri işleri",
+      "owns": "Aktarım tanımları, dosya eşlemeleri, iş ilerlemesi ve sonuç kayıtları.",
+      "links": [
+        ["files", "Aktarım dosyaları"],
+        ["jobs", "Arka plan yürütümü"],
+        ["model", "Şema doğrulama"]
+      ],
+      "provides": "Modülün kayıt işlevlerine doğrulanmış veri; aktarım sonucu.",
+      "items": [
+        {
+          "kind": "o",
+          "text": "Data import/export (veri içe ve dışa aktarma).",
+          "raw": "Data import export",
+          "assessment": {
+            "support": "partial",
+            "action": "integrate",
+            "owner": "Frappe backend + frontend",
+            "confidence": "documented",
+            "note": "Data Import ve export komutları çekirdektedir. Bağımsız frontend için yetkili upload/download akışı ve export uçları ayrıca bağlanır.",
+            "acceptance": "CSV/XLSX örneği izinli içe alınmalı; seçilen alanlar doğru encoding ve kayıtlarla dışa çıkmalı.",
+            "sources": [
+              {
+                "title": "Frappe version-15: çekirdek Data Import kaynağı",
+                "url": "https://github.com/frappe/frappe/blob/version-15/frappe/core/doctype/data_import/data_import.py"
+              },
+              {
+                "title": "Frappe: CLI ve sürüme bağlı Gettext araçları",
+                "url": "https://docs.frappe.io/framework/user/en/bench/frappe-commands"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Alan eşleme, dosya şablonları ve aktarım önizlemesi.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Frappe backend + frontend",
+            "confidence": "documented",
+            "note": "Data Import şablon, kolon eşleme ve import öncesi doğrulama sunar. Headless eşleme/önizleme ve kullanıcı onayı yüzeyi ayrıca hazırlanır.",
+            "acceptance": "Eksik/yeniden adlandırılmış kolon eşlenmeli; kullanıcı onayından önce kayıt yazılmamalı.",
+            "sources": [
+              {
+                "title": "ERPNext belgesi: çekirdek Data Import akışı",
+                "url": "https://docs.frappe.io/erpnext/data-import"
+              },
+              {
+                "title": "Frappe version-15: çekirdek Data Import kaynağı",
+                "url": "https://github.com/frappe/frappe/blob/version-15/frappe/core/doctype/data_import/data_import.py"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Satır bazlı doğrulama, hata dosyası ve yinelenen kayıt denetimi.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Frappe backend",
+            "confidence": "documented",
+            "note": "Satır/kolon uyarıları, import log ve yinelenen isim denetimi belgeli. Hata dosyası ve iş anahtarı tekilleştirmesi genişletilir.",
+            "acceptance": "Karışık geçerli/hatalı satırlarda sonuçlar izlenmeli; tekrar import mükerrer iş kaydı üretmemeli.",
+            "sources": [
+              {
+                "title": "ERPNext belgesi: çekirdek Data Import akışı",
+                "url": "https://docs.frappe.io/erpnext/data-import"
+              },
+              {
+                "title": "Frappe version-15: çekirdek Data Import kaynağı",
+                "url": "https://github.com/frappe/frappe/blob/version-15/frappe/core/doctype/data_import/data_import.py"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Büyük aktarımda ilerleme, iptal ve kaldığı yerden devam.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Frappe backend + frontend",
+            "confidence": "documented",
+            "note": "Büyük CSV için CLI/job araçları vardır. Kullanıcı iptali, checkpoint ve kesinti sonrası devam ayrıca ürünleştirilir.",
+            "acceptance": "Büyük iş kesilip devam ettiğinde başarılı satırlar yeniden yazılmamalı; iptal durumu gerçek iş sonucunu yansıtmalı.",
+            "sources": [
+              {
+                "title": "Frappe: büyük veri aktarımı",
+                "url": "https://docs.frappe.io/framework/user/en/guides/data/import-large-csv-file"
+              },
+              {
+                "title": "Frappe: arka plan işleri ve zamanlayıcı",
+                "url": "https://docs.frappe.io/framework/user/en/api/background_jobs"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "İçe aktarmada yetki, kota ve iş kurallarının korunması.",
+          "assessment": {
+            "support": "partial",
+            "action": "validate",
+            "owner": "Frappe backend",
+            "confidence": "documented",
+            "note": "Import izni ve Document doğrulamaları vardır. Ticari kota ve tenant kuralları import yolunda ayrıca uygulanır.",
+            "acceptance": "Import ile zorunlu iş kuralı, tenant sınırı veya paket kotası atlanamamalı.",
+            "sources": [
+              {
+                "title": "Frappe: kullanıcılar ve izinler",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              },
+              {
+                "title": "Frappe: Document API",
+                "url": "https://docs.frappe.io/framework/user/en/api/document"
+              },
+              {
+                "title": "Frappe version-15: çekirdek Data Import kaynağı",
+                "url": "https://github.com/frappe/frappe/blob/version-15/frappe/core/doctype/data_import/data_import.py"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Yetkili veri teslimi; hassas alan maskeleme ve süreli dışa aktarım.",
+          "assessment": {
+            "support": "verify",
+            "action": "validate",
+            "owner": "Frappe backend",
+            "confidence": "verify",
+            "note": "Export izinleri vardır; veri maskeleme belgesi sürüm/deneysel sınırı ve raw SQL istisnası bildirir. Süreli teslim ayrıca tasarlanır.",
+            "acceptance": "Seçilen release'te export gizli alanı maskelemeli; raw SQL sonuçları da denetlenmeli ve teslim linki sürede bitmeli.",
+            "sources": [
+              {
+                "title": "Frappe: kullanıcılar ve izinler",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              },
+              {
+                "title": "Frappe: sürüm ve raw SQL sınırı olan veri maskeleme",
+                "url": "https://docs.frappe.io/framework/data-masking"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": [],
+      "num": "04.4"
+    }
+  ],
+  "phase": "Çekirdek",
+  "rationale": "DocType, alanlar, dosya sahipliği ve veri sözleşmeleri kurulur. Harici arama ve büyük aktarımlar ihtiyaçla büyür.",
+  "dependsOn": ["01", "11"],
+  "roadmapOrder": 4
+}

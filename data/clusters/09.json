@@ -1,0 +1,848 @@
+{
+  "id": "09",
+  "title": "Entegrasyonlar, olaylar ve yapay zekâ",
+  "short": "Entegrasyon ve AI",
+  "groups": [
+    {
+      "id": "integration",
+      "title": "Entegrasyon katmanı ve bağlayıcılar",
+      "owns": "Dış bağlantılar, eşleme ayarları, anahtar referansları ve eşitleme durumları.",
+      "links": [
+        ["security", "Gizli anahtar erişimi"],
+        ["access", "Entegrasyon erişim kapsamı"],
+        ["events", "Dışa taşınacak olaylar"]
+      ],
+      "provides": "Sağlayıcıdan bağımsız bağlantı arayüzleri; eşitleme sonucu.",
+      "items": [
+        {
+          "kind": "o",
+          "text": "API entegrasyon katmanı ve adaptör yönetimi.",
+          "raw": "API integration layer; adapter",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Entegrasyon platformu",
+            "confidence": "documented",
+            "note": "Framework REST/RPC uçları ve hooklar sağlar; ortak sağlayıcı adaptörü, kimlik bilgileri, yönetim ekranı ve sağlık modeli geliştirilir.",
+            "acceptance": "Aynı iş komutu iki sağlayıcı adaptöründe ortak sözleşmeyle çalışsın; tenant sırları ayrışsın.",
+            "sources": [
+              {
+                "title": "Frappe REST API",
+                "url": "https://docs.frappe.io/framework/user/en/guides/integration/rest_api"
+              },
+              {
+                "title": "Frappe Hooks",
+                "url": "https://docs.frappe.io/framework/user/en/python-api/hooks"
+              },
+              {
+                "title": "Frappe Security FAQs",
+                "url": "https://docs.frappe.io/framework/user/en/security-faqs"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "Activepieces ile entegrasyon otomasyonları.",
+          "raw": "API integration layer(active pieces) workflow",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "Otomasyon entegrasyonu",
+            "confidence": "design",
+            "note": "Activepieces ayrı otomasyon ürünüdür; Framework çekirdeği veya hazır tüm Frappe parçaları sayılmaz. API/webhook bağlantıları izinli kapsamlarla kurulacak.",
+            "acceptance": "Örnek otomasyon sadece izin verilen tenant kaydına erişsin; tekrar tetikleme çift işlem üretmesin.",
+            "sources": [
+              {
+                "title": "Activepieces resmî deposu",
+                "url": "https://github.com/activepieces/activepieces"
+              },
+              {
+                "title": "Frappe REST API",
+                "url": "https://docs.frappe.io/framework/user/en/guides/integration/rest_api"
+              },
+              {
+                "title": "Frappe Webhooks",
+                "url": "https://docs.frappe.io/framework/user/en/guides/integration/webhooks"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "Middleware (istek işleme ara katmanı) ve handler (istek/olay işleyicisi) kayıtları.",
+          "raw": "middleware; handler",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Backend mimarisi",
+            "confidence": "documented",
+            "note": "App hookları ve controller yaşam döngüsü genişletme sağlar; sürümlü handler kaydı ve middleware politikası özel uygulamada kurulacak.",
+            "acceptance": "Kayıtsız handler çağrısı reddedilsin; iki handlerın sırası ve hata davranışı deterministik olsun.",
+            "sources": [
+              {
+                "title": "Frappe Hooks",
+                "url": "https://docs.frappe.io/framework/user/en/python-api/hooks"
+              },
+              {
+                "title": "Frappe Controllers",
+                "url": "https://docs.frappe.io/framework/user/en/basics/doctypes/controllers"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "HTTP (Hypertext Transfer Protocol — hiper metin aktarım protokolü) durum/yönlendirme yönetimi: 200, 301, 303, 404, 410, 503.",
+          "raw": "http status code ve status management; http status codes (404, 410, seo, 503, 200, 301, 303)",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "API ve frontend",
+            "confidence": "documented",
+            "note": "Frappe routing, response ve redirect araçları var; 200/301/303/404/410/503ün ürün rotalarındaki tam davranışı headless sözleşmede uygulanacak.",
+            "acceptance": "Her durum örnek rotada doğru kod ve Location/header ile dönsün; bakımda 503 görülsün.",
+            "sources": [
+              {
+                "title": "Frappe Routing and Rendering",
+                "url": "https://docs.frappe.io/framework/user/en/python-api/routing-and-rendering"
+              },
+              {
+                "title": "Frappe Response",
+                "url": "https://docs.frappe.io/framework/user/en/python-api/response"
+              },
+              {
+                "title": "Frappe Portal Redirects",
+                "url": "https://docs.frappe.io/framework/user/en/guides/portal-development/redirects"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Webhook (olay gerçekleşince dış sisteme bildirim) alma/gönderme; imza ve tekrar saldırısı denetimi.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Entegrasyon güvenliği",
+            "confidence": "documented",
+            "note": "Çekirdek outbound webhook HMAC imzası destekler; inbound imza kontrolü, zaman penceresi ve replay tekilleştirmesi ayrıca kurulacak.",
+            "acceptance": "Geçerli imza kabul, değiştirilmiş gövde ve tekrar kullanılan olay reddedilsin.",
+            "sources": [
+              {
+                "title": "Frappe Webhooks",
+                "url": "https://docs.frappe.io/framework/user/en/guides/integration/webhooks"
+              },
+              {
+                "title": "Frappe REST API",
+                "url": "https://docs.frappe.io/framework/user/en/guides/integration/rest_api"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "API sürümü, standart hata yanıtı, sözleşme dokümanı ve kullanımdan kaldırma.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "API platformu",
+            "confidence": "documented",
+            "note": "REST belgelerinde sürüme bağlı v1/v2 uçları var; ürün API hata şeması, yayımlanan dokümantasyon ve kaldırma takvimi ayrı sözleşmedir.",
+            "acceptance": "Eski istemci destek süresinde çalışsın; kaldırılan sürüm ve hata yanıtları belgelenen şemayı izlesin.",
+            "sources": [
+              {
+                "title": "Frappe REST API",
+                "url": "https://docs.frappe.io/framework/user/en/guides/integration/rest_api"
+              },
+              {
+                "title": "Frappe Response",
+                "url": "https://docs.frappe.io/framework/user/en/python-api/response"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Veri eşleme, çift yönlü eşitleme, bağlantı sağlığı ve yeniden yetkilendirme.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Entegrasyon platformu",
+            "confidence": "documented",
+            "note": "REST/webhook bağlantı zemini var; alan eşlemesi, iki yönlü çakışma ve yeniden yetkilendirme ürünü geliştirilecek. Eski Event Streaming v15+ çekirdek çözümü değildir.",
+            "acceptance": "Çakışan iki güncellemede tanımlı kural uygulansın; süresi dolan erişim yenilenene kadar akış güvenle dursun.",
+            "sources": [
+              {
+                "title": "Frappe REST API",
+                "url": "https://docs.frappe.io/framework/user/en/guides/integration/rest_api"
+              },
+              {
+                "title": "Frappe Webhooks",
+                "url": "https://docs.frappe.io/framework/user/en/guides/integration/webhooks"
+              },
+              {
+                "title": "Frappe Event Streaming: güncel destek sınırı",
+                "url": "https://docs.frappe.io/framework/help/event-streaming"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "401/403 yetki, 409 çakışma, 422 doğrulama, 429 hız sınırı ve 500 hata yanıtları.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "API platformu",
+            "confidence": "documented",
+            "note": "Framework izin ve rate-limit mekanizmaları hata üretir; tüm 401/403/409/422/429/500 durumlarının ürün kodu ve güvenli gövdesi standardize edilecek.",
+            "acceptance": "Altı hata senaryosu beklenen kod/şemayı dönsün; stack trace ve secret yanıt dışına çıkmasın.",
+            "sources": [
+              {
+                "title": "Frappe REST API",
+                "url": "https://docs.frappe.io/framework/user/en/guides/integration/rest_api"
+              },
+              {
+                "title": "Frappe Response",
+                "url": "https://docs.frappe.io/framework/user/en/python-api/response"
+              },
+              {
+                "title": "Frappe Rate Limiting",
+                "url": "https://docs.frappe.io/framework/deployment/rate-limiting"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": ["outbox"],
+      "num": "05.1"
+    },
+    {
+      "id": "events",
+      "title": "Modüller arası sözleşmeler ve olaylar",
+      "owns": "Olay zarfı, abonelik kayıtları ve kalıcı olay teslim durumu; iş verisi kendi modülünde.",
+      "links": [],
+      "provides": "Uygulama içi sözleşmeli çağrı ve gerekli yerlerde kalıcı olay teslimi.",
+      "items": [
+        {
+          "kind": "o",
+          "text": "Event bus (modüller arası olay dağıtım altyapısı).",
+          "raw": "event bus",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Olay platformu",
+            "confidence": "design",
+            "note": "Hook, Redis realtime ve job kuyruğu birer temel araçtır; dayanıklı ürün event busı olarak eşdeğer kabul edilmez. İncelenen Event Streaming v15+ için destekli çekirdek değildir.",
+            "acceptance": "Yayınlanan olay süreç yeniden başlatılınca kaybolmasın; abone izolasyonu ve tekrar işleme doğrulansın.",
+            "sources": [
+              {
+                "title": "Frappe Event Streaming: güncel destek sınırı",
+                "url": "https://docs.frappe.io/framework/help/event-streaming"
+              },
+              {
+                "title": "Frappe Realtime API",
+                "url": "https://docs.frappe.io/framework/user/en/api/realtime"
+              },
+              {
+                "title": "Frappe Background Jobs",
+                "url": "https://docs.frappe.io/framework/user/en/api/background_jobs"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Modülün yayımlanmış işlevleri; komut, sorgu ve olay kayıtları.",
+          "assessment": {
+            "support": "partial",
+            "action": "build",
+            "owner": "Modül mimarisi",
+            "confidence": "documented",
+            "note": "Whitelisted RPC ve app hookları fonksiyon yayınlamayı sağlar; command/query/event kataloğu, sürümü ve modül izinleri özel uygulamada kurulacak.",
+            "acceptance": "Yalnız kayıtlı ve izinli komut çalışsın; katalog sürümü tüketiciyle uyumsuzsa çağrı reddedilsin.",
+            "sources": [
+              {
+                "title": "Frappe REST API",
+                "url": "https://docs.frappe.io/framework/user/en/guides/integration/rest_api"
+              },
+              {
+                "title": "Frappe Hooks",
+                "url": "https://docs.frappe.io/framework/user/en/python-api/hooks"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Olay kimliği, kiracı bağlamı, ilişkilendirme kimliği ve şema sürümü.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Olay platformu",
+            "confidence": "design",
+            "note": "İncelenen hook/webhook sözleşmelerinde tüm modüller için zorunlu tenant, correlation ve şema zarfı saptanmadı; ortak olay modeli geliştirilecek.",
+            "acceptance": "Eksik tenant veya şema sürümü olan olay reddedilsin; zincirde correlation kimliği korunsun.",
+            "sources": [
+              {
+                "title": "Frappe Webhooks",
+                "url": "https://docs.frappe.io/framework/user/en/guides/integration/webhooks"
+              },
+              {
+                "title": "Frappe Hooks",
+                "url": "https://docs.frappe.io/framework/user/en/python-api/hooks"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Transactional outbox (veri değişikliğiyle aynı işlemde kaydedilen olay kutusu).",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Backend veri tutarlılığı",
+            "confidence": "design",
+            "note": "Veritabanı transaction hookları var; commit sonrası iş kuyruğuna ekleme dayanıklı transactional outboxın yerini tutmaz. Outbox tablosu ve güvenli dağıtıcı kurulacak.",
+            "acceptance": "İş kaydı commit olup kuyruk kapalıyken olay outboxta kalsın; yeniden açılınca tek iş etkisi oluşsun.",
+            "sources": [
+              {
+                "title": "Frappe Database API",
+                "url": "https://docs.frappe.io/framework/user/en/api/database"
+              },
+              {
+                "title": "Frappe Background Jobs",
+                "url": "https://docs.frappe.io/framework/user/en/api/background_jobs"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Idempotency (aynı işlemin tekrarında mükerrer etkiyi önleme) ve tüketici tekilleştirme.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Backend veri tutarlılığı",
+            "confidence": "design",
+            "note": "Controller on_change için idempotent davranış önerilir; tüketici anahtarı, kalıcı dedup kaydı ve iş sonucu tekrar sözleşmesi uygulamaya aittir.",
+            "acceptance": "Aynı olay eşzamanlı on kez işlendiğinde tek iş etkisi ve tutarlı yanıt oluşsun.",
+            "sources": [
+              {
+                "title": "Frappe Controllers",
+                "url": "https://docs.frappe.io/framework/user/en/basics/doctypes/controllers"
+              },
+              {
+                "title": "Frappe Database API",
+                "url": "https://docs.frappe.io/framework/user/en/api/database"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Kalıcı olayda yeniden deneme, sıralama kapsamı ve yeniden işleme.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Olay platformu",
+            "confidence": "documented",
+            "note": "Background Jobs kuyruk ve zaman aşımı sağlar; iş olaylarında kalıcı retry, sıra, poison event ve replay politikası ayrıca yapılacak.",
+            "acceptance": "Hatalı tüketici kontrollü tekrar denensin; sıralı olaylar doğru sırada replay edilsin ve inceleme kuyruğu görülsün.",
+            "sources": [
+              {
+                "title": "Frappe Background Jobs",
+                "url": "https://docs.frappe.io/framework/user/en/api/background_jobs"
+              },
+              {
+                "title": "Frappe Event Streaming: güncel destek sınırı",
+                "url": "https://docs.frappe.io/framework/help/event-streaming"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Hata yayılımını sınırlama; eşzamanlı çağrı/arka plan olayı seçimi.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Modül mimarisi",
+            "confidence": "documented",
+            "note": "Kısa/default/uzun ve özel kuyruklar mevcut; iş kritikliğine göre senkron/asenkron sınır ve bağımlılık hata izolasyonu tasarlanacak.",
+            "acceptance": "Yavaş dış servis diğer modül kuyruklarını kilitlemesin; senkron komutun hata/tazmin sonucu belirli olsun.",
+            "sources": [
+              {
+                "title": "Frappe Background Jobs",
+                "url": "https://docs.frappe.io/framework/user/en/api/background_jobs"
+              },
+              {
+                "title": "Frappe Database API",
+                "url": "https://docs.frappe.io/framework/user/en/api/database"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": ["outbox", "events"],
+      "num": "05.2"
+    },
+    {
+      "id": "ai",
+      "title": "Yapay zekâ sağlayıcıları ve modeller",
+      "owns": "Model profilleri, talimat sürümleri, çağrı kayıtları ve sağlayıcı referansları.",
+      "links": [
+        ["security", "Sağlayıcı erişimi"],
+        ["usage", "Kredi rezervasyonu ve tüketimi"]
+      ],
+      "provides": "Sağlayıcıdan bağımsız üretim arayüzü; tüketim ve sonuç kaydı.",
+      "items": [
+        {
+          "kind": "o",
+          "text": "AI providers (yapay zekâ sağlayıcıları) ve model bağlantıları.",
+          "raw": "AI providers",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "AI platformu",
+            "confidence": "design",
+            "note": "Model sağlayıcı bağlantıları ayrı AI katmanında yönetilecek; Framework REST zemini bu yeteneği hazır AI ürünü yapmaz. Model ve veri politikası seçilecek.",
+            "acceptance": "İzinli sağlayıcı/model çağrısı tenant kapsamı ve anahtar gizliliğiyle çalışsın.",
+            "sources": [
+              {
+                "title": "LangChain Models",
+                "url": "https://docs.langchain.com/oss/python/langchain/models"
+              },
+              {
+                "title": "Frappe REST API",
+                "url": "https://docs.frappe.io/framework/user/en/guides/integration/rest_api"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Model yönlendirme, alternatif sağlayıcı ve zaman aşımı.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "AI platformu",
+            "confidence": "design",
+            "note": "Router, failover ve timeout ayrı AI orkestrasyon sorumluluğudur; model entegrasyonları örnek temel sağlar, ürün öncelik/bütçe kuralları geliştirilecek.",
+            "acceptance": "Bir sağlayıcı zaman aşımında izinli alternatife geçilsin; toplam süre ve maliyet limiti aşılmasın.",
+            "sources": [
+              {
+                "title": "LangChain Models",
+                "url": "https://docs.langchain.com/oss/python/langchain/models"
+              },
+              {
+                "title": "LangChain Prebuilt Middleware",
+                "url": "https://docs.langchain.com/oss/python/langchain/middleware/built-in"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Prompt (modele verilen talimat) şablonu, sürümü ve değişkenleri.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "AI ürün yönetimi",
+            "confidence": "design",
+            "note": "İncelenen Framework kaynaklarında prompt sürüm/kayıt ürünü saptanmadı; prompt, değişken şeması ve onaylı sürüm modeli özel uygulamada tutulacak.",
+            "acceptance": "Eksik değişken reddedilsin; her çalıştırma değişmez prompt sürümüne bağlansın.",
+            "sources": [
+              {
+                "title": "Frappe Architecture",
+                "url": "https://docs.frappe.io/framework/user/en/basics/architecture"
+              },
+              {
+                "title": "LangChain Structured Output",
+                "url": "https://docs.langchain.com/oss/python/langchain/structured-output"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Model girdisi/çıktısı, maliyet, kalite değerlendirmesi ve tekrar üretilebilir kayıt.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "AI kalite ve gözlem",
+            "confidence": "design",
+            "note": "AI çağrı/eval ve maliyet izleri ayrı katmanda tasarlanacak; model çıktısının aynı olması garanti edilmez, girdi ve sürüm yeniden inceleme için saklanacak.",
+            "acceptance": "Çalıştırmada model/prompt sürümü, token maliyeti ve eval sonucu izlenebilsin; hassas veri maskelensin.",
+            "sources": [
+              {
+                "title": "LangChain Models",
+                "url": "https://docs.langchain.com/oss/python/langchain/models"
+              },
+              {
+                "title": "OWASP Top 10 for LLM Applications",
+                "url": "https://owasp.org/projects/top-10-for-large-language-model-applications"
+              },
+              {
+                "title": "Frappe Logging API",
+                "url": "https://docs.frappe.io/framework/user/en/api/logging"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Hassas veri maskeleme ve sağlayıcıya gönderilebilecek veri sınırları.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "AI veri güvenliği",
+            "confidence": "design",
+            "note": "PII maskeleme ve sağlayıcıya veri çıkarma kontrolü AI sınırında uygulanacak; hazır middleware örnekleri tüm tenant ve KVKK politikasını tamamlamaz.",
+            "acceptance": "Yasak alan sağlayıcı isteğine hiç girmesin; maskeleme ve izin kararı denetlenebilir olsun.",
+            "sources": [
+              {
+                "title": "LangChain Prebuilt Middleware",
+                "url": "https://docs.langchain.com/oss/python/langchain/middleware/built-in"
+              },
+              {
+                "title": "GDPR resmî AB metni",
+                "url": "https://eur-lex.europa.eu/eli/reg/2016/679/oj/eng"
+              },
+              {
+                "title": "KVKK Uyum Süreci Duyurusu",
+                "url": "https://www.kvkk.gov.tr/Icerik/6554/Kisisel-Verilerin-Korunmasi-Kanunu-Uyum-Surecine-Iliskin-Duyuru"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Prompt injection (içerikle modele yetkisiz talimat verme) koruması ve çıktı denetimi.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "AI güvenliği",
+            "confidence": "design",
+            "note": "Prompt injection ve çıktı doğrulama özel AI güvenlik katmanıdır; şema doğrulama tek başına güvenlik garantisi değildir. Araç izinleri sunucuda uygulanacak.",
+            "acceptance": "Zararlı talimat yetkisiz araç çalıştıramasın; şema dışı çıktı ve güvenilmeyen araç içeriği reddedilsin.",
+            "sources": [
+              {
+                "title": "OWASP Top 10 for LLM Applications",
+                "url": "https://owasp.org/projects/top-10-for-large-language-model-applications"
+              },
+              {
+                "title": "LangChain Structured Output",
+                "url": "https://docs.langchain.com/oss/python/langchain/structured-output"
+              },
+              {
+                "title": "Frappe Users and Permissions",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": ["ai"],
+      "num": "05.3"
+    },
+    {
+      "id": "rag",
+      "title": "Bilgi tabanı ve bağlam getirme",
+      "owns": "Bilgi kaynakları, parçalar, kaynak sürümleri ve indeksleme durumu.",
+      "links": [
+        ["files", "Kaynak belgeler"],
+        ["search", "Metin/vektör arama"],
+        ["access", "Kaynak erişimi"],
+        ["ai", "Üretim/model erişimi"]
+      ],
+      "provides": "Yetkili kaynak parçaları ve kaynak gösterimli model bağlamı.",
+      "items": [
+        {
+          "kind": "o",
+          "text": "RAG (Retrieval-Augmented Generation — bilgi getirmeyle desteklenen üretim) sunucusu.",
+          "raw": "rag server",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "RAG platformu",
+            "confidence": "design",
+            "note": "RAG ayrı retrieval/AI servisi olarak kurulacak; incelenen Framework belgeleri hazır RAG sunucusunu göstermiyor. Veri ve yetki sözleşmesi entegre edilecek.",
+            "acceptance": "Yetkili kaynak üzerinden soru yanıtı ve kaynak gösterimi çalışsın; başka tenant verisi dönmesin.",
+            "sources": [
+              {
+                "title": "LangChain Retrieval",
+                "url": "https://docs.langchain.com/oss/python/deepagents/retrieval"
+              },
+              {
+                "title": "Frappe REST API",
+                "url": "https://docs.frappe.io/framework/user/en/guides/integration/rest_api"
+              },
+              {
+                "title": "Frappe Users and Permissions",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Kaynak bağlama, belge ayrıştırma, parçalara ayırma ve güncelleme.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "RAG veri hattı",
+            "confidence": "design",
+            "note": "Bağlayıcı, parser ve chunk güncelleme işlemleri RAG veri hattına aittir; seçilen araçların kaynak formatı ve hata sözleşmesi ayrıca tasarlanacak.",
+            "acceptance": "Değişen belge yalnız ilgili parçaları güncellesin; parse hatası sessiz veri kaybı üretmesin.",
+            "sources": [
+              {
+                "title": "LangChain Retrieval",
+                "url": "https://docs.langchain.com/oss/python/deepagents/retrieval"
+              },
+              {
+                "title": "Frappe Background Jobs",
+                "url": "https://docs.frappe.io/framework/user/en/api/background_jobs"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Embedding (içeriği sayısal benzerlik vektörüne dönüştürme) sürümü ve yeniden üretim.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "RAG veri hattı",
+            "confidence": "design",
+            "note": "İncelenen çekirdek kaynaklarında embedding sürüm/geçiş ürünü saptanmadı; model, boyut ve yeniden indeksleme sürümleri özel olarak tutulacak.",
+            "acceptance": "Embedding modeli değişince eski/yeni indeks karışmasın; geçiş bitmeden aktif sürüm değiştirilmesin.",
+            "sources": [
+              {
+                "title": "LangChain Retrieval",
+                "url": "https://docs.langchain.com/oss/python/deepagents/retrieval"
+              },
+              {
+                "title": "Frappe Database API",
+                "url": "https://docs.frappe.io/framework/user/en/api/database"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Kiracı/kullanıcı yetkisini kaynak parçası düzeyinde koruma.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "RAG yetkilendirme",
+            "confidence": "design",
+            "note": "Chunk erişimi ayrı retrieval katmanında Frappe sunucu izinleriyle eşlenir; tenant etiketi tek başına kullanıcı/kayıt ACLinin yerini tutmaz.",
+            "acceptance": "Aynı tenant içindeki yetkisiz belge parçası arama veya yanıtta görünmesin; izin iptali hemen uygulansın.",
+            "sources": [
+              {
+                "title": "Frappe Users and Permissions",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              },
+              {
+                "title": "LangChain Retrieval",
+                "url": "https://docs.langchain.com/oss/python/deepagents/retrieval"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Kaynak atfı, güncellik, silinen içeriği indeksten çıkarma ve kalite ölçümü.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "RAG kalite ve veri",
+            "confidence": "design",
+            "note": "Kaynak atfı, tazelik ve silme yayılımı RAG ürün sorumluluğudur; retrieval örneği kalite ya da tüm kopyaların silindiği garantisini sağlamaz.",
+            "acceptance": "Yanıtta doğrulanabilir kaynak sürümü olsun; silinen belge parçaları arama ve yanıttan kalksın.",
+            "sources": [
+              {
+                "title": "LangChain Retrieval",
+                "url": "https://docs.langchain.com/oss/python/deepagents/retrieval"
+              },
+              {
+                "title": "GDPR resmî AB metni",
+                "url": "https://eur-lex.europa.eu/eli/reg/2016/679/oj/eng"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": ["ai", "tenant"],
+      "num": "05.4"
+    },
+    {
+      "id": "agents",
+      "title": "Yapay zekâ çalışanları",
+      "owns": "Ajan tanımları, görevleri, araç izinleri ve çalıştırma kayıtları.",
+      "links": [
+        ["ai", "Model erişimi"],
+        ["rag", "Yetkili bilgi"],
+        ["approvals", "İnsan onayı"],
+        ["jobs", "Yürütüm"],
+        ["usage", "Harcama sınırı"]
+      ],
+      "provides": "Yetkili iş modülü komutları; görev sonucu ve denetim izi.",
+      "items": [
+        {
+          "kind": "o",
+          "text": "Agents (yapay zekâ çalışanları): idari işler, satın alma ve diğer görevler.",
+          "raw": "Agents (ai workers(idari işler, satınalma,))",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "AI ajan platformu",
+            "confidence": "design",
+            "note": "Ajan yönetimi ayrı orkestrasyon katmanında kurulacak; LangGraph yalnız seçenek örneğidir. Satın alma yetkisi ve ürün registry modeli ayrıca geliştirilecek.",
+            "acceptance": "Kayıtlı ajan sadece izinli işi yapsın; satın alma eylemi belirlenen onay sınırını izlesin.",
+            "sources": [
+              {
+                "title": "LangGraph Overview",
+                "url": "https://docs.langchain.com/oss/python/langgraph/overview"
+              },
+              {
+                "title": "LangGraph Interrupts",
+                "url": "https://docs.langchain.com/oss/python/langgraph/interrupts"
+              },
+              {
+                "title": "Frappe Users and Permissions",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Ajan rolü, araç kataloğu ve izin verilen işlem kapsamı.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "AI araç güvenliği",
+            "confidence": "design",
+            "note": "Tool şemaları AI katmanına bağlanabilir; ajan rolü ve araç kapsamı özel registryde tutulur, Frappe sunucu izinleri her çağrıda tekrar uygulanır.",
+            "acceptance": "Yetkisi olmayan ajan aracı çağıramasın; araç parametresi tenantı değiştirerek erişimi genişletemesin.",
+            "sources": [
+              {
+                "title": "LangChain Models",
+                "url": "https://docs.langchain.com/oss/python/langchain/models"
+              },
+              {
+                "title": "Frappe Users and Permissions",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              },
+              {
+                "title": "OWASP Top 10 for LLM Applications",
+                "url": "https://owasp.org/projects/top-10-for-large-language-model-applications"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Hassas eylemde insan onayı ve çalışmayı durdurma.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "AI onay akışı",
+            "confidence": "design",
+            "note": "Orkestratör interrupt/continue temel sunabilir; insan onayı, durdurma ve bekleyen dış etkilerin iptal politikası ürüne özel bağlanacak.",
+            "acceptance": "Onaysız kritik eylem çalışmasın; durdurulan ajan yeni araç çağrısı yapmasın ve bekleyen karar görülsün.",
+            "sources": [
+              {
+                "title": "LangGraph Interrupts",
+                "url": "https://docs.langchain.com/oss/python/langgraph/interrupts"
+              },
+              {
+                "title": "LangGraph Overview",
+                "url": "https://docs.langchain.com/oss/python/langgraph/overview"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Görev hafızası, yürütüm geçmişi, yeniden deneme ve devretme.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "AI ajan platformu",
+            "confidence": "design",
+            "note": "Orkestrasyon kalıcı state/checkpoint zemini sağlar; tenant izole hafıza, retry etkileri ve ajanlar arası devir sözleşmesi ayrıca geliştirilecek.",
+            "acceptance": "Kesintiden sonra aynı iş güvenle devam etsin; devirde kayıtlı izin ve geçmiş korunsun.",
+            "sources": [
+              {
+                "title": "LangGraph Persistence",
+                "url": "https://docs.langchain.com/oss/python/langgraph/persistence"
+              },
+              {
+                "title": "LangGraph Overview",
+                "url": "https://docs.langchain.com/oss/python/langgraph/overview"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Adım, süre, kaynak ve harcama üst sınırları.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "AI maliyet politikası",
+            "confidence": "design",
+            "note": "Ajan middleware sınırlarına örnekler var; ürünün adım, süre, kaynak ve harcama limitleri sunucuda birlikte uygulanacak.",
+            "acceptance": "Adım veya bütçe limiti dolunca yeni araç/model çağrısı başlamasın; kısmi sonuç ve sebep kaydedilsin.",
+            "sources": [
+              {
+                "title": "LangChain Prebuilt Middleware",
+                "url": "https://docs.langchain.com/oss/python/langchain/middleware/built-in"
+              },
+              {
+                "title": "LangChain Models",
+                "url": "https://docs.langchain.com/oss/python/langchain/models"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Talimat, veri ve araç çıktılarının güven sınırları.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "AI güvenlik politikası",
+            "confidence": "design",
+            "note": "Güvenilen talimat, kullanıcı verisi ve araç çıktısı AI güvenlik tasarımında ayrılacak; prompt metnine güvenlik yetkisi verilmez ve sunucu politikası üstün kalır.",
+            "acceptance": "Belge/araç çıktısındaki talimat gizli veriyi çıkaramasın veya araç kapsamını değiştiremesin.",
+            "sources": [
+              {
+                "title": "OWASP Top 10 for LLM Applications",
+                "url": "https://owasp.org/projects/top-10-for-large-language-model-applications"
+              },
+              {
+                "title": "LangChain Structured Output",
+                "url": "https://docs.langchain.com/oss/python/langchain/structured-output"
+              },
+              {
+                "title": "Frappe Users and Permissions",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": ["ai"],
+      "num": "05.5"
+    }
+  ],
+  "phase": "Çekirdek → ileri yetenekler",
+  "rationale": "Önce headless API, Keycloak token köprüsü ve olay sözleşmeleri. AI, RAG ve ajanlar veri/izinler ile maliyet sınırları doğrulandıktan sonra ayrı dilimlerdir.",
+  "dependsOn": ["01", "05"],
+  "roadmapOrder": 5
+}

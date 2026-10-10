@@ -79,21 +79,24 @@ test('320px groups start collapsed with a native full-row accordion and rotating
   });
 });
 
-test('bulk accordion state follows manual toggles and is disabled for empty results', async ({
+test('collapse control follows manual toggles and never opens collapsed headings', async ({
   page,
 }) => {
   await page.goto('./');
   const bulk = page.locator('#collapse-all');
   const group = page.locator('.group').first();
-  await expect(bulk).toHaveText('Tüm başlıkları genişlet');
+  await expect(page.locator('#search')).toBeEnabled();
+  await expect(bulk).toHaveText('Tüm başlıkları daralt');
+  await expect(bulk).toBeDisabled();
   await group.locator(':scope > summary').click();
   await expect(bulk).toHaveText('Tüm başlıkları daralt');
+  await expect(bulk).toBeEnabled();
   await group.locator(':scope > summary').click();
-  await expect(bulk).toHaveText('Tüm başlıkları genişlet');
-  await bulk.click();
-  await expect(page.locator('.group[open]')).toHaveCount(49);
+  await expect(bulk).toBeDisabled();
+  await group.locator(':scope > summary').click();
   await bulk.click();
   await expect(page.locator('.group[open]')).toHaveCount(0);
+  await expect(bulk).toBeDisabled();
   await page.locator('#search').fill('no-match-accordion-987654321');
   await expect(bulk).toBeDisabled();
 });
@@ -102,8 +105,11 @@ test('search reveals matches but selection preserves manually collapsed groups',
   page,
 }) => {
   await page.goto('./');
+  await expect(page.locator('#search')).toBeEnabled();
   await page.locator('#search').fill('kiracı');
-  const group = page.locator('#group-tenant');
+  await expect(page.locator('.group[open]')).toHaveCount(1);
+  const firstId = await page.locator('.group[open]').getAttribute('id');
+  const group = page.locator(`#${firstId}`);
   await expect(group).toHaveAttribute('open', '');
   await group.locator(':scope > summary').click();
   await expect(group).not.toHaveAttribute('open');
@@ -121,11 +127,16 @@ test('search reveals matches but selection preserves manually collapsed groups',
       JSON.parse(localStorage.getItem('saas-atlas-selection-v1')),
     ),
   ).toEqual(ids);
-  const another = page
-    .locator('.group[open] .feature:not([hidden]) .feature-check')
+  const anotherGroup = page
+    .locator(`.group:not([hidden]):not(#${firstId})`)
+    .first();
+  await anotherGroup.locator(':scope > summary').click();
+  const another = anotherGroup
+    .locator('.feature:not([hidden]) .feature-check')
     .first();
   await another.uncheck();
   await expect(group).not.toHaveAttribute('open');
+  await expect(page.locator('.group[open]')).toHaveCount(1);
 });
 
 test('direct feature links reveal only their collapsed parent and print restores mixed states', async ({

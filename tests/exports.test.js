@@ -1,6 +1,17 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { buildSelection, serializeExport } from '../assets/exports.js';
+import {
+  buildSelection,
+  configureExportMessages,
+  serializeExport,
+} from '../assets/exports.js';
+
+configureExportMessages(
+  JSON.parse(
+    readFileSync(new URL('../data/messages.json', import.meta.url), 'utf8'),
+  ).export,
+);
 
 function atlas() {
   return {
@@ -52,6 +63,9 @@ function atlas() {
 
 function roadmapAtlas() {
   const data = atlas();
+  data.generated = '2026-10-10';
+  data.clusters[0].short = 'Kimlik ve erişim';
+  data.clusters[0].groups[0].owns = 'Kiracı ve kurum sınırı.';
   data.roadmap = {
     version: 1,
     reviewedAt: '2026-10-10',
@@ -559,4 +573,111 @@ test('empty roadmap selections retain version and decision baseline in every for
     serializeExport(payload, 'md').text.includes('runtime kabulü değil'),
   );
   assert.deepEqual(JSON.parse(serializeExport(payload, 'json').text), payload);
+});
+
+test('selected roadmap JSON retains every public content field without mutating the source', () => {
+  const data = roadmapAtlas();
+  data.generated = '2026-10-10';
+  data.classification = {
+    o: 'İlk envanter',
+    g: 'Kapsam tamamlayıcısı',
+    n: 'Yeni öneri',
+  };
+  data.sources = {
+    tenant: ['Kiracı izolasyonu kaynağı', 'https://example.com/tenant'],
+    other: ['Seçilmemiş başlığın kaynağı', 'https://example.com/other'],
+  };
+  data.roadmap.sequence = [
+    {
+      id: '01',
+      phase: 'Temel',
+      rationale: 'İzolasyon önce gelir.',
+      dependsOn: ['02'],
+    },
+  ];
+  const cluster = data.clusters.find((entry) => entry.id === '01');
+  cluster.short = 'Kimlik ve erişim özeti';
+  const group = cluster.groups[0];
+  Object.assign(group, {
+    owns: 'Kiracı kayıtlarının ve erişim sınırının sahibi.',
+    provides: 'Kurum bağlamı ve güvenli erişim.',
+    links: [['identity', 'Kimlik eşlemesi']],
+    sources: ['tenant'],
+  });
+  const before = structuredClone(data);
+  freezeDeep(data);
+  const payload = buildSelection(data, ['tenant-1']);
+  const exportedCluster = payload.clusters[0];
+  const exportedGroup = exportedCluster.groups[0];
+  assert.equal(payload.generated, data.generated);
+  assert.deepEqual(payload.classification, data.classification);
+  assert.deepEqual(payload.sources, data.sources);
+  assert.deepEqual(payload.roadmap.sequence, data.roadmap.sequence);
+  assert.equal(exportedCluster.short, cluster.short);
+  for (const key of ['owns', 'provides', 'links', 'sources']) {
+    assert.deepEqual(
+      exportedGroup[key],
+      group[key],
+      `selected group retains ${key}`,
+    );
+  }
+  assert.equal(exportedGroup.items[0].raw, group.items[0].raw);
+  assert.deepEqual(exportedGroup.items[0].assessment, {
+    support: group.items[0].assessment.support,
+    action: group.items[0].assessment.action,
+    owner: group.items[0].assessment.owner,
+    confidence: group.items[0].assessment.confidence,
+    note: group.items[0].assessment.note,
+    acceptance: group.items[0].assessment.acceptance,
+    sources: [
+      {
+        title: 'Frappe belgeleri',
+        url: 'https://docs.frappe.io/framework/user/en/basics/sites',
+      },
+    ],
+  });
+  assert.notEqual(payload.sources, data.sources);
+  assert.notEqual(exportedGroup.links, group.links);
+  assert.deepEqual(data, before);
+  assert.deepEqual(JSON.parse(serializeExport(payload, 'json').text), payload);
+  assert.equal(exportedGroup.items.length, 1);
+  assert.ok(!JSON.stringify(payload).includes('Must not leak'));
+});
+
+test('selected roadmap Markdown retains original text, ownership, relationships and source metadata safely', () => {
+  const data = roadmapAtlas();
+  data.generated = '2026-10-10';
+  data.classification = { o: 'İlk envanter sınıfının açıklaması' };
+  data.sources = {
+    tenant: ['Kiracı izolasyonu kaynağı', 'https://example.com/tenant'],
+  };
+  const cluster = data.clusters.find((entry) => entry.id === '01');
+  cluster.short = 'Kimlik ve erişim özeti';
+  Object.assign(cluster.groups[0], {
+    owns: 'Kiracı kayıtlarının sahibi.',
+    provides: 'Kurum bağlamı sağlar.',
+    links: [['identity', 'Kimlik eşlemesi']],
+    sources: ['tenant'],
+  });
+  cluster.groups[0].items[0].raw =
+    '<script>Özgün ifade</script>\n# Sahte başlık';
+  const text = serializeExport(buildSelection(data, ['tenant-1']), 'md').text;
+  for (const content of [
+    'Kimlik ve erişim özeti',
+    'Kiracı kayıtlarının sahibi\\.',
+    'Kurum bağlamı sağlar\\.',
+    'identity',
+    'Kimlik eşlemesi',
+    'Kiracı izolasyonu kaynağı',
+    'https://example.com/tenant',
+    'İlk envanter sınıfının açıklaması',
+    '&lt;script&gt;Özgün ifade&lt;/script&gt;&#10;\\# Sahte başlık',
+  ])
+    assert.ok(text.includes(content), `Markdown retains ${content}`);
+  assert.ok(!text.includes('<script>'));
+  assert.equal(
+    text.split('\n').filter((line) => line.startsWith('- [x]')).length,
+    1,
+  );
+  assert.ok(!text.includes('İki aşamalı doğrulama'));
 });

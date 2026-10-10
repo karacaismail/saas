@@ -1,0 +1,345 @@
+{
+  "id": "03",
+  "title": "Tahsilat, faturalama ve finans",
+  "short": "Tahsilat ve finans",
+  "groups": [
+    {
+      "id": "payments",
+      "title": "Ödeme ve tahsilat işlemleri",
+      "owns": "Ödeme denemeleri, yöntem referansları, iade ve itiraz kayıtları.",
+      "links": [
+        ["integration", "Ödeme sağlayıcısı bağlantısı"],
+        ["security", "Gizli anahtar erişimi"]
+      ],
+      "provides": "Ödeme, başarısızlık, iade ve itiraz olayları; sağlayıcı işlem referansı.",
+      "items": [
+        {
+          "kind": "o",
+          "text": "Ödeme sağlayıcısı, ödeme yöntemi ve tahsilat yönetimi.",
+          "raw": "Ödeme / abonelik / suspend; Ödeme / abonelik+plan+pricing table",
+          "assessment": {
+            "support": "ecosystem",
+            "action": "integrate",
+            "owner": "Ödeme entegrasyonu",
+            "confidence": "documented",
+            "note": "Frappe Payments ayrı uygulamadır. Sağlayıcı seçimi, desteklenen yöntemler ve SaaS tahsilat adaptörü ayrıca belirlenir.",
+            "acceptance": "Seçilen sağlayıcı test ortamında başarılı/başarısız tahsilatı tek ödeme kaydıyla yansıtmalı.",
+            "sources": [
+              {
+                "title": "Frappe Payments: ayrı ödeme uygulaması",
+                "url": "https://github.com/frappe/payments"
+              },
+              {
+                "title": "Stripe: sağlayıcı ödeme yöntemleri örneği",
+                "url": "https://docs.stripe.com/payments/payment-methods"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Ödeme yetkilendirme, doğrulama, tekrar deneme ve başarısız tahsilat takibi.",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "Ödeme entegrasyonu",
+            "confidence": "design",
+            "note": "Yetkilendirme ve doğrulama sağlayıcı sözleşmesine bağlıdır. Tekrar deneme ve başarısız tahsilat ürün akışı backend'e eklenir.",
+            "acceptance": "Ek doğrulama, zaman aşımı ve başarısız ödeme senaryolarında yanlış Paid durumu oluşmamalı.",
+            "sources": [
+              {
+                "title": "Stripe: sağlayıcı ödeme yöntemleri örneği",
+                "url": "https://docs.stripe.com/payments/payment-methods"
+              },
+              {
+                "title": "Stripe: webhook doğrulama ve teslim sözleşmesi örneği",
+                "url": "https://docs.stripe.com/webhooks"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Tam/kısmi iade, ters ibraz ve ödeme itirazı yönetimi.",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "Ödeme + finans",
+            "confidence": "design",
+            "note": "İade ve dispute sağlayıcı süreçleridir. Finans kaydı ve müşteri hakkı etkisi backend'de uzlaştırılır.",
+            "acceptance": "Kısmi/tam iade ve ters ibraz olayları bakiye/hizmet kararını tutarlı güncellemeli.",
+            "sources": [
+              {
+                "title": "Stripe: iade sözleşmesi örneği",
+                "url": "https://docs.stripe.com/refunds"
+              },
+              {
+                "title": "Stripe: webhook doğrulama ve teslim sözleşmesi örneği",
+                "url": "https://docs.stripe.com/webhooks"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Tekrarlanan istekte ikinci tahsilatı önleme ve ödeme durumu uzlaştırma.",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "Ödeme entegrasyonu",
+            "confidence": "design",
+            "note": "Sağlayıcı idempotency sözleşmesi kullanılabilir. Kalıcı işlem anahtarı, event tekilleştirme ve yerel uzlaştırma ayrıca gerekir.",
+            "acceptance": "Aynı istek ve yinelenen webhook tek tahsilat üretmeli; bağlantı kopunca sağlayıcı durumu uzlaştırılmalı.",
+            "sources": [
+              {
+                "title": "Stripe: idempotent istek sözleşmesi örneği",
+                "url": "https://docs.stripe.com/api/idempotent_requests"
+              },
+              {
+                "title": "Stripe: webhook doğrulama ve teslim sözleşmesi örneği",
+                "url": "https://docs.stripe.com/webhooks"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Kart verisi yerine sağlayıcı tokenı (güvenli ödeme referansı) saklama.",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "Ödeme entegrasyonu",
+            "confidence": "design",
+            "note": "Ödeme aracı sağlayıcı referansıyla tutulur. Kart ayrıntılarını ürüne taşıyan akış yerine sağlayıcının güvenli toplama yüzeyi seçilir.",
+            "acceptance": "Backend, log ve export içinde PAN/CVV bulunmamalı; yalnız sağlayıcı referansı ve izinli metadata saklanmalı.",
+            "sources": [
+              {
+                "title": "Stripe: sağlayıcı ödeme yöntemleri örneği",
+                "url": "https://docs.stripe.com/payments/payment-methods"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Sağlayıcı bildirimini doğrulama; geciken veya sırasız sonuçları işleme.",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "Ödeme entegrasyonu",
+            "confidence": "design",
+            "note": "Webhook imza ve teslim kuralları sağlayıcıya bağlıdır. Geç/sırasız olaylarda yerel ödeme durum makinesi korunur.",
+            "acceptance": "Yanlış imza reddedilmeli; eski ve yinelenen olay Paid kaydını hatalı geriye çevirmemeli.",
+            "sources": [
+              {
+                "title": "Stripe: webhook doğrulama ve teslim sözleşmesi örneği",
+                "url": "https://docs.stripe.com/webhooks"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": ["subscription", "outbox"],
+      "num": "10.1"
+    },
+    {
+      "id": "finance",
+      "title": "Faturalama, cari hesap ve mutabakat",
+      "owns": "SaaS işletmecisinin siparişleri, faturaları, cari ve muhasebe hareketleri.",
+      "links": [
+        ["subscriptions", "Abonelik dönemleri"],
+        ["usage", "Faturalanacak tüketim"],
+        ["payments", "Tahsilat ve iade olayları"],
+        ["campaigns", "İndirim sonucu"]
+      ],
+      "provides": "Fatura, bakiye ve mutabakat sonucu; muhasebe sistemine aktarım.",
+      "items": [
+        {
+          "kind": "o",
+          "text": "Sipariş, fatura, muhasebeleştirme ve ön muhasebe.",
+          "raw": "Muhasebeleştirme (fatura, sipariş); Muhasebeleştirme",
+          "assessment": {
+            "support": "ecosystem",
+            "action": "integrate",
+            "owner": "ERPNext + finans",
+            "confidence": "documented",
+            "note": "Sipariş, fatura ve muhasebe ERPNext uygulamasındadır. Framework veri modeli tek başına muhasebe ürünü değildir.",
+            "acceptance": "Sipariş–fatura–tahsilat zinciri doğru cari ve dengeli defter kaydı üretmeli.",
+            "sources": [
+              {
+                "title": "ERPNext: Sales Invoice",
+                "url": "https://docs.frappe.io/erpnext/sales-invoice"
+              },
+              {
+                "title": "ERPNext: Accounting Entries",
+                "url": "https://docs.frappe.io/erpnext/accounting-entries"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "Para birimi, döviz kuru ve vergilendirme yönetimi.",
+          "raw": "döviz, vergilendirme",
+          "assessment": {
+            "support": "ecosystem",
+            "action": "configure",
+            "owner": "ERPNext + finans",
+            "confidence": "documented",
+            "note": "ERPNext para birimi, dönüşüm ve vergi şablonları sağlar. Ülke ve işlem politikası ayrıca seçilir.",
+            "acceptance": "Örnek dövizli/vergi dahil/yuvarlanan işlemde beklenen tutar ve hesap kayıtları eşleşmeli.",
+            "sources": [
+              {
+                "title": "ERPNext: Sales Invoice",
+                "url": "https://docs.frappe.io/erpnext/sales-invoice"
+              },
+              {
+                "title": "ERPNext: Accounts Settings",
+                "url": "https://docs.frappe.io/erpnext/accounts-settings"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "Süper admin için SaaS müşterilerinin cari, finans ve mutabakat yönetimi.",
+          "raw": "superAdmin tarafından, saas müşterisinin Cari yönetimi ve ön muhasebesi, finans ve mutabakat yönetimi",
+          "assessment": {
+            "support": "ecosystem",
+            "action": "extend",
+            "owner": "ERPNext + platform",
+            "confidence": "documented",
+            "note": "ERPNext cari ve mutabakat araçları vardır. İşletmecinin tüm SaaS müşterilerine erişimi ayrı headless yetki yüzeyi ister.",
+            "acceptance": "Süper admin müşterileri uzlaştırabilmeli; tenant kullanıcısı işletmeci carisini görememeli.",
+            "sources": [
+              {
+                "title": "ERPNext: Payment Reconciliation",
+                "url": "https://docs.frappe.io/erpnext/payment-reconciliation"
+              },
+              {
+                "title": "Frappe: kullanıcılar ve izinler",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Fatura bilgileri, numaralandırma, vergi profili ve yuvarlama kuralları.",
+          "assessment": {
+            "support": "ecosystem",
+            "action": "configure",
+            "owner": "ERPNext + finans",
+            "confidence": "documented",
+            "note": "ERPNext fatura alanları, vergiler ve numaralandırma araçları sağlar. Yerel e-belge koşulları ayrıca doğrulanır.",
+            "acceptance": "Numara benzersizliği, vergi profili ve küsurat örnekleri seçilen ülke senaryosuyla onaylanmalı.",
+            "sources": [
+              {
+                "title": "ERPNext: Sales Invoice",
+                "url": "https://docs.frappe.io/erpnext/sales-invoice"
+              },
+              {
+                "title": "ERPNext: Accounts Settings",
+                "url": "https://docs.frappe.io/erpnext/accounts-settings"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Alacak/borç düzeltmeleri, ön ödeme, vade ve gecikme takibi.",
+          "assessment": {
+            "support": "ecosystem",
+            "action": "configure",
+            "owner": "ERPNext + finans",
+            "confidence": "documented",
+            "note": "ERPNext avans, vade, credit/debit note ve açık bakiye araçları sunar. SaaS erişim etkisi ayrıca bağlanır.",
+            "acceptance": "Avans mahsup, kısmi ödeme ve düzeltmede cari bakiyesi ile fatura kalanı eşleşmeli.",
+            "sources": [
+              {
+                "title": "ERPNext: Sales Invoice",
+                "url": "https://docs.frappe.io/erpnext/sales-invoice"
+              },
+              {
+                "title": "ERPNext: Payment Reconciliation",
+                "url": "https://docs.frappe.io/erpnext/payment-reconciliation"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Banka, ödeme sağlayıcısı ve muhasebe kayıtlarını uzlaştırma.",
+          "assessment": {
+            "support": "ecosystem",
+            "action": "integrate",
+            "owner": "ERPNext + ödeme",
+            "confidence": "documented",
+            "note": "ERPNext ödeme–fatura tahsis mutabakatı sunar. Banka ekstresi ve sağlayıcı settlement akışı ayrıca bağlanır.",
+            "acceptance": "Sağlayıcı ücretleri dahil settlement toplamı banka ve defterle uzlaşmalı; fark açıklanmalı.",
+            "sources": [
+              {
+                "title": "ERPNext: Payment Reconciliation",
+                "url": "https://docs.frappe.io/erpnext/payment-reconciliation"
+              },
+              {
+                "title": "ERPNext: Accounting Entries",
+                "url": "https://docs.frappe.io/erpnext/accounting-entries"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Muhasebe sistemi ve uygulanabilir e-belge entegrasyonları.",
+          "assessment": {
+            "support": "verify",
+            "action": "validate",
+            "owner": "Finans entegrasyonu",
+            "confidence": "verify",
+            "note": "ERPNext muhasebe modeli belgeli. Hedef ülke, e-belge sağlayıcısı ve sürüm seçilmediği için yerel uyumluluk sonucu verilemez.",
+            "acceptance": "Seçilen ülkenin sağlayıcı test ortamında belge kabul/iptal ve finans eşleme senaryoları doğrulanmalı.",
+            "sources": [
+              {
+                "title": "ERPNext: Sales Invoice",
+                "url": "https://docs.frappe.io/erpnext/sales-invoice"
+              },
+              {
+                "title": "ERPNext: Accounts Settings",
+                "url": "https://docs.frappe.io/erpnext/accounts-settings"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "İşletmecinin finans kayıtları ile müşterinin ürün içi muhasebesini ayırma.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Platform + ERPNext",
+            "confidence": "design",
+            "note": "Site ve şirket ayrımı yapı taşıdır. İşletmeci finansı ile müşterinin ürün muhasebesi için hazır ayrıştırma politikası saptanmadı.",
+            "acceptance": "İşletmeci faturası tenant muhasebesine istemeden yazılmamalı; çapraz rapor erişimi engellenmeli.",
+            "sources": [
+              {
+                "title": "Frappe: site oluşturma ve site başına veritabanı",
+                "url": "https://docs.frappe.io/framework/user/en/tutorial/create-a-site"
+              },
+              {
+                "title": "ERPNext: Accounting Entries",
+                "url": "https://docs.frappe.io/erpnext/accounting-entries"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": ["subscription"],
+      "num": "10.2"
+    }
+  ],
+  "phase": "Gelir modeli",
+  "rationale": "Abonelik ve kullanım hakkı sözleşmesine ödeme, fatura ve mutabakat eklenir. ERPNext ayrı uygulama kararıdır.",
+  "dependsOn": ["02", "09"],
+  "roadmapOrder": 10
+}

@@ -18,6 +18,7 @@ test('Frappe roadmap exposes per-item evidence and orthogonal capability/action 
 }, testInfo) => {
   await page.setViewportSize({ width: 320, height: 568 });
   await page.goto('./');
+  await expect(page.locator('#search')).toBeEnabled();
   await expect(page.locator('.assessment-tags')).toHaveCount(326);
   await expect(page.locator('.cluster').first()).toHaveAttribute(
     'id',
@@ -97,6 +98,7 @@ test('Frappe roadmap exposes per-item evidence and orthogonal capability/action 
     contentType: 'image/png',
   });
   await page.locator('button[data-support="external"]').click();
+  await openFeature(page, 'feature-identity-1');
   await expect(page.locator('#feature-identity-1')).toBeVisible();
   const support = await page
     .locator('.feature:visible')
@@ -112,6 +114,7 @@ test('Frappe roadmap exposes per-item evidence and orthogonal capability/action 
   await page.locator('#reset-all').click();
   await expect(page.locator('.feature:not([hidden])')).toHaveCount(326);
   await expect(page.locator('.group:visible')).toHaveCount(49);
+  await openFeature(page, 'feature-identity-1');
   await expect(page.locator('#feature-identity-1')).toBeVisible();
   await expect(
     page.locator('#feature-identity-1 .feature-check'),
@@ -132,6 +135,7 @@ test('roadmap labels and details remain readable with 200% root text and keyboar
 }, testInfo) => {
   await page.setViewportSize({ width: 320, height: 480 });
   await page.goto('./');
+  await expect(page.locator('#search')).toBeEnabled();
   await page.addStyleTag({ content: 'html { font-size:200% !important; }' });
   await openFeature(page, 'feature-model-1');
   const summary = page.locator('#feature-model-1 .assessment > summary');

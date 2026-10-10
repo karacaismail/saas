@@ -1,0 +1,646 @@
+{
+  "id": "08",
+  "title": "Müşteri operasyonları ve içerik",
+  "short": "Müşteri ve içerik",
+  "groups": [
+    {
+      "id": "crm",
+      "title": "Müşteri ilişkileri ve satış",
+      "owns": "Müşteri/aday, kişi, fırsat ve satış etkinlikleri; abonelik ayrı grupta.",
+      "links": [
+        ["tenant", "Hesap referansı"],
+        ["events", "Müşteri yaşam döngüsü olayları"]
+      ],
+      "provides": "Satış fırsatı ve müşteri ilişkisi olayları.",
+      "items": [
+        {
+          "kind": "o",
+          "text": "CRM (Customer Relationship Management — müşteri ilişkileri yönetimi) ve satış.",
+          "raw": "Crm/Sales; Crm",
+          "assessment": {
+            "support": "ecosystem",
+            "action": "integrate",
+            "owner": "CRM uygulaması",
+            "confidence": "documented",
+            "note": "CRM hazır domain ürünü Framework çekirdeği değildir; ayrı Frappe CRM uygulaması değerlendirilecek, headless API ve Keycloak uyumu entegre edilecek.",
+            "acceptance": "Leadten anlaşmaya satış yolculuğu seçilen CRM sürümünde izinli APIlerle tamamlansın.",
+            "sources": [
+              {
+                "title": "Frappe CRM: Your First Steps",
+                "url": "https://docs.frappe.io/crm/setup-guide/your-first-steps-with-frappe-crm"
+              },
+              {
+                "title": "ERPNext CRM: sürüm ve kaldırma notu",
+                "url": "https://docs.frappe.io/erpnext/CRM"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Müşteri adayı, kişi, firma, fırsat ve satış aşamaları.",
+          "assessment": {
+            "support": "ecosystem",
+            "action": "integrate",
+            "owner": "CRM uygulaması",
+            "confidence": "documented",
+            "note": "Frappe CRM lead, contact, organization ve deal modelleri sağlar; ihtiyaçtaki fırsat aşamaları ve headless ekranlar uyarlanacak.",
+            "acceptance": "Kişi/şirket ilişkili fırsat aşama değiştirince kayıt ilişkileri ve izinler korunsun.",
+            "sources": [
+              {
+                "title": "Frappe CRM: Your First Steps",
+                "url": "https://docs.frappe.io/crm/setup-guide/your-first-steps-with-frappe-crm"
+              },
+              {
+                "title": "Frappe CRM Lead",
+                "url": "https://docs.frappe.io/crm/lead"
+              },
+              {
+                "title": "Frappe CRM Organization",
+                "url": "https://docs.frappe.io/crm/organization"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Görüşme/not, hatırlatma, sorumlu atama ve iletişim geçmişi.",
+          "assessment": {
+            "support": "ecosystem",
+            "action": "integrate",
+            "owner": "CRM uygulaması",
+            "confidence": "documented",
+            "note": "Frappe CRM not, görev, atama ve zaman çizelgesi sunar; headless hatırlatma deneyimi ve kimlik eşlemesi ayrıca bağlanacak.",
+            "acceptance": "Atanan görev vadesi, notu ve kayıt geçmişi yetkili kullanıcıda tutarlı görünsün.",
+            "sources": [
+              {
+                "title": "Frappe CRM Lead",
+                "url": "https://docs.frappe.io/crm/lead"
+              },
+              {
+                "title": "Frappe CRM Task",
+                "url": "https://docs.frappe.io/crm/task"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Müşteri tekilleştirme, kayıt birleştirme ve sahiplik değişikliği.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "CRM ve veri kalitesi",
+            "confidence": "documented",
+            "note": "Framework rename_doc birleştirme/link güncelleme yardımcıları sağlar; müşteri tekilleştirme kuralları, çakışma çözümü ve sahiplik denetimi ürün geliştirmesidir.",
+            "acceptance": "İki mükerrer müşteri birleşince fırsat ve iletişim bağları kaybolmasın; değişen sahiplik denetlensin.",
+            "sources": [
+              {
+                "title": "Frappe rename_doc kaynak kodu, version-15",
+                "url": "https://raw.githubusercontent.com/frappe/frappe/version-15/frappe/model/rename_doc.py"
+              },
+              {
+                "title": "Frappe Users and Permissions",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "n",
+          "text": "Müşteri başarısı: hesap sağlığı, kullanım düşüşü ve yenileme riski.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Müşteri başarısı",
+            "confidence": "design",
+            "note": "İncelenen CRM kaynaklarında kullanım düşüşü ve yenileme riskini birleştiren hazır hesap sağlığı motoru saptanmadı; ölçütler ve olay girdileri geliştirilecek.",
+            "acceptance": "Düşen kullanım ve yaklaşan yenileme örneği açıklanabilir risk puanı ve görev üretsin.",
+            "sources": [
+              {
+                "title": "Frappe CRM: Your First Steps",
+                "url": "https://docs.frappe.io/crm/setup-guide/your-first-steps-with-frappe-crm"
+              },
+              {
+                "title": "Frappe Reports",
+                "url": "https://docs.frappe.io/framework/user/en/desk/reports"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "n",
+          "text": "Müşteri devreye alma kontrol listesi ve yenileme müdahale görevleri.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Müşteri başarısı",
+            "confidence": "documented",
+            "note": "CRM görevleri kontrol listesine temel olabilir; müşteri onboarding ve yenileme müdahalesine ait şablon, tetikleyici ve tamamlanma modeli ayrıca gerekir.",
+            "acceptance": "Yeni müşteriye doğru kontrol listesi açılsın; yenileme riski sorumluya tek müdahale görevi oluştursun.",
+            "sources": [
+              {
+                "title": "Frappe CRM Task",
+                "url": "https://docs.frappe.io/crm/task"
+              },
+              {
+                "title": "Frappe CRM: Your First Steps",
+                "url": "https://docs.frappe.io/crm/setup-guide/your-first-steps-with-frappe-crm"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": [],
+      "num": "11.1"
+    },
+    {
+      "id": "support",
+      "title": "Destek, yönlendirme ve geri bildirim",
+      "owns": "Destek talepleri, hizmet hedefleri, anketler ve yardım akışları.",
+      "links": [
+        ["crm", "Müşteri referansı"],
+        ["content", "Yardım içeriği"],
+        ["notifications", "Müşteri/sorumlu bildirimi"]
+      ],
+      "provides": "Destek ve memnuniyet olayları; müşteri yardım deneyimi.",
+      "items": [
+        {
+          "kind": "o",
+          "text": "Helpdesk (destek merkezi), support (destek) ve ticket (destek talebi).",
+          "raw": "Helpdesk, support, ticket",
+          "assessment": {
+            "support": "ecosystem",
+            "action": "integrate",
+            "owner": "Destek uygulaması",
+            "confidence": "documented",
+            "note": "Ticket ve destek ürünü ayrı Frappe Helpdesktir; Framework kurulumunda hazır destek ürünü varsayılmaz. Headless erişim ve Keycloak bağlantısı yapılacak.",
+            "acceptance": "Müşteri ticket açsın; yetkili destek ekibi yanıtlasın; tenantlar birbirinin ticketını göremesin.",
+            "sources": [
+              {
+                "title": "Frappe Helpdesk Settings",
+                "url": "https://docs.frappe.io/helpdesk/settings"
+              },
+              {
+                "title": "Frappe Helpdesk Ticket View",
+                "url": "https://docs.frappe.io/helpdesk/lesson-2understanding-ticket-view"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "Onboarding (ilk kullanım yönlendirmesi) ve uygulama içi yardım.",
+          "raw": "helper onboarding cms(saas içi yardım, cms’si)",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Ürün onboarding",
+            "confidence": "documented",
+            "note": "Helpdesk bilgi tabanı destek içeriği sağlar; bağımsız frontendde bağlamsal yardım ve ürün onboarding akışı ayrıca tasarlanacak.",
+            "acceptance": "Yeni kullanıcı ilgili adımda doğru yardım içeriğine ulaşsın; tamamlanan adımlar saklansın.",
+            "sources": [
+              {
+                "title": "Frappe Helpdesk Settings",
+                "url": "https://docs.frappe.io/helpdesk/settings"
+              },
+              {
+                "title": "Frappe CRM: Your First Steps",
+                "url": "https://docs.frappe.io/crm/setup-guide/your-first-steps-with-frappe-crm"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "Survey (anket) ve NPS (Net Promoter Score — tavsiye skoru).",
+          "raw": "survey / nps",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Ürün geri bildirimi",
+            "confidence": "documented",
+            "note": "Helpdesk ticket geri bildirimi sunar; genel anket ve NPS örnekleme, puanlama ve tekrar gösterim kuralları ayrıca geliştirilecek.",
+            "acceptance": "Ticket memnuniyeti ve NPS ayrı kaydedilsin; uygun olmayan kullanıcıya tekrar anket açılmasın.",
+            "sources": [
+              {
+                "title": "Frappe Helpdesk Settings",
+                "url": "https://docs.frappe.io/helpdesk/settings"
+              },
+              {
+                "title": "Frappe Helpdesk Ticket View",
+                "url": "https://docs.frappe.io/helpdesk/lesson-2understanding-ticket-view"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "SLA (Service Level Agreement — hizmet seviyesi anlaşması), öncelik ve yanıt süresi.",
+          "assessment": {
+            "support": "ecosystem",
+            "action": "configure",
+            "owner": "Destek uygulaması",
+            "confidence": "documented",
+            "note": "Frappe Helpdesk SLA öncelik, ilk yanıt ve çözüm sürelerini iş saatleriyle izler; sözleşmeye uygun eşikler yapılandırılacak.",
+            "acceptance": "Mesai dışı açılan ticketın ilk yanıt ve çözüm sayacı seçilen SLAya göre hesaplansın.",
+            "sources": [
+              {
+                "title": "Frappe Helpdesk Service Level Agreement",
+                "url": "https://docs.frappe.io/helpdesk/service-level-agreement"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Talep atama, kuyruk, durum, etiket, iç not ve üst yetkiliye aktarma.",
+          "assessment": {
+            "support": "ecosystem",
+            "action": "extend",
+            "owner": "Destek uygulaması",
+            "confidence": "documented",
+            "note": "Helpdesk atama, durum ve özel yorum araçları sağlar; kuyruk/etiket ve eskalasyonun tüm kuralları hedef sürümde tamamlanıp headless akışa bağlanacak.",
+            "acceptance": "Öncelikli ticket doğru ekibe atansın; özel not müşteri API yanıtında görünmesin; gecikme eskalasyonu çalışsın.",
+            "sources": [
+              {
+                "title": "Frappe Helpdesk Settings",
+                "url": "https://docs.frappe.io/helpdesk/settings"
+              },
+              {
+                "title": "Frappe Helpdesk Ticket View",
+                "url": "https://docs.frappe.io/helpdesk/lesson-2understanding-ticket-view"
+              },
+              {
+                "title": "Frappe Helpdesk Permission Levels",
+                "url": "https://docs.frappe.io/helpdesk/customization/perm-levels-in-helpdesk"
+              },
+              {
+                "title": "Frappe Helpdesk Service Level Agreement",
+                "url": "https://docs.frappe.io/helpdesk/service-level-agreement"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Bağlama duyarlı yardım, ilk kurulum adımları ve tamamlanma takibi.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Frontend onboarding",
+            "confidence": "design",
+            "note": "İncelenen destek belgelerinde ürünün her ekranına bağlı kurulum/tamamlama motoru saptanmadı; frontend adımları ve sunucu durum modeli kurulacak.",
+            "acceptance": "Yarıda bırakılan kurulum yeniden girişte aynı adımdan sürsün; tamamlanma sunucuda doğrulansın.",
+            "sources": [
+              {
+                "title": "Frappe Helpdesk Settings",
+                "url": "https://docs.frappe.io/helpdesk/settings"
+              },
+              {
+                "title": "Frappe REST API",
+                "url": "https://docs.frappe.io/framework/user/en/guides/integration/rest_api"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Özellik talepleri, geri bildirim toplama ve memnuniyet geçmişi.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Ürün geri bildirimi",
+            "confidence": "documented",
+            "note": "Ticket geri bildirim geçmişi mevcut bir temel; özellik talepleri, oylama ve müşterinin bütün memnuniyet geçmişi için ayrı model/izinler gerekecek.",
+            "acceptance": "Bir müşterinin talep ve memnuniyet kayıtları ilişkilensin; başka müşteri bunları okuyamasın.",
+            "sources": [
+              {
+                "title": "Frappe Helpdesk Ticket View",
+                "url": "https://docs.frappe.io/helpdesk/lesson-2understanding-ticket-view"
+              },
+              {
+                "title": "Frappe Helpdesk Settings",
+                "url": "https://docs.frappe.io/helpdesk/settings"
+              },
+              {
+                "title": "Frappe Users and Permissions",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": [],
+      "num": "11.2"
+    },
+    {
+      "id": "calendar",
+      "title": "Takvim ve randevu",
+      "owns": "Etkinlikler, katılımcılar, uygunluk ve kaynak rezervasyonları.",
+      "links": [
+        ["identity", "Katılımcı kimliği"],
+        ["integration", "Harici takvim bağlantısı"],
+        ["notifications", "Hatırlatma"]
+      ],
+      "provides": "Uygunluk sorgusu; rezervasyon ve randevu olayları.",
+      "items": [
+        {
+          "kind": "o",
+          "text": "Calendar (takvim) ve appointment (randevu) yönetimi.",
+          "raw": "Calender; appointment",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Takvim ve rezervasyon",
+            "confidence": "documented",
+            "note": "Framework Event tarih, katılımcı ve tekrar alanları sağlar; randevu rezervasyon ürünü ve headless takvim ayrıca yapılacak.",
+            "acceptance": "Etkinlik ve randevu oluşturma, zaman gösterimi ve erişim izinleri ayrı akışlarda çalışsın.",
+            "sources": [
+              {
+                "title": "Frappe Event şeması, version-15",
+                "url": "https://raw.githubusercontent.com/frappe/frappe/version-15/frappe/desk/doctype/event/event.json"
+              },
+              {
+                "title": "Frappe Google Calendar Integration",
+                "url": "https://docs.frappe.io/framework/user/en/guides/integration/google_calendar"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Uygunluk, katılımcılar, kaynak rezervasyonu ve çakışma denetimi.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Takvim ve rezervasyon",
+            "confidence": "documented",
+            "note": "Event katılımcı ve başlangıç/bitiş bilgisi sunar; uygunluk, kaynak kapasitesi ve eşzamanlı çakışma engeli ayrıca geliştirilecek.",
+            "acceptance": "Aynı kaynak için eşzamanlı iki çakışan rezervasyondan yalnız biri kabul edilsin.",
+            "sources": [
+              {
+                "title": "Frappe Event şeması, version-15",
+                "url": "https://raw.githubusercontent.com/frappe/frappe/version-15/frappe/desk/doctype/event/event.json"
+              },
+              {
+                "title": "Frappe Database API",
+                "url": "https://docs.frappe.io/framework/user/en/api/database"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Tekrarlayan etkinlik, saat dilimi ve davet yanıtları.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Takvim entegrasyonu",
+            "confidence": "documented",
+            "note": "Event tekrarları ve Google takvim eşlemesi var; saat dilimi ile davet yanıtlarının eksiksiz sözleşmesi ayrıca doğrulanıp tamamlanacak.",
+            "acceptance": "Yaz saati geçişindeki tekrar doğru saatte oluşsun; kabul/ret yanıtı kayda yansısın.",
+            "sources": [
+              {
+                "title": "Frappe Event şeması, version-15",
+                "url": "https://raw.githubusercontent.com/frappe/frappe/version-15/frappe/desk/doctype/event/event.json"
+              },
+              {
+                "title": "Frappe Google Calendar Integration",
+                "url": "https://docs.frappe.io/framework/user/en/guides/integration/google_calendar"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "İptal/erteleme, hatırlatma ve dış takvim eşitleme.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Takvim entegrasyonu",
+            "confidence": "documented",
+            "note": "Google Calendar çift yönlü senkron ve Notification hatırlatmaları temel olur; iptal/erteleme akışı tamamlanacak. Googleda tekrarlı olayın tek iptali belgede sınırlıdır.",
+            "acceptance": "Erteleme karşı takvime geçsin; tekil tekrar iptali için seçilen telafi davranışı test edilsin.",
+            "sources": [
+              {
+                "title": "Frappe Google Calendar Integration",
+                "url": "https://docs.frappe.io/framework/user/en/guides/integration/google_calendar"
+              },
+              {
+                "title": "Frappe Notifications",
+                "url": "https://docs.frappe.io/framework/notifications"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": [],
+      "num": "11.3"
+    },
+    {
+      "id": "content",
+      "title": "İçerik, yardım ve yayın yönetimi",
+      "owns": "İçerik belgeleri, sayfa şablonları, yayın sürümleri ve moderasyon kayıtları.",
+      "links": [
+        ["catalog", "Yayımlanan paket/fiyat verisi"],
+        ["files", "Medya referansları"],
+        ["locale", "Dil kaynakları"]
+      ],
+      "provides": "Yardım ve herkese açık sayfalar; içerik yayımlama olayları.",
+      "items": [
+        {
+          "kind": "o",
+          "text": "CMS (Content Management System — içerik yönetim sistemi) ve yardım bilgi bankası.",
+          "raw": "helper onboarding cms(saas içi yardım, cms’si)",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "İçerik ve frontend",
+            "confidence": "documented",
+            "note": "Web Page çekirdek CMS içeriğini sağlar; Helpdesk bilgi tabanı ayrı uygulamadır. Headless içerik APIleri, yetkiler ve yardım ekranları bağlanacak.",
+            "acceptance": "Taslak içerik dışarı sızmasın; yayımlanmış yardım sayfası doğru dil/rotada açılsın.",
+            "sources": [
+              {
+                "title": "Frappe Web Page şeması, version-15",
+                "url": "https://raw.githubusercontent.com/frappe/frappe/version-15/frappe/website/doctype/web_page/web_page.json"
+              },
+              {
+                "title": "Frappe Helpdesk Settings",
+                "url": "https://docs.frappe.io/helpdesk/settings"
+              },
+              {
+                "title": "Frappe REST API",
+                "url": "https://docs.frappe.io/framework/user/en/guides/integration/rest_api"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "SEO (Search Engine Optimization — arama motoru optimizasyonu).",
+          "raw": "seo",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "Frontend SEO",
+            "confidence": "design",
+            "note": "Frappe hosted website ayarları bağımsız frontendin SEO çıktısını belirlemez; headless renderer metadata, canonical ve erişilebilir HTML üretecek.",
+            "acceptance": "Her açık sayfa doğru title/canonical ve indekslenebilir sunucu çıktısı versin.",
+            "sources": [
+              {
+                "title": "Frappe Website Settings şeması, version-15",
+                "url": "https://raw.githubusercontent.com/frappe/frappe/version-15/frappe/website/doctype/website_settings/website_settings.json"
+              },
+              {
+                "title": "Frappe Routing and Rendering",
+                "url": "https://docs.frappe.io/framework/user/en/python-api/routing-and-rendering"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "Programmatic SEO (veri/şablonla ölçekli arama odaklı sayfa üretimi).",
+          "raw": "programatic seo",
+          "assessment": {
+            "support": "partial",
+            "action": "build",
+            "owner": "İçerik ve frontend",
+            "confidence": "documented",
+            "note": "Website generator kayıt başına sayfa üretimine temel olur; headless programmatic SEO veri kalitesi, şablon ve indeksleme politikası geliştirilecek.",
+            "acceptance": "Örnek veri kümesinden benzersiz canonical rotalar oluşsun; eksik veri yayımlanmasın.",
+            "sources": [
+              {
+                "title": "Frappe Website Generators",
+                "url": "https://docs.frappe.io/framework/user/en/guides/portal-development/generators"
+              },
+              {
+                "title": "Frappe Website Settings şeması, version-15",
+                "url": "https://raw.githubusercontent.com/frappe/frappe/version-15/frappe/website/doctype/website_settings/website_settings.json"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "İçerik ve yorum moderation (yayına uygunluk denetimi).",
+          "raw": "moderation (content, comment)",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Moderasyon ürünü",
+            "confidence": "design",
+            "note": "İncelenen portal kaynaklarında kapsamlı içerik/yorum moderasyon iş akışı saptanmadı; izinli inceleme, karar ve kayıt modeli geliştirilecek.",
+            "acceptance": "Bekleyen yorum yayınlanmasın; moderatör kararı ve gerekçesi denetlenebilir kayda geçsin.",
+            "sources": [
+              {
+                "title": "Frappe Document API",
+                "url": "https://docs.frappe.io/framework/user/en/api/document"
+              },
+              {
+                "title": "Frappe Users and Permissions",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "Changelog (değişiklik günlüğü) ve müşteri panelinde “Neler yeni?”.",
+          "raw": "Changelog for customer(ve neler yeni görebilmeli kullanıcı panelde)",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Ürün iletişimi",
+            "confidence": "design",
+            "note": "İncelenen CMS kaynaklarında hazır changelog/yenilik portalı saptanmadı; sürüm duyurusu, hedef kitle ve okundu modeli yapılacak.",
+            "acceptance": "Yeni sürüm duyurusu hedef kullanıcılara görünsün; taslak ve erişimi kısıtlı duyuru gizli kalsın.",
+            "sources": [
+              {
+                "title": "Frappe Web Page şeması, version-15",
+                "url": "https://raw.githubusercontent.com/frappe/frappe/version-15/frappe/website/doctype/web_page/web_page.json"
+              },
+              {
+                "title": "Frappe Notifications",
+                "url": "https://docs.frappe.io/framework/notifications"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Taslak, önizleme, yayın zamanı, sürüm geçmişi ve geri alma.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "İçerik yönetimi",
+            "confidence": "documented",
+            "note": "Web Page yayın başlangıç/bitişi ve Version geçmişi temel sağlar; headless önizleme ve güvenli içerik geri alma akışı ayrıca gerekir.",
+            "acceptance": "Zamanı gelmeyen taslak yayımlanmasın; seçilen sürüme dönüş yeni denetim kaydı oluştursun.",
+            "sources": [
+              {
+                "title": "Frappe Web Page şeması, version-15",
+                "url": "https://raw.githubusercontent.com/frappe/frappe/version-15/frappe/website/doctype/web_page/web_page.json"
+              },
+              {
+                "title": "Frappe Version kaynak kodu, version-15",
+                "url": "https://raw.githubusercontent.com/frappe/frappe/version-15/frappe/core/doctype/version/version.py"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Sayfa adresi, yönlendirme, site haritası ve indeksleme kontrolleri.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "Frontend SEO",
+            "confidence": "design",
+            "note": "Frappe portal route/redirect ve robots ayarlarına sahip; bağımsız frontend rotaları, sitemap ve indeks kontrolleri kendi dağıtımında uygulanacak.",
+            "acceptance": "301 ve kaldırılan içerik rotaları doğru dönsün; sitemap yalnız yayımlanmış canonical adresleri içersin.",
+            "sources": [
+              {
+                "title": "Frappe Portal Redirects",
+                "url": "https://docs.frappe.io/framework/user/en/guides/portal-development/redirects"
+              },
+              {
+                "title": "Frappe Website Settings şeması, version-15",
+                "url": "https://raw.githubusercontent.com/frappe/frappe/version-15/frappe/website/doctype/website_settings/website_settings.json"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Moderasyon kuyruğu, gerekçe, itiraz ve ihlal geçmişi.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Moderasyon ürünü",
+            "confidence": "design",
+            "note": "İncelenen içerik belgelerinde itiraz ve ihlal geçmişiyle moderasyon kuyruğu saptanmadı; karar yetkileri ve itiraz yaşam döngüsü kurulacak.",
+            "acceptance": "Reddedilen içerik gerekçeyle itiraz edilebilsin; önceki karar ve ihlaller değişmeden izlenebilsin.",
+            "sources": [
+              {
+                "title": "Frappe Document API",
+                "url": "https://docs.frappe.io/framework/user/en/api/document"
+              },
+              {
+                "title": "Frappe Users and Permissions",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": [],
+      "num": "11.4"
+    }
+  ],
+  "phase": "İş alanları",
+  "rationale": "CRM, destek ve içerik için ek Frappe uygulaması mı özel geliştirme mi seçilir; headless uyarlama kabulü ayrıca yapılır.",
+  "dependsOn": ["04", "06", "07"],
+  "roadmapOrder": 11
+}

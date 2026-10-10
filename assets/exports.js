@@ -1,8 +1,14 @@
-const KIND_LABELS = Object.freeze({
-  o: 'Özgün kapsam',
-  g: 'Kapsam içi eksik',
-  n: 'Yeni alan',
-});
+let exportMessages;
+
+/** Configure user-facing export copy from the content engine's JSON source. */
+export function configureExportMessages(messages) {
+  exportMessages = structuredClone(messages);
+}
+
+function messages() {
+  if (!exportMessages) throw new TypeError('Missing export messages.');
+  return exportMessages;
+}
 
 const ASSESSMENT_FIELDS = Object.freeze([
   'support',
@@ -11,18 +17,6 @@ const ASSESSMENT_FIELDS = Object.freeze([
   'confidence',
   'note',
   'acceptance',
-]);
-
-const ROADMAP_COLUMNS = Object.freeze([
-  'Frappe yeterliliği',
-  'Yapılacak iş',
-  'Sorumlu',
-  'Kanıt durumu',
-  'Değerlendirme',
-  'Kabul ölçütü',
-  'Kaynaklar',
-  'Etap',
-  'Küme sırası',
 ]);
 
 function copyAssessment(assessment) {
@@ -38,7 +32,7 @@ function copyAssessment(assessment) {
 }
 
 function copyRoadmap(roadmap) {
-  return {
+  const result = {
     version: roadmap.version,
     reviewedAt: roadmap.reviewedAt,
     target: roadmap.target,
@@ -47,6 +41,17 @@ function copyRoadmap(roadmap) {
     actionLabels: { ...roadmap.actionLabels },
     confidenceLabels: { ...roadmap.confidenceLabels },
   };
+  if (Object.hasOwn(roadmap, 'sequence')) {
+    result.sequence = roadmap.sequence.map((entry) => {
+      const copied = {};
+      for (const key of ['id', 'phase', 'rationale', 'dependsOn']) {
+        if (Object.hasOwn(entry, key))
+          copied[key] = structuredClone(entry[key]);
+      }
+      return copied;
+    });
+  }
+  return result;
 }
 
 function assessmentLabel(labels, value) {
@@ -57,6 +62,7 @@ function assessmentLabel(labels, value) {
 
 /** Return only selected source items, retaining the atlas hierarchy and order. */
 export function buildSelection(data, selectedIds = []) {
+  const copy = messages();
   const selected = new Set(selectedIds);
   const clusters = [];
   let selectedCount = 0;
@@ -74,7 +80,7 @@ export function buildSelection(data, selectedIds = []) {
         const exportedItem = {
           id,
           kind: item.kind,
-          label: KIND_LABELS[item.kind],
+          label: assessmentLabel(copy.kindLabels, item.kind),
           text: item.text,
         };
         if (Object.prototype.hasOwnProperty.call(item, 'raw')) {
@@ -87,12 +93,19 @@ export function buildSelection(data, selectedIds = []) {
       });
 
       if (items.length > 0) {
-        groups.push({
+        const exportedGroup = {
           id: group.id,
           num: group.num,
           title: group.title,
           items,
-        });
+        };
+        if (data.roadmap) {
+          for (const key of ['owns', 'links', 'provides', 'sources']) {
+            if (Object.hasOwn(group, key))
+              exportedGroup[key] = structuredClone(group[key]);
+          }
+        }
+        groups.push(exportedGroup);
         selectedCount += items.length;
       }
     }
@@ -100,7 +113,7 @@ export function buildSelection(data, selectedIds = []) {
     if (groups.length > 0) {
       const exportedCluster = { id: cluster.id, title: cluster.title, groups };
       if (data.roadmap) {
-        for (const key of ['phase', 'roadmapOrder', 'rationale']) {
+        for (const key of ['short', 'phase', 'roadmapOrder', 'rationale']) {
           if (Object.hasOwn(cluster, key)) exportedCluster[key] = cluster[key];
         }
         if (Object.hasOwn(cluster, 'dependsOn')) {
@@ -111,13 +124,19 @@ export function buildSelection(data, selectedIds = []) {
     }
   }
 
-  return {
+  const payload = {
     schemaVersion: data.roadmap ? 2 : 1,
-    title: 'SaaS özellik atlası',
+    title: copy.title,
     ...(data.roadmap ? { roadmap: copyRoadmap(data.roadmap) } : {}),
     selectedCount,
     clusters,
   };
+  if (data.roadmap) {
+    for (const key of ['generated', 'classification', 'sources']) {
+      if (Object.hasOwn(data, key)) payload[key] = structuredClone(data[key]);
+    }
+  }
+  return payload;
 }
 
 function csvCell(value) {
@@ -129,17 +148,18 @@ function csvCell(value) {
 }
 
 function toCsv(payload) {
+  const copy = messages().csv;
   const roadmap = payload.roadmap;
   const headers = [
-    roadmap ? 'Küme kimliği' : 'Küme no',
-    'Küme',
-    'Başlık no',
-    'Başlık',
-    'Madde no',
-    'Sınıf',
-    'Madde',
+    roadmap ? copy.clusterId : copy.clusterNumber,
+    copy.cluster,
+    copy.groupNumber,
+    copy.group,
+    copy.itemNumber,
+    copy.kind,
+    copy.item,
   ];
-  if (roadmap) headers.push(...ROADMAP_COLUMNS);
+  if (roadmap) headers.push(...copy.roadmapColumns);
   const lines = [headers.join(',')];
 
   for (const cluster of payload.clusters) {
@@ -211,41 +231,64 @@ function markdownSource(source) {
 }
 
 function markdownAssessment(assessment, roadmap) {
+  const copy = messages().markdown;
   const fields = [
+    [copy.support, assessmentLabel(roadmap.supportLabels, assessment.support)],
+    [copy.action, assessmentLabel(roadmap.actionLabels, assessment.action)],
+    [copy.owner, assessment.owner ?? ''],
     [
-      'Frappe yeterliliği',
-      assessmentLabel(roadmap.supportLabels, assessment.support),
-    ],
-    ['Yapılacak iş', assessmentLabel(roadmap.actionLabels, assessment.action)],
-    ['Sorumlu', assessment.owner ?? ''],
-    [
-      'Kanıt durumu',
+      copy.confidence,
       assessmentLabel(roadmap.confidenceLabels, assessment.confidence),
     ],
-    ['Değerlendirme', assessment.note ?? ''],
-    ['Kabul ölçütü', assessment.acceptance ?? ''],
+    [copy.note, assessment.note ?? ''],
+    [copy.acceptance, assessment.acceptance ?? ''],
   ];
   const lines = fields.map(
-    ([label, value]) => `  - ${label}: ${markdownText(value)}`,
+    ([label, value]) => `  - ${markdownText(label)}: ${markdownText(value)}`,
   );
   for (const source of assessment.sources ?? []) {
-    lines.push(`  - Kaynak: ${markdownSource(source)}`);
+    lines.push(`  - ${markdownText(copy.source)}: ${markdownSource(source)}`);
   }
   return lines;
 }
 
 function toMarkdown(payload) {
+  const copy = messages().markdown;
   const lines = [`# ${markdownText(payload.title)}`];
   const roadmap = payload.roadmap;
   if (roadmap) {
     lines.push(
       '',
-      `Hedef: ${markdownText(roadmap.target)}`,
+      `${markdownText(copy.target)}: ${markdownText(roadmap.target)}`,
       '',
-      `Değerlendirme tarihi: ${markdownText(roadmap.reviewedAt)}`,
+      `${markdownText(copy.reviewedAt)}: ${markdownText(roadmap.reviewedAt)}`,
       '',
-      `Sürüm ve kanıt sınırı: ${markdownText(roadmap.baseline)}`,
+      `${markdownText(copy.baseline)}: ${markdownText(roadmap.baseline)}`,
     );
+    if (Object.hasOwn(payload, 'generated'))
+      lines.push(
+        '',
+        `${markdownText(copy.generated)}: ${markdownText(payload.generated)}`,
+      );
+    if (payload.classification) {
+      lines.push('', `#### ${markdownText(copy.classification)}`, '');
+      for (const [kind, description] of Object.entries(payload.classification))
+        lines.push(
+          `- ${markdownText(kind)} · ${markdownText(assessmentLabel(messages().kindLabels, kind))}: ${markdownText(description)}`,
+        );
+    }
+    if (roadmap.sequence?.length) {
+      lines.push('', `#### ${markdownText(copy.sequence)}`, '');
+      for (const entry of roadmap.sequence)
+        lines.push(
+          `- ${markdownText(entry.id)} · ${markdownText(entry.phase ?? '')}: ${markdownText(entry.rationale ?? '')}; ${markdownText(copy.dependsOn)}: ${(entry.dependsOn ?? []).map(markdownText).join(', ')}`,
+        );
+    }
+    if (payload.sources) {
+      lines.push('', `#### ${markdownText(copy.sourceRegistry)}`, '');
+      for (const [id, [title, url]] of Object.entries(payload.sources))
+        lines.push(`- ${markdownText(id)}: ${markdownSource({ title, url })}`);
+    }
   }
 
   for (const cluster of payload.clusters) {
@@ -255,18 +298,22 @@ function toMarkdown(payload) {
     );
     if (roadmap) {
       for (const [key, label] of [
-        ['phase', 'Etap'],
-        ['roadmapOrder', 'Yol haritası sırası'],
-        ['rationale', 'Gerekçe'],
+        ['short', copy.short],
+        ['phase', copy.phase],
+        ['roadmapOrder', copy.roadmapOrder],
+        ['rationale', copy.rationale],
       ]) {
         if (Object.hasOwn(cluster, key)) {
-          lines.push('', `${label}: ${markdownText(cluster[key])}`);
+          lines.push(
+            '',
+            `${markdownText(label)}: ${markdownText(cluster[key])}`,
+          );
         }
       }
       if (cluster.dependsOn?.length) {
         lines.push(
           '',
-          `Bağımlılıklar: ${cluster.dependsOn.map(markdownText).join(', ')}`,
+          `${markdownText(copy.dependsOn)}: ${cluster.dependsOn.map(markdownText).join(', ')}`,
         );
       }
     }
@@ -276,10 +323,33 @@ function toMarkdown(payload) {
         `### ${markdownText(group.num)} ${markdownText(group.title)}`,
         '',
       );
+      if (roadmap) {
+        for (const key of ['owns', 'provides']) {
+          if (Object.hasOwn(group, key))
+            lines.push(
+              `${markdownText(copy[key])}: ${markdownText(group[key])}`,
+              '',
+            );
+        }
+        if (group.links?.length)
+          lines.push(
+            `${markdownText(copy.links)}: ${group.links.map(([id, label]) => `${markdownText(id)} — ${markdownText(label)}`).join('; ')}`,
+            '',
+          );
+        if (group.sources?.length)
+          lines.push(
+            `${markdownText(copy.sources)}: ${group.sources.map(markdownText).join(', ')}`,
+            '',
+          );
+      }
       for (const item of group.items) {
         lines.push(
           `- [x] **${markdownText(item.label)}** ${markdownText(item.text)}`,
         );
+        if (Object.hasOwn(item, 'raw'))
+          lines.push(
+            `  - ${markdownText(copy.raw)}: ${markdownText(item.raw)}`,
+          );
         if (roadmap && item.assessment) {
           lines.push(...markdownAssessment(item.assessment, roadmap));
         }
@@ -312,6 +382,8 @@ export function serializeExport(payload, format) {
         extension: 'md',
       };
     default:
-      throw new RangeError(`Desteklenmeyen dışa aktarma biçimi: ${format}`);
+      throw new RangeError(
+        messages().unsupportedFormat.replace('{format}', String(format)),
+      );
   }
 }

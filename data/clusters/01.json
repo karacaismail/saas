@@ -1,0 +1,513 @@
+{
+  "id": "01",
+  "title": "Müşteri, kimlik ve erişim",
+  "short": "Müşteri ve erişim",
+  "groups": [
+    {
+      "id": "tenant",
+      "title": "Kiracı, kurum ve çalışma alanları",
+      "owns": "Kiracı, kurum, çalışma alanı ve üyelik ilişkileri.",
+      "links": [
+        ["identity", "Kullanıcı kimliği"],
+        ["deployment", "Kurulum sonucu"]
+      ],
+      "provides": "Kiracı bağlamı; üyelik ve hesap yaşam döngüsü olayları.",
+      "items": [
+        {
+          "kind": "o",
+          "text": "Kiracılık modelleri: single-tenant (tek kiracılı), multi-tenant (çok kiracılı), hybrid (karma).",
+          "raw": "single tenant, Multi tenancy, hybrit; Multi tenancy",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Platform",
+            "confidence": "documented",
+            "note": "Site başına veritabanı ve ortak Bench belgelenmiştir. Tek veritabanında satır kiracılığı ve karma topoloji ayrıca tasarlanır.",
+            "acceptance": "İki site arasında veri sızıntısı olmamalı; karma modelin taşıma ve yönlendirme sınırı belgelenmeli.",
+            "sources": [
+              {
+                "title": "Frappe: site oluşturma ve site başına veritabanı",
+                "url": "https://docs.frappe.io/framework/user/en/tutorial/create-a-site"
+              },
+              {
+                "title": "Frappe: çok kiracılı Bench kurulumu",
+                "url": "https://docs.frappe.io/framework/user/en/bench/guides/setup-multitenancy"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Kurum, şirket, şube, ekip ve çalışma alanı hiyerarşisi.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Frappe backend",
+            "confidence": "design",
+            "note": "DocType ilişkileri yapı taşıdır. İncelenen çekirdek belgelerde SaaS kurum–şube–ekip üyelik ürünü hazır saptanmadı.",
+            "acceptance": "Şube taşıma, çoklu ekip üyeliği ve kurum sınırı API testleriyle korunmalı.",
+            "sources": [
+              {
+                "title": "Frappe: DocType veri modeli",
+                "url": "https://docs.frappe.io/framework/user/en/basics/doctypes"
+              },
+              {
+                "title": "Frappe: kullanıcılar ve izinler",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Kiracı oluşturma, etkinleştirme, kapatma ve güvenli müşteri çıkışı.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Platform",
+            "confidence": "documented",
+            "note": "Site oluşturma araçları vardır. Müşteri aktivasyonu, askıya alma ve saklama kurallı çıkış akışı ürünleştirilir.",
+            "acceptance": "Oluşturma tekrarında ikinci kiracı açılmamalı; çıkıştan önce veri teslimi ve saklama kararı kaydedilmeli.",
+            "sources": [
+              {
+                "title": "Frappe: site oluşturma ve site başına veritabanı",
+                "url": "https://docs.frappe.io/framework/user/en/tutorial/create-a-site"
+              },
+              {
+                "title": "Frappe: site ve ortak yapılandırma",
+                "url": "https://docs.frappe.io/framework/user/en/basics/site_config"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Kullanıcı daveti, kurum üyeliği, kurum değiştirme ve sahiplik devri.",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "Keycloak + backend",
+            "confidence": "design",
+            "note": "Kimlik ve davet Keycloak'ta yönetilir. Ürün kurum üyeliği, kurum geçişi ve sahiplik devri backend sözleşmesi ister.",
+            "acceptance": "Davet tek kullanımda üyelik açmalı; sahiplik devrinde eski yetki ve kurum bağlamı güncellenmeli.",
+            "sources": [
+              {
+                "title": "Keycloak 26.7.0: kimlik, oturum ve organizasyon yönetimi",
+                "url": "https://www.keycloak.org/docs/26.7.0/server_admin/index.html"
+              },
+              {
+                "title": "Frappe: kullanıcılar ve izinler",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Veri, dosya, önbellek, arama ve görevlerde kiracı izolasyonu.",
+          "assessment": {
+            "support": "partial",
+            "action": "validate",
+            "owner": "Platform + backend",
+            "confidence": "documented",
+            "note": "Site veritabanı ve dosya alanı ayrıdır. Özel önbellek, harici arama ve iş yükü izolasyonu otomatik kabul edilemez.",
+            "acceptance": "İki kiracı için kayıt, özel dosya, cache anahtarı, arama sonucu ve job bağlamı çapraz erişimi reddedilmeli.",
+            "sources": [
+              {
+                "title": "Frappe: site oluşturma ve site başına veritabanı",
+                "url": "https://docs.frappe.io/framework/user/en/tutorial/create-a-site"
+              },
+              {
+                "title": "Frappe: genişletme ve izin hookları",
+                "url": "https://docs.frappe.io/framework/user/en/python-api/hooks"
+              },
+              {
+                "title": "Frappe: arka plan işleri ve zamanlayıcı",
+                "url": "https://docs.frappe.io/framework/user/en/api/background_jobs"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Kiracı taşıma ve paylaşımlı / ayrılmış kurulum arasında geçiş.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Platform",
+            "confidence": "documented",
+            "note": "Bench yedekleme/geri yükleme araçları bulunur. Kesintisiz topoloji geçişi ve harici servis eşlemesi ayrıca yönetilir.",
+            "acceptance": "Deneme taşımasında dosya, kimlik eşlemesi ve indeks tutarlı kalmalı; geri dönüş denenmeli.",
+            "sources": [
+              {
+                "title": "Frappe: CLI ve sürüme bağlı Gettext araçları",
+                "url": "https://docs.frappe.io/framework/user/en/bench/frappe-commands"
+              },
+              {
+                "title": "Frappe: çok kiracılı Bench kurulumu",
+                "url": "https://docs.frappe.io/framework/user/en/bench/guides/setup-multitenancy"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": ["tenant"],
+      "num": "02.1"
+    },
+    {
+      "id": "identity",
+      "title": "Kimlik doğrulama ve oturumlar",
+      "owns": "Kullanıcı kimliği, doğrulama kanıtları ve oturumlar.",
+      "links": [
+        ["email", "Doğrulama iletisi gönderimi"],
+        ["security", "Giriş koruma politikası"]
+      ],
+      "provides": "Doğrulanmış kullanıcı kimliği; oturum açma ve kapatma olayları.",
+      "items": [
+        {
+          "kind": "o",
+          "text": "Authentication (kimlik doğrulama), üyelik ve e-posta doğrulama.",
+          "raw": "User auth; User authorization, middleware, Rol yetki, üyelik, email",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "Keycloak + backend",
+            "confidence": "documented",
+            "note": "Kayıt, giriş ve e-posta doğrulaması Keycloak sorumluluğudur. Backend doğrulanmış subject'i Frappe kullanıcısına bağlar.",
+            "acceptance": "Doğrulanmamış hesap politikası uygulanmalı; hatalı issuer/audience ve süresi dolan token reddedilmeli.",
+            "sources": [
+              {
+                "title": "Keycloak 26.7.0: kimlik, oturum ve organizasyon yönetimi",
+                "url": "https://www.keycloak.org/docs/26.7.0/server_admin/index.html"
+              },
+              {
+                "title": "Frappe: REST API",
+                "url": "https://docs.frappe.io/framework/user/en/api/rest"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "Parolalı giriş, parola kurtarma ve magic link (tek kullanımlık giriş bağlantısı).",
+          "raw": "email senaryoları(login, magic link, password recovery)",
+          "assessment": {
+            "support": "external",
+            "action": "validate",
+            "owner": "Keycloak",
+            "confidence": "verify",
+            "note": "Parola ve sıfırlama akışları belgeli. Magic link için incelenen kılavuzda hazır akış kanıtı yok; eklenti/özel akış ayrıca değerlendirilir.",
+            "acceptance": "Parola sıfırlama sonrası oturum politikası ve seçilen magic linkin süre/tek kullanım davranışı doğrulanmalı.",
+            "sources": [
+              {
+                "title": "Keycloak 26.7.0: kimlik, oturum ve organizasyon yönetimi",
+                "url": "https://www.keycloak.org/docs/26.7.0/server_admin/index.html"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "OTP (One-Time Password — tek kullanımlık parola) ile doğrulama.",
+          "raw": "otp",
+          "assessment": {
+            "support": "external",
+            "action": "configure",
+            "owner": "Keycloak",
+            "confidence": "documented",
+            "note": "TOTP/HOTP politikası Keycloak'ta belgeli. SMS/e-posta OTP bu kanıttan türetilmez.",
+            "acceptance": "Süre dışı kod ve yeniden kullanım reddedilmeli; saat kayması ve kurtarma akışı denenmeli.",
+            "sources": [
+              {
+                "title": "Keycloak 26.7.0: kimlik, oturum ve organizasyon yönetimi",
+                "url": "https://www.keycloak.org/docs/26.7.0/server_admin/index.html"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Oturum ve cihaz listesi; süre aşımı ve tüm oturumları sonlandırma.",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "Keycloak + backend",
+            "confidence": "documented",
+            "note": "Oturum görüntüleme ve iptal Keycloak'ta vardır. Headless cihaz sunumu ve backend iptal gecikmesi ayrıca yönetilir.",
+            "acceptance": "Tüm oturumları kapatınca frontend ve backend eski oturumu belirlenen süre içinde reddetmeli.",
+            "sources": [
+              {
+                "title": "Keycloak 26.7.0: kimlik, oturum ve organizasyon yönetimi",
+                "url": "https://www.keycloak.org/docs/26.7.0/server_admin/index.html"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "MFA (Multi-Factor Authentication — çok faktörlü kimlik doğrulama) ve kurtarma kodları.",
+          "assessment": {
+            "support": "external",
+            "action": "validate",
+            "owner": "Keycloak",
+            "confidence": "documented",
+            "note": "OTP/WebAuthn ve recovery codes belgeli; kurtarma kodları için 26.3.0 sürüm sınırı vardır. Hedef sürüm henüz seçilmedi.",
+            "acceptance": "İkinci faktör zorunlu olmalı; kurtarma kodu bir kez kullanılmalı ve yenilemede eskiler geçersizleşmeli.",
+            "sources": [
+              {
+                "title": "Keycloak 26.7.0: kimlik, oturum ve organizasyon yönetimi",
+                "url": "https://www.keycloak.org/docs/26.7.0/server_admin/index.html"
+              },
+              {
+                "title": "Keycloak: recovery codes sürüm sınırı",
+                "url": "https://www.keycloak.org/2025/10/recovery-codes"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Passkey (cihaza bağlı giriş anahtarı) ve sosyal hesapla giriş.",
+          "assessment": {
+            "support": "external",
+            "action": "configure",
+            "owner": "Keycloak + frontend",
+            "confidence": "documented",
+            "note": "WebAuthn/passkey ve sosyal sağlayıcılar Keycloak kapsamındadır. RP ID, yönlendirme ve hesap bağlama yapılandırılır.",
+            "acceptance": "Passkey kayıt/giriş ve sosyal hesap çakışması denenmeli; kontrolsüz otomatik hesap birleştirme olmamalı.",
+            "sources": [
+              {
+                "title": "Keycloak 26.7.0: kimlik, oturum ve organizasyon yönetimi",
+                "url": "https://www.keycloak.org/docs/26.7.0/server_admin/index.html"
+              },
+              {
+                "title": "Keycloak: sürümlü özelliklerin etkinlik durumu",
+                "url": "https://www.keycloak.org/server/features"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "SSO (Single Sign-On — tek oturum açma) ve kurumsal kimlik sağlayıcısı bağlantıları.",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "Keycloak + backend",
+            "confidence": "documented",
+            "note": "OIDC/SAML brokering Keycloak'ta belgeli. Kurumsal claim'ler Frappe üyelik ve rol kurallarına eşlenir.",
+            "acceptance": "Kurumsal SSO ve logout uçtan uca çalışmalı; başka kurum claim'iyle erişim reddedilmeli.",
+            "sources": [
+              {
+                "title": "Keycloak 26.7.0: kimlik, oturum ve organizasyon yönetimi",
+                "url": "https://www.keycloak.org/docs/26.7.0/server_admin/index.html"
+              },
+              {
+                "title": "Frappe: kullanıcılar ve izinler",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "SCIM (System for Cross-domain Identity Management — sistemler arası kimlik yönetimi) ile kullanıcı eşitleme.",
+          "assessment": {
+            "support": "verify",
+            "action": "validate",
+            "owner": "Keycloak + backend",
+            "confidence": "verify",
+            "note": "Okunan Keycloak 26.7.0 belgesi ve features listesi SCIM API içeriyor. Seçilecek sürüm, etkinlik ve Frappe eşitleme adaptörü doğrulanmadı.",
+            "acceptance": "Seçilen release'te Users/Groups oluşturma, değiştirme ve devre dışı bırakma Frappe yetkilerine tutarlı yansımalı.",
+            "sources": [
+              {
+                "title": "Keycloak 26.7.0: kimlik, oturum ve organizasyon yönetimi",
+                "url": "https://www.keycloak.org/docs/26.7.0/server_admin/index.html"
+              },
+              {
+                "title": "Keycloak: sürümlü özelliklerin etkinlik durumu",
+                "url": "https://www.keycloak.org/server/features"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": ["session", "scim"],
+      "num": "02.2"
+    },
+    {
+      "id": "access",
+      "title": "Yetkilendirme ve ayrıcalıklı erişim",
+      "owns": "Roller, izinler, erişim politikaları ve destek erişimi izinleri.",
+      "links": [
+        ["identity", "Kullanıcı kimliği"],
+        ["tenant", "Kurum üyeliği"]
+      ],
+      "provides": "Kullanıcı, işlem ve kaynak için izin kararı; erişim denetim olayı.",
+      "items": [
+        {
+          "kind": "o",
+          "text": "Authorization (yetkilendirme): kullanıcı, rol ve işlem yetkileri.",
+          "raw": "User authorization; Rol yetki",
+          "assessment": {
+            "support": "native",
+            "action": "configure",
+            "owner": "Frappe backend",
+            "confidence": "documented",
+            "note": "Role ve DocType işlem izinleri çekirdektedir. Keycloak girişi backend izinlerini kaldırmaz; rol eşlemesi yapılandırılır.",
+            "acceptance": "Her API rolü için okuma/yazma/oluşturma/silme olumlu ve olumsuz senaryolar geçmeli.",
+            "sources": [
+              {
+                "title": "Frappe: kullanıcılar ve izinler",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Kayıt, alan, sahiplik ve organizasyon kapsamına göre erişim.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Frappe backend",
+            "confidence": "documented",
+            "note": "Permlevel, owner ve User Permission araçları vardır. Ürünün kurum/şube kapsamı ayrıca modellenir.",
+            "acceptance": "Başka kurum kaydı, gizli alanı ve ilişki seçeneği liste ve tek kayıt API'sinde görünmemeli.",
+            "sources": [
+              {
+                "title": "Frappe: kullanıcılar ve izinler",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              },
+              {
+                "title": "Frappe: genişletme ve izin hookları",
+                "url": "https://docs.frappe.io/framework/user/en/python-api/hooks"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Her sunucu işleminde yetki denetimi ve varsayılan erişim reddi.",
+          "assessment": {
+            "support": "partial",
+            "action": "validate",
+            "owner": "Frappe backend",
+            "confidence": "documented",
+            "note": "Document izin denetimleri ve izinli sorgular vardır; get_all ve ignore_permissions yolları denetimi atlayabilir. Özel uçlar incelenir.",
+            "acceptance": "Tüm özel RPC/job yollarında kimlik, tenant ve işlem denetimi olmalı; yetkisiz isteğin yan etkisi olmamalı.",
+            "sources": [
+              {
+                "title": "Frappe: Document API",
+                "url": "https://docs.frappe.io/framework/user/en/api/document"
+              },
+              {
+                "title": "Frappe: Database API ve izin sınırları",
+                "url": "https://docs.frappe.io/framework/user/en/api/database"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "Impersonation (destek amacıyla kullanıcı adına geçici erişim).",
+          "raw": "impersonate",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "Keycloak + backend",
+            "confidence": "documented",
+            "note": "Keycloak impersonation belgeli. Frappe işleminde gerçek destek görevlisi ile temsil edilen kullanıcı birlikte izlenmelidir.",
+            "acceptance": "Destek oturumu yetkisiz açılmamalı; log her işlemde asıl ve temsil edilen kimliği ayırmalı.",
+            "sources": [
+              {
+                "title": "Keycloak 26.7.0: kimlik, oturum ve organizasyon yönetimi",
+                "url": "https://www.keycloak.org/docs/26.7.0/server_admin/index.html"
+              },
+              {
+                "title": "Keycloak: sürümlü özelliklerin etkinlik durumu",
+                "url": "https://www.keycloak.org/server/features"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Destek erişiminde izin, gerekçe, süre, hassas işlem sınırı ve denetim izi.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Platform + backend",
+            "confidence": "design",
+            "note": "Çekirdek izinler kullanılabilir. İncelenen kaynaklarda müşteri izinli, süreli destek erişimi ürün akışı hazır saptanmadı.",
+            "acceptance": "Gerekçe, müşteri onayı ve süre zorunlu olmalı; süre sonunda erişim ve hassas işlemler kesilmeli.",
+            "sources": [
+              {
+                "title": "Frappe: kullanıcılar ve izinler",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              },
+              {
+                "title": "Frappe: Document API",
+                "url": "https://docs.frappe.io/framework/user/en/api/document"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Yetki devri, görev ayrılığı ve hassas işlemde yeniden doğrulama.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Keycloak + backend",
+            "confidence": "documented",
+            "note": "Rol ayrımı Frappe'ta, step-up kimlik doğrulama Keycloak'ta belgeli. Süreli yetki devri ve görev ayrılığı politikası eklenir.",
+            "acceptance": "Talep eden kendi kritik işlemini onaylayamamalı; eski step-up kanıtı hassas işlemde reddedilmeli.",
+            "sources": [
+              {
+                "title": "Frappe: kullanıcılar ve izinler",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              },
+              {
+                "title": "Keycloak 26.7.0: kimlik, oturum ve organizasyon yönetimi",
+                "url": "https://www.keycloak.org/docs/26.7.0/server_admin/index.html"
+              },
+              {
+                "title": "Frappe version-15: Allow Self Approval alanı",
+                "url": "https://github.com/frappe/frappe/blob/version-15/frappe/workflow/doctype/workflow_transition/workflow_transition.json"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Servis hesapları ve süreli, kapsamı sınırlandırılmış erişim anahtarları.",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "Keycloak + backend",
+            "confidence": "documented",
+            "note": "Servis kimliği ve kısa ömürlü token Keycloak üzerinden yönetilir. Token kapsamı Frappe işlem izinleriyle ayrıca sınırlandırılır.",
+            "acceptance": "Servis tokenı yalnız tanımlı tenant/eylemlerde çalışmalı; süresi dolan veya iptal edilen token reddedilmeli.",
+            "sources": [
+              {
+                "title": "Keycloak 26.7.0: kimlik, oturum ve organizasyon yönetimi",
+                "url": "https://www.keycloak.org/docs/26.7.0/server_admin/index.html"
+              },
+              {
+                "title": "Frappe: REST API",
+                "url": "https://docs.frappe.io/framework/user/en/api/rest"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": ["tenant", "session"],
+      "num": "02.3"
+    }
+  ],
+  "phase": "Temel",
+  "rationale": "Kiracı/site modeli, Keycloak kimliği ve Frappe yetki eşlemesi diğer bütün özelliklerin güven sınırını belirler.",
+  "dependsOn": ["12"],
+  "roadmapOrder": 2
+}

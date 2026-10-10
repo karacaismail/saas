@@ -5,6 +5,18 @@ async function expectClosed(disclosure) {
   await expect.poll(() => disclosure.getAttribute('open')).toBeNull();
 }
 
+async function openFeature(page, id) {
+  const row = page.locator(`#${id}`);
+  const group = row.locator(
+    'xpath=ancestor::details[contains(@class,"group")]',
+  );
+  if ((await group.getAttribute('open')) === null) {
+    await group.locator(':scope > summary').click();
+    await expect(group).toHaveAttribute('open', '');
+  }
+  return row;
+}
+
 async function expectInventoryHeadingReachable(page) {
   const heading = page.locator('.cluster:visible .cluster-head h2').first();
   await expect(heading).toBeVisible();
@@ -65,7 +77,7 @@ test('320px introduction offers an immediate inventory entry and context toggles
   await expectInventoryHeadingReachable(page);
 
   await page.locator('#search').fill('kiracı');
-  const row = page.locator('#feature-tenant-1');
+  const row = await openFeature(page, 'feature-tenant-1');
   await expect(row).toBeVisible();
   await row.locator('.feature-label').click();
   await expect(row.locator('.feature-check')).toBeChecked();
@@ -156,6 +168,7 @@ test('expanded technical context reflows at 200% root text with visible keyboard
 }, testInfo) => {
   await page.setViewportSize({ width: 320, height: 480 });
   await page.goto('./');
+  await expect(page.locator('#search')).toBeEnabled();
   await page.evaluate(() => document.fonts.ready);
   await page.addStyleTag({ content: 'html { font-size: 200% !important; }' });
   const context = page.locator('#context-details');
@@ -231,7 +244,7 @@ test('print lifecycle reveals technical context and restores disclosure and sele
   const context = page.locator('#context-details');
   await expectClosed(context);
   await page.locator('#search').fill('kiracı');
-  const row = page.locator('#feature-tenant-1');
+  const row = await openFeature(page, 'feature-tenant-1');
   await expect(row).toBeVisible();
   await row.locator('.feature-label').click();
   await expect(row.locator('.feature-check')).toBeChecked();

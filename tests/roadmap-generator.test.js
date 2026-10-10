@@ -6,7 +6,6 @@ import {
   mkdir,
   mkdtemp,
   readFile,
-  readdir,
   rm,
   writeFile,
 } from 'node:fs/promises';
@@ -53,14 +52,26 @@ function generate(cwd, check = false) {
 
 async function fixture(t) {
   const directory = await mkdtemp(join(tmpdir(), 'saas-roadmap-generator-'));
-  const names = (await readdir(new URL('data/', root))).filter((name) =>
-    name.endsWith('.json'),
+  const manifest = JSON.parse(
+    await readFile(new URL('data/manifest.json', root), 'utf8'),
   );
+  const names = [
+    './manifest.json',
+    manifest.metadata,
+    manifest.roadmap,
+    manifest.interface,
+    manifest.messages,
+    ...manifest.clusters,
+  ].map((path) => path.replace(/^\.\//, ''));
   const paths = [
     'index.html',
     ...names.map((name) => `data/${name}`),
     'tests/fixtures/original-inventory.json',
   ];
+  assert.ok(
+    paths.includes('data/clusters/12.json'),
+    'Nested cluster data must be guarded against source writes',
+  );
   const originals = await Promise.all(
     paths.map(async (path) => [
       path,
@@ -101,11 +112,13 @@ test('generator refreshes formatted visible roadmap metadata and is idempotent',
   roadmap.reviewedAt = '2099-12-31';
   roadmap.supportLabels.partial = 'Regresyon kısmi & <strong>kapsam</strong>';
   await writeFile(roadmapPath, JSON.stringify(roadmap));
-  const assessmentPath = join(directory, 'data/assessments-07-12.json');
-  const assessments = JSON.parse(await readFile(assessmentPath, 'utf8'));
-  Object.values(assessments).find((a) => a.support === 'partial').support =
+  const clusterPath = join(directory, 'data/clusters/12.json');
+  const cluster = JSON.parse(await readFile(clusterPath, 'utf8'));
+  cluster.groups
+    .flatMap((group) => group.items)
+    .find((item) => item.assessment.support === 'partial').assessment.support =
     'external';
-  await writeFile(assessmentPath, JSON.stringify(assessments));
+  await writeFile(clusterPath, JSON.stringify(cluster));
 
   const before = await readFile(index, 'utf8');
   assert.notEqual(generate(directory, true).status, 0);
@@ -128,12 +141,12 @@ test('generator refreshes formatted visible roadmap metadata and is idempotent',
   const counts = Object.fromEntries(
     Object.keys(roadmap.supportLabels).map((code) => [code, 0]),
   );
-  for (const part of ['01-06', '07-12']) {
-    const entries = JSON.parse(
-      await readFile(join(directory, `data/assessments-${part}.json`), 'utf8'),
+  for (const step of roadmap.sequence) {
+    const cluster = JSON.parse(
+      await readFile(join(directory, `data/clusters/${step.id}.json`), 'utf8'),
     );
-    for (const assessment of Object.values(entries))
-      counts[assessment.support]++;
+    for (const group of cluster.groups)
+      for (const item of group.items) counts[item.assessment.support]++;
   }
   assert.deepEqual(
     [

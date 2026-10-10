@@ -1,6 +1,15 @@
-import { buildSelection, serializeExport } from './exports.js';
+import { loadAtlas } from './content-engine.js';
+import {
+  buildSelection,
+  configureExportMessages,
+  serializeExport,
+} from './exports.js';
 
-const data = JSON.parse(document.getElementById('atlas-data').textContent);
+const data = await loadAtlas();
+const messages = data.messages.app;
+configureExportMessages(data.messages.export);
+const message = (key, values = {}) =>
+  messages[key].replace(/\{(\w+)\}/g, (_, name) => String(values[name] ?? ''));
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 const storageKey = 'saas-atlas-selection-v1';
@@ -71,29 +80,36 @@ try {
       stored.filter((id) => typeof id === 'string' && knownIds.has(id)),
     );
 } catch {
-  $('#selection-note').textContent =
-    'Seçimler bu oturumda korunur; kalıcı saklama kullanılamıyor.';
+  $('#selection-note').textContent = messages.storageUnavailable;
 }
 function save() {
   try {
     localStorage.setItem(storageKey, JSON.stringify([...selected]));
   } catch {
-    $('#selection-note').textContent =
-      'Seçimler bu oturumda korunur; kalıcı saklama kullanılamıyor.';
+    $('#selection-note').textContent = messages.storageUnavailable;
   }
 }
 function selectionStatus() {
-  $('#selection-count').textContent = `${selected.size} madde seçildi`;
+  $('#selection-count').textContent = message('selectionCount', {
+    count: selected.size,
+  });
   $('#clear-selection').disabled = !selected.size;
   $('#export-selected').disabled = !selected.size;
   for (const row of rows) row.input.checked = selected.has(row.id);
 }
 function syncGroupToggle() {
-  const visible = groups.filter((group) => !group.el.hidden);
-  $('#collapse-all').disabled = !visible.length;
-  $('#collapse-all').textContent = visible.some((group) => group.el.open)
-    ? 'Tüm başlıkları daralt'
-    : 'Tüm başlıkları genişlet';
+  $('#collapse-all').disabled = !groups.some(
+    (group) => !group.el.hidden && group.el.open,
+  );
+  $('#collapse-all').textContent = messages.collapseAll;
+}
+function openGroup(group) {
+  const element = group?.el ?? group;
+  if (!element) return;
+  for (const candidate of groups)
+    if (candidate.el !== element) candidate.el.open = false;
+  element.open = true;
+  syncGroupToggle();
 }
 function apply({ revealGroups = false } = {}) {
   const tokens = norm(search.value).split(' ').filter(Boolean);
@@ -126,12 +142,14 @@ function apply({ revealGroups = false } = {}) {
   for (const group of groups) {
     const count = group.rows.filter((row) => !row.el.hidden).length;
     group.el.hidden = !count;
+    if (!count) group.el.open = false;
     if (count) {
       visibleGroups++;
-      if (filtering && revealGroups) group.el.open = true;
     }
     $('.group-count span', group.el).textContent = count;
   }
+  if (filtering && revealGroups)
+    openGroup(groups.find((group) => !group.el.hidden));
   for (const cluster of clusters) {
     const visibleGroups = cluster.groups.filter((group) => !group.el.hidden);
     cluster.el.hidden = !visibleGroups.length;
@@ -157,13 +175,17 @@ function apply({ revealGroups = false } = {}) {
     );
   $('#roadmap-filter-status').textContent = [
     supportFilter === 'all'
-      ? 'Bütün yeterlilikler'
+      ? messages.allSupport
       : data.roadmap.supportLabels[supportFilter],
     actionFilter === 'all'
-      ? 'Bütün işler'
+      ? messages.allActions
       : data.roadmap.actionLabels[actionFilter],
   ].join(' · ');
-  status.textContent = `${visible} / ${rows.length} madde · ${visibleGroups} başlık`;
+  status.textContent = message('visibleStatus', {
+    visible,
+    total: rows.length,
+    groups: visibleGroups,
+  });
   $('#empty').hidden = Boolean(visible);
   $('#clear-search').hidden = !search.value;
   $('#select-visible').disabled =
@@ -180,7 +202,7 @@ function reset() {
   supportFilter = 'all';
   actionFilter = 'all';
   $('[name=cluster][value=all]').checked = true;
-  $('#cluster-value').textContent = 'Bütün kümeler';
+  $('#cluster-value').textContent = messages.allClusters;
   kind = 'all';
   selectedOnly = false;
   apply();
@@ -198,9 +220,9 @@ function jump(target) {
   const element = document.getElementById(target);
   if (!element) return;
   if (element.closest('[hidden]')) reset();
-  if (element.tagName === 'DETAILS') element.open = true;
   const group = element.closest('.group');
-  if (group) group.open = true;
+  if (group) openGroup(group);
+  else if (element.tagName === 'DETAILS') element.open = true;
   syncGroupToggle();
   element.scrollIntoView({
     behavior: matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -226,7 +248,7 @@ for (const row of rows) {
     apply();
     if (hadFocus && row.el.hidden) {
       const next = rows.find((candidate) => !candidate.el.hidden);
-      if (next) next.group.el.open = true;
+      if (next) openGroup(next.group);
       (next?.input || $('#selected-only')).focus({ preventScroll: true });
     }
   });
@@ -279,7 +301,7 @@ $('#select-visible').addEventListener('click', () => {
   for (const row of rows) if (!row.el.hidden) selected.add(row.id);
   save();
   apply();
-  toast('Eşleşen maddeler seçildi.');
+  toast(messages.matchingSelected);
 });
 $('#clear-selection').addEventListener('click', () => {
   selected.clear();
@@ -288,7 +310,7 @@ $('#clear-selection').addEventListener('click', () => {
   (selectedOnly ? $('#selected-only') : $('#select-visible')).focus({
     preventScroll: true,
   });
-  toast('Seçim temizlendi.');
+  toast(messages.selectionCleared);
 });
 $('#selected-only').addEventListener('click', () => {
   selectedOnly = !selectedOnly;
@@ -297,23 +319,24 @@ $('#selected-only').addEventListener('click', () => {
 $('#toggle-relations').addEventListener('click', function () {
   const hidden = document.body.classList.toggle('relations-hidden');
   this.setAttribute('aria-pressed', String(!hidden));
-  this.textContent = hidden ? 'İlişkileri göster' : 'İlişkiler açık';
+  this.textContent = hidden ? messages.relationsShow : messages.relationsShown;
   updateSticky();
 });
 $('#toggle-original').addEventListener('click', function () {
   const show = document.body.classList.toggle('show-original');
   this.setAttribute('aria-pressed', String(show));
-  this.textContent = show ? 'Özgün ifadeler açık' : 'Özgün ifadeleri göster';
+  this.textContent = show ? messages.originalShown : messages.originalShow;
   updateSticky();
 });
 $('#collapse-all').addEventListener('click', function () {
-  const visible = groups.filter((group) => !group.el.hidden);
-  const collapse = visible.some((group) => group.el.open);
-  for (const group of visible) group.el.open = !collapse;
+  for (const group of groups) group.el.open = false;
   syncGroupToggle();
 });
 for (const group of groups)
-  group.el.addEventListener('toggle', syncGroupToggle);
+  group.el.addEventListener('toggle', () => {
+    if (group.el.open && !printState) openGroup(group);
+    else syncGroupToggle();
+  });
 for (const anchor of $$('[data-jump]'))
   anchor.addEventListener('click', (event) => {
     event.preventDefault();
@@ -344,22 +367,34 @@ $('#export-selected').addEventListener('click', () => {
   const output = serializeExport(payload, format);
   download(output.text, `saas-secim.${output.extension}`, output.mime);
   toast(
-    `${payload.selectedCount} seçili madde ${format === 'md' ? 'Markdown' : format.toUpperCase()} olarak dışa aktarıldı.`,
+    message('exported', {
+      count: payload.selectedCount,
+      format: data.messages.export.formatNames[format],
+    }),
   );
 });
 $('#print').addEventListener('click', () => window.print());
 window.addEventListener('beforeprint', () => {
   if (printState) return;
   printState = [$('#context-details'), ...groups.map((group) => group.el)].map(
-    (element) => ({ element, open: element.open }),
+    (element) => ({
+      element,
+      open: element.open,
+      name: element.getAttribute('name'),
+    }),
   );
+  for (const { element } of printState) element.removeAttribute('name');
   for (const { element } of printState) element.open = true;
 });
 window.addEventListener('afterprint', () => {
-  if (printState)
+  if (printState) {
     printState.forEach(({ element, open }) => {
       element.open = open;
     });
+    printState.forEach(({ element, name }) => {
+      if (name !== null) element.setAttribute('name', name);
+    });
+  }
   printState = undefined;
   syncGroupToggle();
 });
@@ -411,5 +446,9 @@ window.addEventListener(
   },
   { passive: true },
 );
+for (const control of $$('[data-content-pending]')) {
+  control.disabled = false;
+  control.removeAttribute('data-content-pending');
+}
 apply();
 if (location.hash) requestAnimationFrame(() => jump(location.hash.slice(1)));

@@ -1,0 +1,382 @@
+{
+  "id": "10",
+  "title": "Raporlama, ürün ve pazarlama ölçümü",
+  "short": "Rapor ve ölçüm",
+  "groups": [
+    {
+      "id": "reports",
+      "title": "Modül raporları ve iş zekâsı",
+      "owns": "Rapor tanımları, yetkili okuma modelleri, panolar ve gönderim planları.",
+      "links": [
+        ["events", "Modül iş olayları"],
+        ["access", "Rapor erişimi"],
+        ["jobs", "Zamanlanmış raporlar"]
+      ],
+      "provides": "Modül bazlı rapor, yetkili özet ve dışa aktarım.",
+      "items": [
+        {
+          "kind": "o",
+          "text": "Her modül/özellik için raporlama; muhasebe, CRM ve diğer alan raporları.",
+          "raw": "saas module/feature base Raporlama; Raporlama modülü(her modülün raporu olmalı)",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Raporlama ve domain ekipleri",
+            "confidence": "documented",
+            "note": "Framework report motoru sağlar; muhasebe/CRM domain raporları ilgili uygulama ve özel modüllerden gelir. Her modülün headless rapor sözleşmesi tamamlanacak.",
+            "acceptance": "Muhasebe ve CRM örnek raporları domain toplamlarıyla eşleşsin; yetkisiz kayıt içermesin.",
+            "sources": [
+              {
+                "title": "Frappe Reports",
+                "url": "https://docs.frappe.io/framework/user/en/desk/reports"
+              },
+              {
+                "title": "Frappe Query Report",
+                "url": "https://docs.frappe.io/framework/user/en/desk/reports/query-report"
+              },
+              {
+                "title": "Frappe CRM: Your First Steps",
+                "url": "https://docs.frappe.io/crm/setup-guide/your-first-steps-with-frappe-crm"
+              },
+              {
+                "title": "ERPNext Immutable Ledger",
+                "url": "https://docs.frappe.io/erpnext/immutable-ledger-in-erpnext"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "BI (Business Intelligence — iş zekâsı) panoları; BI Board.",
+          "raw": "BI Board",
+          "assessment": {
+            "support": "ecosystem",
+            "action": "integrate",
+            "owner": "BI entegrasyonu",
+            "confidence": "documented",
+            "note": "Frappe Insights ayrı BI uygulamasıdır; Framework çekirdeği değildir. BI Board adının ürün/kapsamı netleştirilip bağımsız frontend panoları entegre edilecek.",
+            "acceptance": "Seçilen BI ürünü ve sürümü kaydedilsin; örnek pano tenant filtresini atlayamasın.",
+            "sources": [
+              {
+                "title": "Frappe Insights Introduction",
+                "url": "https://docs.frappe.io/insights/introduction"
+              },
+              {
+                "title": "Frappe Users and Permissions",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "Metabase adaptörü ve gömülü raporlar.",
+          "raw": "MetaBase",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "BI entegrasyonu",
+            "confidence": "design",
+            "note": "Metabase gömme ayrı ürün entegrasyonudur; adaptör, oturum, tenant sınırı ve gömme türünün lisans koşulları seçilerek bağlanacak.",
+            "acceptance": "Gömülü rapor yetkili kullanıcıya açılsın; URL/parametre değiştirerek başka tenant sorgulanamasın.",
+            "sources": [
+              {
+                "title": "Metabase Embedding Introduction",
+                "url": "https://www.metabase.com/docs/latest/embedding/introduction"
+              },
+              {
+                "title": "Frappe Users and Permissions",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Filtre, tarih aralığı, kaydedilmiş rapor ve zamanlanmış gönderim.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Raporlama ürünü",
+            "confidence": "documented",
+            "note": "Report Builder ve çekirdek Auto Email Report filtreleme/zamanlama temeli sağlar; kaydedilmiş raporların headless yönetimi ve alıcı izinleri tamamlanacak.",
+            "acceptance": "Kaydedilen tarih filtresi yeniden açılsın; zamanlanmış rapor doğru alıcılara aynı kapsamda gitsin.",
+            "sources": [
+              {
+                "title": "Frappe Report Builder",
+                "url": "https://docs.frappe.io/framework/user/en/desk/reports/report-builder"
+              },
+              {
+                "title": "Frappe Auto Email Report kaynak kodu, version-15",
+                "url": "https://raw.githubusercontent.com/frappe/frappe/version-15/frappe/email/doctype/auto_email_report/auto_email_report.py"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Kiracı/kayıt/alan yetkisiyle raporlama ve dışa aktarma.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Raporlama güvenliği",
+            "confidence": "documented",
+            "note": "Rol ve export izinleri mevcut; Query Reportun ham SQLi kayıt/alan izinlerini otomatik garanti etmez. Her rapor ve exportta sunucu kapsamı uygulanacak.",
+            "acceptance": "Aynı rapor ve export yetkisiz satır/alanı içermesin; SQL ve API yolları ayrı doğrulansın.",
+            "sources": [
+              {
+                "title": "Frappe Users and Permissions",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              },
+              {
+                "title": "Frappe Query Report",
+                "url": "https://docs.frappe.io/framework/user/en/desk/reports/query-report"
+              },
+              {
+                "title": "Frappe Data Masking: deneysel sürüm sınırı",
+                "url": "https://docs.frappe.io/framework/data-masking"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Kaynak modüllerden gelen olaylarla güncellenen ayrı okuma modelleri.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Veri ve olay platformu",
+            "confidence": "design",
+            "note": "İncelenen Framework kaynaklarında modüller arası kalıcı olaylarla yönetilen hazır read-model ürünü saptanmadı; projeksiyon, replay ve güncellik takibi kurulacak.",
+            "acceptance": "Olay replay sonrası okuma modeli kaynak toplamıyla eşleşsin; çift olay sonucu bozmasın.",
+            "sources": [
+              {
+                "title": "Frappe Event Streaming: güncel destek sınırı",
+                "url": "https://docs.frappe.io/framework/help/event-streaming"
+              },
+              {
+                "title": "Frappe Database API",
+                "url": "https://docs.frappe.io/framework/user/en/api/database"
+              },
+              {
+                "title": "Frappe Background Jobs",
+                "url": "https://docs.frappe.io/framework/user/en/api/background_jobs"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Metrik tanımı, veri güncelliği ve hesaplama tutarlılığı.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Veri yönetişimi",
+            "confidence": "design",
+            "note": "Rapor üretimi mevcut olsa da ortak metrik tanımı/tazelik sözleşmesi hazır ürün olarak saptanmadı; hesaplama sürümü ve veri gecikmesi modeli geliştirilecek.",
+            "acceptance": "İki panodaki aynı metriğin tanımı ve değeri eşleşsin; geciken veri görünür uyarı üretsin.",
+            "sources": [
+              {
+                "title": "Frappe Reports",
+                "url": "https://docs.frappe.io/framework/user/en/desk/reports"
+              },
+              {
+                "title": "Frappe Insights Introduction",
+                "url": "https://docs.frappe.io/insights/introduction"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": ["tenant"],
+      "num": "12.1"
+    },
+    {
+      "id": "analytics",
+      "title": "Ürün analitiği ve pazarlama etiketleri",
+      "owns": "Analitik olay şeması, kampanya etiketleri ve izinli izleme yapılandırması.",
+      "links": [
+        ["legal", "Çerez ve ileti izinleri"],
+        ["integration", "Analitik servis bağlantısı"]
+      ],
+      "provides": "Kullanım, dönüşüm ve kampanya ilişkilendirme raporları.",
+      "items": [
+        {
+          "kind": "o",
+          "text": "GTM (Google Tag Manager — Google etiket yöneticisi) bağlantısı.",
+          "raw": "gtm",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "Frontend ölçüm",
+            "confidence": "design",
+            "note": "GTM bağımsız frontend entegrasyonudur; Frappe hosted website ayarı headless sayfaya otomatik uygulanmaz. Etiket yükleme ve izin sırası bağlanacak.",
+            "acceptance": "İzin politikasına uygun GTM konteyneri yüklensin; rota değişimlerinde ölçüm çoğalmasın.",
+            "sources": [
+              {
+                "title": "Google Tag Manager Setup",
+                "url": "https://support.google.com/tagmanager/answer/14842164"
+              },
+              {
+                "title": "Google Consent Mode",
+                "url": "https://developers.google.com/tag-platform/security/guides/consent"
+              },
+              {
+                "title": "Frappe Website Settings şeması, version-15",
+                "url": "https://raw.githubusercontent.com/frappe/frappe/version-15/frappe/website/doctype/website_settings/website_settings.json"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "Google Analytics ve Yandex Metrica adaptörleri.",
+          "raw": "yandex metrica, google analytics",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "Frontend ölçüm",
+            "confidence": "design",
+            "note": "Google Analytics ve Yandex Metrica ayrı ölçüm servisleridir; headless adaptörler, olay şeması ve veri çıkış izinleri ayrı kurulacak.",
+            "acceptance": "Her sağlayıcıda izinli örnek olay tek görünsün; PII ve yasak tenant verisi gönderilmesin.",
+            "sources": [
+              {
+                "title": "Google Tag Manager Setup",
+                "url": "https://support.google.com/tagmanager/answer/14842164"
+              },
+              {
+                "title": "Yandex Metrica resmî yardım",
+                "url": "https://yandex.com/support/metrica/en/"
+              },
+              {
+                "title": "Google Consent Mode",
+                "url": "https://developers.google.com/tag-platform/security/guides/consent"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "UTM (Urchin Tracking Module — kampanya kaynağı etiketleme sistemi) kod yönetimi.",
+          "raw": "UTM code management",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Pazarlama ölçüm",
+            "confidence": "design",
+            "note": "UTM analitik servislerinin kampanya parametreleridir; incelenen Frameworkte ortak kampanya kod yönetimi saptanmadı. İsimlendirme ve URL üretimi yapılacak.",
+            "acceptance": "Üretilen URL zorunlu UTM alanlarını doğrulasın; raporda kaynak/medium/kampanya aynı biçimde görünsün.",
+            "sources": [
+              {
+                "title": "Google Analytics Campaign URL Builders",
+                "url": "https://support.google.com/analytics/answer/10917952?hl=en"
+              },
+              {
+                "title": "Frappe REST API",
+                "url": "https://docs.frappe.io/framework/user/en/guides/integration/rest_api"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Analitik olay kataloğu, dönüşüm hedefleri ve kampanya adlandırma.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Ürün analitiği",
+            "confidence": "design",
+            "note": "GTM etiket çalıştırır; ürün olay kataloğu, dönüşüm tanımı ve kampanya adlandırması Framework hazır ürünü olarak saptanmadı. Sürüm ve şema geliştirilecek.",
+            "acceptance": "Şema dışı olay reddedilsin; tek dönüşüm olayı hedefe doğru ve mükerrersiz işlensin.",
+            "sources": [
+              {
+                "title": "Google Tag Manager Setup",
+                "url": "https://support.google.com/tagmanager/answer/14842164"
+              },
+              {
+                "title": "Google Analytics Campaign URL Builders",
+                "url": "https://support.google.com/analytics/answer/10917952?hl=en"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Kullanıcı etkinleşmesi, özellik kullanımı, elde tutma ve dönüşüm akışları.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "Ürün analitiği",
+            "confidence": "design",
+            "note": "Aktivasyon, kullanım, retention ve funnel tanımları ayrı analitik katmanında kurulacak; Framework iş raporu ürün davranış ölçümünü tek başına tamamlamaz.",
+            "acceptance": "Örnek kullanıcı kohortunun aktivasyon/retention hesabı belgelenen olay ve zaman penceresiyle eşleşsin.",
+            "sources": [
+              {
+                "title": "Yandex Metrica resmî yardım",
+                "url": "https://yandex.com/support/metrica/en/"
+              },
+              {
+                "title": "Frappe Reports",
+                "url": "https://docs.frappe.io/framework/user/en/desk/reports"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "İzin durumuna göre etiket çalıştırma; hassas veriyi ölçümden çıkarma.",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "Frontend ve veri güvenliği",
+            "confidence": "design",
+            "note": "Etiket rızası headless frontendde uygulanacak; Google basic ve advanced consent davranışları farklıdır. İzin öncesi sıfır ölçüm isteği gerekiyorsa basic engelleme seçilecek.",
+            "acceptance": "İzin yokken ölçüm isteği çıkmasın; geri çekmede etiketler durdurulsun; hassas alanlar payload dışında kalsın.",
+            "sources": [
+              {
+                "title": "Google Consent Mode",
+                "url": "https://developers.google.com/tag-platform/security/guides/consent"
+              },
+              {
+                "title": "GDPR resmî AB metni",
+                "url": "https://eur-lex.europa.eu/eli/reg/2016/679/oj/eng"
+              },
+              {
+                "title": "KVKK Aydınlatma Yükümlülüğü Duyurusu",
+                "url": "https://www.kvkk.gov.tr/Icerik/6765/AYDINLATMA-YUKUMLULUGUNUN-YERINE-GETIRILMESI-HAKKINDA-KAMUOYU-DUYURUSU"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "n",
+          "text": "Deney yönetimi: kullanıcı gruplarına ayırma, karşılaştırma ve sonuç izleme.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Deney platformu",
+            "confidence": "design",
+            "note": "İncelenen Framework/raporlama kaynaklarında hazır deney atama ve sonuç ürünü saptanmadı; kalıcı kohort, metrik ve analiz kuralları geliştirilecek.",
+            "acceptance": "Kullanıcı aynı deney grubunda kalsın; örnek sonuç iki grubun aynı metrik/pencere tanımıyla hesaplansın.",
+            "sources": [
+              {
+                "title": "Frappe Reports",
+                "url": "https://docs.frappe.io/framework/user/en/desk/reports"
+              },
+              {
+                "title": "Frappe Database API",
+                "url": "https://docs.frappe.io/framework/user/en/api/database"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": ["kvkk", "gdpr"],
+      "num": "12.2"
+    }
+  ],
+  "phase": "Ölçüm ve iyileştirme",
+  "rationale": "Temel teknik telemetri ilk etaptadır. İş raporları ve ürün analitiği, tutarlı olay ve alan verisi oluşunca genişletilir.",
+  "dependsOn": ["05", "09", "02", "08"],
+  "roadmapOrder": 12
+}

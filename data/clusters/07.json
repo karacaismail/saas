@@ -1,0 +1,531 @@
+{
+  "id": "07",
+  "title": "Bildirim, e-posta ve ortak çalışma",
+  "short": "İletişim ve bildirim",
+  "groups": [
+    {
+      "id": "notifications",
+      "title": "Bildirim merkezi ve kanalları",
+      "owns": "Bildirimler, kullanıcı tercihleri, kanal rotaları ve teslimat denemeleri.",
+      "links": [
+        ["events", "Bildirim gerektiren iş olayları"],
+        ["email", "E-posta gönderimi"],
+        ["integration", "Dış kanal bağlantıları"],
+        ["usage", "Gönderim kotası"]
+      ],
+      "provides": "Bildirim merkezi; teslim edildi, okundu ve başarısız sonuçları.",
+      "items": [
+        {
+          "kind": "o",
+          "text": "In-app notification (uygulama içi bildirim) merkezi.",
+          "raw": "In-App Notification; in-app",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Backend ve frontend",
+            "confidence": "documented",
+            "note": "Çekirdekte kullanıcıya bağlı Notification Log ve okundu durumu var; bağımsız frontend bildirim merkezi ve izinli API akışı geliştirilecek.",
+            "acceptance": "İki kullanıcının bildirimleri ayrışsın; okuma durumu yenilemede korunsun.",
+            "sources": [
+              {
+                "title": "Frappe Notification Log kaynak kodu, version-15",
+                "url": "https://raw.githubusercontent.com/frappe/frappe/version-15/frappe/desk/doctype/notification_log/notification_log.py"
+              },
+              {
+                "title": "Frappe Users and Permissions",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "SMS (Short Message Service — kısa mesaj hizmeti) ve mobil push (anlık cihaz bildirimi).",
+          "raw": "email, sms, push; Push Notification",
+          "assessment": {
+            "support": "partial",
+            "action": "integrate",
+            "owner": "Bildirim entegrasyonu",
+            "confidence": "documented",
+            "note": "Notification SMS kanalını destekler; mobil push için cihaz aboneliği, sağlayıcı ve hata yönetimi ayrıca kurulacak.",
+            "acceptance": "SMS ve push aynı olaydan üretilebilsin; iptal edilen cihaz tokenına gönderim durdurulsun.",
+            "sources": [
+              {
+                "title": "Frappe Notifications",
+                "url": "https://docs.frappe.io/framework/notifications"
+              },
+              {
+                "title": "MDN Push API",
+                "url": "https://developer.mozilla.org/en-US/docs/Web/API/Push_API"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "Web push (tarayıcı bildirimi) ve desktop notification (masaüstü sistem bildirimi).",
+          "raw": "Web Push Browser Notification; Desktop Notification",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "Frontend ve bildirim",
+            "confidence": "design",
+            "note": "Web/masaüstü bildirimleri headless frontendin tarayıcı izinleri ve servis worker akışına aittir; Framework Notification bunu tek başına sağlamaz.",
+            "acceptance": "İzin reddi düzgün işlensin; arka plandaki izinli tarayıcı bildirimi alabilsin.",
+            "sources": [
+              {
+                "title": "MDN Push API",
+                "url": "https://developer.mozilla.org/en-US/docs/Web/API/Push_API"
+              },
+              {
+                "title": "MDN Notifications API",
+                "url": "https://developer.mozilla.org/en-US/docs/Web/API/Notifications_API"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "WhatsApp Business API, Telegram Bot ve Discord kanalları.",
+          "raw": "WhatsApp Business API; Telegram Bot; Discord",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "Kanal entegrasyonu",
+            "confidence": "design",
+            "note": "WhatsApp, Telegram ve Discord ayrı sağlayıcı entegrasyonlarıdır; Framework Notification listesindeki kanallar bu üçünün hazır adaptörü sayılmaz. Yetkili bağlantı, alıcı eşlemesi ve geri bildirimler bağlanacak.",
+            "acceptance": "Her kanal için doğrulanmış alıcıya gönderim ve sağlayıcı hata dönüşü kaydedilsin.",
+            "sources": [
+              {
+                "title": "Frappe Notifications",
+                "url": "https://docs.frappe.io/framework/notifications"
+              },
+              {
+                "title": "Frappe Webhooks",
+                "url": "https://docs.frappe.io/framework/user/en/guides/integration/webhooks"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "Bildirim kanal yönetimi.",
+          "raw": "bildirim kanal yönetimi",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Bildirim ürünü",
+            "confidence": "documented",
+            "note": "Notification içinde kanal seçimi var; tenant düzeyinde kanal açma, kimlik bilgisi yönetimi ve yönlendirme ekranı ayrıca yapılacak.",
+            "acceptance": "Kapalı kanal hiçbir olayda çalışmasın; başka tenantın kanal ayarına erişilemesin.",
+            "sources": [
+              {
+                "title": "Frappe Notifications",
+                "url": "https://docs.frappe.io/framework/notifications"
+              },
+              {
+                "title": "Frappe Security FAQs",
+                "url": "https://docs.frappe.io/framework/user/en/security-faqs"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Konu/kanal tercihleri, izinler, sessiz saatler ve özet gönderim.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Bildirim ürünü",
+            "confidence": "design",
+            "note": "İncelenen Notification belgelerinde konu tercihleri, sessiz saat ve kişisel özetin ortak ürün modeli saptanmadı; tercih ve zamanlama kuralları geliştirilecek.",
+            "acceptance": "Kullanıcı saat dilimindeki sessiz aralıkta bildirim ertelensin; özet tek gönderilsin.",
+            "sources": [
+              {
+                "title": "Frappe Notifications",
+                "url": "https://docs.frappe.io/framework/notifications"
+              },
+              {
+                "title": "Frappe Background Jobs",
+                "url": "https://docs.frappe.io/framework/user/en/api/background_jobs"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Okundu bilgisi, teslimat geçmişi, yeniden deneme ve alternatif kanal.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Bildirim altyapısı",
+            "confidence": "documented",
+            "note": "Notification Log okundu durumunu, Email Queue gönderim denemelerini sağlar; kanallar arası teslimat geçmişi ve alternatif rota birleştirilecek.",
+            "acceptance": "Başarısız ilk kanaldan alternatif kanala tek geçiş olsun; okundu ve teslim edildi ayrışsın.",
+            "sources": [
+              {
+                "title": "Frappe Notification Log kaynak kodu, version-15",
+                "url": "https://raw.githubusercontent.com/frappe/frappe/version-15/frappe/desk/doctype/notification_log/notification_log.py"
+              },
+              {
+                "title": "Frappe Email Queue kaynak kodu, version-15",
+                "url": "https://raw.githubusercontent.com/frappe/frappe/version-15/frappe/email/doctype/email_queue/email_queue.py"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Bildirim tekilleştirme, sıklık sınırı ve pazarlama/işlemsel ayrımı.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Bildirim politikası",
+            "confidence": "design",
+            "note": "İncelenen bildirim kaynaklarında ortak tekilleştirme ve pazarlama/işlemsel sıklık politikası saptanmadı; olay anahtarı ve tercih kuralları tasarlanacak.",
+            "acceptance": "Aynı olay iki kez tüketilince tek bildirim oluşsun; pazarlama izni işlem bildiriminden ayrı uygulansın.",
+            "sources": [
+              {
+                "title": "Frappe Notifications",
+                "url": "https://docs.frappe.io/framework/notifications"
+              },
+              {
+                "title": "Google Consent Mode",
+                "url": "https://developers.google.com/tag-platform/security/guides/consent"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": [],
+      "num": "08.1"
+    },
+    {
+      "id": "email",
+      "title": "İşlemsel e-posta ve şablonlar",
+      "owns": "E-posta şablonları, gönderimler, alan adı ve teslim edilebilirlik ayarları.",
+      "links": [
+        ["locale", "Dil seçimi"],
+        ["security", "Sağlayıcı erişimi"]
+      ],
+      "provides": "Şablonlu e-posta gönderimi; teslimat ve başarısızlık sonucu.",
+      "items": [
+        {
+          "kind": "o",
+          "text": "Transactional email (işlemsel e-posta) ve sistem e-posta şablonları.",
+          "raw": "Transactional Email; System E-mail templates",
+          "assessment": {
+            "support": "native",
+            "action": "configure",
+            "owner": "Backend e-posta",
+            "confidence": "documented",
+            "note": "sendmail, Email Queue ve şablon desteği çekirdekte mevcut; SMTP hesabı ve ürüne ait sistem şablonları yapılandırılacak.",
+            "acceptance": "Şablonlu işlem e-postası kuyruğa alınsın; hata ve yeniden deneme görülsün.",
+            "sources": [
+              {
+                "title": "Frappe Utility Functions: sendmail",
+                "url": "https://docs.frappe.io/framework/user/en/api/utils"
+              },
+              {
+                "title": "Frappe Email Queue kaynak kodu, version-15",
+                "url": "https://raw.githubusercontent.com/frappe/frappe/version-15/frappe/email/doctype/email_queue/email_queue.py"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "Giriş, kayıt, magic link, doğrulama ve parola kurtarma e-posta senaryoları.",
+          "raw": "email senaryolarına uygun email template; login, magic link, password recovery",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "Keycloak kimlik",
+            "confidence": "design",
+            "note": "Giriş, doğrulama ve kurtarma e-postaları mimari gereği Keycloakta yönetilecek; magic link için seçilen sürüm/akış ayrıca doğrulanacak.",
+            "acceptance": "Doğrulama ve parola kurtarma Keycloak akışından çalışsın; magic link gereksinimi sürümle karara bağlansın.",
+            "sources": [
+              {
+                "title": "Keycloak Server Administration: Email",
+                "url": "https://www.keycloak.org/docs/latest/server_admin/index.html#_email"
+              },
+              {
+                "title": "Keycloak OIDC Layers",
+                "url": "https://www.keycloak.org/securing-apps/oidc-layers"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "Mailgun adaptörü ve Postfix sunucu bağlantısı.",
+          "raw": "mailgun; postfix",
+          "assessment": {
+            "support": "partial",
+            "action": "integrate",
+            "owner": "E-posta entegrasyonu",
+            "confidence": "documented",
+            "note": "Email Account SMTP/TLS ayarları Postfix veya sağlayıcı SMTP bağlantısına temel olur; Mailgun HTTP adaptörü ve geri bildirimleri ayrıca bağlanacak.",
+            "acceptance": "Postfix ve seçilen Mailgun bağlantısı gönderim yapsın; sağlayıcı hatası kayda işlensin.",
+            "sources": [
+              {
+                "title": "Frappe Email Account şeması, version-15",
+                "url": "https://raw.githubusercontent.com/frappe/frappe/version-15/frappe/email/doctype/email_account/email_account.json"
+              },
+              {
+                "title": "Mailgun Tracking Messages",
+                "url": "https://documentation.mailgun.com/docs/mailgun/user-manual/tracking-messages/tracking-messages"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Ödeme, fatura, onay, güvenlik ve destek e-posta senaryoları.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "İş olayı ve e-posta",
+            "confidence": "documented",
+            "note": "Koşullu Notification ve şablonlar mevcut; ödeme/fatura/destek domain olayları ve alıcı yetkileri ilgili modüllerden bağlanacak.",
+            "acceptance": "Her iş olayında doğru tenant, alıcı ve şablon kullanılsın; tekrar olay çift e-posta üretmesin.",
+            "sources": [
+              {
+                "title": "Frappe Notifications",
+                "url": "https://docs.frappe.io/framework/notifications"
+              },
+              {
+                "title": "Frappe Utility Functions: sendmail",
+                "url": "https://docs.frappe.io/framework/user/en/api/utils"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Şablon değişkeni denetimi, önizleme, dil ve marka sürümleri.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Şablon yönetimi",
+            "confidence": "documented",
+            "note": "Jinja şablon değişkenleri destekleniyor; zorunlu değişken şeması, marka/dil sürümü ve headless önizleme ürün akışı genişletilecek.",
+            "acceptance": "Eksik değişken gönderimi engellensin; seçili dil ve marka sürümü önizleme ile aynı olsun.",
+            "sources": [
+              {
+                "title": "Frappe Utility Functions: sendmail",
+                "url": "https://docs.frappe.io/framework/user/en/api/utils"
+              },
+              {
+                "title": "Frappe Notifications",
+                "url": "https://docs.frappe.io/framework/notifications"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Gönderen alan adı doğrulama; imza ve teslim edilebilirlik ayarları.",
+          "assessment": {
+            "support": "partial",
+            "action": "integrate",
+            "owner": "DevOps ekibi ve DNS operasyon ekibi",
+            "confidence": "documented",
+            "note": "Email Account imza/SMTP ayarları sağlar; SPF/DKIM gibi alan doğrulaması sağlayıcı ve DNS işidir. Teknik kayıtları DevOps ekibi hazırlar, DNS kayıtlarını DNS operasyon ekibi uygular.",
+            "acceptance": "Sağlayıcı alan doğrulaması geçsin; test iletisinin imza ve kimlik doğrulama sonuçları kaydedilsin.",
+            "sources": [
+              {
+                "title": "Frappe Email Account şeması, version-15",
+                "url": "https://raw.githubusercontent.com/frappe/frappe/version-15/frappe/email/doctype/email_account/email_account.json"
+              },
+              {
+                "title": "Mailgun Domain Verification",
+                "url": "https://documentation.mailgun.com/docs/mailgun/user-manual/domains/domains-verify"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Geri dönen ileti, spam şikâyeti ve gönderim engelleme listesi.",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "E-posta operasyonu",
+            "confidence": "design",
+            "note": "Bounce, şikâyet ve suppression sağlayıcı tarafında yönetilebilir; Framework kuyruğunun SMTP başarısı teslim edilebilirlik kanıtı değildir. Sonuçlar uygulamaya bağlanacak.",
+            "acceptance": "Hard bounce veya şikâyet alıcıyı baskılasın; yeniden gönderim politikası bunu dikkate alsın.",
+            "sources": [
+              {
+                "title": "Mailgun Tracking Messages",
+                "url": "https://documentation.mailgun.com/docs/mailgun/user-manual/tracking-messages/tracking-messages"
+              },
+              {
+                "title": "Frappe Email Queue kaynak kodu, version-15",
+                "url": "https://raw.githubusercontent.com/frappe/frappe/version-15/frappe/email/doctype/email_queue/email_queue.py"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": [],
+      "num": "08.2"
+    },
+    {
+      "id": "realtime",
+      "title": "Canlı iletim ve ortak çalışma",
+      "owns": "Canlı kanal abonelikleri ve ayrı işbirliği kayıtları.",
+      "links": [
+        ["access", "Kanal/kayıt erişimi"],
+        ["events", "Canlı iletilecek olaylar"]
+      ],
+      "provides": "Yetkili istemciye canlı güncelleme; ortak çalışma olayları.",
+      "items": [
+        {
+          "kind": "o",
+          "text": "WebSocket (çift yönlü canlı bağlantı) ile güncellemeler.",
+          "raw": "WebSocket / SSE ile canlı bildirim",
+          "assessment": {
+            "support": "native",
+            "action": "integrate",
+            "owner": "Backend ve frontend",
+            "confidence": "documented",
+            "note": "Çekirdekte Socket.IO tabanlı realtime yayın ve istemci APIleri var; headless istemci ve Keycloak kimliğiyle Frappe izin eşlemesi bağlanacak.",
+            "acceptance": "Yetkili istemci kayıt güncellemesini alsın; yetkisiz oda aboneliği reddedilsin.",
+            "sources": [
+              {
+                "title": "Frappe Realtime API",
+                "url": "https://docs.frappe.io/framework/user/en/api/realtime"
+              },
+              {
+                "title": "Frappe Users and Permissions",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "SSE (Server-Sent Events — sunucudan gönderilen olaylar) ile canlı iletim.",
+          "raw": "WebSocket / SSE ile canlı bildirim",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Realtime altyapısı",
+            "confidence": "design",
+            "note": "İncelenen Frappe realtime sözleşmesi Socket.IO üzerindedir; hazır SSE ürün akışı saptanmadı. SSE gerekiyorsa ayrı endpoint/proxy davranışı geliştirilecek.",
+            "acceptance": "EventSource kopup bağlanınca kimlik, heartbeat ve son olay davranışı tanımlı testten geçsin.",
+            "sources": [
+              {
+                "title": "Frappe Realtime API",
+                "url": "https://docs.frappe.io/framework/user/en/api/realtime"
+              },
+              {
+                "title": "MDN Server Sent Events",
+                "url": "https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Bağlantı yetkisi, yeniden bağlanma ve kaçırılan olayları tamamlama.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Realtime güvenliği",
+            "confidence": "documented",
+            "note": "Realtime kimlik doğrulama ve izinli odalar sağlar; reconnect sonrası kaçırılan olayların kalıcı tamamlama protokolü ayrıca gerekir. Deneysel handlerlar sürüm seçmeden kullanılmaz.",
+            "acceptance": "İzin iptali aboneliği durdursun; bağlantı kesintisindeki olaylar sıra numarasıyla tamamlansın.",
+            "sources": [
+              {
+                "title": "Frappe Realtime API",
+                "url": "https://docs.frappe.io/framework/user/en/api/realtime"
+              },
+              {
+                "title": "Frappe Event Streaming: güncel destek sınırı",
+                "url": "https://docs.frappe.io/framework/help/event-streaming"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "n",
+          "text": "Kayıt üzerinde ekip yorumları, bahsetme ve takip etme.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Ortak çalışma",
+            "confidence": "documented",
+            "note": "Document yorumları ve kayıt etkileşimleri için çekirdek araçlar var; headless mention bildirimi, takip ekranı ve görünürlük politikası genişletilecek.",
+            "acceptance": "Mention doğru kişiye ulaşsın; kayda izni olmayan kullanıcı yorumları göremesin.",
+            "sources": [
+              {
+                "title": "Frappe Document API",
+                "url": "https://docs.frappe.io/framework/user/en/api/document"
+              },
+              {
+                "title": "Frappe Notifications",
+                "url": "https://docs.frappe.io/framework/notifications"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "n",
+          "text": "Kimin görüntülediği/düzenlediği bilgisi ve eşzamanlı düzenleme uyarısı.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Ortak çalışma",
+            "confidence": "design",
+            "note": "İncelenen realtime belgelerinde hazır kullanıcı presence/kayıt düzenleme çakışma ürünü saptanmadı; heartbeat ve düzenleme uyarıları geliştirilecek.",
+            "acceptance": "İki editör görünür olsun; kopan kullanıcının presence kaydı süre sonunda kalksın.",
+            "sources": [
+              {
+                "title": "Frappe Realtime API",
+                "url": "https://docs.frappe.io/framework/user/en/api/realtime"
+              },
+              {
+                "title": "Frappe Document kaynak kodu: check_if_latest, version-15",
+                "url": "https://raw.githubusercontent.com/frappe/frappe/version-15/frappe/model/document.py"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "n",
+          "text": "Paylaşımlı çalışma alanı etkinlik akışı ve kayıt abonelikleri.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Ortak çalışma",
+            "confidence": "documented",
+            "note": "Kayıt güncelleme yayınları ve yorumlar mevcut; workspace düzeyinde izinli birleşik akış ve abonelik yönetimi headless ürün olarak yapılacak.",
+            "acceptance": "Akış sadece erişilebilir kayıtları göstersin; abonelik iptali sonraki bildirimleri durdursun.",
+            "sources": [
+              {
+                "title": "Frappe Realtime API",
+                "url": "https://docs.frappe.io/framework/user/en/api/realtime"
+              },
+              {
+                "title": "Frappe Document API",
+                "url": "https://docs.frappe.io/framework/user/en/api/document"
+              },
+              {
+                "title": "Frappe Users and Permissions",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": [],
+      "num": "08.3"
+    }
+  ],
+  "phase": "Ürün",
+  "rationale": "Keycloak kimlik e-postaları ile ürün bildirimleri ayrılır. Panel canlı iletimi ve teslimat kuralları ortak sözleşmeye bağlanır.",
+  "dependsOn": ["01", "04", "06"],
+  "roadmapOrder": 8
+}

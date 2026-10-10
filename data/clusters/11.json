@@ -1,0 +1,849 @@
+{
+  "id": "11",
+  "title": "Güvenlik, gizlilik ve veri yönetişimi",
+  "short": "Güvenlik ve veri ömrü",
+  "groups": [
+    {
+      "id": "security",
+      "title": "Güvenlik ve kötüye kullanım koruması",
+      "owns": "Güvenlik politikaları, anahtar referansları, risk sinyalleri ve olay kayıtları.",
+      "links": [],
+      "provides": "Güvenli anahtar erişimi; koruma kararı ve güvenlik olayı.",
+      "items": [
+        {
+          "kind": "o",
+          "text": "Security management (güvenlik yönetimi).",
+          "raw": "Security management",
+          "assessment": {
+            "support": "verify",
+            "action": "validate",
+            "owner": "Güvenlik mimarisi",
+            "confidence": "verify",
+            "note": "Çekirdekte yetki ve güvenlik mekanizmaları var; genel güvenlik yönetiminin kontrol/kapsam listesi verilmedi. Hedef sürüm ve tehdit modeliyle kalan işler belirlenecek.",
+            "acceptance": "Varlık, tehdit, kontrol ve sorumlular listelensin; kritik kontroller için uygulanabilir doğrulama koşulları seçilsin.",
+            "sources": [
+              {
+                "title": "Frappe Security FAQs",
+                "url": "https://docs.frappe.io/framework/user/en/security-faqs"
+              },
+              {
+                "title": "Frappe Users and Permissions",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              },
+              {
+                "title": "Keycloak OIDC Layers",
+                "url": "https://www.keycloak.org/securing-apps/oidc-layers"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "WAF (Web Application Firewall — web uygulaması güvenlik duvarı).",
+          "raw": "waf",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "DevOps ekibi",
+            "confidence": "design",
+            "note": "WAF ağ/edge katmanında seçilip yapılandırılacak; Framework çekirdeği WAF ürünü olarak kabul edilmez. Cloudflare belgesi yalnız harici seçenek örneğidir.",
+            "acceptance": "Örnek saldırı kuralı bloklansın; meşru API ve Keycloak akışları geçsin; yanlış pozitif geri alınabilsin.",
+            "sources": [
+              {
+                "title": "Cloudflare WAF resmî dokümanı",
+                "url": "https://developers.cloudflare.com/waf/"
+              },
+              {
+                "title": "Frappe Docker resmî dağıtım deposu",
+                "url": "https://github.com/frappe/frappe_docker"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "Bot ve scraping (otomatik veri toplama) engelleme.",
+          "raw": "bot scraping block",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "DevOps ekibi",
+            "confidence": "design",
+            "note": "Bot ve scraping azaltma edge/uygulama politikasıdır; rate limit tek başına tüm botları engellemez. Gerekli sinyaller ve istisnalar seçilecek.",
+            "acceptance": "Kontrollü otomasyon kötüye kullanım sınırına takılsın; izinli entegrasyon ve arama botu politikasına uygun geçsin.",
+            "sources": [
+              {
+                "title": "Cloudflare Bot Solutions resmî dokümanı",
+                "url": "https://developers.cloudflare.com/bots/"
+              },
+              {
+                "title": "Frappe Rate Limiting",
+                "url": "https://docs.frappe.io/framework/deployment/rate-limiting"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "Rate limit (istek hızını sınırlandırma).",
+          "raw": "rate limit",
+          "assessment": {
+            "support": "native",
+            "action": "configure",
+            "owner": "Backend ve DevOps ekibi",
+            "confidence": "documented",
+            "note": "Çekirdekte site düzeyinde sabit pencere ve toplam işlem süresine dayalı rate limit var; eşik ve pencere yapılandırılacak. Kullanıcı başına istek sayacı değildir.",
+            "acceptance": "Eşik aşılınca 429 ve Retry-After dönsün; pencere yenilenince istek yeniden kabul edilsin.",
+            "sources": [
+              {
+                "title": "Frappe Rate Limiting",
+                "url": "https://docs.frappe.io/framework/deployment/rate-limiting"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Gizli anahtar kasası, erişim kapsamı, yenileme ve iptal.",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "DevOps ekibi",
+            "confidence": "design",
+            "note": "Framework site sırlarını şifreleyebilir; kapsamlı secret vault ve dinamik rotasyon/revoke harici sır yönetimi sorumluluğudur. Ürün erişim sınırı bağlanacak.",
+            "acceptance": "Sır döndürüldükten sonra eski kimlik bilgisi çalışmasın; yetkisiz servis sırrı okuyamasın.",
+            "sources": [
+              {
+                "title": "Frappe Security FAQs",
+                "url": "https://docs.frappe.io/framework/user/en/security-faqs"
+              },
+              {
+                "title": "HashiCorp Vault Secrets Engines",
+                "url": "https://developer.hashicorp.com/vault/docs/secrets"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Aktarımda/depolamada şifreleme ve hassas alan koruması.",
+          "assessment": {
+            "support": "partial",
+            "action": "integrate",
+            "owner": "DevOps ekibi ve veri güvenliği",
+            "confidence": "documented",
+            "note": "Framework belirli site sırlarını korur, Bench HTTPS araçları sağlar; tüm veritabanı/dosya at-rest şifreleme ve alan koruması ayrıca tasarlanır. Deneysel masking varsayılmaz.",
+            "acceptance": "TLS ve seçilen at-rest şifreleme doğrulansın; hassas alan yetkisiz API/rapor yanıtında görünmesin.",
+            "sources": [
+              {
+                "title": "Frappe Security FAQs",
+                "url": "https://docs.frappe.io/framework/user/en/security-faqs"
+              },
+              {
+                "title": "Bench HTTPS",
+                "url": "https://docs.frappe.io/framework/user/en/bench/guides/configuring-https"
+              },
+              {
+                "title": "Frappe Data Masking: deneysel sürüm sınırı",
+                "url": "https://docs.frappe.io/framework/data-masking"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Girdi/çıktı güvenliği, güvenlik başlıkları ve oturum koruması.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Backend ve Keycloak güvenliği",
+            "confidence": "documented",
+            "note": "Framework güvenlik temelleri sağlar; özel API doğrulaması, headless çıktı/başlık politikası ve Keycloak oturum/token sınırları birlikte tamamlanacak.",
+            "acceptance": "Zararlı girdi/çıktı örnekleri engellensin; oturum iptali sonrası API erişimi kesilsin; başlıklar doğrulansın.",
+            "sources": [
+              {
+                "title": "Frappe Security FAQs",
+                "url": "https://docs.frappe.io/framework/user/en/security-faqs"
+              },
+              {
+                "title": "Keycloak OIDC Layers",
+                "url": "https://www.keycloak.org/securing-apps/oidc-layers"
+              },
+              {
+                "title": "Frappe REST API",
+                "url": "https://docs.frappe.io/framework/user/en/guides/integration/rest_api"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Kullanıcı/kiracı/istemci bazlı hız sınırı ve kötüye kullanım sinyalleri.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Backend kötüye kullanım",
+            "confidence": "documented",
+            "note": "Yerleşik rate limit site kapsamlıdır; kullanıcı, iş tenantı ve istemciye ayrı kota/sinyal hesabı özel geliştirme ve edge entegrasyonu gerektirir.",
+            "acceptance": "Bir istemcinin aşımı diğer tenantı kilitlemesin; değiştirilmiş istemci kimliği sınırı atlayamasın.",
+            "sources": [
+              {
+                "title": "Frappe Rate Limiting",
+                "url": "https://docs.frappe.io/framework/deployment/rate-limiting"
+              },
+              {
+                "title": "Cloudflare WAF resmî dokümanı",
+                "url": "https://developers.cloudflare.com/waf/"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Güvenlik olayı kaydı, inceleme, müdahale ve kontrollü erişim engeli.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Güvenlik operasyonu",
+            "confidence": "documented",
+            "note": "Activity/Access/Error kayıtları inceleme girdisi sağlar; güvenlik olayı vakası, müdahale akışı ve kontrollü erişim kesme ürünü ayrıca bağlanacak.",
+            "acceptance": "Şüpheli olay vakaya dönüşsün; onaylı erişim engeli gerekçesi ve geri alma bilgisiyle izlenebilsin.",
+            "sources": [
+              {
+                "title": "Frappe Logging",
+                "url": "https://docs.frappe.io/framework/user/en/logging"
+              },
+              {
+                "title": "Keycloak OIDC Layers",
+                "url": "https://www.keycloak.org/securing-apps/oidc-layers"
+              },
+              {
+                "title": "Cloudflare WAF resmî dokümanı",
+                "url": "https://developers.cloudflare.com/waf/"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": ["tenant", "session"],
+      "num": "03.1"
+    },
+    {
+      "id": "audit",
+      "title": "Denetim izi ve işlem geçmişi",
+      "owns": "Değişiklik kayıtları, aktör bilgisi ve korumalı denetim arşivi.",
+      "links": [["events", "Denetim gerektiren iş olayları"]],
+      "provides": "Kim, neyi, ne zaman, hangi gerekçeyle değiştirdi sorgusu.",
+      "items": [
+        {
+          "kind": "o",
+          "text": "Audit (denetim izi) ve kullanıcı/işlem kayıtları.",
+          "raw": "audit",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Denetim altyapısı",
+            "confidence": "documented",
+            "note": "Activity/Access Log, Version ve Audit Trail araçları var; bütün özel iş işlemlerini kapsayan headless denetim sözleşmesi ayrıca uygulanacak.",
+            "acceptance": "UI, API ve arka plan işindeki kritik değişikliklerin kullanıcı ve işlem izi bulunabilsin.",
+            "sources": [
+              {
+                "title": "Frappe Logging",
+                "url": "https://docs.frappe.io/framework/user/en/logging"
+              },
+              {
+                "title": "Frappe Version kaynak kodu, version-15",
+                "url": "https://raw.githubusercontent.com/frappe/frappe/version-15/frappe/core/doctype/version/version.py"
+              },
+              {
+                "title": "Frappe Audit Trail",
+                "url": "https://docs.frappe.io/framework/user/en/audit-trail"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Eski/yeni değer, kullanıcı, kiracı, işlem kaynağı ve gerekçe.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Denetim altyapısı",
+            "confidence": "documented",
+            "note": "Version eski/yeni alan farklarını kaydeder; tenant, işlem kaynağı ve zorunlu gerekçe her yazma yolunda otomatik garanti değildir. Ortak zarf eklenecek.",
+            "acceptance": "Bir kritik değişiklik eski/yeni değer, gerçek aktör, tenant, kaynak ve gerekçeyle sorgulanabilsin.",
+            "sources": [
+              {
+                "title": "Frappe Version kaynak kodu, version-15",
+                "url": "https://raw.githubusercontent.com/frappe/frappe/version-15/frappe/core/doctype/version/version.py"
+              },
+              {
+                "title": "Frappe Document API",
+                "url": "https://docs.frappe.io/framework/user/en/api/document"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Destek erişimi, yönetici işlemi ve yetki değişikliği denetimi.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Yetki ve destek güvenliği",
+            "confidence": "documented",
+            "note": "Çekirdek işlem kayıtları temel olur; Keycloak rol değişimi ve destek adına erişim gibi dağıtık eylemler ayrıca ilişkilendirilecek, gerçek/etkin aktör ayrılacak.",
+            "acceptance": "Destek erişimi ile rol değişikliği zaman ve gerçek aktörle izlenebilsin; müşteri adına işlem ayırt edilsin.",
+            "sources": [
+              {
+                "title": "Frappe Logging",
+                "url": "https://docs.frappe.io/framework/user/en/logging"
+              },
+              {
+                "title": "Frappe Version kaynak kodu, version-15",
+                "url": "https://raw.githubusercontent.com/frappe/frappe/version-15/frappe/core/doctype/version/version.py"
+              },
+              {
+                "title": "Keycloak OIDC Layers",
+                "url": "https://www.keycloak.org/securing-apps/oidc-layers"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Kayıt değişikliğine karşı koruma, saklama süresi ve erişim sınırı.",
+          "assessment": {
+            "support": "partial",
+            "action": "integrate",
+            "owner": "Denetim ve DevOps ekibi",
+            "confidence": "documented",
+            "note": "Log saklama ve izin araçları var; bunlar yöneticiye karşı değişmez/WORM denetim kanıtı değildir. Ayrı korumalı saklama ve erişim politikası kurulacak.",
+            "acceptance": "Normal kullanıcı log değiştiremesin; korumalı kopya saklama süresinde silinemesin; yönetici müdahalesi iz bıraksın.",
+            "sources": [
+              {
+                "title": "Frappe Logging",
+                "url": "https://docs.frappe.io/framework/user/en/logging"
+              },
+              {
+                "title": "Frappe Users and Permissions",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              },
+              {
+                "title": "Amazon S3 Object Lock",
+                "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lock.html"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Denetim araması, dışa aktarım ve hassas veri maskeleme.",
+          "assessment": {
+            "support": "verify",
+            "action": "validate",
+            "owner": "Denetim ve veri güvenliği",
+            "confidence": "verify",
+            "note": "Arama/export zemini mevcut; Data Masking belgede nightly/v16 deneysel ve raw SQL/Query Report için otomatik değil. Sürüm ve her çıktı yolu doğrulanacak.",
+            "acceptance": "Seçilen sürümde arama, JSON/CSV export ve SQL raporunda aynı hassas alan politikası geçsin.",
+            "sources": [
+              {
+                "title": "Frappe Data Masking: deneysel sürüm sınırı",
+                "url": "https://docs.frappe.io/framework/data-masking"
+              },
+              {
+                "title": "Frappe Users and Permissions",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              },
+              {
+                "title": "Frappe Query Report",
+                "url": "https://docs.frappe.io/framework/user/en/desk/reports/query-report"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": ["tenant"],
+      "num": "03.2"
+    },
+    {
+      "id": "legal",
+      "title": "Sözleşme, politika ve izinler",
+      "owns": "Hukuki metin sürümleri, kabul kanıtları ve ileti/çerez tercihleri.",
+      "links": [],
+      "provides": "Güncel metin, kabul durumu ve amaç bazlı izin kararı.",
+      "items": [
+        {
+          "kind": "o",
+          "text": "KVKK (Kişisel Verilerin Korunması Kanunu) ve GDPR (General Data Protection Regulation — Genel Veri Koruma Tüzüğü) kapsamı.",
+          "raw": "Policy (cokies, gpdr, privacy, contract, agreement); Sözleşmeler (kvkk üyelik)",
+          "assessment": {
+            "support": "external",
+            "action": "validate",
+            "owner": "Hukuk ve veri güvenliği",
+            "confidence": "design",
+            "note": "KVKK/GDPR kapsamı işleme amacı ve operasyonla belirlenir; Framework kurmak uyum kanıtı değildir. Hukuki değerlendirme ve teknik kontrol matrisi hazırlanacak.",
+            "acceptance": "İşleme amaçları, dayanaklar, sorumlular ve teknik tedbirler onaylı kapsam kaydına bağlansın.",
+            "sources": [
+              {
+                "title": "KVKK Uyum Süreci Duyurusu",
+                "url": "https://www.kvkk.gov.tr/Icerik/6554/Kisisel-Verilerin-Korunmasi-Kanunu-Uyum-Surecine-Iliskin-Duyuru"
+              },
+              {
+                "title": "GDPR resmî AB metni",
+                "url": "https://eur-lex.europa.eu/eli/reg/2016/679/oj/eng"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "Gizlilik, çerez, üyelik, hizmet sözleşmesi ve anlaşma yönetimi.",
+          "raw": "Policy (cokies, privacy, contract, agreement); Sözleşmeler",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Hukuk ve ürün",
+            "confidence": "design",
+            "note": "CMS metin yayımlayabilir; incelenen çekirdek kaynaklarında tüm sözleşme/çerez/üyelik belgelerini yöneten hazır ürün saptanmadı. Belge ve kabul akışı geliştirilecek.",
+            "acceptance": "Güncel metinler ilgili akışta erişilsin; kabul gerektiren işlem doğru belge sürümüne bağlansın.",
+            "sources": [
+              {
+                "title": "Frappe Web Page şeması, version-15",
+                "url": "https://raw.githubusercontent.com/frappe/frappe/version-15/frappe/website/doctype/web_page/web_page.json"
+              },
+              {
+                "title": "GDPR resmî AB metni",
+                "url": "https://eur-lex.europa.eu/eli/reg/2016/679/oj/eng"
+              },
+              {
+                "title": "KVKK Aydınlatma Yükümlülüğü Duyurusu",
+                "url": "https://www.kvkk.gov.tr/Icerik/6765/AYDINLATMA-YUKUMLULUGUNUN-YERINE-GETIRILMESI-HAKKINDA-KAMUOYU-DUYURUSU"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Metin sürümü, dil, yürürlük tarihi, kabul kanıtı ve yeniden kabul.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Hukuk ve ürün",
+            "confidence": "design",
+            "note": "Version kayıt geçmişi sunar; hukuki metin dil/yürürlük ve yeniden kabul kanıtı hazır sözleşme ürünü olarak saptanmadı. Ayrı model kurulacak.",
+            "acceptance": "Eski kabul kanıtı korunurken yeni yürürlük sürümü gerektiğinde yeniden kabul istesin.",
+            "sources": [
+              {
+                "title": "Frappe Version kaynak kodu, version-15",
+                "url": "https://raw.githubusercontent.com/frappe/frappe/version-15/frappe/core/doctype/version/version.py"
+              },
+              {
+                "title": "GDPR resmî AB metni",
+                "url": "https://eur-lex.europa.eu/eli/reg/2016/679/oj/eng"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Aydınlatma, açık rıza ve sözleşme kabulünün ayrı kayıtları.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Hukuk ve veri güvenliği",
+            "confidence": "design",
+            "note": "İncelenen Frameworkte aydınlatma, açık rıza ve sözleşme kabulünü ayrı dayanaklarla tutan hazır akış saptanmadı; KVKK ayrımıyla modeller kurulacak.",
+            "acceptance": "Aydınlatma sunumu, rıza ve sözleşme ayrı olaylar olsun; birini geri çekmek diğerinin kanıtını değiştirmesin.",
+            "sources": [
+              {
+                "title": "KVKK Aydınlatma Yükümlülüğü Duyurusu",
+                "url": "https://www.kvkk.gov.tr/Icerik/6765/AYDINLATMA-YUKUMLULUGUNUN-YERINE-GETIRILMESI-HAKKINDA-KAMUOYU-DUYURUSU"
+              },
+              {
+                "title": "KVKK Uyum Süreci Duyurusu",
+                "url": "https://www.kvkk.gov.tr/Icerik/6554/Kisisel-Verilerin-Korunmasi-Kanunu-Uyum-Surecine-Iliskin-Duyuru"
+              },
+              {
+                "title": "GDPR resmî AB metni",
+                "url": "https://eur-lex.europa.eu/eli/reg/2016/679/oj/eng"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Çerez tercihleri, ticari ileti izinleri ve geri çekme.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "Frontend ve hukuk",
+            "confidence": "design",
+            "note": "Çerez/ileti tercihleri bağımsız frontend ve gönderim politikasında uygulanacak; Google consent ayarı tek başına tüm ticari ileti mevzuatı kapsamını karşılamaz.",
+            "acceptance": "Kanal bazında geri çekme sonraki pazarlama gönderimini durdursun; zorunlu ve isteğe bağlı çerezler ayrışsın.",
+            "sources": [
+              {
+                "title": "Google Consent Mode",
+                "url": "https://developers.google.com/tag-platform/security/guides/consent"
+              },
+              {
+                "title": "KVKK Aydınlatma Yükümlülüğü Duyurusu",
+                "url": "https://www.kvkk.gov.tr/Icerik/6765/AYDINLATMA-YUKUMLULUGUNUN-YERINE-GETIRILMESI-HAKKINDA-KAMUOYU-DUYURUSU"
+              },
+              {
+                "title": "GDPR resmî AB metni",
+                "url": "https://eur-lex.europa.eu/eli/reg/2016/679/oj/eng"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Müşteri özel sözleşmeleri, veri işleme şartları ve taahhüt kaydı.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Hukuk ve müşteri operasyonu",
+            "confidence": "design",
+            "note": "İncelenen çekirdek kaynaklarında müşteri özel DPA/taahhüt yönetimi saptanmadı; belge, süre, imza/kabul ve sorumlu ilişkisi geliştirilecek.",
+            "acceptance": "Müşterinin yürürlükteki veri işleme şartı ve taahhütleri sürümüyle bulunabilsin; yetkisiz kişi göremesin.",
+            "sources": [
+              {
+                "title": "GDPR resmî AB metni",
+                "url": "https://eur-lex.europa.eu/eli/reg/2016/679/oj/eng"
+              },
+              {
+                "title": "Frappe Users and Permissions",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": ["kvkk", "gdpr"],
+      "num": "03.3"
+    },
+    {
+      "id": "governance",
+      "title": "Veri yaşam döngüsü ve yönetişim",
+      "owns": "Saklama politikaları, veri envanteri ve ilgili kişi talep kayıtları.",
+      "links": [
+        ["legal", "Hukuki dayanaklar"],
+        ["tenant", "Kiracı kapanma olayı"],
+        ["audit", "Kanıt kayıtları"]
+      ],
+      "provides": "Veri sahibi modüllere saklama/silme komutları; tamamlanma kanıtı.",
+      "items": [
+        {
+          "kind": "n",
+          "text": "Veri envanteri, hassasiyet sınıfı ve hangi modülün verinin sahibi olduğu kaydı.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Veri yönetişimi",
+            "confidence": "design",
+            "note": "DocType şemaları veri yapısını açıklar; incelenen kaynaklarda duyarlılık/modül sahibiyle eksiksiz veri envanteri ürünü saptanmadı. Envanter modeli kurulacak.",
+            "acceptance": "Örnek hassas alanın sahibi, amaç, kopya konumları ve saklama kuralı bulunabilsin.",
+            "sources": [
+              {
+                "title": "KVKK Uyum Süreci Duyurusu",
+                "url": "https://www.kvkk.gov.tr/Icerik/6554/Kisisel-Verilerin-Korunmasi-Kanunu-Uyum-Surecine-Iliskin-Duyuru"
+              },
+              {
+                "title": "Frappe Architecture",
+                "url": "https://docs.frappe.io/framework/user/en/basics/architecture"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "n",
+          "text": "Arşivleme, saklama süresi, anonimleştirme ve kalıcı silme.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Veri yaşam döngüsü",
+            "confidence": "documented",
+            "note": "Log retention ve kullanıcı verisi silme hookları temel sağlar; bütün iş verisi için arşiv/anonimleştirme/kalıcı silme politikası ayrıca uygulanacak.",
+            "acceptance": "Süresi dolan örnek veri doğru politikayla işlensin; saklama istisnası olan kayıt silinmesin.",
+            "sources": [
+              {
+                "title": "Frappe Logging",
+                "url": "https://docs.frappe.io/framework/user/en/logging"
+              },
+              {
+                "title": "Frappe Personal Data Deletion Request kaynak kodu, version-15",
+                "url": "https://raw.githubusercontent.com/frappe/frappe/version-15/frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py"
+              },
+              {
+                "title": "GDPR resmî AB metni",
+                "url": "https://eur-lex.europa.eu/eli/reg/2016/679/oj/eng"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "n",
+          "text": "Silme işlemini dosya, arama, önbellek ve yapay zekâ bilgi tabanına yayma.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Veri yaşam döngüsü",
+            "confidence": "design",
+            "note": "Kullanıcı silme hookları tüm dış kopyaları otomatik kapsamaz; dosya, arama, Redis ve RAG silme yayılımı ile tekrar denemeleri özel akışta kurulacak.",
+            "acceptance": "Silinen kaydın tüm kopyaları izlenebilir işlerle kalksın; başarısız hedef tekrar denensin ve görünür olsun.",
+            "sources": [
+              {
+                "title": "Frappe Personal Data Deletion Request kaynak kodu, version-15",
+                "url": "https://raw.githubusercontent.com/frappe/frappe/version-15/frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py"
+              },
+              {
+                "title": "Frappe Caching",
+                "url": "https://docs.frappe.io/framework/user/en/guides/caching"
+              },
+              {
+                "title": "LangChain Retrieval",
+                "url": "https://docs.langchain.com/oss/python/deepagents/retrieval"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "n",
+          "text": "İlgili kişinin erişim, düzeltme, silme ve taşınabilirlik talepleri.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Veri hakları",
+            "confidence": "documented",
+            "note": "Çekirdekte kişisel veri indirme/silme isteği var; özel iş DocTypeları, düzeltme, taşınabilirlik ve Keycloak/harici kopyalar kapsamı genişletilecek.",
+            "acceptance": "Doğrulanmış kişinin tüm kapsamlı verisi indirilsin; düzeltme/silme talebi yetki ve istisnalarla sonuçlansın.",
+            "sources": [
+              {
+                "title": "Frappe Personal Data Download Request kaynak kodu, version-15",
+                "url": "https://raw.githubusercontent.com/frappe/frappe/version-15/frappe/website/doctype/personal_data_download_request/personal_data_download_request.py"
+              },
+              {
+                "title": "Frappe Personal Data Deletion Request kaynak kodu, version-15",
+                "url": "https://raw.githubusercontent.com/frappe/frappe/version-15/frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py"
+              },
+              {
+                "title": "Keycloak OIDC Layers",
+                "url": "https://www.keycloak.org/securing-apps/oidc-layers"
+              },
+              {
+                "title": "GDPR resmî AB metni",
+                "url": "https://eur-lex.europa.eu/eli/reg/2016/679/oj/eng"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "n",
+          "text": "Hukuki saklama kilidi ve silme istisnaları.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Hukuk ve veri yaşam döngüsü",
+            "confidence": "design",
+            "note": "İncelenen silme mekanizmalarında genel hukuki saklama kilidi/istisna ürünü saptanmadı; karar, süre ve silmeyi engelleyen sunucu kuralı kurulacak.",
+            "acceptance": "Aktif saklama kilidindeki kayıt toplu/scheduled silmeden korunsun; kilit çözümü gerekçeli ve denetlenebilir olsun.",
+            "sources": [
+              {
+                "title": "Frappe Personal Data Deletion Request kaynak kodu, version-15",
+                "url": "https://raw.githubusercontent.com/frappe/frappe/version-15/frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py"
+              },
+              {
+                "title": "GDPR resmî AB metni",
+                "url": "https://eur-lex.europa.eu/eli/reg/2016/679/oj/eng"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "n",
+          "text": "Veri yerleşimi, ülke/bölge kısıtları ve alt işleyen envanteri.",
+          "assessment": {
+            "support": "external",
+            "action": "validate",
+            "owner": "Hukuk ve DevOps ekibi",
+            "confidence": "design",
+            "note": "Veri bölgesi ve alt işleyen kapsamı uygulama, yedek, analitik ve AI sağlayıcılarıyla belirlenir; site ayarı tek başına ülke garantisi değildir. Envanter ve sözleşme kontrolü yapılacak.",
+            "acceptance": "Tüm veri kopyaları/alt işleyenler onaylı bölgelerde listelensin; yasak bölgeye yeni aktarım engellensin.",
+            "sources": [
+              {
+                "title": "KVKK Kanun Değişiklikleri Duyurusu",
+                "url": "https://www.kvkk.gov.tr/Icerik/7834/6698-Sayili-Kisisel-Verilerin-Korunmasi-Kanununda-Yapilan-Degisiklikler-Hakkinda-Kamuoyu-Duyurusu"
+              },
+              {
+                "title": "GDPR resmî AB metni",
+                "url": "https://eur-lex.europa.eu/eli/reg/2016/679/oj/eng"
+              },
+              {
+                "title": "Frappe Docker resmî dağıtım deposu",
+                "url": "https://github.com/frappe/frappe_docker"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "n",
+          "text": "Yedekten dönüşte daha önce silinmiş verilerin yeniden silinmesi.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Veri sürekliliği",
+            "confidence": "design",
+            "note": "Bench restore snapshotı geri getirir; önceki silme kararlarını tekrar uygulayan hazır ürün saptanmadı. Ayrı tombstone kaydı ve restore sonrası karantina geliştirilecek.",
+            "acceptance": "Silinmiş kişi yedekten dönünce servis açılmadan tekrar silinsin; geri gelen arama/RAG kopyaları da temizlensin.",
+            "sources": [
+              {
+                "title": "Bench restore",
+                "url": "https://docs.frappe.io/framework/user/en/bench/reference/restore"
+              },
+              {
+                "title": "Frappe Personal Data Deletion Request kaynak kodu, version-15",
+                "url": "https://raw.githubusercontent.com/frappe/frappe/version-15/frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py"
+              },
+              {
+                "title": "GDPR resmî AB metni",
+                "url": "https://eur-lex.europa.eu/eli/reg/2016/679/oj/eng"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": ["kvkk", "gdpr"],
+      "num": "03.4"
+    },
+    {
+      "id": "integrity",
+      "title": "Kayıt bütünlüğü ve eşzamanlılık",
+      "owns": "Kayıt sürümü/çakışma kuralları; uygulama her verinin sahibi modülde.",
+      "links": [],
+      "provides": "Sürüm denetimi, geçerli kayıt değişikliği ve çakışma sonucu.",
+      "items": [
+        {
+          "kind": "n",
+          "text": "Eşzamanlı düzenleme çakışması ve optimistic locking (kayıt sürümünü karşılaştırarak yazma).",
+          "assessment": {
+            "support": "native",
+            "action": "integrate",
+            "owner": "Backend veri tutarlılığı",
+            "confidence": "documented",
+            "note": "Normal Document.save yolu modified karşılaştırmasıyla TimestampMismatchError üretir; headless istemci sürümü taşıyacak, doğrudan DB yazma yolları bu korumayı atlamayacak şekilde ele alınacak.",
+            "acceptance": "İki istemciden eski modified ile gelen ikinci değişiklik reddedilsin; ilk kayıt kaybolmasın.",
+            "sources": [
+              {
+                "title": "Frappe Document kaynak kodu: check_if_latest, version-15",
+                "url": "https://raw.githubusercontent.com/frappe/frappe/version-15/frappe/model/document.py"
+              },
+              {
+                "title": "Frappe Document API",
+                "url": "https://docs.frappe.io/framework/user/en/api/document"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "n",
+          "text": "Kayıt sürüm geçmişi, önceki sürümü görüntüleme ve kontrollü geri alma.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Backend kayıt geçmişi",
+            "confidence": "documented",
+            "note": "Version fark geçmişi ve Audit Trail karşılaştırması sağlar; her DocType için önceki hâli görüntüleme ve kontrollü geri alma iş kuralları ayrıca geliştirilecek.",
+            "acceptance": "Geçmiş sürüm görüntülensin; izinli geri alma yeni sürüm oluştursun ve kritik doğrulamaları atlamasın.",
+            "sources": [
+              {
+                "title": "Frappe Version kaynak kodu, version-15",
+                "url": "https://raw.githubusercontent.com/frappe/frappe/version-15/frappe/core/doctype/version/version.py"
+              },
+              {
+                "title": "Frappe Audit Trail",
+                "url": "https://docs.frappe.io/framework/user/en/audit-trail"
+              },
+              {
+                "title": "Frappe Document API",
+                "url": "https://docs.frappe.io/framework/user/en/api/document"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "n",
+          "text": "Mükerrer kayıt tespiti, birleştirme ve ilişkileri koruma.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Veri kalitesi",
+            "confidence": "documented",
+            "note": "rename_doc merge/link güncelleme araçları sağlar; mükerrer tespit, hangi alanın korunacağı ve ilişki çakışmaları domain kurallarıyla tamamlanacak.",
+            "acceptance": "Örnek mükerrer birleşiminde bağlantılar korunsun; çelişen kritik alan kullanıcı kararına sunulsun.",
+            "sources": [
+              {
+                "title": "Frappe rename_doc kaynak kodu, version-15",
+                "url": "https://raw.githubusercontent.com/frappe/frappe/version-15/frappe/model/rename_doc.py"
+              },
+              {
+                "title": "Frappe Database API",
+                "url": "https://docs.frappe.io/framework/user/en/api/database"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "n",
+          "text": "Toplu işlemde kısmi başarı, iptal ve telafi sonucu.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Toplu işlem altyapısı",
+            "confidence": "documented",
+            "note": "Transaction, rollback/savepoint ve kuyruk temeli var; kısmi başarı, iptal ve dış etkilerin telafisi için ürün iş sonucu modeli geliştirilecek.",
+            "acceptance": "Bir öğesi başarısız toplu işte sonuçlar ayrı görülsün; iptalden sonra yeni iş başlamasın; dış etki telafisi izlenebilsin.",
+            "sources": [
+              {
+                "title": "Frappe Database API",
+                "url": "https://docs.frappe.io/framework/user/en/api/database"
+              },
+              {
+                "title": "Frappe Background Jobs",
+                "url": "https://docs.frappe.io/framework/user/en/api/background_jobs"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "n",
+          "text": "Finansal ve kritik iş kayıtlarında değişmezlik ve düzeltme hareketi.",
+          "assessment": {
+            "support": "ecosystem",
+            "action": "extend",
+            "owner": "Finans ve domain ekipleri",
+            "confidence": "documented",
+            "note": "ERPNext immutable ledger muhasebe/stok ters kayıt yaklaşımı sunar; Frameworkün tüm kritik kayıtları değişmez değildir. Diğer domainlerde düzeltme hareketi ayrıca tasarlanacak.",
+            "acceptance": "Kesinleşmiş finans hareketi doğrudan değişmesin; düzeltme ters hareketle ve bağlantılı gerekçeyle yapılsın.",
+            "sources": [
+              {
+                "title": "ERPNext Immutable Ledger",
+                "url": "https://docs.frappe.io/erpnext/immutable-ledger-in-erpnext"
+              },
+              {
+                "title": "Frappe Document API",
+                "url": "https://docs.frappe.io/framework/user/en/api/document"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": [],
+      "num": "03.5"
+    }
+  ],
+  "phase": "Temel",
+  "rationale": "İzolasyon, audit, veri yaşam döngüsü ve güvenlik kabulü ilk dikey dilimde başlar; her etapta devam eder.",
+  "dependsOn": ["01"],
+  "roadmapOrder": 3
+}

@@ -29,11 +29,29 @@ async function walk(dir) {
   }
 }
 await walk('dist');
+const manifest = JSON.parse(await readFile('data/manifest.json', 'utf8'));
+const contentPaths = [
+  './manifest.json',
+  manifest.metadata,
+  manifest.roadmap,
+  manifest.interface,
+  manifest.messages,
+  ...manifest.clusters,
+].map((path) => `data/${path.replace(/^\.\//, '')}`);
+for (const path of contentPaths)
+  assert.deepEqual(
+    JSON.parse(await readFile(`dist/${path}`, 'utf8')),
+    JSON.parse(await readFile(path, 'utf8')),
+    `JSON content changed: ${path}`,
+  );
 const expected = [
   'dist/.nojekyll',
   'dist/index.html',
   'dist/assets/app.js',
   'dist/assets/exports.js',
+  'dist/assets/content-engine.js',
+  'dist/assets/content-templates.js',
+  ...contentPaths.map((path) => `dist/${path}`),
   'dist/assets/styles.css',
   'dist/assets/favicon.svg',
   'dist/assets/fonts/OFL.txt',
@@ -48,7 +66,13 @@ assert.deepEqual(
 const groups = {
   html: ['dist/index.html'],
   css: ['dist/assets/styles.css'],
-  js: ['dist/assets/app.js', 'dist/assets/exports.js'],
+  js: [
+    'dist/assets/app.js',
+    'dist/assets/exports.js',
+    'dist/assets/content-engine.js',
+    'dist/assets/content-templates.js',
+  ],
+  json: contentPaths.map((path) => `dist/${path}`),
   fonts: [
     'dist/assets/fonts/outfit-latin.woff2',
     'dist/assets/fonts/outfit-latin-ext.woff2',
@@ -63,14 +87,15 @@ for (const [name, paths] of Object.entries(groups)) {
     sizes[name].gzip += gzipSync(content).length;
   }
 }
-// The source-bounded roadmap adds 326 static notes, acceptance gates and links.
-// Keep them readable without JavaScript and keep the lossless export data island.
-// The explicit content-scope budget revision is recorded in docs/roadmap.md.
+// Classified JSON is fetched by the browser engine. The generated snapshot keeps
+// the complete experience readable and exportable when JSON requests fail.
+// The explicit delivery-scope budget revision is recorded in docs/content-model.md.
 assert.ok(sizes.html.gzip <= 144 * 1024, 'HTML gzip budget 144 KiB');
 assert.ok(sizes.css.gzip <= 12 * 1024, 'CSS gzip budget12 KiB');
-assert.ok(sizes.js.gzip <= 12 * 1024, 'JS gzip budget12 KiB');
+assert.ok(sizes.js.gzip <= 16 * 1024, 'JS gzip budget16 KiB');
+assert.ok(sizes.json.gzip <= 80 * 1024, 'Content JSON gzip budget80 KiB');
 const total = Object.values(sizes).reduce((sum, s) => sum + s.gzip, 0);
-assert.ok(total <= 200 * 1024, 'Initial shared assets gzip budget200 KiB');
+assert.ok(total <= 300 * 1024, 'Initial shared assets gzip budget300 KiB');
 console.log(
   JSON.stringify(
     {

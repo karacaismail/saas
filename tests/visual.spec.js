@@ -13,6 +13,7 @@ for (const width of [320, 1280]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto('./');
     await expect(page.locator('.feature-check')).toHaveCount(326);
+    await expect(page.locator('#search')).toBeEnabled();
     await page.evaluate(() => document.fonts.ready);
     await expect(page.locator('.toolbar')).toHaveScreenshot(
       `tools-${width}.png`,
@@ -37,7 +38,20 @@ for (const width of [320, 1280]) {
     // A real short workspace turns the tall toolbar static, so the inventory
     // image includes all selected headings without a sticky overlay.
     if (width >= 1024) await page.setViewportSize({ width, height: 420 });
-    await expect(page.locator('.feature:visible')).toHaveCount(3);
+    await expect(page.locator('.feature-check:checked')).toHaveCount(3);
+    await expect(page.locator('.feature:not([hidden])')).toHaveCount(3);
+    await expect(page.locator('.group[open]')).toHaveCount(1);
+    const visible = await page
+      .locator('.feature:visible')
+      .evaluateAll((rows) => rows.map((row) => row.id));
+    expect(visible.length).toBeGreaterThan(0);
+    expect(
+      visible.every((id) =>
+        ['feature-tenant-1', 'feature-tenant-2', 'feature-channels-5'].includes(
+          id,
+        ),
+      ),
+    ).toBe(true);
     await expect(page.locator('#inventory')).toHaveScreenshot(
       `selection-${width}.png`,
       { animations: 'disabled' },

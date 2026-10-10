@@ -1,0 +1,871 @@
+{
+  "id": "04",
+  "title": "Panel, ekranlar ve kişiselleştirme",
+  "short": "Panel ve deneyim",
+  "groups": [
+    {
+      "id": "shell",
+      "title": "Yönetim panelleri ve hesap deneyimi",
+      "owns": "Gezinme, kullanıcı tercihleri, temalar ve ayar kapsamları.",
+      "links": [
+        ["access", "Erişim kararları"],
+        ["entitlements", "Özellik hakları"],
+        ["modules", "Kayıtlı ekranlar"],
+        ["reports", "Gösterge verileri"]
+      ],
+      "provides": "Yetkiye uygun panel kabuğu; tema ve kişisel ayarlar.",
+      "items": [
+        {
+          "kind": "o",
+          "text": "Süper admin paneli.",
+          "raw": "Süper Admin panel; admin panel",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "Headless frontend + backend",
+            "confidence": "design",
+            "note": "Frappe Desk yönetim yüzeyi vardır. Seçilen bağımsız frontend'de SaaS süper admin akışı ve toplu kiracı API'si oluşturulur.",
+            "acceptance": "Süper admin tenant seçip yönetebilmeli; müşteri rolü bu API/yüzeye erişememeli.",
+            "sources": [
+              {
+                "title": "Frappe: Desk kapsamı",
+                "url": "https://docs.frappe.io/framework/user/en/desk"
+              },
+              {
+                "title": "Frappe: kullanıcılar ve izinler",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Müşteri yöneticisi ve son kullanıcı için ayrı yönetim yüzeyleri.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "Headless frontend + backend",
+            "confidence": "design",
+            "note": "Backend rol izinleri kullanılabilir. Müşteri yöneticisi ve son kullanıcı kabukları headless uygulamada hazırlanır.",
+            "acceptance": "Aynı hesap rol değişiminde doğru yüzeyi görmeli; gizlenen işlemin API'si de erişimi reddetmeli.",
+            "sources": [
+              {
+                "title": "Frappe: kullanıcılar ve izinler",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              },
+              {
+                "title": "Frappe: REST API",
+                "url": "https://docs.frappe.io/framework/user/en/api/rest"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "Dashboard (özet gösterge paneli).",
+          "raw": "Dashboard",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "Headless frontend",
+            "confidence": "design",
+            "note": "Desk dashboard örnekleri bağımsız UI teslimi sayılmaz. Headless metrik sözleşmesi ve görselleştirme geliştirilir.",
+            "acceptance": "Metrik tenant kapsamına uymalı; boş, gecikmiş ve hatalı veri durumu açık gösterilmeli.",
+            "sources": [
+              {
+                "title": "Frappe: Desk kapsamı",
+                "url": "https://docs.frappe.io/framework/user/en/desk"
+              },
+              {
+                "title": "Frappe: REST API",
+                "url": "https://docs.frappe.io/framework/user/en/api/rest"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "Profil, hesap ve ayarlar.",
+          "raw": "Ayarlar; Profile; Account",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "Headless frontend + Keycloak",
+            "confidence": "design",
+            "note": "Kimlik profili Keycloak'ta, ürün tercihleri backend'de tutulur. İki profil alanının sahipliği ayrılır.",
+            "acceptance": "E-posta/kimlik değişikliği Keycloak politikasıyla; ürün tercihi doğru tenant/kullanıcı kapsamında kaydedilmeli.",
+            "sources": [
+              {
+                "title": "Keycloak 26.7.0: kimlik, oturum ve organizasyon yönetimi",
+                "url": "https://www.keycloak.org/docs/26.7.0/server_admin/index.html"
+              },
+              {
+                "title": "Frappe: REST API",
+                "url": "https://docs.frappe.io/framework/user/en/api/rest"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "Theme engine (tema motoru): yönetim paneli ve herkese açık sayfa temaları.",
+          "raw": "theme engine (admin theme + frontpage theme)",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "Headless frontend",
+            "confidence": "design",
+            "note": "Frappe Desk/website stilleri kendi yüzeyleridir. Headless panel ve frontpage için ortak semantik tema katmanı oluşturulur.",
+            "acceptance": "Tema değişimi tüm kontrol durumlarına uygulanmalı; kontrast ve klavye odağı korunmalı.",
+            "sources": [
+              {
+                "title": "Frappe: Desk kapsamı",
+                "url": "https://docs.frappe.io/framework/user/en/desk"
+              },
+              {
+                "title": "W3C: WCAG 2.2",
+                "url": "https://www.w3.org/TR/WCAG22/"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "Panel kısayolları, favoriler ve kişiselleştirme.",
+          "raw": "add shortcuts favorites in admin panel",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "Headless frontend + backend",
+            "confidence": "design",
+            "note": "Desk kişiselleştirmesi seçilen frontend'e kendiliğinden taşınmaz. Kısayol/favori tercih API'si ve UI hazırlanır.",
+            "acceptance": "Favoriler kullanıcıya özel kalmalı; yetkisi kalkmış kayıt kısayolu veri sızdırmamalı.",
+            "sources": [
+              {
+                "title": "Frappe: Desk kapsamı",
+                "url": "https://docs.frappe.io/framework/user/en/desk"
+              },
+              {
+                "title": "Frappe: kullanıcılar ve izinler",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Platform, kiracı ve kullanıcı ayarlarının ayrı kapsamları ve önceliği.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Frappe backend",
+            "confidence": "documented",
+            "note": "Ortak Bench ve site config kapsamları belgeli. Platform–kiracı–kullanıcı ayar mirası ürün düzeyinde eklenir.",
+            "acceptance": "Kullanıcı override'ı kaldırınca doğru tenant/platform değeri dönmeli; başka tenant ayarı değişmemeli.",
+            "sources": [
+              {
+                "title": "Frappe: site ve ortak yapılandırma",
+                "url": "https://docs.frappe.io/framework/user/en/basics/site_config"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Kiracı markası, logo, renkler ve alan adına göre görünüm.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "Headless frontend + platform",
+            "confidence": "design",
+            "note": "Site/domain ayrımı kullanılabilir. Tenant markasının güvenilir domain eşlemesi ve tokenları bağımsız frontend'de yönetilir.",
+            "acceptance": "Domain–tenant eşlemesi doğrulanmalı; hatalı host başka tenant logosu veya özel verisi göstermemeli.",
+            "sources": [
+              {
+                "title": "Frappe: çok kiracılı Bench kurulumu",
+                "url": "https://docs.frappe.io/framework/user/en/bench/guides/setup-multitenancy"
+              },
+              {
+                "title": "Frappe: site ve ortak yapılandırma",
+                "url": "https://docs.frappe.io/framework/user/en/basics/site_config"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Menü kaydı, gezinme geçmişi ve merkezi komut/işlem arama.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "Headless frontend + backend",
+            "confidence": "design",
+            "note": "Desk gezinmesi hazır headless komut kataloğu değildir. Menü, geçmiş ve izinli eylem araması oluşturulur.",
+            "acceptance": "Yetkisiz komut sonuçlarda görünmemeli; klavye araması odağı ve geri dönüş konumunu korumalı.",
+            "sources": [
+              {
+                "title": "Frappe: Desk kapsamı",
+                "url": "https://docs.frappe.io/framework/user/en/desk"
+              },
+              {
+                "title": "Frappe: kullanıcılar ve izinler",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": [],
+      "num": "06.1"
+    },
+    {
+      "id": "views",
+      "title": "Kayıt ekranları ve etkileşim",
+      "owns": "Görünüm tanımları ve kişisel liste tercihleri; iş kayıtları ilgili modülde.",
+      "links": [
+        ["model", "Alan ve ilişki tanımları"],
+        ["access", "Kayıt/alan yetkileri"],
+        ["search", "Arama sonuçları"]
+      ],
+      "provides": "Liste ve detay ekranları; iş modülüne yetkili işlem isteği.",
+      "items": [
+        {
+          "kind": "o",
+          "text": "Listing page (liste sayfası) ve single/detail page (tek kayıt/detay sayfası).",
+          "raw": "Listing page; single page",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "Headless frontend",
+            "confidence": "design",
+            "note": "Frappe REST liste/tek kayıt verisi sağlar. Seçilen frontend'in liste ve detay ekranları ayrıca geliştirilir.",
+            "acceptance": "Doğrudan detay URL'si ve listeden geçiş çalışmalı; yetkisiz kayıt ve 404 ayrı sunulmalı.",
+            "sources": [
+              {
+                "title": "Frappe: REST API",
+                "url": "https://docs.frappe.io/framework/user/en/api/rest"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "Tablo, liste, kart ve Kanban (durum sütunlarından oluşan pano) görünümleri.",
+          "raw": "Form, table, listing, views(table, listing, card, kanban) types",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "Headless frontend",
+            "confidence": "design",
+            "note": "Desk liste/kanban yetenekleri vardır. Bağımsız frontend için görünüm bileşenleri ve durum eşlemesi gerekir.",
+            "acceptance": "Aynı veri liste/kart/kanban geçişinde korunmalı; durum sürükleme yetkisi backend'de doğrulanmalı.",
+            "sources": [
+              {
+                "title": "Frappe: Desk kapsamı",
+                "url": "https://docs.frappe.io/framework/user/en/desk"
+              },
+              {
+                "title": "Frappe: Desk List API",
+                "url": "https://docs.frappe.io/framework/user/en/api/list"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "Bulk operations (toplu işlemler) ve çoklu kayıt seçimi.",
+          "raw": "bulk operations",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "Headless frontend + backend",
+            "confidence": "design",
+            "note": "Tek kayıt REST işlemleri temel sağlar. Headless seçim ve toplu işlem sonucu/izin sözleşmesi geliştirilir.",
+            "acceptance": "Karma yetkili seçimin her kaydı denetlenmeli; kısmi hata hangi kayıtların işlendiğini göstermeli.",
+            "sources": [
+              {
+                "title": "Frappe: REST API",
+                "url": "https://docs.frappe.io/framework/user/en/api/rest"
+              },
+              {
+                "title": "Frappe: Document API",
+                "url": "https://docs.frappe.io/framework/user/en/api/document"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "Kayıt karşılaştırma: çalışan, ürün ve diğer iş varlıkları.",
+          "raw": "Karşılaştır (mesela hrms, iki çalışanı karşılaştır, yada eticaret ürünü karşılaştır)",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "Headless frontend + backend",
+            "confidence": "design",
+            "note": "Veri alanları API'den alınabilir. İncelenen kaynaklarda genel headless iş varlığı karşılaştırma ekranı hazır saptanmadı.",
+            "acceptance": "Yalnız ortak ve yetkili alanlar karşılaştırılmalı; gizli çalışan alanı sızmamalı.",
+            "sources": [
+              {
+                "title": "Frappe: REST API",
+                "url": "https://docs.frappe.io/framework/user/en/api/rest"
+              },
+              {
+                "title": "Frappe: kullanıcılar ve izinler",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "State management (arayüz durumu yönetimi).",
+          "raw": "State management",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "Headless frontend",
+            "confidence": "design",
+            "note": "Backend REST sözleşmesi UI state yönetimi değildir. Seçilen frontend'de URL, server cache ve yerel form durumu ayrılır.",
+            "acceptance": "Geri/ileri gezinme, tenant değişimi ve eşzamanlı yanıtlar yanlış kayıt durumunu göstermemeli.",
+            "sources": [
+              {
+                "title": "Frappe: REST API",
+                "url": "https://docs.frappe.io/framework/user/en/api/rest"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "Toast / Snackbar (kısa süreli işlem sonucu mesajları).",
+          "raw": "Toast / Snackbar",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "Headless frontend",
+            "confidence": "design",
+            "note": "Desk mesaj API'si kendi istemcisine bağlıdır. Headless toast/snackbar ve erişilebilir canlı bildirim tasarlanır.",
+            "acceptance": "Başarı/hata metni ekran okuyucuda duyurulmalı; kalıcı hatanın ayrıntısı toast kapanınca kaybolmamalı.",
+            "sources": [
+              {
+                "title": "Frappe: Form Scripts",
+                "url": "https://docs.frappe.io/framework/user/en/api/form"
+              },
+              {
+                "title": "W3C: WCAG 2.2",
+                "url": "https://www.w3.org/TR/WCAG22/"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Filtreleme, sıralama, sayfalama, sütun seçimi ve kayıtlı görünümler.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "Headless frontend + backend",
+            "confidence": "design",
+            "note": "REST filtre, sıralama ve sayfalama sunar. Kolon seçimi ve kayıtlı görünümün headless deneyimi/kalıcılığı eklenir.",
+            "acceptance": "Filtre URL'de geri yüklenmeli; kayıtlı görünüm tenant ve alan izinlerini aşmamalı.",
+            "sources": [
+              {
+                "title": "Frappe: REST API",
+                "url": "https://docs.frappe.io/framework/user/en/api/rest"
+              },
+              {
+                "title": "Frappe: Desk List API",
+                "url": "https://docs.frappe.io/framework/user/en/api/list"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Yükleniyor, boş, hatalı, yetkisiz ve çevrimdışı ekran durumları.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "Headless frontend",
+            "confidence": "design",
+            "note": "API sonuçları ekran durumuna veri sağlar. Headless loading/empty/error/forbidden/offline durumları açıkça geliştirilir.",
+            "acceptance": "Yavaş ağ, 0 kayıt, 403, 500 ve bağlantı kesintisi ayırt edilmeli; yeniden deneme erişilebilir olmalı.",
+            "sources": [
+              {
+                "title": "Frappe: REST API",
+                "url": "https://docs.frappe.io/framework/user/en/api/rest"
+              },
+              {
+                "title": "W3C: WCAG 2.2",
+                "url": "https://www.w3.org/TR/WCAG22/"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Kaydedilmemiş değişiklik uyarısı, işlem onayı ve geri alınabilir işlemler.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "Headless frontend + backend",
+            "confidence": "design",
+            "note": "Document değişim araçları vardır. Kaydedilmemiş form, onay ve geri alma davranışları frontend/işlem sözleşmesi ister.",
+            "acceptance": "Gezinmede taslak kaybolmamalı; iptal edilen onay yan etki üretmemeli; undo yalnız desteklenen işlemde sunulmalı.",
+            "sources": [
+              {
+                "title": "Frappe: Document API",
+                "url": "https://docs.frappe.io/framework/user/en/api/document"
+              },
+              {
+                "title": "W3C: WCAG 2.2",
+                "url": "https://www.w3.org/TR/WCAG22/"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": ["reflow"],
+      "num": "06.2"
+    },
+    {
+      "id": "forms",
+      "title": "Dinamik form yönetimi",
+      "owns": "Form şeması, sunum kuralları ve taslaklar; iş kayıtları ilgili modülde.",
+      "links": [
+        ["model", "Alan tipleri"],
+        ["access", "Alan erişimi"],
+        ["files", "Dosya yükleme"]
+      ],
+      "provides": "Doğrulanmış form girdisi; ilgili iş modülüne kayıt komutu.",
+      "items": [
+        {
+          "kind": "o",
+          "text": "Form manager (form oluşturma ve yönetim aracı).",
+          "raw": "form manager; Form",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "Headless frontend + backend",
+            "confidence": "design",
+            "note": "DocType/Web Form tanımları bulunur. Headless form tasarımcısı ve onaylı renderer bağımsız geliştirilir.",
+            "acceptance": "Yeni form metadata'dan güvenli render edilmeli; izin dışı alan oluşturma/yazma engellenmeli.",
+            "sources": [
+              {
+                "title": "Frappe: DocType veri modeli",
+                "url": "https://docs.frappe.io/framework/user/en/basics/doctypes"
+              },
+              {
+                "title": "Frappe: Web Form",
+                "url": "https://docs.frappe.io/framework/user/en/web-form"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Alan doğrulama, koşullu görünürlük ve alanlar arası bağımlılık.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Frontend + Frappe backend",
+            "confidence": "documented",
+            "note": "DocField koşulları ve controller validate vardır. Headless renderer koşulları uygular; iş doğrulaması sunucuda kalır.",
+            "acceptance": "Koşullu zorunlu alan ve çapraz alan kuralı UI atlanınca da backend'de reddedilmeli.",
+            "sources": [
+              {
+                "title": "Frappe: DocField metaverisi",
+                "url": "https://docs.frappe.io/framework/user/en/basics/doctypes/docfield"
+              },
+              {
+                "title": "Frappe: sunucu controller doğrulamaları",
+                "url": "https://docs.frappe.io/framework/user/en/basics/doctypes/controllers"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Çok adımlı form, taslak kaydı ve kaldığı yerden devam.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "Headless frontend + backend",
+            "confidence": "design",
+            "note": "Kayıt saklama temel sağlar. Çok adımlı taslak ve güvenli kaldığı yerden devam akışı bağımsız hazırlanır.",
+            "acceptance": "Sayfa yenileme ve oturum yenilemede taslak doğru kullanıcıya dönmeli; eksik adım final submit'i engellemeli.",
+            "sources": [
+              {
+                "title": "Frappe: Document API",
+                "url": "https://docs.frappe.io/framework/user/en/api/document"
+              },
+              {
+                "title": "Frappe: Web Form",
+                "url": "https://docs.frappe.io/framework/user/en/web-form"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Form sürümü, yayınlama ve geriye uyumlu değişiklik.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Platform + frontend",
+            "confidence": "documented",
+            "note": "DocType schema migration ve custom field araçları vardır. Yayınlanmış form sürümü ve eski taslak uyumu ayrı sözleşme ister.",
+            "acceptance": "Eski taslak yeni sürümle açıldığında dönüşüm deterministik olmalı; kırıcı değişim yayınlanmadan yakalanmalı.",
+            "sources": [
+              {
+                "title": "Frappe: veritabanı geçişleri",
+                "url": "https://docs.frappe.io/framework/user/en/database-migrations"
+              },
+              {
+                "title": "Frappe: site özel DocType genişletmeleri",
+                "url": "https://docs.frappe.io/framework/user/en/basics/doctypes/customize"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Dosya alanı, tekrarlanabilir alan grubu ve ilişkili kayıt seçimi.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Frontend + Frappe backend",
+            "confidence": "documented",
+            "note": "Attach, Link ve child/table veri tipleri çekirdektedir. Headless alan bileşenleri ve yetkili seçim API'si bağlanır.",
+            "acceptance": "Dosya/tekrarlı satır kaydı korunmalı; ilişki araması yalnız yetkili kayıtları döndürmeli.",
+            "sources": [
+              {
+                "title": "Frappe: alan türleri",
+                "url": "https://docs.frappe.io/framework/user/en/basics/doctypes/fieldtypes"
+              },
+              {
+                "title": "Frappe: child/table DocType",
+                "url": "https://docs.frappe.io/framework/user/en/basics/doctypes/child-doctype"
+              },
+              {
+                "title": "Frappe: kullanıcılar ve izinler",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": [],
+      "num": "06.3"
+    },
+    {
+      "id": "locale",
+      "title": "Dil, bölge ve çeviri",
+      "owns": "Dil kaynakları, çeviri sürümleri ve bölgesel biçim tercihleri.",
+      "links": [],
+      "provides": "Dil çözümleme, metin çevirisi ve bölgesel biçimlendirme.",
+      "items": [
+        {
+          "kind": "o",
+          "text": "GILT (Globalization, Internationalization, Localization, Translation — küreselleştirme, uluslararasılaştırma, yerelleştirme, çeviri): g11n, i18n, l10n, t9n.",
+          "raw": "GILT (g10n, i11n, l10n, t13n)",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Frontend + Frappe backend",
+            "confidence": "documented",
+            "note": "Frappe çeviri araçları sağlar. Headless metinler, ülke içerikleri ve küreselleştirme kapsamı ayrıca hazırlanır.",
+            "acceptance": "Türkçe ve ikinci dilde UI/API hata metni, içerik ve biçimler aynı dil tercihine uymalı.",
+            "sources": [
+              {
+                "title": "Frappe: çeviri sistemi",
+                "url": "https://docs.frappe.io/framework/user/en/translations"
+              },
+              {
+                "title": "Frappe: tarih ve biçimlendirme yardımcıları",
+                "url": "https://docs.frappe.io/framework/user/en/api/utils"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "Transliteration / t13n (yazı sistemleri arasında harf dönüşümü).",
+          "raw": "t13n",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Dil altyapısı",
+            "confidence": "design",
+            "note": "Çeviri metin değiştirmedir. İncelenen kaynaklarda genel t13n/transliterasyon servisi hazır saptanmadı.",
+            "acceptance": "Seçilen alfabeler için dönüşüm örnekleri belirlenmeli; özgün metin ve arama eşlemesi korunmalı.",
+            "sources": [
+              {
+                "title": "Frappe: çeviri sistemi",
+                "url": "https://docs.frappe.io/framework/user/en/translations"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Dil anahtarları, yedek dil, çoğul kuralları ve çeviri sürümleri.",
+          "assessment": {
+            "support": "verify",
+            "action": "validate",
+            "owner": "Dil altyapısı",
+            "confidence": "verify",
+            "note": "Belgeler CSV ve v16'dan itibaren Gettext/PO yollarını ayırır. Hedef sürümün çoğul/fallback ve frontend katalog sözleşmesi seçilmedi.",
+            "acceptance": "Seçilen release'te eksik anahtar, çoğul sayılar ve eski/yeni çeviri kataloğu uyumu denenmeli.",
+            "sources": [
+              {
+                "title": "Frappe: çeviri sistemi",
+                "url": "https://docs.frappe.io/framework/user/en/translations"
+              },
+              {
+                "title": "Frappe: CLI ve sürüme bağlı Gettext araçları",
+                "url": "https://docs.frappe.io/framework/user/en/bench/frappe-commands"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Saat dilimi, tarih, sayı, para, adres ve telefon biçimleri.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Frontend + Frappe backend",
+            "confidence": "documented",
+            "note": "Tarih, saat ve para biçim yardımcıları vardır. Ülke adres/telefon şeması ile frontend Intl sözleşmesi ayrıca tasarlanır.",
+            "acceptance": "Farklı saat dilimi, ondalık, para ve telefon/adres örnekleri kaydetme/okuma döngüsünde bozulmamalı.",
+            "sources": [
+              {
+                "title": "Frappe: tarih ve biçimlendirme yardımcıları",
+                "url": "https://docs.frappe.io/framework/user/en/api/utils"
+              },
+              {
+                "title": "Frappe: alan türleri",
+                "url": "https://docs.frappe.io/framework/user/en/basics/doctypes/fieldtypes"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Sağdan sola yazım ve çok dilli içerik alanları.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Frontend + Frappe backend",
+            "confidence": "documented",
+            "note": "Frappe dil çevirisi sağlar. Headless RTL yerleşimi ve kayıt bazında çok dilli içerik ayrı model/renderer ister.",
+            "acceptance": "Arapça RTL'de gezinme/odak çalışmalı; aynı kaydın iki dilde içerik alanı karışmamalı.",
+            "sources": [
+              {
+                "title": "Frappe: çeviri sistemi",
+                "url": "https://docs.frappe.io/framework/user/en/translations"
+              },
+              {
+                "title": "Frappe: DocType veri modeli",
+                "url": "https://docs.frappe.io/framework/user/en/basics/doctypes"
+              },
+              {
+                "title": "W3C: WCAG 2.2",
+                "url": "https://www.w3.org/TR/WCAG22/"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": [],
+      "num": "06.4"
+    },
+    {
+      "id": "channels",
+      "title": "Uygulama kanalları ve erişilebilirlik",
+      "owns": "Kanal yetenekleri, istemci sürümleri ve erişilebilirlik tercihleri.",
+      "links": [
+        ["identity", "Oturum"],
+        ["shell", "Panel yapılandırması"],
+        ["integration", "Uygulama sözleşmesi"]
+      ],
+      "provides": "Kanala uygun istemci deneyimi; aynı iş yeteneklerine erişim.",
+      "items": [
+        {
+          "kind": "o",
+          "text": "SaaS (Software as a Service — hizmet olarak yazılım) web uygulaması.",
+          "raw": "platform (Mobile app, saas web, browser extension, desktop)",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "Headless frontend + platform",
+            "confidence": "design",
+            "note": "Frappe backend API sağlar. SaaS web kabuğu, route ve Keycloak giriş bağlama bağımsız frontend kapsamıdır.",
+            "acceptance": "İlk ziyaret, giriş, tenant seçimi ve yetkili kayıt işlemi üretim API sözleşmesiyle uçtan uca çalışmalı.",
+            "sources": [
+              {
+                "title": "Frappe: REST API",
+                "url": "https://docs.frappe.io/framework/user/en/api/rest"
+              },
+              {
+                "title": "Keycloak 26.7.0: kimlik, oturum ve organizasyon yönetimi",
+                "url": "https://www.keycloak.org/docs/26.7.0/server_admin/index.html"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "Mobile app (mobil uygulama), browser extension (tarayıcı eklentisi) ve desktop app (masaüstü uygulaması).",
+          "raw": "Mobile app; browser extension; desktop",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "İstemci uygulamaları",
+            "confidence": "design",
+            "note": "Frappe API farklı istemcilere bağlanabilir. Mobil, eklenti ve masaüstü paketleri çekirdek hazır uygulama sayılmaz.",
+            "acceptance": "Her hedef kanalın kurulum/güncelleme, login callback ve izin modeli ayrı doğrulanmalı.",
+            "sources": [
+              {
+                "title": "Frappe: REST API",
+                "url": "https://docs.frappe.io/framework/user/en/api/rest"
+              },
+              {
+                "title": "Keycloak 26.7.0: kimlik, oturum ve organizasyon yönetimi",
+                "url": "https://www.keycloak.org/docs/26.7.0/server_admin/index.html"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Kanal bazlı oturum, cihaz izinleri ve istemci sürüm uyumluluğu.",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "Keycloak + istemciler",
+            "confidence": "design",
+            "note": "Keycloak client ve oturum kavramları sunar. Cihaz izinleri ve API sürüm uyumu her kanalın entegrasyon sözleşmesidir.",
+            "acceptance": "Destek dışı istemci sürümü açıklanmalı; kanalların token kapsamı ve logout davranışı ayrı denenmeli.",
+            "sources": [
+              {
+                "title": "Keycloak 26.7.0: kimlik, oturum ve organizasyon yönetimi",
+                "url": "https://www.keycloak.org/docs/26.7.0/server_admin/index.html"
+              },
+              {
+                "title": "Frappe: REST API",
+                "url": "https://docs.frappe.io/framework/user/en/api/rest"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "320 pikselden başlayan uyarlanabilir ekranlar ve büyütmede yeniden akış.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "Headless frontend",
+            "confidence": "design",
+            "note": "Backend UI reflow sağlamaz. 320 CSS px, zoom ve alan yeteneğine uyarlama frontend kabul ölçütüdür.",
+            "acceptance": "320/360/375/390, yatay telefon ve %400 zoom'da ana yolculuk ve içerik kaybı olmadan yeniden akış doğrulanmalı.",
+            "sources": [
+              {
+                "title": "W3C: WCAG 2.2",
+                "url": "https://www.w3.org/TR/WCAG22/"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "n",
+          "text": "Erişilebilirlik: klavye, odak sırası, ekran okuyucu ve renk dışı durum işaretleri.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "Headless frontend",
+            "confidence": "design",
+            "note": "Frappe izinleri erişilebilir frontend kanıtı değildir. Semantik kontrol, klavye ve ekran okuyucu davranışı uygulanır.",
+            "acceptance": "Tab/Shift+Tab, odak sırası ve ekran okuyucu adları doğrulanmalı; durum yalnız renkle aktarılmamalı.",
+            "sources": [
+              {
+                "title": "W3C: WCAG 2.2",
+                "url": "https://www.w3.org/TR/WCAG22/"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "n",
+          "text": "Hareket azaltma, kontrast, metin büyütme ve erişilebilir hata sunumu.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "Headless frontend",
+            "confidence": "design",
+            "note": "Kontrast ve hareket tercihleri UI sorumluluğudur. Tokenlar, reduced motion ve erişilebilir hata bağları geliştirilir.",
+            "acceptance": "Metin büyütme, reduced motion, kontrast ve hata odağı gerçek etkileşimlerle kontrol edilmeli.",
+            "sources": [
+              {
+                "title": "W3C: WCAG 2.2",
+                "url": "https://www.w3.org/TR/WCAG22/"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "n",
+          "text": "Çevrimdışı çalışma, yerel işlem kuyruğu ve yeniden bağlanınca uzlaştırma.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "Frontend + Frappe backend",
+            "confidence": "design",
+            "note": "REST CRUD çevrimdışı uzlaştırma motoru değildir. Yerel queue, sürüm çakışması ve idempotent senkronizasyon tasarlanır.",
+            "acceptance": "Çevrimdışı işlem tekrar bağlanınca bir kez uygulanmalı; iki cihaz çakışması kullanıcıya çözüm sunmalı.",
+            "sources": [
+              {
+                "title": "Frappe: REST API",
+                "url": "https://docs.frappe.io/framework/user/en/api/rest"
+              },
+              {
+                "title": "Frappe: Document API",
+                "url": "https://docs.frappe.io/framework/user/en/api/document"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "n",
+          "text": "Deep link (uygulama içindeki belirli kayda doğrudan bağlantı) ve kanal devamlılığı.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "İstemci uygulamaları",
+            "confidence": "design",
+            "note": "API kayıt kimliği ve OIDC callback'leri temel sağlar. Kanal deep link ve güvenli oturum sonrası devam geliştirilir.",
+            "acceptance": "Oturumsuz deep link girişten sonra aynı yetkili kayda dönmeli; başka tenant kaydını açmamalı.",
+            "sources": [
+              {
+                "title": "Frappe: REST API",
+                "url": "https://docs.frappe.io/framework/user/en/api/rest"
+              },
+              {
+                "title": "Keycloak 26.7.0: kimlik, oturum ve organizasyon yönetimi",
+                "url": "https://www.keycloak.org/docs/26.7.0/server_admin/index.html"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": ["reflow"],
+      "num": "06.5"
+    }
+  ],
+  "phase": "Çekirdek",
+  "rationale": "Frappe Desk'ten bağımsız panel, API sözleşmeleri üzerinde ilk uçtan uca kullanıcı yolculuğunu tamamlar.",
+  "dependsOn": ["01", "05", "09"],
+  "roadmapOrder": 6
+}

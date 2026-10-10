@@ -1,0 +1,79 @@
+{
+  "app": {
+    "storageUnavailable": "Seçimler bu oturumda korunur; kalıcı saklama kullanılamıyor.",
+    "selectionCount": "{count} madde seçildi",
+    "collapseAll": "Tüm başlıkları daralt",
+    "allSupport": "Bütün yeterlilikler",
+    "allActions": "Bütün işler",
+    "visibleStatus": "{visible} / {total} madde · {groups} başlık",
+    "allClusters": "Bütün kümeler",
+    "matchingSelected": "Eşleşen maddeler seçildi.",
+    "selectionCleared": "Seçim temizlendi.",
+    "relationsShow": "İlişkileri göster",
+    "relationsShown": "İlişkiler açık",
+    "originalShow": "Özgün ifadeleri göster",
+    "originalShown": "Özgün ifadeler açık",
+    "exported": "{count} seçili madde {format} olarak dışa aktarıldı."
+  },
+  "export": {
+    "title": "SaaS özellik atlası",
+    "kindLabels": {
+      "o": "Özgün kapsam",
+      "g": "Kapsam içi eksik",
+      "n": "Yeni alan"
+    },
+    "formatNames": {
+      "json": "JSON",
+      "csv": "CSV",
+      "md": "Markdown"
+    },
+    "csv": {
+      "clusterId": "Küme kimliği",
+      "clusterNumber": "Küme no",
+      "cluster": "Küme",
+      "groupNumber": "Başlık no",
+      "group": "Başlık",
+      "itemNumber": "Madde no",
+      "kind": "Sınıf",
+      "item": "Madde",
+      "roadmapColumns": [
+        "Frappe yeterliliği",
+        "Yapılacak iş",
+        "Sorumlu",
+        "Kanıt durumu",
+        "Değerlendirme",
+        "Kabul ölçütü",
+        "Kaynaklar",
+        "Etap",
+        "Küme sırası"
+      ]
+    },
+    "markdown": {
+      "target": "Hedef",
+      "reviewedAt": "Değerlendirme tarihi",
+      "baseline": "Sürüm ve kanıt sınırı",
+      "phase": "Etap",
+      "roadmapOrder": "Yol haritası sırası",
+      "rationale": "Gerekçe",
+      "dependsOn": "Bağımlılıklar",
+      "support": "Frappe yeterliliği",
+      "action": "Yapılacak iş",
+      "owner": "Sorumlu",
+      "confidence": "Kanıt durumu",
+      "note": "Değerlendirme",
+      "acceptance": "Kabul ölçütü",
+      "source": "Kaynak",
+      "short": "Küme özeti",
+      "owns": "Sahiplik",
+      "provides": "Sağladığı hizmet",
+      "links": "İlişkiler",
+      "sources": "Başlık kaynakları",
+      "raw": "Özgün ifade",
+      "generated": "İçerik tarihi",
+      "classification": "Sınıf açıklamaları",
+      "sourceRegistry": "Kaynak dizini",
+      "sequence": "Yol haritası bağımlılıkları"
+    },
+    "unsupportedFormat": "Desteklenmeyen dışa aktarma biçimi: {format}"
+  }
+}

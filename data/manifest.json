@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "metadata": "./atlas.json",
+  "roadmap": "./roadmap.json",
+  "interface": "./interface.json",
+  "messages": "./messages.json",
+  "clusters": [
+    "./clusters/12.json",
+    "./clusters/01.json",
+    "./clusters/11.json",
+    "./clusters/05.json",
+    "./clusters/09.json",
+    "./clusters/04.json",
+    "./clusters/06.json",
+    "./clusters/07.json",
+    "./clusters/02.json",
+    "./clusters/03.json",
+    "./clusters/08.json",
+    "./clusters/10.json"
+  ]
+}

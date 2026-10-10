@@ -1,0 +1,593 @@
+{
+  "id": "06",
+  "title": "İş süreçleri, kurallar ve zamanlama",
+  "short": "Süreç ve otomasyon",
+  "groups": [
+    {
+      "id": "workflow",
+      "title": "İş akışı ve durum geçişleri",
+      "owns": "Süreç tanımları, yürütümler ve adım durumları; iş nesnesi kendi modülünde.",
+      "links": [
+        ["events", "Tetikleyici olaylar"],
+        ["jobs", "Uzun süren işler"]
+      ],
+      "provides": "İş modüllerine adım komutu; süreç durumu ve tamamlanma olayları.",
+      "items": [
+        {
+          "kind": "o",
+          "text": "Workflow engine (iş akışı motoru).",
+          "raw": "Workflow engine; BPN(business worklow management)",
+          "assessment": {
+            "support": "native",
+            "action": "configure",
+            "owner": "Frappe backend + frontend",
+            "confidence": "documented",
+            "note": "Workflow durum ve rol/koşul geçişleri Framework çekirdeğinde bulunur. Headless action ekranı API'ye bağlanır.",
+            "acceptance": "İzinli geçiş uygulanmalı; izin dışı action ve yanlış mevcut durum sunucuda reddedilmeli.",
+            "sources": [
+              {
+                "title": "Frappe version-15: çekirdek workflow ve geçiş denetimi",
+                "url": "https://github.com/frappe/frappe/blob/version-15/frappe/model/workflow.py"
+              },
+              {
+                "title": "ERPNext belgesi: çekirdek Workflow yapılandırması",
+                "url": "https://docs.frappe.io/erpnext/workflows"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "BPM (Business Process Management — iş süreci yönetimi).",
+          "raw": "BPN(business worklow management)",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Süreç backend",
+            "confidence": "documented",
+            "note": "Belge workflow'u vardır. Kurumlar arası uzun süreç, görev sahipliği ve süreç ölçümü tam BPM ürünü olarak ayrıca tasarlanır.",
+            "acceptance": "Çok belgeli örnek süreçte görev, yetki ve süreç sonucu uçtan uca izlenebilmeli.",
+            "sources": [
+              {
+                "title": "Frappe version-15: çekirdek workflow ve geçiş denetimi",
+                "url": "https://github.com/frappe/frappe/blob/version-15/frappe/model/workflow.py"
+              },
+              {
+                "title": "Frappe: beta Automation Flow kapsamı",
+                "url": "https://docs.frappe.io/framework/automations"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "o",
+          "text": "State machine (iş nesnesi durumlarını ve izinli geçişleri yöneten mekanizma).",
+          "raw": "State management machine; State management",
+          "assessment": {
+            "support": "native",
+            "action": "configure",
+            "owner": "Frappe backend",
+            "confidence": "documented",
+            "note": "Çekirdek workflow mevcut durum, geçiş ve docstatus denetler. İş nesnesine uygun durum tablosu yapılandırılır.",
+            "acceptance": "Geçersiz durum sıçraması ve eşzamanlı eski durum isteği reddedilmeli.",
+            "sources": [
+              {
+                "title": "Frappe version-15: çekirdek workflow ve geçiş denetimi",
+                "url": "https://github.com/frappe/frappe/blob/version-15/frappe/model/workflow.py"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Süreç tanımı, sürümleme, başlatma, durdurma ve yürütüm geçmişi.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Süreç backend",
+            "confidence": "documented",
+            "note": "Workflow tanımı ve geçiş yorumu vardır. Çalışan instance'a bağlı sürüm, durdurma ve kapsamlı yürütüm geçmişi ayrıca gerekir.",
+            "acceptance": "Eski süreç örneği yeni tanımla sessizce değişmemeli; durdurma/yürütüm geçmişi izlenmeli.",
+            "sources": [
+              {
+                "title": "Frappe version-15: çekirdek workflow ve geçiş denetimi",
+                "url": "https://github.com/frappe/frappe/blob/version-15/frappe/model/workflow.py"
+              },
+              {
+                "title": "Frappe: beta Automation Flow kapsamı",
+                "url": "https://docs.frappe.io/framework/automations"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "BPMN (Business Process Model and Notation — iş süreci modelleme ve gösterimi) desteği.",
+          "assessment": {
+            "support": "absent",
+            "action": "integrate",
+            "owner": "Süreç altyapısı",
+            "confidence": "design",
+            "note": "İncelenen Workflow/Automation kaynakları BPMN yürütüm uyumluluğu belgelemiyor. Gerekliyse BPMN motoru ve Frappe adaptörü seçilir.",
+            "acceptance": "Kapsamdaki BPMN öğeleri ve import/export aynı davranışı korumalı; desteklenmeyen öğe açıkça reddedilmeli.",
+            "sources": [
+              {
+                "title": "Frappe version-15: çekirdek workflow ve geçiş denetimi",
+                "url": "https://github.com/frappe/frappe/blob/version-15/frappe/model/workflow.py"
+              },
+              {
+                "title": "Frappe: beta Automation Flow kapsamı",
+                "url": "https://docs.frappe.io/framework/automations"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Bekleme, süre aşımı, yeniden başlatma ve telafi adımları.",
+          "assessment": {
+            "support": "verify",
+            "action": "validate",
+            "owner": "Süreç backend",
+            "confidence": "verify",
+            "note": "Güncel beta Automation Flow bekleme ve hata davranışı belgeliyor. Hedef release, yeniden başlatma ve iş telafisi kapsamı doğrulanmadı.",
+            "acceptance": "Kesinti sonrası wait/timeout güvenli sürmeli; dış yan etkiler çift çalışmamalı ve telafi sonucu kaydedilmeli.",
+            "sources": [
+              {
+                "title": "Frappe: beta Automation Flow kapsamı",
+                "url": "https://docs.frappe.io/framework/automations"
+              },
+              {
+                "title": "Frappe: otomasyon adımları ve Test Run",
+                "url": "https://docs.frappe.io/framework/automations/steps-and-actions"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Durum geçişinin ilgili iş modülünün kurallarıyla doğrulanması.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Frappe backend",
+            "confidence": "documented",
+            "note": "Workflow Document save/submit/cancel yollarından controller doğrulamalarına ulaşır. İlgili modülün geçiş kuralları ve tüm çağrı yolları için denetim ayrıca yazılır.",
+            "acceptance": "Headless veya job geçişi aynı iş doğrulamasını tetiklemeli; geçersiz değişiklik kaydedilmemeli.",
+            "sources": [
+              {
+                "title": "Frappe version-15: çekirdek workflow ve geçiş denetimi",
+                "url": "https://github.com/frappe/frappe/blob/version-15/frappe/model/workflow.py"
+              },
+              {
+                "title": "Frappe: sunucu controller doğrulamaları",
+                "url": "https://docs.frappe.io/framework/user/en/basics/doctypes/controllers"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": ["bpmn"],
+      "num": "07.1"
+    },
+    {
+      "id": "rules",
+      "title": "Olay–koşul–eylem kuralları",
+      "owns": "Kural tanımları, öncelikler, sürümler ve değerlendirme sonuçları.",
+      "links": [
+        ["events", "Olay zarfı"],
+        ["model", "İzinli alan tanımları"]
+      ],
+      "provides": "Koşul kararı ve izinli eylem isteği; değerlendirme kaydı.",
+      "items": [
+        {
+          "kind": "o",
+          "text": "ECA (Event–Condition–Action — olay–koşul–eylem) kural motoru.",
+          "raw": "eca engine, rules, condition management; eca rules",
+          "assessment": {
+            "support": "verify",
+            "action": "validate",
+            "owner": "Frappe backend",
+            "confidence": "verify",
+            "note": "Doc event hook/Server Script vardır; güncel Automation Flow beta olarak ECA adımları sunar. Hedef release kapsamı doğrulanmalı.",
+            "acceptance": "Seçilen release'te olay–koşul–eylem ve commit sonrası çalışma kanıtlanmalı; eksikse app tabanlı motor tanımlanmalı.",
+            "sources": [
+              {
+                "title": "Frappe: Server Script ve v15 varsayılan kısıtı",
+                "url": "https://docs.frappe.io/framework/user/en/desk/scripting/server-script"
+              },
+              {
+                "title": "Frappe: beta Automation Flow kapsamı",
+                "url": "https://docs.frappe.io/framework/automations"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Koşul/eylem kataloğu; gruplama, öncelik ve kapsam.",
+          "assessment": {
+            "support": "verify",
+            "action": "validate",
+            "owner": "Süreç backend",
+            "confidence": "verify",
+            "note": "Beta otomasyon belgeleri trigger, condition ve action uzantıları sunar. Kural gruplama/öncelik/kapsam ürünü ayrıca doğrulanır.",
+            "acceptance": "Çakışan iki kuralın sırası deterministik olmalı; izin dışı eylem kataloğa alınmamalı.",
+            "sources": [
+              {
+                "title": "Frappe: otomasyon tetikleyici ve koşulları",
+                "url": "https://docs.frappe.io/framework/automations/triggers-and-conditions"
+              },
+              {
+                "title": "Frappe: otomasyon genişletme sözleşmesi",
+                "url": "https://docs.frappe.io/framework/automations/extending-automations"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Kural çakışması, döngü ve tekrar tetikleme koruması.",
+          "assessment": {
+            "support": "verify",
+            "action": "validate",
+            "owner": "Süreç backend",
+            "confidence": "verify",
+            "note": "Beta belgede olay birleştirme ve bazı replay sınırları var. Genel döngü/çakışma koruması hedef release'te kanıtlanmadı.",
+            "acceptance": "Birbirini tetikleyen iki kural sınırlı çalışmalı; yinelenen olay ikinci dış etki üretmemeli.",
+            "sources": [
+              {
+                "title": "Frappe: beta Automation Flow kapsamı",
+                "url": "https://docs.frappe.io/framework/automations"
+              },
+              {
+                "title": "Frappe: otomasyon adımları ve Test Run",
+                "url": "https://docs.frappe.io/framework/automations/steps-and-actions"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Kuralları örnek veriyle deneme ve sonucu açıklama.",
+          "assessment": {
+            "support": "verify",
+            "action": "validate",
+            "owner": "Süreç backend + frontend",
+            "confidence": "verify",
+            "note": "Güncel beta adım belgesi rollback yapan Test Run ve koşul sonucu içerir. Hedef release ve headless deneme ekranı doğrulanmalı.",
+            "acceptance": "Deneme kalıcı kayıt/webhook etkisi bırakmamalı; her koşul ve adım sonucu kullanıcıya gösterilmeli.",
+            "sources": [
+              {
+                "title": "Frappe: otomasyon adımları ve Test Run",
+                "url": "https://docs.frappe.io/framework/automations/steps-and-actions"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Kural sürümü, zaman aralığı, yetki sınırı ve çalışma kotası.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Süreç backend",
+            "confidence": "design",
+            "note": "System Manager sınırı ve Server Script kontrolleri vardır. İncelenen kaynaklarda bütüncül kural sürümü/zaman/kota ürünü saptanmadı.",
+            "acceptance": "Kural eski sürümü izlenmeli; zaman dışı, yetkisiz ve kota üstü çalışma yan etkisiz durmalı.",
+            "sources": [
+              {
+                "title": "Frappe: beta Automation Flow kapsamı",
+                "url": "https://docs.frappe.io/framework/automations"
+              },
+              {
+                "title": "Frappe: Server Script ve v15 varsayılan kısıtı",
+                "url": "https://docs.frappe.io/framework/user/en/desk/scripting/server-script"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": [],
+      "num": "07.2"
+    },
+    {
+      "id": "approvals",
+      "title": "Onay ve işlemsel doğrulama",
+      "owns": "Onay talepleri, kararlar, vekâletler ve onay zinciri tanımları.",
+      "links": [
+        ["access", "Onaylayıcı yetkisi"],
+        ["tenant", "Organizasyon ilişkileri"],
+        ["jobs", "Süre denetimi"]
+      ],
+      "provides": "Onay/ret kararı; ilgili modüle sonuç olayı.",
+      "items": [
+        {
+          "kind": "o",
+          "text": "Onay sistemi, işlemsel doğrulama ve approval chain (onay zinciri).",
+          "raw": "onay ve doğrulama sistemi; Aproval Chain",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Frappe backend + frontend",
+            "confidence": "documented",
+            "note": "Workflow çok durumlu ve rol koşullu onay temeli sağlar. İşe özgü onay zinciri, işlemsel doğrulama ve headless eylem yüzeyi ayrıca tamamlanır.",
+            "acceptance": "İki seviyeli onayda ikinci adım ilk onaydan önce açılamamalı; API geçişi aynı kurala uymalı.",
+            "sources": [
+              {
+                "title": "Frappe version-15: çekirdek workflow ve geçiş denetimi",
+                "url": "https://github.com/frappe/frappe/blob/version-15/frappe/model/workflow.py"
+              },
+              {
+                "title": "ERPNext belgesi: çekirdek Workflow yapılandırması",
+                "url": "https://docs.frappe.io/erpnext/workflows"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Sıralı/paralel onay; kişi, rol, tutar ve koşul bazlı yönlendirme.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Süreç backend",
+            "confidence": "documented",
+            "note": "Workflow rol/koşul ve sıralı geçiş sağlar. Paralel quorum ve kişi bazlı yönlendirme ayrıca modellenir.",
+            "acceptance": "Tutar eşiği doğru onaycıya gitmeli; paralel onay tüm gerekli kararlar gelmeden bitmemeli.",
+            "sources": [
+              {
+                "title": "Frappe version-15: çekirdek workflow ve geçiş denetimi",
+                "url": "https://github.com/frappe/frappe/blob/version-15/frappe/model/workflow.py"
+              },
+              {
+                "title": "ERPNext belgesi: çekirdek Workflow yapılandırması",
+                "url": "https://docs.frappe.io/erpnext/workflows"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Vekil onaylayıcı, süre aşımı ve üst yetkiliye yönlendirme.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Süreç backend",
+            "confidence": "design",
+            "note": "Workflow ve scheduler yapı taşlarıdır. İncelenen kaynaklarda vekalet–timeout–escalation zinciri bütünü hazır saptanmadı.",
+            "acceptance": "Vekalet başlangıç/bitişi ve timeout'ta yalnız yetkili kişiye yükseltme çalışmalı.",
+            "sources": [
+              {
+                "title": "Frappe version-15: çekirdek workflow ve geçiş denetimi",
+                "url": "https://github.com/frappe/frappe/blob/version-15/frappe/model/workflow.py"
+              },
+              {
+                "title": "Frappe: arka plan işleri ve zamanlayıcı",
+                "url": "https://docs.frappe.io/framework/user/en/api/background_jobs"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Reddetme, geri gönderme, geri çekme ve gerekçe kaydı.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Süreç backend + frontend",
+            "confidence": "documented",
+            "note": "Workflow farklı aksiyon/durumlar ve geçiş yorumu sunar. Gerekçe zorunluluğu ve geri çekme iş politikası eklenir.",
+            "acceptance": "Ret/geri gönderme/geri çekme yetkileri ayrılmalı; gerekçesiz karar reddedilmeli ve geçmiş korunmalı.",
+            "sources": [
+              {
+                "title": "Frappe version-15: çekirdek workflow ve geçiş denetimi",
+                "url": "https://github.com/frappe/frappe/blob/version-15/frappe/model/workflow.py"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Onay beklerken kayıt değişikliği ve yeniden onay gereksinimi.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Frappe backend",
+            "confidence": "documented",
+            "note": "Workflow duruma göre düzenlemeyi denetler. Değişen kritik alanın önceki onayı geçersiz kılması ayrıca iş kuralıdır.",
+            "acceptance": "Onay beklerken tutar değişince eski karar kullanılamamalı; yeniden onay sürüme bağlanmalı.",
+            "sources": [
+              {
+                "title": "Frappe version-15: çekirdek workflow ve geçiş denetimi",
+                "url": "https://github.com/frappe/frappe/blob/version-15/frappe/model/workflow.py"
+              },
+              {
+                "title": "Frappe: Document API",
+                "url": "https://docs.frappe.io/framework/user/en/api/document"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Talep edenin kendi işlemini onaylamasını sınırlama.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Frappe backend",
+            "confidence": "documented",
+            "note": "Allow Self Approval denetimi incelenen version-15 apply_workflow yolunda owner ile karşılaştırılır ve Administrator istisnası taşır. Talep eden owner’dan farklı olabilir; normal save doğrulaması aynı öz-onay kontrolünü çağırmaz. Ürün politikası tüm yazma yollarında genişletilecek.",
+            "acceptance": "Talep eden ile owner aynı ve farklıyken apply_workflow, genel REST/save ve toplu geçiş yollarında öz-onay reddedilmeli; bağımsız yetkili onaylayabilmeli. Administrator ve servis hesabı istisnaları açık politikayla sınırlandırılıp audit edilmeli.",
+            "sources": [
+              {
+                "title": "Frappe version-15: Allow Self Approval alanı",
+                "url": "https://github.com/frappe/frappe/blob/version-15/frappe/workflow/doctype/workflow_transition/workflow_transition.json"
+              },
+              {
+                "title": "Frappe version-15: çekirdek workflow ve geçiş denetimi",
+                "url": "https://github.com/frappe/frappe/blob/version-15/frappe/model/workflow.py"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": [],
+      "num": "07.3"
+    },
+    {
+      "id": "jobs",
+      "title": "Arka plan işleri ve zamanlayıcı",
+      "owns": "İş tanımları, zamanlamalar, kuyruk durumu ve yürütüm kayıtları.",
+      "links": [],
+      "provides": "İş yürütme arayüzü; tamamlanma, başarısızlık ve iptal olayları.",
+      "items": [
+        {
+          "kind": "o",
+          "text": "Cron (periyodik görev tetikleme) ve schedule (zamanlama) yönetimi.",
+          "raw": "Cron, schedule",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Platform + backend",
+            "confidence": "documented",
+            "note": "Scheduler hookları ve cron aralıkları çekirdektedir. Headless zamanlama yönetimi, izinli değişiklik ve operasyon görünürlüğü ayrıca geliştirilir.",
+            "acceptance": "Test job'ı beklenen dönemde bir kez çalışmalı; scheduler/worker kapalı durumu izlenebilmeli.",
+            "sources": [
+              {
+                "title": "Frappe: arka plan işleri ve zamanlayıcı",
+                "url": "https://docs.frappe.io/framework/user/en/api/background_jobs"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "İş kuyruğu, öncelik, zaman aşımı ve kiracı başına eşzamanlılık.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Platform + backend",
+            "confidence": "documented",
+            "note": "Short/default/long queue, timeout ve custom worker ayarları vardır. Tenant eşzamanlılık sınırı ayrıca yönetilir.",
+            "acceptance": "Aynı tenant sınırı aşmamalı; uzun iş kısa iş kuyruğunu bloke etmemeli.",
+            "sources": [
+              {
+                "title": "Frappe: arka plan işleri ve zamanlayıcı",
+                "url": "https://docs.frappe.io/framework/user/en/api/background_jobs"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Yeniden deneme, artan bekleme ve başarısız işler kuyruğu.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Platform + backend",
+            "confidence": "documented",
+            "note": "Arka plan iş yürütümü vardır. Otomatik retry/backoff ve dead-letter ürün politikası resmî temel API'den çıkarılamaz.",
+            "acceptance": "Geçici hata tanımlı artan beklemeyle denenmeli; kalıcı hata sınırlı denemeden sonra incelenebilir kalmalı.",
+            "sources": [
+              {
+                "title": "Frappe: arka plan işleri ve zamanlayıcı",
+                "url": "https://docs.frappe.io/framework/user/en/api/background_jobs"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "İş iptali, ilerleme, kaldığı yerden devam ve elle yeniden çalıştırma.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Platform + backend + frontend",
+            "confidence": "documented",
+            "note": "Queue ve timeout araçları vardır. İşe özgü checkpoint, güvenli iptal ve kullanıcı ilerleme sözleşmesi ayrıca kurulur.",
+            "acceptance": "İptal job'ı güvenli noktada durdurmalı; devam/elle tekrar başarılı adımları çoğaltmamalı.",
+            "sources": [
+              {
+                "title": "Frappe: arka plan işleri ve zamanlayıcı",
+                "url": "https://docs.frappe.io/framework/user/en/api/background_jobs"
+              },
+              {
+                "title": "Frappe: Document API",
+                "url": "https://docs.frappe.io/framework/user/en/api/document"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Tekrarlı çalıştırmada mükerrer etkiyi önleme ve görev kilidi.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Frappe backend",
+            "confidence": "design",
+            "note": "Job adı/queue ayarları tek başına iş etkisini tekilleştirmez. İncelenen temel belgede genel exactly-once iş sözleşmesi saptanmadı.",
+            "acceptance": "Aynı job iki worker'da/tekrar çalışınca tek iş etkisi doğmalı; kilit çökme sonrası güvenli serbest kalmalı.",
+            "sources": [
+              {
+                "title": "Frappe: arka plan işleri ve zamanlayıcı",
+                "url": "https://docs.frappe.io/framework/user/en/api/background_jobs"
+              },
+              {
+                "title": "Frappe: sunucu controller doğrulamaları",
+                "url": "https://docs.frappe.io/framework/user/en/basics/doctypes/controllers"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Saat dilimi, yaz saati değişikliği ve kaçırılan tetiklemeler.",
+          "assessment": {
+            "support": "partial",
+            "action": "validate",
+            "owner": "Platform + backend",
+            "confidence": "documented",
+            "note": "Cron ve tarih yardımcıları vardır. Yaz saati ve kaçırılan tetiklemenin ürün catch-up politikası ayrıca belirlenir.",
+            "acceptance": "DST ileri/geri geçişi, saat dilimi değişimi ve scheduler kesintisinde beklenen sayıda çalışma doğrulanmalı.",
+            "sources": [
+              {
+                "title": "Frappe: arka plan işleri ve zamanlayıcı",
+                "url": "https://docs.frappe.io/framework/user/en/api/background_jobs"
+              },
+              {
+                "title": "Frappe: tarih ve biçimlendirme yardımcıları",
+                "url": "https://docs.frappe.io/framework/user/en/api/utils"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Kiracılar arasında adil kuyruk ve kaynak kullanımı.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Platform",
+            "confidence": "design",
+            "note": "Custom queue ve worker sayısı yapılandırılabilir. İncelenen kaynaklarda tenant başına adil zamanlama garantisi hazır saptanmadı.",
+            "acceptance": "Yoğun kiracı yükünde küçük kiracının bekleme SLO'su korunmalı; kaynak sınırı ölçülmeli.",
+            "sources": [
+              {
+                "title": "Frappe: arka plan işleri ve zamanlayıcı",
+                "url": "https://docs.frappe.io/framework/user/en/api/background_jobs"
+              }
+            ]
+          }
+        }
+      ],
+      "sources": ["tenant", "outbox"],
+      "num": "07.4"
+    }
+  ],
+  "phase": "Ürün",
+  "rationale": "Doğrulanmış kayıt modeli üzerinde iş geçişleri, onaylar ve güvenli arka plan işleri kurulur.",
+  "dependsOn": ["05", "09"],
+  "roadmapOrder": 7
+}
