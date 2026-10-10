@@ -8,7 +8,7 @@
 
 ## Tasarım
 
-Amaç bir SaaS geliştirme envanterini taramak, Frappe'te kalan işi ayırmak ve seçilenleri dışa aktarmaktır. Kimlik sıcak beyaz zemin, koyu mürekkep, kaynak sınıfını gösteren tam doygun yeşil/kırmızı ve Outfit üzerine kurulur. Yeni framework, grafik, dış kaynak veya cihaz kabuğu eklenmez.
+Amaç bir SaaS geliştirme envanterini taramak, Frappe'te kalan işi ayırmak ve seçilenleri dışa aktarmaktır. Kimlik sıcak beyaz zemin, genel arayüzde koyu mürekkep, kaynak sınıflarında tam doygun mavi/yeşil/kırmızı ve Outfit üzerine kurulur. Kullanıcının10Ekim2026 renk düzeltmesiyle özgün kapsam mavidir; kapsam içi eksik yeşil, yeni alan kırmızıdır. Madde metni, kaynak etiketi ve checkbox kendi sınıf rengini paylaşır; legend, filtre ve yazdırma açıklamaları aynı eşlemeyi kullanır. Frappe yeterlilik etiketleri ayrı eksendir. Yeni framework, grafik, dış kaynak veya cihaz kabuğu eklenmez.
 
 - İlk görünümde “Özellikleri incele” doğrudan envantere gider. Sayaçlar eşit sütunlarda okunur; başlık, açıklama ve ikincil rehber farklı hiyerarşide sunulur.
 - Teknik yaklaşım ve etiket rehberi native details içinde başlangıçta kapalıdır. Frappe/Keycloak/headless kapsamı summary'de görünür; tam açıklamalar, sürüm sınırları, dağılım ve kaynaklar açıldığında korunur. JavaScript olmadan da çalışır.

@@ -36,9 +36,10 @@
   --muted: #5f6259;
   --line: #dedbd0;
   --control-border: #808276;
-  --original: #171916;
+  --original: hsl(220 100% 40%);
   --gap: hsl(140 100% 26%);
   --new: hsl(0 100% 42%);
+  --original-bg: #f5f8ff;
   --gap-bg: #f5fff7;
   --new-bg: #fff7f7;
   --inverse: #fffdf7;
@@ -452,6 +453,7 @@ legend {
 }
 .filter[data-kind='o'] {
   color: var(--original);
+  background: var(--original-bg);
 }
 .filter[data-kind='g'] {
   color: var(--gap);

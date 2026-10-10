@@ -464,6 +464,7 @@ test('320-first journey, short landscape and breakpoint boundaries keep state, t
 test('colored feature text has full saturation and readable contrast; checkboxes have distinct square borders', async ({
   page,
 }) => {
+  await page.setViewportSize({ width: 320, height: 568 });
   await visit(page);
   const background = await page.evaluate(
     () => getComputedStyle(document.body).backgroundColor,
@@ -510,6 +511,7 @@ test('colored feature text has full saturation and readable contrast; checkboxes
     };
     return rows.map((row) => {
       const title = row.querySelector('.feature-title');
+      const origin = row.querySelector('.origin');
       const checkbox = row.querySelector('.feature-check');
       let background = [255, 255, 255];
       const ancestors = [];
@@ -528,8 +530,9 @@ test('colored feature text has full saturation and readable contrast; checkboxes
         id: row.id,
         kind: row.dataset.kind,
         color,
+        originColor: rgba(getComputedStyle(origin).color),
         contrast: contrast(color, background),
-        checkboxColor: style.borderTopColor,
+        checkboxColor: rgba(style.borderTopColor),
         border: Number.parseFloat(style.borderTopWidth),
         radius: Number.parseFloat(style.borderTopLeftRadius),
         width: bounds.width,
@@ -539,19 +542,22 @@ test('colored feature text has full saturation and readable contrast; checkboxes
   });
   for (const row of result) {
     expect(row.contrast, `${row.id} text contrast`).toBeGreaterThanOrEqual(4.5);
-    if (row.kind !== 'o') {
-      expect(Math.min(...row.color.slice(0, 3)), `${row.id} saturation`).toBe(
-        0,
-      );
-      if (row.kind === 'g')
-        expect(row.color[1]).toBeGreaterThan(
-          Math.max(row.color[0], row.color[2]),
-        );
-      if (row.kind === 'n')
-        expect(row.color[0]).toBeGreaterThan(
-          Math.max(row.color[1], row.color[2]),
-        );
-    }
+    expect(Math.min(...row.color.slice(0, 3)), `${row.id} saturation`).toBe(0);
+    const dominantChannel = { o: 2, g: 1, n: 0 }[row.kind];
+    expect(row.color[dominantChannel], `${row.id} class hue`).toBeGreaterThan(
+      Math.max(
+        ...row.color
+          .slice(0, 3)
+          .filter((_, index) => index !== dominantChannel),
+      ),
+    );
+    expect(row.originColor, `${row.id} origin matches feature text`).toEqual(
+      row.color,
+    );
+    expect(
+      row.checkboxColor,
+      `${row.id} checkbox matches feature text`,
+    ).toEqual(row.color);
     expect(row.border, `${row.id} checkbox border`).toBeGreaterThanOrEqual(2);
     expect(row.radius, `${row.id} square checkbox`).toBeLessThanOrEqual(
       Math.max(row.width, 24) * 0.15,
@@ -561,7 +567,44 @@ test('colored feature text has full saturation and readable contrast; checkboxes
       expect(row.width).toBe(row.height);
     }
   }
-  expect(new Set(result.map((row) => row.checkboxColor)).size).toBe(3);
+  expect(new Set(result.map((row) => JSON.stringify(row.color))).size).toBe(3);
+  expect(
+    new Set(result.map((row) => JSON.stringify(row.checkboxColor))).size,
+  ).toBe(3);
+
+  for (const kind of ['o', 'g', 'n']) {
+    const sample = result.find((row) => row.kind === kind);
+    const row = await openFeature(page, sample.id);
+    const checkbox = row.locator('.feature-check');
+    await expect(row).toBeVisible();
+    await expect(checkbox).not.toBeChecked();
+    const colors = () =>
+      row.evaluate((element) => {
+        const checkbox = getComputedStyle(
+          element.querySelector('.feature-check'),
+        );
+        return {
+          text: getComputedStyle(element.querySelector('.feature-title')).color,
+          origin: getComputedStyle(element.querySelector('.origin')).color,
+          border: checkbox.borderTopColor,
+          fill: checkbox.backgroundColor,
+        };
+      });
+    const empty = await colors();
+    expect(empty.origin).toBe(empty.text);
+    expect(empty.border).toBe(empty.text);
+    expect(empty.fill).not.toBe(empty.text);
+    await row.locator('.feature-label').click();
+    await expect(checkbox).toBeChecked();
+    const selected = await colors();
+    expect(selected.text).toBe(empty.text);
+    expect(selected.origin).toBe(selected.text);
+    expect(selected.border).toBe(selected.text);
+    expect(selected.fill).toBe(selected.text);
+    await row.locator('.feature-label').click();
+    await expect(checkbox).not.toBeChecked();
+    expect(await colors()).toEqual(empty);
+  }
 });
 
 test('mouse does not frame parent sections and keyboard focus has one visible control indicator', async ({
