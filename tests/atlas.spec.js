@@ -107,8 +107,12 @@ async function typographyFailures(page) {
         return;
       inspected.add(element);
       const style = getComputedStyle(element);
+      // Explicit user exception: only the three passive assessment pills are 0.8rem.
+      const minimumSize = element.matches('.assessment-tags > span')
+        ? rootSize * 0.8
+        : rootSize;
       if (
-        Number.parseFloat(style.fontSize) + 0.01 < rootSize ||
+        Number.parseFloat(style.fontSize) + 0.01 < minimumSize ||
         Number.parseFloat(style.fontWeight) < 400 ||
         (!element.closest('code, kbd, pre') &&
           !/^['"]?Outfit['"]?(?:,|$)/i.test(style.fontFamily))

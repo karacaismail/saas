@@ -131,14 +131,30 @@ test('roadmap labels and details remain readable with 200% root text and keyboar
       .map((x) => ({
         size: parseFloat(getComputedStyle(x).fontSize),
         weight: +getComputedStyle(x).fontWeight,
+        paddingBlock: parseFloat(getComputedStyle(x).paddingTop),
+        paddingInline: parseFloat(getComputedStyle(x).paddingLeft),
+        radius: parseFloat(getComputedStyle(x).borderTopLeftRadius),
+        textAlign: getComputedStyle(x).textAlign,
+        height: x.getBoundingClientRect().height,
       })),
     focus: document.activeElement.matches(':focus-visible'),
   }));
   expect(state.width).toBeLessThanOrEqual(state.viewport + 1);
   expect(state.focus).toBe(true);
-  expect(state.tags.every((x) => x.size >= state.root && x.weight >= 400)).toBe(
-    true,
-  );
+  expect(state.tags.length).toBeGreaterThan(0);
+  for (const tag of state.tags) {
+    // Firefox reports fractional computed pixels with a small rounding difference.
+    expect(Math.abs(tag.size - state.root * 0.8)).toBeLessThanOrEqual(0.01);
+    expect(tag.weight).toBeGreaterThanOrEqual(400);
+    expect(tag.paddingBlock).toBeLessThan(state.root * 0.375);
+    expect(tag.paddingInline).toBeLessThan(state.root * 0.5);
+    expect(tag.radius).toBeGreaterThanOrEqual(tag.height / 2);
+    expect(tag.textAlign).toBe('center');
+  }
+  await testInfo.attach('pill-keyboard-200-percent-computed', {
+    body: JSON.stringify(state, null, 2),
+    contentType: 'application/json',
+  });
   await testInfo.attach('assessment-keyboard-200-percent', {
     body: await page.screenshot(),
     contentType: 'image/png',
