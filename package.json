@@ -1,0 +1,23 @@
+{
+  "name": "saas-ozellik-atlasi",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "node scripts/server.mjs",
+    "build": "node scripts/build.mjs && node scripts/verify-build.mjs",
+    "test": "node --test tests/*.test.js",
+    "test:browser": "playwright test",
+    "format": "prettier --write .",
+    "check": "prettier --check . && node --check assets/app.js && node --check assets/exports.js && npm test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.0",
+    "@axe-core/playwright": "4.13.0",
+    "prettier": "3.9.10"
+  }
+}
