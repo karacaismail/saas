@@ -122,17 +122,26 @@ function expectSourcePaint(row) {
   ).toBeGreaterThanOrEqual(4.5);
 }
 
-test('all 326 source tints use five percent alpha while text and mouse/Space selections stay opaque', async ({
+test('all 326 source tints use five percent alpha while text stays opaque', async ({
   page,
-}, testInfo) => {
+}) => {
   await visit(page);
   const rows = await page.locator('.feature').evaluateAll(collectPaint);
   rows.forEach(expectSourcePaint);
   expect(new Set(rows.map((row) => row.kind))).toEqual(
     new Set(['o', 'g', 'n']),
   );
-  for (const kind of ['o', 'g', 'n']) {
-    const original = rows.find((row) => row.kind === kind);
+});
+
+for (const kind of ['o', 'g', 'n']) {
+  test(`${kind} source tint stays opaque during mouse and Space selections`, async ({
+    page,
+  }, testInfo) => {
+    await visit(page);
+    const sample = page.locator(`.feature[data-kind="${kind}"]`).first();
+    const [original] = await sample.evaluateAll(collectPaint);
+    expect(original.kind).toBe(kind);
+    expectSourcePaint(original);
     const row = await openFeature(page, original.id);
     const checkbox = row.locator('.feature-check');
     await expect(checkbox).not.toBeChecked();
@@ -155,8 +164,8 @@ test('all 326 source tints use five percent alpha while text and mouse/Space sel
     expect(cleared.background).toEqual(original.background);
     expect(cleared.text).toEqual(original.text);
     expect(cleared.fill).not.toEqual(cleared.text);
-  }
-});
+  });
+}
 
 test('support, action and owner pills have readable semantic pastels with six distinct support backgrounds', async ({
   page,

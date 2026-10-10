@@ -573,10 +573,19 @@ test('colored feature text has full saturation and readable contrast; checkboxes
   expect(
     new Set(result.map((row) => JSON.stringify(row.checkboxColor))).size,
   ).toBe(3);
+});
 
-  for (const kind of ['o', 'g', 'n']) {
-    const sample = result.find((row) => row.kind === kind);
-    const row = await openFeature(page, sample.id);
+for (const kind of ['o', 'g', 'n']) {
+  test(`colored feature mouse selection preserves the ${kind} source class color`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 320, height: 568 });
+    await visit(page);
+    const id = await page
+      .locator(`.feature[data-kind="${kind}"]`)
+      .first()
+      .getAttribute('id');
+    const row = await openFeature(page, id);
     const checkbox = row.locator('.feature-check');
     await expect(row).toBeVisible();
     await expect(checkbox).not.toBeChecked();
@@ -606,8 +615,8 @@ test('colored feature text has full saturation and readable contrast; checkboxes
     await row.locator('.feature-label').click();
     await expect(checkbox).not.toBeChecked();
     expect(await colors()).toEqual(empty);
-  }
-});
+  });
+}
 
 test('mouse does not frame parent sections and keyboard focus has one visible control indicator', async ({
   page,
