@@ -245,6 +245,8 @@ test('mouse labels and keyboard Space toggle only their own item and preserve se
   await page.keyboard.press('Space');
   await expect(second.getByRole('checkbox')).not.toBeChecked();
   await page.reload();
+  await expect(page.locator('#search')).toBeEnabled();
+  await openFeature(page, selectedIds[0]);
   await expect(page.locator(`#${selectedIds[0]} .feature-check`)).toBeChecked();
   await expect(second.getByRole('checkbox')).not.toBeChecked();
   const stored = await page.evaluate(
@@ -958,6 +960,21 @@ test('coarse and hybrid input use real touch with reachable targets and preserve
   }
   await start.tap();
   await expect(page).toHaveURL(/#inventory$/);
+  const row = page.locator(`#${selectedIds[0]}`);
+  const group = row.locator(
+    'xpath=ancestor::details[contains(@class,"group")]',
+  );
+  const groupSummary = group.locator(':scope > summary');
+  await expect(group).not.toHaveAttribute('open');
+  const summaryBox = await groupSummary.boundingBox();
+  expect(summaryBox.height).toBeGreaterThanOrEqual(48);
+  expect(summaryBox.width).toBeGreaterThanOrEqual(48);
+  await groupSummary.tap();
+  await expect(group).toHaveAttribute('open', '');
+  await groupSummary.tap();
+  await expect(group).not.toHaveAttribute('open');
+  await groupSummary.tap();
+  await expect(group).toHaveAttribute('open', '');
   await context.tap();
   await expect(page.locator('#context-details')).toHaveAttribute('open', '');
   await context.tap();
@@ -972,9 +989,10 @@ test('coarse and hybrid input use real touch with reachable targets and preserve
     );
   expect(external).toBe(true);
   await page.locator('#reset-all').tap();
-  await expect(page.locator('.feature:visible')).toHaveCount(326);
+  await expect(page.locator('.feature:not([hidden])')).toHaveCount(326);
+  await expect(page.locator('.group:visible')).toHaveCount(49);
   await page.locator('#roadmap-filters > summary').tap();
-  const row = await openFeature(page, selectedIds[0]);
+  await expect(group).toHaveAttribute('open', '');
   const label = row.locator('label').first();
   const box = await label.boundingBox();
   expect(box.height).toBeGreaterThanOrEqual(48);

@@ -88,7 +88,14 @@ function selectionStatus() {
   $('#export-selected').disabled = !selected.size;
   for (const row of rows) row.input.checked = selected.has(row.id);
 }
-function apply() {
+function syncGroupToggle() {
+  const visible = groups.filter((group) => !group.el.hidden);
+  $('#collapse-all').disabled = !visible.length;
+  $('#collapse-all').textContent = visible.some((group) => group.el.open)
+    ? 'Tüm başlıkları daralt'
+    : 'Tüm başlıkları genişlet';
+}
+function apply({ revealGroups = false } = {}) {
   const tokens = norm(search.value).split(' ').filter(Boolean);
   const counts = { all: 0, o: 0, g: 0, n: 0 };
   const filtering =
@@ -121,7 +128,7 @@ function apply() {
     group.el.hidden = !count;
     if (count) {
       visibleGroups++;
-      if (filtering) group.el.open = true;
+      if (filtering && revealGroups) group.el.open = true;
     }
     $('.group-count span', group.el).textContent = count;
   }
@@ -164,6 +171,7 @@ function apply() {
     rows.filter((row) => !row.el.hidden).every((row) => selected.has(row.id));
   $('#selected-only').setAttribute('aria-pressed', String(selectedOnly));
   selectionStatus();
+  syncGroupToggle();
   updateSticky();
 }
 function reset() {
@@ -191,6 +199,9 @@ function jump(target) {
   if (!element) return;
   if (element.closest('[hidden]')) reset();
   if (element.tagName === 'DETAILS') element.open = true;
+  const group = element.closest('.group');
+  if (group) group.open = true;
+  syncGroupToggle();
   element.scrollIntoView({
     behavior: matchMedia('(prefers-reduced-motion: reduce)').matches
       ? 'auto'
@@ -215,6 +226,7 @@ for (const row of rows) {
     apply();
     if (hadFocus && row.el.hidden) {
       const next = rows.find((candidate) => !candidate.el.hidden);
+      if (next) next.group.el.open = true;
       (next?.input || $('#selected-only')).focus({ preventScroll: true });
     }
   });
@@ -222,25 +234,25 @@ for (const row of rows) {
 for (const button of $$('.filter'))
   button.addEventListener('click', () => {
     kind = button.dataset.kind;
-    apply();
+    apply({ revealGroups: true });
   });
 for (const button of $$('button[data-support]'))
   button.addEventListener('click', () => {
     supportFilter = button.dataset.support;
-    apply();
+    apply({ revealGroups: true });
   });
 for (const button of $$('button[data-action]'))
   button.addEventListener('click', () => {
     actionFilter = button.dataset.action;
-    apply();
+    apply({ revealGroups: true });
   });
-search.addEventListener('input', apply);
+search.addEventListener('input', () => apply({ revealGroups: true }));
 for (const input of $$('[name=cluster]'))
   input.addEventListener('change', () => {
     clusterFilter = input.value;
     $('#cluster-value').textContent = input.nextElementSibling.textContent;
     picker.open = false;
-    apply();
+    apply({ revealGroups: true });
     $('summary', picker).focus({ preventScroll: true });
   });
 picker.addEventListener('keydown', (event) => {
@@ -267,7 +279,7 @@ $('#select-visible').addEventListener('click', () => {
   for (const row of rows) if (!row.el.hidden) selected.add(row.id);
   save();
   apply();
-  toast('Görünen maddeler seçildi.');
+  toast('Eşleşen maddeler seçildi.');
 });
 $('#clear-selection').addEventListener('click', () => {
   selected.clear();
@@ -280,7 +292,7 @@ $('#clear-selection').addEventListener('click', () => {
 });
 $('#selected-only').addEventListener('click', () => {
   selectedOnly = !selectedOnly;
-  apply();
+  apply({ revealGroups: true });
 });
 $('#toggle-relations').addEventListener('click', function () {
   const hidden = document.body.classList.toggle('relations-hidden');
@@ -298,8 +310,10 @@ $('#collapse-all').addEventListener('click', function () {
   const visible = groups.filter((group) => !group.el.hidden);
   const collapse = visible.some((group) => group.el.open);
   for (const group of visible) group.el.open = !collapse;
-  this.textContent = collapse ? 'Tüm başlıkları aç' : 'Başlıkları daralt';
+  syncGroupToggle();
 });
+for (const group of groups)
+  group.el.addEventListener('toggle', syncGroupToggle);
 for (const anchor of $$('[data-jump]'))
   anchor.addEventListener('click', (event) => {
     event.preventDefault();
@@ -347,6 +361,7 @@ window.addEventListener('afterprint', () => {
       element.open = open;
     });
   printState = undefined;
+  syncGroupToggle();
 });
 function updateSticky() {
   const toolbar = $('.toolbar');

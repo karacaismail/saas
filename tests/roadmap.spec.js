@@ -1,6 +1,18 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
+async function openFeature(page, id) {
+  const row = page.locator(`#${id}`);
+  const group = row.locator(
+    'xpath=ancestor::details[contains(@class,"group")]',
+  );
+  if ((await group.getAttribute('open')) === null) {
+    await group.locator(':scope > summary').click();
+    await expect(group).toHaveAttribute('open', '');
+  }
+  return row;
+}
+
 test('Frappe roadmap exposes per-item evidence and orthogonal capability/action filters at 320px', async ({
   page,
 }, testInfo) => {
@@ -55,6 +67,7 @@ test('Frappe roadmap exposes per-item evidence and orthogonal capability/action 
     expect(row.actual).toEqual(row.expected);
     expect(row.note).toBe(row.expectedNote);
   });
+  await openFeature(page, 'feature-identity-1');
   await page.locator('#feature-identity-1 .assessment > summary').click();
   await expect(page.locator('#feature-identity-1 .assessment')).toHaveAttribute(
     'open',
@@ -97,7 +110,9 @@ test('Frappe roadmap exposes per-item evidence and orthogonal capability/action 
     page.locator('#feature-identity-1 .feature-check'),
   ).toBeChecked();
   await page.locator('#reset-all').click();
-  await expect(page.locator('.feature:visible')).toHaveCount(326);
+  await expect(page.locator('.feature:not([hidden])')).toHaveCount(326);
+  await expect(page.locator('.group:visible')).toHaveCount(49);
+  await expect(page.locator('#feature-identity-1')).toBeVisible();
   await expect(
     page.locator('#feature-identity-1 .feature-check'),
   ).toBeChecked();
@@ -118,8 +133,12 @@ test('roadmap labels and details remain readable with 200% root text and keyboar
   await page.setViewportSize({ width: 320, height: 480 });
   await page.goto('./');
   await page.addStyleTag({ content: 'html { font-size:200% !important; }' });
+  await openFeature(page, 'feature-model-1');
   const summary = page.locator('#feature-model-1 .assessment > summary');
   await summary.focus();
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Shift+Tab');
+  await expect(summary).toBeFocused();
   await page.keyboard.press('Enter');
   await expect(summary.locator('..')).toHaveAttribute('open', '');
   const state = await page.evaluate(() => ({
@@ -177,6 +196,7 @@ test('Frappe assessments and source links remain readable without JavaScript', a
     await expect(page.locator('.assessment-note')).toHaveCount(326);
     await expect(page.locator('noscript')).toBeVisible();
     await expect(page.locator('#export-selected')).toBeDisabled();
+    await openFeature(page, 'feature-identity-1');
     const detail = page.locator('#feature-identity-1 .assessment');
     await detail.locator('summary').click();
     await expect(detail).toHaveAttribute('open', '');

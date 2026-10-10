@@ -111,6 +111,9 @@
   --tag-padding-block: 0.125rem;
   --tag-padding-inline: 0.375rem;
   --transition: 140ms;
+  --accordion-icon-size: 0.625rem;
+  --accordion-icon-stroke: 2px;
+  --accordion-indicator-size: 2.25rem;
 }
 * {
   box-sizing: border-box;
@@ -766,6 +769,7 @@ summary::-webkit-details-marker {
 }
 .group {
   padding-block: var(--space-2);
+  border-bottom: var(--control-width) solid var(--line);
   scroll-margin-top: calc(var(--sticky) + var(--space-6));
 }
 .group > summary {
@@ -773,13 +777,13 @@ summary::-webkit-details-marker {
   grid-template-columns: minmax(0, 1fr) auto;
   gap: var(--space-3);
   align-items: center;
-  padding: var(--space-4) 0;
+  padding: var(--space-4) var(--space-2);
   list-style: none;
   min-height: var(--hit);
+  border-radius: var(--radius);
 }
-.group > summary:hover h3 {
-  text-decoration: underline;
-  text-underline-offset: var(--space-1);
+.group > summary:hover {
+  background: var(--surface-hover);
 }
 .group h3 {
   font-size: var(--font-section);
@@ -796,20 +800,25 @@ summary::-webkit-details-marker {
   margin-top: var(--space-1);
 }
 .group-toggle {
-  font-size: var(--font-body);
-  color: var(--muted);
-  padding: var(--space-1) var(--space-2);
+  display: grid;
+  place-items: center;
+  inline-size: var(--accordion-indicator-size);
+  block-size: var(--accordion-indicator-size);
+  color: var(--ink);
   background: var(--surface-hover);
   border-radius: var(--radius-pill);
 }
-.group-toggle .opened {
-  display: none;
+.group-toggle::before {
+  content: '';
+  inline-size: var(--accordion-icon-size);
+  block-size: var(--accordion-icon-size);
+  border-right: var(--accordion-icon-stroke) solid currentColor;
+  border-bottom: var(--accordion-icon-stroke) solid currentColor;
+  transform: translateY(calc(var(--space-1) * -0.5)) rotate(45deg);
+  transition: transform var(--transition);
 }
-.group[open] .group-toggle .opened {
-  display: inline;
-}
-.group[open] .group-toggle .closed {
-  display: none;
+.group[open] > summary .group-toggle::before {
+  transform: translateY(calc(var(--space-1) * 0.5)) rotate(225deg);
 }
 .ownership {
   color: var(--muted);
@@ -1430,7 +1439,7 @@ summary::-webkit-details-marker {
     justify-self: end;
   }
   .group-toggle {
-    justify-self: start;
+    justify-self: end;
   }
 }
 @container inventory (min-width: 36rem) {
@@ -1446,7 +1455,9 @@ summary::-webkit-details-marker {
   html {
     scroll-behavior: auto;
   }
-  * {
+  *,
+  *::before,
+  *::after {
     transition: none !important;
   }
 }

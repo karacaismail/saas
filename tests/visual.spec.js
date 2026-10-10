@@ -22,8 +22,17 @@ for (const width of [320, 1280]) {
       `export-${width}.png`,
       { animations: 'disabled' },
     );
-    for (const id of ['tenant-1', 'tenant-2', 'channels-5'])
-      await page.locator(`#feature-${id} label`).click();
+    for (const id of ['tenant-1', 'tenant-2', 'channels-5']) {
+      const row = page.locator(`#feature-${id}`);
+      const group = row.locator(
+        'xpath=ancestor::details[contains(@class,"group")]',
+      );
+      if ((await group.getAttribute('open')) === null) {
+        await group.locator(':scope > summary').click();
+        await expect(group).toHaveAttribute('open', '');
+      }
+      await row.locator('.feature-label').click();
+    }
     await page.locator('#selected-only').click();
     // A real short workspace turns the tall toolbar static, so the inventory
     // image includes all selected headings without a sticky overlay.
