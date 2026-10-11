@@ -144,7 +144,20 @@ test('selected JSON and Markdown include only selected allocations with complete
   const unitIds = new Set(plan.units.map((u) => u.id));
   for (const u of plan.units)
     for (const dep of u.dependsOn) assert.ok(unitIds.has(dep), dep);
-  const md = readable(serializeExport(payload, 'md').text);
+  const markdown = serializeExport(payload, 'md').text;
+  const legacy = structuredClone(data);
+  delete legacy.developmentPlan;
+  const legacyPayload = buildSelection(legacy, selected);
+  const legacyMarkdown = serializeExport(legacyPayload, 'md').text;
+  assert.equal(
+    (markdown.match(/^## /gm) ?? []).length,
+    (legacyMarkdown.match(/^## /gm) ?? []).length,
+  );
+  assert.equal(
+    (markdown.match(/^### /gm) ?? []).length,
+    (legacyMarkdown.match(/^### /gm) ?? []).length,
+  );
+  const md = readable(markdown);
   for (const a of plan.assignments) assert.ok(md.includes(a.reason), a.itemId);
   for (const u of plan.units) {
     assert.ok(md.includes(u.title), u.id);
@@ -154,8 +167,6 @@ test('selected JSON and Markdown include only selected allocations with complete
   for (const u of data.developmentPlan.units.filter((u) => !unitIds.has(u.id)))
     assert.ok(!md.includes(u.customWork), u.id);
   assert.deepEqual(JSON.parse(serializeExport(payload, 'json').text), payload);
-  const legacy = structuredClone(data);
-  delete legacy.developmentPlan;
   assert.equal(buildSelection(legacy, selected).developmentPlan, undefined);
   assert.equal(buildSelection(data, []).developmentPlan, undefined);
   assert.equal(

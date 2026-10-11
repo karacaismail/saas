@@ -428,16 +428,16 @@ function markdownDevelopmentPlan(plan, roadmap) {
   const copy = plan.labels;
   const lines = [
     '',
-    `## ${markdownText(plan.title)}`,
+    `#### ${markdownText(plan.title)}`,
     '',
     markdownText(plan.intro),
     '',
   ];
   const field = (label, value) =>
     lines.push(`- **${markdownText(label)}:** ${markdownText(value)}`);
-  const section = (title) => lines.push('', `### ${markdownText(title)}`, '');
+  const section = (title) => lines.push('', `##### ${markdownText(title)}`, '');
   const entry = (title, id) =>
-    lines.push('', `#### ${markdownText(title)} (${markdownText(id)})`, '');
+    lines.push('', `###### ${markdownText(title)} (${markdownText(id)})`, '');
   const stages = new Map(plan.stages.map((stage) => [stage.id, stage.title]));
   const units = new Map(plan.units.map((unit) => [unit.id, unit.title]));
   field(copy.reviewedAt, plan.reviewedAt);
