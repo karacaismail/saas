@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 async function visit(page) {
   await page.setViewportSize({ width: 320, height: 568 });
   await page.goto('./');
-  await expect(page.locator('.feature')).toHaveCount(344);
+  await expect(page.locator('.feature')).toHaveCount(351);
   await expect(page.locator('#search')).toBeEnabled();
   await page.evaluate(() => document.fonts.ready);
 }
@@ -122,7 +122,7 @@ function expectSourcePaint(row) {
   ).toBeGreaterThanOrEqual(4.5);
 }
 
-test('all 344 source tints use five percent alpha while text stays opaque', async ({
+test('all 351 source tints use five percent alpha while text stays opaque', async ({
   page,
 }) => {
   await visit(page);
@@ -174,10 +174,10 @@ test('support, action and owner pills have readable semantic pastels with six di
   for (const tag of ['support', 'action', 'owner'])
     await expect(
       page.locator(`.assessment-tags > [data-tag="${tag}"]`),
-    ).toHaveCount(344);
+    ).toHaveCount(351);
   const rows = await page.locator('.feature').evaluateAll(collectPaint);
   const pills = rows.flatMap((row) => row.pills);
-  expect(pills).toHaveLength(1032);
+  expect(pills).toHaveLength(351 * 3);
   expect(new Set(pills.map((pill) => pill.tag))).toEqual(
     new Set(['support', 'action', 'owner']),
   );
@@ -247,7 +247,7 @@ test('long owner pills reflow at 200% root text and preserve pastel contrast dur
   await visit(page);
   await expect(
     page.locator('.assessment-tags > [data-tag="owner"]'),
-  ).toHaveCount(344);
+  ).toHaveCount(351);
   const initialRoot = await page.evaluate(() =>
     parseFloat(getComputedStyle(document.documentElement).fontSize),
   );

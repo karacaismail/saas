@@ -12,15 +12,15 @@ const originalIds = new Set(originalInventory.map((item) => item.id));
 function expectPreservedInventory(clusters, review) {
   expect(originalIds.size).toBe(326);
   const entries = flattenInventory(clusters);
-  expect(entries).toHaveLength(344);
-  expect(new Set(entries.map((item) => item.id)).size).toBe(344);
+  expect(entries).toHaveLength(351);
+  expect(new Set(entries.map((item) => item.id)).size).toBe(351);
   expect(entries.filter((item) => originalIds.has(item.id))).toEqual(
     [...originalInventory].sort((left, right) =>
       left.id.localeCompare(right.id),
     ),
   );
   const additions = entries.filter((item) => !originalIds.has(item.id));
-  expect(additions).toHaveLength(18);
+  expect(additions).toHaveLength(25);
   expect(additions.map((item) => item.id).sort()).toEqual(
     [...review.addedItemIds].sort(),
   );
@@ -34,7 +34,7 @@ async function visit(page, source = 'json') {
     'data-content-source',
     source,
   );
-  await expect(page.locator('.feature')).toHaveCount(344);
+  await expect(page.locator('.feature')).toHaveCount(351);
 }
 
 async function openFirstFeature(page) {
@@ -156,7 +156,7 @@ test('classified JSON drives all 12 clusters without changing the 326 original c
       {
         manifestUrl,
         documents: [...documents.keys()],
-        itemCount: 344,
+        itemCount: 351,
         originalItemCount: originalIds.size,
         addedItemIds: review.addedItemIds,
       },
@@ -507,7 +507,7 @@ test('the JSON loading deadline keeps all fallback content and working selection
     await expect(page.locator('#search')).toBeEnabled();
     releaseResponse();
     await routeFinished;
-    await expect(page.locator('.feature')).toHaveCount(344);
+    await expect(page.locator('.feature')).toHaveCount(351);
     const data = await page
       .locator('#atlas-data')
       .evaluate((element) => JSON.parse(element.textContent));

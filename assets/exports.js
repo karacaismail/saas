@@ -19,6 +19,7 @@ const ASSESSMENT_FIELDS = Object.freeze([
   'confidence',
   'note',
   'acceptance',
+  'reviewedAt',
 ]);
 
 function copyAssessment(assessment) {
@@ -86,6 +87,16 @@ function assessmentLabel(labels, value) {
   // Unknown future codes remain visible rather than becoming an empty or
   // misleadingly positive label in a roadmap export.
   return labels && Object.hasOwn(labels, value) ? labels[value] : (value ?? '');
+}
+
+function confidenceLabel(roadmap, assessment) {
+  const label = assessmentLabel(
+    roadmap.confidenceLabels,
+    assessment.confidence,
+  );
+  return Object.hasOwn(assessment, 'reviewedAt')
+    ? `${label} · ${assessment.reviewedAt}`
+    : label;
 }
 
 /** Return only selected source items, retaining the atlas hierarchy and order. */
@@ -221,7 +232,7 @@ function toCsv(payload) {
             assessmentLabel(roadmap.supportLabels, assessment.support),
             assessmentLabel(roadmap.actionLabels, assessment.action),
             assessment.owner ?? '',
-            assessmentLabel(roadmap.confidenceLabels, assessment.confidence),
+            confidenceLabel(roadmap, assessment),
             assessment.note ?? '',
             assessment.acceptance ?? '',
             (assessment.sources ?? [])
@@ -278,10 +289,7 @@ function markdownAssessment(assessment, roadmap) {
     [copy.support, assessmentLabel(roadmap.supportLabels, assessment.support)],
     [copy.action, assessmentLabel(roadmap.actionLabels, assessment.action)],
     [copy.owner, assessment.owner ?? ''],
-    [
-      copy.confidence,
-      assessmentLabel(roadmap.confidenceLabels, assessment.confidence),
-    ],
+    [copy.confidence, confidenceLabel(roadmap, assessment)],
     [copy.note, assessment.note ?? ''],
     [copy.acceptance, assessment.acceptance ?? ''],
   ];

@@ -206,6 +206,16 @@ export function validateAtlas(data) {
         );
         for (const key of ['owner', 'note', 'acceptance'])
           requireValue(text(assessment[key]), `assessment.${key}`);
+        if (own(assessment, 'reviewedAt')) {
+          const date = assessment.reviewedAt;
+          requireValue(
+            text(date) &&
+              /^\d{4}-\d{2}-\d{2}$/.test(date) &&
+              Number.isFinite(Date.parse(date)) &&
+              new Date(date).toISOString().slice(0, 10) === date,
+            'assessment.reviewedAt',
+          );
+        }
         requireValue(
           Array.isArray(assessment.sources) && assessment.sources.length > 0,
           'assessment.sources',
@@ -408,7 +418,7 @@ export function renderDocument(data) {
       <label class="feature-label" for="check-${escape(id)}"><span class="check-target"><input class="feature-check" type="checkbox" id="check-${escape(id)}" value="${escape(id)}" disabled /></span><span class="feature-content"><span class="origin">${escape(labels.originLabels[item.kind])}</span><span class="feature-title">${escape(item.text)}</span></span></label>
       <div class="assessment-tags" role="group" aria-label="${escape(labels.assessmentLabel)}"><span class="support-tag" data-tag="support" data-value="${escape(a.support)}">${escape(roadmap.supportLabels[a.support])}</span><span data-tag="action" data-value="${escape(a.action)}">${escape(roadmap.actionLabels[a.action])}</span><span data-tag="owner">${escape(a.owner)}</span></div>
       ${planning ? `<p class="scope-note"><strong class="scope-label" data-scope-label="${escape(planning.scope)}">${escape(planning.label)}</strong></p>` : ''}
-      <details class="assessment"><summary><span>${escape(labels.assessmentSummary)}<span class="sr-only">: ${escape(item.text)}</span></span></summary><div class="assessment-body">${planning ? `<p><strong>${escape(data.review.copy.scopeReason)}</strong> ${escape(planning.reason)}</p>` : ''}<p class="assessment-note">${escape(a.note)}</p><p><strong>${escape(labels.acceptance)}</strong> ${escape(a.acceptance)}</p><p><strong>${escape(labels.basis)}</strong> ${escape(roadmap.confidenceLabels[a.confidence])} · ${escape(roadmap.reviewedAt)}. ${escape(labels.pending)}</p><ul aria-label="${escape(labels.itemSources)}">${a.sources.map((source) => `<li><a href="${escape(source.url)}" target="_blank" rel="noopener noreferrer">${escape(source.title)}</a></li>`).join('')}</ul></div></details>
+      <details class="assessment"><summary><span>${escape(labels.assessmentSummary)}<span class="sr-only">: ${escape(item.text)}</span></span></summary><div class="assessment-body">${planning ? `<p><strong>${escape(data.review.copy.scopeReason)}</strong> ${escape(planning.reason)}</p>` : ''}<p class="assessment-note">${escape(a.note)}</p><p><strong>${escape(labels.acceptance)}</strong> ${escape(a.acceptance)}</p><p class="assessment-basis" data-reviewed-at="${escape(a.reviewedAt ?? roadmap.reviewedAt)}"><strong>${escape(labels.basis)}</strong> ${escape(roadmap.confidenceLabels[a.confidence])} · ${escape(a.reviewedAt ?? roadmap.reviewedAt)}. ${escape(labels.pending)}</p><ul aria-label="${escape(labels.itemSources)}">${a.sources.map((source) => `<li><a href="${escape(source.url)}" target="_blank" rel="noopener noreferrer">${escape(source.title)}</a></li>`).join('')}</ul></div></details>
       ${own(item, 'raw') ? `<p class="original-trace"><strong>${escape(labels.raw)}</strong> ${escape(item.raw)}</p>` : ''}
     </li>`;
   }

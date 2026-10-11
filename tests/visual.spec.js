@@ -12,7 +12,7 @@ for (const width of [320, 1280]) {
   }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.goto('./');
-    await expect(page.locator('.feature-check')).toHaveCount(344);
+    await expect(page.locator('.feature-check')).toHaveCount(351);
     await expect(page.locator('#search')).toBeEnabled();
     await page.evaluate(() => document.fonts.ready);
     await expect

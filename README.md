@@ -2,7 +2,7 @@
 
 [Canlı site](https://karacaismail.github.io/saas/) · [MIT lisansı](LICENSE)
 
-Frappe Framework backend, bağımsız headless frontend ve Keycloak için 12 küme, 49 başlık ve 344 maddelik geliştirme yol haritası. Her maddede Frappe yeterliliği, yapılacak iş, sorumlu katman, dayanak, kabul ölçütü ve kaynak bulunur. Özellikleri plan kapsamı/yeterlilik/iş/kaynak/küme ile süzün ve seçilenleri JSON, CSV veya Markdown olarak indirin.
+Frappe Framework backend, bağımsız headless frontend ve Keycloak için 12 küme, 49 başlık ve 351 maddelik geliştirme yol haritası. Her maddede Frappe yeterliliği, yapılacak iş, sorumlu katman, dayanak, kabul ölçütü ve kaynak bulunur. Özellikleri plan kapsamı/yeterlilik/iş/kaynak/küme ile süzün ve seçilenleri JSON, CSV veya Markdown olarak indirin.
 
 Mavi **özgün kapsamı**, yeşil **kapsam içi eksikleri**, kırmızı **yeni alanları** gösterir. Üç sınıfta madde metni, kaynak etiketi ve checkbox aynı rengi taşır; renkler %100 doygundur ve normal metin kontrastı en az4.5:1'dir. Kaynak renkleri madde, legend ve filtre zeminlerinde%5 opaklıkla da kullanılır; yazılar tam opaktır. Yeterlilik ve iş etiketleri kategoriye göre pastel, sorumlu etiketleri ortak sakin tondadır. Renkler Frappe yeterliliği değildir. Yeterlilik etiketleri: **Çekirdekte var / Kısmen var / Ek Frappe uygulaması / Çekirdekte hazır değil / Harici sorumluluk / Doğrulanmalı**. Küme sırası altyapı ve güven sınırlarından ürün ve gelir modeline ilerler. ERPNext ve diğer ek uygulamalar Framework çekirdeği sayılmaz; Desk ekranları headless frontend'de otomatik hazır değildir.
 
@@ -44,3 +44,7 @@ Outfit dosyaları Google Fonts'tan alınmıştır ve [SIL Open Font License](ass
 Görünen bütün metinler sınıflandırılmış JSON dosyalarından gelir. `data/clusters/` altında 12 tam küme; `data/interface.json` ve `data/messages.json` içinde arayüz/rehber/çıktı metinleri bulunur. HTML ve JS kaynaklarına içerik eklemeyin. `npm run roadmap` ortak JS engine ile yayın görünümünü üretir; tarayıcı aynı engine ile JSON'u yükler. Veri koruma ve düzenleme sözleşmesi [docs/content-model.md](docs/content-model.md) içindedir.
 
 2026-10-10 karşılaştırması: sağlanan HTML ve Markdown aynı 402 maddelik, 17 kümeli kaynak haritadır. Mevcut 326 madde ve kimlikleri korunarak 18 gerçek boşluk eklendi. `data/review.json` zorunlu temel, ürüne bağlı, ileri aşama ve teknik tercih kapsamlarını; ekleme/birleştirme/erteleme/düzeltme kararlarını ve 17 kaynak kümesinin atlas karşılığını taşır. Ayrıntılar [kaynak incelemesinde](docs/source-review.md).
+
+2026-10-11 entegrasyon planı: mevcut 344 maddenin bütün alanları ve kimlikleri korunarak 7 açık entegrasyon maddesi eklendi. Webhook, REST, GraphQL, SOAP, WebSocket, XML besleme, JSON/CSV/XLSX aktarımı ve MCP/AI Mapping bu projenin zorunlu yetenek kapsamıdır. Aşamalar teslim sırasıdır; ileri aşamada teslim etmek isteğe bağlı olmak anlamına gelmez. Frappe temeli, kalan iş, yön, bağımlılık ve kabul ölçütleri [entegrasyon planında](docs/integration-plan.md) açıklanır. Bu site, gelecekteki SaaS veri entegrasyonlarını çalıştıran bir servis değildir.
+
+Entegrasyon tesliminin yerel test, veri koruma, bağımsız inceleme ve gerçek cihaz sınırları [doğrulama kaydında](docs/integration-verification.md) açıklanır.

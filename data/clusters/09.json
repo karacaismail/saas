@@ -213,6 +213,168 @@
               }
             ]
           }
+        },
+        {
+          "kind": "g",
+          "text": "REST API sunma ve dış REST servislerini tüketme; sürümlü ürün sözleşmesi.",
+          "assessment": {
+            "support": "partial",
+            "action": "integrate",
+            "owner": "API platformu",
+            "confidence": "design",
+            "note": "2026-10-11 entegrasyon planı: Frappe DocType CRUD/RPC temeli var; OpenAPI, ürün kaynakları ve dış istemci adaptörü gerekir. Keycloak kimliği backend kiracı/kayıt/alan yetkisine bağlanır.",
+            "acceptance": "İki yönlü CRUD, sayfalama ve hata şeması sözleşme testini geçsin; sürüm geçişi, 401/403/429, süre sınırı ve idempotent yazım doğrulansın.",
+            "sources": [
+              {
+                "title": "Frappe REST API",
+                "url": "https://docs.frappe.io/framework/user/en/guides/integration/rest_api"
+              },
+              {
+                "title": "OpenAPI 3.1.1",
+                "url": "https://spec.openapis.org/oas/v3.1.1.html"
+              }
+            ],
+            "reviewedAt": "2026-10-11"
+          }
+        },
+        {
+          "kind": "g",
+          "text": "GraphQL entegrasyonu; şema, query/mutation ve yetkili resolver katmanı.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "API platformu",
+            "confidence": "design",
+            "note": "2026-10-11 entegrasyon planı: İncelenen resmî belgelerde genel GraphQL ürün uçlarının hazır kanıtı yok; Frappe iş servislerine adaptör geliştirilir. Subscription ayrı sözleşmedir; WebSocket ile eşdeğer değildir.",
+            "acceptance": "Query ve mutation başka kiracıya veya yasak alana erişemesin; resolver yetkisi, sayfalama, derinlik/maliyet sınırı ve N+1 sorgu bütçesi ölçülsün.",
+            "sources": [
+              {
+                "title": "Frappe REST API",
+                "url": "https://docs.frappe.io/framework/user/en/guides/integration/rest_api"
+              },
+              {
+                "title": "GraphQL şema ve tipler",
+                "url": "https://graphql.org/learn/schema/"
+              },
+              {
+                "title": "GraphQL güvenlik",
+                "url": "https://graphql.org/learn/security/"
+              }
+            ],
+            "reviewedAt": "2026-10-11"
+          }
+        },
+        {
+          "kind": "g",
+          "text": "SOAP entegrasyonu; WSDL/XSD sözleşmeli servis sunma ve tüketme.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Entegrasyon platformu",
+            "confidence": "design",
+            "note": "2026-10-11 entegrasyon planı: İncelenen resmî belgelerde genel SOAP ürün adaptörünün hazır kanıtı yok. Sağlayıcının SOAP/WSDL sürümü, namespace ve kimlik bilgisi bağlanır; REST uç adı değiştirmek yeterli değildir.",
+            "acceptance": "İstemci ve sunucu örneği WSDL/XSD doğrulamasını geçsin; namespace/sürüm uyumsuzluğu ve SOAP fault doğru işlenip gizli bilgi sızdırmasın.",
+            "sources": [
+              {
+                "title": "Frappe REST API",
+                "url": "https://docs.frappe.io/framework/user/en/guides/integration/rest_api"
+              },
+              {
+                "title": "W3C SOAP 1.2",
+                "url": "https://www.w3.org/TR/soap12-part1/"
+              },
+              {
+                "title": "W3C WSDL 2.0",
+                "url": "https://www.w3.org/TR/wsdl20/"
+              },
+              {
+                "title": "W3C XML Schema",
+                "url": "https://www.w3.org/TR/xmlschema11-1/"
+              }
+            ],
+            "reviewedAt": "2026-10-11"
+          }
+        },
+        {
+          "kind": "g",
+          "text": "XML canlı besleme; HTTP pull/push ile çift yönlü ve artımlı veri eşitleme.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Entegrasyon platformu",
+            "confidence": "design",
+            "note": "2026-10-11 entegrasyon planı: XML veri biçimidir, canlı taşıma protokolü değildir. İncelenen resmî belgelerde genel hazır besleme kanıtı yok; zamanlanmış HTTP pull/push, XSD ve güncellik sözleşmesi geliştirilir.",
+            "acceptance": "Artımlı cursor/checkpoint, silme işareti ve gecikme hedefi sınansın; güvenli parser external entity açmasın; SSRF/çıkış politikası, boyut sınırı ve bozuk XML reddi doğrulansın.",
+            "sources": [
+              {
+                "title": "Frappe REST API",
+                "url": "https://docs.frappe.io/framework/user/en/guides/integration/rest_api"
+              },
+              {
+                "title": "W3C XML Schema",
+                "url": "https://www.w3.org/TR/xmlschema11-1/"
+              }
+            ],
+            "reviewedAt": "2026-10-11"
+          }
+        },
+        {
+          "kind": "g",
+          "text": "MCP entegrasyonu; şemalı araç/kaynak kataloğu ve güvenli uzak erişim.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "AI araç güvenliği",
+            "confidence": "design",
+            "note": "2026-10-11 entegrasyon planı: İncelenen resmî belgelerde genel Frappe MCP sunucusunun hazır kanıtı yok. JSON-RPC tabanlı MCP, REST adı değildir; Streamable HTTP ve yerel stdio kapsamı ayrılır.",
+            "acceptance": "Tools/resources şemaları, protokol sürümü ve Keycloak audience doğrulansın; backend politikası okuma/yazmayı ayırsın, yazım açık onay/ret alsın; güvensiz araç çıktısı yetki üretmesin.",
+            "sources": [
+              {
+                "title": "Frappe REST API",
+                "url": "https://docs.frappe.io/framework/user/en/guides/integration/rest_api"
+              },
+              {
+                "title": "MCP 2026-07-28 Tools",
+                "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/tools"
+              },
+              {
+                "title": "MCP 2026-07-28 Authorization",
+                "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization"
+              },
+              {
+                "title": "MCP 2026-07-28 Transports",
+                "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/transports"
+              },
+              {
+                "title": "MCP Resources",
+                "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/resources"
+              }
+            ],
+            "reviewedAt": "2026-10-11"
+          }
+        },
+        {
+          "kind": "g",
+          "text": "AI Mapping; kaynak/hedef alan, tip, birim, kod ve ilişki eşlemesine denetlenebilir öneri.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Entegrasyon platformu",
+            "confidence": "design",
+            "note": "2026-10-11 entegrasyon planı: İncelenen resmî belgelerde genel hazır semantik eşleme kanıtı yok; şema/profil üzerinden güven ve kanıtla öneri geliştirilir. MCP araç erişiminden ayrı veri dönüşüm yeteneğidir.",
+            "acceptance": "Manuel düzenleme ve önizleme sonrası açık uygulama onayı alınsın; deterministik doğrulama, sürümlü tekrar/geri alma ve model zaman aşımında manuel yol çalışsın; otomatik import yapılmasın.",
+            "sources": [
+              {
+                "title": "JSON Schema referansı",
+                "url": "https://json-schema.org/understanding-json-schema/reference"
+              },
+              {
+                "title": "Frappe REST API",
+                "url": "https://docs.frappe.io/framework/user/en/guides/integration/rest_api"
+              }
+            ],
+            "reviewedAt": "2026-10-11"
+          }
         }
       ],
       "sources": ["outbox"],

@@ -677,6 +677,33 @@
               }
             ]
           }
+        },
+        {
+          "kind": "g",
+          "text": "JSON, CSV ve Excel (XLSX): her formatta çift yönlü içe/dışa aktarım sözleşmesi.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Frappe backend + frontend",
+            "confidence": "design",
+            "note": "2026-10-11 entegrasyon planı: Frappe version-15 kaynaklarında CSV/XLSX aktarım temeli var; genel JSON dosya aktarımı ve headless akış genişletilir. CLI fixture/backup ve Atlas JSON/CSV/MD indirmesi bu ürün API’sinin kanıtı değildir.",
+            "acceptance": "Üç format ayrı import/export testini geçsin: UTF-8, ayırıcı/tırnak, tarih/ondalık/null/ID, iç içe JSON eşleme, worksheet seçimi, boyut/satır sınırı, formül/makro koruması, tip/satır hatası ve sınırlı arka plan işi.",
+            "sources": [
+              {
+                "title": "Frappe version-15 Data Import",
+                "url": "https://github.com/frappe/frappe/blob/version-15/frappe/core/doctype/data_import/importer.py"
+              },
+              {
+                "title": "Frappe version-15 Data Export",
+                "url": "https://github.com/frappe/frappe/blob/version-15/frappe/core/doctype/data_export/exporter.py"
+              },
+              {
+                "title": "JSON Schema referansı",
+                "url": "https://json-schema.org/understanding-json-schema/reference"
+              }
+            ],
+            "reviewedAt": "2026-10-11"
+          }
         }
       ],
       "sources": [],

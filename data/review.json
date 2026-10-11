@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "reviewedAt": "2026-10-10",
-  "expectedItems": 344,
+  "reviewedAt": "2026-10-11",
+  "expectedItems": 351,
   "expectedGroups": 49,
   "source": {
     "title": "SaaS Paneli Özellik Haritası",
@@ -284,20 +284,20 @@
       "reason": "Arama yeteneği seçildiğinde Meilisearch veya Qdrant adaptörü teknik seçenektir; sağlayıcı adı zorunlu ürün çekirdeği oluşturmaz."
     },
     "transfer-2": {
-      "scope": "conditional",
-      "reason": "Toplu veri içe aktarma ürün yolculuğunda açılırsa şablon, doğrulama, yetki ve kota birlikte gerekir."
+      "scope": "required",
+      "reason": "M1 zorunlu aktarım: sürümlü alan eşleme, dosya şablonu ve yazım öncesi önizleme; ürün kategorisine göre kapsamdan çıkarılmaz."
     },
     "transfer-3": {
-      "scope": "conditional",
-      "reason": "Toplu veri içe aktarma ürün yolculuğunda açılırsa şablon, doğrulama, yetki ve kota birlikte gerekir."
+      "scope": "required",
+      "reason": "M1 zorunlu aktarım: satır hataları, tip/ilişki doğrulaması ve yinelenen kayıt tekilleştirmesi bütün formatlarda korunur."
     },
     "transfer-5": {
-      "scope": "conditional",
-      "reason": "Toplu veri içe aktarma ürün yolculuğunda açılırsa şablon, doğrulama, yetki ve kota birlikte gerekir."
+      "scope": "required",
+      "reason": "M1 zorunlu aktarım: import yetki, kiracı, kota ve iş kuralını atlayamaz; dosya veya model önerisi yeni yetki vermez."
     },
     "transfer-4": {
-      "scope": "advanced",
-      "reason": "Büyük aktarımda devam ve iptal davranışı veri hacmi ve işlem riski bu ihtiyacı doğurduğunda eklenir."
+      "scope": "required",
+      "reason": "M1 zorunlu güvenilir aktarım: sınırlı arka plan işi, ilerleme, iptal, checkpoint ve idempotent devam; kontrolsüz tek uzun istek kullanılmaz."
     },
     "integration-2": {
       "scope": "implementation",
@@ -400,8 +400,8 @@
       "reason": "Mailgun veya Postfix teslimat yöntemidir; gerekli e-posta yeteneği sağlayıcı seçimine indirgenmez."
     },
     "realtime-1": {
-      "scope": "implementation",
-      "reason": "Canlı iletim gerekiyorsa WebSocket ve SSE arasında akışa uygun yöntem seçilir; ikisini birlikte kurmak zorunlu değildir."
+      "scope": "required",
+      "reason": "M2 zorunlu WebSocket: eski çekirdekte var etiketi Frappe Socket.IO temelidir; düz WebSocket istemcisi Socket.IO ile uyumlu değildir. Dış protokol adaptörü ve Keycloak yetki bağı gerekir."
     },
     "realtime-2": {
       "scope": "implementation",
@@ -566,6 +566,54 @@
     "observability-8": {
       "scope": "advanced",
       "reason": "Temel ölçüm ve alarm observability-5/7 kapsamında kalır; resmî hata bütçesi ve yayın yönetişimi güvenilirlik olgunluğu aşamasında eklenir."
+    },
+    "integration-5": {
+      "scope": "required",
+      "reason": "M1 zorunlu webhook: Frappe outbound HMAC temelini kullan; inbound imza, zaman penceresi, replay tekilleştirme ve teslim kaydı geliştir. Eski değerlendirme yalnız bu temeli kapsar."
+    },
+    "integration-7": {
+      "scope": "required",
+      "reason": "M0 ortak zorunlu temel: sürümlü alan/kimlik eşleme, çift yönlü çakışma, bağlantı sağlığı ve yeniden yetkilendirme bütün sekiz modeli birleştirir."
+    },
+    "integration-9": {
+      "scope": "required",
+      "reason": "M1 zorunlu REST: dışa sunulan ürün API’si ve dış REST tüketimi; OpenAPI, Keycloak bağı, kiracı/kayıt/alan politikası ve sürüm sözleşmesi."
+    },
+    "integration-10": {
+      "scope": "required",
+      "reason": "M3 zorunlu GraphQL: şema ve yetkili resolver adaptörü; REST ve WebSocket varlığı GraphQL desteği sağlamaz."
+    },
+    "integration-11": {
+      "scope": "required",
+      "reason": "M3 zorunlu SOAP: sağlayıcıya uygun WSDL/XSD ve kimlik bilgisi adaptörü; eski sistemlerle sözleşmeli alışveriş."
+    },
+    "integration-12": {
+      "scope": "required",
+      "reason": "M2 zorunlu XML: zamanlanmış HTTP pull/push, artımlı cursor ve güncellik hedefi; XML tek başına canlı bağlantı değildir."
+    },
+    "integration-13": {
+      "scope": "required",
+      "reason": "M3 zorunlu MCP: tools/resources, Streamable HTTP, audience ve backend onay politikası; genel AI/RAG/ajan kapsamı ayrı ileri aşamada kalır."
+    },
+    "integration-14": {
+      "scope": "required",
+      "reason": "M3 zorunlu AI Mapping: kanıtlı semantik eşleme önerisi, manuel yol ve onaylı deterministik uygulama; MCP erişim protokolünden ayrıdır."
+    },
+    "realtime-3": {
+      "scope": "required",
+      "reason": "M2 zorunlu canlı iletim: yeniden bağlanma, yetki yenileme, sıra/cursor ve kaçan olayları tamamlama doğrulanmadan bağlantı açılması tamamlanma sayılmaz."
+    },
+    "transfer-1": {
+      "scope": "required",
+      "reason": "M1 zorunlu çift yönlü aktarım: JSON, CSV ve XLSX her biri import/export olarak sunulur; Atlas indirmesi gelecekteki ürün teslimi değildir."
+    },
+    "transfer-6": {
+      "scope": "required",
+      "reason": "M1 zorunlu dışa teslim: kayıt/alan yetkisi, maskeleme, süreli indirme ve denetim kaydı; çekirdek destek hedef sürümde ayrıca doğrulanır."
+    },
+    "transfer-7": {
+      "scope": "required",
+      "reason": "M1 zorunlu format matrisi: JSON/CSV/XLSX için ayrı çift yönlü doğrulama; güvenli dosya, yerel biçim ve iç içe kayıt sözleşmesi."
     }
   },
   "addedItemIds": [
@@ -586,7 +634,14 @@
     "finance-9",
     "reports-8",
     "support-8",
-    "observability-8"
+    "observability-8",
+    "integration-9",
+    "integration-10",
+    "integration-11",
+    "integration-12",
+    "integration-13",
+    "integration-14",
+    "transfer-7"
   ],
   "decisions": [
     {
@@ -923,6 +978,125 @@
       "title": "Hizmet seviyesi göstergesi ve hedefi (SLI/SLO); hata bütçesi, tüketim alarmı ve yayın kararları.",
       "reason": "Temel ölçüm ve alarm observability-5/7 kapsamında kalır; resmî hata bütçesi ve yayın yönetişimi güvenilirlik olgunluğu aşamasında eklenir.",
       "itemIds": ["observability-8"]
+    },
+    {
+      "id": "integration-plan-webhook",
+      "kind": "correct",
+      "title": "Webhook: mevcut kapsamı tamamla",
+      "reason": "M1: outbound HMAC hazır temel; inbound doğrulama, replay ve güvenilir teslim ürün boşluğudur.",
+      "itemIds": ["integration-5", "events-3", "events-5", "events-6"]
+    },
+    {
+      "id": "integration-plan-rest",
+      "kind": "correct",
+      "title": "REST: sunma ve tüketmeyi ayrı doğrula",
+      "reason": "M1: Frappe CRUD/RPC üzerine ürün OpenAPI ve dış istemci adaptörü; M0 kimlik/yetki bağı ön koşuldur.",
+      "itemIds": ["integration-9", "integration-6", "integration-8"]
+    },
+    {
+      "id": "integration-plan-graphql",
+      "kind": "correct",
+      "title": "GraphQL: ayrı ürün adaptörü geliştir",
+      "reason": "M3: şema, resolver yetkisi ve sorgu maliyeti zorunlu; subscription transport sözleşmesi ayrıca tanımlanır.",
+      "itemIds": ["integration-10", "access-1"]
+    },
+    {
+      "id": "integration-plan-soap",
+      "kind": "correct",
+      "title": "SOAP: sözleşmeli uyumluluk kur",
+      "reason": "M3: WSDL/XSD, namespace, sürüm, fault ve sağlayıcı kimliği; REST yeniden adlandırması değildir.",
+      "itemIds": ["integration-11", "integration-7"]
+    },
+    {
+      "id": "integration-plan-websocket",
+      "kind": "correct",
+      "title": "WebSocket: Socket.IO temelinin sınırını göster",
+      "reason": "M2: Socket.IO düz WebSocket değildir; dış adaptör, yetkili kanal ve kaçan olayları tamamlama zorunludur. SSE alternatif teknik tercihtir.",
+      "itemIds": ["realtime-1", "realtime-3", "identity-1"]
+    },
+    {
+      "id": "integration-plan-xml",
+      "kind": "correct",
+      "title": "XML live: biçim ve taşıma yöntemini ayır",
+      "reason": "M2: XML biçimi HTTP pull/push ve zamanlama üzerinden artımlı eşitlenir; cursor, silme ve güncellik hedefi gerekir.",
+      "itemIds": ["integration-12", "jobs-1", "integration-7"]
+    },
+    {
+      "id": "integration-plan-formats",
+      "kind": "correct",
+      "title": "JSON/CSV/Excel: altı aktarım yönünü kabul et",
+      "reason": "M1: JSON, CSV, XLSX × import/export; Desk/CLI/backup ve Atlas indirmesi ürün teslimine eşit değildir.",
+      "itemIds": [
+        "transfer-1",
+        "transfer-2",
+        "transfer-3",
+        "transfer-4",
+        "transfer-5",
+        "transfer-6",
+        "transfer-7"
+      ]
+    },
+    {
+      "id": "integration-plan-mcp-mapping",
+      "kind": "correct",
+      "title": "MCP ve AI Mapping: iki ayrı zorunlu yetenek",
+      "reason": "M3: MCP şemalı araç/kaynak erişimidir; AI Mapping kanıtlı dönüşüm önerisidir. M0 politika ve açık yazım onayı ortak; genel AI/RAG/ajanlar ileri aşamada kalır.",
+      "itemIds": [
+        "integration-13",
+        "integration-14",
+        "integration-7",
+        "agents-2",
+        "agents-3"
+      ]
+    },
+    {
+      "id": "add-integration-9",
+      "kind": "add",
+      "title": "REST API sunma ve dış REST servislerini tüketme; sürümlü ürün sözleşmesi.",
+      "reason": "M1 zorunlu REST: dışa sunulan ürün API’si ve dış REST tüketimi; OpenAPI, Keycloak bağı, kiracı/kayıt/alan politikası ve sürüm sözleşmesi.",
+      "itemIds": ["integration-9"]
+    },
+    {
+      "id": "add-integration-10",
+      "kind": "add",
+      "title": "GraphQL entegrasyonu; şema, query/mutation ve yetkili resolver katmanı.",
+      "reason": "M3 zorunlu GraphQL: şema ve yetkili resolver adaptörü; REST ve WebSocket varlığı GraphQL desteği sağlamaz.",
+      "itemIds": ["integration-10"]
+    },
+    {
+      "id": "add-integration-11",
+      "kind": "add",
+      "title": "SOAP entegrasyonu; WSDL/XSD sözleşmeli servis sunma ve tüketme.",
+      "reason": "M3 zorunlu SOAP: sağlayıcıya uygun WSDL/XSD ve kimlik bilgisi adaptörü; eski sistemlerle sözleşmeli alışveriş.",
+      "itemIds": ["integration-11"]
+    },
+    {
+      "id": "add-integration-12",
+      "kind": "add",
+      "title": "XML canlı besleme; HTTP pull/push ile çift yönlü ve artımlı veri eşitleme.",
+      "reason": "M2 zorunlu XML: zamanlanmış HTTP pull/push, artımlı cursor ve güncellik hedefi; XML tek başına canlı bağlantı değildir.",
+      "itemIds": ["integration-12"]
+    },
+    {
+      "id": "add-integration-13",
+      "kind": "add",
+      "title": "MCP entegrasyonu; şemalı araç/kaynak kataloğu ve güvenli uzak erişim.",
+      "reason": "M3 zorunlu MCP: tools/resources, Streamable HTTP, audience ve backend onay politikası; genel AI/RAG/ajan kapsamı ayrı ileri aşamada kalır.",
+      "itemIds": ["integration-13"]
+    },
+    {
+      "id": "add-integration-14",
+      "kind": "add",
+      "title": "AI Mapping; kaynak/hedef alan, tip, birim, kod ve ilişki eşlemesine denetlenebilir öneri.",
+      "reason": "M3 zorunlu AI Mapping: kanıtlı semantik eşleme önerisi, manuel yol ve onaylı deterministik uygulama; MCP erişim protokolünden ayrıdır.",
+      "itemIds": ["integration-14"]
+    },
+    {
+      "id": "add-transfer-7",
+      "kind": "add",
+      "title": "JSON, CSV ve Excel (XLSX): her formatta çift yönlü içe/dışa aktarım sözleşmesi.",
+      "reason": "M1 zorunlu format matrisi: JSON/CSV/XLSX için ayrı çift yönlü doğrulama; güvenli dosya, yerel biçim ve iç içe kayıt sözleşmesi.",
+      "itemIds": ["transfer-7"]
     }
   ],
   "coverage": [
@@ -1102,16 +1276,16 @@
     }
   ],
   "copy": {
-    "title": "Kapsam ve kaynak incelemesi",
-    "summary": "Özgün 326 madde korunarak 18 ayrı yetenek eklendi. Toplam 344 madde, 49 başlık altında ürün kapsamına göre değerlendirildi.",
-    "intro": "Frappe içinde hazır bulunma, ürün için zorunlu olma ve tamamlanmış olma ayrı değerlendirmelerdir. Kapsam etiketi tamamlanma kanıtı değildir; zorunlu temel, ürüne bağlı, ileri aşama ve teknik tercih kararları kaynak sınıfı ve Frappe yeterliliğinden bağımsızdır.",
+    "title": "Kapsam ve entegrasyon planı",
+    "summary": "Özgün 326 madde ve önceki 18 ekleme korundu; entegrasyon planına 7 ayrı boşluk eklendi. Toplam 351 madde, 49 başlık.",
+    "intro": "Frappe yeterliliği, zorunlu kapsam ve tamamlanma ayrı kararlardır. 2026-10-11 planında sekiz entegrasyon modeli zorunludur; M0–M3 teslim sırasıdır, isteğe bağlılık değildir. Genel AI/RAG/ajan kapsamı ileri aşamada kalır.",
     "filterLabel": "Geliştirme kapsamı",
     "allScopes": "Tüm kapsamlar",
     "scopeReason": "Kapsam gerekçesi",
     "decisions": "Birleştirme, aşamalandırma ve düzeltme kararları",
     "coverage": "Kaynak bölümlerinin mevcut başlıklardaki karşılığı",
-    "source": "İncelenen kaynak",
-    "unchanged": "Özgün maddeler, kimlikleri, sıraları ve değerlendirmeleri korunmuştur. Kaynaktaki 402 ifade yeni 402 gereksinim olarak aktarılmamıştır; eşleme 17 bölüm düzeyinde anlamsal incelemedir.",
+    "source": "Tarihsel ilk karşılaştırma kaynağı",
+    "unchanged": "Önceki 344 maddenin tüm alanları, kimlikleri ve sıraları korunmuştur. Tarihsel ilk karşılaştırmadaki 402 ifade 17 bölüm düzeyinde eşlenmiştir; yeni entegrasyon kararları kullanıcının sonraki kapsam talebidir.",
     "decisionLabels": {
       "merge": "Mevcut kapsamla birleştir",
       "defer": "Koşula veya ileri aşamaya bağla",

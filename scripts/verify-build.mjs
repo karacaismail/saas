@@ -94,7 +94,7 @@ for (const [name, paths] of Object.entries(groups)) {
 // Classified JSON is fetched by the browser engine. The generated snapshot keeps
 // the complete experience readable and exportable when JSON requests fail.
 // The explicit delivery-scope budget revision is recorded in docs/content-model.md.
-assert.ok(sizes.html.gzip <= 184 * 1024, 'HTML gzip budget 184 KiB');
+assert.ok(sizes.html.gzip <= 192 * 1024, 'HTML gzip budget 192 KiB');
 assert.ok(sizes.css.gzip <= 12 * 1024, 'CSS gzip budget12 KiB');
 assert.ok(sizes.js.gzip <= 24 * 1024, 'JS gzip budget24 KiB');
 assert.ok(sizes.json.gzip <= 104 * 1024, 'Content JSON gzip budget104 KiB');
