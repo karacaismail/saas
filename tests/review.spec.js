@@ -109,37 +109,32 @@ test('review remains readable with native disclosures when JavaScript is disable
   await context.close();
 });
 
-test('scope review at 320 through desktop keeps text, focus and source colors accessible', async ({
+test('scope review at 320 through desktop keeps text readable including 200% root size', async ({
   page,
-}, testInfo) => {
+}) => {
   await visit(page);
   await page.locator('#scope-review > summary').click();
   for (const width of [320, 360, 375, 390, 568, 768, 1280]) {
     await page.setViewportSize({ width, height: width === 568 ? 320 : 720 });
-    expect(
-      await page.evaluate(
-        () => document.documentElement.scrollWidth <= innerWidth,
-      ),
-    ).toBe(true);
-    expect(
-      await page
-        .locator('#scope-review')
-        .evaluate((el) =>
-          [...el.querySelectorAll('*')]
-            .filter(
-              (x) =>
-                x.childNodes.length &&
-                [...x.childNodes].some(
-                  (n) => n.nodeType === 3 && n.textContent.trim(),
-                ),
-            )
-            .every(
-              (x) =>
-                parseFloat(getComputedStyle(x).fontSize) >=
-                parseFloat(getComputedStyle(document.documentElement).fontSize),
-            ),
-        ),
-    ).toBe(true);
+    const metrics = await page.locator('#scope-review').evaluate((el) => {
+      const rootSize = parseFloat(
+        getComputedStyle(document.documentElement).fontSize,
+      );
+      return {
+        contained: document.documentElement.scrollWidth <= innerWidth,
+        readable: [...el.querySelectorAll('*')]
+          .filter(
+            (x) =>
+              x.childNodes.length &&
+              [...x.childNodes].some(
+                (n) => n.nodeType === 3 && n.textContent.trim(),
+              ),
+          )
+          .every((x) => parseFloat(getComputedStyle(x).fontSize) >= rootSize),
+      };
+    });
+    expect(metrics.contained).toBe(true);
+    expect(metrics.readable).toBe(true);
   }
   await page.setViewportSize({ width: 320, height: 480 });
   await page.evaluate(() => (document.documentElement.style.fontSize = '200%'));
@@ -157,8 +152,14 @@ test('scope review at 320 through desktop keeps text, focus and source colors ac
         ),
       ),
   ).toBe(true);
-  await page.evaluate(() => (document.documentElement.style.fontSize = ''));
+});
+
+test('scope review keyboard focus and accessible content at 320px', async ({
+  page,
+}, testInfo) => {
   await page.setViewportSize({ width: 320, height: 568 });
+  await visit(page);
+  await page.locator('#scope-review > summary').click();
   const summary = page.locator('#scope-review > summary');
   await summary.focus();
   await page.keyboard.press('Tab');
