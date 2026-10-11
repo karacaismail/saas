@@ -26,6 +26,8 @@ Uygulayıcı değişen dosyaları, korunacak sözleşmeyi, olası hatayı ve onu
 
 Geliştirme planı için beş Node kontrolü ve üç yeni tarayıcı yolculuğu ayrılmıştır: veri/şema koruması;320px accordion ve klavye; gerçek JSON/Markdown export; JSON-hatası fallback ve print durumunun geri yüklenmesi. Üç motor bu üç yolculuğu tekrar kullanır; dokuz çalıştırma, dokuz ayrı özellik değildir. Önceki234 temel tarayıcı senaryosu237 olur; altı mevcut proje toplam714 toplama kaydı üretir. Mevcut Node toplamı için üst sınır75'tir. Bu sayılar hedef değil üst sınırlardır.
 
+Yedi genişlik ve200% yazı kontrolü ilk yolculukta; aynı320px plan DOM'unun axe taraması, PNG kanıtı ve madde bağlantısı daha kısa olan mevcut fallback/print yolculuğundadır. Aynı kabul koşullarını süre sınırı içinde dağıtmak yeni senaryo veya gevşetilmiş assertion gerektirmez.
+
 ## Kilitler ve değişiklik usulü
 
 `npm run test:policy`, `test-policy.json` sınırlarını gerçek Playwright toplama çıktısına uygular; tarayıcı açmaz ve test gövdesi çalıştırmaz. Proje matrisi, genişletilmiş vaka sayısı, timeout45s, expect6s, retry0, repeatEach1, varsayılan worker3 ve trace retain-on-failure korunur. CI Firefox ve üç dokunma/hibrit projesinin ortak input adımı worker1 kullanır; kaynak paylaşımı sınırlanır, vaka sayısı değişmez. `npm run check` bu kilidi çalıştırır; guard ayrıca workflow içinde tek ortak check, source→verify→deploy kapılarını ve input adımının tek worker sınırını denetler. Node75 sınırı gerçek Node sonuç özetiyle incelemede kontrol edilir; bu script Node senaryolarını statik tahmin etmez.

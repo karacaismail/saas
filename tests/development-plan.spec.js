@@ -77,7 +77,9 @@ test('plan disclosure is readable from320, keyboard operated and independent of 
     [768, 1024],
     [1280, 900],
   ]) {
-    await page.setViewportSize({ width, height });
+    // visit() already establishes320x568 before the keyboard journey.
+    if (width !== 320 || height !== 568)
+      await page.setViewportSize({ width, height });
     const geometry = await page.evaluate(() => {
       const element = document.querySelector('#development-plan');
       const root = parseFloat(
@@ -113,28 +115,6 @@ test('plan disclosure is readable from320, keyboard operated and independent of 
       }
     }),
   ).toBe(true);
-  const violations = (
-    await new AxeBuilder({ page }).include('#development-plan').analyze()
-  ).violations;
-  expect(violations).toEqual([]);
-  await second.locator(':scope > summary').scrollIntoViewIfNeeded();
-  await testInfo.attach('development-plan320', {
-    body: await page.screenshot(),
-    contentType: 'image/png',
-  });
-  const assignment = second.locator('[data-plan-item]').first();
-  const id = await page.evaluate(
-    (unitId) =>
-      document
-        .getElementById(unitId)
-        .querySelector('[data-plan-item]')
-        ?.getAttribute('data-plan-item'),
-    `plan-unit-${source.units[1].id}`,
-  );
-  if (id !== undefined) {
-    await assignment.click();
-    await expect(page.locator(`#feature-${id}`)).toBeVisible();
-  }
 });
 
 test('real checkbox selections export exact plan allocations and closed dependency context in JSON and Markdown', async ({
@@ -180,7 +160,7 @@ test('real checkbox selections export exact plan allocations and closed dependen
 
 test('failed plan JSON retains the complete fallback and repeated printing restores all native disclosure states', async ({
   page,
-}) => {
+}, testInfo) => {
   await page.route('**/data/development-plan.json', (route) => route.abort());
   await visit(page, 'fallback');
   await page.locator('#context-details > summary').click();
@@ -209,4 +189,33 @@ test('failed plan JSON retains the complete fallback and repeated printing resto
   expect(states.twice).toEqual(states.once);
   expect(states.after).toEqual(states.before);
   await expect(page.locator('[data-plan-item]')).toHaveCount(387);
+  // JSON success preserves this same generated DOM. Keep the identical320px
+  // accessibility state in this shorter journey instead of the resize journey.
+  const source = await planSource();
+  const second = page.locator(`#plan-unit-${source.units[1].id}`);
+  await second.locator(':scope > summary').focus();
+  await page.keyboard.press('Enter');
+  await expect(second).toHaveAttribute('open');
+  const violations = (
+    await new AxeBuilder({ page }).include('#development-plan').analyze()
+  ).violations;
+  expect(violations).toEqual([]);
+  await second.locator(':scope > summary').scrollIntoViewIfNeeded();
+  await testInfo.attach('development-plan320', {
+    body: await page.screenshot(),
+    contentType: 'image/png',
+  });
+  const assignment = second.locator('[data-plan-item]').first();
+  const id = await page.evaluate(
+    (unitId) =>
+      document
+        .getElementById(unitId)
+        .querySelector('[data-plan-item]')
+        ?.getAttribute('data-plan-item'),
+    `plan-unit-${source.units[1].id}`,
+  );
+  if (id !== undefined) {
+    await assignment.click();
+    await expect(page.locator(`#feature-${id}`)).toBeVisible();
+  }
 });
