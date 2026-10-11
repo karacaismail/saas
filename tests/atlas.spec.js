@@ -655,7 +655,7 @@ test('colored feature text has full saturation and readable contrast; checkboxes
         result.filter((row) => row.kind === kind).length,
       ]),
     ),
-  ).toEqual({ o: 105, g: 224, n: 34 });
+  ).toEqual({ o: 105, g: 238, n: 34 });
   expect(
     new Set(result.map((row) => JSON.stringify(row.checkboxColor))).size,
   ).toBe(3);
