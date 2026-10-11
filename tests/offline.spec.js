@@ -1,6 +1,8 @@
 import { test, expect } from '@playwright/test';
 import { readContentSources } from '../scripts/content-files.mjs';
 
+test.use({ viewport: { width: 320, height: 568 } });
+
 const data = await readContentSources();
 const additions = [
   'channels-10',
@@ -26,7 +28,6 @@ const byId = new Map(
   ),
 );
 const visit = async (page) => {
-  await page.setViewportSize({ width: 320, height: 568 });
   await page.goto('./');
   await expect(page.locator('body')).toHaveAttribute(
     'data-content-source',
@@ -52,21 +53,31 @@ for (const [label, ids] of additions.map((id) => [id, [id]])) {
       if ((await group.getAttribute('open')) === null)
         await group.locator(':scope > summary').click();
       const row = page.locator(`#feature-${id}`);
-      await expect(row).toHaveAttribute(
-        'data-scope',
+      const initial = await row.evaluate((el) => ({
+        scope: el.dataset.scope,
+        scopeLabel: el
+          .querySelector('.scope-label')
+          .textContent.replace(/[\u200b\u00ad]/gu, '')
+          .trim()
+          .replace(/\s+/gu, ' '),
+      }));
+      expect(initial.scope).toBe(
         id === 'channels-12' ? 'implementation' : 'required',
       );
       if (id === 'channels-12')
-        await expect(row.locator('.scope-label')).toContainText(
-          'Tarihsel alternatif',
-        );
+        expect(initial.scopeLabel).toContain('Tarihsel alternatif');
       await row.locator('.feature-label').click();
       await expect(row.locator('.feature-check')).toBeChecked();
       await row.locator('.assessment > summary').click();
-      await expect(row.locator('.assessment-note')).toHaveText(
-        item.assessment.note,
-      );
       const metrics = await row.evaluate((el) => ({
+        note: el
+          .querySelector('.assessment-note')
+          .textContent.replace(/[\u200b\u00ad]/gu, '')
+          .trim()
+          .replace(/\s+/gu, ' '),
+        openGroups: document.querySelectorAll('.group[open]').length,
+        checkedCount: document.querySelectorAll('.feature-check:checked')
+          .length,
         contained: document.documentElement.scrollWidth <= innerWidth,
         width: el.getBoundingClientRect().width,
         root: parseFloat(getComputedStyle(document.documentElement).fontSize),
@@ -79,16 +90,20 @@ for (const [label, ids] of additions.map((id) => [id, [id]])) {
           weight: parseFloat(getComputedStyle(x).fontWeight),
         })),
       }));
+      expect(metrics.note).toBe(
+        item.assessment.note
+          .replace(/[\u200b\u00ad]/gu, '')
+          .trim()
+          .replace(/\s+/gu, ' '),
+      );
+      expect(metrics.openGroups).toBe(1);
+      expect(metrics.checkedCount).toBe(ids.length);
       expect(metrics.contained).toBe(true);
       expect(metrics.width).toBeLessThanOrEqual(320);
       expect(
         metrics.text.every((x) => x.size >= metrics.root && x.weight >= 400),
       ).toBe(true);
-      await expect(page.locator('.group[open]')).toHaveCount(1);
     }
-    await expect(page.locator('.feature-check:checked')).toHaveCount(
-      ids.length,
-    );
     await testInfo.attach('offline-assessment320', {
       body: await page.screenshot(),
       contentType: 'image/png',
