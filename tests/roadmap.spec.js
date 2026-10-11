@@ -13,12 +13,21 @@ async function openFeature(page, id) {
   return row;
 }
 
-test('Frappe roadmap exposes per-item evidence and orthogonal capability/action filters at 320px', async ({
-  page,
-}, testInfo) => {
+async function visit(page) {
   await page.setViewportSize({ width: 320, height: 568 });
   await page.goto('./');
   await expect(page.locator('#search')).toBeEnabled();
+}
+
+async function openIdentityAssessment(page) {
+  await openFeature(page, 'feature-identity-1');
+  await page.locator('#feature-identity-1 .assessment > summary').click();
+}
+
+test('Frappe roadmap preserves per-item metadata, evidence and sources at 320px', async ({
+  page,
+}, testInfo) => {
+  await visit(page);
   await expect(page.locator('.assessment-tags')).toHaveCount(351);
   await expect(page.locator('.cluster').first()).toHaveAttribute(
     'id',
@@ -68,8 +77,7 @@ test('Frappe roadmap exposes per-item evidence and orthogonal capability/action 
     expect(row.actual).toEqual(row.expected);
     expect(row.note).toBe(row.expectedNote);
   });
-  await openFeature(page, 'feature-identity-1');
-  await page.locator('#feature-identity-1 .assessment > summary').click();
+  await openIdentityAssessment(page);
   await expect(page.locator('#feature-identity-1 .assessment')).toHaveAttribute(
     'open',
     '',
@@ -84,6 +92,13 @@ test('Frappe roadmap exposes per-item evidence and orthogonal capability/action 
     body: await page.locator('#feature-identity-1').screenshot(),
     contentType: 'image/png',
   });
+});
+
+test('open Frappe evidence and capability filters pass automated accessibility checks at 320px', async ({
+  page,
+}, testInfo) => {
+  await visit(page);
+  await openIdentityAssessment(page);
   await page.locator('#roadmap-filters > summary').click();
   const axe = await new AxeBuilder({ page })
     .withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'])
@@ -97,6 +112,14 @@ test('Frappe roadmap exposes per-item evidence and orthogonal capability/action 
     body: await page.locator('#roadmap-filters').screenshot(),
     contentType: 'image/png',
   });
+});
+
+test('Frappe capability and action filters preserve selection through reset at 320px', async ({
+  page,
+}, testInfo) => {
+  await visit(page);
+  await openIdentityAssessment(page);
+  await page.locator('#roadmap-filters > summary').click();
   await page.locator('button[data-support="external"]').click();
   await openFeature(page, 'feature-identity-1');
   await expect(page.locator('#feature-identity-1')).toBeVisible();

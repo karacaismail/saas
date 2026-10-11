@@ -241,9 +241,7 @@ test('support, action and owner pills have readable semantic pastels with six di
   });
 });
 
-test('long owner pills reflow at 200% root text and preserve pastel contrast during keyboard selection', async ({
-  page,
-}, testInfo) => {
+async function prepareLongOwner(page) {
   await visit(page);
   await expect(
     page.locator('.assessment-tags > [data-tag="owner"]'),
@@ -266,6 +264,13 @@ test('long owner pills reflow at 200% root text and preserve pastel contrast dur
   const owner = row.locator('.assessment-tags > [data-tag="owner"]');
   await page.addStyleTag({ content: 'html { font-size: 200% !important; }' });
   await owner.scrollIntoViewIfNeeded();
+  return { initialRoot, row, owner };
+}
+
+test('long owner pills reflow at 200% root text and preserve pastel contrast during keyboard selection', async ({
+  page,
+}, testInfo) => {
+  const { initialRoot, row, owner } = await prepareLongOwner(page);
   const state = await owner.evaluate((element) => {
     const style = getComputedStyle(element);
     const range = document.createRange();
@@ -354,17 +359,32 @@ test('long owner pills reflow at 200% root text and preserve pastel contrast dur
   expect((await row.evaluateAll(collectPaint))[0].background).toEqual(
     before.background,
   );
+});
+
+test('long owner pills preserve cleared keyboard selection and pastel geometry across 200% text boundaries', async ({
+  page,
+}) => {
+  const { row } = await prepareLongOwner(page);
+  const [before] = await row.evaluateAll(collectPaint);
+  expectSourcePaint(before);
+  const checkbox = row.locator('.feature-check');
+  await checkbox.focus();
+  await page.keyboard.press('Space');
+  await expect(checkbox).toBeChecked();
+  await page.keyboard.press('Space');
+  await expect(checkbox).not.toBeChecked();
   // At 200% root, the 16rem inventory transition is at 576 CSS px.
   for (const width of [575, 576, 577]) {
     await page.setViewportSize({ width, height: 568 });
-    const geometry = await page.evaluate(() => ({
-      pageWidth: document.documentElement.scrollWidth,
-      viewportWidth: document.documentElement.clientWidth,
-    }));
+    const [geometry, [paint]] = await Promise.all([
+      page.evaluate(() => ({
+        pageWidth: document.documentElement.scrollWidth,
+        viewportWidth: document.documentElement.clientWidth,
+      })),
+      row.evaluateAll(collectPaint),
+    ]);
     expect(geometry.pageWidth).toBeLessThanOrEqual(geometry.viewportWidth + 1);
-    await expect(checkbox).not.toBeChecked();
-    expect((await row.evaluateAll(collectPaint))[0].background).toEqual(
-      before.background,
-    );
+    expect(paint.checked).toBe(false);
+    expect(paint.background).toEqual(before.background);
   }
 });

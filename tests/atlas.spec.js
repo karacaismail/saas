@@ -231,7 +231,7 @@ test('all 351 entries have an accessible square selection control', async ({
   expect(new Set(ids).size).toBe(ids.length);
 });
 
-test('mouse labels and keyboard Space toggle only their own item and preserve selections', async ({
+test('mouse labels and keyboard Space toggle only their own item', async ({
   page,
 }) => {
   await visit(page);
@@ -240,23 +240,42 @@ test('mouse labels and keyboard Space toggle only their own item and preserve se
   const second = await openFeature(page, 'feature-tenant-2');
   await second.getByRole('checkbox').focus();
   await page.keyboard.press('Space');
+  await Promise.all([
+    expect(second.getByRole('checkbox')).toBeChecked(),
+    expect(page.locator('#selection-count')).toContainText('2'),
+  ]);
+  await page.keyboard.press('Space');
+  await Promise.all([
+    expect(second.getByRole('checkbox')).not.toBeChecked(),
+    expect(page.locator(`#${selectedIds[0]} .feature-check`)).toBeChecked(),
+  ]);
+});
+
+test('selected and keyboard-cleared items persist after reload before clearing the selection', async ({
+  page,
+}) => {
+  await visit(page);
+  await selectFeature(page, selectedIds[0]);
+  const second = await openFeature(page, 'feature-tenant-2');
+  await second.getByRole('checkbox').focus();
+  await page.keyboard.press('Space');
   await expect(second.getByRole('checkbox')).toBeChecked();
-  await expect(page.locator('#selection-count')).toContainText('2');
   await page.keyboard.press('Space');
   await expect(second.getByRole('checkbox')).not.toBeChecked();
   await page.reload();
   await expect(page.locator('#search')).toBeEnabled();
   await openFeature(page, selectedIds[0]);
-  await expect(page.locator(`#${selectedIds[0]} .feature-check`)).toBeChecked();
-  await expect(second.getByRole('checkbox')).not.toBeChecked();
-  const stored = await page.evaluate(
-    (key) => localStorage.getItem(key),
-    selectionKey,
-  );
+  const [stored] = await Promise.all([
+    page.evaluate((key) => localStorage.getItem(key), selectionKey),
+    expect(page.locator(`#${selectedIds[0]} .feature-check`)).toBeChecked(),
+    expect(second.getByRole('checkbox')).not.toBeChecked(),
+  ]);
   expect(stored).toContain(selectedIds[0].replace(/^feature-/, ''));
   await page.locator('#clear-selection').click();
-  await expect(page.locator('.feature-check:checked')).toHaveCount(0);
-  await expect(page.locator('#export-selected')).toBeDisabled();
+  await Promise.all([
+    expect(page.locator('.feature-check:checked')).toHaveCount(0),
+    expect(page.locator('#export-selected')).toBeDisabled(),
+  ]);
 });
 
 test('selected-only and select-visible respect Turkish search and classification filters', async ({
@@ -422,59 +441,85 @@ test('branded cluster disclosure uses native open state, keyboard radios and Esc
   await expect(summary).toBeFocused();
 });
 
-test('320-first journey, short landscape and breakpoint boundaries keep state, typography and contained width', async ({
-  page,
-}, testInfo) => {
-  await page.setViewportSize({ width: 320, height: 568 });
-  await visit(page);
-  await selectFeature(page, selectedIds[0]);
-  await page.locator('#search').fill('kiracı');
-  await page.locator('#search').focus();
-  for (const [width, height] of sizes) {
-    await page.setViewportSize({ width, height });
-    await expect(page.locator('#search')).toHaveValue('kiracı');
-    await expect(page.locator('#search')).toBeFocused();
-    await expect(
-      page.locator(`#${selectedIds[0]} .feature-check`),
-    ).toBeChecked();
-    const widthState = await page.evaluate(() => ({
-      viewport: document.documentElement.clientWidth,
-      page: document.documentElement.scrollWidth,
-      body: document.body.scrollWidth,
-    }));
-    expect(
-      widthState.page,
-      `${width}×${height} document width`,
-    ).toBeLessThanOrEqual(widthState.viewport + 1);
-    expect(
-      widthState.body,
-      `${width}×${height} body width`,
-    ).toBeLessThanOrEqual(widthState.viewport + 1);
-    expect(
-      await typographyFailures(page),
-      `${width}×${height} visible typography`,
-    ).toEqual([]);
-    if (
-      [320, 390, 768, 1280].includes(width) ||
-      (width === 568 && height === 320)
-    ) {
-      await attachViewport(
-        page,
-        testInfo,
-        `viewport-${width}x${height}-candidate`,
+const viewportBatches = [
+  { name: 'phones and short landscape', start: 0, end: 10 },
+  { name: 'middle breakpoint boundaries', start: 10, end: 19 },
+  { name: 'tablet and desktop boundaries', start: 19, end: sizes.length },
+];
+
+for (const { name, start, end } of viewportBatches) {
+  test(`320-first journey ${name} keeps state, typography and contained width`, async ({
+    page,
+  }, testInfo) => {
+    await page.setViewportSize({ width: 320, height: 568 });
+    await visit(page);
+    await selectFeature(page, selectedIds[0]);
+    await page.locator('#search').fill('kiracı');
+    await page.locator('#search').focus();
+    // Revisit the previous batch's last size so every original resize transition
+    // remains covered, with real input/selection state carried from 320px.
+    const batch = sizes.slice(Math.max(0, start - 1), end);
+    for (const [width, height] of batch) {
+      await page.setViewportSize({ width, height });
+      const [state, typography] = await Promise.all([
+        page.evaluate((id) => {
+          const search = document.querySelector('#search');
+          return {
+            search: search.value,
+            focused: document.activeElement === search,
+            selected: document.querySelector(`#${id} .feature-check`).checked,
+            viewport: document.documentElement.clientWidth,
+            page: document.documentElement.scrollWidth,
+            body: document.body.scrollWidth,
+          };
+        }, selectedIds[0]),
+        typographyFailures(page),
+      ]);
+      expect(state.search, `${width}×${height} search value`).toBe('kiracı');
+      expect(state.focused, `${width}×${height} search focus`).toBe(true);
+      expect(state.selected, `${width}×${height} selection`).toBe(true);
+      expect(
+        state.page,
+        `${width}×${height} document width`,
+      ).toBeLessThanOrEqual(state.viewport + 1);
+      expect(state.body, `${width}×${height} body width`).toBeLessThanOrEqual(
+        state.viewport + 1,
       );
+      expect(typography, `${width}×${height} visible typography`).toEqual([]);
+      if (
+        [320, 390, 768, 1280].includes(width) ||
+        (width === 568 && height === 320)
+      ) {
+        await attachViewport(
+          page,
+          testInfo,
+          `viewport-${width}x${height}-candidate`,
+        );
+      }
     }
-  }
-  await page.locator('#cluster-picker > summary').click();
-  expect(await typographyFailures(page)).toEqual([]);
-  await page.keyboard.press('Escape');
-  await page.locator('#toggle-original').click();
-  await page.locator('#toggle-relations').click();
-  expect(await typographyFailures(page)).toEqual([]);
-  await page.locator('#search').fill('sonuç bulunmamalı 987654321');
-  await expect(page.locator('#empty')).toBeVisible();
-  expect(await typographyFailures(page)).toEqual([]);
-});
+  });
+}
+
+for (const width of [320, 1280]) {
+  test(`320-first journey panels, source details and empty results retain readable typography at ${width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 320, height: 568 });
+    await visit(page);
+    await selectFeature(page, selectedIds[0]);
+    await page.locator('#search').fill('kiracı');
+    await page.setViewportSize({ width, height: width === 320 ? 568 : 900 });
+    await page.locator('#cluster-picker > summary').click();
+    expect(await typographyFailures(page)).toEqual([]);
+    await page.keyboard.press('Escape');
+    await page.locator('#toggle-original').click();
+    await page.locator('#toggle-relations').click();
+    expect(await typographyFailures(page)).toEqual([]);
+    await page.locator('#search').fill('sonuç bulunmamalı 987654321');
+    await expect(page.locator('#empty')).toBeVisible();
+    expect(await typographyFailures(page)).toEqual([]);
+  });
+}
 
 test('colored feature text has full saturation and readable contrast; checkboxes have distinct square borders', async ({
   page,

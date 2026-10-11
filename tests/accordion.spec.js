@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
-test('320px groups start collapsed with a native full-row accordion and rotating chevron', async ({
+test('320px collapsed groups preserve all content and pass automated accessibility checks', async ({
   page,
 }, testInfo) => {
   await page.setViewportSize({ width: 320, height: 568 });
@@ -19,6 +19,14 @@ test('320px groups start collapsed with a native full-row accordion and rotating
   });
   expect(accessibility.violations).toEqual([]);
   expect(accessibility.incomplete).toEqual([]);
+});
+
+test('320px groups use a native full-row accordion and rotating chevron with mouse and keyboard', async ({
+  page,
+}, testInfo) => {
+  await page.setViewportSize({ width: 320, height: 568 });
+  await page.goto('./');
+  await expect(page.locator('#search')).toBeEnabled();
   const group = page.locator('.group').first();
   const summary = group.locator(':scope > summary');
   await expect(summary).not.toContainText(/\b(?:Aç|Daralt)\b/);
