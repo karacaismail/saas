@@ -86,12 +86,30 @@ test('320px introduction offers an immediate inventory entry and context toggles
     .evaluateAll((rows) => rows.map((element) => element.id));
 
   await summary.click();
-  await expect(context).toHaveAttribute('open', '');
-  await expect(context.locator('#roadmap-title')).toBeVisible();
-  await expect(context.locator('.baseline')).toContainText(
+  const opened = await context.evaluate((el) => {
+    const visible = (node) =>
+      Boolean(
+        node.getBoundingClientRect().width &&
+        node.getBoundingClientRect().height &&
+        node.checkVisibility() &&
+        getComputedStyle(node).visibility === 'visible',
+      );
+    return {
+      open: el.open,
+      title: visible(el.querySelector('#roadmap-title')),
+      baseline: el
+        .querySelector('.baseline')
+        .textContent.replace(/\s+/gu, ' ')
+        .trim(),
+      overview: visible(el.querySelector('.support-overview')),
+    };
+  });
+  expect(opened.open).toBe(true);
+  expect(opened.title).toBe(true);
+  expect(opened.baseline).toContain(
     'Hedef Frappe ve Keycloak sürümü seçilmedi',
   );
-  await expect(context.locator('.support-overview')).toBeVisible();
+  expect(opened.overview).toBe(true);
   const guide = context.locator('.roadmap-guide');
   await guide.locator(':scope > summary').click();
   await expect(guide.locator('.note-body')).toBeVisible();
@@ -268,44 +286,78 @@ test('print lifecycle reveals technical context and restores disclosure and sele
   await expect(group).toHaveAttribute('open', '');
   await group.locator(':scope > summary').click();
   await expectClosed(group);
-  const previousGroups = await page
-    .locator('details.group')
-    .evaluateAll((groups) =>
-      groups.map((element) => ({
-        id: element.id,
-        open: element.getAttribute('open'),
-      })),
-    );
-  const previousVisibleIds = await page
-    .locator('.feature:visible')
-    .evaluateAll((rows) => rows.map((element) => element.id));
+  const previous = await page.evaluate(() => ({
+    groups: [...document.querySelectorAll('details.group')].map((element) => ({
+      id: element.id,
+      open: element.getAttribute('open'),
+    })),
+    visibleIds: [...document.querySelectorAll('.feature')]
+      .filter(
+        (element) =>
+          element.getBoundingClientRect().width > 0 &&
+          element.getBoundingClientRect().height > 0 &&
+          element.checkVisibility() &&
+          getComputedStyle(element).visibility === 'visible',
+      )
+      .map((element) => element.id),
+  }));
 
-  // Exercise application event handlers, without claiming a physical print dialog.
-  await page.evaluate(() => window.dispatchEvent(new Event('beforeprint')));
-  await expect(context).toHaveAttribute('open', '');
-  await expect(context.locator('.baseline')).toBeVisible();
-  await expect(page.locator('details.group:not([open])')).toHaveCount(0);
-  await page.evaluate(() => window.dispatchEvent(new Event('beforeprint')));
-  await expect(context).toHaveAttribute('open', '');
-  await expect(page.locator('details.group:not([open])')).toHaveCount(0);
-  await page.evaluate(() => window.dispatchEvent(new Event('afterprint')));
-
-  await expectClosed(context);
-  expect(
-    await page.locator('details.group').evaluateAll((groups) =>
-      groups.map((element) => ({
-        id: element.id,
-        open: element.getAttribute('open'),
-      })),
-    ),
-  ).toEqual(previousGroups);
-  await expect(group).not.toHaveAttribute('open');
-  await expect(page.locator('#search')).toHaveValue('kiracı');
-  await expect(row.locator('.feature-check')).toBeChecked();
-  await expect(page.locator('#export-selected')).toBeEnabled();
-  expect(
-    await page
-      .locator('.feature:visible')
-      .evaluateAll((rows) => rows.map((element) => element.id)),
-  ).toEqual(previousVisibleIds);
+  // Event handlers remain synchronous; read each preparation before the next event.
+  const prepared = await page.evaluate(() => {
+    window.dispatchEvent(new Event('beforeprint'));
+    const context = document.querySelector('#context-details');
+    const baseline = context.querySelector('.baseline');
+    return {
+      open: context.open,
+      baseline: Boolean(
+        baseline.getBoundingClientRect().width &&
+        baseline.getBoundingClientRect().height &&
+        baseline.checkVisibility() &&
+        getComputedStyle(baseline).visibility === 'visible',
+      ),
+      closed: document.querySelectorAll('details.group:not([open])').length,
+    };
+  });
+  expect(prepared.open).toBe(true);
+  expect(prepared.baseline).toBe(true);
+  expect(prepared.closed).toBe(0);
+  const repeated = await page.evaluate(() => {
+    window.dispatchEvent(new Event('beforeprint'));
+    return {
+      open: document.querySelector('#context-details').open,
+      closed: document.querySelectorAll('details.group:not([open])').length,
+    };
+  });
+  expect(repeated.open).toBe(true);
+  expect(repeated.closed).toBe(0);
+  const restored = await page.evaluate(() => {
+    window.dispatchEvent(new Event('afterprint'));
+    return {
+      contextOpen: document.querySelector('#context-details').open,
+      groups: [...document.querySelectorAll('details.group')].map(
+        (element) => ({ id: element.id, open: element.getAttribute('open') }),
+      ),
+      groupOpen: document.querySelector('#group-tenant').open,
+      search: document.querySelector('#search').value,
+      checked: document.querySelector('#feature-tenant-1 .feature-check')
+        .checked,
+      exportDisabled: document.querySelector('#export-selected').disabled,
+      visibleIds: [...document.querySelectorAll('.feature')]
+        .filter(
+          (element) =>
+            element.getBoundingClientRect().width > 0 &&
+            element.getBoundingClientRect().height > 0 &&
+            element.checkVisibility() &&
+            getComputedStyle(element).visibility === 'visible',
+        )
+        .map((element) => element.id),
+    };
+  });
+  expect(restored.contextOpen).toBe(false);
+  expect(restored.groups).toEqual(previous.groups);
+  expect(restored.groupOpen).toBe(false);
+  expect(restored.search).toBe('kiracı');
+  expect(restored.checked).toBe(true);
+  expect(restored.exportDisabled).toBe(false);
+  expect(restored.visibleIds).toEqual(previous.visibleIds);
 });

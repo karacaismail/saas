@@ -1,11 +1,32 @@
 import { test, expect } from '@playwright/test';
 
-async function visit(page) {
+async function visit(page, longOwner = false) {
   await page.setViewportSize({ width: 320, height: 568 });
   await page.goto('./');
-  await expect(page.locator('.feature')).toHaveCount(387);
   await expect(page.locator('#search')).toBeEnabled();
-  await page.evaluate(() => document.fonts.ready);
+  const state = await page.evaluate(async (includeOwner) => {
+    await document.fonts.ready;
+    const count = document.querySelectorAll('.feature').length;
+    if (!includeOwner) return { count };
+    const owners = [
+      ...document.querySelectorAll('.assessment-tags > [data-tag="owner"]'),
+    ];
+    return {
+      count,
+      owners: owners.length,
+      initialRoot: parseFloat(
+        getComputedStyle(document.documentElement).fontSize,
+      ),
+      id: owners
+        .sort(
+          (a, b) => b.textContent.trim().length - a.textContent.trim().length,
+        )[0]
+        .closest('.feature').id,
+      source: JSON.parse(document.querySelector('#atlas-data').textContent),
+    };
+  }, longOwner);
+  expect(state.count).toBe(387);
+  return state;
 }
 
 async function openFeature(page, id) {
@@ -21,6 +42,18 @@ async function openFeature(page, id) {
 }
 
 function collectPaint(rows, transitionWordId) {
+  const isVisible = (element) => {
+    const rect = element.getBoundingClientRect();
+    return (
+      element.checkVisibility({
+        contentVisibilityAuto: true,
+        visibilityProperty: true,
+      }) &&
+      getComputedStyle(element).visibility === 'visible' &&
+      rect.width > 0 &&
+      rect.height > 0
+    );
+  };
   const rgba = (color) => {
     const numbers = color.match(/[\d.]+/g).map(Number);
     const channels = color.startsWith('color(srgb')
@@ -75,20 +108,14 @@ function collectPaint(rows, transitionWordId) {
       border: rgba(getComputedStyle(checkbox).borderTopColor),
       fill: rgba(getComputedStyle(checkbox).backgroundColor),
       checked: checkbox.checked,
+      pageWidth: document.documentElement.scrollWidth,
+      viewportWidth: document.documentElement.clientWidth,
       contrast: contrast(text, backgroundFor(title)),
       ...(transitionWordId
         ? {
             transition: {
-              ownerVisible: row.checkVisibility({
-                contentVisibilityAuto: true,
-                visibilityProperty: true,
-              }),
-              wordVisible: document
-                .getElementById(transitionWordId)
-                .checkVisibility({
-                  contentVisibilityAuto: true,
-                  visibilityProperty: true,
-                }),
+              ownerVisible: isVisible(row),
+              wordVisible: isVisible(document.getElementById(transitionWordId)),
               openGroups: document.querySelectorAll('.group[open]').length,
             },
           }
@@ -163,8 +190,8 @@ for (const kind of ['o', 'g', 'n']) {
     const checkbox = row.locator('.feature-check');
     await expect(checkbox).not.toBeChecked();
     await row.locator('.feature-label').click();
-    await expect(checkbox).toBeChecked();
     const [selected] = await row.evaluateAll(collectPaint);
+    expect(selected.checked).toBe(true);
     expectSourcePaint(selected);
     expect(selected.background).toEqual(original.background);
     expect(selected.text).toEqual(original.text);
@@ -175,8 +202,8 @@ for (const kind of ['o', 'g', 'n']) {
     });
     await checkbox.focus();
     await page.keyboard.press('Space');
-    await expect(checkbox).not.toBeChecked();
     const [cleared] = await row.evaluateAll(collectPaint);
+    expect(cleared.checked).toBe(false);
     expectSourcePaint(cleared);
     expect(cleared.background).toEqual(original.background);
     expect(cleared.text).toEqual(original.text);
@@ -188,11 +215,11 @@ test('support, action and owner pills have readable semantic pastels with six di
   page,
 }, testInfo) => {
   await visit(page);
-  for (const tag of ['support', 'action', 'owner'])
-    await expect(
-      page.locator(`.assessment-tags > [data-tag="${tag}"]`),
-    ).toHaveCount(387);
   const rows = await page.locator('.feature').evaluateAll(collectPaint);
+  for (const tag of ['support', 'action', 'owner'])
+    expect(
+      rows.flatMap((row) => row.pills).filter((pill) => pill.tag === tag),
+    ).toHaveLength(387);
   const pills = rows.flatMap((row) => row.pills);
   expect(pills).toHaveLength(387 * 3);
   expect(new Set(pills.map((pill) => pill.tag))).toEqual(
@@ -259,29 +286,14 @@ test('support, action and owner pills have readable semantic pastels with six di
 });
 
 async function prepareLongOwner(page) {
-  await visit(page);
-  await expect(
-    page.locator('.assessment-tags > [data-tag="owner"]'),
-  ).toHaveCount(387);
-  const initialRoot = await page.evaluate(() =>
-    parseFloat(getComputedStyle(document.documentElement).fontSize),
-  );
+  const { owners, initialRoot, id, source } = await visit(page, true);
+  expect(owners).toBe(387);
   expect(initialRoot).toBeGreaterThanOrEqual(16);
-  const id = await page
-    .locator('.assessment-tags > [data-tag="owner"]')
-    .evaluateAll(
-      (owners) =>
-        [...owners]
-          .sort(
-            (a, b) => b.textContent.trim().length - a.textContent.trim().length,
-          )[0]
-          .closest('.feature').id,
-    );
   const row = await openFeature(page, id);
   const owner = row.locator('.assessment-tags > [data-tag="owner"]');
   await page.addStyleTag({ content: 'html { font-size: 200% !important; }' });
   await owner.scrollIntoViewIfNeeded();
-  return { initialRoot, row, owner, id };
+  return { initialRoot, row, owner, id, source };
 }
 
 function collectOwnerGeometry(element) {
@@ -289,6 +301,7 @@ function collectOwnerGeometry(element) {
   const range = document.createRange();
   range.selectNodeContents(element);
   return {
+    text: element.textContent,
     root: parseFloat(getComputedStyle(document.documentElement).fontSize),
     size: parseFloat(style.fontSize),
     weight: +style.fontWeight,
@@ -324,6 +337,18 @@ function expectOwnerGeometry(state, initialRoot) {
 }
 
 function collectWordLines(element, ownerId) {
+  const isVisible = (element) => {
+    const rect = element.getBoundingClientRect();
+    return (
+      element.checkVisibility({
+        contentVisibilityAuto: true,
+        visibilityProperty: true,
+      }) &&
+      getComputedStyle(element).visibility === 'visible' &&
+      rect.width > 0 &&
+      rect.height > 0
+    );
+  };
   const wordLines = [
     ['.feature-title', 'Subdomain'],
     ['.assessment > summary > span', 'Değerlendirme'],
@@ -347,14 +372,8 @@ function collectWordLines(element, ownerId) {
   });
   return {
     wordLines,
-    ownerVisible: document.getElementById(ownerId).checkVisibility({
-      contentVisibilityAuto: true,
-      visibilityProperty: true,
-    }),
-    wordVisible: element.checkVisibility({
-      contentVisibilityAuto: true,
-      visibilityProperty: true,
-    }),
+    ownerVisible: isVisible(document.getElementById(ownerId)),
+    wordVisible: isVisible(element),
     openGroups: document.querySelectorAll('.group[open]').length,
   };
 }
@@ -365,10 +384,9 @@ function collectWordLines(element, ownerId) {
 test('long owner pills reflow at 200% root text with compact readable geometry', async ({
   page,
 }, testInfo) => {
-  const { initialRoot, row, owner, id } = await prepareLongOwner(page);
+  const { initialRoot, row, owner, id, source } = await prepareLongOwner(page);
   // Approved additions may change the maximum. Verify the DOM selection against
   // canonical owner content while retaining the separate stable real-word journey.
-  const source = JSON.parse(await page.locator('#atlas-data').textContent());
   const longest = source.clusters
     .flatMap((c) =>
       c.groups.flatMap((g) =>
@@ -380,8 +398,10 @@ test('long owner pills reflow at 200% root text with compact readable geometry',
     )
     .sort((a, b) => b.owner.trim().length - a.owner.trim().length)[0];
   expect(id).toBe(`feature-${longest.id}`);
-  await expect(owner).toHaveText(longest.owner);
   const state = await owner.evaluate(collectOwnerGeometry);
+  expect(state.text.replace(/\s+/gu, ' ').trim()).toBe(
+    longest.owner.replace(/\s+/gu, ' ').trim(),
+  );
   expectOwnerGeometry(state, initialRoot);
   const [paint] = await row.evaluateAll(collectPaint);
   expectSourcePaint(paint);
@@ -442,8 +462,8 @@ test('long owner pills preserve pastel contrast during Space selection and clear
   const checkbox = row.locator('.feature-check');
   await checkbox.focus();
   await page.keyboard.press('Space');
-  await expect(checkbox).toBeChecked();
   const [selected] = await row.evaluateAll(collectPaint);
+  expect(selected.checked).toBe(true);
   expectSourcePaint(selected);
   expect(selected.background).toEqual(before.background);
   expect(selected.pills).toEqual(before.pills);
@@ -463,10 +483,9 @@ test('long owner pills preserve pastel contrast during Space selection and clear
     contentType: 'application/json',
   });
   await page.keyboard.press('Space');
-  await expect(checkbox).not.toBeChecked();
-  expect((await row.evaluateAll(collectPaint))[0].background).toEqual(
-    before.background,
-  );
+  const [cleared] = await row.evaluateAll(collectPaint);
+  expect(cleared.checked).toBe(false);
+  expect(cleared.background).toEqual(before.background);
 });
 
 test('long owner pills preserve cleared keyboard selection and pastel geometry across 200% text boundaries', async ({
@@ -484,14 +503,8 @@ test('long owner pills preserve cleared keyboard selection and pastel geometry a
   // At 200% root, the 16rem inventory transition is at 576 CSS px.
   for (const width of [575, 576, 577]) {
     await page.setViewportSize({ width, height: 568 });
-    const [geometry, [paint]] = await Promise.all([
-      page.evaluate(() => ({
-        pageWidth: document.documentElement.scrollWidth,
-        viewportWidth: document.documentElement.clientWidth,
-      })),
-      row.evaluateAll(collectPaint),
-    ]);
-    expect(geometry.pageWidth).toBeLessThanOrEqual(geometry.viewportWidth + 1);
+    const [paint] = await row.evaluateAll(collectPaint);
+    expect(paint.pageWidth).toBeLessThanOrEqual(paint.viewportWidth + 1);
     expect(paint.checked).toBe(false);
     expect(paint.background).toEqual(before.background);
   }

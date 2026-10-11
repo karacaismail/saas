@@ -21,7 +21,7 @@ test('320px collapsed groups preserve all content and pass automated accessibili
   expect(accessibility.incomplete).toEqual([]);
 });
 
-test('320px groups use a native full-row accordion and rotating chevron with mouse and keyboard', async ({
+test('320px groups use a native full-row accordion and rotating chevron with mouse', async ({
   page,
 }, testInfo) => {
   await page.setViewportSize({ width: 320, height: 568 });
@@ -29,13 +29,12 @@ test('320px groups use a native full-row accordion and rotating chevron with mou
   await expect(page.locator('#search')).toBeEnabled();
   const group = page.locator('.group').first();
   const summary = group.locator(':scope > summary');
-  await expect(summary).not.toContainText(/\b(?:Aç|Daralt)\b/);
-  await expect(summary.locator('.group-toggle')).toHaveAttribute(
-    'aria-hidden',
-    'true',
-  );
   await summary.scrollIntoViewIfNeeded();
   const closed = await summary.evaluate((element) => ({
+    text: element.textContent,
+    ariaHidden: element
+      .querySelector('.group-toggle')
+      .getAttribute('aria-hidden'),
     width: element.getBoundingClientRect().width,
     height: element.getBoundingClientRect().height,
     transform: getComputedStyle(
@@ -48,6 +47,8 @@ test('320px groups use a native full-row accordion and rotating chevron with mou
     ).transitionDuration,
     pageOverflow: document.documentElement.scrollWidth > innerWidth,
   }));
+  expect(closed.text).not.toMatch(/\b(?:Aç|Daralt)\b/);
+  expect(closed.ariaHidden).toBe('true');
   expect(closed.width).toBeGreaterThanOrEqual(44);
   expect(closed.height).toBeGreaterThanOrEqual(44);
   expect(closed.pageOverflow).toBe(false);
@@ -66,6 +67,18 @@ test('320px groups use a native full-row accordion and rotating chevron with mou
           .transform,
     ),
   ).not.toBe(closed.transform);
+});
+
+test('320px native group accordion preserves Tab traversal, Enter, Space and one keyboard focus indicator', async ({
+  page,
+}, testInfo) => {
+  await page.setViewportSize({ width: 320, height: 568 });
+  await page.goto('./');
+  await expect(page.locator('#search')).toBeEnabled();
+  const group = page.locator('.group').first();
+  const summary = group.locator(':scope > summary');
+  // Recreate the mouse-open state covered independently by the mouse scenario.
+  await summary.click();
   await summary.focus();
   await page.keyboard.press('Tab');
   await page.keyboard.press('Shift+Tab');
@@ -73,14 +86,18 @@ test('320px groups use a native full-row accordion and rotating chevron with mou
   await page.keyboard.press('Enter');
   await expect(group).not.toHaveAttribute('open');
   await page.keyboard.press('Space');
-  await expect(group).toHaveAttribute('open', '');
-  expect(
-    await summary.evaluate((element) => ({
-      focused: element.matches(':focus-visible'),
-      outline: getComputedStyle(element).outlineStyle,
-      parentOutline: getComputedStyle(element.parentElement).outlineStyle,
-    })),
-  ).toEqual({ focused: true, outline: 'solid', parentOutline: 'none' });
+  const state = await summary.evaluate((element) => ({
+    open: element.parentElement.open,
+    focused: element.matches(':focus-visible'),
+    outline: getComputedStyle(element).outlineStyle,
+    parentOutline: getComputedStyle(element.parentElement).outlineStyle,
+  }));
+  expect(state).toEqual({
+    open: true,
+    focused: true,
+    outline: 'solid',
+    parentOutline: 'none',
+  });
   await testInfo.attach('accordion-expanded-320', {
     body: await page.screenshot(),
     contentType: 'image/png',
@@ -94,19 +111,31 @@ test('collapse control follows manual toggles and never opens collapsed headings
   const bulk = page.locator('#collapse-all');
   const group = page.locator('.group').first();
   await expect(page.locator('#search')).toBeEnabled();
-  await expect(bulk).toHaveText('Tüm başlıkları daralt');
-  await expect(bulk).toBeDisabled();
+  const control = () =>
+    bulk.evaluate((element) => ({
+      text: element.textContent.replace(/\s+/gu, ' ').trim(),
+      disabled: element.disabled,
+    }));
+  expect(await control()).toEqual({
+    text: 'Tüm başlıkları daralt',
+    disabled: true,
+  });
   await group.locator(':scope > summary').click();
-  await expect(bulk).toHaveText('Tüm başlıkları daralt');
-  await expect(bulk).toBeEnabled();
+  expect(await control()).toEqual({
+    text: 'Tüm başlıkları daralt',
+    disabled: false,
+  });
   await group.locator(':scope > summary').click();
-  await expect(bulk).toBeDisabled();
+  expect((await control()).disabled).toBe(true);
   await group.locator(':scope > summary').click();
   await bulk.click();
-  await expect(page.locator('.group[open]')).toHaveCount(0);
-  await expect(bulk).toBeDisabled();
+  const collapsed = await bulk.evaluate((element) => ({
+    disabled: element.disabled,
+    open: document.querySelectorAll('.group[open]').length,
+  }));
+  expect(collapsed).toEqual({ disabled: true, open: 0 });
   await page.locator('#search').fill('no-match-accordion-987654321');
-  await expect(bulk).toBeDisabled();
+  expect((await control()).disabled).toBe(true);
 });
 
 test('search reveals matches but selection preserves manually collapsed groups', async ({
@@ -115,26 +144,41 @@ test('search reveals matches but selection preserves manually collapsed groups',
   await page.goto('./');
   await expect(page.locator('#search')).toBeEnabled();
   await page.locator('#search').fill('kiracı');
-  await expect(page.locator('.group[open]')).toHaveCount(1);
-  const firstId = await page.locator('.group[open]').getAttribute('id');
+  const matches = await page.evaluate(() => ({
+    open: document.querySelectorAll('.group[open]').length,
+    firstId: document.querySelector('.group[open]').id,
+    ids: [...document.querySelectorAll('.feature:not([hidden])')].map(
+      (element) => element.id.replace('feature-', ''),
+    ),
+  }));
+  expect(matches.open).toBe(1);
+  const { firstId, ids } = matches;
   const group = page.locator(`#${firstId}`);
   await expect(group).toHaveAttribute('open', '');
   await group.locator(':scope > summary').click();
-  await expect(group).not.toHaveAttribute('open');
-  await expect(page.locator('#select-visible')).toHaveText('Eşleşenleri seç');
-  const ids = await page
-    .locator('.feature:not([hidden])')
-    .evaluateAll((elements) =>
-      elements.map((element) => element.id.replace('feature-', '')),
-    );
+  const collapsed = await page.evaluate(
+    (id) => ({
+      open: document.getElementById(id).open,
+      selectText: document
+        .querySelector('#select-visible')
+        .textContent.replace(/\s+/gu, ' ')
+        .trim(),
+    }),
+    firstId,
+  );
+  expect(collapsed.open).toBe(false);
+  expect(collapsed.selectText).toBe('Eşleşenleri seç');
   expect(ids.length).toBeGreaterThan(1);
   await page.locator('#select-visible').click();
-  await expect(group).not.toHaveAttribute('open');
-  expect(
-    await page.evaluate(() =>
-      JSON.parse(localStorage.getItem('saas-atlas-selection-v1')),
-    ),
-  ).toEqual(ids);
+  const selected = await page.evaluate(
+    (id) => ({
+      open: document.getElementById(id).open,
+      stored: JSON.parse(localStorage.getItem('saas-atlas-selection-v1')),
+    }),
+    firstId,
+  );
+  expect(selected.open).toBe(false);
+  expect(selected.stored).toEqual(ids);
   const anotherGroup = page
     .locator(`.group:not([hidden]):not(#${firstId})`)
     .first();
@@ -143,8 +187,11 @@ test('search reveals matches but selection preserves manually collapsed groups',
     .locator('.feature:not([hidden]) .feature-check')
     .first();
   await another.uncheck();
-  await expect(group).not.toHaveAttribute('open');
-  await expect(page.locator('.group[open]')).toHaveCount(1);
+  const final = await group.evaluate((element) => ({
+    open: element.open,
+    total: document.querySelectorAll('.group[open]').length,
+  }));
+  expect(final).toEqual({ open: false, total: 1 });
 });
 
 test('direct feature links reveal only their collapsed parent and print restores mixed states', async ({

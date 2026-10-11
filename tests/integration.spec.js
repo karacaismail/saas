@@ -79,14 +79,16 @@ function readableMarkdown(value) {
 // Keep real checkbox interaction for every model separate from the download
 // fixture. CI trace snapshots of the complete atlas made the combined journey
 // exceed the unchanged 45-second test limit before reaching its first export.
-for (const [name, ids] of [
-  [
-    'webhook REST and GraphQL',
-    ['integration-5', 'integration-9', 'integration-10'],
-  ],
-  ['SOAP and XML', ['integration-11', 'integration-12']],
-  ['MCP and AI Mapping', ['integration-13', 'integration-14']],
-  ['WebSocket and file formats', ['realtime-1', 'transfer-7']],
+for (const [name, id] of [
+  ['webhook', 'integration-5'],
+  ['REST', 'integration-9'],
+  ['GraphQL', 'integration-10'],
+  ['SOAP', 'integration-11'],
+  ['XML', 'integration-12'],
+  ['MCP', 'integration-13'],
+  ['AI Mapping', 'integration-14'],
+  ['WebSocket', 'realtime-1'],
+  ['file formats', 'transfer-7'],
 ]) {
   test(`required integration models remain selectable: ${name}`, async ({
     page,
@@ -94,13 +96,11 @@ for (const [name, ids] of [
     await visit(page);
     await expect(page.locator('.feature')).toHaveCount(387);
     await expect(page.locator('.group[open]')).toHaveCount(0);
-    for (const id of ids) {
-      const item = await openItem(page, id);
-      await expect(item).toHaveAttribute('data-scope', 'required');
-      await item.locator('.feature-check').check();
-      await expect(item.locator('.feature-check')).toBeChecked();
-      await expect(page.locator('.group[open]')).toHaveCount(1);
-    }
+    const item = await openItem(page, id);
+    await expect(item).toHaveAttribute('data-scope', 'required');
+    await item.locator('.feature-check').check();
+    await expect(item.locator('.feature-check')).toBeChecked();
+    await expect(page.locator('.group[open]')).toHaveCount(1);
   });
 }
 
@@ -109,7 +109,7 @@ for (const format of ['json', 'md', 'csv']) {
     page,
   }, testInfo) => {
     // Selection seeding is limited to these independent export scenarios. The
-    // four scenarios above prove real selection of all nine records.
+    // nine scenarios above prove real selection of all nine records.
     await page.addInitScript((ids) => {
       localStorage.setItem('saas-atlas-selection-v1', JSON.stringify(ids));
     }, modelIds);

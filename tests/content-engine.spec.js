@@ -199,9 +199,7 @@ test('interface JSON supplies the page heading and technical guide disclosure co
   );
 });
 
-test('edited cluster JSON supplies visible text, assessments, search and complete selected exports', async ({
-  page,
-}) => {
+async function visitEditedCluster(page) {
   const text = 'JSON kaynağından gelen değişiklik: deneme özelliği.';
   const note = 'JSON kaynağından gelen açıklama ve kabul bilgileri korunur.';
   let edited;
@@ -218,9 +216,27 @@ test('edited cluster JSON supplies visible text, assessments, search and complet
   await visit(page);
   expect(edited).toBeDefined();
   const row = await openFirstFeature(page);
+  return { text, note, edited, row };
+}
+
+test('edited cluster JSON supplies visible text, assessments and search results', async ({
+  page,
+}) => {
+  const { text, note, row } = await visitEditedCluster(page);
   await expect(row.locator('.feature-title')).toHaveText(text);
   await row.locator('.assessment > summary').click();
   await expect(row.locator('.assessment-note')).toHaveText(note);
+  await row.locator('.feature-label').click();
+  await expect(row.locator('.feature-check')).toBeChecked();
+  await page.locator('#search').fill('deneme özelliği');
+  await expect(page.locator('.feature:not([hidden])')).toHaveCount(1);
+  await expect(row).toBeVisible();
+});
+
+test('edited cluster JSON supplies complete selected JSON exports', async ({
+  page,
+}) => {
+  const { text, edited, row } = await visitEditedCluster(page);
   await row.locator('.feature-label').click();
   await expect(row.locator('.feature-check')).toBeChecked();
   const json = JSON.parse(await downloadSelection(page, 'json'));
@@ -257,6 +273,14 @@ test('edited cluster JSON supplies visible text, assessments, search and complet
   expect(exported.text).toBe(text);
   expect(exported.assessment).toEqual(edited.item.assessment);
   if ('raw' in edited.item) expect(exported.raw).toBe(edited.item.raw);
+});
+
+test('edited cluster JSON supplies complete selected Markdown exports', async ({
+  page,
+}) => {
+  const { text, note, edited, row } = await visitEditedCluster(page);
+  await row.locator('.feature-label').click();
+  await expect(row.locator('.feature-check')).toBeChecked();
   const markdown = (await downloadSelection(page, 'md')).replace(
     /\\([\\`*_{}[\]()#+.!|~=-])/g,
     '$1',
@@ -272,9 +296,6 @@ test('edited cluster JSON supplies visible text, assessments, search and complet
     expect(markdown).toContain(source.title);
     expect(markdown).toContain(source.url);
   }
-  await page.locator('#search').fill('deneme özelliği');
-  await expect(page.locator('.feature:not([hidden])')).toHaveCount(1);
-  await expect(row).toBeVisible();
 });
 
 test('HTML-shaped JSON strings are displayed as text without creating executable elements', async ({
@@ -315,12 +336,9 @@ for (const changed of [false, true]) {
       const cluster = await response.json();
       if (changed) cluster.groups[0].items[0].text = replacement;
       enteredRoute();
-      // Keep an actual delayed response pending until native interactions are
-      // complete, so a slower CI worker cannot race the hydration assertion.
-      await Promise.all([
-        new Promise((resolve) => setTimeout(resolve, 1250)),
-        interactionReady,
-      ]);
+      // Hold the response until native interactions finish; the release barrier
+      // establishes the ordering without depending on real elapsed time.
+      await interactionReady;
       await route.fulfill({ response, json: cluster });
     });
     await page.setViewportSize({ width: 320, height: 568 });
@@ -331,11 +349,18 @@ for (const changed of [false, true]) {
     const context = page.locator('#context-details');
     await context.locator(':scope > summary').click();
     const group = page.locator('.group').first();
-    const groupId = await group.getAttribute('id');
     const summary = group.locator(':scope > summary');
     await summary.click();
-    await expect(context).toHaveAttribute('open', '');
-    await expect(group).toHaveAttribute('open', '');
+    const before = await group.evaluate((element) => ({
+      id: element.id,
+      contextOpen: document
+        .querySelector('#context-details')
+        .getAttribute('open'),
+      groupOpen: element.getAttribute('open'),
+    }));
+    const groupId = before.id;
+    expect(before.contextOpen).toBe('');
+    expect(before.groupOpen).toBe('');
     await summary.focus();
     await page.keyboard.press('Tab');
     await page.keyboard.press('Shift+Tab');
@@ -346,21 +371,25 @@ for (const changed of [false, true]) {
       'data-content-source',
       'json',
     );
-    await expect(page.locator('#search')).toBeEnabled();
-    await expect(page.locator('#context-details')).toHaveAttribute('open', '');
-    await expect(page.locator(`#${groupId}`)).toHaveAttribute('open', '');
+    const after = await page.locator(`#${groupId}`).evaluate((element) => ({
+      searchEnabled: !document.querySelector('#search').matches(':disabled'),
+      contextOpen: document
+        .querySelector('#context-details')
+        .getAttribute('open'),
+      groupOpen: element.getAttribute('open'),
+      openGroups: document.querySelectorAll('.group[open]').length,
+      title: element.querySelector('.feature-title').textContent,
+    }));
+    expect(after.searchEnabled).toBe(true);
+    expect(after.contextOpen).toBe('');
+    expect(after.groupOpen).toBe('');
     await expect(page.locator(`#${groupId} > summary`)).toBeFocused();
-    await expect(page.locator('.group[open]')).toHaveCount(1);
-    if (changed)
-      await expect(
-        page.locator(`#${groupId} .feature`).first().locator('.feature-title'),
-      ).toHaveText(replacement);
+    expect(after.openGroups).toBe(1);
+    if (changed) expect(after.title).toBe(replacement);
   });
 }
 
-test('pending changed JSON keeps JavaScript controls disabled until filters, cluster selection and CSV are ready', async ({
-  page,
-}) => {
+async function visitPendingChangedCluster(page) {
   const replacement = 'Yükleme sonrası filtrelenen ve CSV aktarılan özellik.';
   let releaseHydration;
   const interactionReady = new Promise((resolve) => {
@@ -385,36 +414,68 @@ test('pending changed JSON keeps JavaScript controls disabled until filters, clu
   await pauseBrowserClock(page);
   await page.goto('./', { waitUntil: 'domcontentloaded' });
   await requestPending;
-  await expect(page.locator('#search')).toBeDisabled();
-  await expect(page.locator('input[name="cluster"]')).toHaveCount(13);
-  await expect(page.locator('input[name="export-format"]')).toHaveCount(3);
-  await expect(page.locator('input[name="cluster"]:enabled')).toHaveCount(0);
-  await expect(page.locator('input[name="export-format"]:enabled')).toHaveCount(
-    0,
-  );
-  await expect(page.locator('button:not([disabled])')).toHaveCount(0);
-  await expect(
-    page.locator('input[name="cluster"][value="all"]'),
-  ).toBeChecked();
-  await expect(
-    page.locator('input[name="export-format"][value="json"]'),
-  ).toBeChecked();
-  await expect(
-    page.locator('input[name="cluster"][value="12"]'),
-  ).toBeDisabled();
-  await expect(
-    page.locator('input[name="export-format"][value="csv"]'),
-  ).toBeDisabled();
+  return { replacement, editedKind, releaseHydration };
+}
+
+async function releaseChangedCluster(page, releaseHydration) {
   releaseHydration();
   await expect(page.locator('body')).toHaveAttribute(
     'data-content-source',
     'json',
   );
   await expect(page.locator('#search')).toBeEnabled();
-  await expect(page.locator('input[name="cluster"]:enabled')).toHaveCount(13);
-  await expect(page.locator('input[name="export-format"]:enabled')).toHaveCount(
-    3,
-  );
+}
+
+test('pending changed JSON keeps every JavaScript control disabled until hydration completes', async ({
+  page,
+}) => {
+  const { releaseHydration } = await visitPendingChangedCluster(page);
+  const pending = await page.evaluate(() => ({
+    searchDisabled: document.querySelector('#search').matches(':disabled'),
+    clusterCount: document.querySelectorAll('input[name="cluster"]').length,
+    formatCount: document.querySelectorAll('input[name="export-format"]')
+      .length,
+    enabledClusters: document.querySelectorAll('input[name="cluster"]:enabled')
+      .length,
+    enabledFormats: document.querySelectorAll(
+      'input[name="export-format"]:enabled',
+    ).length,
+    enabledButtons: document.querySelectorAll('button:not([disabled])').length,
+    allChecked: document.querySelector('input[name="cluster"][value="all"]')
+      .checked,
+    jsonChecked: document.querySelector(
+      'input[name="export-format"][value="json"]',
+    ).checked,
+    clusterDisabled: document
+      .querySelector('input[name="cluster"][value="12"]')
+      .matches(':disabled'),
+    csvDisabled: document
+      .querySelector('input[name="export-format"][value="csv"]')
+      .matches(':disabled'),
+  }));
+  expect(pending.searchDisabled).toBe(true);
+  expect(pending.clusterCount).toBe(13);
+  expect(pending.formatCount).toBe(3);
+  expect(pending.enabledClusters).toBe(0);
+  expect(pending.enabledFormats).toBe(0);
+  expect(pending.enabledButtons).toBe(0);
+  expect(pending.allChecked).toBe(true);
+  expect(pending.jsonChecked).toBe(true);
+  expect(pending.clusterDisabled).toBe(true);
+  expect(pending.csvDisabled).toBe(true);
+  await releaseChangedCluster(page, releaseHydration);
+  const ready = await page.evaluate(() => ({
+    enabledClusters: document.querySelectorAll('input[name="cluster"]:enabled')
+      .length,
+    enabledFormats: document.querySelectorAll(
+      'input[name="export-format"]:enabled',
+    ).length,
+  }));
+  expect(ready.enabledClusters).toBe(13);
+  expect(ready.enabledFormats).toBe(3);
+});
+
+async function filterChangedCluster(page, editedKind) {
   const sourceFilter = page.locator(`.filter[data-kind="${editedKind}"]`);
   await sourceFilter.click();
   await expect(sourceFilter).toHaveAttribute('aria-pressed', 'true');
@@ -425,15 +486,18 @@ test('pending changed JSON keeps JavaScript controls disabled until filters, clu
     .locator('input[value="12"] + span')
     .innerText();
   await clusterChoice.check();
-  await expect(clusterChoice).toBeChecked();
-  await expect(
-    page.locator('input[name="cluster"][value="all"]'),
-  ).not.toBeChecked();
-  await expect(picker).not.toHaveAttribute('open');
-  await expect(page.locator('#cluster-value')).toHaveText(clusterLabel);
-  await expect(page.locator('.cluster:not([hidden])')).toHaveCount(1);
+  return { clusterLabel };
+}
+
+test('changed JSON hydration supplies working source and cluster filters with exact counts', async ({
+  page,
+}) => {
+  const { editedKind, releaseHydration } =
+    await visitPendingChangedCluster(page);
+  await releaseChangedCluster(page, releaseHydration);
+  const { clusterLabel } = await filterChangedCluster(page, editedKind);
   await expect(page.locator('#cluster-12')).toBeVisible();
-  const expected = await page
+  const filtered = await page
     .locator('#atlas-data')
     .evaluate((element, kind) => {
       const data = JSON.parse(element.textContent);
@@ -442,21 +506,50 @@ test('pending changed JSON keeps JavaScript controls disabled until filters, clu
         .flatMap((group) => group.items)
         .filter((item) => item.kind === kind);
       return {
-        items: items.length,
-        groups: cluster.groups.filter((group) =>
-          group.items.some((item) => item.kind === kind),
-        ).length,
-        total: data.clusters.flatMap((entry) =>
-          entry.groups.flatMap((group) => group.items),
-        ).length,
+        expected: {
+          items: items.length,
+          groups: cluster.groups.filter((group) =>
+            group.items.some((item) => item.kind === kind),
+          ).length,
+          total: data.clusters.flatMap((entry) =>
+            entry.groups.flatMap((group) => group.items),
+          ).length,
+        },
+        clusterChecked: document.querySelector(
+          'input[name="cluster"][value="12"]',
+        ).checked,
+        allChecked: document.querySelector('input[name="cluster"][value="all"]')
+          .checked,
+        pickerOpen: document
+          .querySelector('#cluster-picker')
+          .getAttribute('open'),
+        clusterValue: document.querySelector('#cluster-value').textContent,
+        visibleClusters: document.querySelectorAll('.cluster:not([hidden])')
+          .length,
+        visibleItems: document.querySelectorAll('.feature:not([hidden])')
+          .length,
+        status: document.querySelector('#visible-status').textContent,
       };
     }, editedKind);
-  await expect(page.locator('.feature:not([hidden])')).toHaveCount(
-    expected.items,
-  );
-  await expect(page.locator('#visible-status')).toHaveText(
+  expect(filtered.clusterChecked).toBe(true);
+  expect(filtered.allChecked).toBe(false);
+  expect(filtered.pickerOpen).toBeNull();
+  expect(filtered.clusterValue).toBe(clusterLabel);
+  expect(filtered.visibleClusters).toBe(1);
+  const { expected } = filtered;
+  expect(filtered.visibleItems).toBe(expected.items);
+  expect(filtered.status).toBe(
     `${expected.items} / ${expected.total} madde · ${expected.groups} başlık`,
   );
+});
+
+test('changed JSON hydration exports a real CSV selection under the source and cluster filters', async ({
+  page,
+}) => {
+  const { replacement, editedKind, releaseHydration } =
+    await visitPendingChangedCluster(page);
+  await releaseChangedCluster(page, releaseHydration);
+  await filterChangedCluster(page, editedKind);
   const csvChoice = page.locator('input[name="export-format"][value="csv"]');
   await csvChoice.check();
   await expect(csvChoice).toBeChecked();
@@ -555,75 +648,87 @@ const invalidMessages = [
 ];
 
 for (const { name, mutate } of invalidMessages) {
-  test(`${name} rejects runtime messages and keeps complete working fallback exports`, async ({
-    page,
-  }) => {
-    const errors = [];
-    page.on('pageerror', (error) => errors.push(error.message));
-    await page.route('**/data/messages.json', async (route) => {
-      const response = await route.fetch();
-      const messages = await response.json();
-      mutate(messages);
-      await route.fulfill({ response, json: messages });
+  for (const format of ['json', 'md']) {
+    test(`${name} rejects runtime messages and keeps a complete working fallback ${format} export`, async ({
+      page,
+    }) => {
+      const errors = [];
+      page.on('pageerror', (error) => errors.push(error.message));
+      await page.route('**/data/messages.json', async (route) => {
+        const response = await route.fetch();
+        const messages = await response.json();
+        mutate(messages);
+        await route.fulfill({ response, json: messages });
+      });
+      await visit(page, 'fallback');
+      const data = await page
+        .locator('#atlas-data')
+        .evaluate((element) => JSON.parse(element.textContent));
+      expectPreservedInventory(data.clusters, data.review);
+      const row = await openFirstFeature(page);
+      const text = await row.locator('.feature-title').textContent();
+      await row.locator('.feature-label').click();
+      await expect(row.locator('.feature-check')).toBeChecked();
+      const downloaded = await downloadSelection(page, format);
+      if (format === 'json') {
+        const json = JSON.parse(downloaded);
+        expect(json.selectedCount).toBe(1);
+        expect(
+          json.clusters.flatMap((cluster) =>
+            cluster.groups.flatMap((group) => group.items),
+          )[0].text,
+        ).toBe(text);
+      } else {
+        const markdown = downloaded.replace(
+          /\\([\\`*_{}[\]()#+.!|~=-])/g,
+          '$1',
+        );
+        expect(markdown).toContain(text);
+        expect(markdown).toContain('Frappe');
+      }
+      expect(errors).toEqual([]);
     });
-    await visit(page, 'fallback');
-    const data = await page
-      .locator('#atlas-data')
-      .evaluate((element) => JSON.parse(element.textContent));
-    expectPreservedInventory(data.clusters, data.review);
-    const row = await openFirstFeature(page);
-    const text = await row.locator('.feature-title').textContent();
-    await row.locator('.feature-label').click();
-    await expect(row.locator('.feature-check')).toBeChecked();
-    const json = JSON.parse(await downloadSelection(page, 'json'));
-    expect(json.selectedCount).toBe(1);
-    expect(
-      json.clusters.flatMap((cluster) =>
-        cluster.groups.flatMap((group) => group.items),
-      )[0].text,
-    ).toBe(text);
-    const markdown = (await downloadSelection(page, 'md')).replace(
-      /\\([\\`*_{}[\]()#+.!|~=-])/g,
-      '$1',
-    );
-    expect(markdown).toContain(text);
-    expect(markdown).toContain('Frappe');
-    expect(errors).toEqual([]);
-  });
+  }
 }
 
 for (const failure of ['network', 'malformed JSON', 'invalid schema']) {
-  test(`${failure} keeps the complete generated fallback readable with working selection exports`, async ({
-    page,
-  }) => {
-    const errors = [];
-    page.on('pageerror', (error) => errors.push(error.message));
-    await page.route('**/data/clusters/12.json', async (route) => {
-      if (failure === 'network') await route.abort('failed');
-      else
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: failure === 'malformed JSON' ? '{bad-json' : '{"groups":[]}',
-        });
+  for (const format of ['json', 'md']) {
+    test(`${failure} keeps the complete generated fallback readable with a working ${format} selection export`, async ({
+      page,
+    }) => {
+      const errors = [];
+      page.on('pageerror', (error) => errors.push(error.message));
+      await page.route('**/data/clusters/12.json', async (route) => {
+        if (failure === 'network') await route.abort('failed');
+        else
+          await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: failure === 'malformed JSON' ? '{bad-json' : '{"groups":[]}',
+          });
+      });
+      await visit(page, 'fallback');
+      const data = await page
+        .locator('#atlas-data')
+        .evaluate((element) => JSON.parse(element.textContent));
+      expectPreservedInventory(data.clusters, data.review);
+      const row = await openFirstFeature(page);
+      await expect(row.locator('.feature-title')).toBeVisible();
+      await row.locator('.feature-label').click();
+      await expect(row.locator('.feature-check')).toBeChecked();
+      const downloaded = await downloadSelection(page, format);
+      if (format === 'json') {
+        const json = JSON.parse(downloaded);
+        expect(json.selectedCount).toBe(1);
+        expect(
+          json.clusters.flatMap((cluster) =>
+            cluster.groups.flatMap((group) => group.items),
+          )[0].text,
+        ).toBe(await row.locator('.feature-title').textContent());
+      } else {
+        expect(downloaded).toContain('Frappe');
+      }
+      expect(errors).toEqual([]);
     });
-    await visit(page, 'fallback');
-    const data = await page
-      .locator('#atlas-data')
-      .evaluate((element) => JSON.parse(element.textContent));
-    expectPreservedInventory(data.clusters, data.review);
-    const row = await openFirstFeature(page);
-    await expect(row.locator('.feature-title')).toBeVisible();
-    await row.locator('.feature-label').click();
-    await expect(row.locator('.feature-check')).toBeChecked();
-    const json = JSON.parse(await downloadSelection(page, 'json'));
-    expect(json.selectedCount).toBe(1);
-    expect(
-      json.clusters.flatMap((cluster) =>
-        cluster.groups.flatMap((group) => group.items),
-      )[0].text,
-    ).toBe(await row.locator('.feature-title').textContent());
-    expect(await downloadSelection(page, 'md')).toContain('Frappe');
-    expect(errors).toEqual([]);
-  });
+  }
 }

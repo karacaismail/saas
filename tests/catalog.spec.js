@@ -83,9 +83,9 @@ const strings = (value) =>
       ? Object.values(value).flatMap(strings)
       : [];
 
-test('component catalog has all63 valid references and readable keyboard accordions at320', async ({
+test('component catalog preserves all63 references, closed defaults and readable text at320', async ({
   page,
-}, testInfo) => {
+}) => {
   const catalog = catalogModel();
   expect(catalog.sections.map((s) => [s.id, s.entries.length])).toEqual([
     ['families', 40],
@@ -94,14 +94,21 @@ test('component catalog has all63 valid references and readable keyboard accordi
   ]);
   await visit(page);
   const disclosure = page.locator('#component-catalog');
-  await expect(disclosure).not.toHaveAttribute('open');
-  await expect(page.locator('#context-details')).not.toHaveAttribute('open');
-  await expect(page.locator('#scope-review')).not.toHaveAttribute('open');
-  await disclosure.locator(':scope > summary').focus();
-  await page.keyboard.press('Enter');
-  await expect(disclosure).toHaveAttribute('open', '');
-  await expect(disclosure.locator('.catalog-entry')).toHaveCount(63);
-  await expect(disclosure.locator('.catalog-entry[open]')).toHaveCount(0);
+  const initial = await page.evaluate(() => ({
+    catalog: document.querySelector('#component-catalog').open,
+    context: document.querySelector('#context-details').open,
+    scope: document.querySelector('#scope-review').open,
+    entries: document.querySelectorAll('.catalog-entry').length,
+    opened: document.querySelectorAll('.catalog-entry[open]').length,
+  }));
+  expect(initial).toEqual({
+    catalog: false,
+    context: false,
+    scope: false,
+    entries: 63,
+    opened: 0,
+  });
+  await disclosure.locator(':scope > summary').click();
   const references = await disclosure
     .locator('.catalog-entry')
     .evaluateAll((elements) =>
@@ -123,20 +130,7 @@ test('component catalog has all63 valid references and readable keyboard accordi
   for (const entry of entriesOf(catalog))
     for (const id of entry.itemIds) expect(byId.has(id), id).toBe(true);
   const first = catalog.sections[0].entries[0];
-  const row = page.locator(`#component-${first.id}`);
-  const summary = row.locator(':scope > summary');
-  await summary.focus();
-  await page.keyboard.press('Enter');
-  await expect(row).toHaveAttribute('open', '');
-  for (const value of [
-    first.title,
-    first.description,
-    catalog.needLabels[first.need],
-    first.frappe,
-    first.work,
-    first.acceptance,
-  ])
-    await expect(row).toContainText(value);
+  await page.locator(`#component-${first.id} > summary`).click();
   const metrics = await disclosure.evaluate((el) => {
     const root = parseFloat(
       getComputedStyle(document.documentElement).fontSize,
@@ -157,12 +151,39 @@ test('component catalog has all63 valid references and readable keyboard accordi
   expect(metrics.contained).toBe(true);
   expect(metrics.count).toBeGreaterThan(63);
   expect(metrics.readable).toBe(true);
+});
+
+test('component catalog keyboard opens the family and preserves one visible focus at320', async ({
+  page,
+}, testInfo) => {
+  const catalog = catalogModel();
+  await visit(page);
+  const disclosure = page.locator('#component-catalog');
+  await disclosure.locator(':scope > summary').focus();
+  await page.keyboard.press('Enter');
+  await expect(disclosure).toHaveAttribute('open', '');
+  const first = catalog.sections[0].entries[0];
+  const row = page.locator(`#component-${first.id}`);
+  const summary = row.locator(':scope > summary');
+  await summary.focus();
+  await page.keyboard.press('Enter');
+  await expect(row).toHaveAttribute('open', '');
+  const text = await row.textContent();
+  for (const value of [
+    first.title,
+    first.description,
+    catalog.needLabels[first.need],
+    first.frappe,
+    first.work,
+    first.acceptance,
+  ])
+    expect(text).toContain(value);
   await page.keyboard.press('Tab');
   await page.keyboard.press('Shift+Tab');
-  await expect(summary).toBeFocused();
   const focus = await summary.evaluate((el) => {
     const style = getComputedStyle(el);
     return {
+      focused: document.activeElement === el,
       visible: el.matches(':focus-visible'),
       count: document.querySelectorAll(':focus-visible').length,
       outline: style.outlineStyle,
@@ -170,6 +191,7 @@ test('component catalog has all63 valid references and readable keyboard accordi
       shadow: style.boxShadow,
     };
   });
+  expect(focus.focused).toBe(true);
   expect(focus.visible).toBe(true);
   expect(focus.count).toBe(1);
   expect(focus.outline).not.toBe('none');
@@ -179,17 +201,38 @@ test('component catalog has all63 valid references and readable keyboard accordi
     body: await row.screenshot(),
     contentType: 'image/png',
   });
+});
+
+test('component catalog keyboard exclusivity and feature links preserve independent group state at320', async ({
+  page,
+}) => {
+  const catalog = catalogModel();
+  await visit(page);
+  const disclosure = page.locator('#component-catalog');
+  await disclosure.locator(':scope > summary').click();
+  const row = page.locator(`#component-${catalog.sections[0].entries[0].id}`);
+  await row.locator(':scope > summary').focus();
+  await page.keyboard.press('Enter');
+  await expect(row).toHaveAttribute('open', '');
   const next = catalog.sections[1].entries[0];
   const second = page.locator(`#component-${next.id}`);
   await second.locator(':scope > summary').focus();
   await page.keyboard.press('Enter');
+  const opened = await disclosure.evaluate((el) =>
+    [...el.querySelectorAll('.catalog-entry[open]')].map((entry) => entry.id),
+  );
+  expect(opened).toEqual([`component-${next.id}`]);
   await expect(row).not.toHaveAttribute('open');
   await expect(second).toHaveAttribute('open', '');
-  await expect(disclosure.locator('.catalog-entry[open]')).toHaveCount(1);
   await second.locator(`a[href="#feature-${next.itemIds[0]}"]`).click();
   await expect(page.locator(`#feature-${next.itemIds[0]}`)).toBeVisible();
-  await expect(page.locator('.group[open]')).toHaveCount(1);
-  await expect(disclosure.locator('.catalog-entry[open]')).toHaveCount(1);
+  const counts = await page.evaluate(() => ({
+    groups: document.querySelectorAll('.group[open]').length,
+    entries: document.querySelectorAll(
+      '#component-catalog .catalog-entry[open]',
+    ).length,
+  }));
+  expect(counts).toEqual({ groups: 1, entries: 1 });
 });
 
 test('JSON selection exports only related catalog entries and preserves the original selected feature', async ({
@@ -345,33 +388,49 @@ test('catalog JSON failure preserves the full fallback catalog and working relat
   expect(errors).toEqual([]);
 });
 
-for (const id of ['model-8', 'realtime-7', 'reports-9'])
-  test(`new component capability ${id} is selectable with complete assessment at320`, async ({
+for (const id of ['model-8', 'realtime-7', 'reports-9']) {
+  test(`new component capability ${id} has complete readable assessment at320`, async ({
     page,
   }, testInfo) => {
     const entry = byId.get(id);
     expect(entry, id).toBeTruthy();
     await visit(page);
-    const group = page.locator(`#group-${entry.group}`);
-    await group.locator(':scope > summary').click();
+    await page.locator(`#group-${entry.group} > summary`).click();
     const row = page.locator(`#feature-${id}`);
     await row.locator('.feature-label').click();
     await row.locator('.assessment > summary').click();
+    const state = await row.evaluate((el) => ({
+      checked: el.querySelector('.feature-check').checked,
+      note: el.querySelector('.assessment-note').textContent,
+      body: el.querySelector('.assessment-body').textContent,
+      groups: document.querySelectorAll('.group[open]').length,
+      contained:
+        document.documentElement.scrollWidth <= innerWidth &&
+        el.getBoundingClientRect().width <= 320,
+    }));
+    expect(state.checked).toBe(true);
+    expect(state.note.replace(/\s+/gu, ' ').trim()).toBe(
+      entry.item.assessment.note.replace(/\s+/gu, ' ').trim(),
+    );
+    expect(state.body).toContain(entry.item.assessment.acceptance);
+    expect(state.groups).toBe(1);
+    expect(state.contained).toBe(true);
+    await testInfo.attach(`${id}-assessment320`, {
+      body: await row.screenshot(),
+      contentType: 'image/png',
+    });
+  });
+
+  test(`new component capability ${id} exports its full selected assessment and catalog references`, async ({
+    page,
+  }) => {
+    const entry = byId.get(id);
+    expect(entry, id).toBeTruthy();
+    await visit(page);
+    await page.locator(`#group-${entry.group} > summary`).click();
+    const row = page.locator(`#feature-${id}`);
+    await row.locator('.feature-label').click();
     await expect(row.locator('.feature-check')).toBeChecked();
-    await expect(row.locator('.assessment-note')).toHaveText(
-      entry.item.assessment.note,
-    );
-    await expect(row.locator('.assessment-body')).toContainText(
-      entry.item.assessment.acceptance,
-    );
-    await expect(page.locator('.group[open]')).toHaveCount(1);
-    expect(
-      await row.evaluate(
-        (el) =>
-          document.documentElement.scrollWidth <= innerWidth &&
-          el.getBoundingClientRect().width <= 320,
-      ),
-    ).toBe(true);
     const payload = JSON.parse(await downloadSelection(page, 'json'));
     expect(payload.selectedCount).toBe(1);
     expect(
@@ -381,8 +440,5 @@ for (const id of ['model-8', 'realtime-7', 'reports-9'])
     expect(
       entriesOf(payload.componentCatalog).some((e) => e.itemIds.includes(id)),
     ).toBe(true);
-    await testInfo.attach(`${id}-assessment320`, {
-      body: await row.screenshot(),
-      contentType: 'image/png',
-    });
   });
+}

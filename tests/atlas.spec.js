@@ -31,11 +31,27 @@ const sizes = [
   [1280, 900],
 ];
 
-async function visit(page) {
-  await page.goto('./');
-  await expect(page.locator('.feature')).toHaveCount(387);
+async function visit(page, path = './') {
+  await page.goto(path);
   await expect(page.locator('#search')).toBeEnabled();
-  await page.evaluate(() => document.fonts.ready);
+  const count = await page.evaluate(async () => {
+    await document.fonts.ready;
+    const hashRow = location.hash.startsWith('#feature-')
+      ? document.querySelector(location.hash)
+      : null;
+    return {
+      features: document.querySelectorAll('.feature').length,
+      linkedSelection: hashRow
+        ? {
+            checked: hashRow.querySelector('.feature-check').checked,
+            open: hashRow.closest('.group').open,
+          }
+        : null,
+    };
+  });
+  expect(count.features).toBe(387);
+  if (path.startsWith('./#feature-'))
+    expect(count.linkedSelection).toEqual({ checked: true, open: true });
 }
 
 async function openFeature(page, id) {
@@ -54,6 +70,29 @@ async function selectFeature(page, id) {
   const row = await openFeature(page, id);
   await row.locator('label').first().click();
   await expect(row.getByRole('checkbox')).toBeChecked();
+  return row;
+}
+
+async function restoreSelection(page, ids) {
+  await page.addInitScript(
+    ({ key, values }) => localStorage.setItem(key, JSON.stringify(values)),
+    { key: selectionKey, values: ids.map((id) => id.replace(/^feature-/, '')) },
+  );
+}
+
+async function selectionState(page, ids = []) {
+  return page.evaluate(
+    (values) => ({
+      checked: values.map(
+        (id) => document.querySelector(`#${id} .feature-check`).checked,
+      ),
+      count: document.querySelector('#selection-count').textContent,
+      total: document.querySelectorAll('.feature-check:checked').length,
+      exportDisabled: document.querySelector('#export-selected').disabled,
+      stored: localStorage.getItem('saas-atlas-selection-v1'),
+    }),
+    ids,
+  );
 }
 
 async function exportText(page, format) {
@@ -94,8 +133,8 @@ function parseCsv(input) {
   return rows;
 }
 
-async function typographyFailures(page) {
-  return page.evaluate(() => {
+async function typographyFailures(page, selectedId = null) {
+  return page.evaluate((id) => {
     const rootSize = Number.parseFloat(
       getComputedStyle(document.documentElement).fontSize,
     );
@@ -145,8 +184,20 @@ async function typographyFailures(page) {
     document.querySelectorAll('input, textarea, select').forEach((element) => {
       if (element.getClientRects().length) inspect(element);
     });
-    return failures;
-  });
+    if (!id) return failures;
+    const search = document.querySelector('#search');
+    return {
+      typography: failures,
+      state: {
+        search: search.value,
+        focused: document.activeElement === search,
+        selected: document.querySelector(`#${id} .feature-check`).checked,
+        viewport: document.documentElement.clientWidth,
+        page: document.documentElement.scrollWidth,
+        body: document.body.scrollWidth,
+      },
+    };
+  }, selectedId);
 }
 
 async function attachViewport(page, testInfo, name) {
@@ -231,24 +282,39 @@ test('all 387 entries have an accessible square selection control', async ({
   expect(new Set(ids).size).toBe(ids.length);
 });
 
-test('mouse labels and keyboard Space toggle only their own item', async ({
-  page,
-}) => {
+test('mouse labels select only their own item', async ({ page }) => {
   await visit(page);
   await selectFeature(page, selectedIds[0]);
-  await expect(page.locator('#selection-count')).toContainText('1');
+  const state = await selectionState(page, [
+    selectedIds[0],
+    'feature-tenant-2',
+  ]);
+  expect(state.count).toContain('1');
+  expect(state.checked).toEqual([true, false]);
+});
+
+test('keyboard Space toggles only its item while preserving an existing mouse selection', async ({
+  page,
+}) => {
+  // Mouse-label coverage proves this setup independently; start this bounded
+  // keyboard scenario with the same persisted state.
+  await restoreSelection(page, [selectedIds[0]]);
+  await visit(page);
   const second = await openFeature(page, 'feature-tenant-2');
   await second.getByRole('checkbox').focus();
   await page.keyboard.press('Space');
-  await Promise.all([
-    expect(second.getByRole('checkbox')).toBeChecked(),
-    expect(page.locator('#selection-count')).toContainText('2'),
+  const selected = await selectionState(page, [
+    selectedIds[0],
+    'feature-tenant-2',
   ]);
+  expect(selected.checked[1]).toBe(true);
+  expect(selected.count).toContain('2');
   await page.keyboard.press('Space');
-  await Promise.all([
-    expect(second.getByRole('checkbox')).not.toBeChecked(),
-    expect(page.locator(`#${selectedIds[0]} .feature-check`)).toBeChecked(),
+  const cleared = await selectionState(page, [
+    selectedIds[0],
+    'feature-tenant-2',
   ]);
+  expect(cleared.checked).toEqual([true, false]);
 });
 
 test('selected and keyboard-cleared items persist after reload', async ({
@@ -259,18 +325,22 @@ test('selected and keyboard-cleared items persist after reload', async ({
   const second = await openFeature(page, 'feature-tenant-2');
   await second.getByRole('checkbox').focus();
   await page.keyboard.press('Space');
-  await expect(second.getByRole('checkbox')).toBeChecked();
+  expect((await selectionState(page, ['feature-tenant-2'])).checked).toEqual([
+    true,
+  ]);
   await page.keyboard.press('Space');
-  await expect(second.getByRole('checkbox')).not.toBeChecked();
+  expect((await selectionState(page, ['feature-tenant-2'])).checked).toEqual([
+    false,
+  ]);
   await page.reload();
   await expect(page.locator('#search')).toBeEnabled();
   await openFeature(page, selectedIds[0]);
-  const [stored] = await Promise.all([
-    page.evaluate((key) => localStorage.getItem(key), selectionKey),
-    expect(page.locator(`#${selectedIds[0]} .feature-check`)).toBeChecked(),
-    expect(second.getByRole('checkbox')).not.toBeChecked(),
+  const state = await selectionState(page, [
+    selectedIds[0],
+    'feature-tenant-2',
   ]);
-  expect(stored).toContain(selectedIds[0].replace(/^feature-/, ''));
+  expect(state.checked).toEqual([true, false]);
+  expect(state.stored).toContain(selectedIds[0].replace(/^feature-/, ''));
 });
 
 test('persisted mouse selection can be globally cleared and remains empty after reload', async ({
@@ -280,22 +350,18 @@ test('persisted mouse selection can be globally cleared and remains empty after 
   await selectFeature(page, selectedIds[0]);
   await page.reload();
   await expect(page.locator('#search')).toBeEnabled();
-  const [stored] = await Promise.all([
-    page.evaluate((key) => localStorage.getItem(key), selectionKey),
-    expect(page.locator(`#${selectedIds[0]} .feature-check`)).toBeChecked(),
-  ]);
-  expect(stored).toContain(selectedIds[0].replace(/^feature-/, ''));
+  const persisted = await selectionState(page, [selectedIds[0]]);
+  expect(persisted.checked).toEqual([true]);
+  expect(persisted.stored).toContain(selectedIds[0].replace(/^feature-/, ''));
   await page.locator('#clear-selection').click();
-  await Promise.all([
-    expect(page.locator('.feature-check:checked')).toHaveCount(0),
-    expect(page.locator('#export-selected')).toBeDisabled(),
-  ]);
+  const cleared = await selectionState(page);
+  expect(cleared.total).toBe(0);
+  expect(cleared.exportDisabled).toBe(true);
   await page.reload();
   await expect(page.locator('#search')).toBeEnabled();
-  await Promise.all([
-    expect(page.locator('.feature-check:checked')).toHaveCount(0),
-    expect(page.locator('#export-selected')).toBeDisabled(),
-  ]);
+  const reloaded = await selectionState(page);
+  expect(reloaded.total).toBe(0);
+  expect(reloaded.exportDisabled).toBe(true);
 });
 
 test('selected-only and select-visible respect Turkish search and classification filters', async ({
@@ -310,11 +376,22 @@ test('selected-only and select-visible respect Turkish search and classification
     .evaluateAll((rows) => rows.map((row) => row.id));
   expect(matchingIds.length).toBeGreaterThan(0);
   expect(matchingIds).not.toContain(selectedIds[0]);
-  await expect(page.locator('.group[open]')).toHaveCount(1);
-  const visibleIds = await page
-    .locator('.feature:visible')
-    .evaluateAll((rows) => rows.map((row) => row.id));
-  expect(visibleIds.every((id) => matchingIds.includes(id))).toBe(true);
+  const matches = await page.evaluate(() => ({
+    open: document.querySelectorAll('.group[open]').length,
+    visible: [...document.querySelectorAll('.feature')]
+      .filter((row) => {
+        const rect = row.getBoundingClientRect();
+        return (
+          rect.width > 0 &&
+          rect.height > 0 &&
+          row.checkVisibility() &&
+          getComputedStyle(row).visibility === 'visible'
+        );
+      })
+      .map((row) => row.id),
+  }));
+  expect(matches.open).toBe(1);
+  expect(matches.visible.every((id) => matchingIds.includes(id))).toBe(true);
   await page.locator('#select-visible').click();
   const checkedIds = await page
     .locator('.feature-check:checked')
@@ -324,35 +401,53 @@ test('selected-only and select-visible respect Turkish search and classification
   expect(checkedIds.sort()).toEqual([selectedIds[0], ...matchingIds].sort());
   await page.locator('#reset-all').click();
   await page.locator('#selected-only').click();
-  await expect(page.locator('#selected-only')).toHaveAttribute(
-    'aria-pressed',
-    'true',
-  );
-  await expect(page.locator('.feature:not([hidden])')).toHaveCount(
-    checkedIds.length,
-  );
-  await expect(page.locator('.group[open]')).toHaveCount(1);
+  const selectedOnly = await page.evaluate(() => ({
+    pressed: document
+      .querySelector('#selected-only')
+      .getAttribute('aria-pressed'),
+    matching: document.querySelectorAll('.feature:not([hidden])').length,
+    open: document.querySelectorAll('.group[open]').length,
+  }));
+  expect(selectedOnly).toEqual({
+    pressed: 'true',
+    matching: checkedIds.length,
+    open: 1,
+  });
   await page.locator('#clear-selection').click();
   await expect(page.locator('.feature:visible')).toHaveCount(0);
   await expect(page.locator('#empty')).toBeVisible();
 });
 
-test('JSON, CSV and Markdown export selected entries with cluster and heading hierarchy despite active filters', async ({
-  page,
-}) => {
+async function prepareFilteredExport(page, mouseSelection = false) {
+  if (!mouseSelection) await restoreSelection(page, selectedIds);
   await visit(page);
-  const expected = [];
-  for (const id of selectedIds) {
-    const row = await openFeature(page, id);
-    expected.push((await row.locator('.feature-title').innerText()).trim());
-    await selectFeature(page, id);
+  if (mouseSelection) {
+    for (const id of selectedIds) await selectFeature(page, id);
   }
-  const expectedInRoadmapOrder = [...expected].reverse();
-  const unselectedText = (
-    await page.locator('#feature-tenant-2 .feature-title').textContent()
-  ).trim();
+  const { expected, unselectedText } = await page.evaluate(
+    (ids) => ({
+      expected: ids.map((id) =>
+        document.querySelector(`#${id} .feature-title`).textContent.trim(),
+      ),
+      unselectedText: document
+        .querySelector('#feature-tenant-2 .feature-title')
+        .textContent.trim(),
+    }),
+    selectedIds,
+  );
   await page.locator('#search').fill('yedek');
   await expect(page.locator(`#${selectedIds[0]}`)).toBeHidden();
+  return {
+    expected,
+    expectedInRoadmapOrder: [...expected].reverse(),
+    unselectedText,
+  };
+}
+
+test('JSON, CSV and Markdown export: JSON selected entries with cluster and heading hierarchy despite active filters', async ({
+  page,
+}) => {
+  const { expectedInRoadmapOrder } = await prepareFilteredExport(page, true);
   const json = JSON.parse(await exportText(page, 'json'));
   expect(json.schemaVersion).toBe(3);
   expect(json.selectedCount).toBe(2);
@@ -372,7 +467,16 @@ test('JSON, CSV and Markdown export selected entries with cluster and heading hi
   expect(
     items.every((item) => ['o', 'g', 'n'].includes(item.kind) && item.label),
   ).toBeTruthy();
+});
 
+test('JSON, CSV and Markdown export: CSV matches JSON selected hierarchy and scope despite active filters', async ({
+  page,
+}) => {
+  const { expectedInRoadmapOrder } = await prepareFilteredExport(page);
+  const json = JSON.parse(await exportText(page, 'json'));
+  const items = json.clusters.flatMap((cluster) =>
+    cluster.groups.flatMap((group) => group.items),
+  );
   const csv = parseCsv(await exportText(page, 'csv'));
   expect(csv[0]).toEqual([
     'Küme kimliği',
@@ -408,7 +512,12 @@ test('JSON, CSV and Markdown export selected entries with cluster and heading hi
   expect(csv.slice(1).map((row) => row.slice(16))).toEqual(
     items.map((item) => [item.planning.label, item.planning.reason]),
   );
+});
 
+test('JSON, CSV and Markdown export: Markdown selected entries with cluster and heading hierarchy despite active filters', async ({
+  page,
+}) => {
+  const { expected, unselectedText } = await prepareFilteredExport(page);
   const markdown = await exportText(page, 'md');
   expect(markdown.match(/^## /gm)).toHaveLength(2);
   expect(markdown.match(/^### /gm)).toHaveLength(2);
@@ -421,7 +530,7 @@ test('JSON, CSV and Markdown export selected entries with cluster and heading hi
   expect(readableMarkdown).not.toContain(unselectedText);
 });
 
-test('branded cluster disclosure uses native open state, keyboard radios and Escape focus return', async ({
+test('branded cluster disclosure uses native open state and Escape focus return', async ({
   page,
 }, testInfo) => {
   await visit(page);
@@ -432,23 +541,53 @@ test('branded cluster disclosure uses native open state, keyboard radios and Esc
   await page.keyboard.press('Enter');
   await expect(picker).toHaveAttribute('open', '');
   await page.keyboard.press('Escape');
-  await expect(picker).not.toHaveAttribute('open');
-  await expect(summary).toBeFocused();
+  const escaped = await summary.evaluate((element) => ({
+    open: element.parentElement.open,
+    focused: document.activeElement === element,
+  }));
+  expect(escaped).toEqual({ open: false, focused: true });
   await page.keyboard.press('Space');
-  await expect(picker).toHaveAttribute('open', '');
-  await expect(picker.locator('input[name="cluster"]')).toHaveCount(13);
+  const reopened = await picker.evaluate((element) => ({
+    open: element.open,
+    radios: element.querySelectorAll('input[name="cluster"]').length,
+  }));
+  expect(reopened).toEqual({ open: true, radios: 13 });
   await attachViewport(page, testInfo, 'cluster-picker-open-candidate');
   await page.keyboard.press('Escape');
+});
+
+test('branded cluster disclosure preserves search and keyboard radios and Tab traversal', async ({
+  page,
+}) => {
+  await visit(page);
+  const picker = page.locator('#cluster-picker');
+  const summary = picker.locator(':scope > summary');
   await page.locator('#search').fill('kiracı');
   await summary.click();
   await picker.locator('input[name="cluster"][value="01"]').check();
-  await expect(picker).not.toHaveAttribute('open');
-  await expect(page.locator('#search')).toHaveValue('kiracı');
-  await expect(page.locator('.cluster:visible')).toHaveCount(1);
+  const selected = await picker.evaluate((element) => ({
+    open: element.open,
+    search: document.querySelector('#search').value,
+    visible: [...document.querySelectorAll('.cluster')]
+      .filter((cluster) => {
+        const rect = cluster.getBoundingClientRect();
+        return (
+          rect.width > 0 &&
+          rect.height > 0 &&
+          cluster.checkVisibility() &&
+          getComputedStyle(cluster).visibility === 'visible'
+        );
+      })
+      .map((cluster) => cluster.id),
+  }));
+  expect(selected).toEqual({
+    open: false,
+    search: 'kiracı',
+    visible: ['cluster-01'],
+  });
   await expect(page.locator('#cluster-01')).toBeVisible();
   await summary.click();
-  const first = picker.locator('input[name="cluster"][value="all"]');
-  await first.focus();
+  await picker.locator('input[name="cluster"][value="all"]').focus();
   await page.keyboard.press('ArrowDown');
   await expect(
     picker.locator('input[name="cluster"][value="12"]'),
@@ -462,9 +601,11 @@ test('branded cluster disclosure uses native open state, keyboard radios and Esc
 });
 
 const viewportBatches = [
-  { name: 'phones and short landscape', start: 0, end: 10 },
-  { name: 'middle breakpoint boundaries', start: 10, end: 19 },
-  { name: 'tablet and desktop boundaries', start: 19, end: sizes.length },
+  ...Array.from({ length: Math.ceil(sizes.length / 3) }, (_, index) => ({
+    name: `viewport segment ${index + 1}`,
+    start: index * 3,
+    end: Math.min((index + 1) * 3, sizes.length),
+  })),
 ];
 
 for (const { name, start, end } of viewportBatches) {
@@ -481,20 +622,10 @@ for (const { name, start, end } of viewportBatches) {
     const batch = sizes.slice(Math.max(0, start - 1), end);
     for (const [width, height] of batch) {
       await page.setViewportSize({ width, height });
-      const [state, typography] = await Promise.all([
-        page.evaluate((id) => {
-          const search = document.querySelector('#search');
-          return {
-            search: search.value,
-            focused: document.activeElement === search,
-            selected: document.querySelector(`#${id} .feature-check`).checked,
-            viewport: document.documentElement.clientWidth,
-            page: document.documentElement.scrollWidth,
-            body: document.body.scrollWidth,
-          };
-        }, selectedIds[0]),
-        typographyFailures(page),
-      ]);
+      const { state, typography } = await typographyFailures(
+        page,
+        selectedIds[0],
+      );
       expect(state.search, `${width}×${height} search value`).toBe('kiracı');
       expect(state.focused, `${width}×${height} search focus`).toBe(true);
       expect(state.selected, `${width}×${height} selection`).toBe(true);
@@ -521,24 +652,30 @@ for (const { name, start, end } of viewportBatches) {
 }
 
 for (const width of [320, 1280]) {
-  test(`320-first journey panels, source details and empty results retain readable typography at ${width}px`, async ({
-    page,
-  }) => {
-    await page.setViewportSize({ width: 320, height: 568 });
-    await visit(page);
-    await selectFeature(page, selectedIds[0]);
-    await page.locator('#search').fill('kiracı');
-    await page.setViewportSize({ width, height: width === 320 ? 568 : 900 });
-    await page.locator('#cluster-picker > summary').click();
-    expect(await typographyFailures(page)).toEqual([]);
-    await page.keyboard.press('Escape');
-    await page.locator('#toggle-original').click();
-    await page.locator('#toggle-relations').click();
-    expect(await typographyFailures(page)).toEqual([]);
-    await page.locator('#search').fill('sonuç bulunmamalı 987654321');
-    await expect(page.locator('#empty')).toBeVisible();
-    expect(await typographyFailures(page)).toEqual([]);
-  });
+  for (const state of ['panels', 'source details', 'empty results']) {
+    test(`320-first journey ${state} retains readable typography at ${width}px`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: 320, height: 568 });
+      await restoreSelection(page, [selectedIds[0]]);
+      await visit(page, `./#${selectedIds[0]}`);
+      await page.locator('#search').fill('kiracı');
+      await page.setViewportSize({ width, height: width === 320 ? 568 : 900 });
+      if (state === 'panels') {
+        await page.locator('#cluster-picker > summary').click();
+        expect(await typographyFailures(page)).toEqual([]);
+        await page.keyboard.press('Escape');
+      } else {
+        await page.locator('#toggle-original').click();
+        await page.locator('#toggle-relations').click();
+        if (state === 'empty results') {
+          await page.locator('#search').fill('sonuç bulunmamalı 987654321');
+          await expect(page.locator('#empty')).toBeVisible();
+        }
+        expect(await typographyFailures(page)).toEqual([]);
+      }
+    });
+  }
 }
 
 test('colored feature text has full saturation and readable contrast; checkboxes have distinct square borders', async ({
@@ -672,15 +809,14 @@ for (const kind of ['o', 'g', 'n']) {
       .first()
       .getAttribute('id');
     const row = await openFeature(page, id);
-    const checkbox = row.locator('.feature-check');
     await expect(row).toBeVisible();
-    await expect(checkbox).not.toBeChecked();
     const colors = () =>
       row.evaluate((element) => {
         const checkbox = getComputedStyle(
           element.querySelector('.feature-check'),
         );
         return {
+          checked: element.querySelector('.feature-check').checked,
           text: getComputedStyle(element.querySelector('.feature-title')).color,
           origin: getComputedStyle(element.querySelector('.origin')).color,
           border: checkbox.borderTopColor,
@@ -688,19 +824,21 @@ for (const kind of ['o', 'g', 'n']) {
         };
       });
     const empty = await colors();
+    expect(empty.checked).toBe(false);
     expect(empty.origin).toBe(empty.text);
     expect(empty.border).toBe(empty.text);
     expect(empty.fill).not.toBe(empty.text);
     await row.locator('.feature-label').click();
-    await expect(checkbox).toBeChecked();
     const selected = await colors();
+    expect(selected.checked).toBe(true);
     expect(selected.text).toBe(empty.text);
     expect(selected.origin).toBe(selected.text);
     expect(selected.border).toBe(selected.text);
     expect(selected.fill).toBe(selected.text);
     await row.locator('.feature-label').click();
-    await expect(checkbox).not.toBeChecked();
-    expect(await colors()).toEqual(empty);
+    const cleared = await colors();
+    expect(cleared.checked).toBe(false);
+    expect(cleared).toEqual(empty);
   });
 }
 
@@ -789,9 +927,9 @@ test('mouse does not frame parent sections and keyboard focus has one visible co
 test('automated WCAG checks cover default, selected and open cluster-picker states', async ({
   page,
 }, testInfo) => {
-  await visit(page);
   await page.setViewportSize({ width: 320, height: 568 });
-  await selectFeature(page, selectedIds[0]);
+  await restoreSelection(page, [selectedIds[0]]);
+  await visit(page, `./#${selectedIds[0]}`);
   await page.locator('#cluster-picker > summary').click();
   const results = await new AxeBuilder({ page })
     .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
@@ -811,7 +949,7 @@ test('automated WCAG checks cover default, selected and open cluster-picker stat
   expect(results.violations).toEqual([]);
 });
 
-test('enlarged root text and reduced motion retain the critical 320px selection flow', async ({
+test('enlarged root text and reduced motion retain the critical 320px selection flow baseline typography and reflow', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 320, height: 568 });
@@ -819,6 +957,15 @@ test('enlarged root text and reduced motion retain the critical 320px selection 
   await visit(page);
   await page.addStyleTag({ content: 'html { font-size: 125% !important; }' });
   expect(await typographyFailures(page)).toEqual([]);
+});
+
+test('enlarged root text and reduced motion retain the critical 320px selection flow selection and export', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 568 });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await visit(page);
+  await page.addStyleTag({ content: 'html { font-size: 125% !important; }' });
   await selectFeature(page, selectedIds[0]);
   await page.locator('#search').fill('kiracı');
   await page.locator('#selected-only').click();
@@ -834,9 +981,9 @@ test('enlarged root text and reduced motion retain the critical 320px selection 
   expect(json.selectedCount).toBe(1);
 });
 
-test('200% root text at 320x480 keeps all content contained and selection export operable', async ({
+test('200% root text at 320x480 keeps all content contained and selection export operable baseline typography and reflow', async ({
   page,
-}, testInfo) => {
+}) => {
   await page.setViewportSize({ width: 320, height: 480 });
   await visit(page);
   await page.addStyleTag({ content: 'html { font-size: 200% !important; }' });
@@ -864,7 +1011,14 @@ test('200% root text at 320x480 keeps all content contained and selection export
     compressedFilterLabels,
     'Filter labels retain room for whole words at 200%',
   ).toEqual([]);
+});
 
+test('200% root text at 320x480 keeps all content contained and selection export operable selection and export', async ({
+  page,
+}, testInfo) => {
+  await page.setViewportSize({ width: 320, height: 480 });
+  await visit(page);
+  await page.addStyleTag({ content: 'html { font-size: 200% !important; }' });
   await selectFeature(page, selectedIds[0]);
   await page.locator('#search').fill('kiracı');
   await page.locator('#selected-only').click();
@@ -880,9 +1034,9 @@ test('200% root text at 320x480 keeps all content contained and selection export
   );
 });
 
-test('user text spacing at 320x480 preserves reflow, selection and export', async ({
+test('user text spacing at 320x480 preserves reflow, selection and export baseline typography and reflow', async ({
   page,
-}, testInfo) => {
+}) => {
   await page.setViewportSize({ width: 320, height: 480 });
   await visit(page);
   await page.addStyleTag({
@@ -897,6 +1051,23 @@ test('user text spacing at 320x480 preserves reflow, selection and export', asyn
   });
   expect(await typographyFailures(page)).toEqual([]);
   await expectContainedWidth(page, 'user text spacing before filtering');
+});
+
+test('user text spacing at 320x480 preserves reflow, selection and export selection and export', async ({
+  page,
+}, testInfo) => {
+  await page.setViewportSize({ width: 320, height: 480 });
+  await visit(page);
+  await page.addStyleTag({
+    content: `
+      body, body * {
+        line-height: 1.5 !important;
+        letter-spacing: .12em !important;
+        word-spacing: .16em !important;
+      }
+      p { margin-block-end: 2em !important; }
+    `,
+  });
   await selectFeature(page, selectedIds[0]);
   await page.locator('#search').fill('kiracı');
   await page.locator('#selected-only').click();
@@ -981,13 +1152,20 @@ test('denied browser storage exports and clears in-memory selection', async ({
   expect(errors).toEqual([]);
 });
 
-test('denied browser storage forgets selection on reload and supports another export', async ({
-  page,
-}) => {
+test('denied browser storage forgets selection on reload', async ({ page }) => {
   const errors = await visitWithDeniedStorage(page);
   await selectFeature(page, selectedIds[0]);
   await page.reload();
   await expect(page.locator('.feature-check:checked')).toHaveCount(0);
+  expect(errors).toEqual([]);
+});
+
+test('denied browser storage supports another selection and export after reload', async ({
+  page,
+}) => {
+  const errors = await visitWithDeniedStorage(page);
+  await page.reload();
+  await expect(page.locator('#search')).toBeEnabled();
   await selectFeature(page, selectedIds[1]);
   expect(JSON.parse(await exportText(page, 'json')).selectedCount).toBe(1);
   expect(errors).toEqual([]);

@@ -130,22 +130,41 @@ test('Frappe capability and action filters preserve selection through reset at 3
   expect(new Set(support)).toEqual(new Set(['external']));
   await page.locator('#feature-identity-1 .feature-label').click();
   await page.locator('button[data-action="integrate"]').click();
-  await expect(page.locator('.feature:visible')).not.toHaveCount(0);
-  await expect(
-    page.locator('#feature-identity-1 .feature-check'),
-  ).toBeChecked();
+  const filtered = await page.evaluate(() => ({
+    visible: [...document.querySelectorAll('.feature')].filter(
+      (el) =>
+        el.getBoundingClientRect().width > 0 &&
+        el.getBoundingClientRect().height > 0 &&
+        el.checkVisibility() &&
+        getComputedStyle(el).visibility === 'visible',
+    ).length,
+    checked: document.querySelector('#feature-identity-1 .feature-check')
+      .checked,
+  }));
+  expect(filtered.visible).toBeGreaterThan(0);
+  expect(filtered.checked).toBe(true);
   await page.locator('#reset-all').click();
-  await expect(page.locator('.feature:not([hidden])')).toHaveCount(387);
-  await expect(page.locator('.group:visible')).toHaveCount(49);
+  const reset = await page.evaluate(() => ({
+    features: document.querySelectorAll('.feature:not([hidden])').length,
+    groups: [...document.querySelectorAll('.group')].filter(
+      (el) =>
+        el.getBoundingClientRect().width > 0 &&
+        el.getBoundingClientRect().height > 0 &&
+        el.checkVisibility() &&
+        getComputedStyle(el).visibility === 'visible',
+    ).length,
+  }));
+  expect(reset.features).toBe(387);
+  expect(reset.groups).toBe(49);
   await openFeature(page, 'feature-identity-1');
   await expect(page.locator('#feature-identity-1')).toBeVisible();
-  await expect(
-    page.locator('#feature-identity-1 .feature-check'),
-  ).toBeChecked();
   const width = await page.evaluate(() => ({
+    checked: document.querySelector('#feature-identity-1 .feature-check')
+      .checked,
     actual: document.documentElement.scrollWidth,
     viewport: document.documentElement.clientWidth,
   }));
+  expect(width.checked).toBe(true);
   expect(width.actual).toBeLessThanOrEqual(width.viewport + 1);
   await testInfo.attach('roadmap-320-end', {
     body: await page.screenshot(),

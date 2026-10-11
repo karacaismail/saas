@@ -22,6 +22,15 @@ async function visit(page) {
     'data-content-source',
     'json',
   );
+  return page.evaluate(() => ({
+    source: JSON.parse(document.querySelector('#atlas-data').textContent),
+    featureCount: document.querySelectorAll('.feature').length,
+    openGroups: document.querySelectorAll('.group[open]').length,
+    root: {
+      style: document.documentElement.style.fontSize,
+      size: parseFloat(getComputedStyle(document.documentElement).fontSize),
+    },
+  }));
 }
 
 async function openItem(page, id) {
@@ -83,16 +92,24 @@ function csvRows(source) {
 test('useful connection indicator is readable and selectable at 320 without pretending the roadmap is a running SaaS', async ({
   page,
 }, testInfo) => {
-  await visit(page);
-  await expect(page.locator('.feature')).toHaveCount(387);
-  await expect(page.locator('.group[open]')).toHaveCount(0);
+  const initial = await visit(page);
+  expect(initial.featureCount).toBe(387);
+  expect(initial.openGroups).toBe(0);
   const item = await openItem(page, 'views-11');
   await expect(item.locator('.feature-title')).toContainText(/bağlantı/i);
   await item.locator('.feature-check').check();
-  await expect(item.locator('.feature-check')).toBeChecked();
   await item.locator('.assessment > summary').click();
-  await expect(item.locator('.assessment-body')).toBeVisible();
   const metrics = await item.evaluate((el) => ({
+    title: el.querySelector('.feature-title').textContent,
+    checked: el.querySelector('.feature-check').checked,
+    bodyVisible: ((body) =>
+      body.checkVisibility() &&
+      getComputedStyle(body).visibility === 'visible' &&
+      body.getBoundingClientRect().width > 0 &&
+      body.getBoundingClientRect().height > 0)(
+      el.querySelector('.assessment-body'),
+    ),
+    openGroups: document.querySelectorAll('.group[open]').length,
     contained: document.documentElement.scrollWidth <= innerWidth,
     readable: [
       ...el.querySelectorAll('.feature-title, .scope-note, .assessment-body p'),
@@ -105,10 +122,13 @@ test('useful connection indicator is readable and selectable at 320 without pret
       getComputedStyle(el.querySelector('.feature-title')).fontWeight,
     ),
   }));
+  expect(metrics.title).toMatch(/bağlantı/i);
+  expect(metrics.checked).toBe(true);
+  expect(metrics.bodyVisible).toBe(true);
+  expect(metrics.openGroups).toBe(1);
   expect(metrics.contained).toBe(true);
   expect(metrics.readable).toBe(true);
   expect(metrics.weight).toBeGreaterThanOrEqual(400);
-  await expect(page.locator('.group[open]')).toHaveCount(1);
   await testInfo.attach('useful-connection-320', {
     body: await item.screenshot(),
     contentType: 'image/png',
@@ -122,8 +142,7 @@ for (const id of newIds) {
   test(`usefulness assessment reflow and selection survive 320 to 390 to enlarged-root 320: ${id}`, async ({
     page,
   }, testInfo) => {
-    await visit(page);
-    const source = JSON.parse(await page.locator('#atlas-data').textContent());
+    const { source, root: initialRoot } = await visit(page);
     const records = source.clusters.flatMap((cluster) =>
       cluster.groups.flatMap((group) =>
         group.items.map((item, i) => ({
@@ -142,10 +161,7 @@ for (const id of newIds) {
     await expect(item.locator('.feature-title')).toBeVisible();
     await item.locator('.feature-check').check();
     await item.locator('.assessment > summary').click();
-    await expect(item.locator('.assessment-body')).toBeVisible();
-    const baseRootSize = await page
-      .locator('html')
-      .evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
+    const baseRootSize = initialRoot.size;
     for (const [name, width, enlarge] of [
       ['320', 320, false],
       ['390', 390, false],
@@ -185,7 +201,10 @@ for (const id of newIds) {
             minimum: pill ? pillMinimum : rootSize,
             weight: parseFloat(style.fontWeight),
             visible:
-              text.getClientRects().length > 0 && style.visibility !== 'hidden',
+              text.checkVisibility() &&
+              style.visibility === 'visible' &&
+              text.getBoundingClientRect().width > 0 &&
+              text.getBoundingClientRect().height > 0,
             contained: [...text.getClientRects()].every(
               (rect) => rect.left >= 0 && rect.right <= innerWidth,
             ),
@@ -196,9 +215,20 @@ for (const id of newIds) {
           rootSize,
           pageContained: document.documentElement.scrollWidth <= innerWidth,
           itemContained: el.scrollWidth <= el.clientWidth,
-          titleVisible: title.getClientRects().length > 0,
-          bodyVisible: body.getClientRects().length > 0,
+          titleVisible:
+            title.checkVisibility() &&
+            getComputedStyle(title).visibility === 'visible' &&
+            title.getBoundingClientRect().width > 0 &&
+            title.getBoundingClientRect().height > 0,
+          bodyVisible:
+            body.checkVisibility() &&
+            getComputedStyle(body).visibility === 'visible' &&
+            body.getBoundingClientRect().width > 0 &&
+            body.getBoundingClientRect().height > 0,
           checked: el.querySelector('.feature-check').checked,
+          checkedIds: [...document.querySelectorAll('.feature-check:checked')]
+            .map((input) => input.value)
+            .sort(),
           assessmentOpen: el.querySelector('.assessment').open,
           groupOpen: el.closest('.group').open,
           openGroups: document.querySelectorAll('.group[open]').length,
@@ -270,11 +300,7 @@ for (const id of newIds) {
         contentType: 'image/png',
       });
     }
-    expect(
-      await page
-        .locator('.feature-check:checked')
-        .evaluateAll((inputs) => inputs.map((input) => input.value).sort()),
-    ).toEqual([id]);
+    expect(evidence.at(-1).metrics.checkedIds).toEqual([id]);
     await testInfo.attach(`usefulness-assessment-metrics-${id}`, {
       body: JSON.stringify(evidence, null, 2),
       contentType: 'application/json',
@@ -289,11 +315,7 @@ for (let start = 0; start < newIds.length; start += 2) {
   test(`usefulness paired selection and assessment state survive enlarged-root reset and item transition: ${ids.join(' and ')}`, async ({
     page,
   }, testInfo) => {
-    await visit(page);
-    const initialRoot = await page.locator('html').evaluate((el) => ({
-      style: el.style.fontSize,
-      size: parseFloat(getComputedStyle(el).fontSize),
-    }));
+    const { root: initialRoot } = await visit(page);
     const before = await openItem(page, ids[0]);
     await before.locator('.feature-check').check();
     await before.locator('.assessment > summary').click();
@@ -322,11 +344,20 @@ for (let start = 0; start < newIds.length; start += 2) {
           return {
             id,
             checked: el.querySelector('.feature-check').checked,
+            checkedIds: [...document.querySelectorAll('.feature-check:checked')]
+              .map((input) => input.value)
+              .sort(),
             assessmentOpen: el.querySelector('.assessment').open,
-            bodyVisible: el.querySelector('.assessment-body').checkVisibility({
-              contentVisibilityAuto: true,
-              visibilityProperty: true,
-            }),
+            bodyVisible: ((body) =>
+              body.checkVisibility({
+                contentVisibilityAuto: true,
+                visibilityProperty: true,
+              }) &&
+              getComputedStyle(body).visibility === 'visible' &&
+              body.getBoundingClientRect().width > 0 &&
+              body.getBoundingClientRect().height > 0)(
+              el.querySelector('.assessment-body'),
+            ),
             groupOpen: el.closest('.group').open,
           };
         }),
@@ -362,18 +393,18 @@ for (const [name, start, end] of [
   test(`usefulness decisions retain categorized benefit and working item links at 320: ${name}`, async ({
     page,
   }, testInfo) => {
-    await visit(page);
-    const source = JSON.parse(await page.locator('#atlas-data').textContent());
+    const { source } = await visit(page);
     const all = source.review.decisions;
     const useful = all.filter((decision) => decision.id.startsWith('useful-'));
     expect(useful).toHaveLength(25);
     const expected = useful.slice(start, end);
     await page.locator('#scope-review > summary').click();
     const list = page.locator('.review-decisions > li');
-    await expect(list).toHaveCount(109);
-    const actual = await list.evaluateAll(
-      (elements, range) =>
-        elements.slice(range[0], range[1]).map((el) => ({
+    const observed = await list.evaluateAll(
+      (elements, range) => ({
+        count: elements.length,
+        contained: document.documentElement.scrollWidth <= innerWidth,
+        actual: elements.slice(range[0], range[1]).map((el) => ({
           text: el.textContent,
           links: [...el.querySelectorAll('a')].map((link) => ({
             href: link.getAttribute('href'),
@@ -385,8 +416,12 @@ for (const [name, start, end] of [
               parseFloat(getComputedStyle(document.documentElement).fontSize),
           ),
         })),
+      }),
       [53 + start, 53 + end],
     );
+    expect(observed.count).toBe(109);
+    expect(observed.contained).toBe(true);
+    const { actual } = observed;
     expect(actual).toHaveLength(expected.length);
     for (const [i, decision] of expected.entries()) {
       expect(actual[i].text).toContain(decision.title);
@@ -398,11 +433,6 @@ for (const [name, start, end] of [
       );
       expect(actual[i].readable).toBe(true);
     }
-    expect(
-      await page.evaluate(
-        () => document.documentElement.scrollWidth <= innerWidth,
-      ),
-    ).toBe(true);
     const destination = expected[0].itemIds[0];
     await list
       .nth(53 + start)
@@ -430,8 +460,7 @@ for (const format of ['json', 'md', 'csv']) {
         localStorage.setItem('saas-atlas-selection-v1', JSON.stringify(ids)),
       newIds,
     );
-    await visit(page);
-    const source = JSON.parse(await page.locator('#atlas-data').textContent());
+    const { source } = await visit(page);
     const expected = source.clusters.flatMap((c) =>
       c.groups.flatMap((g) =>
         g.items.flatMap((item, i) => {

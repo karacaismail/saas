@@ -26,7 +26,16 @@ jobs:
       - run: npm run check
       - run: npm run build
       - run: npx playwright install --with-deps chromium firefox webkit
-      - run: npm run test:browser -- --shard=${{ matrix.shard }}/3
+      - name: Verify each browser shard
+        env:
+          ATLAS_SHARD: ${{ matrix.shard }}
+        run: |
+          for browser in chromium firefox webkit; do
+            PLAYWRIGHT_HTML_REPORT="playwright-report/$browser" npm run test:browser -- --project="$browser" --shard="$ATLAS_SHARD/3" --output="test-results/$browser"
+          done
+          if [ "$ATLAS_SHARD" = "1" ]; then
+            PLAYWRIGHT_HTML_REPORT=playwright-report/input npm run test:browser -- --project=chromium-touch --project=webkit-touch --project=chromium-hybrid --output=test-results/input
+          fi
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:

@@ -64,21 +64,25 @@ for (const id of additions)
     const group = page.locator(`#group-${entry.group}`);
     await group.locator(':scope > summary').focus();
     await page.keyboard.press('Enter');
-    await expect(previous).not.toHaveAttribute('open');
-    await expect(group).toHaveAttribute('open', '');
-    await expect(page.locator('.group[open]')).toHaveCount(1);
+    const opened = await page
+      .locator('.group[open]')
+      .evaluateAll((groups) => groups.map((el) => el.id));
+    expect(opened).toEqual([`group-${entry.group}`]);
+    expect(opened).not.toContain('group-tenant');
     const row = page.locator(`#feature-${id}`);
     await row.locator('.feature-label').click();
-    await expect(row.locator('.feature-check')).toBeChecked();
     const summary = row.locator('.assessment > summary');
     await summary.click();
-    await expect(row.locator('.assessment-note')).toHaveText(
-      entry.item.assessment.note,
-    );
-    await expect(row.locator('.assessment-body')).toContainText(
-      entry.item.assessment.acceptance,
-    );
     const metrics = await row.evaluate((el) => ({
+      checked: el.querySelector('.feature-check').checked,
+      note: el
+        .querySelector('.assessment-note')
+        .textContent.replace(/\s+/gu, ' ')
+        .trim(),
+      body: el
+        .querySelector('.assessment-body')
+        .textContent.replace(/\s+/gu, ' ')
+        .trim(),
       contained: document.documentElement.scrollWidth <= innerWidth,
       width: el.getBoundingClientRect().width,
       root: parseFloat(getComputedStyle(document.documentElement).fontSize),
@@ -91,6 +95,13 @@ for (const id of additions)
         weight: parseFloat(getComputedStyle(x).fontWeight),
       })),
     }));
+    expect(metrics.checked).toBe(true);
+    expect(metrics.note).toBe(
+      entry.item.assessment.note.replace(/\s+/gu, ' ').trim(),
+    );
+    expect(metrics.body).toContain(
+      entry.item.assessment.acceptance.replace(/\s+/gu, ' ').trim(),
+    );
     expect(metrics.contained).toBe(true);
     expect(metrics.width).toBeLessThanOrEqual(320);
     expect(metrics.text.length).toBeGreaterThan(0);
@@ -100,10 +111,11 @@ for (const id of additions)
     await summary.focus();
     await page.keyboard.press('Tab');
     await page.keyboard.press('Shift+Tab');
-    await expect(summary).toBeFocused();
     const focus = await summary.evaluate((el) => {
       const style = getComputedStyle(el);
       return {
+        focused: document.activeElement === el,
+        checked: document.querySelectorAll('.feature-check:checked').length,
         visible: el.matches(':focus-visible'),
         count: document.querySelectorAll(':focus-visible').length,
         outline: style.outlineStyle,
@@ -111,12 +123,13 @@ for (const id of additions)
         shadow: style.boxShadow,
       };
     });
+    expect(focus.focused).toBe(true);
+    expect(focus.checked).toBe(1);
     expect(focus.visible).toBe(true);
     expect(focus.count).toBe(1);
     expect(focus.outline).not.toBe('none');
     expect(focus.width).toBeGreaterThanOrEqual(2);
     expect(focus.shadow).toBe('none');
-    await expect(page.locator('.feature-check:checked')).toHaveCount(1);
     await testInfo.attach(`${id}-assessment320`, {
       body: await row.screenshot(),
       contentType: 'image/png',
@@ -207,7 +220,7 @@ for (const format of ['json', 'md', 'csv'])
     });
   });
 
-test('historical Capacitor selection visibly identifies current Tauri2 and exports its context', async ({
+test('historical Capacitor selection visibly identifies current Tauri2 and its decision note', async ({
   page,
 }, testInfo) => {
   const entry = byId.get('channels-12');
@@ -236,27 +249,48 @@ test('historical Capacitor selection visibly identifies current Tauri2 and expor
     contentType: 'image/png',
   });
   await page.locator('#scope-review > summary').click();
-  const decisions = relatedDecisions(['channels-12']);
-  const notes = relatedNotes(decisions);
-  const payload = JSON.parse(await downloadSelection(page, 'json'));
-  expect(payload.selectedCount).toBe(1);
-  const selected = payload.clusters.flatMap((c) =>
-    c.groups.flatMap((g) => g.items),
-  );
-  expect(selected.map((x) => x.id)).toEqual(['channels-12']);
-  expect(selected[0].assessment).toEqual(entry.item.assessment);
-  expect(selected[0].planning.label).toBe(
-    'Tarihsel alternatif · Güncel mobil yol Tauri 2',
-  );
-  expect(payload.review.decisions).toEqual(decisions);
-  expect(payload.review.decisionNotes).toEqual(notes);
-  const markdown = readable(await downloadSelection(page, 'md'));
-  expect(markdown).toContain(entry.item.text);
-  expect(markdown).toContain(selected[0].planning.label);
-  for (const value of Object.values(notes)) expect(markdown).toContain(value);
-  for (const [id, value] of Object.entries(data.review.decisionNotes ?? {}))
-    if (!(id in notes)) expect(markdown).not.toContain(value);
 });
+
+for (const format of ['json', 'md'])
+  test(`historical Capacitor selection exports current Tauri2 context as ${format}`, async ({
+    page,
+  }) => {
+    const entry = byId.get('channels-12');
+    expect(entry).toBeTruthy();
+    const decisions = relatedDecisions(['channels-12']);
+    const notes = relatedNotes(decisions);
+    await visit(page);
+    await page.locator('#group-channels > summary').click();
+    await page.locator('#feature-channels-12 .feature-label').click();
+    await expect(
+      page.locator('#feature-channels-12 .feature-check'),
+    ).toBeChecked();
+    const content = await downloadSelection(page, format);
+    if (format === 'json') {
+      const payload = JSON.parse(content);
+      expect(payload.selectedCount).toBe(1);
+      const selected = payload.clusters.flatMap((c) =>
+        c.groups.flatMap((g) => g.items),
+      );
+      expect(selected.map((x) => x.id)).toEqual(['channels-12']);
+      expect(selected[0].assessment).toEqual(entry.item.assessment);
+      expect(selected[0].planning.label).toBe(
+        'Tarihsel alternatif · Güncel mobil yol Tauri 2',
+      );
+      expect(payload.review.decisions).toEqual(decisions);
+      expect(payload.review.decisionNotes).toEqual(notes);
+    } else {
+      const markdown = readable(content);
+      expect(markdown).toContain(entry.item.text);
+      expect(markdown).toContain(
+        'Tarihsel alternatif · Güncel mobil yol Tauri 2',
+      );
+      for (const value of Object.values(notes))
+        expect(markdown).toContain(value);
+      for (const [id, value] of Object.entries(data.review.decisionNotes ?? {}))
+        if (!(id in notes)) expect(markdown).not.toContain(value);
+    }
+  });
 
 test('mobile additions and historical notes remain readable with native accordions without JavaScript', async ({
   browser,
