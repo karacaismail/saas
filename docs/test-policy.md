@@ -28,7 +28,7 @@ Geliştirme planı için beş Node kontrolü ve üç yeni tarayıcı yolculuğu 
 
 ## Kilitler ve değişiklik usulü
 
-`npm run test:policy`, `test-policy.json` sınırlarını gerçek Playwright toplama çıktısına uygular; tarayıcı açmaz ve test gövdesi çalıştırmaz. Proje matrisi, genişletilmiş vaka sayısı, timeout45s, expect6s, retry0, repeatEach1, varsayılan worker3 ve trace retain-on-failure korunur. CI Firefox mevcut worker1 kullanır. `npm run check` bu kilidi çalıştırır; guard ayrıca workflow içinde tek ortak check ve source→verify→deploy kapılarını denetler. Node75 sınırı gerçek Node sonuç özetiyle incelemede kontrol edilir; bu script Node senaryolarını statik tahmin etmez.
+`npm run test:policy`, `test-policy.json` sınırlarını gerçek Playwright toplama çıktısına uygular; tarayıcı açmaz ve test gövdesi çalıştırmaz. Proje matrisi, genişletilmiş vaka sayısı, timeout45s, expect6s, retry0, repeatEach1, varsayılan worker3 ve trace retain-on-failure korunur. CI Firefox ve üç dokunma/hibrit projesinin ortak input adımı worker1 kullanır; kaynak paylaşımı sınırlanır, vaka sayısı değişmez. `npm run check` bu kilidi çalıştırır; guard ayrıca workflow içinde tek ortak check, source→verify→deploy kapılarını ve input adımının tek worker sınırını denetler. Node75 sınırı gerçek Node sonuç özetiyle incelemede kontrol edilir; bu script Node senaryolarını statik tahmin etmez.
 
 AGENTS.md kuralları koşu seçimini ve tekrarı sınırlar. Script yalnız repodaki normal kontrol akışını denetler; yönerge veya script değiştirilemez bir güvenlik sınırı değildir. Başka komutla başlatılan tüm süreçleri veya gerçek cihazları denetlediği iddia edilmez.
 

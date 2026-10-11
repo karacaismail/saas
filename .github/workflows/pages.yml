@@ -48,7 +48,7 @@ jobs:
           fi
           PLAYWRIGHT_HTML_REPORT="playwright-report/$ATLAS_BROWSER" npm run test:browser -- --project="$ATLAS_BROWSER" --workers="$atlas_browser_workers" --shard="$ATLAS_SHARD/3" --output="test-results/$ATLAS_BROWSER"
           if [ "$ATLAS_BROWSER" = "chromium" ] && [ "$ATLAS_SHARD" = "1" ]; then
-            PLAYWRIGHT_HTML_REPORT=playwright-report/input npm run test:browser -- --project=chromium-touch --project=webkit-touch --project=chromium-hybrid --output=test-results/input
+            PLAYWRIGHT_HTML_REPORT=playwright-report/input npm run test:browser -- --project=chromium-touch --project=webkit-touch --project=chromium-hybrid --workers=1 --output=test-results/input
           fi
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()

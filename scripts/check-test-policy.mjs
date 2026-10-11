@@ -19,6 +19,11 @@ assert.equal(
 );
 assert.match(workflow, /^  verify:\n    needs: source\n/m);
 assert.match(workflow, /^    needs: \[source, verify\]$/m);
+assert.match(
+  workflow,
+  /--project=chromium-touch --project=webkit-touch --project=chromium-hybrid --workers=1 --output=test-results\/input/,
+  'Test policy: CI input projects must share one worker',
+);
 
 // Collection evaluates the existing test declarations; it opens no browser and
 // executes no test body. Expanded parameter cases count, assertions do not.
