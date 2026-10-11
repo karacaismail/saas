@@ -95,8 +95,11 @@ async function selectionState(page, ids = []) {
   );
 }
 
-async function exportText(page, format) {
-  await page.locator(`input[name="export-format"][value="${format}"]`).check();
+async function exportText(page, format, formatAlreadyChecked = false) {
+  if (!formatAlreadyChecked)
+    await page
+      .locator(`input[name="export-format"][value="${format}"]`)
+      .check();
   const pendingDownload = page.waitForEvent('download');
   await page.locator('#export-selected').click();
   const download = await pendingDownload;
@@ -321,25 +324,64 @@ test('selected and keyboard-cleared items persist after reload', async ({
   page,
 }) => {
   await visit(page);
-  await selectFeature(page, selectedIds[0]);
-  const second = await openFeature(page, 'feature-tenant-2');
+  const first = page.locator(`#${selectedIds[0]}`);
+  const second = page.locator('#feature-tenant-2');
+  const group = first.locator(
+    'xpath=ancestor::details[contains(@class,"group")]',
+  );
+  await group.locator(':scope > summary').click();
+  await first.locator('label').first().click();
+  const mouse = await page.evaluate((id) => {
+    const first = document.querySelector(`#${id} .feature-check`);
+    const second = document.querySelector('#feature-tenant-2 .feature-check');
+    // Record each real native change after the application has handled it.
+    // Both Space transitions remain asserted without collecting the full
+    // document between two successive keys.
+    const changes = [];
+    const record = (event) => {
+      if (event.target === second)
+        changes.push({
+          checked: second.checked,
+          focused: document.activeElement === second,
+          firstChecked: first.checked,
+        });
+    };
+    window.addEventListener('change', record);
+    window.__atlasKeyboardChanges = { changes, record };
+    return {
+      checked: [first.checked, second.checked],
+      open: first.closest('.group').open,
+    };
+  }, selectedIds[0]);
+  expect(mouse).toEqual({ checked: [true, false], open: true });
   await second.getByRole('checkbox').focus();
   await page.keyboard.press('Space');
-  expect((await selectionState(page, ['feature-tenant-2'])).checked).toEqual([
-    true,
-  ]);
   await page.keyboard.press('Space');
-  expect((await selectionState(page, ['feature-tenant-2'])).checked).toEqual([
-    false,
+  const changes = await page.evaluate(() => {
+    const observed = window.__atlasKeyboardChanges;
+    window.removeEventListener('change', observed.record);
+    delete window.__atlasKeyboardChanges;
+    return observed.changes;
+  });
+  expect(changes).toEqual([
+    { checked: true, focused: true, firstChecked: true },
+    { checked: false, focused: true, firstChecked: true },
   ]);
   await page.reload();
   await expect(page.locator('#search')).toBeEnabled();
-  await openFeature(page, selectedIds[0]);
-  const state = await selectionState(page, [
+  await group.locator(':scope > summary').click();
+  const state = await page.evaluate(
+    (id) => ({
+      checked: [id, 'feature-tenant-2'].map(
+        (itemId) => document.querySelector(`#${itemId} .feature-check`).checked,
+      ),
+      open: document.querySelector(`#${id}`).closest('.group').open,
+      stored: localStorage.getItem('saas-atlas-selection-v1'),
+    }),
     selectedIds[0],
-    'feature-tenant-2',
-  ]);
+  );
   expect(state.checked).toEqual([true, false]);
+  expect(state.open).toBe(true);
   expect(state.stored).toContain(selectedIds[0].replace(/^feature-/, ''));
 });
 
@@ -419,28 +461,79 @@ test('selected-only and select-visible respect Turkish search and classification
 });
 
 async function prepareFilteredExport(page, mouseSelection = false) {
-  if (!mouseSelection) await restoreSelection(page, selectedIds);
+  if (mouseSelection)
+    await page.addInitScript((ids) => {
+      const changes = [];
+      const record = (event) => {
+        const input = event.target;
+        const row = input.closest('.feature');
+        if (row && ids.includes(row.id))
+          changes.push({
+            id: row.id,
+            checked: input.checked,
+            open: row.closest('.group').open,
+          });
+      };
+      window.addEventListener('change', record);
+      window.__atlasMouseSelections = { changes, record };
+    }, selectedIds);
+  else await restoreSelection(page, selectedIds);
   await visit(page);
   if (mouseSelection) {
-    for (const id of selectedIds) await selectFeature(page, id);
+    for (const id of selectedIds) {
+      const row = page.locator(`#${id}`);
+      await row
+        .locator('xpath=ancestor::details[contains(@class,"group")]')
+        .locator(':scope > summary')
+        .click();
+      // Successful native label clicks require the row to be visible in its
+      // open disclosure; the complete two-item state is checked below.
+      await row.locator('label').first().click();
+    }
   }
-  const { expected, unselectedText } = await page.evaluate(
-    (ids) => ({
+  await page.locator('#search').fill('yedek');
+  const prepared = await page.evaluate((ids) => {
+    const first = document.querySelector(`#${ids[0]}`);
+    const firstRect = first.getBoundingClientRect();
+    const observed = window.__atlasMouseSelections;
+    if (observed) {
+      window.removeEventListener('change', observed.record);
+      delete window.__atlasMouseSelections;
+    }
+    return {
       expected: ids.map((id) =>
         document.querySelector(`#${id} .feature-title`).textContent.trim(),
       ),
       unselectedText: document
         .querySelector('#feature-tenant-2 .feature-title')
         .textContent.trim(),
-    }),
-    selectedIds,
-  );
-  await page.locator('#search').fill('yedek');
-  await expect(page.locator(`#${selectedIds[0]}`)).toBeHidden();
+      checked: ids.map(
+        (id) => document.querySelector(`#${id} .feature-check`).checked,
+      ),
+      search: document.querySelector('#search').value,
+      firstVisible:
+        first.checkVisibility() &&
+        getComputedStyle(first).visibility === 'visible' &&
+        firstRect.width > 0 &&
+        firstRect.height > 0,
+      jsonChecked: document.querySelector(
+        'input[name="export-format"][value="json"]',
+      ).checked,
+      mouseSelections: observed?.changes,
+    };
+  }, selectedIds);
+  expect(prepared.checked).toEqual([true, true]);
+  expect(prepared.search).toBe('yedek');
+  expect(prepared.firstVisible).toBe(false);
+  expect(prepared.jsonChecked).toBe(true);
+  if (mouseSelection)
+    expect(prepared.mouseSelections).toEqual(
+      selectedIds.map((id) => ({ id, checked: true, open: true })),
+    );
   return {
-    expected,
-    expectedInRoadmapOrder: [...expected].reverse(),
-    unselectedText,
+    expected: prepared.expected,
+    expectedInRoadmapOrder: [...prepared.expected].reverse(),
+    unselectedText: prepared.unselectedText,
   };
 }
 
@@ -448,7 +541,7 @@ test('JSON, CSV and Markdown export: JSON selected entries with cluster and head
   page,
 }) => {
   const { expectedInRoadmapOrder } = await prepareFilteredExport(page, true);
-  const json = JSON.parse(await exportText(page, 'json'));
+  const json = JSON.parse(await exportText(page, 'json', true));
   expect(json.schemaVersion).toBe(3);
   expect(json.selectedCount).toBe(2);
   expect(json.clusters.map((cluster) => cluster.id)).toEqual(['12', '01']);

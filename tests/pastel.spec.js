@@ -550,27 +550,33 @@ test.describe('long owner at 200% root text', () => {
     expect(cleared.background).toEqual(before.background);
   });
 
-  test('long owner pills preserve cleared keyboard selection and pastel geometry across 200% text boundaries', async ({
-    page,
-  }) => {
-    const { row, initialRoot } = await prepareLongOwner(page);
-    const [before] = await row.evaluateAll(collectPaint, {
-      applyRoot200: true,
+  // Overlap the seam widths so both original 575→576 and 576→577 transitions
+  // retain a real keyboard-cleared selection within one bounded journey.
+  for (const widths of [
+    [575, 576],
+    [576, 577],
+  ])
+    test(`long owner pills preserve cleared keyboard selection and pastel geometry across 200% text boundaries ${widths.join('→')}`, async ({
+      page,
+    }) => {
+      const { row, initialRoot } = await prepareLongOwner(page);
+      const [before] = await row.evaluateAll(collectPaint, {
+        applyRoot200: true,
+      });
+      expectLongOwnerPaint(before, initialRoot);
+      const checkbox = row.locator('.feature-check');
+      await checkbox.focus();
+      await page.keyboard.press('Space');
+      await expect(checkbox).toBeChecked();
+      await page.keyboard.press('Space');
+      await expect(checkbox).not.toBeChecked();
+      // At 200% root, the 16rem inventory transition is at 576 CSS px.
+      for (const width of widths) {
+        await page.setViewportSize({ width, height: 568 });
+        const [paint] = await row.evaluateAll(collectPaint);
+        expect(paint.pageWidth).toBeLessThanOrEqual(paint.viewportWidth + 1);
+        expect(paint.checked).toBe(false);
+        expect(paint.background).toEqual(before.background);
+      }
     });
-    expectLongOwnerPaint(before, initialRoot);
-    const checkbox = row.locator('.feature-check');
-    await checkbox.focus();
-    await page.keyboard.press('Space');
-    await expect(checkbox).toBeChecked();
-    await page.keyboard.press('Space');
-    await expect(checkbox).not.toBeChecked();
-    // At 200% root, the 16rem inventory transition is at 576 CSS px.
-    for (const width of [575, 576, 577]) {
-      await page.setViewportSize({ width, height: 568 });
-      const [paint] = await row.evaluateAll(collectPaint);
-      expect(paint.pageWidth).toBeLessThanOrEqual(paint.viewportWidth + 1);
-      expect(paint.checked).toBe(false);
-      expect(paint.background).toEqual(before.background);
-    }
-  });
 });

@@ -1,62 +1,109 @@
 import { test, expect } from '@playwright/test';
 
-test('inventory accordion permits one open group across clusters and collapse is one-way', async ({
-  page,
-}) => {
-  await page.setViewportSize({ width: 320, height: 568 });
-  await page.goto('./');
-  await expect(page.locator('#search')).toBeEnabled();
-  const groups = page.locator('.group');
-  await expect(groups).toHaveCount(49);
-  await expect(page.locator('.group[open]')).toHaveCount(0);
-  const collapse = page.locator('#collapse-all');
-  await expect(collapse).toHaveText('Tüm başlıkları daralt');
-  await expect(collapse).toBeDisabled();
-  await groups.nth(0).locator(':scope > summary').click();
-  await expect(groups.nth(0)).toHaveAttribute('open', '');
-  await groups.nth(1).locator(':scope > summary').click();
-  await expect(groups.nth(0)).not.toHaveAttribute('open');
-  await expect(groups.nth(1)).toHaveAttribute('open', '');
-  const anotherCluster = page
-    .locator('.cluster')
-    .nth(1)
-    .locator('.group')
-    .first();
-  await anotherCluster.locator(':scope > summary').click();
-  await expect(page.locator('.group[open]')).toHaveCount(1);
-  await expect(anotherCluster).toHaveAttribute('open', '');
-  await collapse.click();
-  await expect(page.locator('.group[open]')).toHaveCount(0);
-  await expect(collapse).toBeDisabled();
-});
+async function groupState(page) {
+  return page.evaluate(() => ({
+    ids: [...document.querySelectorAll('.group')].map((group) => group.id),
+    open: [...document.querySelectorAll('.group[open]')].map(
+      (group) => group.id,
+    ),
+    crossCluster: document
+      .querySelectorAll('.cluster')[1]
+      .querySelector('.group').id,
+    collapseText: document
+      .querySelector('#collapse-all')
+      .textContent.replace(/\s+/gu, ' ')
+      .trim(),
+    collapseDisabled: document.querySelector('#collapse-all').disabled,
+    search: document.querySelector('#search').value,
+    selectedOnly: document
+      .querySelector('#selected-only')
+      .getAttribute('aria-pressed'),
+    checkedIds: [...document.querySelectorAll('.feature-check:checked')]
+      .map((input) => input.value)
+      .sort(),
+  }));
+}
 
-test('filter, hash and selection reveal only one matching group and print restores exclusivity', async ({
-  page,
-}) => {
-  await page.goto('./');
-  await page.locator('#search').fill('kiracı');
-  await expect(page.locator('.group[open]')).toHaveCount(1);
-  const firstOpen = await page.locator('.group[open]').getAttribute('id');
-  await page.locator('.group[open] > summary').click();
-  await page.locator('#select-visible').click();
-  await expect(page.locator('.group[open]')).toHaveCount(0);
-  await page.locator('#selected-only').click();
-  await expect(page.locator('.group[open]')).toHaveCount(1);
-  await expect(page.locator(`#${firstOpen}`)).toHaveAttribute('open', '');
-  await page.goto('./#feature-tenant-1');
-  await expect(page.locator('#feature-tenant-1')).toBeVisible();
-  await expect(page.locator('.group[open]')).toHaveCount(1);
-  await expect(page.locator('#group-tenant')).toHaveAttribute('open', '');
-  await page.evaluate(() => {
-    window.dispatchEvent(new Event('beforeprint'));
-    window.dispatchEvent(new Event('beforeprint'));
+test.describe('single-open inventory at 320px', () => {
+  test.use({ viewport: { width: 320, height: 568 } });
+
+  test('inventory accordion permits one open group across clusters and collapse is one-way', async ({
+    page,
+  }) => {
+    await page.goto('./');
+    await expect(page.locator('#search')).toBeEnabled();
+    const initial = await groupState(page);
+    expect(initial.ids).toHaveLength(49);
+    expect(initial.open).toEqual([]);
+    expect(initial.collapseText).toBe('Tüm başlıkları daralt');
+    expect(initial.collapseDisabled).toBe(true);
+    await page.locator(`#${initial.ids[0]} > summary`).click();
+    expect((await groupState(page)).open).toEqual([initial.ids[0]]);
+    await page.locator(`#${initial.ids[1]} > summary`).click();
+    expect((await groupState(page)).open).toEqual([initial.ids[1]]);
+    await page.locator(`#${initial.crossCluster} > summary`).click();
+    expect((await groupState(page)).open).toEqual([initial.crossCluster]);
+    await page.locator('#collapse-all').click();
+    const collapsed = await groupState(page);
+    expect(collapsed.open).toEqual([]);
+    expect(collapsed.collapseDisabled).toBe(true);
   });
-  await expect(page.locator('.group[open]')).toHaveCount(49);
-  await page.evaluate(() => window.dispatchEvent(new Event('afterprint')));
-  await expect(page.locator('.group[open]')).toHaveCount(1);
-  await expect(page.locator('#group-tenant')).toHaveAttribute('open', '');
-  await page.locator('.group').nth(1).locator(':scope > summary').click();
-  await expect(page.locator('.group[open]')).toHaveCount(1);
+
+  test('filter and selection reveal only the original matching group', async ({
+    page,
+  }) => {
+    await page.goto('./');
+    await page.locator('#search').fill('kiracı');
+    const filtered = await groupState(page);
+    expect(filtered.open).toHaveLength(1);
+    const firstOpen = filtered.open[0];
+    await page.locator(`#${firstOpen} > summary`).click();
+    await page.locator('#select-visible').click();
+    expect((await groupState(page)).open).toEqual([]);
+    await page.locator('#selected-only').click();
+    expect((await groupState(page)).open).toEqual([firstOpen]);
+    expect(await page.goto('./#feature-tenant-1')).toBeNull();
+    const hash = await groupState(page);
+    expect(hash.open).toEqual(['group-tenant']);
+    expect(hash.search).toBe('kiracı');
+    expect(hash.selectedOnly).toBe('true');
+    await expect(page.locator('#feature-tenant-1')).toBeVisible();
+  });
+
+  test('hash reveals one group and repeated print restores exclusivity', async ({
+    page,
+  }) => {
+    // Recreate the original selected/filter state with actual controls before
+    // a same-document hash navigation; runtime filters must survive this seam.
+    await page.goto('./');
+    await page.locator('#search').fill('kiracı');
+    await page.locator('#select-visible').click();
+    await page.locator('#selected-only').click();
+    const beforeHash = await groupState(page);
+    expect(beforeHash.checkedIds.length).toBeGreaterThan(0);
+    expect(await page.goto('./#feature-tenant-1')).toBeNull();
+    const hash = await groupState(page);
+    expect(hash.open).toEqual(['group-tenant']);
+    expect(hash.search).toBe('kiracı');
+    expect(hash.selectedOnly).toBe('true');
+    expect(hash.checkedIds).toEqual(beforeHash.checkedIds);
+    await expect(page.locator('#feature-tenant-1')).toBeVisible();
+    const printed = await page.evaluate(() => {
+      window.dispatchEvent(new Event('beforeprint'));
+      window.dispatchEvent(new Event('beforeprint'));
+      return document.querySelectorAll('.group[open]').length;
+    });
+    expect(printed).toBe(49);
+    const restored = await page.evaluate(() => {
+      window.dispatchEvent(new Event('afterprint'));
+      return [...document.querySelectorAll('.group[open]')].map(
+        (group) => group.id,
+      );
+    });
+    expect(restored).toEqual(['group-tenant']);
+    await page.locator('.group').nth(1).locator(':scope > summary').click();
+    expect((await groupState(page)).open).toHaveLength(1);
+  });
 });
 
 test('without JavaScript native group names keep one disclosure open across clusters', async ({

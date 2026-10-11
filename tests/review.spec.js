@@ -19,10 +19,7 @@ const downloadText = async (page, format) => {
   return text;
 };
 
-test('scope decisions filter independently, preserve old selections and export their full rationale', async ({
-  page,
-}, testInfo) => {
-  await page.setViewportSize({ width: 320, height: 568 });
+async function prepareScopeSelection(page) {
   await page.addInitScript(() =>
     localStorage.setItem(
       'saas-atlas-selection-v1',
@@ -30,60 +27,125 @@ test('scope decisions filter independently, preserve old selections and export t
     ),
   );
   await visit(page);
-  await expect(page.locator('.feature')).toHaveCount(387);
-  await expect(page.locator('.feature-check:checked')).toHaveCount(3);
+  const initial = await page.evaluate(() => ({
+    features: document.querySelectorAll('.feature').length,
+    selected: document.querySelectorAll('.feature-check:checked').length,
+  }));
+  expect(initial).toEqual({ features: 387, selected: 3 });
+}
+
+async function applyScopeIntersection(page) {
   await page.locator('#roadmap-filters > summary').click();
   await page.locator('[data-scope-filter="required"]').click();
-  const shown = page.locator('.feature:not([hidden])');
-  expect(await shown.count()).toBeGreaterThan(0);
-  expect(
-    await shown.evaluateAll((xs) =>
-      xs.every((x) => x.dataset.scope === 'required'),
-    ),
-  ).toBe(true);
-  await expect(page.locator('.group[open]')).toHaveCount(1);
   await page.locator('button[data-support="external"]').click();
   await page.locator('button[data-action="integrate"]').click();
-  expect(await shown.count()).toBeGreaterThan(0);
+  const intersection = await page.evaluate(() => ({
+    active: [
+      '[data-scope-filter="required"]',
+      'button[data-support="external"]',
+      'button[data-action="integrate"]',
+    ].map((selector) =>
+      document.querySelector(selector).getAttribute('aria-pressed'),
+    ),
+    rows: [...document.querySelectorAll('.feature:not([hidden])')].map(
+      (element) => [
+        element.dataset.scope,
+        element.dataset.support,
+        element.dataset.action,
+      ],
+    ),
+  }));
+  expect(intersection.active).toEqual(['true', 'true', 'true']);
+  expect(intersection.rows.length).toBeGreaterThan(0);
   expect(
-    await shown.evaluateAll((xs) =>
-      xs.every(
-        (x) =>
-          x.dataset.scope === 'required' &&
-          x.dataset.support === 'external' &&
-          x.dataset.action === 'integrate',
+    intersection.rows.every(
+      ([scope, support, action]) =>
+        scope === 'required' &&
+        support === 'external' &&
+        action === 'integrate',
+    ),
+  ).toBe(true);
+}
+
+test.describe('scope decisions and preserved selections at 320px', () => {
+  test.use({ viewport: { width: 320, height: 568 } });
+
+  test('scope decisions filter independently, preserve old selections through reset and reload', async ({
+    page,
+  }) => {
+    await prepareScopeSelection(page);
+    await page.locator('#roadmap-filters > summary').click();
+    await page.locator('[data-scope-filter="required"]').click();
+    const required = await page.evaluate(() => ({
+      shown: [...document.querySelectorAll('.feature:not([hidden])')].map(
+        (element) => element.dataset.scope,
       ),
-    ),
-  ).toBe(true);
-  const json = JSON.parse(await downloadText(page, 'json'));
-  expect(json.schemaVersion).toBe(3);
-  expect(json.selectedCount).toBe(3);
-  const items = json.clusters.flatMap((c) => c.groups.flatMap((g) => g.items));
-  expect(items.find((x) => x.id === 'identity-8').planning.scope).toBe(
-    'conditional',
-  );
-  expect(items.find((x) => x.id === 'modules-2').planning.scope).toBe(
-    'implementation',
-  );
-  expect(items.every((x) => x.planning.reason && x.assessment.acceptance)).toBe(
-    true,
-  );
-  expect(json.review.decisions.length).toBeGreaterThan(0);
-  expect(
-    json.review.decisions.every((d) =>
-      d.itemIds.some((id) => items.some((x) => x.id === id)),
-    ),
-  ).toBe(true);
-  const md = await downloadText(page, 'md');
-  expect(md).toContain('Plan kapsamı');
-  expect(md).toContain('Kapsam gerekçesi');
-  await page.locator('#reset-all').click();
-  await expect(page.locator('.feature:not([hidden])')).toHaveCount(387);
-  await page.reload();
-  await expect(page.locator('.feature-check:checked')).toHaveCount(3);
-  await testInfo.attach('scope-selection-v3', {
-    body: JSON.stringify(json, null, 2),
-    contentType: 'application/json',
+      openGroups: document.querySelectorAll('.group[open]').length,
+    }));
+    expect(required.shown.length).toBeGreaterThan(0);
+    expect(required.shown.every((scope) => scope === 'required')).toBe(true);
+    expect(required.openGroups).toBe(1);
+    await page.locator('button[data-support="external"]').click();
+    await page.locator('button[data-action="integrate"]').click();
+    const intersection = await page
+      .locator('.feature:not([hidden])')
+      .evaluateAll((elements) => ({
+        count: elements.length,
+        matching: elements.every(
+          (element) =>
+            element.dataset.scope === 'required' &&
+            element.dataset.support === 'external' &&
+            element.dataset.action === 'integrate',
+        ),
+      }));
+    expect(intersection.count).toBeGreaterThan(0);
+    expect(intersection.matching).toBe(true);
+    await page.locator('#reset-all').click();
+    await expect(page.locator('.feature:not([hidden])')).toHaveCount(387);
+    await page.reload();
+    await expect(page.locator('.feature-check:checked')).toHaveCount(3);
+  });
+
+  test('scope decisions export selected full JSON rationale under intersecting active filters', async ({
+    page,
+  }, testInfo) => {
+    await prepareScopeSelection(page);
+    await applyScopeIntersection(page);
+    const json = JSON.parse(await downloadText(page, 'json'));
+    expect(json.schemaVersion).toBe(3);
+    expect(json.selectedCount).toBe(3);
+    const items = json.clusters.flatMap((c) =>
+      c.groups.flatMap((g) => g.items),
+    );
+    expect(items.find((x) => x.id === 'identity-8').planning.scope).toBe(
+      'conditional',
+    );
+    expect(items.find((x) => x.id === 'modules-2').planning.scope).toBe(
+      'implementation',
+    );
+    expect(
+      items.every((x) => x.planning.reason && x.assessment.acceptance),
+    ).toBe(true);
+    expect(json.review.decisions.length).toBeGreaterThan(0);
+    expect(
+      json.review.decisions.every((d) =>
+        d.itemIds.some((id) => items.some((x) => x.id === id)),
+      ),
+    ).toBe(true);
+    await testInfo.attach('scope-selection-v3', {
+      body: JSON.stringify(json, null, 2),
+      contentType: 'application/json',
+    });
+  });
+
+  test('scope decisions export selected Markdown scope and rationale under intersecting active filters', async ({
+    page,
+  }) => {
+    await prepareScopeSelection(page);
+    await applyScopeIntersection(page);
+    const md = await downloadText(page, 'md');
+    expect(md).toContain('Plan kapsamı');
+    expect(md).toContain('Kapsam gerekçesi');
   });
 });
 
@@ -109,49 +171,81 @@ test('review remains readable with native disclosures when JavaScript is disable
   await context.close();
 });
 
-test('scope review at 320 through desktop keeps text readable including 200% root size', async ({
-  page,
-}) => {
-  await visit(page);
-  await page.locator('#scope-review > summary').click();
-  for (const width of [320, 360, 375, 390, 568, 768, 1280]) {
-    await page.setViewportSize({ width, height: width === 568 ? 320 : 720 });
-    const metrics = await page.locator('#scope-review').evaluate((el) => {
-      const rootSize = parseFloat(
-        getComputedStyle(document.documentElement).fontSize,
-      );
-      return {
-        contained: document.documentElement.scrollWidth <= innerWidth,
-        readable: [...el.querySelectorAll('*')]
-          .filter(
-            (x) =>
-              x.childNodes.length &&
-              [...x.childNodes].some(
-                (n) => n.nodeType === 3 && n.textContent.trim(),
+const reviewWidths = [320, 360, 375, 390, 568, 768, 1280];
+
+// Each new segment revisits the previous segment's last width, retaining every
+// original adjacent resize transition and the open native review throughout.
+test.describe('scope review responsive journey', () => {
+  test.use({ viewport: { width: 1280, height: 720 } });
+
+  for (const [start, end] of [
+    [0, 3],
+    [3, 5],
+    [5, 7],
+  ]) {
+    const widths = reviewWidths.slice(Math.max(0, start - 1), end);
+    test(`scope review at 320 through desktop keeps text readable: ${widths.join(' to ')}`, async ({
+      page,
+    }) => {
+      await visit(page);
+      const review = page.locator('#scope-review');
+      await expect(review).not.toHaveAttribute('open');
+      await review.locator(':scope > summary').click();
+      for (const width of widths) {
+        await page.setViewportSize({
+          width,
+          height: width === 568 ? 320 : 720,
+        });
+        const metrics = await review.evaluate((el) => {
+          const rootSize = parseFloat(
+            getComputedStyle(document.documentElement).fontSize,
+          );
+          return {
+            open: el.open,
+            contained: document.documentElement.scrollWidth <= innerWidth,
+            readable: [...el.querySelectorAll('*')]
+              .filter(
+                (element) =>
+                  element.childNodes.length &&
+                  [...element.childNodes].some(
+                    (node) => node.nodeType === 3 && node.textContent.trim(),
+                  ),
+              )
+              .every(
+                (element) =>
+                  parseFloat(getComputedStyle(element).fontSize) >= rootSize,
               ),
-          )
-          .every((x) => parseFloat(getComputedStyle(x).fontSize) >= rootSize),
+          };
+        });
+        expect(metrics.open).toBe(true);
+        expect(metrics.contained).toBe(true);
+        expect(metrics.readable).toBe(true);
+      }
+    });
+  }
+
+  test('scope review desktop to 320x480 stays readable through the real 200% root resize', async ({
+    page,
+  }) => {
+    await visit(page);
+    const review = page.locator('#scope-review');
+    await expect(review).not.toHaveAttribute('open');
+    await review.locator(':scope > summary').click();
+    await page.setViewportSize({ width: 320, height: 480 });
+    const metrics = await review.evaluate((el) => {
+      document.documentElement.style.fontSize = '200%';
+      return {
+        open: el.open,
+        contained: document.documentElement.scrollWidth <= innerWidth,
+        readable: [...el.querySelectorAll('p,a,dt,dd,h2,strong')].every(
+          (element) => parseFloat(getComputedStyle(element).fontSize) >= 32,
+        ),
       };
     });
+    expect(metrics.open).toBe(true);
     expect(metrics.contained).toBe(true);
     expect(metrics.readable).toBe(true);
-  }
-  await page.setViewportSize({ width: 320, height: 480 });
-  await page.evaluate(() => (document.documentElement.style.fontSize = '200%'));
-  expect(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth <= innerWidth,
-    ),
-  ).toBe(true);
-  expect(
-    await page
-      .locator('#scope-review')
-      .evaluate((el) =>
-        [...el.querySelectorAll('p,a,dt,dd,h2,strong')].every(
-          (x) => parseFloat(getComputedStyle(x).fontSize) >= 32,
-        ),
-      ),
-  ).toBe(true);
+  });
 });
 
 test('scope review keyboard focus and native disclosure at 320px', async ({
