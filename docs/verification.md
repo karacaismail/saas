@@ -18,6 +18,14 @@ Bulunan gerçek kusurlar: dar filtre grid’inin min-content taşması;%200 yaz�
 
 Bağımsız inceleme uygulayıcıdan farklı sahipliklerle salt okunur yapıldı: model/build uygulayıcısı UI/model/görev paketlerini; veri uygulayıcısı build/allowlist/test politikasını inceledi. İnceleyiciler kendi uyguladıkları dosyaları onaylamadı ve test/komut/kurulum çalıştırmadı. Altı yeni macOS görsel adayı ve değişen adayların önce/sonra/farkları bağımsız piksel incelemesinde kabul edildi;18 eski referans aynı kaldı. Görünür görev seçimi etiketi accessible name içinde korundu. Açık actionable bulgu kalmadı. Son etkilenen üç görev yolculuğu, computed odak ve gerçek görsel karşılaştırmayla3pass/3.7s verdi (`artifacts/project-task-green/`). Workspace ve seçili export yolculukları da üç motorda ilgili son koşularında geçti; aynı geniş matrisi yeniden çalıştırmak yerine yalnız değişen görev akışı tekrarlandı. Gerçek GitHub CI/deploy ve canlı sürüm sonuçları yayımdan sonra ayrı kanıtla raporlanır.
 
+### Yayın öncesi büyütülmüş görev ayrıntısı düzeltmesi
+
+İlk CI (`38177956653`, kaynak `30f5635`) deployment öncesinde iptal edildi: ana sayfadaki ilk30 görevle yapılan%200 kontrolü, görev ayrıntısı ve en uzun DocType adını kapsamıyordu. Mevcut iki yolculuğa aynı kontroller eklendi; yeni senaryo veya matris ekseni eklenmedi. `project-task-zoom-red.log`, `project-text-diagnosis.log` ve `project-zoom-final.log` gerçek taşmaları gösterir. Metin Range rect tanısı TenantRegistry başlığı, Kanonik gereksinimler başlığı ve NotificationPreference içeren başlık, breadcrumb ve kabul metinlerini ayırdı.
+
+Dar grid track'leri `minmax(0,1fr)` ile düzeltildi. Çok dar içerik alanında başlık ölçeği1rem altına düşmeden uyarlanır; uzun teknik adlar bölünmeden kendi metin alanında yatay kayar. Gerçek yatay taşma olduğunda yalnız ilgili metin klavye odağı alır; observer sayfalama sonunda eski hedefleri bırakır. Arrow tuşları yalnız doğrudan odaklanan taşan alanda çalışır, değiştirici tuşlar ve iç kontroller korunur. Kart/row kapsayıcılarına odak eklenmez. Kanonik içerik ve altı yeni/18 eski görsel referans değişmedi.
+
+Son kaynak kontrolü79pass/21.4s (`project-zoom-check.log`), üretim3271dosya/994paket/33346bağlantı pass (`project-release-build.log`), üç motorda son workspace yolculuğu3pass/4.2s (`project-release-workspace/`) verdi. Mevcut görev/export yolculukları diğer son koşuda6pass verdi (`project-zoom-final.log`); bu logdaki üç workspace RED sonucu sonraki dar LI düzeltmesiyle kapandı. En uzun model adının tek Range rect olarak kalması, yerel klavye kaydırması ve%200 görev ayrıntısı aynı mevcut senaryoda doğrulandı. Ana sayfa130318B gzip (HTML73460/CSS4973/runtime5006/font46879); bütçe artırılmadı. Fiziksel cihaz ve gerçek Safari sınırı değişmedi.
+
 Tarih: 10 Ekim 2026, Europe/Istanbul. Ürün: statik SaaS Atlas.
 
 ## Kapsam ve ortam

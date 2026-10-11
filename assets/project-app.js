@@ -183,6 +183,7 @@ if (configNode) {
     const next = document.querySelector('[data-next-page]');
     if (previous) previous.disabled = page <= 1;
     if (next) next.disabled = page >= pages;
+    observeText();
   }
 
   document.addEventListener('change', (event) => {
@@ -217,24 +218,44 @@ if (configNode) {
   selectedOnly?.addEventListener('change', filter);
   for (const radio of document.querySelectorAll('input[name^="project-"]'))
     radio.addEventListener('change', filter);
-  for (const region of document.querySelectorAll('.p-table-scroll'))
-    region.addEventListener('keydown', (event) => {
-      if (
-        event.target !== region ||
-        event.shiftKey ||
-        event.altKey ||
-        event.ctrlKey ||
-        event.metaKey ||
-        !['ArrowLeft', 'ArrowRight'].includes(event.key) ||
-        region.scrollWidth <= region.clientWidth
-      )
-        return;
-      event.preventDefault();
-      region.scrollBy({
-        left: region.clientWidth * 0.75 * (event.key === 'ArrowRight' ? 1 : -1),
-        behavior: 'instant',
-      });
+  document.addEventListener('keydown', (event) => {
+    const region = event.target.closest(
+      '.p-table-scroll,.p-task-title,.p-header h1,.p-artifact-name,.p-main h2,.p-main h3,.p-main p,.p-main dd,.p-breadcrumb [aria-current],.p-detail-section li:not(:has(*))',
+    );
+    if (
+      !region ||
+      event.target !== region ||
+      event.shiftKey ||
+      event.altKey ||
+      event.ctrlKey ||
+      event.metaKey ||
+      !['ArrowLeft', 'ArrowRight'].includes(event.key) ||
+      region.scrollWidth <= region.clientWidth
+    )
+      return;
+    event.preventDefault();
+    region.scrollBy({
+      left: region.clientWidth * 0.75 * (event.key === 'ArrowRight' ? 1 : -1),
+      behavior: 'instant',
     });
+  });
+  const textOverflow = new ResizeObserver((entries) => {
+    for (const { target } of entries) {
+      if (
+        target.scrollWidth > target.clientWidth + 1 &&
+        getComputedStyle(target).overflowX === 'auto'
+      )
+        target.tabIndex = 0;
+      else target.removeAttribute('tabindex');
+    }
+  });
+  const observeText = () => {
+    textOverflow.disconnect();
+    for (const node of document.querySelectorAll(
+      '.p-header h1,.p-artifact-name,.p-main h2,.p-main h3,.p-main p,.p-main dd,.p-breadcrumb [aria-current],.p-detail-section li:not(:has(*))',
+    ))
+      textOverflow.observe(node);
+  };
   document
     .querySelector('[data-previous-page]')
     ?.addEventListener('click', () => {
@@ -444,5 +465,6 @@ if (configNode) {
   ))
     control.disabled = false;
   update();
+  document.fonts.ready.then(observeText);
   applyHash();
 }

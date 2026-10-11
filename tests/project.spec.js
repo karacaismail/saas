@@ -57,6 +57,32 @@ const geometry = (page) =>
                 text: n.textContent.slice(0, 50),
               }))
               .slice(0, 20),
+            overflowText: texts
+              .flatMap((n) =>
+                [...n.childNodes]
+                  .filter(
+                    (child) =>
+                      child.nodeType === Node.TEXT_NODE &&
+                      child.textContent.trim(),
+                  )
+                  .flatMap((child) => {
+                    const range = document.createRange();
+                    range.selectNodeContents(child);
+                    return [...range.getClientRects()]
+                      .filter(
+                        (rect) =>
+                          rect.right > innerWidth + 1 &&
+                          !n.closest('.p-radio-options,.p-nav,.p-table-scroll'),
+                      )
+                      .map((rect) => ({
+                        tag: n.tagName,
+                        cls: n.className,
+                        right: rect.right,
+                        text: child.textContent.slice(0, 100),
+                      }));
+                  }),
+              )
+              .slice(0, 20),
           }
         : {}),
     };
@@ -152,6 +178,43 @@ test('project workspace has mobile-first stages, filters, bounded views and real
     thin: 0,
     font: 'Outfit',
   });
+  await page.locator('#project-search').fill('NotificationPreference');
+  expect(await geometry(page)).toEqual({
+    overflow: false,
+    small: 0,
+    thin: 0,
+    font: 'Outfit',
+  });
+  const longTitle = page
+    .locator('[data-project-view="list"] .p-task-title')
+    .first();
+  const longTaskUrl = new URL(
+    await longTitle.getAttribute('href'),
+    homeUrl(baseURL),
+  ).href;
+  expect(
+    await longTitle.evaluate((n) => {
+      const range = document.createRange();
+      range.setStart(n.firstChild, 0);
+      range.setEnd(n.firstChild, 'NotificationPreference'.length);
+      return range.getClientRects().length;
+    }),
+  ).toBe(1);
+  await longTitle.focus();
+  await page.keyboard.press('ArrowRight');
+  await expect
+    .poll(() => longTitle.evaluate((n) => n.scrollLeft))
+    .toBeGreaterThan(0);
+  const longArtifact = page
+    .locator('[data-project-view="list"] .p-artifact-name')
+    .first();
+  await expect(longArtifact).toHaveAttribute('tabindex', '0');
+  await longArtifact.focus();
+  await page.keyboard.press('ArrowRight');
+  await expect
+    .poll(() => longArtifact.evaluate((n) => n.scrollLeft))
+    .toBeGreaterThan(0);
+  await page.locator('#project-search').fill('');
   await page.evaluate(() => {
     document.documentElement.style.fontSize = '';
   });
@@ -190,6 +253,26 @@ test('project workspace has mobile-first stages, filters, bounded views and real
       ),
     ),
   ).toEqual([]);
+  await page.goto(longTaskUrl);
+  await page.evaluate(() => {
+    document.documentElement.style.fontSize = '200%';
+  });
+  expect(await geometry(page)).toEqual({
+    overflow: false,
+    small: 0,
+    thin: 0,
+    font: 'Outfit',
+  });
+  const heading = page.locator('h1');
+  await expect(heading).toHaveAttribute('tabindex', '0');
+  await heading.focus();
+  await page.keyboard.press('ArrowRight');
+  await expect
+    .poll(() => heading.evaluate((n) => n.scrollLeft))
+    .toBeGreaterThan(0);
+  await page.screenshot({
+    path: testInfo.outputPath('project-long-name-200.png'),
+  });
 });
 
 test('single task page preserves source context, downloads JSON Markdown and provides truthful clipboard fallback', async ({
@@ -225,6 +308,18 @@ test('single task page preserves source context, downloads JSON Markdown and pro
   ).toHaveAccessibleName(/Görev paketine ekle/);
   await page.screenshot({
     path: testInfo.outputPath('project-task-initial.png'),
+  });
+  await page.evaluate(() => {
+    document.documentElement.style.fontSize = '200%';
+  });
+  expect(await geometry(page)).toEqual({
+    overflow: false,
+    small: 0,
+    thin: 0,
+    font: 'Outfit',
+  });
+  await page.evaluate(() => {
+    document.documentElement.style.fontSize = '';
   });
   const packet = JSON.parse(
     await downloadText(
