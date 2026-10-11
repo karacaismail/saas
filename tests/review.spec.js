@@ -30,7 +30,7 @@ test('scope decisions filter independently, preserve old selections and export t
     ),
   );
   await visit(page);
-  await expect(page.locator('.feature')).toHaveCount(351);
+  await expect(page.locator('.feature')).toHaveCount(363);
   await expect(page.locator('.feature-check:checked')).toHaveCount(3);
   await page.locator('#roadmap-filters > summary').click();
   await page.locator('[data-scope-filter="required"]').click();
@@ -78,7 +78,7 @@ test('scope decisions filter independently, preserve old selections and export t
   expect(md).toContain('Plan kapsamı');
   expect(md).toContain('Kapsam gerekçesi');
   await page.locator('#reset-all').click();
-  await expect(page.locator('.feature:not([hidden])')).toHaveCount(351);
+  await expect(page.locator('.feature:not([hidden])')).toHaveCount(363);
   await page.reload();
   await expect(page.locator('.feature-check:checked')).toHaveCount(3);
   await testInfo.attach('scope-selection-v3', {
@@ -176,9 +176,39 @@ test('scope review keyboard focus and accessible content at 320px', async ({
     .withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'])
     .analyze();
   expect(axe.violations).toEqual([]);
-  await testInfo.attach('scope-review-320', {
-    body: await page.locator('#scope-review').screenshot(),
-    contentType: 'image/png',
+  // Preserve the complete review evidence in bounded image slices: Firefox
+  // cannot capture one PNG taller than 32767px as the decision list grows.
+  const bounds = await page.locator('#scope-review').evaluate((el) => {
+    const rect = el.getBoundingClientRect();
+    return {
+      x: rect.x + scrollX,
+      y: rect.y + scrollY,
+      width: rect.width,
+      height: rect.height,
+    };
+  });
+  expect(bounds.width).toBeGreaterThan(0);
+  expect(bounds.height).toBeGreaterThan(0);
+  const slices = [];
+  for (let offset = 0; offset < bounds.height; offset += 8000) {
+    const clip = {
+      x: bounds.x,
+      y: bounds.y + offset,
+      width: bounds.width,
+      height: Math.min(8000, bounds.height - offset),
+    };
+    await testInfo.attach(`scope-review-320-slice-${slices.length}`, {
+      body: await page.screenshot({ fullPage: true, clip }),
+      contentType: 'image/png',
+    });
+    slices.push(clip);
+  }
+  expect(slices.reduce((sum, slice) => sum + slice.height, 0)).toBe(
+    bounds.height,
+  );
+  await testInfo.attach('scope-review-image-bounds', {
+    body: JSON.stringify({ bounds, slices }, null, 2),
+    contentType: 'application/json',
   });
   await testInfo.attach('scope-review-axe', {
     body: JSON.stringify(axe, null, 2),
@@ -241,7 +271,7 @@ for (const failure of ['missing-group', 'dangling-decision', 'missing-copy'])
       'data-content-source',
       'fallback',
     );
-    await expect(page.locator('.feature')).toHaveCount(351);
+    await expect(page.locator('.feature')).toHaveCount(363);
     await expect(page.locator('.feature-check:checked')).toHaveCount(1);
     const result = JSON.parse(await downloadText(page, 'json'));
     expect(result.schemaVersion).toBe(3);
@@ -273,7 +303,7 @@ for (const shape of ['object', 'extra-column'])
       'data-content-source',
       'fallback',
     );
-    await expect(page.locator('.feature')).toHaveCount(351);
+    await expect(page.locator('.feature')).toHaveCount(363);
     const csv = await downloadText(page, 'csv');
     expect(csv.split('\r\n')[0].split(',')).toHaveLength(18);
     expect(csv).toContain('Plan kapsamı');

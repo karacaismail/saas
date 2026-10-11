@@ -351,6 +351,29 @@
               }
             ]
           }
+        },
+        {
+          "kind": "g",
+          "text": "Güvenli destek paketi; hata kimliği, zaman ve ilgili ekran bağlamını önizleyerek paylaşma.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "Headless frontend + destek + Frappe backend",
+            "confidence": "design",
+            "reviewedAt": "2026-10-11",
+            "note": "Destek/ticket veya log altyapısı kullanıcı için güvenli teşhis paketi sağlamaz. Headless panelde izinli hata kimliği ve bağlam alanları allowlist ile toplanır; maskeleme, kullanıcı önizlemesi ve açık paylaşım kararı gerekir. Hedef sürüm ve destek entegrasyonu ayrıca seçilir; otomatik dış mesaj gönderimi yoktur.",
+            "acceptance": "Kullanıcı hata kimliği, saat/saat dilimi, uygulama sürümü ve ilgili ekranı içeren paketi görüp alanları çıkarabilsin. Token, cookie, secret, form içeriği, kişisel veya tenant verisi varsayılan olarak dahil edilmesin; paylaşılan bilgiler yetkili alıcıyla sınırlansın, saklama/silme politikası uygulansın; ham konsol dökümü otomatik gönderilmesin.",
+            "sources": [
+              {
+                "title": "W3C: hata için düzeltme önerisi",
+                "url": "https://www.w3.org/WAI/WCAG22/Understanding/error-suggestion.html"
+              },
+              {
+                "title": "Frappe: REST API",
+                "url": "https://docs.frappe.io/framework/user/en/api/rest"
+              }
+            ]
+          }
         }
       ],
       "sources": [],

@@ -468,6 +468,179 @@
               }
             ]
           }
+        },
+        {
+          "kind": "g",
+          "text": "Canlı bağlantı ve sunucu erişimi göstergesi; çevrimdışı, erişilemiyor ve yeniden bağlanıyor durumları.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "Headless frontend + platform",
+            "confidence": "design",
+            "reviewedAt": "2026-10-11",
+            "note": "Tarayıcının online/offline sinyali tek başına internet veya uygulama sunucusuna erişim kanıtı değildir. Gerçek uygulama istekleri, son başarılı temas ve servis durumu headless panelde birlikte yorumlanır; bu gösterge çevrimdışı yazma desteği anlamına gelmez. Hedef Frappe/Keycloak sürümleri henüz seçilmedi.",
+            "acceptance": "Ağ kesintisi, internet açıkken uygulama sunucusuna erişilememe ve yeniden bağlanma ayrı gösterilsin; 401/403 bağlantı arızası sayılmasın. Durum yalnız renkle aktarılmasın, ekran okuyucuya odağı çalmadan duyurulsun; bağlantının geri gelmesi mutasyonu kendiliğinden yeniden göndermesin.",
+            "sources": [
+              {
+                "title": "MDN: Navigator.onLine ve erişim sinyallerinin sınırı",
+                "url": "https://developer.mozilla.org/en-US/docs/Web/API/Navigator/onLine"
+              },
+              {
+                "title": "W3C: erişilebilir durum mesajları",
+                "url": "https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html"
+              },
+              {
+                "title": "Frappe: REST API",
+                "url": "https://docs.frappe.io/framework/user/en/api/rest"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Kaydetme durumu; değiştirildi, kaydediliyor, bu cihazda taslak, sunucuya kaydedildi ve kaydetme hatası.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "Headless frontend + Frappe backend",
+            "confidence": "design",
+            "reviewedAt": "2026-10-11",
+            "note": "Frappe kayıt API'si sunucu işleminin temelidir; kalıcı işlem sonucunu yorumlayan durum modeli bağımsız frontendde geliştirilir. Yerel taslak, gönderim kuyruğu ve sunucunun doğruladığı kayıt aynı başarı olarak gösterilmez. Hedef sürümde işlem tamamlanması ve yanıt sözleşmesi doğrulanır.",
+            "acceptance": "Sunucu commit sonucu doğrulanmadan 'Sunucuya kaydedildi' denmesin. Yerel saklama başarısızlığı ve ağ hatası girilen veriyi koruyarak açıklansın; eski yanıt daha yeni değişikliği kaydedilmiş göstermesin; erişilebilir durum mesajı ilgili kayıt sürümüyle eşleşsin.",
+            "sources": [
+              {
+                "title": "Frappe: işlem commit ve rollback modeli",
+                "url": "https://docs.frappe.io/framework/user/en/api/database"
+              },
+              {
+                "title": "MDN: tarayıcı saklama kotası ve veri tahliyesi",
+                "url": "https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria"
+              },
+              {
+                "title": "W3C: erişilebilir durum mesajları",
+                "url": "https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Sonucu belirsiz işlemi kimliğiyle sorgulama; doğrulanmadan tekrar göndermeme ve mükerrer etkiyi önleme.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Frappe backend + headless frontend",
+            "confidence": "design",
+            "reviewedAt": "2026-10-11",
+            "note": "Frappe transaction temeli sağlar; yanıt kaybolduğunda genel ürün işleminin sonucunu sorgulayan kalıcı işlem kimliği, idempotency ve dış etki sözleşmesi ayrıca geliştirilir. HTTP zaman aşımı işlemin başarısız olduğunun kanıtı değildir; hedef sürümde uçtan uca kabul gerekir.",
+            "acceptance": "Sunucuda tamamlanıp yanıtı kaybolan işlem kimliğiyle bulunabilsin. Tamamlandı, sürüyor, başarısız ve henüz bilinmiyor ayrımı gösterilsin; aynı kimlikle güvenli devam mükerrer etki üretmesin, bilinmeyen sonuçta kör otomatik mutasyon tekrarı yapılmasın; sorgu tenant ve kullanıcı yetkisini korusun.",
+            "sources": [
+              {
+                "title": "Frappe: işlem commit ve rollback modeli",
+                "url": "https://docs.frappe.io/framework/user/en/api/database"
+              },
+              {
+                "title": "Frappe: REST API",
+                "url": "https://docs.frappe.io/framework/user/en/api/rest"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Kayıt ve ekran verisinin tazeliği; son başarılı güncelleme, eski veri uyarısı ve güvenli yenileme.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "Headless frontend + Frappe backend",
+            "confidence": "design",
+            "reviewedAt": "2026-10-11",
+            "note": "Frappe API verisi panelin tüm ekranlarında tazelik sunumu sağlamaz. Veri sahibi kaynağın güncellemesi, son başarılı alınma zamanı, önbellek ve canlı bağlantı durumu ayrı tutulur; yalnız yeniden render zamanı 'güncellendi' sayılmaz. Hedef sürüm ve tazelik eşikleri seçilecek.",
+            "acceptance": "Önbellekten veya kesilmiş bağlantıdan gösterilen veri açıkça işaretlensin; son başarılı güncelleme ve saat dilimi görülsün. Başarısız yenileme tazelik zamanını ilerletmesin; kullanıcı yenilerken kaydedilmemiş düzenleme kaybolmasın; kritik eylem gerektiğinde sunucuda güncel sürümü doğrulasın.",
+            "sources": [
+              {
+                "title": "Frappe: REST API",
+                "url": "https://docs.frappe.io/framework/user/en/api/rest"
+              },
+              {
+                "title": "W3C: erişilebilir durum mesajları",
+                "url": "https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Genel işlem etki önizlemesi; etkilenecek kayıt ve alanlar, kapsam ve onaydan önce değişiklik özeti.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "Headless frontend + Frappe backend",
+            "confidence": "design",
+            "reviewedAt": "2026-10-11",
+            "note": "Frappe kayıt API'si genel değişiklik önizlemesi veya dry-run motoru değildir. İçe aktarma dışındaki toplu ve kritik eylemler için yetkili önizleme, sunucu tarafında yeniden doğrulama ve onay sözleşmesi geliştirilir; önizleme yetki vermez ve yan etki üretmez.",
+            "acceptance": "Etkilenen kayıt sayısı, alanlar, önce/sonra farkı ve geri alınabilirlik görülsün. Önizleme ile uygulama arasında veri/izin değişirse yeniden doğrulansın; onay iptalinde yazma veya dış etki oluşmasın; yetkisiz alanlar önizlemede sızmasın; hedef sürümde eşzamanlılık kabulü yapılsın.",
+            "sources": [
+              {
+                "title": "Frappe: Document API",
+                "url": "https://docs.frappe.io/framework/user/en/api/document"
+              },
+              {
+                "title": "Frappe: işlem commit ve rollback modeli",
+                "url": "https://docs.frappe.io/framework/user/en/api/database"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Çözüm sunan hata mesajları; neden, ilgili alan, uygulanabilir sonraki adım ve güvenli hata kimliği.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "Headless frontend + Frappe backend",
+            "confidence": "design",
+            "reviewedAt": "2026-10-11",
+            "note": "Backend doğrulama ve API hataları veri sağlar; ürün dilinde çözüm ve erişilebilir alan bağlantıları headless panelin sorumluluğudur. Güvenliği zedelemeden bilinen düzeltme önerilir; ham stack trace, token veya yetkisiz kayıt bilgisi gösterilmez. Hedef sürüm hata sözleşmesi doğrulanacak.",
+            "acceptance": "Doğrulama, izin, kota, bağlantı ve sunucu hatası farklı sonraki adım sunsun; yanlış alan mesajıyla ilişkilensin ve klavyeyle bulunabilsin. Girilen veri korunsun; otomatik tekrar yalnız güvenli tanımlı işlemlerde olsun, belirsiz mutasyon tekrar gönderilmesin; destek için secret içermeyen hata kimliği verilsin.",
+            "sources": [
+              {
+                "title": "W3C: hata için düzeltme önerisi",
+                "url": "https://www.w3.org/WAI/WCAG22/Understanding/error-suggestion.html"
+              },
+              {
+                "title": "W3C: erişilebilir durum mesajları",
+                "url": "https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html"
+              },
+              {
+                "title": "Frappe: REST API",
+                "url": "https://docs.frappe.io/framework/user/en/api/rest"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Şablondan oluşturma ve kontrollü çoğaltma; kopyalanacak alanlar, ilişkiler ve yeni kayıt önizlemesi.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Headless frontend + Frappe backend",
+            "confidence": "design",
+            "reviewedAt": "2026-10-11",
+            "note": "Frappe Document kayıt oluşturma temeli sunar; her ürün için güvenli şablon ve çoğaltma politikası hazır sayılmaz. Headless akış alan izinleri, ilişki sahipliği ve kopyalanmaması gereken durum/kimlik alanlarıyla geliştirilir; hedef sürümde controller kuralları korunur.",
+            "acceptance": "Kopyalanacak alan ve ilişkiler uygulamadan önce görülsün; yeni kayıt yeni kimlik alsın. Secret, ödeme bilgisi, onay veya kesinleşme durumu taşınmasın; kullanıcının okuyamadığı alan kopyalanarak sızmasın; tenant sınırı, ilişki izinleri ve yeni kayıt doğrulamaları sunucuda uygulansın.",
+            "sources": [
+              {
+                "title": "Frappe: Document API",
+                "url": "https://docs.frappe.io/framework/user/en/api/document"
+              },
+              {
+                "title": "Frappe: REST API",
+                "url": "https://docs.frappe.io/framework/user/en/api/rest"
+              }
+            ]
+          }
         }
       ],
       "sources": ["reflow"],
@@ -595,6 +768,33 @@
               {
                 "title": "Frappe: kullanıcılar ve izinler",
                 "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Otomatik taslak ve taslağı kurtarma; sekme kapanması, tarayıcı çökmesi ve bağlantı kesilmesinde emeği koruma.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "Headless frontend + Frappe backend",
+            "confidence": "design",
+            "reviewedAt": "2026-10-11",
+            "note": "Yerel IndexedDB saklama bir seçenek olsa da tarayıcı kotası ve veri tahliyesi kalıcılık garantisi vermez. Frappe kaydı otomatik headless taslak kurtarma değildir; yerel veya sunucu taslağı, veri hassasiyeti, saklama süresi ve kullanıcı/tenant ayrımı tasarlanır. Token ve secret taslağa yazılmaz.",
+            "acceptance": "Yenileme veya yeniden açılmada yetkili kullanıcının aynı form/sürüm taslağı geri gelsin. Yerel saklama hatası açık bildirilsin; şema ve eşzamanlı değişiklik çakışması veri kaybetmeden çözülsün; hesap/tenant değişiminde taslak sızmasın, logout ve temizleme politikası doğrulansın; yerel taslak sunucu kaydı diye sunulmasın.",
+            "sources": [
+              {
+                "title": "MDN: IndexedDB yerel veri saklama",
+                "url": "https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API"
+              },
+              {
+                "title": "MDN: tarayıcı saklama kotası ve veri tahliyesi",
+                "url": "https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria"
+              },
+              {
+                "title": "Frappe: Document API",
+                "url": "https://docs.frappe.io/framework/user/en/api/document"
               }
             ]
           }
@@ -899,6 +1099,29 @@
               {
                 "title": "Keycloak 26.7.0: kimlik, oturum ve organizasyon yönetimi",
                 "url": "https://www.keycloak.org/docs/26.7.0/server_admin/index.html"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Düşük veri tüketimi modu; kullanıcı tercihiyle yenileme, medya ve ağır istekleri azaltma.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "Headless frontend + Frappe backend",
+            "confidence": "design",
+            "reviewedAt": "2026-10-11",
+            "note": "Tarayıcı Save-Data ipucu sınırlı desteğe sahiptir; bulunmaması güçlü bağlantı kanıtı değildir. Açık kullanıcı tercihi ve ölçülen kaynak ihtiyacıyla headless veri tüketimi politikası geliştirilir; Frappe REST sayfalama temeli panelin ağ bütçesi veya çevrimdışı çalışma desteği değildir.",
+            "acceptance": "Mod tercihi korunarak gereksiz otomatik yenileme, medya ve ağır yanıt azaltılsın; aynı gerçek yolculukta aktarılan baytlar ölçülsün. Kritik hizmet durumları ve kullanıcı eylemleri kaybolmasın; verinin tazeliği açıklansın, kullanıcı gerektiğinde yenileyebilsin; Save-Data olmayan tarayıcıda da mod çalışsın.",
+            "sources": [
+              {
+                "title": "MDN: Save-Data tercihi ve tarayıcı desteği",
+                "url": "https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/saveData"
+              },
+              {
+                "title": "Frappe: REST API",
+                "url": "https://docs.frappe.io/framework/user/en/api/rest"
               }
             ]
           }

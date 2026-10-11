@@ -580,6 +580,29 @@
               }
             ]
           }
+        },
+        {
+          "kind": "g",
+          "text": "Kullanıcı arka plan işleri merkezi; sayfadan bağımsız ilerleme, sonuç, güvenli iptal ve devam.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Frappe backend + headless frontend",
+            "confidence": "design",
+            "reviewedAt": "2026-10-11",
+            "note": "Frappe enqueue ve worker kuyruğu temel sağlar; kuyruk varlığı kullanıcıya ait kalıcı iş merkezi değildir. Headless liste, işlem sonuç modeli ve yetkili ilerleme/indirme API'si geliştirilir. Yalnız gerçekten desteklenen güvenli iptal ve checkpoint devamı sunulur; hedef sürümde worker davranışı doğrulanacak.",
+            "acceptance": "Import, export, rapor ve toplu iş sayfa değişse veya yeniden giriş yapılsa da kimliğiyle izlenebilsin. Bekliyor/çalışıyor/kısmi başarı/başarısız/tamamlandı durumları ve gerçek ilerleme görülsün; toplam bilinmiyorsa sahte yüzde verilmesin. İptal/devam başarılı adımı çoğaltmasın; tenant, kullanıcı, sonuç saklama süresi ve indirme yetkisi korunsun.",
+            "sources": [
+              {
+                "title": "Frappe: arka plan işleri ve kuyruklar",
+                "url": "https://docs.frappe.io/framework/user/en/api/background_jobs"
+              },
+              {
+                "title": "W3C: erişilebilir durum mesajları",
+                "url": "https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html"
+              }
+            ]
+          }
         }
       ],
       "sources": ["tenant", "outbox"],

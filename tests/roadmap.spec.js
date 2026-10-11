@@ -28,7 +28,7 @@ test('Frappe roadmap preserves per-item metadata, evidence and sources at 320px'
   page,
 }, testInfo) => {
   await visit(page);
-  await expect(page.locator('.assessment-tags')).toHaveCount(351);
+  await expect(page.locator('.assessment-tags')).toHaveCount(363);
   await expect(page.locator('.cluster').first()).toHaveAttribute(
     'id',
     'cluster-12',
@@ -135,7 +135,7 @@ test('Frappe capability and action filters preserve selection through reset at 3
     page.locator('#feature-identity-1 .feature-check'),
   ).toBeChecked();
   await page.locator('#reset-all').click();
-  await expect(page.locator('.feature:not([hidden])')).toHaveCount(351);
+  await expect(page.locator('.feature:not([hidden])')).toHaveCount(363);
   await expect(page.locator('.group:visible')).toHaveCount(49);
   await openFeature(page, 'feature-identity-1');
   await expect(page.locator('#feature-identity-1')).toBeVisible();
@@ -219,8 +219,8 @@ test('Frappe assessments and source links remain readable without JavaScript', a
   try {
     const page = await context.newPage();
     await page.goto('./');
-    await expect(page.locator('.assessment-tags')).toHaveCount(351);
-    await expect(page.locator('.assessment-note')).toHaveCount(351);
+    await expect(page.locator('.assessment-tags')).toHaveCount(363);
+    await expect(page.locator('.assessment-note')).toHaveCount(363);
     await expect(page.locator('noscript')).toBeVisible();
     await expect(page.locator('#export-selected')).toBeDisabled();
     await openFeature(page, 'feature-identity-1');

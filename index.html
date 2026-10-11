@@ -6,7 +6,7 @@
     <meta name="color-scheme" content="light" />
     <meta
       name="description"
-      content="Frappe backend, headless frontend ve Keycloak için 351 maddelik SaaS geliştirme yol haritası. Yeterlilik, geliştirme işi ve kabul ölçütleri."
+      content="Frappe backend, headless frontend ve Keycloak için 363 maddelik SaaS geliştirme yol haritası. Yeterlilik, geliştirme işi ve kabul ölçütleri."
     />
     <meta name="theme-color" content="#fffdf7" />
     <title>SaaS Atlas — Frappe geliştirme yol haritası</title>
@@ -37,7 +37,7 @@
         <div class="numbers">
           <span><strong>12</strong> küme</span
           ><span><strong>49</strong> başlık</span
-          ><span><strong>351</strong> madde</span
+          ><span><strong>363</strong> madde</span
           ><span class="structure">Küme → Başlık → Madde</span>
         </div>
         <div class="legend" role="group" aria-label="Madde sınıfları">
@@ -68,7 +68,7 @@
             disabled
           >
             <span class="filter-label">Tümü</span
-            ><span class="count">351</span></button
+            ><span class="count">363</span></button
           ><button
             class="filter"
             data-kind="o"
@@ -86,7 +86,7 @@
             disabled
           >
             <span class="filter-label">İç eksikler</span
-            ><span class="count">212</span></button
+            ><span class="count">224</span></button
           ><button
             class="filter"
             data-kind="n"
@@ -431,7 +431,7 @@
             role="status"
             aria-live="polite"
           >
-            351 / 351 madde · 49 grup
+            363 / 363 madde · 49 grup
           </p>
           <div class="toggles">
             <button
@@ -492,10 +492,10 @@
             aria-label="Frappe yeterlilik dağılımı"
           >
             <span><strong>9</strong> Çekirdekte var</span
-            ><span><strong>134</strong> Kısmen var</span
+            ><span><strong>138</strong> Kısmen var</span
             ><span><strong>32</strong> Ek Frappe uygulaması</span
             ><span><strong>64</strong> Çekirdekte hazır değil</span
-            ><span><strong>100</strong> Harici sorumluluk</span
+            ><span><strong>108</strong> Harici sorumluluk</span
             ><span><strong>12</strong> Doğrulanmalı</span>
           </div>
           <details class="roadmap-guide">
@@ -594,24 +594,35 @@
       <details class="context-disclosure scope-review" id="scope-review">
         <summary>
           <span
-            >Kapsam ve entegrasyon planı<span class="context-description"
-              >Özgün 326 madde ve önceki 18 ekleme korundu; entegrasyon planına
-              7 ayrı boşluk eklendi. Toplam 351 madde, 49 başlık.</span
+            >Kapsam, entegrasyon ve faydalı UX planı<span
+              class="context-description"
+              >Önceki 351 madde korundu; 25 faydalı UX önerisinin 13'ü mevcut
+              kapsamla birleştirildi, 12 ayrı boşluk eklendi. Toplam 363 madde,
+              49 başlık.</span
             ></span
           >
         </summary>
         <div class="review-body">
           <p>
-            Frappe yeterliliği, zorunlu kapsam ve tamamlanma ayrı kararlardır.
-            2026-10-11 planında sekiz entegrasyon modeli zorunludur; M0–M3
-            teslim sırasıdır, isteğe bağlılık değildir. Genel AI/RAG/ajan
-            kapsamı ileri aşamada kalır.
+            Fayda ve geliştirme önceliği, zorunlu kapsamdan, Frappe
+            yeterliliğinden ve tamamlanmadan ayrıdır. 25 öneri dört grupta
+            değerlendirilir: Emeği ve veriyi koruyanlar (çok yüksek fayda, ilk
+            paket); İşi tamamlamayı kolaylaştıranlar (yüksek fayda, ikinci
+            paket); Günlük kullanımı hızlandıranlar (orta/yüksek fayda, kullanım
+            sıklığına göre); Kullanıma bağlı değer sağlayanlar (ihtiyaç
+            doğrulandıktan sonra). Yeni 12 madde ürüne bağlıdır; önceki kapsam
+            kararları korunur. Sekiz entegrasyon modeli zorunlu, M0–M3 teslim
+            sırasıdır; genel AI/RAG/ajan kapsamı ileri aşamada kalır. Hedef
+            Frappe/Keycloak sürümleri seçilmedi; bu statik dokümantasyon çalışan
+            SaaS özellikleri sunulduğu anlamına gelmez.
           </p>
           <p>
-            Önceki 344 maddenin tüm alanları, kimlikleri ve sıraları
-            korunmuştur. Tarihsel ilk karşılaştırmadaki 402 ifade 17 bölüm
-            düzeyinde eşlenmiştir; yeni entegrasyon kararları kullanıcının
-            sonraki kapsam talebidir.
+            Önceki 351 maddenin bütün alanları, kimlikleri, sıraları,
+            değerlendirmeleri ve 53 önceki inceleme kararı korunmuştur. 25
+            faydalı UX önerisi mevcut 49 başlığa dağıtılır; 13 mevcut yetenek
+            yeniden eklenmez. Tarihsel ilk karşılaştırmadaki 402 ifade ve 17
+            bölüm eşlemesi korunur; sonraki entegrasyon ve faydalı UX kararları
+            ayrı kullanıcı talepleridir.
           </p>
           <dl class="scope-distribution">
             <div>
@@ -620,7 +631,7 @@
             </div>
             <div>
               <dt>Ürüne bağlı</dt>
-              <dd>167</dd>
+              <dd>179</dd>
             </div>
             <div>
               <dt>İleri aşama</dt>
@@ -2029,6 +2040,779 @@
               <p>
                 <a href="#feature-transfer-7" data-jump="feature-transfer-7"
                   >transfer-7</a
+                >
+              </p>
+            </li>
+            <li>
+              <p>
+                <strong
+                  >Ayrı boşluk olarak ekle · Canlı bağlantı ve sunucu erişimi
+                  göstergesi</strong
+                >
+              </p>
+              <p>
+                Kategori: Emeği ve veriyi koruyanlar. Fayda: Çok yüksek.
+                Öncelik: İlk paket. Ağ kesintisini uygulama sunucusuna
+                erişilememe ve yeniden bağlanmadan ayır; navigator.onLine tek
+                başına kanıt değildir. Kullanıcı neden beklediğini ve neyi
+                yapabileceğini görür. Kabul: Gerçek istek ve son başarılı
+                temasla durum doğrulansın; 401/403 ağ kesintisi sayılmasın,
+                duyuru odağı çalmasın, ağ geri geldiğinde mutasyon kör tekrar
+                edilmesin. Sorumluluk ve Frappe sınırı: Headless frontend +
+                platform; Frappe API/servis sinyali sağlar, panel göstergesi
+                veya çevrimdışı çalışma teslimi sayılmaz.
+              </p>
+              <p>
+                <a href="#feature-views-11" data-jump="feature-views-11"
+                  >views-11</a
+                >
+                ·
+                <a href="#feature-views-8" data-jump="feature-views-8"
+                  >views-8</a
+                >
+                ·
+                <a href="#feature-service-1" data-jump="feature-service-1"
+                  >service-1</a
+                >
+                ·
+                <a href="#feature-service-2" data-jump="feature-service-2"
+                  >service-2</a
+                >
+              </p>
+            </li>
+            <li>
+              <p>
+                <strong
+                  >Ayrı boşluk olarak ekle · Kaydetme durumu ve yerel
+                  taslak–sunucu kaydı ayrımı</strong
+                >
+              </p>
+              <p>
+                Kategori: Emeği ve veriyi koruyanlar. Fayda: Çok yüksek.
+                Öncelik: İlk paket. Kaydediliyor, değiştirildi, yalnız bu
+                cihazda taslak, sunucuya kaydedildi ve kaydetme hatası
+                durumlarını ayır; kullanıcının verisinin nerede olduğunu
+                bilmesini sağlar. Kabul: Commit sonucu doğrulanmadan sunucu
+                başarısı gösterilmesin; yerel kota/ağ hatasında veri korunsun,
+                eski yanıt yeni değişikliği kaydedilmiş göstermesin. Sorumluluk
+                ve Frappe sınırı: Headless frontend + Frappe backend;
+                transaction temeli görünür kaydetme durum modelini otomatik
+                sağlamaz.
+              </p>
+              <p>
+                <a href="#feature-views-12" data-jump="feature-views-12"
+                  >views-12</a
+                >
+                ·
+                <a href="#feature-forms-6" data-jump="feature-forms-6"
+                  >forms-6</a
+                >
+                ·
+                <a href="#feature-views-9" data-jump="feature-views-9"
+                  >views-9</a
+                >
+              </p>
+            </li>
+            <li>
+              <p>
+                <strong
+                  >Ayrı boşluk olarak ekle · Otomatik taslak ve taslağı
+                  kurtarma</strong
+                >
+              </p>
+              <p>
+                Kategori: Emeği ve veriyi koruyanlar. Fayda: Çok yüksek.
+                Öncelik: İlk paket. Sekme kapanması, tarayıcı çökmesi veya
+                bağlantı kesilmesinde yeniden veri girmeyi azaltır; yerel ve
+                sunucu taslağının saklama politikası ayrı belirlenir. Kabul:
+                Aynı kullanıcı/tenant ve form sürümüne ait taslak geri gelsin;
+                kota/tahliye riski ve saklama hatası açıklansın, hassas alanlar
+                kapsam dışı tutulsun, çakışma ile logout temizliği doğrulansın.
+                Sorumluluk ve Frappe sınırı: Headless frontend + Frappe backend;
+                IndexedDB bir uygulama seçeneğidir, Frappe kaydı veya tarayıcı
+                deposu kayıpsız kurtarma garantisi değildir.
+              </p>
+              <p>
+                <a href="#feature-forms-6" data-jump="feature-forms-6"
+                  >forms-6</a
+                >
+                ·
+                <a href="#feature-forms-3" data-jump="feature-forms-3"
+                  >forms-3</a
+                >
+                ·
+                <a href="#feature-forms-4" data-jump="feature-forms-4"
+                  >forms-4</a
+                >
+              </p>
+            </li>
+            <li>
+              <p>
+                <strong
+                  >Mevcut kapsamla birleştir · Oturum sonrasında kaldığı yerden
+                  devam</strong
+                >
+              </p>
+              <p>
+                Kategori: Emeği ve veriyi koruyanlar. Fayda: Çok yüksek.
+                Öncelik: İlk paket. Oturum sona erince yeniden giriş sonrasında
+                ilgili ekran, yetkili kayıt ve korunmuş form devam etsin; mevcut
+                taslak/deep link maddeleri yeniden özellik olarak eklenmez.
+                Kabul: Keycloak dönüş hedefi güvenli doğrulansın; yeni oturumda
+                tenant ve kayıt/alan yetkisi tekrar denetlensin, izin kaybında
+                veri açılmasın; dönüş otomatik submit veya eski token saklama
+                üretmesin. Sorumluluk ve Frappe sınırı: Keycloak + headless
+                frontend + Frappe backend; Frappe üzerinde ikinci login akışı
+                kurulmaz, Desk oturumu hazır headless devam değildir.
+              </p>
+              <p>
+                <a href="#feature-forms-3" data-jump="feature-forms-3"
+                  >forms-3</a
+                >
+                ·
+                <a href="#feature-channels-8" data-jump="feature-channels-8"
+                  >channels-8</a
+                >
+              </p>
+            </li>
+            <li>
+              <p>
+                <strong
+                  >Ayrı boşluk olarak ekle · Geri al, sürüm geçmişi ve
+                  silinenleri kurtarma</strong
+                >
+              </p>
+              <p>
+                Kategori: Emeği ve veriyi koruyanlar. Fayda: Çok yüksek.
+                Öncelik: İlk paket. Mevcut geri alma ve sürüm geçmişi korunur;
+                eksik silinen kayıt kurtarma ayrı GAP olur. Hatalı değişiklikten
+                veya silmeden güvenli dönüş sağlar. Kabul: Yalnız desteklenen
+                eylem geri alınsın; sürüm dönüşü yeni doğrulanmış kayıt
+                oluştursun, silinenleri kurtarma tenant/alan/ilişki izinlerine
+                ve saklama politikasına uysun; kalıcı silme geri çevrilmesin.
+                Sorumluluk ve Frappe sınırı: Frappe backend + headless frontend;
+                Version/Deleted Document temelleri genel domain undo veya hedef
+                sürümde hazır müşteri geri dönüşüm kutusu değildir.
+              </p>
+              <p>
+                <a href="#feature-views-9" data-jump="feature-views-9"
+                  >views-9</a
+                >
+                ·
+                <a href="#feature-integrity-2" data-jump="feature-integrity-2"
+                  >integrity-2</a
+                >
+                ·
+                <a href="#feature-integrity-6" data-jump="feature-integrity-6"
+                  >integrity-6</a
+                >
+              </p>
+            </li>
+            <li>
+              <p>
+                <strong
+                  >Ayrı boşluk olarak ekle · Sonucu belirsiz işlemi
+                  doğrulama</strong
+                >
+              </p>
+              <p>
+                Kategori: Emeği ve veriyi koruyanlar. Fayda: Çok yüksek.
+                Öncelik: İlk paket. Gönderimden sonra yanıtın kaybolması işlemin
+                başarısız olduğunu göstermez; kalıcı işlem kimliği ve sonuç
+                sorgusu mükerrer kayıt, ödeme veya dış etkiyi önler. Kabul:
+                Tamamlandı, sürüyor, başarısız ve bilinmiyor ayrı görülsün;
+                tenant yetkili sorgu ve aynı kimlikle güvenli devam tek etki
+                üretsin, sonuç bilinmeden otomatik mutasyon tekrarlanmasın.
+                Sorumluluk ve Frappe sınırı: Frappe backend + headless frontend
+                + dış etki adaptörü; transaction, queue veya outbox tek başına
+                tüm ürün işlemlerinin sonucunu sunan sözleşme değildir.
+              </p>
+              <p>
+                <a href="#feature-views-13" data-jump="feature-views-13"
+                  >views-13</a
+                >
+                ·
+                <a href="#feature-jobs-5" data-jump="feature-jobs-5">jobs-5</a>
+                ·
+                <a href="#feature-events-4" data-jump="feature-events-4"
+                  >events-4</a
+                >
+                ·
+                <a href="#feature-events-5" data-jump="feature-events-5"
+                  >events-5</a
+                >
+              </p>
+            </li>
+            <li>
+              <p>
+                <strong
+                  >Ayrı boşluk olarak ekle · Verinin güncelliği ve son başarılı
+                  güncelleme</strong
+                >
+              </p>
+              <p>
+                Kategori: Emeği ve veriyi koruyanlar. Fayda: Çok yüksek.
+                Öncelik: İlk paket. Bütün kayıt/ekranlarda son başarılı alınma,
+                kaynak güncellemesi ve eski veri ayrımı karar hatasını azaltır;
+                yalnız dashboard'a veya canlı bağlantının açık olmasına
+                bağlanmaz. Kabul: Kesinti/önbellek ve saat dilimi açıklansın,
+                başarısız yenileme zamanı ilerletmesin; yenileme form girdisini
+                bozmasın; kritik eylem sunucuda güncel veriyle doğrulansın.
+                Sorumluluk ve Frappe sınırı: Headless frontend + Frappe backend;
+                API ve realtime temeli ekranın tazelik sözleşmesini hazır
+                getirmez.
+              </p>
+              <p>
+                <a href="#feature-views-14" data-jump="feature-views-14"
+                  >views-14</a
+                >
+                ·
+                <a href="#feature-shell-3" data-jump="feature-shell-3"
+                  >shell-3</a
+                >
+                ·
+                <a href="#feature-reports-7" data-jump="feature-reports-7"
+                  >reports-7</a
+                >
+                ·
+                <a href="#feature-realtime-3" data-jump="feature-realtime-3"
+                  >realtime-3</a
+                >
+              </p>
+            </li>
+            <li>
+              <p>
+                <strong
+                  >Ayrı boşluk olarak ekle · Kullanıcı arka plan işleri
+                  merkezi</strong
+                >
+              </p>
+              <p>
+                Kategori: İşi tamamlamayı kolaylaştıranlar. Fayda: Yüksek.
+                Öncelik: İkinci paket. Import, export, rapor ve toplu işlemler
+                başka sayfaya geçilse de tek merkezden izlenir; job kuyruğu ile
+                son kullanıcıya sunulan kalıcı iş merkezi ayrıdır. Kabul:
+                Yeniden girişte aynı iş durumu/sonucu görülsün; gerçek ilerleme,
+                kısmi başarı ve hata sunulsun, toplam bilinmiyorsa sahte yüzde
+                kullanılmasın; desteklenen iptal/devam başarılı adımı
+                çoğaltmasın. Sorumluluk ve Frappe sınırı: Frappe backend +
+                headless frontend; enqueue/worker temeli yetkili kullanıcı iş
+                listesi ve indirme/saklama politikasını otomatik sağlamaz.
+              </p>
+              <p>
+                <a href="#feature-jobs-8" data-jump="feature-jobs-8">jobs-8</a>
+                ·
+                <a href="#feature-jobs-4" data-jump="feature-jobs-4">jobs-4</a>
+                ·
+                <a href="#feature-transfer-4" data-jump="feature-transfer-4"
+                  >transfer-4</a
+                >
+              </p>
+            </li>
+            <li>
+              <p>
+                <strong
+                  >Mevcut kapsamla birleştir · Kısmi başarı ve yalnız hatalıları
+                  yeniden deneme</strong
+                >
+              </p>
+              <p>
+                Kategori: İşi tamamlamayı kolaylaştıranlar. Fayda: Yüksek.
+                Öncelik: İkinci paket. Mevcut toplu işlem ve aktarım
+                maddelerinde 100 kayıttan 94 başarılı, 6 hatalı sonucunu ayrı
+                göster; yalnız hatalı öğeleri düzeltip yeniden denemek bütün işi
+                baştan yapmayı önler. Kabul: Başarılı öğeler değişmeden kalsın,
+                her hata kayıt/satırla ilişkilensin; retry kimliği ve checkpoint
+                mükerrer etkiyi önlesin, kalıcı hata kör tekrarlanmasın; yeniden
+                denemede güncel yetki ve iş kuralı uygulansın. Sorumluluk ve
+                Frappe sınırı: Frappe backend + headless frontend;
+                transaction/queue temeli kısmi sonuç ve kullanıcı seçimiyle
+                retry sözleşmesinin tamamı değildir.
+              </p>
+              <p>
+                <a href="#feature-integrity-4" data-jump="feature-integrity-4"
+                  >integrity-4</a
+                >
+                ·
+                <a href="#feature-jobs-3" data-jump="feature-jobs-3">jobs-3</a>
+                ·
+                <a href="#feature-jobs-4" data-jump="feature-jobs-4">jobs-4</a>
+                ·
+                <a href="#feature-transfer-3" data-jump="feature-transfer-3"
+                  >transfer-3</a
+                >
+                ·
+                <a href="#feature-transfer-4" data-jump="feature-transfer-4"
+                  >transfer-4</a
+                >
+              </p>
+            </li>
+            <li>
+              <p>
+                <strong
+                  >Ayrı boşluk olarak ekle · İşlem öncesi etki
+                  önizlemesi</strong
+                >
+              </p>
+              <p>
+                Kategori: İşi tamamlamayı kolaylaştıranlar. Fayda: Yüksek.
+                Öncelik: İkinci paket. Aktarım önizlemesi mevcut kapsamda
+                korunur; genel toplu/kritik işlemlerde etkilenecek kayıt ve
+                alanı onaydan önce göstermek ayrıca eklenir. Kabul: Yetkili
+                önce/sonra farkı, kayıt sayısı ve geri alınabilirlik sunulsun;
+                dry-run yan etki üretmesin; uygulama anında izin/sürüm yeniden
+                doğrulansın, iptalde işlem yapılmasın. Sorumluluk ve Frappe
+                sınırı: Headless frontend + Frappe backend; Document/REST temeli
+                genel önizleme motoru veya kullanıcı onayı değildir.
+              </p>
+              <p>
+                <a href="#feature-views-15" data-jump="feature-views-15"
+                  >views-15</a
+                >
+                ·
+                <a href="#feature-views-3" data-jump="feature-views-3"
+                  >views-3</a
+                >
+                ·
+                <a href="#feature-transfer-2" data-jump="feature-transfer-2"
+                  >transfer-2</a
+                >
+              </p>
+            </li>
+            <li>
+              <p>
+                <strong
+                  >Ayrı boşluk olarak ekle · Çözüm sunan hata mesajları</strong
+                >
+              </p>
+              <p>
+                Kategori: İşi tamamlamayı kolaylaştıranlar. Fayda: Yüksek.
+                Öncelik: İkinci paket. Neden, ilgili alan ve uygulanabilir
+                sonraki adımı göster; geçici hata, izin, kota ve doğrulama
+                sorununu ayırarak işi tamamlamayı kolaylaştırır. Kabul: Girilen
+                veri korunsun; hata alanla erişilebilir ilişkilensin, klavyeyle
+                bulunabilsin; güvenli hata kimliği sunulsun, secret/stack trace
+                sızmasın; sonucu belirsiz mutasyon kör tekrar edilmesin.
+                Sorumluluk ve Frappe sınırı: Headless frontend + Frappe backend;
+                backend hata yanıtı ürün dilinde çözüm akışı veya erişilebilir
+                frontend teslimi değildir.
+              </p>
+              <p>
+                <a href="#feature-views-16" data-jump="feature-views-16"
+                  >views-16</a
+                >
+                ·
+                <a href="#feature-channels-6" data-jump="feature-channels-6"
+                  >channels-6</a
+                >
+                ·
+                <a href="#feature-forms-2" data-jump="feature-forms-2"
+                  >forms-2</a
+                >
+              </p>
+            </li>
+            <li>
+              <p>
+                <strong
+                  >Mevcut kapsamla birleştir · İşlev bazında hizmet
+                  durumu</strong
+                >
+              </p>
+              <p>
+                Kategori: İşi tamamlamayı kolaylaştıranlar. Fayda: Yüksek.
+                Öncelik: İkinci paket. Mevcut durum/kesinti kapsamına işlev
+                bazlı kullanıcı açıklaması bağlanır: raporlar gecikirken kayıt
+                oluşturmanın çalıştığı belirtilebilir; tek genel çevrimdışı
+                etiketiyle bütün iş engellenmez. Kabul: Bileşen durumu,
+                etkilenen işlemler, son doğrulama ve mümkünse kullanıcıya
+                yararlı sonraki güncelleme görülsün; bilinmeyen durum sağlıklı
+                sayılmasın, dahili altyapı ayrıntısı sızmasın. Sorumluluk ve
+                Frappe sınırı: Platform operasyonu + headless frontend; Frappe
+                servis telemetrisi müşteri durum iletişiminin hazır ürünü
+                değildir.
+              </p>
+              <p>
+                <a href="#feature-service-1" data-jump="feature-service-1"
+                  >service-1</a
+                >
+                ·
+                <a href="#feature-service-2" data-jump="feature-service-2"
+                  >service-2</a
+                >
+              </p>
+            </li>
+            <li>
+              <p>
+                <strong
+                  >Mevcut kapsamla birleştir · Anlamlı boş durumlar</strong
+                >
+              </p>
+              <p>
+                Kategori: İşi tamamlamayı kolaylaştıranlar. Fayda: Yüksek.
+                Öncelik: İkinci paket. Henüz veri yok, filtreyle eşleşen sonuç
+                yok, yetki yok ve veri yüklenemedi durumlarını mevcut ekran
+                durumu maddesinde ayır; kullanıcıya uygun sonraki adımı
+                gösterir. Kabul: Yükleme hatası sıfır kayıt gibi sunulmasın;
+                filtre temizleme veya yetkili ilk kayıt oluşturma eylemi bağlama
+                göre sunulsun, yetkisiz kaydın varlığı açıklanmasın; odak ve
+                ekran okuyucu durumu korunsun. Sorumluluk ve Frappe sınırı:
+                Headless frontend; Frappe API sonuçlarını yorumlama ve boş ekran
+                içeriği frontendde geliştirilir.
+              </p>
+              <p>
+                <a href="#feature-views-8" data-jump="feature-views-8"
+                  >views-8</a
+                >
+              </p>
+            </li>
+            <li>
+              <p>
+                <strong>Ayrı boşluk olarak ekle · Güvenli destek paketi</strong>
+              </p>
+              <p>
+                Kategori: İşi tamamlamayı kolaylaştıranlar. Fayda: Yüksek.
+                Öncelik: İkinci paket. Hata kimliği, zaman ve ekran bağlamını
+                kullanıcı önizlemesiyle paylaşmak destek yazışmasını kısaltır;
+                otomatik ham log veya konsol gönderimi kapsam değildir. Kabul:
+                Allowlist ve maskeleme uygulansın; token/cookie/secret, form
+                içeriği ve kişisel/tenant verisi varsayılan dışarıda kalsın;
+                kullanıcı alan çıkarıp paylaşmayı seçsin, alıcı yetkisi ve
+                saklama/silme süresi doğrulansın. Sorumluluk ve Frappe sınırı:
+                Headless frontend + destek + Frappe backend; Helpdesk/log
+                araçları güvenli teşhis paketi sözleşmesini kendiliğinden
+                sağlamaz.
+              </p>
+              <p>
+                <a href="#feature-support-9" data-jump="feature-support-9"
+                  >support-9</a
+                >
+                ·
+                <a href="#feature-support-1" data-jump="feature-support-1"
+                  >support-1</a
+                >
+                ·
+                <a href="#feature-views-16" data-jump="feature-views-16"
+                  >views-16</a
+                >
+              </p>
+            </li>
+            <li>
+              <p>
+                <strong
+                  >Mevcut kapsamla birleştir · Kaydedilmiş görünümler</strong
+                >
+              </p>
+              <p>
+                Kategori: Günlük kullanımı hızlandıranlar. Fayda: Orta/yüksek.
+                Öncelik: Kullanım sıklığına göre. Filtre, sıralama ve sütun
+                tercihlerini 'Benim bekleyen işlerim' gibi adlarla tekrar
+                kullan; mevcut kayıtlı görünüm kapsamı korunur. Kabul: Görünüm
+                yeniden açılınca aynı anlamlı sorgu dönsün; silinen alan/izin
+                değişimi açıklansın, tenant ve kullanıcı tercihleri karışmasın;
+                kayıtlı görünüm yeni kayıt/alan yetkisi vermesin. Sorumluluk ve
+                Frappe sınırı: Headless frontend + Frappe backend; REST sorgu
+                temeli kalıcı kişisel görünüm deneyimini hazır getirmez.
+              </p>
+              <p>
+                <a href="#feature-views-7" data-jump="feature-views-7"
+                  >views-7</a
+                >
+              </p>
+            </li>
+            <li>
+              <p>
+                <strong
+                  >Mevcut kapsamla birleştir · Bağlamı koruyan paylaşım
+                  bağlantıları</strong
+                >
+              </p>
+              <p>
+                Kategori: Günlük kullanımı hızlandıranlar. Fayda: Orta/yüksek.
+                Öncelik: Kullanım sıklığına göre. Belirli kayıt veya filtreli
+                ekranın güvenli bağlantısını paylaşmak anlatım ve yeniden arama
+                yükünü azaltır; mevcut deep link ve görünüm maddeleriyle
+                birleştirilir. Kabul: Giriş sonrası aynı bağlam dönsün; alıcı
+                yalnız kendi tenant/kayıt/alan yetkisiyle görsün, URL
+                token/secret/hassas filtre içermesin; geçersiz veya silinmiş
+                bağlam açıklansın; paylaşım yetki vermesin. Sorumluluk ve Frappe
+                sınırı: Headless frontend + Keycloak + Frappe backend; API kayıt
+                kimliği erişim kontrollü paylaşım yolculuğunun tamamı değildir.
+              </p>
+              <p>
+                <a href="#feature-channels-8" data-jump="feature-channels-8"
+                  >channels-8</a
+                >
+                ·
+                <a href="#feature-views-7" data-jump="feature-views-7"
+                  >views-7</a
+                >
+              </p>
+            </li>
+            <li>
+              <p>
+                <strong
+                  >Mevcut kapsamla birleştir · Son kullanılanlar ve
+                  sabitlenenler</strong
+                >
+              </p>
+              <p>
+                Kategori: Günlük kullanımı hızlandıranlar. Fayda: Orta/yüksek.
+                Öncelik: Kullanım sıklığına göre. Sık kullanılan kayıt ve
+                ekranlara favori, sabitleme ve yakın geçmişten dönmek tekrar
+                gezinmeyi azaltır; mevcut kabuk/kişiselleştirme maddeleriyle
+                izlenir. Kabul: Liste kullanıcı/tenant kapsamında olsun; yetkisi
+                kalkan kayıt veya komut erişimi yeniden reddedilsin ve hassas
+                başlık sızmasın; son kullanılanları temizleme ve klavye erişimi
+                sunulsun. Sorumluluk ve Frappe sınırı: Headless frontend +
+                Frappe backend; Desk favorileri/geçmişi bağımsız panelde hazır
+                kabul edilmez.
+              </p>
+              <p>
+                <a href="#feature-shell-6" data-jump="feature-shell-6"
+                  >shell-6</a
+                >
+                ·
+                <a href="#feature-shell-9" data-jump="feature-shell-9"
+                  >shell-9</a
+                >
+              </p>
+            </li>
+            <li>
+              <p>
+                <strong
+                  >Ayrı boşluk olarak ekle · Şablondan oluşturma ve kontrollü
+                  çoğaltma</strong
+                >
+              </p>
+              <p>
+                Kategori: Günlük kullanımı hızlandıranlar. Fayda: Orta/yüksek.
+                Öncelik: Kullanım sıklığına göre. Tekrarlanan girişleri azaltır;
+                yeni kayda hangi alan ve ilişkilerin taşınacağını kullanıcıya
+                önceden gösterir, başka tenantın verisini kopyalama izni vermez.
+                Kabul: Yeni kimlik oluşturulsun; secret, ödeme verisi ve
+                kesinleşme/onay durumu kopyalanmasın; alan/ilişki izinleri ve
+                domain doğrulaması sunucuda korunsun, kullanıcı önizleyip karar
+                versin. Sorumluluk ve Frappe sınırı: Headless frontend + Frappe
+                backend; Document oluşturma temeli ürün şablonu ve güvenli
+                çoğaltma politikası değildir.
+              </p>
+              <p>
+                <a href="#feature-views-17" data-jump="feature-views-17"
+                  >views-17</a
+                >
+                ·
+                <a href="#feature-forms-1" data-jump="feature-forms-1"
+                  >forms-1</a
+                >
+              </p>
+            </li>
+            <li>
+              <p>
+                <strong
+                  >Mevcut kapsamla birleştir · Sayıların hesaplama
+                  açıklaması</strong
+                >
+              </p>
+              <p>
+                Kategori: Günlük kullanımı hızlandıranlar. Fayda: Orta/yüksek.
+                Öncelik: Kullanım sıklığına göre. Toplamın tarih aralığı,
+                filtre, para birimi, saat dilimi ve hariç tutulan kayıtlarını
+                açıklamak metrik sözleşmesini kullanıcı açısından anlaşılır
+                kılar; yeni rapor motoru oluşturulmaz. Kabul: Gösterilen sayıyla
+                aynı sürümlü hesaplama tanımı ve kaynak zamanı sunulsun;
+                yuvarlama/döviz dönüşümü açıklansın, kullanıcı yetkisini aşan
+                satır veya alan dökümü verilmesin. Sorumluluk ve Frappe sınırı:
+                Raporlama domaini + Frappe backend + headless frontend; rapor
+                altyapısı ürün metriğinin anlamını veya UI açıklamasını otomatik
+                belirlemez.
+              </p>
+              <p>
+                <a href="#feature-reports-7" data-jump="feature-reports-7"
+                  >reports-7</a
+                >
+              </p>
+            </li>
+            <li>
+              <p>
+                <strong
+                  >Mevcut kapsamla birleştir · Saat dilimi ve tarih
+                  açıklığı</strong
+                >
+              </p>
+              <p>
+                Kategori: Günlük kullanımı hızlandıranlar. Fayda: Orta/yüksek.
+                Öncelik: Kullanım sıklığına göre. Son tarihler, zamanlanmış
+                işler ve geçmiş olaylarda kullanılan saat dilimini görünür kıl;
+                mevcut yerelleştirme ve scheduler kapsamına bağlanır. Kabul:
+                Kullanıcı/tenant saat dilimi ve gerektiğinde UTC karşılığı
+                açıklansın; yaz saati, tekrarlanan/olmayan yerel saat ve 'bugün'
+                sınırı tutarlı doğrulansın; dilimi değiştirmek geçmiş olay anını
+                değiştirmesin. Sorumluluk ve Frappe sınırı: Headless frontend +
+                Frappe backend + platform; tarih yardımcıları ve cron, ürünün
+                gösterim/zamanlama politikasını tek başına seçmez.
+              </p>
+              <p>
+                <a href="#feature-locale-4" data-jump="feature-locale-4"
+                  >locale-4</a
+                >
+                ·
+                <a href="#feature-jobs-6" data-jump="feature-jobs-6">jobs-6</a>
+              </p>
+            </li>
+            <li>
+              <p>
+                <strong
+                  >Mevcut kapsamla birleştir · Klavye kısayolları ve komut
+                  araması</strong
+                >
+              </p>
+              <p>
+                Kategori: Günlük kullanımı hızlandıranlar. Fayda: Orta/yüksek.
+                Öncelik: Kullanım sıklığına göre. Yoğun kullanımda yetkili eylem
+                araması ve keşfedilebilir kısayollar gezinmeyi hızlandırır;
+                mevcut komut kataloğu ve erişilebilirlik maddeleri korunur.
+                Kabul: Aynı eylem menü/dokunmayla da erişilsin; metin girişini
+                veya tarayıcı kısayollarını bozmasın, odak dönüşü ve görünür
+                odak korunsun; yetkisiz komut sonuçta görünmesin ve API'de
+                reddedilsin. Sorumluluk ve Frappe sınırı: Headless frontend +
+                Frappe backend; Desk kısayolları bağımsız panelin klavye/odak
+                teslimi sayılmaz.
+              </p>
+              <p>
+                <a href="#feature-shell-9" data-jump="feature-shell-9"
+                  >shell-9</a
+                >
+                ·
+                <a href="#feature-channels-5" data-jump="feature-channels-5"
+                  >channels-5</a
+                >
+              </p>
+            </li>
+            <li>
+              <p>
+                <strong
+                  >Mevcut kapsamla birleştir · Gerçek çevrimdışı çalışma ve
+                  sonradan eşitleme</strong
+                >
+              </p>
+              <p>
+                Kategori: Kullanıma bağlı değer sağlayanlar. Fayda: Bağlama
+                bağlı. Öncelik: İhtiyaç doğrulandıktan sonra. Saha, seyahat veya
+                sık kesilen ağda çok yüksek değer sağlayabilir; geliştirme yükü
+                yüksek, yerel hassas veri, kuyruk ve çakışma politikası
+                gerektirir. Mevcut channels-7 ileri aşama kapsamı korunur;
+                bağlantı göstergesi bu yeteneği gerektirmez. Kabul: Yerel
+                saklama hatası açıklansın; yeniden girişte yetki doğrulansın,
+                her işlem idempotent eşitlensin; iki cihaz çakışması kullanıcıya
+                çözüm sunsun, kalıcı silme/logout politikası korunsun; onaysız
+                kör mutasyon gönderilmesin. Sorumluluk ve Frappe sınırı:
+                Headless frontend + Frappe backend + güvenlik; REST veya PWA
+                etiketi hazır çevrimdışı ürün kanıtı değildir.
+              </p>
+              <p>
+                <a href="#feature-channels-7" data-jump="feature-channels-7"
+                  >channels-7</a
+                >
+                ·
+                <a href="#feature-forms-6" data-jump="feature-forms-6"
+                  >forms-6</a
+                >
+                ·
+                <a href="#feature-views-11" data-jump="feature-views-11"
+                  >views-11</a
+                >
+                ·
+                <a href="#feature-integrity-1" data-jump="feature-integrity-1"
+                  >integrity-1</a
+                >
+              </p>
+            </li>
+            <li>
+              <p>
+                <strong
+                  >Mevcut kapsamla birleştir · Eşzamanlı düzenleme ve çakışma
+                  yönetimi</strong
+                >
+              </p>
+              <p>
+                Kategori: Kullanıma bağlı değer sağlayanlar. Fayda: Bağlama
+                bağlı. Öncelik: İhtiyaç doğrulandıktan sonra. Birden fazla kişi
+                aynı kaydı düzenliyorsa başkasının değişikliğinin üzerine
+                yazılmasını önler; geliştirme yükü orta–yüksek, mevcut
+                optimistic locking ve işbirliği kapsamıyla izlenir. Kabul: Eski
+                sürümle yazma reddedilsin; kullanıcının değişikliği korunsun,
+                izinli önce/sonra farkı ve yeniden yükle/birleştir seçenekleri
+                verilsin; son kaydeden kazanır biçiminde sessiz veri kaybı
+                oluşmasın. Sorumluluk ve Frappe sınırı: Frappe backend +
+                headless frontend; normal Document.save sürüm koruması hazır
+                ortak düzenleme UI'si veya CRDT motoru değildir.
+              </p>
+              <p>
+                <a href="#feature-integrity-1" data-jump="feature-integrity-1"
+                  >integrity-1</a
+                >
+                ·
+                <a href="#feature-realtime-5" data-jump="feature-realtime-5"
+                  >realtime-5</a
+                >
+              </p>
+            </li>
+            <li>
+              <p>
+                <strong
+                  >Ayrı boşluk olarak ekle · Düşük veri tüketimi modu</strong
+                >
+              </p>
+              <p>
+                Kategori: Kullanıma bağlı değer sağlayanlar. Fayda: Bağlama
+                bağlı. Öncelik: İhtiyaç doğrulandıktan sonra. Zayıf veya ücretli
+                bağlantılarda otomatik yenileme, medya ve ağır yanıtları
+                azaltmak değer sağlar; geliştirme yükü orta. Kullanıcının açık
+                tercihi esastır; Save-Data ipucu yokluğu güçlü cihaz/ağ
+                sayılmaz. Kabul: Aynı yolculukta aktarılan baytlar ölçülsün,
+                temel eylem ve kritik durum erişimi korunsun; güncellik kaybı
+                açıklansın, elle yenileme mümkün olsun; ipucu desteklemeyen
+                tarayıcıda da tercih çalışsın. Sorumluluk ve Frappe sınırı:
+                Headless frontend + Frappe backend; REST sayfalama temeli ağ
+                bütçesi, düşük veri modu veya çevrimdışı çalışma teslimi
+                değildir.
+              </p>
+              <p>
+                <a href="#feature-channels-9" data-jump="feature-channels-9"
+                  >channels-9</a
+                >
+                ·
+                <a href="#feature-views-14" data-jump="feature-views-14"
+                  >views-14</a
+                >
+              </p>
+            </li>
+            <li>
+              <p>
+                <strong
+                  >Mevcut kapsamla birleştir · Bildirim özeti ve sessiz
+                  saatler</strong
+                >
+              </p>
+              <p>
+                Kategori: Kullanıma bağlı değer sağlayanlar. Fayda: Bağlama
+                bağlı. Öncelik: İhtiyaç doğrulandıktan sonra. Bildirim hacmi
+                yüksekse rutin olayları özetlemek dikkati korur; geliştirme yükü
+                orta, mevcut bildirim tercihleri kapsamına bağlanır. Kritik
+                güvenlik ve işlem mesajları için ayrı açık politika gerekir.
+                Kabul: Kanal, sıklık, saat dilimi ve sessiz saat tercihi
+                korunsun; yinelenen özet tekilleşsin, izin değişen içerik
+                gönderilmesin; kritik istisnalar kullanıcıya açıklansın, önemli
+                olay sessizce kaybolmasın. Sorumluluk ve Frappe sınırı: Bildirim
+                backend'i + headless frontend + kanal sağlayıcıları; Frappe
+                Notification temeli bütün kanal/özet politikasını kendiliğinden
+                sağlamaz.
+              </p>
+              <p>
+                <a
+                  href="#feature-notifications-6"
+                  data-jump="feature-notifications-6"
+                  >notifications-6</a
                 >
               </p>
             </li>
@@ -10101,7 +10885,7 @@
                   <h2>Güvenlik, gizlilik ve veri yönetişimi</h2>
                   <p class="cluster-meta">
                     <span class="cluster-groups">5</span> grup ·
-                    <span class="cluster-items">36</span> madde
+                    <span class="cluster-items">37</span> madde
                   </p>
                   <p class="cluster-rationale">
                     İzolasyon, audit, veri yaşam döngüsü ve güvenlik kabulü ilk
@@ -13479,7 +14263,7 @@
                       <span class="group-number">03.5</span>Kayıt bütünlüğü ve
                       eşzamanlılık
                     </h3>
-                    <p class="group-count"><span>5</span> madde</p>
+                    <p class="group-count"><span>6</span> madde</p>
                   </div>
                   <span class="group-toggle" aria-hidden="true"></span>
                 </summary>
@@ -13980,6 +14764,120 @@
                               target="_blank"
                               rel="noopener noreferrer"
                               >Frappe Document API</a
+                            >
+                          </li>
+                        </ul>
+                      </div>
+                    </details>
+                  </li>
+                  <li
+                    class="feature"
+                    id="feature-integrity-6"
+                    data-item="integrity-6"
+                    data-kind="g"
+                    data-support="partial"
+                    data-action="extend"
+                    data-scope="conditional"
+                  >
+                    <label class="feature-label" for="check-integrity-6"
+                      ><span class="check-target"
+                        ><input
+                          class="feature-check"
+                          type="checkbox"
+                          id="check-integrity-6"
+                          value="integrity-6"
+                          disabled /></span
+                      ><span class="feature-content"
+                        ><span class="origin">İç eksik</span
+                        ><span class="feature-title"
+                          >Silinen kayıtları kontrollü kurtarma; yetkili
+                          önizleme, saklama süresi, ilişki ve iş kuralı
+                          doğrulaması.</span
+                        ></span
+                      ></label
+                    >
+                    <div
+                      class="assessment-tags"
+                      role="group"
+                      aria-label="Frappe yeterliliği ve yapılacak iş"
+                    >
+                      <span
+                        class="support-tag"
+                        data-tag="support"
+                        data-value="partial"
+                        >Kısmen var</span
+                      ><span data-tag="action" data-value="extend"
+                        >Genişlet</span
+                      ><span data-tag="owner"
+                        >Frappe backend + headless frontend</span
+                      >
+                    </div>
+                    <p class="scope-note">
+                      <strong class="scope-label" data-scope-label="conditional"
+                        >Ürüne bağlı</strong
+                      >
+                    </p>
+                    <details class="assessment">
+                      <summary>
+                        <span
+                          >Değerlendirme ve kabul ölçütü<span class="sr-only"
+                            >: Silinen kayıtları kontrollü kurtarma; yetkili
+                            önizleme, saklama süresi, ilişki ve iş kuralı
+                            doğrulaması.</span
+                          ></span
+                        >
+                      </summary>
+                      <div class="assessment-body">
+                        <p>
+                          <strong>Kapsam gerekçesi</strong> Kategori: Emeği ve
+                          veriyi koruyanlar. Fayda: Çok yüksek. Öncelik: İlk
+                          paket. Üründeki ilgili kullanıcı yolculuğu ve veri
+                          riski doğrulanınca uygulanır; fayda düzeyi zorunluluk
+                          veya tamamlanma değildir. Geri al, sürüm geçmişi ve
+                          silinenleri kurtarma.
+                        </p>
+                        <p class="assessment-note">
+                          Frappe version-15 Deleted Document.restore kaynak
+                          kodunda System Manager, create ve read denetimleriyle
+                          geri yükleme temeli vardır. Bu, hedef sürümde her
+                          kayıt için hazır tenant geri dönüşüm kutusu değildir;
+                          headless seçim, ilişki, saklama/silme politikası ve
+                          domain güvenliği ayrıca tasarlanır. Hedef Frappe
+                          sürümü henüz seçilmedi.
+                        </p>
+                        <p>
+                          <strong>Kabul ölçütü:</strong> Yetkili kullanıcı geri
+                          yüklenecek veriyi önizlesin; başka tenant veya
+                          yetkisiz silinen kayıt görünmesin. Kimlik/ilişki
+                          çakışması ve kritik durum doğrulansın, geri yükleme
+                          denetlensin; aynı kayıt tekrar kurtarılarak
+                          çoğalmasın. Saklama süresi bitmiş veya kalıcı silme
+                          politikasına tabi veri geri getirilmesin; backup
+                          restore ayrı kalsın.
+                        </p>
+                        <p
+                          class="assessment-basis"
+                          data-reviewed-at="2026-10-11"
+                        >
+                          <strong>Dayanak:</strong> Mimari karar · 2026-10-11.
+                          Hedef sürüm ve kurulumda kabul bekliyor.
+                        </p>
+                        <ul aria-label="Madde kaynakları">
+                          <li>
+                            <a
+                              href="https://raw.githubusercontent.com/frappe/frappe/version-15/frappe/core/doctype/deleted_document/deleted_document.py"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              >Frappe: Deleted Document restore kaynak kodu,
+                              version-15</a
+                            >
+                          </li>
+                          <li>
+                            <a
+                              href="https://docs.frappe.io/framework/user/en/api/document"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              >Frappe: Document API</a
                             >
                           </li>
                         </ul>
@@ -21234,7 +22132,7 @@
                   <h2>Panel, ekranlar ve kişiselleştirme</h2>
                   <p class="cluster-meta">
                     <span class="cluster-groups">5</span> grup ·
-                    <span class="cluster-items">38</span> madde
+                    <span class="cluster-items">47</span> madde
                   </p>
                   <p class="cluster-rationale">
                     Frappe Desk'ten bağımsız panel, API sözleşmeleri üzerinde
@@ -22289,7 +23187,7 @@
                       <span class="group-number">06.2</span>Kayıt ekranları ve
                       etkileşim
                     </h3>
-                    <p class="group-count"><span>10</span> madde</p>
+                    <p class="group-count"><span>17</span> madde</p>
                   </div>
                   <span class="group-toggle" aria-hidden="true"></span>
                 </summary>
@@ -23270,6 +24168,800 @@
                       </div>
                     </details>
                   </li>
+                  <li
+                    class="feature"
+                    id="feature-views-11"
+                    data-item="views-11"
+                    data-kind="g"
+                    data-support="external"
+                    data-action="build"
+                    data-scope="conditional"
+                  >
+                    <label class="feature-label" for="check-views-11"
+                      ><span class="check-target"
+                        ><input
+                          class="feature-check"
+                          type="checkbox"
+                          id="check-views-11"
+                          value="views-11"
+                          disabled /></span
+                      ><span class="feature-content"
+                        ><span class="origin">İç eksik</span
+                        ><span class="feature-title"
+                          >Canlı bağlantı ve sunucu erişimi göstergesi;
+                          çevrimdışı, erişilemiyor ve yeniden bağlanıyor
+                          durumları.</span
+                        ></span
+                      ></label
+                    >
+                    <div
+                      class="assessment-tags"
+                      role="group"
+                      aria-label="Frappe yeterliliği ve yapılacak iş"
+                    >
+                      <span
+                        class="support-tag"
+                        data-tag="support"
+                        data-value="external"
+                        >Harici sorumluluk</span
+                      ><span data-tag="action" data-value="build">Geliştir</span
+                      ><span data-tag="owner"
+                        >Headless frontend + platform</span
+                      >
+                    </div>
+                    <p class="scope-note">
+                      <strong class="scope-label" data-scope-label="conditional"
+                        >Ürüne bağlı</strong
+                      >
+                    </p>
+                    <details class="assessment">
+                      <summary>
+                        <span
+                          >Değerlendirme ve kabul ölçütü<span class="sr-only"
+                            >: Canlı bağlantı ve sunucu erişimi göstergesi;
+                            çevrimdışı, erişilemiyor ve yeniden bağlanıyor
+                            durumları.</span
+                          ></span
+                        >
+                      </summary>
+                      <div class="assessment-body">
+                        <p>
+                          <strong>Kapsam gerekçesi</strong> Kategori: Emeği ve
+                          veriyi koruyanlar. Fayda: Çok yüksek. Öncelik: İlk
+                          paket. Üründeki ilgili kullanıcı yolculuğu ve veri
+                          riski doğrulanınca uygulanır; fayda düzeyi zorunluluk
+                          veya tamamlanma değildir. Canlı bağlantı ve sunucu
+                          erişimi göstergesi.
+                        </p>
+                        <p class="assessment-note">
+                          Tarayıcının online/offline sinyali tek başına internet
+                          veya uygulama sunucusuna erişim kanıtı değildir.
+                          Gerçek uygulama istekleri, son başarılı temas ve
+                          servis durumu headless panelde birlikte yorumlanır; bu
+                          gösterge çevrimdışı yazma desteği anlamına gelmez.
+                          Hedef Frappe/Keycloak sürümleri henüz seçilmedi.
+                        </p>
+                        <p>
+                          <strong>Kabul ölçütü:</strong> Ağ kesintisi, internet
+                          açıkken uygulama sunucusuna erişilememe ve yeniden
+                          bağlanma ayrı gösterilsin; 401/403 bağlantı arızası
+                          sayılmasın. Durum yalnız renkle aktarılmasın, ekran
+                          okuyucuya odağı çalmadan duyurulsun; bağlantının geri
+                          gelmesi mutasyonu kendiliğinden yeniden göndermesin.
+                        </p>
+                        <p
+                          class="assessment-basis"
+                          data-reviewed-at="2026-10-11"
+                        >
+                          <strong>Dayanak:</strong> Mimari karar · 2026-10-11.
+                          Hedef sürüm ve kurulumda kabul bekliyor.
+                        </p>
+                        <ul aria-label="Madde kaynakları">
+                          <li>
+                            <a
+                              href="https://developer.mozilla.org/en-US/docs/Web/API/Navigator/onLine"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              >MDN: Navigator.onLine ve erişim sinyallerinin
+                              sınırı</a
+                            >
+                          </li>
+                          <li>
+                            <a
+                              href="https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              >W3C: erişilebilir durum mesajları</a
+                            >
+                          </li>
+                          <li>
+                            <a
+                              href="https://docs.frappe.io/framework/user/en/api/rest"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              >Frappe: REST API</a
+                            >
+                          </li>
+                        </ul>
+                      </div>
+                    </details>
+                  </li>
+                  <li
+                    class="feature"
+                    id="feature-views-12"
+                    data-item="views-12"
+                    data-kind="g"
+                    data-support="external"
+                    data-action="build"
+                    data-scope="conditional"
+                  >
+                    <label class="feature-label" for="check-views-12"
+                      ><span class="check-target"
+                        ><input
+                          class="feature-check"
+                          type="checkbox"
+                          id="check-views-12"
+                          value="views-12"
+                          disabled /></span
+                      ><span class="feature-content"
+                        ><span class="origin">İç eksik</span
+                        ><span class="feature-title"
+                          >Kaydetme durumu; değiştirildi, kaydediliyor, bu
+                          cihazda taslak, sunucuya kaydedildi ve kaydetme
+                          hatası.</span
+                        ></span
+                      ></label
+                    >
+                    <div
+                      class="assessment-tags"
+                      role="group"
+                      aria-label="Frappe yeterliliği ve yapılacak iş"
+                    >
+                      <span
+                        class="support-tag"
+                        data-tag="support"
+                        data-value="external"
+                        >Harici sorumluluk</span
+                      ><span data-tag="action" data-value="build">Geliştir</span
+                      ><span data-tag="owner"
+                        >Headless frontend + Frappe backend</span
+                      >
+                    </div>
+                    <p class="scope-note">
+                      <strong class="scope-label" data-scope-label="conditional"
+                        >Ürüne bağlı</strong
+                      >
+                    </p>
+                    <details class="assessment">
+                      <summary>
+                        <span
+                          >Değerlendirme ve kabul ölçütü<span class="sr-only"
+                            >: Kaydetme durumu; değiştirildi, kaydediliyor, bu
+                            cihazda taslak, sunucuya kaydedildi ve kaydetme
+                            hatası.</span
+                          ></span
+                        >
+                      </summary>
+                      <div class="assessment-body">
+                        <p>
+                          <strong>Kapsam gerekçesi</strong> Kategori: Emeği ve
+                          veriyi koruyanlar. Fayda: Çok yüksek. Öncelik: İlk
+                          paket. Üründeki ilgili kullanıcı yolculuğu ve veri
+                          riski doğrulanınca uygulanır; fayda düzeyi zorunluluk
+                          veya tamamlanma değildir. Kaydetme durumu ve yerel
+                          taslak–sunucu kaydı ayrımı.
+                        </p>
+                        <p class="assessment-note">
+                          Frappe kayıt API'si sunucu işleminin temelidir; kalıcı
+                          işlem sonucunu yorumlayan durum modeli bağımsız
+                          frontendde geliştirilir. Yerel taslak, gönderim
+                          kuyruğu ve sunucunun doğruladığı kayıt aynı başarı
+                          olarak gösterilmez. Hedef sürümde işlem tamamlanması
+                          ve yanıt sözleşmesi doğrulanır.
+                        </p>
+                        <p>
+                          <strong>Kabul ölçütü:</strong> Sunucu commit sonucu
+                          doğrulanmadan 'Sunucuya kaydedildi' denmesin. Yerel
+                          saklama başarısızlığı ve ağ hatası girilen veriyi
+                          koruyarak açıklansın; eski yanıt daha yeni değişikliği
+                          kaydedilmiş göstermesin; erişilebilir durum mesajı
+                          ilgili kayıt sürümüyle eşleşsin.
+                        </p>
+                        <p
+                          class="assessment-basis"
+                          data-reviewed-at="2026-10-11"
+                        >
+                          <strong>Dayanak:</strong> Mimari karar · 2026-10-11.
+                          Hedef sürüm ve kurulumda kabul bekliyor.
+                        </p>
+                        <ul aria-label="Madde kaynakları">
+                          <li>
+                            <a
+                              href="https://docs.frappe.io/framework/user/en/api/database"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              >Frappe: işlem commit ve rollback modeli</a
+                            >
+                          </li>
+                          <li>
+                            <a
+                              href="https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              >MDN: tarayıcı saklama kotası ve veri tahliyesi</a
+                            >
+                          </li>
+                          <li>
+                            <a
+                              href="https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              >W3C: erişilebilir durum mesajları</a
+                            >
+                          </li>
+                        </ul>
+                      </div>
+                    </details>
+                  </li>
+                  <li
+                    class="feature"
+                    id="feature-views-13"
+                    data-item="views-13"
+                    data-kind="g"
+                    data-support="partial"
+                    data-action="extend"
+                    data-scope="conditional"
+                  >
+                    <label class="feature-label" for="check-views-13"
+                      ><span class="check-target"
+                        ><input
+                          class="feature-check"
+                          type="checkbox"
+                          id="check-views-13"
+                          value="views-13"
+                          disabled /></span
+                      ><span class="feature-content"
+                        ><span class="origin">İç eksik</span
+                        ><span class="feature-title"
+                          >Sonucu belirsiz işlemi kimliğiyle sorgulama;
+                          doğrulanmadan tekrar göndermeme ve mükerrer etkiyi
+                          önleme.</span
+                        ></span
+                      ></label
+                    >
+                    <div
+                      class="assessment-tags"
+                      role="group"
+                      aria-label="Frappe yeterliliği ve yapılacak iş"
+                    >
+                      <span
+                        class="support-tag"
+                        data-tag="support"
+                        data-value="partial"
+                        >Kısmen var</span
+                      ><span data-tag="action" data-value="extend"
+                        >Genişlet</span
+                      ><span data-tag="owner"
+                        >Frappe backend + headless frontend</span
+                      >
+                    </div>
+                    <p class="scope-note">
+                      <strong class="scope-label" data-scope-label="conditional"
+                        >Ürüne bağlı</strong
+                      >
+                    </p>
+                    <details class="assessment">
+                      <summary>
+                        <span
+                          >Değerlendirme ve kabul ölçütü<span class="sr-only"
+                            >: Sonucu belirsiz işlemi kimliğiyle sorgulama;
+                            doğrulanmadan tekrar göndermeme ve mükerrer etkiyi
+                            önleme.</span
+                          ></span
+                        >
+                      </summary>
+                      <div class="assessment-body">
+                        <p>
+                          <strong>Kapsam gerekçesi</strong> Kategori: Emeği ve
+                          veriyi koruyanlar. Fayda: Çok yüksek. Öncelik: İlk
+                          paket. Üründeki ilgili kullanıcı yolculuğu ve veri
+                          riski doğrulanınca uygulanır; fayda düzeyi zorunluluk
+                          veya tamamlanma değildir. Sonucu belirsiz işlemi
+                          doğrulama.
+                        </p>
+                        <p class="assessment-note">
+                          Frappe transaction temeli sağlar; yanıt kaybolduğunda
+                          genel ürün işleminin sonucunu sorgulayan kalıcı işlem
+                          kimliği, idempotency ve dış etki sözleşmesi ayrıca
+                          geliştirilir. HTTP zaman aşımı işlemin başarısız
+                          olduğunun kanıtı değildir; hedef sürümde uçtan uca
+                          kabul gerekir.
+                        </p>
+                        <p>
+                          <strong>Kabul ölçütü:</strong> Sunucuda tamamlanıp
+                          yanıtı kaybolan işlem kimliğiyle bulunabilsin.
+                          Tamamlandı, sürüyor, başarısız ve henüz bilinmiyor
+                          ayrımı gösterilsin; aynı kimlikle güvenli devam
+                          mükerrer etki üretmesin, bilinmeyen sonuçta kör
+                          otomatik mutasyon tekrarı yapılmasın; sorgu tenant ve
+                          kullanıcı yetkisini korusun.
+                        </p>
+                        <p
+                          class="assessment-basis"
+                          data-reviewed-at="2026-10-11"
+                        >
+                          <strong>Dayanak:</strong> Mimari karar · 2026-10-11.
+                          Hedef sürüm ve kurulumda kabul bekliyor.
+                        </p>
+                        <ul aria-label="Madde kaynakları">
+                          <li>
+                            <a
+                              href="https://docs.frappe.io/framework/user/en/api/database"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              >Frappe: işlem commit ve rollback modeli</a
+                            >
+                          </li>
+                          <li>
+                            <a
+                              href="https://docs.frappe.io/framework/user/en/api/rest"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              >Frappe: REST API</a
+                            >
+                          </li>
+                        </ul>
+                      </div>
+                    </details>
+                  </li>
+                  <li
+                    class="feature"
+                    id="feature-views-14"
+                    data-item="views-14"
+                    data-kind="g"
+                    data-support="external"
+                    data-action="build"
+                    data-scope="conditional"
+                  >
+                    <label class="feature-label" for="check-views-14"
+                      ><span class="check-target"
+                        ><input
+                          class="feature-check"
+                          type="checkbox"
+                          id="check-views-14"
+                          value="views-14"
+                          disabled /></span
+                      ><span class="feature-content"
+                        ><span class="origin">İç eksik</span
+                        ><span class="feature-title"
+                          >Kayıt ve ekran verisinin tazeliği; son başarılı
+                          güncelleme, eski veri uyarısı ve güvenli
+                          yenileme.</span
+                        ></span
+                      ></label
+                    >
+                    <div
+                      class="assessment-tags"
+                      role="group"
+                      aria-label="Frappe yeterliliği ve yapılacak iş"
+                    >
+                      <span
+                        class="support-tag"
+                        data-tag="support"
+                        data-value="external"
+                        >Harici sorumluluk</span
+                      ><span data-tag="action" data-value="build">Geliştir</span
+                      ><span data-tag="owner"
+                        >Headless frontend + Frappe backend</span
+                      >
+                    </div>
+                    <p class="scope-note">
+                      <strong class="scope-label" data-scope-label="conditional"
+                        >Ürüne bağlı</strong
+                      >
+                    </p>
+                    <details class="assessment">
+                      <summary>
+                        <span
+                          >Değerlendirme ve kabul ölçütü<span class="sr-only"
+                            >: Kayıt ve ekran verisinin tazeliği; son başarılı
+                            güncelleme, eski veri uyarısı ve güvenli
+                            yenileme.</span
+                          ></span
+                        >
+                      </summary>
+                      <div class="assessment-body">
+                        <p>
+                          <strong>Kapsam gerekçesi</strong> Kategori: Emeği ve
+                          veriyi koruyanlar. Fayda: Çok yüksek. Öncelik: İlk
+                          paket. Üründeki ilgili kullanıcı yolculuğu ve veri
+                          riski doğrulanınca uygulanır; fayda düzeyi zorunluluk
+                          veya tamamlanma değildir. Verinin güncelliği ve son
+                          başarılı güncelleme.
+                        </p>
+                        <p class="assessment-note">
+                          Frappe API verisi panelin tüm ekranlarında tazelik
+                          sunumu sağlamaz. Veri sahibi kaynağın güncellemesi,
+                          son başarılı alınma zamanı, önbellek ve canlı bağlantı
+                          durumu ayrı tutulur; yalnız yeniden render zamanı
+                          'güncellendi' sayılmaz. Hedef sürüm ve tazelik
+                          eşikleri seçilecek.
+                        </p>
+                        <p>
+                          <strong>Kabul ölçütü:</strong> Önbellekten veya
+                          kesilmiş bağlantıdan gösterilen veri açıkça
+                          işaretlensin; son başarılı güncelleme ve saat dilimi
+                          görülsün. Başarısız yenileme tazelik zamanını
+                          ilerletmesin; kullanıcı yenilerken kaydedilmemiş
+                          düzenleme kaybolmasın; kritik eylem gerektiğinde
+                          sunucuda güncel sürümü doğrulasın.
+                        </p>
+                        <p
+                          class="assessment-basis"
+                          data-reviewed-at="2026-10-11"
+                        >
+                          <strong>Dayanak:</strong> Mimari karar · 2026-10-11.
+                          Hedef sürüm ve kurulumda kabul bekliyor.
+                        </p>
+                        <ul aria-label="Madde kaynakları">
+                          <li>
+                            <a
+                              href="https://docs.frappe.io/framework/user/en/api/rest"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              >Frappe: REST API</a
+                            >
+                          </li>
+                          <li>
+                            <a
+                              href="https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              >W3C: erişilebilir durum mesajları</a
+                            >
+                          </li>
+                        </ul>
+                      </div>
+                    </details>
+                  </li>
+                  <li
+                    class="feature"
+                    id="feature-views-15"
+                    data-item="views-15"
+                    data-kind="g"
+                    data-support="external"
+                    data-action="build"
+                    data-scope="conditional"
+                  >
+                    <label class="feature-label" for="check-views-15"
+                      ><span class="check-target"
+                        ><input
+                          class="feature-check"
+                          type="checkbox"
+                          id="check-views-15"
+                          value="views-15"
+                          disabled /></span
+                      ><span class="feature-content"
+                        ><span class="origin">İç eksik</span
+                        ><span class="feature-title"
+                          >Genel işlem etki önizlemesi; etkilenecek kayıt ve
+                          alanlar, kapsam ve onaydan önce değişiklik
+                          özeti.</span
+                        ></span
+                      ></label
+                    >
+                    <div
+                      class="assessment-tags"
+                      role="group"
+                      aria-label="Frappe yeterliliği ve yapılacak iş"
+                    >
+                      <span
+                        class="support-tag"
+                        data-tag="support"
+                        data-value="external"
+                        >Harici sorumluluk</span
+                      ><span data-tag="action" data-value="build">Geliştir</span
+                      ><span data-tag="owner"
+                        >Headless frontend + Frappe backend</span
+                      >
+                    </div>
+                    <p class="scope-note">
+                      <strong class="scope-label" data-scope-label="conditional"
+                        >Ürüne bağlı</strong
+                      >
+                    </p>
+                    <details class="assessment">
+                      <summary>
+                        <span
+                          >Değerlendirme ve kabul ölçütü<span class="sr-only"
+                            >: Genel işlem etki önizlemesi; etkilenecek kayıt ve
+                            alanlar, kapsam ve onaydan önce değişiklik
+                            özeti.</span
+                          ></span
+                        >
+                      </summary>
+                      <div class="assessment-body">
+                        <p>
+                          <strong>Kapsam gerekçesi</strong> Kategori: İşi
+                          tamamlamayı kolaylaştıranlar. Fayda: Yüksek. Öncelik:
+                          İkinci paket. Üründeki ilgili kullanıcı yolculuğu ve
+                          veri riski doğrulanınca uygulanır; fayda düzeyi
+                          zorunluluk veya tamamlanma değildir. İşlem öncesi etki
+                          önizlemesi.
+                        </p>
+                        <p class="assessment-note">
+                          Frappe kayıt API'si genel değişiklik önizlemesi veya
+                          dry-run motoru değildir. İçe aktarma dışındaki toplu
+                          ve kritik eylemler için yetkili önizleme, sunucu
+                          tarafında yeniden doğrulama ve onay sözleşmesi
+                          geliştirilir; önizleme yetki vermez ve yan etki
+                          üretmez.
+                        </p>
+                        <p>
+                          <strong>Kabul ölçütü:</strong> Etkilenen kayıt sayısı,
+                          alanlar, önce/sonra farkı ve geri alınabilirlik
+                          görülsün. Önizleme ile uygulama arasında veri/izin
+                          değişirse yeniden doğrulansın; onay iptalinde yazma
+                          veya dış etki oluşmasın; yetkisiz alanlar önizlemede
+                          sızmasın; hedef sürümde eşzamanlılık kabulü yapılsın.
+                        </p>
+                        <p
+                          class="assessment-basis"
+                          data-reviewed-at="2026-10-11"
+                        >
+                          <strong>Dayanak:</strong> Mimari karar · 2026-10-11.
+                          Hedef sürüm ve kurulumda kabul bekliyor.
+                        </p>
+                        <ul aria-label="Madde kaynakları">
+                          <li>
+                            <a
+                              href="https://docs.frappe.io/framework/user/en/api/document"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              >Frappe: Document API</a
+                            >
+                          </li>
+                          <li>
+                            <a
+                              href="https://docs.frappe.io/framework/user/en/api/database"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              >Frappe: işlem commit ve rollback modeli</a
+                            >
+                          </li>
+                        </ul>
+                      </div>
+                    </details>
+                  </li>
+                  <li
+                    class="feature"
+                    id="feature-views-16"
+                    data-item="views-16"
+                    data-kind="g"
+                    data-support="external"
+                    data-action="build"
+                    data-scope="conditional"
+                  >
+                    <label class="feature-label" for="check-views-16"
+                      ><span class="check-target"
+                        ><input
+                          class="feature-check"
+                          type="checkbox"
+                          id="check-views-16"
+                          value="views-16"
+                          disabled /></span
+                      ><span class="feature-content"
+                        ><span class="origin">İç eksik</span
+                        ><span class="feature-title"
+                          >Çözüm sunan hata mesajları; neden, ilgili alan,
+                          uygulanabilir sonraki adım ve güvenli hata
+                          kimliği.</span
+                        ></span
+                      ></label
+                    >
+                    <div
+                      class="assessment-tags"
+                      role="group"
+                      aria-label="Frappe yeterliliği ve yapılacak iş"
+                    >
+                      <span
+                        class="support-tag"
+                        data-tag="support"
+                        data-value="external"
+                        >Harici sorumluluk</span
+                      ><span data-tag="action" data-value="build">Geliştir</span
+                      ><span data-tag="owner"
+                        >Headless frontend + Frappe backend</span
+                      >
+                    </div>
+                    <p class="scope-note">
+                      <strong class="scope-label" data-scope-label="conditional"
+                        >Ürüne bağlı</strong
+                      >
+                    </p>
+                    <details class="assessment">
+                      <summary>
+                        <span
+                          >Değerlendirme ve kabul ölçütü<span class="sr-only"
+                            >: Çözüm sunan hata mesajları; neden, ilgili alan,
+                            uygulanabilir sonraki adım ve güvenli hata
+                            kimliği.</span
+                          ></span
+                        >
+                      </summary>
+                      <div class="assessment-body">
+                        <p>
+                          <strong>Kapsam gerekçesi</strong> Kategori: İşi
+                          tamamlamayı kolaylaştıranlar. Fayda: Yüksek. Öncelik:
+                          İkinci paket. Üründeki ilgili kullanıcı yolculuğu ve
+                          veri riski doğrulanınca uygulanır; fayda düzeyi
+                          zorunluluk veya tamamlanma değildir. Çözüm sunan hata
+                          mesajları.
+                        </p>
+                        <p class="assessment-note">
+                          Backend doğrulama ve API hataları veri sağlar; ürün
+                          dilinde çözüm ve erişilebilir alan bağlantıları
+                          headless panelin sorumluluğudur. Güvenliği zedelemeden
+                          bilinen düzeltme önerilir; ham stack trace, token veya
+                          yetkisiz kayıt bilgisi gösterilmez. Hedef sürüm hata
+                          sözleşmesi doğrulanacak.
+                        </p>
+                        <p>
+                          <strong>Kabul ölçütü:</strong> Doğrulama, izin, kota,
+                          bağlantı ve sunucu hatası farklı sonraki adım sunsun;
+                          yanlış alan mesajıyla ilişkilensin ve klavyeyle
+                          bulunabilsin. Girilen veri korunsun; otomatik tekrar
+                          yalnız güvenli tanımlı işlemlerde olsun, belirsiz
+                          mutasyon tekrar gönderilmesin; destek için secret
+                          içermeyen hata kimliği verilsin.
+                        </p>
+                        <p
+                          class="assessment-basis"
+                          data-reviewed-at="2026-10-11"
+                        >
+                          <strong>Dayanak:</strong> Mimari karar · 2026-10-11.
+                          Hedef sürüm ve kurulumda kabul bekliyor.
+                        </p>
+                        <ul aria-label="Madde kaynakları">
+                          <li>
+                            <a
+                              href="https://www.w3.org/WAI/WCAG22/Understanding/error-suggestion.html"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              >W3C: hata için düzeltme önerisi</a
+                            >
+                          </li>
+                          <li>
+                            <a
+                              href="https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              >W3C: erişilebilir durum mesajları</a
+                            >
+                          </li>
+                          <li>
+                            <a
+                              href="https://docs.frappe.io/framework/user/en/api/rest"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              >Frappe: REST API</a
+                            >
+                          </li>
+                        </ul>
+                      </div>
+                    </details>
+                  </li>
+                  <li
+                    class="feature"
+                    id="feature-views-17"
+                    data-item="views-17"
+                    data-kind="g"
+                    data-support="partial"
+                    data-action="extend"
+                    data-scope="conditional"
+                  >
+                    <label class="feature-label" for="check-views-17"
+                      ><span class="check-target"
+                        ><input
+                          class="feature-check"
+                          type="checkbox"
+                          id="check-views-17"
+                          value="views-17"
+                          disabled /></span
+                      ><span class="feature-content"
+                        ><span class="origin">İç eksik</span
+                        ><span class="feature-title"
+                          >Şablondan oluşturma ve kontrollü çoğaltma;
+                          kopyalanacak alanlar, ilişkiler ve yeni kayıt
+                          önizlemesi.</span
+                        ></span
+                      ></label
+                    >
+                    <div
+                      class="assessment-tags"
+                      role="group"
+                      aria-label="Frappe yeterliliği ve yapılacak iş"
+                    >
+                      <span
+                        class="support-tag"
+                        data-tag="support"
+                        data-value="partial"
+                        >Kısmen var</span
+                      ><span data-tag="action" data-value="extend"
+                        >Genişlet</span
+                      ><span data-tag="owner"
+                        >Headless frontend + Frappe backend</span
+                      >
+                    </div>
+                    <p class="scope-note">
+                      <strong class="scope-label" data-scope-label="conditional"
+                        >Ürüne bağlı</strong
+                      >
+                    </p>
+                    <details class="assessment">
+                      <summary>
+                        <span
+                          >Değerlendirme ve kabul ölçütü<span class="sr-only"
+                            >: Şablondan oluşturma ve kontrollü çoğaltma;
+                            kopyalanacak alanlar, ilişkiler ve yeni kayıt
+                            önizlemesi.</span
+                          ></span
+                        >
+                      </summary>
+                      <div class="assessment-body">
+                        <p>
+                          <strong>Kapsam gerekçesi</strong> Kategori: Günlük
+                          kullanımı hızlandıranlar. Fayda: Orta/yüksek. Öncelik:
+                          Kullanım sıklığına göre. Üründeki ilgili kullanıcı
+                          yolculuğu ve veri riski doğrulanınca uygulanır; fayda
+                          düzeyi zorunluluk veya tamamlanma değildir. Şablondan
+                          oluşturma ve kontrollü çoğaltma.
+                        </p>
+                        <p class="assessment-note">
+                          Frappe Document kayıt oluşturma temeli sunar; her ürün
+                          için güvenli şablon ve çoğaltma politikası hazır
+                          sayılmaz. Headless akış alan izinleri, ilişki
+                          sahipliği ve kopyalanmaması gereken durum/kimlik
+                          alanlarıyla geliştirilir; hedef sürümde controller
+                          kuralları korunur.
+                        </p>
+                        <p>
+                          <strong>Kabul ölçütü:</strong> Kopyalanacak alan ve
+                          ilişkiler uygulamadan önce görülsün; yeni kayıt yeni
+                          kimlik alsın. Secret, ödeme bilgisi, onay veya
+                          kesinleşme durumu taşınmasın; kullanıcının okuyamadığı
+                          alan kopyalanarak sızmasın; tenant sınırı, ilişki
+                          izinleri ve yeni kayıt doğrulamaları sunucuda
+                          uygulansın.
+                        </p>
+                        <p
+                          class="assessment-basis"
+                          data-reviewed-at="2026-10-11"
+                        >
+                          <strong>Dayanak:</strong> Mimari karar · 2026-10-11.
+                          Hedef sürüm ve kurulumda kabul bekliyor.
+                        </p>
+                        <ul aria-label="Madde kaynakları">
+                          <li>
+                            <a
+                              href="https://docs.frappe.io/framework/user/en/api/document"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              >Frappe: Document API</a
+                            >
+                          </li>
+                          <li>
+                            <a
+                              href="https://docs.frappe.io/framework/user/en/api/rest"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              >Frappe: REST API</a
+                            >
+                          </li>
+                        </ul>
+                      </div>
+                    </details>
+                  </li>
                 </ul>
                 <div class="relations">
                   <p>
@@ -23307,7 +24999,7 @@
                       <span class="group-number">06.3</span>Dinamik form
                       yönetimi
                     </h3>
-                    <p class="group-count"><span>5</span> madde</p>
+                    <p class="group-count"><span>6</span> madde</p>
                   </div>
                   <span class="group-toggle" aria-hidden="true"></span>
                 </summary>
@@ -23805,6 +25497,124 @@
                               target="_blank"
                               rel="noopener noreferrer"
                               >Frappe: kullanıcılar ve izinler</a
+                            >
+                          </li>
+                        </ul>
+                      </div>
+                    </details>
+                  </li>
+                  <li
+                    class="feature"
+                    id="feature-forms-6"
+                    data-item="forms-6"
+                    data-kind="g"
+                    data-support="external"
+                    data-action="build"
+                    data-scope="conditional"
+                  >
+                    <label class="feature-label" for="check-forms-6"
+                      ><span class="check-target"
+                        ><input
+                          class="feature-check"
+                          type="checkbox"
+                          id="check-forms-6"
+                          value="forms-6"
+                          disabled /></span
+                      ><span class="feature-content"
+                        ><span class="origin">İç eksik</span
+                        ><span class="feature-title"
+                          >Otomatik taslak ve taslağı kurtarma; sekme kapanması,
+                          tarayıcı çökmesi ve bağlantı kesilmesinde emeği
+                          koruma.</span
+                        ></span
+                      ></label
+                    >
+                    <div
+                      class="assessment-tags"
+                      role="group"
+                      aria-label="Frappe yeterliliği ve yapılacak iş"
+                    >
+                      <span
+                        class="support-tag"
+                        data-tag="support"
+                        data-value="external"
+                        >Harici sorumluluk</span
+                      ><span data-tag="action" data-value="build">Geliştir</span
+                      ><span data-tag="owner"
+                        >Headless frontend + Frappe backend</span
+                      >
+                    </div>
+                    <p class="scope-note">
+                      <strong class="scope-label" data-scope-label="conditional"
+                        >Ürüne bağlı</strong
+                      >
+                    </p>
+                    <details class="assessment">
+                      <summary>
+                        <span
+                          >Değerlendirme ve kabul ölçütü<span class="sr-only"
+                            >: Otomatik taslak ve taslağı kurtarma; sekme
+                            kapanması, tarayıcı çökmesi ve bağlantı kesilmesinde
+                            emeği koruma.</span
+                          ></span
+                        >
+                      </summary>
+                      <div class="assessment-body">
+                        <p>
+                          <strong>Kapsam gerekçesi</strong> Kategori: Emeği ve
+                          veriyi koruyanlar. Fayda: Çok yüksek. Öncelik: İlk
+                          paket. Üründeki ilgili kullanıcı yolculuğu ve veri
+                          riski doğrulanınca uygulanır; fayda düzeyi zorunluluk
+                          veya tamamlanma değildir. Kaydetme durumu ve yerel
+                          taslak–sunucu kaydı ayrımı.
+                        </p>
+                        <p class="assessment-note">
+                          Yerel IndexedDB saklama bir seçenek olsa da tarayıcı
+                          kotası ve veri tahliyesi kalıcılık garantisi vermez.
+                          Frappe kaydı otomatik headless taslak kurtarma
+                          değildir; yerel veya sunucu taslağı, veri hassasiyeti,
+                          saklama süresi ve kullanıcı/tenant ayrımı tasarlanır.
+                          Token ve secret taslağa yazılmaz.
+                        </p>
+                        <p>
+                          <strong>Kabul ölçütü:</strong> Yenileme veya yeniden
+                          açılmada yetkili kullanıcının aynı form/sürüm taslağı
+                          geri gelsin. Yerel saklama hatası açık bildirilsin;
+                          şema ve eşzamanlı değişiklik çakışması veri
+                          kaybetmeden çözülsün; hesap/tenant değişiminde taslak
+                          sızmasın, logout ve temizleme politikası doğrulansın;
+                          yerel taslak sunucu kaydı diye sunulmasın.
+                        </p>
+                        <p
+                          class="assessment-basis"
+                          data-reviewed-at="2026-10-11"
+                        >
+                          <strong>Dayanak:</strong> Mimari karar · 2026-10-11.
+                          Hedef sürüm ve kurulumda kabul bekliyor.
+                        </p>
+                        <ul aria-label="Madde kaynakları">
+                          <li>
+                            <a
+                              href="https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              >MDN: IndexedDB yerel veri saklama</a
+                            >
+                          </li>
+                          <li>
+                            <a
+                              href="https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              >MDN: tarayıcı saklama kotası ve veri tahliyesi</a
+                            >
+                          </li>
+                          <li>
+                            <a
+                              href="https://docs.frappe.io/framework/user/en/api/document"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              >Frappe: Document API</a
                             >
                           </li>
                         </ul>
@@ -24367,7 +26177,7 @@
                       <span class="group-number">06.5</span>Uygulama kanalları
                       ve erişilebilirlik
                     </h3>
-                    <p class="group-count"><span>8</span> madde</p>
+                    <p class="group-count"><span>9</span> madde</p>
                   </div>
                   <span class="group-toggle" aria-hidden="true"></span>
                 </summary>
@@ -25138,6 +26948,114 @@
                       </div>
                     </details>
                   </li>
+                  <li
+                    class="feature"
+                    id="feature-channels-9"
+                    data-item="channels-9"
+                    data-kind="g"
+                    data-support="external"
+                    data-action="build"
+                    data-scope="conditional"
+                  >
+                    <label class="feature-label" for="check-channels-9"
+                      ><span class="check-target"
+                        ><input
+                          class="feature-check"
+                          type="checkbox"
+                          id="check-channels-9"
+                          value="channels-9"
+                          disabled /></span
+                      ><span class="feature-content"
+                        ><span class="origin">İç eksik</span
+                        ><span class="feature-title"
+                          >Düşük veri tüketimi modu; kullanıcı tercihiyle
+                          yenileme, medya ve ağır istekleri azaltma.</span
+                        ></span
+                      ></label
+                    >
+                    <div
+                      class="assessment-tags"
+                      role="group"
+                      aria-label="Frappe yeterliliği ve yapılacak iş"
+                    >
+                      <span
+                        class="support-tag"
+                        data-tag="support"
+                        data-value="external"
+                        >Harici sorumluluk</span
+                      ><span data-tag="action" data-value="build">Geliştir</span
+                      ><span data-tag="owner"
+                        >Headless frontend + Frappe backend</span
+                      >
+                    </div>
+                    <p class="scope-note">
+                      <strong class="scope-label" data-scope-label="conditional"
+                        >Ürüne bağlı</strong
+                      >
+                    </p>
+                    <details class="assessment">
+                      <summary>
+                        <span
+                          >Değerlendirme ve kabul ölçütü<span class="sr-only"
+                            >: Düşük veri tüketimi modu; kullanıcı tercihiyle
+                            yenileme, medya ve ağır istekleri azaltma.</span
+                          ></span
+                        >
+                      </summary>
+                      <div class="assessment-body">
+                        <p>
+                          <strong>Kapsam gerekçesi</strong> Kategori: Kullanıma
+                          bağlı değer sağlayanlar. Fayda: Bağlama bağlı.
+                          Öncelik: İhtiyaç doğrulandıktan sonra. Üründeki ilgili
+                          kullanıcı yolculuğu ve veri riski doğrulanınca
+                          uygulanır; fayda düzeyi zorunluluk veya tamamlanma
+                          değildir. Düşük veri tüketimi modu.
+                        </p>
+                        <p class="assessment-note">
+                          Tarayıcı Save-Data ipucu sınırlı desteğe sahiptir;
+                          bulunmaması güçlü bağlantı kanıtı değildir. Açık
+                          kullanıcı tercihi ve ölçülen kaynak ihtiyacıyla
+                          headless veri tüketimi politikası geliştirilir; Frappe
+                          REST sayfalama temeli panelin ağ bütçesi veya
+                          çevrimdışı çalışma desteği değildir.
+                        </p>
+                        <p>
+                          <strong>Kabul ölçütü:</strong> Mod tercihi korunarak
+                          gereksiz otomatik yenileme, medya ve ağır yanıt
+                          azaltılsın; aynı gerçek yolculukta aktarılan baytlar
+                          ölçülsün. Kritik hizmet durumları ve kullanıcı
+                          eylemleri kaybolmasın; verinin tazeliği açıklansın,
+                          kullanıcı gerektiğinde yenileyebilsin; Save-Data
+                          olmayan tarayıcıda da mod çalışsın.
+                        </p>
+                        <p
+                          class="assessment-basis"
+                          data-reviewed-at="2026-10-11"
+                        >
+                          <strong>Dayanak:</strong> Mimari karar · 2026-10-11.
+                          Hedef sürüm ve kurulumda kabul bekliyor.
+                        </p>
+                        <ul aria-label="Madde kaynakları">
+                          <li>
+                            <a
+                              href="https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/saveData"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              >MDN: Save-Data tercihi ve tarayıcı desteği</a
+                            >
+                          </li>
+                          <li>
+                            <a
+                              href="https://docs.frappe.io/framework/user/en/api/rest"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              >Frappe: REST API</a
+                            >
+                          </li>
+                        </ul>
+                      </div>
+                    </details>
+                  </li>
                 </ul>
                 <div class="relations">
                   <p>
@@ -25172,7 +27090,7 @@
                   <h2>İş süreçleri, kurallar ve zamanlama</h2>
                   <p class="cluster-meta">
                     <span class="cluster-groups">4</span> grup ·
-                    <span class="cluster-items">25</span> madde
+                    <span class="cluster-items">26</span> madde
                   </p>
                   <p class="cluster-rationale">
                     Doğrulanmış kayıt modeli üzerinde iş geçişleri, onaylar ve
@@ -27090,7 +29008,7 @@
                       <span class="group-number">07.4</span>Arka plan işleri ve
                       zamanlayıcı
                     </h3>
-                    <p class="group-count"><span>7</span> madde</p>
+                    <p class="group-count"><span>8</span> madde</p>
                   </div>
                   <span class="group-toggle" aria-hidden="true"></span>
                 </summary>
@@ -27742,6 +29660,117 @@
                               target="_blank"
                               rel="noopener noreferrer"
                               >Frappe: arka plan işleri ve zamanlayıcı</a
+                            >
+                          </li>
+                        </ul>
+                      </div>
+                    </details>
+                  </li>
+                  <li
+                    class="feature"
+                    id="feature-jobs-8"
+                    data-item="jobs-8"
+                    data-kind="g"
+                    data-support="partial"
+                    data-action="extend"
+                    data-scope="conditional"
+                  >
+                    <label class="feature-label" for="check-jobs-8"
+                      ><span class="check-target"
+                        ><input
+                          class="feature-check"
+                          type="checkbox"
+                          id="check-jobs-8"
+                          value="jobs-8"
+                          disabled /></span
+                      ><span class="feature-content"
+                        ><span class="origin">İç eksik</span
+                        ><span class="feature-title"
+                          >Kullanıcı arka plan işleri merkezi; sayfadan bağımsız
+                          ilerleme, sonuç, güvenli iptal ve devam.</span
+                        ></span
+                      ></label
+                    >
+                    <div
+                      class="assessment-tags"
+                      role="group"
+                      aria-label="Frappe yeterliliği ve yapılacak iş"
+                    >
+                      <span
+                        class="support-tag"
+                        data-tag="support"
+                        data-value="partial"
+                        >Kısmen var</span
+                      ><span data-tag="action" data-value="extend"
+                        >Genişlet</span
+                      ><span data-tag="owner"
+                        >Frappe backend + headless frontend</span
+                      >
+                    </div>
+                    <p class="scope-note">
+                      <strong class="scope-label" data-scope-label="conditional"
+                        >Ürüne bağlı</strong
+                      >
+                    </p>
+                    <details class="assessment">
+                      <summary>
+                        <span
+                          >Değerlendirme ve kabul ölçütü<span class="sr-only"
+                            >: Kullanıcı arka plan işleri merkezi; sayfadan
+                            bağımsız ilerleme, sonuç, güvenli iptal ve
+                            devam.</span
+                          ></span
+                        >
+                      </summary>
+                      <div class="assessment-body">
+                        <p>
+                          <strong>Kapsam gerekçesi</strong> Kategori: İşi
+                          tamamlamayı kolaylaştıranlar. Fayda: Yüksek. Öncelik:
+                          İkinci paket. Üründeki ilgili kullanıcı yolculuğu ve
+                          veri riski doğrulanınca uygulanır; fayda düzeyi
+                          zorunluluk veya tamamlanma değildir. Kullanıcı arka
+                          plan işleri merkezi.
+                        </p>
+                        <p class="assessment-note">
+                          Frappe enqueue ve worker kuyruğu temel sağlar; kuyruk
+                          varlığı kullanıcıya ait kalıcı iş merkezi değildir.
+                          Headless liste, işlem sonuç modeli ve yetkili
+                          ilerleme/indirme API'si geliştirilir. Yalnız gerçekten
+                          desteklenen güvenli iptal ve checkpoint devamı
+                          sunulur; hedef sürümde worker davranışı doğrulanacak.
+                        </p>
+                        <p>
+                          <strong>Kabul ölçütü:</strong> Import, export, rapor
+                          ve toplu iş sayfa değişse veya yeniden giriş yapılsa
+                          da kimliğiyle izlenebilsin. Bekliyor/çalışıyor/kısmi
+                          başarı/başarısız/tamamlandı durumları ve gerçek
+                          ilerleme görülsün; toplam bilinmiyorsa sahte yüzde
+                          verilmesin. İptal/devam başarılı adımı çoğaltmasın;
+                          tenant, kullanıcı, sonuç saklama süresi ve indirme
+                          yetkisi korunsun.
+                        </p>
+                        <p
+                          class="assessment-basis"
+                          data-reviewed-at="2026-10-11"
+                        >
+                          <strong>Dayanak:</strong> Mimari karar · 2026-10-11.
+                          Hedef sürüm ve kurulumda kabul bekliyor.
+                        </p>
+                        <ul aria-label="Madde kaynakları">
+                          <li>
+                            <a
+                              href="https://docs.frappe.io/framework/user/en/api/background_jobs"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              >Frappe: arka plan işleri ve kuyruklar</a
+                            >
+                          </li>
+                          <li>
+                            <a
+                              href="https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              >W3C: erişilebilir durum mesajları</a
                             >
                           </li>
                         </ul>
@@ -35705,7 +37734,7 @@
                   <h2>Müşteri operasyonları ve içerik</h2>
                   <p class="cluster-meta">
                     <span class="cluster-groups">4</span> grup ·
-                    <span class="cluster-items">26</span> madde
+                    <span class="cluster-items">27</span> madde
                   </p>
                   <p class="cluster-rationale">
                     CRM, destek ve içerik için ek Frappe uygulaması mı özel
@@ -36374,7 +38403,7 @@
                       <span class="group-number">11.2</span>Destek, yönlendirme
                       ve geri bildirim
                     </h3>
-                    <p class="group-count"><span>8</span> madde</p>
+                    <p class="group-count"><span>9</span> madde</p>
                   </div>
                   <span class="group-toggle" aria-hidden="true"></span>
                 </summary>
@@ -37182,6 +39211,116 @@
                               target="_blank"
                               rel="noopener noreferrer"
                               >Frappe REST API</a
+                            >
+                          </li>
+                        </ul>
+                      </div>
+                    </details>
+                  </li>
+                  <li
+                    class="feature"
+                    id="feature-support-9"
+                    data-item="support-9"
+                    data-kind="g"
+                    data-support="external"
+                    data-action="build"
+                    data-scope="conditional"
+                  >
+                    <label class="feature-label" for="check-support-9"
+                      ><span class="check-target"
+                        ><input
+                          class="feature-check"
+                          type="checkbox"
+                          id="check-support-9"
+                          value="support-9"
+                          disabled /></span
+                      ><span class="feature-content"
+                        ><span class="origin">İç eksik</span
+                        ><span class="feature-title"
+                          >Güvenli destek paketi; hata kimliği, zaman ve ilgili
+                          ekran bağlamını önizleyerek paylaşma.</span
+                        ></span
+                      ></label
+                    >
+                    <div
+                      class="assessment-tags"
+                      role="group"
+                      aria-label="Frappe yeterliliği ve yapılacak iş"
+                    >
+                      <span
+                        class="support-tag"
+                        data-tag="support"
+                        data-value="external"
+                        >Harici sorumluluk</span
+                      ><span data-tag="action" data-value="build">Geliştir</span
+                      ><span data-tag="owner"
+                        >Headless frontend + destek + Frappe backend</span
+                      >
+                    </div>
+                    <p class="scope-note">
+                      <strong class="scope-label" data-scope-label="conditional"
+                        >Ürüne bağlı</strong
+                      >
+                    </p>
+                    <details class="assessment">
+                      <summary>
+                        <span
+                          >Değerlendirme ve kabul ölçütü<span class="sr-only"
+                            >: Güvenli destek paketi; hata kimliği, zaman ve
+                            ilgili ekran bağlamını önizleyerek paylaşma.</span
+                          ></span
+                        >
+                      </summary>
+                      <div class="assessment-body">
+                        <p>
+                          <strong>Kapsam gerekçesi</strong> Kategori: İşi
+                          tamamlamayı kolaylaştıranlar. Fayda: Yüksek. Öncelik:
+                          İkinci paket. Üründeki ilgili kullanıcı yolculuğu ve
+                          veri riski doğrulanınca uygulanır; fayda düzeyi
+                          zorunluluk veya tamamlanma değildir. Güvenli destek
+                          paketi.
+                        </p>
+                        <p class="assessment-note">
+                          Destek/ticket veya log altyapısı kullanıcı için
+                          güvenli teşhis paketi sağlamaz. Headless panelde
+                          izinli hata kimliği ve bağlam alanları allowlist ile
+                          toplanır; maskeleme, kullanıcı önizlemesi ve açık
+                          paylaşım kararı gerekir. Hedef sürüm ve destek
+                          entegrasyonu ayrıca seçilir; otomatik dış mesaj
+                          gönderimi yoktur.
+                        </p>
+                        <p>
+                          <strong>Kabul ölçütü:</strong> Kullanıcı hata kimliği,
+                          saat/saat dilimi, uygulama sürümü ve ilgili ekranı
+                          içeren paketi görüp alanları çıkarabilsin. Token,
+                          cookie, secret, form içeriği, kişisel veya tenant
+                          verisi varsayılan olarak dahil edilmesin; paylaşılan
+                          bilgiler yetkili alıcıyla sınırlansın, saklama/silme
+                          politikası uygulansın; ham konsol dökümü otomatik
+                          gönderilmesin.
+                        </p>
+                        <p
+                          class="assessment-basis"
+                          data-reviewed-at="2026-10-11"
+                        >
+                          <strong>Dayanak:</strong> Mimari karar · 2026-10-11.
+                          Hedef sürüm ve kurulumda kabul bekliyor.
+                        </p>
+                        <ul aria-label="Madde kaynakları">
+                          <li>
+                            <a
+                              href="https://www.w3.org/WAI/WCAG22/Understanding/error-suggestion.html"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              >W3C: hata için düzeltme önerisi</a
+                            >
+                          </li>
+                          <li>
+                            <a
+                              href="https://docs.frappe.io/framework/user/en/api/rest"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              >Frappe: REST API</a
                             >
                           </li>
                         </ul>
@@ -43220,6 +45359,29 @@
                         }
                       ]
                     }
+                  },
+                  {
+                    "kind": "g",
+                    "text": "Silinen kayıtları kontrollü kurtarma; yetkili önizleme, saklama süresi, ilişki ve iş kuralı doğrulaması.",
+                    "assessment": {
+                      "support": "partial",
+                      "action": "extend",
+                      "owner": "Frappe backend + headless frontend",
+                      "confidence": "design",
+                      "reviewedAt": "2026-10-11",
+                      "note": "Frappe version-15 Deleted Document.restore kaynak kodunda System Manager, create ve read denetimleriyle geri yükleme temeli vardır. Bu, hedef sürümde her kayıt için hazır tenant geri dönüşüm kutusu değildir; headless seçim, ilişki, saklama/silme politikası ve domain güvenliği ayrıca tasarlanır. Hedef Frappe sürümü henüz seçilmedi.",
+                      "acceptance": "Yetkili kullanıcı geri yüklenecek veriyi önizlesin; başka tenant veya yetkisiz silinen kayıt görünmesin. Kimlik/ilişki çakışması ve kritik durum doğrulansın, geri yükleme denetlensin; aynı kayıt tekrar kurtarılarak çoğalmasın. Saklama süresi bitmiş veya kalıcı silme politikasına tabi veri geri getirilmesin; backup restore ayrı kalsın.",
+                      "sources": [
+                        {
+                          "title": "Frappe: Deleted Document restore kaynak kodu, version-15",
+                          "url": "https://raw.githubusercontent.com/frappe/frappe/version-15/frappe/core/doctype/deleted_document/deleted_document.py"
+                        },
+                        {
+                          "title": "Frappe: Document API",
+                          "url": "https://docs.frappe.io/framework/user/en/api/document"
+                        }
+                      ]
+                    }
                   }
                 ],
                 "sources": [],
@@ -45428,6 +47590,179 @@
                         }
                       ]
                     }
+                  },
+                  {
+                    "kind": "g",
+                    "text": "Canlı bağlantı ve sunucu erişimi göstergesi; çevrimdışı, erişilemiyor ve yeniden bağlanıyor durumları.",
+                    "assessment": {
+                      "support": "external",
+                      "action": "build",
+                      "owner": "Headless frontend + platform",
+                      "confidence": "design",
+                      "reviewedAt": "2026-10-11",
+                      "note": "Tarayıcının online/offline sinyali tek başına internet veya uygulama sunucusuna erişim kanıtı değildir. Gerçek uygulama istekleri, son başarılı temas ve servis durumu headless panelde birlikte yorumlanır; bu gösterge çevrimdışı yazma desteği anlamına gelmez. Hedef Frappe/Keycloak sürümleri henüz seçilmedi.",
+                      "acceptance": "Ağ kesintisi, internet açıkken uygulama sunucusuna erişilememe ve yeniden bağlanma ayrı gösterilsin; 401/403 bağlantı arızası sayılmasın. Durum yalnız renkle aktarılmasın, ekran okuyucuya odağı çalmadan duyurulsun; bağlantının geri gelmesi mutasyonu kendiliğinden yeniden göndermesin.",
+                      "sources": [
+                        {
+                          "title": "MDN: Navigator.onLine ve erişim sinyallerinin sınırı",
+                          "url": "https://developer.mozilla.org/en-US/docs/Web/API/Navigator/onLine"
+                        },
+                        {
+                          "title": "W3C: erişilebilir durum mesajları",
+                          "url": "https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html"
+                        },
+                        {
+                          "title": "Frappe: REST API",
+                          "url": "https://docs.frappe.io/framework/user/en/api/rest"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "kind": "g",
+                    "text": "Kaydetme durumu; değiştirildi, kaydediliyor, bu cihazda taslak, sunucuya kaydedildi ve kaydetme hatası.",
+                    "assessment": {
+                      "support": "external",
+                      "action": "build",
+                      "owner": "Headless frontend + Frappe backend",
+                      "confidence": "design",
+                      "reviewedAt": "2026-10-11",
+                      "note": "Frappe kayıt API'si sunucu işleminin temelidir; kalıcı işlem sonucunu yorumlayan durum modeli bağımsız frontendde geliştirilir. Yerel taslak, gönderim kuyruğu ve sunucunun doğruladığı kayıt aynı başarı olarak gösterilmez. Hedef sürümde işlem tamamlanması ve yanıt sözleşmesi doğrulanır.",
+                      "acceptance": "Sunucu commit sonucu doğrulanmadan 'Sunucuya kaydedildi' denmesin. Yerel saklama başarısızlığı ve ağ hatası girilen veriyi koruyarak açıklansın; eski yanıt daha yeni değişikliği kaydedilmiş göstermesin; erişilebilir durum mesajı ilgili kayıt sürümüyle eşleşsin.",
+                      "sources": [
+                        {
+                          "title": "Frappe: işlem commit ve rollback modeli",
+                          "url": "https://docs.frappe.io/framework/user/en/api/database"
+                        },
+                        {
+                          "title": "MDN: tarayıcı saklama kotası ve veri tahliyesi",
+                          "url": "https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria"
+                        },
+                        {
+                          "title": "W3C: erişilebilir durum mesajları",
+                          "url": "https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "kind": "g",
+                    "text": "Sonucu belirsiz işlemi kimliğiyle sorgulama; doğrulanmadan tekrar göndermeme ve mükerrer etkiyi önleme.",
+                    "assessment": {
+                      "support": "partial",
+                      "action": "extend",
+                      "owner": "Frappe backend + headless frontend",
+                      "confidence": "design",
+                      "reviewedAt": "2026-10-11",
+                      "note": "Frappe transaction temeli sağlar; yanıt kaybolduğunda genel ürün işleminin sonucunu sorgulayan kalıcı işlem kimliği, idempotency ve dış etki sözleşmesi ayrıca geliştirilir. HTTP zaman aşımı işlemin başarısız olduğunun kanıtı değildir; hedef sürümde uçtan uca kabul gerekir.",
+                      "acceptance": "Sunucuda tamamlanıp yanıtı kaybolan işlem kimliğiyle bulunabilsin. Tamamlandı, sürüyor, başarısız ve henüz bilinmiyor ayrımı gösterilsin; aynı kimlikle güvenli devam mükerrer etki üretmesin, bilinmeyen sonuçta kör otomatik mutasyon tekrarı yapılmasın; sorgu tenant ve kullanıcı yetkisini korusun.",
+                      "sources": [
+                        {
+                          "title": "Frappe: işlem commit ve rollback modeli",
+                          "url": "https://docs.frappe.io/framework/user/en/api/database"
+                        },
+                        {
+                          "title": "Frappe: REST API",
+                          "url": "https://docs.frappe.io/framework/user/en/api/rest"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "kind": "g",
+                    "text": "Kayıt ve ekran verisinin tazeliği; son başarılı güncelleme, eski veri uyarısı ve güvenli yenileme.",
+                    "assessment": {
+                      "support": "external",
+                      "action": "build",
+                      "owner": "Headless frontend + Frappe backend",
+                      "confidence": "design",
+                      "reviewedAt": "2026-10-11",
+                      "note": "Frappe API verisi panelin tüm ekranlarında tazelik sunumu sağlamaz. Veri sahibi kaynağın güncellemesi, son başarılı alınma zamanı, önbellek ve canlı bağlantı durumu ayrı tutulur; yalnız yeniden render zamanı 'güncellendi' sayılmaz. Hedef sürüm ve tazelik eşikleri seçilecek.",
+                      "acceptance": "Önbellekten veya kesilmiş bağlantıdan gösterilen veri açıkça işaretlensin; son başarılı güncelleme ve saat dilimi görülsün. Başarısız yenileme tazelik zamanını ilerletmesin; kullanıcı yenilerken kaydedilmemiş düzenleme kaybolmasın; kritik eylem gerektiğinde sunucuda güncel sürümü doğrulasın.",
+                      "sources": [
+                        {
+                          "title": "Frappe: REST API",
+                          "url": "https://docs.frappe.io/framework/user/en/api/rest"
+                        },
+                        {
+                          "title": "W3C: erişilebilir durum mesajları",
+                          "url": "https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "kind": "g",
+                    "text": "Genel işlem etki önizlemesi; etkilenecek kayıt ve alanlar, kapsam ve onaydan önce değişiklik özeti.",
+                    "assessment": {
+                      "support": "external",
+                      "action": "build",
+                      "owner": "Headless frontend + Frappe backend",
+                      "confidence": "design",
+                      "reviewedAt": "2026-10-11",
+                      "note": "Frappe kayıt API'si genel değişiklik önizlemesi veya dry-run motoru değildir. İçe aktarma dışındaki toplu ve kritik eylemler için yetkili önizleme, sunucu tarafında yeniden doğrulama ve onay sözleşmesi geliştirilir; önizleme yetki vermez ve yan etki üretmez.",
+                      "acceptance": "Etkilenen kayıt sayısı, alanlar, önce/sonra farkı ve geri alınabilirlik görülsün. Önizleme ile uygulama arasında veri/izin değişirse yeniden doğrulansın; onay iptalinde yazma veya dış etki oluşmasın; yetkisiz alanlar önizlemede sızmasın; hedef sürümde eşzamanlılık kabulü yapılsın.",
+                      "sources": [
+                        {
+                          "title": "Frappe: Document API",
+                          "url": "https://docs.frappe.io/framework/user/en/api/document"
+                        },
+                        {
+                          "title": "Frappe: işlem commit ve rollback modeli",
+                          "url": "https://docs.frappe.io/framework/user/en/api/database"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "kind": "g",
+                    "text": "Çözüm sunan hata mesajları; neden, ilgili alan, uygulanabilir sonraki adım ve güvenli hata kimliği.",
+                    "assessment": {
+                      "support": "external",
+                      "action": "build",
+                      "owner": "Headless frontend + Frappe backend",
+                      "confidence": "design",
+                      "reviewedAt": "2026-10-11",
+                      "note": "Backend doğrulama ve API hataları veri sağlar; ürün dilinde çözüm ve erişilebilir alan bağlantıları headless panelin sorumluluğudur. Güvenliği zedelemeden bilinen düzeltme önerilir; ham stack trace, token veya yetkisiz kayıt bilgisi gösterilmez. Hedef sürüm hata sözleşmesi doğrulanacak.",
+                      "acceptance": "Doğrulama, izin, kota, bağlantı ve sunucu hatası farklı sonraki adım sunsun; yanlış alan mesajıyla ilişkilensin ve klavyeyle bulunabilsin. Girilen veri korunsun; otomatik tekrar yalnız güvenli tanımlı işlemlerde olsun, belirsiz mutasyon tekrar gönderilmesin; destek için secret içermeyen hata kimliği verilsin.",
+                      "sources": [
+                        {
+                          "title": "W3C: hata için düzeltme önerisi",
+                          "url": "https://www.w3.org/WAI/WCAG22/Understanding/error-suggestion.html"
+                        },
+                        {
+                          "title": "W3C: erişilebilir durum mesajları",
+                          "url": "https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html"
+                        },
+                        {
+                          "title": "Frappe: REST API",
+                          "url": "https://docs.frappe.io/framework/user/en/api/rest"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "kind": "g",
+                    "text": "Şablondan oluşturma ve kontrollü çoğaltma; kopyalanacak alanlar, ilişkiler ve yeni kayıt önizlemesi.",
+                    "assessment": {
+                      "support": "partial",
+                      "action": "extend",
+                      "owner": "Headless frontend + Frappe backend",
+                      "confidence": "design",
+                      "reviewedAt": "2026-10-11",
+                      "note": "Frappe Document kayıt oluşturma temeli sunar; her ürün için güvenli şablon ve çoğaltma politikası hazır sayılmaz. Headless akış alan izinleri, ilişki sahipliği ve kopyalanmaması gereken durum/kimlik alanlarıyla geliştirilir; hedef sürümde controller kuralları korunur.",
+                      "acceptance": "Kopyalanacak alan ve ilişkiler uygulamadan önce görülsün; yeni kayıt yeni kimlik alsın. Secret, ödeme bilgisi, onay veya kesinleşme durumu taşınmasın; kullanıcının okuyamadığı alan kopyalanarak sızmasın; tenant sınırı, ilişki izinleri ve yeni kayıt doğrulamaları sunucuda uygulansın.",
+                      "sources": [
+                        {
+                          "title": "Frappe: Document API",
+                          "url": "https://docs.frappe.io/framework/user/en/api/document"
+                        },
+                        {
+                          "title": "Frappe: REST API",
+                          "url": "https://docs.frappe.io/framework/user/en/api/rest"
+                        }
+                      ]
+                    }
                   }
                 ],
                 "sources": ["reflow"],
@@ -45555,6 +47890,33 @@
                         {
                           "title": "Frappe: kullanıcılar ve izinler",
                           "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "kind": "g",
+                    "text": "Otomatik taslak ve taslağı kurtarma; sekme kapanması, tarayıcı çökmesi ve bağlantı kesilmesinde emeği koruma.",
+                    "assessment": {
+                      "support": "external",
+                      "action": "build",
+                      "owner": "Headless frontend + Frappe backend",
+                      "confidence": "design",
+                      "reviewedAt": "2026-10-11",
+                      "note": "Yerel IndexedDB saklama bir seçenek olsa da tarayıcı kotası ve veri tahliyesi kalıcılık garantisi vermez. Frappe kaydı otomatik headless taslak kurtarma değildir; yerel veya sunucu taslağı, veri hassasiyeti, saklama süresi ve kullanıcı/tenant ayrımı tasarlanır. Token ve secret taslağa yazılmaz.",
+                      "acceptance": "Yenileme veya yeniden açılmada yetkili kullanıcının aynı form/sürüm taslağı geri gelsin. Yerel saklama hatası açık bildirilsin; şema ve eşzamanlı değişiklik çakışması veri kaybetmeden çözülsün; hesap/tenant değişiminde taslak sızmasın, logout ve temizleme politikası doğrulansın; yerel taslak sunucu kaydı diye sunulmasın.",
+                      "sources": [
+                        {
+                          "title": "MDN: IndexedDB yerel veri saklama",
+                          "url": "https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API"
+                        },
+                        {
+                          "title": "MDN: tarayıcı saklama kotası ve veri tahliyesi",
+                          "url": "https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria"
+                        },
+                        {
+                          "title": "Frappe: Document API",
+                          "url": "https://docs.frappe.io/framework/user/en/api/document"
                         }
                       ]
                     }
@@ -45859,6 +48221,29 @@
                         {
                           "title": "Keycloak 26.7.0: kimlik, oturum ve organizasyon yönetimi",
                           "url": "https://www.keycloak.org/docs/26.7.0/server_admin/index.html"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "kind": "g",
+                    "text": "Düşük veri tüketimi modu; kullanıcı tercihiyle yenileme, medya ve ağır istekleri azaltma.",
+                    "assessment": {
+                      "support": "external",
+                      "action": "build",
+                      "owner": "Headless frontend + Frappe backend",
+                      "confidence": "design",
+                      "reviewedAt": "2026-10-11",
+                      "note": "Tarayıcı Save-Data ipucu sınırlı desteğe sahiptir; bulunmaması güçlü bağlantı kanıtı değildir. Açık kullanıcı tercihi ve ölçülen kaynak ihtiyacıyla headless veri tüketimi politikası geliştirilir; Frappe REST sayfalama temeli panelin ağ bütçesi veya çevrimdışı çalışma desteği değildir.",
+                      "acceptance": "Mod tercihi korunarak gereksiz otomatik yenileme, medya ve ağır yanıt azaltılsın; aynı gerçek yolculukta aktarılan baytlar ölçülsün. Kritik hizmet durumları ve kullanıcı eylemleri kaybolmasın; verinin tazeliği açıklansın, kullanıcı gerektiğinde yenileyebilsin; Save-Data olmayan tarayıcıda da mod çalışsın.",
+                      "sources": [
+                        {
+                          "title": "MDN: Save-Data tercihi ve tarayıcı desteği",
+                          "url": "https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/saveData"
+                        },
+                        {
+                          "title": "Frappe: REST API",
+                          "url": "https://docs.frappe.io/framework/user/en/api/rest"
                         }
                       ]
                     }
@@ -46452,6 +48837,29 @@
                         {
                           "title": "Frappe: arka plan işleri ve zamanlayıcı",
                           "url": "https://docs.frappe.io/framework/user/en/api/background_jobs"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "kind": "g",
+                    "text": "Kullanıcı arka plan işleri merkezi; sayfadan bağımsız ilerleme, sonuç, güvenli iptal ve devam.",
+                    "assessment": {
+                      "support": "partial",
+                      "action": "extend",
+                      "owner": "Frappe backend + headless frontend",
+                      "confidence": "design",
+                      "reviewedAt": "2026-10-11",
+                      "note": "Frappe enqueue ve worker kuyruğu temel sağlar; kuyruk varlığı kullanıcıya ait kalıcı iş merkezi değildir. Headless liste, işlem sonuç modeli ve yetkili ilerleme/indirme API'si geliştirilir. Yalnız gerçekten desteklenen güvenli iptal ve checkpoint devamı sunulur; hedef sürümde worker davranışı doğrulanacak.",
+                      "acceptance": "Import, export, rapor ve toplu iş sayfa değişse veya yeniden giriş yapılsa da kimliğiyle izlenebilsin. Bekliyor/çalışıyor/kısmi başarı/başarısız/tamamlandı durumları ve gerçek ilerleme görülsün; toplam bilinmiyorsa sahte yüzde verilmesin. İptal/devam başarılı adımı çoğaltmasın; tenant, kullanıcı, sonuç saklama süresi ve indirme yetkisi korunsun.",
+                      "sources": [
+                        {
+                          "title": "Frappe: arka plan işleri ve kuyruklar",
+                          "url": "https://docs.frappe.io/framework/user/en/api/background_jobs"
+                        },
+                        {
+                          "title": "W3C: erişilebilir durum mesajları",
+                          "url": "https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html"
                         }
                       ]
                     }
@@ -48635,6 +51043,29 @@
                         }
                       ]
                     }
+                  },
+                  {
+                    "kind": "g",
+                    "text": "Güvenli destek paketi; hata kimliği, zaman ve ilgili ekran bağlamını önizleyerek paylaşma.",
+                    "assessment": {
+                      "support": "external",
+                      "action": "build",
+                      "owner": "Headless frontend + destek + Frappe backend",
+                      "confidence": "design",
+                      "reviewedAt": "2026-10-11",
+                      "note": "Destek/ticket veya log altyapısı kullanıcı için güvenli teşhis paketi sağlamaz. Headless panelde izinli hata kimliği ve bağlam alanları allowlist ile toplanır; maskeleme, kullanıcı önizlemesi ve açık paylaşım kararı gerekir. Hedef sürüm ve destek entegrasyonu ayrıca seçilir; otomatik dış mesaj gönderimi yoktur.",
+                      "acceptance": "Kullanıcı hata kimliği, saat/saat dilimi, uygulama sürümü ve ilgili ekranı içeren paketi görüp alanları çıkarabilsin. Token, cookie, secret, form içeriği, kişisel veya tenant verisi varsayılan olarak dahil edilmesin; paylaşılan bilgiler yetkili alıcıyla sınırlansın, saklama/silme politikası uygulansın; ham konsol dökümü otomatik gönderilmesin.",
+                      "sources": [
+                        {
+                          "title": "W3C: hata için düzeltme önerisi",
+                          "url": "https://www.w3.org/WAI/WCAG22/Understanding/error-suggestion.html"
+                        },
+                        {
+                          "title": "Frappe: REST API",
+                          "url": "https://docs.frappe.io/framework/user/en/api/rest"
+                        }
+                      ]
+                    }
                   }
                 ],
                 "sources": [],
@@ -49357,7 +51788,7 @@
         ],
         "interface": {
           "meta": {
-            "content_1": "Frappe backend, headless frontend ve Keycloak için 351 maddelik SaaS geliştirme yol haritası. Yeterlilik, geliştirme işi ve kabul ölçütleri.",
+            "content_1": "Frappe backend, headless frontend ve Keycloak için 363 maddelik SaaS geliştirme yol haritası. Yeterlilik, geliştirme işi ve kabul ölçütleri.",
             "text_2": "SaaS Atlas — Frappe geliştirme yol haritası",
             "skip_3": "Envantere geç"
           },
@@ -49376,7 +51807,7 @@
             "numbers_13": "küme",
             "numbers_14": "49",
             "numbers_15": "başlık",
-            "numbers_16": "351",
+            "numbers_16": "363",
             "numbers_17": "madde",
             "structure_18": "Küme → Başlık → Madde",
             "legend_19": "Madde sınıfları",
@@ -49389,11 +51820,11 @@
             "toolbar_24": "Envanter araçları",
             "filter_row_25": "Kaynağa göre filtrele",
             "filter_label_26": "Tümü",
-            "count_27": "351",
+            "count_27": "363",
             "filter_label_28": "Özgün kapsam",
             "count_29": "105",
             "filter_label_30": "İç eksikler",
-            "count_31": "212",
+            "count_31": "224",
             "filter_label_32": "Yeni alanlar",
             "count_33": "34",
             "roadmap_filters_34": "Kapsam, Frappe ve iş filtreleri",
@@ -49410,7 +51841,7 @@
             "cluster_value_45": "Bütün kümeler",
             "reset_all_46": "Filtreleri sıfırla",
             "print_47": "Yazdır",
-            "visible_status_48": "351 / 351 madde · 49 grup",
+            "visible_status_48": "363 / 363 madde · 49 grup",
             "toggle_relations_49": "İlişkileri göster",
             "selected_only_50": "Yalnızca seçilenler",
             "toggle_original_51": "Özgün ifadeleri göster",
@@ -49599,7 +52030,18 @@
             "integration.supportCount.ecosystem": "32",
             "integration.supportCount.absent": "59",
             "integration.supportCount.verify": "12",
-            "integration.review.copy.title": "Kapsam ve kaynak incelemesi"
+            "integration.review.copy.title": "Kapsam ve kaynak incelemesi",
+            "usefulness": {
+              "review.copy.title": "Kapsam ve entegrasyon planı",
+              "review.copy.summary": "Özgün 326 madde ve önceki 18 ekleme korundu; entegrasyon planına 7 ayrı boşluk eklendi. Toplam 351 madde, 49 başlık.",
+              "review.copy.intro": "Frappe yeterliliği, zorunlu kapsam ve tamamlanma ayrı kararlardır. 2026-10-11 planında sekiz entegrasyon modeli zorunludur; M0–M3 teslim sırasıdır, isteğe bağlılık değildir. Genel AI/RAG/ajan kapsamı ileri aşamada kalır.",
+              "review.copy.unchanged": "Önceki 344 maddenin tüm alanları, kimlikleri ve sıraları korunmuştur. Tarihsel ilk karşılaştırmadaki 402 ifade 17 bölüm düzeyinde eşlenmiştir; yeni entegrasyon kararları kullanıcının sonraki kapsam talebidir.",
+              "meta.content_1": "Frappe backend, headless frontend ve Keycloak için 351 maddelik SaaS geliştirme yol haritası. Yeterlilik, geliştirme işi ve kabul ölçütleri.",
+              "hero.numbers_16": "351",
+              "toolbar.count_27": "351",
+              "toolbar.count_31": "212",
+              "toolbar.visible_status_48": "351 / 351 madde · 49 grup"
+            }
           }
         },
         "messages": {
@@ -49685,7 +52127,7 @@
         "review": {
           "version": 1,
           "reviewedAt": "2026-10-11",
-          "expectedItems": 351,
+          "expectedItems": 363,
           "expectedGroups": 49,
           "source": {
             "title": "SaaS Paneli Özellik Haritası",
@@ -50298,6 +52740,54 @@
             "transfer-7": {
               "scope": "required",
               "reason": "M1 zorunlu format matrisi: JSON/CSV/XLSX için ayrı çift yönlü doğrulama; güvenli dosya, yerel biçim ve iç içe kayıt sözleşmesi."
+            },
+            "views-11": {
+              "scope": "conditional",
+              "reason": "Kategori: Emeği ve veriyi koruyanlar. Fayda: Çok yüksek. Öncelik: İlk paket. Üründeki ilgili kullanıcı yolculuğu ve veri riski doğrulanınca uygulanır; fayda düzeyi zorunluluk veya tamamlanma değildir. Canlı bağlantı ve sunucu erişimi göstergesi."
+            },
+            "views-12": {
+              "scope": "conditional",
+              "reason": "Kategori: Emeği ve veriyi koruyanlar. Fayda: Çok yüksek. Öncelik: İlk paket. Üründeki ilgili kullanıcı yolculuğu ve veri riski doğrulanınca uygulanır; fayda düzeyi zorunluluk veya tamamlanma değildir. Kaydetme durumu ve yerel taslak–sunucu kaydı ayrımı."
+            },
+            "views-13": {
+              "scope": "conditional",
+              "reason": "Kategori: Emeği ve veriyi koruyanlar. Fayda: Çok yüksek. Öncelik: İlk paket. Üründeki ilgili kullanıcı yolculuğu ve veri riski doğrulanınca uygulanır; fayda düzeyi zorunluluk veya tamamlanma değildir. Sonucu belirsiz işlemi doğrulama."
+            },
+            "views-14": {
+              "scope": "conditional",
+              "reason": "Kategori: Emeği ve veriyi koruyanlar. Fayda: Çok yüksek. Öncelik: İlk paket. Üründeki ilgili kullanıcı yolculuğu ve veri riski doğrulanınca uygulanır; fayda düzeyi zorunluluk veya tamamlanma değildir. Verinin güncelliği ve son başarılı güncelleme."
+            },
+            "views-15": {
+              "scope": "conditional",
+              "reason": "Kategori: İşi tamamlamayı kolaylaştıranlar. Fayda: Yüksek. Öncelik: İkinci paket. Üründeki ilgili kullanıcı yolculuğu ve veri riski doğrulanınca uygulanır; fayda düzeyi zorunluluk veya tamamlanma değildir. İşlem öncesi etki önizlemesi."
+            },
+            "views-16": {
+              "scope": "conditional",
+              "reason": "Kategori: İşi tamamlamayı kolaylaştıranlar. Fayda: Yüksek. Öncelik: İkinci paket. Üründeki ilgili kullanıcı yolculuğu ve veri riski doğrulanınca uygulanır; fayda düzeyi zorunluluk veya tamamlanma değildir. Çözüm sunan hata mesajları."
+            },
+            "views-17": {
+              "scope": "conditional",
+              "reason": "Kategori: Günlük kullanımı hızlandıranlar. Fayda: Orta/yüksek. Öncelik: Kullanım sıklığına göre. Üründeki ilgili kullanıcı yolculuğu ve veri riski doğrulanınca uygulanır; fayda düzeyi zorunluluk veya tamamlanma değildir. Şablondan oluşturma ve kontrollü çoğaltma."
+            },
+            "forms-6": {
+              "scope": "conditional",
+              "reason": "Kategori: Emeği ve veriyi koruyanlar. Fayda: Çok yüksek. Öncelik: İlk paket. Üründeki ilgili kullanıcı yolculuğu ve veri riski doğrulanınca uygulanır; fayda düzeyi zorunluluk veya tamamlanma değildir. Kaydetme durumu ve yerel taslak–sunucu kaydı ayrımı."
+            },
+            "integrity-6": {
+              "scope": "conditional",
+              "reason": "Kategori: Emeği ve veriyi koruyanlar. Fayda: Çok yüksek. Öncelik: İlk paket. Üründeki ilgili kullanıcı yolculuğu ve veri riski doğrulanınca uygulanır; fayda düzeyi zorunluluk veya tamamlanma değildir. Geri al, sürüm geçmişi ve silinenleri kurtarma."
+            },
+            "jobs-8": {
+              "scope": "conditional",
+              "reason": "Kategori: İşi tamamlamayı kolaylaştıranlar. Fayda: Yüksek. Öncelik: İkinci paket. Üründeki ilgili kullanıcı yolculuğu ve veri riski doğrulanınca uygulanır; fayda düzeyi zorunluluk veya tamamlanma değildir. Kullanıcı arka plan işleri merkezi."
+            },
+            "support-9": {
+              "scope": "conditional",
+              "reason": "Kategori: İşi tamamlamayı kolaylaştıranlar. Fayda: Yüksek. Öncelik: İkinci paket. Üründeki ilgili kullanıcı yolculuğu ve veri riski doğrulanınca uygulanır; fayda düzeyi zorunluluk veya tamamlanma değildir. Güvenli destek paketi."
+            },
+            "channels-9": {
+              "scope": "conditional",
+              "reason": "Kategori: Kullanıma bağlı değer sağlayanlar. Fayda: Bağlama bağlı. Öncelik: İhtiyaç doğrulandıktan sonra. Üründeki ilgili kullanıcı yolculuğu ve veri riski doğrulanınca uygulanır; fayda düzeyi zorunluluk veya tamamlanma değildir. Düşük veri tüketimi modu."
             }
           },
           "addedItemIds": [
@@ -50325,7 +52815,19 @@
             "integration-12",
             "integration-13",
             "integration-14",
-            "transfer-7"
+            "transfer-7",
+            "views-11",
+            "views-12",
+            "views-13",
+            "views-14",
+            "views-15",
+            "views-16",
+            "views-17",
+            "forms-6",
+            "integrity-6",
+            "jobs-8",
+            "support-9",
+            "channels-9"
           ],
           "decisions": [
             {
@@ -50805,6 +53307,187 @@
               "title": "JSON, CSV ve Excel (XLSX): her formatta çift yönlü içe/dışa aktarım sözleşmesi.",
               "reason": "M1 zorunlu format matrisi: JSON/CSV/XLSX için ayrı çift yönlü doğrulama; güvenli dosya, yerel biçim ve iç içe kayıt sözleşmesi.",
               "itemIds": ["transfer-7"]
+            },
+            {
+              "id": "useful-connection",
+              "kind": "add",
+              "title": "Canlı bağlantı ve sunucu erişimi göstergesi",
+              "reason": "Kategori: Emeği ve veriyi koruyanlar. Fayda: Çok yüksek. Öncelik: İlk paket. Ağ kesintisini uygulama sunucusuna erişilememe ve yeniden bağlanmadan ayır; navigator.onLine tek başına kanıt değildir. Kullanıcı neden beklediğini ve neyi yapabileceğini görür. Kabul: Gerçek istek ve son başarılı temasla durum doğrulansın; 401/403 ağ kesintisi sayılmasın, duyuru odağı çalmasın, ağ geri geldiğinde mutasyon kör tekrar edilmesin. Sorumluluk ve Frappe sınırı: Headless frontend + platform; Frappe API/servis sinyali sağlar, panel göstergesi veya çevrimdışı çalışma teslimi sayılmaz.",
+              "itemIds": ["views-11", "views-8", "service-1", "service-2"]
+            },
+            {
+              "id": "useful-save-state",
+              "kind": "add",
+              "title": "Kaydetme durumu ve yerel taslak–sunucu kaydı ayrımı",
+              "reason": "Kategori: Emeği ve veriyi koruyanlar. Fayda: Çok yüksek. Öncelik: İlk paket. Kaydediliyor, değiştirildi, yalnız bu cihazda taslak, sunucuya kaydedildi ve kaydetme hatası durumlarını ayır; kullanıcının verisinin nerede olduğunu bilmesini sağlar. Kabul: Commit sonucu doğrulanmadan sunucu başarısı gösterilmesin; yerel kota/ağ hatasında veri korunsun, eski yanıt yeni değişikliği kaydedilmiş göstermesin. Sorumluluk ve Frappe sınırı: Headless frontend + Frappe backend; transaction temeli görünür kaydetme durum modelini otomatik sağlamaz.",
+              "itemIds": ["views-12", "forms-6", "views-9"]
+            },
+            {
+              "id": "useful-draft-recovery",
+              "kind": "add",
+              "title": "Otomatik taslak ve taslağı kurtarma",
+              "reason": "Kategori: Emeği ve veriyi koruyanlar. Fayda: Çok yüksek. Öncelik: İlk paket. Sekme kapanması, tarayıcı çökmesi veya bağlantı kesilmesinde yeniden veri girmeyi azaltır; yerel ve sunucu taslağının saklama politikası ayrı belirlenir. Kabul: Aynı kullanıcı/tenant ve form sürümüne ait taslak geri gelsin; kota/tahliye riski ve saklama hatası açıklansın, hassas alanlar kapsam dışı tutulsun, çakışma ile logout temizliği doğrulansın. Sorumluluk ve Frappe sınırı: Headless frontend + Frappe backend; IndexedDB bir uygulama seçeneğidir, Frappe kaydı veya tarayıcı deposu kayıpsız kurtarma garantisi değildir.",
+              "itemIds": ["forms-6", "forms-3", "forms-4"]
+            },
+            {
+              "id": "useful-session-resume",
+              "kind": "merge",
+              "title": "Oturum sonrasında kaldığı yerden devam",
+              "reason": "Kategori: Emeği ve veriyi koruyanlar. Fayda: Çok yüksek. Öncelik: İlk paket. Oturum sona erince yeniden giriş sonrasında ilgili ekran, yetkili kayıt ve korunmuş form devam etsin; mevcut taslak/deep link maddeleri yeniden özellik olarak eklenmez. Kabul: Keycloak dönüş hedefi güvenli doğrulansın; yeni oturumda tenant ve kayıt/alan yetkisi tekrar denetlensin, izin kaybında veri açılmasın; dönüş otomatik submit veya eski token saklama üretmesin. Sorumluluk ve Frappe sınırı: Keycloak + headless frontend + Frappe backend; Frappe üzerinde ikinci login akışı kurulmaz, Desk oturumu hazır headless devam değildir.",
+              "itemIds": ["forms-3", "channels-8"]
+            },
+            {
+              "id": "useful-undo-recovery",
+              "kind": "add",
+              "title": "Geri al, sürüm geçmişi ve silinenleri kurtarma",
+              "reason": "Kategori: Emeği ve veriyi koruyanlar. Fayda: Çok yüksek. Öncelik: İlk paket. Mevcut geri alma ve sürüm geçmişi korunur; eksik silinen kayıt kurtarma ayrı GAP olur. Hatalı değişiklikten veya silmeden güvenli dönüş sağlar. Kabul: Yalnız desteklenen eylem geri alınsın; sürüm dönüşü yeni doğrulanmış kayıt oluştursun, silinenleri kurtarma tenant/alan/ilişki izinlerine ve saklama politikasına uysun; kalıcı silme geri çevrilmesin. Sorumluluk ve Frappe sınırı: Frappe backend + headless frontend; Version/Deleted Document temelleri genel domain undo veya hedef sürümde hazır müşteri geri dönüşüm kutusu değildir.",
+              "itemIds": ["views-9", "integrity-2", "integrity-6"]
+            },
+            {
+              "id": "useful-uncertain-outcome",
+              "kind": "add",
+              "title": "Sonucu belirsiz işlemi doğrulama",
+              "reason": "Kategori: Emeği ve veriyi koruyanlar. Fayda: Çok yüksek. Öncelik: İlk paket. Gönderimden sonra yanıtın kaybolması işlemin başarısız olduğunu göstermez; kalıcı işlem kimliği ve sonuç sorgusu mükerrer kayıt, ödeme veya dış etkiyi önler. Kabul: Tamamlandı, sürüyor, başarısız ve bilinmiyor ayrı görülsün; tenant yetkili sorgu ve aynı kimlikle güvenli devam tek etki üretsin, sonuç bilinmeden otomatik mutasyon tekrarlanmasın. Sorumluluk ve Frappe sınırı: Frappe backend + headless frontend + dış etki adaptörü; transaction, queue veya outbox tek başına tüm ürün işlemlerinin sonucunu sunan sözleşme değildir.",
+              "itemIds": ["views-13", "jobs-5", "events-4", "events-5"]
+            },
+            {
+              "id": "useful-data-freshness",
+              "kind": "add",
+              "title": "Verinin güncelliği ve son başarılı güncelleme",
+              "reason": "Kategori: Emeği ve veriyi koruyanlar. Fayda: Çok yüksek. Öncelik: İlk paket. Bütün kayıt/ekranlarda son başarılı alınma, kaynak güncellemesi ve eski veri ayrımı karar hatasını azaltır; yalnız dashboard'a veya canlı bağlantının açık olmasına bağlanmaz. Kabul: Kesinti/önbellek ve saat dilimi açıklansın, başarısız yenileme zamanı ilerletmesin; yenileme form girdisini bozmasın; kritik eylem sunucuda güncel veriyle doğrulansın. Sorumluluk ve Frappe sınırı: Headless frontend + Frappe backend; API ve realtime temeli ekranın tazelik sözleşmesini hazır getirmez.",
+              "itemIds": ["views-14", "shell-3", "reports-7", "realtime-3"]
+            },
+            {
+              "id": "useful-job-center",
+              "kind": "add",
+              "title": "Kullanıcı arka plan işleri merkezi",
+              "reason": "Kategori: İşi tamamlamayı kolaylaştıranlar. Fayda: Yüksek. Öncelik: İkinci paket. Import, export, rapor ve toplu işlemler başka sayfaya geçilse de tek merkezden izlenir; job kuyruğu ile son kullanıcıya sunulan kalıcı iş merkezi ayrıdır. Kabul: Yeniden girişte aynı iş durumu/sonucu görülsün; gerçek ilerleme, kısmi başarı ve hata sunulsun, toplam bilinmiyorsa sahte yüzde kullanılmasın; desteklenen iptal/devam başarılı adımı çoğaltmasın. Sorumluluk ve Frappe sınırı: Frappe backend + headless frontend; enqueue/worker temeli yetkili kullanıcı iş listesi ve indirme/saklama politikasını otomatik sağlamaz.",
+              "itemIds": ["jobs-8", "jobs-4", "transfer-4"]
+            },
+            {
+              "id": "useful-partial-retry",
+              "kind": "merge",
+              "title": "Kısmi başarı ve yalnız hatalıları yeniden deneme",
+              "reason": "Kategori: İşi tamamlamayı kolaylaştıranlar. Fayda: Yüksek. Öncelik: İkinci paket. Mevcut toplu işlem ve aktarım maddelerinde 100 kayıttan 94 başarılı, 6 hatalı sonucunu ayrı göster; yalnız hatalı öğeleri düzeltip yeniden denemek bütün işi baştan yapmayı önler. Kabul: Başarılı öğeler değişmeden kalsın, her hata kayıt/satırla ilişkilensin; retry kimliği ve checkpoint mükerrer etkiyi önlesin, kalıcı hata kör tekrarlanmasın; yeniden denemede güncel yetki ve iş kuralı uygulansın. Sorumluluk ve Frappe sınırı: Frappe backend + headless frontend; transaction/queue temeli kısmi sonuç ve kullanıcı seçimiyle retry sözleşmesinin tamamı değildir.",
+              "itemIds": [
+                "integrity-4",
+                "jobs-3",
+                "jobs-4",
+                "transfer-3",
+                "transfer-4"
+              ]
+            },
+            {
+              "id": "useful-impact-preview",
+              "kind": "add",
+              "title": "İşlem öncesi etki önizlemesi",
+              "reason": "Kategori: İşi tamamlamayı kolaylaştıranlar. Fayda: Yüksek. Öncelik: İkinci paket. Aktarım önizlemesi mevcut kapsamda korunur; genel toplu/kritik işlemlerde etkilenecek kayıt ve alanı onaydan önce göstermek ayrıca eklenir. Kabul: Yetkili önce/sonra farkı, kayıt sayısı ve geri alınabilirlik sunulsun; dry-run yan etki üretmesin; uygulama anında izin/sürüm yeniden doğrulansın, iptalde işlem yapılmasın. Sorumluluk ve Frappe sınırı: Headless frontend + Frappe backend; Document/REST temeli genel önizleme motoru veya kullanıcı onayı değildir.",
+              "itemIds": ["views-15", "views-3", "transfer-2"]
+            },
+            {
+              "id": "useful-actionable-errors",
+              "kind": "add",
+              "title": "Çözüm sunan hata mesajları",
+              "reason": "Kategori: İşi tamamlamayı kolaylaştıranlar. Fayda: Yüksek. Öncelik: İkinci paket. Neden, ilgili alan ve uygulanabilir sonraki adımı göster; geçici hata, izin, kota ve doğrulama sorununu ayırarak işi tamamlamayı kolaylaştırır. Kabul: Girilen veri korunsun; hata alanla erişilebilir ilişkilensin, klavyeyle bulunabilsin; güvenli hata kimliği sunulsun, secret/stack trace sızmasın; sonucu belirsiz mutasyon kör tekrar edilmesin. Sorumluluk ve Frappe sınırı: Headless frontend + Frappe backend; backend hata yanıtı ürün dilinde çözüm akışı veya erişilebilir frontend teslimi değildir.",
+              "itemIds": ["views-16", "channels-6", "forms-2"]
+            },
+            {
+              "id": "useful-service-status",
+              "kind": "merge",
+              "title": "İşlev bazında hizmet durumu",
+              "reason": "Kategori: İşi tamamlamayı kolaylaştıranlar. Fayda: Yüksek. Öncelik: İkinci paket. Mevcut durum/kesinti kapsamına işlev bazlı kullanıcı açıklaması bağlanır: raporlar gecikirken kayıt oluşturmanın çalıştığı belirtilebilir; tek genel çevrimdışı etiketiyle bütün iş engellenmez. Kabul: Bileşen durumu, etkilenen işlemler, son doğrulama ve mümkünse kullanıcıya yararlı sonraki güncelleme görülsün; bilinmeyen durum sağlıklı sayılmasın, dahili altyapı ayrıntısı sızmasın. Sorumluluk ve Frappe sınırı: Platform operasyonu + headless frontend; Frappe servis telemetrisi müşteri durum iletişiminin hazır ürünü değildir.",
+              "itemIds": ["service-1", "service-2"]
+            },
+            {
+              "id": "useful-empty-states",
+              "kind": "merge",
+              "title": "Anlamlı boş durumlar",
+              "reason": "Kategori: İşi tamamlamayı kolaylaştıranlar. Fayda: Yüksek. Öncelik: İkinci paket. Henüz veri yok, filtreyle eşleşen sonuç yok, yetki yok ve veri yüklenemedi durumlarını mevcut ekran durumu maddesinde ayır; kullanıcıya uygun sonraki adımı gösterir. Kabul: Yükleme hatası sıfır kayıt gibi sunulmasın; filtre temizleme veya yetkili ilk kayıt oluşturma eylemi bağlama göre sunulsun, yetkisiz kaydın varlığı açıklanmasın; odak ve ekran okuyucu durumu korunsun. Sorumluluk ve Frappe sınırı: Headless frontend; Frappe API sonuçlarını yorumlama ve boş ekran içeriği frontendde geliştirilir.",
+              "itemIds": ["views-8"]
+            },
+            {
+              "id": "useful-support-package",
+              "kind": "add",
+              "title": "Güvenli destek paketi",
+              "reason": "Kategori: İşi tamamlamayı kolaylaştıranlar. Fayda: Yüksek. Öncelik: İkinci paket. Hata kimliği, zaman ve ekran bağlamını kullanıcı önizlemesiyle paylaşmak destek yazışmasını kısaltır; otomatik ham log veya konsol gönderimi kapsam değildir. Kabul: Allowlist ve maskeleme uygulansın; token/cookie/secret, form içeriği ve kişisel/tenant verisi varsayılan dışarıda kalsın; kullanıcı alan çıkarıp paylaşmayı seçsin, alıcı yetkisi ve saklama/silme süresi doğrulansın. Sorumluluk ve Frappe sınırı: Headless frontend + destek + Frappe backend; Helpdesk/log araçları güvenli teşhis paketi sözleşmesini kendiliğinden sağlamaz.",
+              "itemIds": ["support-9", "support-1", "views-16"]
+            },
+            {
+              "id": "useful-saved-views",
+              "kind": "merge",
+              "title": "Kaydedilmiş görünümler",
+              "reason": "Kategori: Günlük kullanımı hızlandıranlar. Fayda: Orta/yüksek. Öncelik: Kullanım sıklığına göre. Filtre, sıralama ve sütun tercihlerini 'Benim bekleyen işlerim' gibi adlarla tekrar kullan; mevcut kayıtlı görünüm kapsamı korunur. Kabul: Görünüm yeniden açılınca aynı anlamlı sorgu dönsün; silinen alan/izin değişimi açıklansın, tenant ve kullanıcı tercihleri karışmasın; kayıtlı görünüm yeni kayıt/alan yetkisi vermesin. Sorumluluk ve Frappe sınırı: Headless frontend + Frappe backend; REST sorgu temeli kalıcı kişisel görünüm deneyimini hazır getirmez.",
+              "itemIds": ["views-7"]
+            },
+            {
+              "id": "useful-share-links",
+              "kind": "merge",
+              "title": "Bağlamı koruyan paylaşım bağlantıları",
+              "reason": "Kategori: Günlük kullanımı hızlandıranlar. Fayda: Orta/yüksek. Öncelik: Kullanım sıklığına göre. Belirli kayıt veya filtreli ekranın güvenli bağlantısını paylaşmak anlatım ve yeniden arama yükünü azaltır; mevcut deep link ve görünüm maddeleriyle birleştirilir. Kabul: Giriş sonrası aynı bağlam dönsün; alıcı yalnız kendi tenant/kayıt/alan yetkisiyle görsün, URL token/secret/hassas filtre içermesin; geçersiz veya silinmiş bağlam açıklansın; paylaşım yetki vermesin. Sorumluluk ve Frappe sınırı: Headless frontend + Keycloak + Frappe backend; API kayıt kimliği erişim kontrollü paylaşım yolculuğunun tamamı değildir.",
+              "itemIds": ["channels-8", "views-7"]
+            },
+            {
+              "id": "useful-recents-pins",
+              "kind": "merge",
+              "title": "Son kullanılanlar ve sabitlenenler",
+              "reason": "Kategori: Günlük kullanımı hızlandıranlar. Fayda: Orta/yüksek. Öncelik: Kullanım sıklığına göre. Sık kullanılan kayıt ve ekranlara favori, sabitleme ve yakın geçmişten dönmek tekrar gezinmeyi azaltır; mevcut kabuk/kişiselleştirme maddeleriyle izlenir. Kabul: Liste kullanıcı/tenant kapsamında olsun; yetkisi kalkan kayıt veya komut erişimi yeniden reddedilsin ve hassas başlık sızmasın; son kullanılanları temizleme ve klavye erişimi sunulsun. Sorumluluk ve Frappe sınırı: Headless frontend + Frappe backend; Desk favorileri/geçmişi bağımsız panelde hazır kabul edilmez.",
+              "itemIds": ["shell-6", "shell-9"]
+            },
+            {
+              "id": "useful-templates",
+              "kind": "add",
+              "title": "Şablondan oluşturma ve kontrollü çoğaltma",
+              "reason": "Kategori: Günlük kullanımı hızlandıranlar. Fayda: Orta/yüksek. Öncelik: Kullanım sıklığına göre. Tekrarlanan girişleri azaltır; yeni kayda hangi alan ve ilişkilerin taşınacağını kullanıcıya önceden gösterir, başka tenantın verisini kopyalama izni vermez. Kabul: Yeni kimlik oluşturulsun; secret, ödeme verisi ve kesinleşme/onay durumu kopyalanmasın; alan/ilişki izinleri ve domain doğrulaması sunucuda korunsun, kullanıcı önizleyip karar versin. Sorumluluk ve Frappe sınırı: Headless frontend + Frappe backend; Document oluşturma temeli ürün şablonu ve güvenli çoğaltma politikası değildir.",
+              "itemIds": ["views-17", "forms-1"]
+            },
+            {
+              "id": "useful-calculation-explanation",
+              "kind": "merge",
+              "title": "Sayıların hesaplama açıklaması",
+              "reason": "Kategori: Günlük kullanımı hızlandıranlar. Fayda: Orta/yüksek. Öncelik: Kullanım sıklığına göre. Toplamın tarih aralığı, filtre, para birimi, saat dilimi ve hariç tutulan kayıtlarını açıklamak metrik sözleşmesini kullanıcı açısından anlaşılır kılar; yeni rapor motoru oluşturulmaz. Kabul: Gösterilen sayıyla aynı sürümlü hesaplama tanımı ve kaynak zamanı sunulsun; yuvarlama/döviz dönüşümü açıklansın, kullanıcı yetkisini aşan satır veya alan dökümü verilmesin. Sorumluluk ve Frappe sınırı: Raporlama domaini + Frappe backend + headless frontend; rapor altyapısı ürün metriğinin anlamını veya UI açıklamasını otomatik belirlemez.",
+              "itemIds": ["reports-7"]
+            },
+            {
+              "id": "useful-timezones",
+              "kind": "merge",
+              "title": "Saat dilimi ve tarih açıklığı",
+              "reason": "Kategori: Günlük kullanımı hızlandıranlar. Fayda: Orta/yüksek. Öncelik: Kullanım sıklığına göre. Son tarihler, zamanlanmış işler ve geçmiş olaylarda kullanılan saat dilimini görünür kıl; mevcut yerelleştirme ve scheduler kapsamına bağlanır. Kabul: Kullanıcı/tenant saat dilimi ve gerektiğinde UTC karşılığı açıklansın; yaz saati, tekrarlanan/olmayan yerel saat ve 'bugün' sınırı tutarlı doğrulansın; dilimi değiştirmek geçmiş olay anını değiştirmesin. Sorumluluk ve Frappe sınırı: Headless frontend + Frappe backend + platform; tarih yardımcıları ve cron, ürünün gösterim/zamanlama politikasını tek başına seçmez.",
+              "itemIds": ["locale-4", "jobs-6"]
+            },
+            {
+              "id": "useful-keyboard-commands",
+              "kind": "merge",
+              "title": "Klavye kısayolları ve komut araması",
+              "reason": "Kategori: Günlük kullanımı hızlandıranlar. Fayda: Orta/yüksek. Öncelik: Kullanım sıklığına göre. Yoğun kullanımda yetkili eylem araması ve keşfedilebilir kısayollar gezinmeyi hızlandırır; mevcut komut kataloğu ve erişilebilirlik maddeleri korunur. Kabul: Aynı eylem menü/dokunmayla da erişilsin; metin girişini veya tarayıcı kısayollarını bozmasın, odak dönüşü ve görünür odak korunsun; yetkisiz komut sonuçta görünmesin ve API'de reddedilsin. Sorumluluk ve Frappe sınırı: Headless frontend + Frappe backend; Desk kısayolları bağımsız panelin klavye/odak teslimi sayılmaz.",
+              "itemIds": ["shell-9", "channels-5"]
+            },
+            {
+              "id": "useful-offline-sync",
+              "kind": "merge",
+              "title": "Gerçek çevrimdışı çalışma ve sonradan eşitleme",
+              "reason": "Kategori: Kullanıma bağlı değer sağlayanlar. Fayda: Bağlama bağlı. Öncelik: İhtiyaç doğrulandıktan sonra. Saha, seyahat veya sık kesilen ağda çok yüksek değer sağlayabilir; geliştirme yükü yüksek, yerel hassas veri, kuyruk ve çakışma politikası gerektirir. Mevcut channels-7 ileri aşama kapsamı korunur; bağlantı göstergesi bu yeteneği gerektirmez. Kabul: Yerel saklama hatası açıklansın; yeniden girişte yetki doğrulansın, her işlem idempotent eşitlensin; iki cihaz çakışması kullanıcıya çözüm sunsun, kalıcı silme/logout politikası korunsun; onaysız kör mutasyon gönderilmesin. Sorumluluk ve Frappe sınırı: Headless frontend + Frappe backend + güvenlik; REST veya PWA etiketi hazır çevrimdışı ürün kanıtı değildir.",
+              "itemIds": ["channels-7", "forms-6", "views-11", "integrity-1"]
+            },
+            {
+              "id": "useful-edit-conflicts",
+              "kind": "merge",
+              "title": "Eşzamanlı düzenleme ve çakışma yönetimi",
+              "reason": "Kategori: Kullanıma bağlı değer sağlayanlar. Fayda: Bağlama bağlı. Öncelik: İhtiyaç doğrulandıktan sonra. Birden fazla kişi aynı kaydı düzenliyorsa başkasının değişikliğinin üzerine yazılmasını önler; geliştirme yükü orta–yüksek, mevcut optimistic locking ve işbirliği kapsamıyla izlenir. Kabul: Eski sürümle yazma reddedilsin; kullanıcının değişikliği korunsun, izinli önce/sonra farkı ve yeniden yükle/birleştir seçenekleri verilsin; son kaydeden kazanır biçiminde sessiz veri kaybı oluşmasın. Sorumluluk ve Frappe sınırı: Frappe backend + headless frontend; normal Document.save sürüm koruması hazır ortak düzenleme UI'si veya CRDT motoru değildir.",
+              "itemIds": ["integrity-1", "realtime-5"]
+            },
+            {
+              "id": "useful-low-data",
+              "kind": "add",
+              "title": "Düşük veri tüketimi modu",
+              "reason": "Kategori: Kullanıma bağlı değer sağlayanlar. Fayda: Bağlama bağlı. Öncelik: İhtiyaç doğrulandıktan sonra. Zayıf veya ücretli bağlantılarda otomatik yenileme, medya ve ağır yanıtları azaltmak değer sağlar; geliştirme yükü orta. Kullanıcının açık tercihi esastır; Save-Data ipucu yokluğu güçlü cihaz/ağ sayılmaz. Kabul: Aynı yolculukta aktarılan baytlar ölçülsün, temel eylem ve kritik durum erişimi korunsun; güncellik kaybı açıklansın, elle yenileme mümkün olsun; ipucu desteklemeyen tarayıcıda da tercih çalışsın. Sorumluluk ve Frappe sınırı: Headless frontend + Frappe backend; REST sayfalama temeli ağ bütçesi, düşük veri modu veya çevrimdışı çalışma teslimi değildir.",
+              "itemIds": ["channels-9", "views-14"]
+            },
+            {
+              "id": "useful-notification-digest",
+              "kind": "merge",
+              "title": "Bildirim özeti ve sessiz saatler",
+              "reason": "Kategori: Kullanıma bağlı değer sağlayanlar. Fayda: Bağlama bağlı. Öncelik: İhtiyaç doğrulandıktan sonra. Bildirim hacmi yüksekse rutin olayları özetlemek dikkati korur; geliştirme yükü orta, mevcut bildirim tercihleri kapsamına bağlanır. Kritik güvenlik ve işlem mesajları için ayrı açık politika gerekir. Kabul: Kanal, sıklık, saat dilimi ve sessiz saat tercihi korunsun; yinelenen özet tekilleşsin, izin değişen içerik gönderilmesin; kritik istisnalar kullanıcıya açıklansın, önemli olay sessizce kaybolmasın. Sorumluluk ve Frappe sınırı: Bildirim backend'i + headless frontend + kanal sağlayıcıları; Frappe Notification temeli bütün kanal/özet politikasını kendiliğinden sağlamaz.",
+              "itemIds": ["notifications-6"]
             }
           ],
           "coverage": [
@@ -50997,16 +53680,16 @@
             }
           ],
           "copy": {
-            "title": "Kapsam ve entegrasyon planı",
-            "summary": "Özgün 326 madde ve önceki 18 ekleme korundu; entegrasyon planına 7 ayrı boşluk eklendi. Toplam 351 madde, 49 başlık.",
-            "intro": "Frappe yeterliliği, zorunlu kapsam ve tamamlanma ayrı kararlardır. 2026-10-11 planında sekiz entegrasyon modeli zorunludur; M0–M3 teslim sırasıdır, isteğe bağlılık değildir. Genel AI/RAG/ajan kapsamı ileri aşamada kalır.",
+            "title": "Kapsam, entegrasyon ve faydalı UX planı",
+            "summary": "Önceki 351 madde korundu; 25 faydalı UX önerisinin 13'ü mevcut kapsamla birleştirildi, 12 ayrı boşluk eklendi. Toplam 363 madde, 49 başlık.",
+            "intro": "Fayda ve geliştirme önceliği, zorunlu kapsamdan, Frappe yeterliliğinden ve tamamlanmadan ayrıdır. 25 öneri dört grupta değerlendirilir: Emeği ve veriyi koruyanlar (çok yüksek fayda, ilk paket); İşi tamamlamayı kolaylaştıranlar (yüksek fayda, ikinci paket); Günlük kullanımı hızlandıranlar (orta/yüksek fayda, kullanım sıklığına göre); Kullanıma bağlı değer sağlayanlar (ihtiyaç doğrulandıktan sonra). Yeni 12 madde ürüne bağlıdır; önceki kapsam kararları korunur. Sekiz entegrasyon modeli zorunlu, M0–M3 teslim sırasıdır; genel AI/RAG/ajan kapsamı ileri aşamada kalır. Hedef Frappe/Keycloak sürümleri seçilmedi; bu statik dokümantasyon çalışan SaaS özellikleri sunulduğu anlamına gelmez.",
             "filterLabel": "Geliştirme kapsamı",
             "allScopes": "Tüm kapsamlar",
             "scopeReason": "Kapsam gerekçesi",
             "decisions": "Birleştirme, aşamalandırma ve düzeltme kararları",
             "coverage": "Kaynak bölümlerinin mevcut başlıklardaki karşılığı",
             "source": "Tarihsel ilk karşılaştırma kaynağı",
-            "unchanged": "Önceki 344 maddenin tüm alanları, kimlikleri ve sıraları korunmuştur. Tarihsel ilk karşılaştırmadaki 402 ifade 17 bölüm düzeyinde eşlenmiştir; yeni entegrasyon kararları kullanıcının sonraki kapsam talebidir.",
+            "unchanged": "Önceki 351 maddenin bütün alanları, kimlikleri, sıraları, değerlendirmeleri ve 53 önceki inceleme kararı korunmuştur. 25 faydalı UX önerisi mevcut 49 başlığa dağıtılır; 13 mevcut yetenek yeniden eklenmez. Tarihsel ilk karşılaştırmadaki 402 ifade ve 17 bölüm eşlemesi korunur; sonraki entegrasyon ve faydalı UX kararları ayrı kullanıcı talepleridir.",
             "decisionLabels": {
               "merge": "Mevcut kapsamla birleştir",
               "defer": "Koşula veya ileri aşamaya bağla",

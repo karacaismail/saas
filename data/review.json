@@ -1,7 +1,7 @@
 {
   "version": 1,
   "reviewedAt": "2026-10-11",
-  "expectedItems": 351,
+  "expectedItems": 363,
   "expectedGroups": 49,
   "source": {
     "title": "SaaS Paneli Özellik Haritası",
@@ -614,6 +614,54 @@
     "transfer-7": {
       "scope": "required",
       "reason": "M1 zorunlu format matrisi: JSON/CSV/XLSX için ayrı çift yönlü doğrulama; güvenli dosya, yerel biçim ve iç içe kayıt sözleşmesi."
+    },
+    "views-11": {
+      "scope": "conditional",
+      "reason": "Kategori: Emeği ve veriyi koruyanlar. Fayda: Çok yüksek. Öncelik: İlk paket. Üründeki ilgili kullanıcı yolculuğu ve veri riski doğrulanınca uygulanır; fayda düzeyi zorunluluk veya tamamlanma değildir. Canlı bağlantı ve sunucu erişimi göstergesi."
+    },
+    "views-12": {
+      "scope": "conditional",
+      "reason": "Kategori: Emeği ve veriyi koruyanlar. Fayda: Çok yüksek. Öncelik: İlk paket. Üründeki ilgili kullanıcı yolculuğu ve veri riski doğrulanınca uygulanır; fayda düzeyi zorunluluk veya tamamlanma değildir. Kaydetme durumu ve yerel taslak–sunucu kaydı ayrımı."
+    },
+    "views-13": {
+      "scope": "conditional",
+      "reason": "Kategori: Emeği ve veriyi koruyanlar. Fayda: Çok yüksek. Öncelik: İlk paket. Üründeki ilgili kullanıcı yolculuğu ve veri riski doğrulanınca uygulanır; fayda düzeyi zorunluluk veya tamamlanma değildir. Sonucu belirsiz işlemi doğrulama."
+    },
+    "views-14": {
+      "scope": "conditional",
+      "reason": "Kategori: Emeği ve veriyi koruyanlar. Fayda: Çok yüksek. Öncelik: İlk paket. Üründeki ilgili kullanıcı yolculuğu ve veri riski doğrulanınca uygulanır; fayda düzeyi zorunluluk veya tamamlanma değildir. Verinin güncelliği ve son başarılı güncelleme."
+    },
+    "views-15": {
+      "scope": "conditional",
+      "reason": "Kategori: İşi tamamlamayı kolaylaştıranlar. Fayda: Yüksek. Öncelik: İkinci paket. Üründeki ilgili kullanıcı yolculuğu ve veri riski doğrulanınca uygulanır; fayda düzeyi zorunluluk veya tamamlanma değildir. İşlem öncesi etki önizlemesi."
+    },
+    "views-16": {
+      "scope": "conditional",
+      "reason": "Kategori: İşi tamamlamayı kolaylaştıranlar. Fayda: Yüksek. Öncelik: İkinci paket. Üründeki ilgili kullanıcı yolculuğu ve veri riski doğrulanınca uygulanır; fayda düzeyi zorunluluk veya tamamlanma değildir. Çözüm sunan hata mesajları."
+    },
+    "views-17": {
+      "scope": "conditional",
+      "reason": "Kategori: Günlük kullanımı hızlandıranlar. Fayda: Orta/yüksek. Öncelik: Kullanım sıklığına göre. Üründeki ilgili kullanıcı yolculuğu ve veri riski doğrulanınca uygulanır; fayda düzeyi zorunluluk veya tamamlanma değildir. Şablondan oluşturma ve kontrollü çoğaltma."
+    },
+    "forms-6": {
+      "scope": "conditional",
+      "reason": "Kategori: Emeği ve veriyi koruyanlar. Fayda: Çok yüksek. Öncelik: İlk paket. Üründeki ilgili kullanıcı yolculuğu ve veri riski doğrulanınca uygulanır; fayda düzeyi zorunluluk veya tamamlanma değildir. Kaydetme durumu ve yerel taslak–sunucu kaydı ayrımı."
+    },
+    "integrity-6": {
+      "scope": "conditional",
+      "reason": "Kategori: Emeği ve veriyi koruyanlar. Fayda: Çok yüksek. Öncelik: İlk paket. Üründeki ilgili kullanıcı yolculuğu ve veri riski doğrulanınca uygulanır; fayda düzeyi zorunluluk veya tamamlanma değildir. Geri al, sürüm geçmişi ve silinenleri kurtarma."
+    },
+    "jobs-8": {
+      "scope": "conditional",
+      "reason": "Kategori: İşi tamamlamayı kolaylaştıranlar. Fayda: Yüksek. Öncelik: İkinci paket. Üründeki ilgili kullanıcı yolculuğu ve veri riski doğrulanınca uygulanır; fayda düzeyi zorunluluk veya tamamlanma değildir. Kullanıcı arka plan işleri merkezi."
+    },
+    "support-9": {
+      "scope": "conditional",
+      "reason": "Kategori: İşi tamamlamayı kolaylaştıranlar. Fayda: Yüksek. Öncelik: İkinci paket. Üründeki ilgili kullanıcı yolculuğu ve veri riski doğrulanınca uygulanır; fayda düzeyi zorunluluk veya tamamlanma değildir. Güvenli destek paketi."
+    },
+    "channels-9": {
+      "scope": "conditional",
+      "reason": "Kategori: Kullanıma bağlı değer sağlayanlar. Fayda: Bağlama bağlı. Öncelik: İhtiyaç doğrulandıktan sonra. Üründeki ilgili kullanıcı yolculuğu ve veri riski doğrulanınca uygulanır; fayda düzeyi zorunluluk veya tamamlanma değildir. Düşük veri tüketimi modu."
     }
   },
   "addedItemIds": [
@@ -641,7 +689,19 @@
     "integration-12",
     "integration-13",
     "integration-14",
-    "transfer-7"
+    "transfer-7",
+    "views-11",
+    "views-12",
+    "views-13",
+    "views-14",
+    "views-15",
+    "views-16",
+    "views-17",
+    "forms-6",
+    "integrity-6",
+    "jobs-8",
+    "support-9",
+    "channels-9"
   ],
   "decisions": [
     {
@@ -1097,6 +1157,181 @@
       "title": "JSON, CSV ve Excel (XLSX): her formatta çift yönlü içe/dışa aktarım sözleşmesi.",
       "reason": "M1 zorunlu format matrisi: JSON/CSV/XLSX için ayrı çift yönlü doğrulama; güvenli dosya, yerel biçim ve iç içe kayıt sözleşmesi.",
       "itemIds": ["transfer-7"]
+    },
+    {
+      "id": "useful-connection",
+      "kind": "add",
+      "title": "Canlı bağlantı ve sunucu erişimi göstergesi",
+      "reason": "Kategori: Emeği ve veriyi koruyanlar. Fayda: Çok yüksek. Öncelik: İlk paket. Ağ kesintisini uygulama sunucusuna erişilememe ve yeniden bağlanmadan ayır; navigator.onLine tek başına kanıt değildir. Kullanıcı neden beklediğini ve neyi yapabileceğini görür. Kabul: Gerçek istek ve son başarılı temasla durum doğrulansın; 401/403 ağ kesintisi sayılmasın, duyuru odağı çalmasın, ağ geri geldiğinde mutasyon kör tekrar edilmesin. Sorumluluk ve Frappe sınırı: Headless frontend + platform; Frappe API/servis sinyali sağlar, panel göstergesi veya çevrimdışı çalışma teslimi sayılmaz.",
+      "itemIds": ["views-11", "views-8", "service-1", "service-2"]
+    },
+    {
+      "id": "useful-save-state",
+      "kind": "add",
+      "title": "Kaydetme durumu ve yerel taslak–sunucu kaydı ayrımı",
+      "reason": "Kategori: Emeği ve veriyi koruyanlar. Fayda: Çok yüksek. Öncelik: İlk paket. Kaydediliyor, değiştirildi, yalnız bu cihazda taslak, sunucuya kaydedildi ve kaydetme hatası durumlarını ayır; kullanıcının verisinin nerede olduğunu bilmesini sağlar. Kabul: Commit sonucu doğrulanmadan sunucu başarısı gösterilmesin; yerel kota/ağ hatasında veri korunsun, eski yanıt yeni değişikliği kaydedilmiş göstermesin. Sorumluluk ve Frappe sınırı: Headless frontend + Frappe backend; transaction temeli görünür kaydetme durum modelini otomatik sağlamaz.",
+      "itemIds": ["views-12", "forms-6", "views-9"]
+    },
+    {
+      "id": "useful-draft-recovery",
+      "kind": "add",
+      "title": "Otomatik taslak ve taslağı kurtarma",
+      "reason": "Kategori: Emeği ve veriyi koruyanlar. Fayda: Çok yüksek. Öncelik: İlk paket. Sekme kapanması, tarayıcı çökmesi veya bağlantı kesilmesinde yeniden veri girmeyi azaltır; yerel ve sunucu taslağının saklama politikası ayrı belirlenir. Kabul: Aynı kullanıcı/tenant ve form sürümüne ait taslak geri gelsin; kota/tahliye riski ve saklama hatası açıklansın, hassas alanlar kapsam dışı tutulsun, çakışma ile logout temizliği doğrulansın. Sorumluluk ve Frappe sınırı: Headless frontend + Frappe backend; IndexedDB bir uygulama seçeneğidir, Frappe kaydı veya tarayıcı deposu kayıpsız kurtarma garantisi değildir.",
+      "itemIds": ["forms-6", "forms-3", "forms-4"]
+    },
+    {
+      "id": "useful-session-resume",
+      "kind": "merge",
+      "title": "Oturum sonrasında kaldığı yerden devam",
+      "reason": "Kategori: Emeği ve veriyi koruyanlar. Fayda: Çok yüksek. Öncelik: İlk paket. Oturum sona erince yeniden giriş sonrasında ilgili ekran, yetkili kayıt ve korunmuş form devam etsin; mevcut taslak/deep link maddeleri yeniden özellik olarak eklenmez. Kabul: Keycloak dönüş hedefi güvenli doğrulansın; yeni oturumda tenant ve kayıt/alan yetkisi tekrar denetlensin, izin kaybında veri açılmasın; dönüş otomatik submit veya eski token saklama üretmesin. Sorumluluk ve Frappe sınırı: Keycloak + headless frontend + Frappe backend; Frappe üzerinde ikinci login akışı kurulmaz, Desk oturumu hazır headless devam değildir.",
+      "itemIds": ["forms-3", "channels-8"]
+    },
+    {
+      "id": "useful-undo-recovery",
+      "kind": "add",
+      "title": "Geri al, sürüm geçmişi ve silinenleri kurtarma",
+      "reason": "Kategori: Emeği ve veriyi koruyanlar. Fayda: Çok yüksek. Öncelik: İlk paket. Mevcut geri alma ve sürüm geçmişi korunur; eksik silinen kayıt kurtarma ayrı GAP olur. Hatalı değişiklikten veya silmeden güvenli dönüş sağlar. Kabul: Yalnız desteklenen eylem geri alınsın; sürüm dönüşü yeni doğrulanmış kayıt oluştursun, silinenleri kurtarma tenant/alan/ilişki izinlerine ve saklama politikasına uysun; kalıcı silme geri çevrilmesin. Sorumluluk ve Frappe sınırı: Frappe backend + headless frontend; Version/Deleted Document temelleri genel domain undo veya hedef sürümde hazır müşteri geri dönüşüm kutusu değildir.",
+      "itemIds": ["views-9", "integrity-2", "integrity-6"]
+    },
+    {
+      "id": "useful-uncertain-outcome",
+      "kind": "add",
+      "title": "Sonucu belirsiz işlemi doğrulama",
+      "reason": "Kategori: Emeği ve veriyi koruyanlar. Fayda: Çok yüksek. Öncelik: İlk paket. Gönderimden sonra yanıtın kaybolması işlemin başarısız olduğunu göstermez; kalıcı işlem kimliği ve sonuç sorgusu mükerrer kayıt, ödeme veya dış etkiyi önler. Kabul: Tamamlandı, sürüyor, başarısız ve bilinmiyor ayrı görülsün; tenant yetkili sorgu ve aynı kimlikle güvenli devam tek etki üretsin, sonuç bilinmeden otomatik mutasyon tekrarlanmasın. Sorumluluk ve Frappe sınırı: Frappe backend + headless frontend + dış etki adaptörü; transaction, queue veya outbox tek başına tüm ürün işlemlerinin sonucunu sunan sözleşme değildir.",
+      "itemIds": ["views-13", "jobs-5", "events-4", "events-5"]
+    },
+    {
+      "id": "useful-data-freshness",
+      "kind": "add",
+      "title": "Verinin güncelliği ve son başarılı güncelleme",
+      "reason": "Kategori: Emeği ve veriyi koruyanlar. Fayda: Çok yüksek. Öncelik: İlk paket. Bütün kayıt/ekranlarda son başarılı alınma, kaynak güncellemesi ve eski veri ayrımı karar hatasını azaltır; yalnız dashboard'a veya canlı bağlantının açık olmasına bağlanmaz. Kabul: Kesinti/önbellek ve saat dilimi açıklansın, başarısız yenileme zamanı ilerletmesin; yenileme form girdisini bozmasın; kritik eylem sunucuda güncel veriyle doğrulansın. Sorumluluk ve Frappe sınırı: Headless frontend + Frappe backend; API ve realtime temeli ekranın tazelik sözleşmesini hazır getirmez.",
+      "itemIds": ["views-14", "shell-3", "reports-7", "realtime-3"]
+    },
+    {
+      "id": "useful-job-center",
+      "kind": "add",
+      "title": "Kullanıcı arka plan işleri merkezi",
+      "reason": "Kategori: İşi tamamlamayı kolaylaştıranlar. Fayda: Yüksek. Öncelik: İkinci paket. Import, export, rapor ve toplu işlemler başka sayfaya geçilse de tek merkezden izlenir; job kuyruğu ile son kullanıcıya sunulan kalıcı iş merkezi ayrıdır. Kabul: Yeniden girişte aynı iş durumu/sonucu görülsün; gerçek ilerleme, kısmi başarı ve hata sunulsun, toplam bilinmiyorsa sahte yüzde kullanılmasın; desteklenen iptal/devam başarılı adımı çoğaltmasın. Sorumluluk ve Frappe sınırı: Frappe backend + headless frontend; enqueue/worker temeli yetkili kullanıcı iş listesi ve indirme/saklama politikasını otomatik sağlamaz.",
+      "itemIds": ["jobs-8", "jobs-4", "transfer-4"]
+    },
+    {
+      "id": "useful-partial-retry",
+      "kind": "merge",
+      "title": "Kısmi başarı ve yalnız hatalıları yeniden deneme",
+      "reason": "Kategori: İşi tamamlamayı kolaylaştıranlar. Fayda: Yüksek. Öncelik: İkinci paket. Mevcut toplu işlem ve aktarım maddelerinde 100 kayıttan 94 başarılı, 6 hatalı sonucunu ayrı göster; yalnız hatalı öğeleri düzeltip yeniden denemek bütün işi baştan yapmayı önler. Kabul: Başarılı öğeler değişmeden kalsın, her hata kayıt/satırla ilişkilensin; retry kimliği ve checkpoint mükerrer etkiyi önlesin, kalıcı hata kör tekrarlanmasın; yeniden denemede güncel yetki ve iş kuralı uygulansın. Sorumluluk ve Frappe sınırı: Frappe backend + headless frontend; transaction/queue temeli kısmi sonuç ve kullanıcı seçimiyle retry sözleşmesinin tamamı değildir.",
+      "itemIds": ["integrity-4", "jobs-3", "jobs-4", "transfer-3", "transfer-4"]
+    },
+    {
+      "id": "useful-impact-preview",
+      "kind": "add",
+      "title": "İşlem öncesi etki önizlemesi",
+      "reason": "Kategori: İşi tamamlamayı kolaylaştıranlar. Fayda: Yüksek. Öncelik: İkinci paket. Aktarım önizlemesi mevcut kapsamda korunur; genel toplu/kritik işlemlerde etkilenecek kayıt ve alanı onaydan önce göstermek ayrıca eklenir. Kabul: Yetkili önce/sonra farkı, kayıt sayısı ve geri alınabilirlik sunulsun; dry-run yan etki üretmesin; uygulama anında izin/sürüm yeniden doğrulansın, iptalde işlem yapılmasın. Sorumluluk ve Frappe sınırı: Headless frontend + Frappe backend; Document/REST temeli genel önizleme motoru veya kullanıcı onayı değildir.",
+      "itemIds": ["views-15", "views-3", "transfer-2"]
+    },
+    {
+      "id": "useful-actionable-errors",
+      "kind": "add",
+      "title": "Çözüm sunan hata mesajları",
+      "reason": "Kategori: İşi tamamlamayı kolaylaştıranlar. Fayda: Yüksek. Öncelik: İkinci paket. Neden, ilgili alan ve uygulanabilir sonraki adımı göster; geçici hata, izin, kota ve doğrulama sorununu ayırarak işi tamamlamayı kolaylaştırır. Kabul: Girilen veri korunsun; hata alanla erişilebilir ilişkilensin, klavyeyle bulunabilsin; güvenli hata kimliği sunulsun, secret/stack trace sızmasın; sonucu belirsiz mutasyon kör tekrar edilmesin. Sorumluluk ve Frappe sınırı: Headless frontend + Frappe backend; backend hata yanıtı ürün dilinde çözüm akışı veya erişilebilir frontend teslimi değildir.",
+      "itemIds": ["views-16", "channels-6", "forms-2"]
+    },
+    {
+      "id": "useful-service-status",
+      "kind": "merge",
+      "title": "İşlev bazında hizmet durumu",
+      "reason": "Kategori: İşi tamamlamayı kolaylaştıranlar. Fayda: Yüksek. Öncelik: İkinci paket. Mevcut durum/kesinti kapsamına işlev bazlı kullanıcı açıklaması bağlanır: raporlar gecikirken kayıt oluşturmanın çalıştığı belirtilebilir; tek genel çevrimdışı etiketiyle bütün iş engellenmez. Kabul: Bileşen durumu, etkilenen işlemler, son doğrulama ve mümkünse kullanıcıya yararlı sonraki güncelleme görülsün; bilinmeyen durum sağlıklı sayılmasın, dahili altyapı ayrıntısı sızmasın. Sorumluluk ve Frappe sınırı: Platform operasyonu + headless frontend; Frappe servis telemetrisi müşteri durum iletişiminin hazır ürünü değildir.",
+      "itemIds": ["service-1", "service-2"]
+    },
+    {
+      "id": "useful-empty-states",
+      "kind": "merge",
+      "title": "Anlamlı boş durumlar",
+      "reason": "Kategori: İşi tamamlamayı kolaylaştıranlar. Fayda: Yüksek. Öncelik: İkinci paket. Henüz veri yok, filtreyle eşleşen sonuç yok, yetki yok ve veri yüklenemedi durumlarını mevcut ekran durumu maddesinde ayır; kullanıcıya uygun sonraki adımı gösterir. Kabul: Yükleme hatası sıfır kayıt gibi sunulmasın; filtre temizleme veya yetkili ilk kayıt oluşturma eylemi bağlama göre sunulsun, yetkisiz kaydın varlığı açıklanmasın; odak ve ekran okuyucu durumu korunsun. Sorumluluk ve Frappe sınırı: Headless frontend; Frappe API sonuçlarını yorumlama ve boş ekran içeriği frontendde geliştirilir.",
+      "itemIds": ["views-8"]
+    },
+    {
+      "id": "useful-support-package",
+      "kind": "add",
+      "title": "Güvenli destek paketi",
+      "reason": "Kategori: İşi tamamlamayı kolaylaştıranlar. Fayda: Yüksek. Öncelik: İkinci paket. Hata kimliği, zaman ve ekran bağlamını kullanıcı önizlemesiyle paylaşmak destek yazışmasını kısaltır; otomatik ham log veya konsol gönderimi kapsam değildir. Kabul: Allowlist ve maskeleme uygulansın; token/cookie/secret, form içeriği ve kişisel/tenant verisi varsayılan dışarıda kalsın; kullanıcı alan çıkarıp paylaşmayı seçsin, alıcı yetkisi ve saklama/silme süresi doğrulansın. Sorumluluk ve Frappe sınırı: Headless frontend + destek + Frappe backend; Helpdesk/log araçları güvenli teşhis paketi sözleşmesini kendiliğinden sağlamaz.",
+      "itemIds": ["support-9", "support-1", "views-16"]
+    },
+    {
+      "id": "useful-saved-views",
+      "kind": "merge",
+      "title": "Kaydedilmiş görünümler",
+      "reason": "Kategori: Günlük kullanımı hızlandıranlar. Fayda: Orta/yüksek. Öncelik: Kullanım sıklığına göre. Filtre, sıralama ve sütun tercihlerini 'Benim bekleyen işlerim' gibi adlarla tekrar kullan; mevcut kayıtlı görünüm kapsamı korunur. Kabul: Görünüm yeniden açılınca aynı anlamlı sorgu dönsün; silinen alan/izin değişimi açıklansın, tenant ve kullanıcı tercihleri karışmasın; kayıtlı görünüm yeni kayıt/alan yetkisi vermesin. Sorumluluk ve Frappe sınırı: Headless frontend + Frappe backend; REST sorgu temeli kalıcı kişisel görünüm deneyimini hazır getirmez.",
+      "itemIds": ["views-7"]
+    },
+    {
+      "id": "useful-share-links",
+      "kind": "merge",
+      "title": "Bağlamı koruyan paylaşım bağlantıları",
+      "reason": "Kategori: Günlük kullanımı hızlandıranlar. Fayda: Orta/yüksek. Öncelik: Kullanım sıklığına göre. Belirli kayıt veya filtreli ekranın güvenli bağlantısını paylaşmak anlatım ve yeniden arama yükünü azaltır; mevcut deep link ve görünüm maddeleriyle birleştirilir. Kabul: Giriş sonrası aynı bağlam dönsün; alıcı yalnız kendi tenant/kayıt/alan yetkisiyle görsün, URL token/secret/hassas filtre içermesin; geçersiz veya silinmiş bağlam açıklansın; paylaşım yetki vermesin. Sorumluluk ve Frappe sınırı: Headless frontend + Keycloak + Frappe backend; API kayıt kimliği erişim kontrollü paylaşım yolculuğunun tamamı değildir.",
+      "itemIds": ["channels-8", "views-7"]
+    },
+    {
+      "id": "useful-recents-pins",
+      "kind": "merge",
+      "title": "Son kullanılanlar ve sabitlenenler",
+      "reason": "Kategori: Günlük kullanımı hızlandıranlar. Fayda: Orta/yüksek. Öncelik: Kullanım sıklığına göre. Sık kullanılan kayıt ve ekranlara favori, sabitleme ve yakın geçmişten dönmek tekrar gezinmeyi azaltır; mevcut kabuk/kişiselleştirme maddeleriyle izlenir. Kabul: Liste kullanıcı/tenant kapsamında olsun; yetkisi kalkan kayıt veya komut erişimi yeniden reddedilsin ve hassas başlık sızmasın; son kullanılanları temizleme ve klavye erişimi sunulsun. Sorumluluk ve Frappe sınırı: Headless frontend + Frappe backend; Desk favorileri/geçmişi bağımsız panelde hazır kabul edilmez.",
+      "itemIds": ["shell-6", "shell-9"]
+    },
+    {
+      "id": "useful-templates",
+      "kind": "add",
+      "title": "Şablondan oluşturma ve kontrollü çoğaltma",
+      "reason": "Kategori: Günlük kullanımı hızlandıranlar. Fayda: Orta/yüksek. Öncelik: Kullanım sıklığına göre. Tekrarlanan girişleri azaltır; yeni kayda hangi alan ve ilişkilerin taşınacağını kullanıcıya önceden gösterir, başka tenantın verisini kopyalama izni vermez. Kabul: Yeni kimlik oluşturulsun; secret, ödeme verisi ve kesinleşme/onay durumu kopyalanmasın; alan/ilişki izinleri ve domain doğrulaması sunucuda korunsun, kullanıcı önizleyip karar versin. Sorumluluk ve Frappe sınırı: Headless frontend + Frappe backend; Document oluşturma temeli ürün şablonu ve güvenli çoğaltma politikası değildir.",
+      "itemIds": ["views-17", "forms-1"]
+    },
+    {
+      "id": "useful-calculation-explanation",
+      "kind": "merge",
+      "title": "Sayıların hesaplama açıklaması",
+      "reason": "Kategori: Günlük kullanımı hızlandıranlar. Fayda: Orta/yüksek. Öncelik: Kullanım sıklığına göre. Toplamın tarih aralığı, filtre, para birimi, saat dilimi ve hariç tutulan kayıtlarını açıklamak metrik sözleşmesini kullanıcı açısından anlaşılır kılar; yeni rapor motoru oluşturulmaz. Kabul: Gösterilen sayıyla aynı sürümlü hesaplama tanımı ve kaynak zamanı sunulsun; yuvarlama/döviz dönüşümü açıklansın, kullanıcı yetkisini aşan satır veya alan dökümü verilmesin. Sorumluluk ve Frappe sınırı: Raporlama domaini + Frappe backend + headless frontend; rapor altyapısı ürün metriğinin anlamını veya UI açıklamasını otomatik belirlemez.",
+      "itemIds": ["reports-7"]
+    },
+    {
+      "id": "useful-timezones",
+      "kind": "merge",
+      "title": "Saat dilimi ve tarih açıklığı",
+      "reason": "Kategori: Günlük kullanımı hızlandıranlar. Fayda: Orta/yüksek. Öncelik: Kullanım sıklığına göre. Son tarihler, zamanlanmış işler ve geçmiş olaylarda kullanılan saat dilimini görünür kıl; mevcut yerelleştirme ve scheduler kapsamına bağlanır. Kabul: Kullanıcı/tenant saat dilimi ve gerektiğinde UTC karşılığı açıklansın; yaz saati, tekrarlanan/olmayan yerel saat ve 'bugün' sınırı tutarlı doğrulansın; dilimi değiştirmek geçmiş olay anını değiştirmesin. Sorumluluk ve Frappe sınırı: Headless frontend + Frappe backend + platform; tarih yardımcıları ve cron, ürünün gösterim/zamanlama politikasını tek başına seçmez.",
+      "itemIds": ["locale-4", "jobs-6"]
+    },
+    {
+      "id": "useful-keyboard-commands",
+      "kind": "merge",
+      "title": "Klavye kısayolları ve komut araması",
+      "reason": "Kategori: Günlük kullanımı hızlandıranlar. Fayda: Orta/yüksek. Öncelik: Kullanım sıklığına göre. Yoğun kullanımda yetkili eylem araması ve keşfedilebilir kısayollar gezinmeyi hızlandırır; mevcut komut kataloğu ve erişilebilirlik maddeleri korunur. Kabul: Aynı eylem menü/dokunmayla da erişilsin; metin girişini veya tarayıcı kısayollarını bozmasın, odak dönüşü ve görünür odak korunsun; yetkisiz komut sonuçta görünmesin ve API'de reddedilsin. Sorumluluk ve Frappe sınırı: Headless frontend + Frappe backend; Desk kısayolları bağımsız panelin klavye/odak teslimi sayılmaz.",
+      "itemIds": ["shell-9", "channels-5"]
+    },
+    {
+      "id": "useful-offline-sync",
+      "kind": "merge",
+      "title": "Gerçek çevrimdışı çalışma ve sonradan eşitleme",
+      "reason": "Kategori: Kullanıma bağlı değer sağlayanlar. Fayda: Bağlama bağlı. Öncelik: İhtiyaç doğrulandıktan sonra. Saha, seyahat veya sık kesilen ağda çok yüksek değer sağlayabilir; geliştirme yükü yüksek, yerel hassas veri, kuyruk ve çakışma politikası gerektirir. Mevcut channels-7 ileri aşama kapsamı korunur; bağlantı göstergesi bu yeteneği gerektirmez. Kabul: Yerel saklama hatası açıklansın; yeniden girişte yetki doğrulansın, her işlem idempotent eşitlensin; iki cihaz çakışması kullanıcıya çözüm sunsun, kalıcı silme/logout politikası korunsun; onaysız kör mutasyon gönderilmesin. Sorumluluk ve Frappe sınırı: Headless frontend + Frappe backend + güvenlik; REST veya PWA etiketi hazır çevrimdışı ürün kanıtı değildir.",
+      "itemIds": ["channels-7", "forms-6", "views-11", "integrity-1"]
+    },
+    {
+      "id": "useful-edit-conflicts",
+      "kind": "merge",
+      "title": "Eşzamanlı düzenleme ve çakışma yönetimi",
+      "reason": "Kategori: Kullanıma bağlı değer sağlayanlar. Fayda: Bağlama bağlı. Öncelik: İhtiyaç doğrulandıktan sonra. Birden fazla kişi aynı kaydı düzenliyorsa başkasının değişikliğinin üzerine yazılmasını önler; geliştirme yükü orta–yüksek, mevcut optimistic locking ve işbirliği kapsamıyla izlenir. Kabul: Eski sürümle yazma reddedilsin; kullanıcının değişikliği korunsun, izinli önce/sonra farkı ve yeniden yükle/birleştir seçenekleri verilsin; son kaydeden kazanır biçiminde sessiz veri kaybı oluşmasın. Sorumluluk ve Frappe sınırı: Frappe backend + headless frontend; normal Document.save sürüm koruması hazır ortak düzenleme UI'si veya CRDT motoru değildir.",
+      "itemIds": ["integrity-1", "realtime-5"]
+    },
+    {
+      "id": "useful-low-data",
+      "kind": "add",
+      "title": "Düşük veri tüketimi modu",
+      "reason": "Kategori: Kullanıma bağlı değer sağlayanlar. Fayda: Bağlama bağlı. Öncelik: İhtiyaç doğrulandıktan sonra. Zayıf veya ücretli bağlantılarda otomatik yenileme, medya ve ağır yanıtları azaltmak değer sağlar; geliştirme yükü orta. Kullanıcının açık tercihi esastır; Save-Data ipucu yokluğu güçlü cihaz/ağ sayılmaz. Kabul: Aynı yolculukta aktarılan baytlar ölçülsün, temel eylem ve kritik durum erişimi korunsun; güncellik kaybı açıklansın, elle yenileme mümkün olsun; ipucu desteklemeyen tarayıcıda da tercih çalışsın. Sorumluluk ve Frappe sınırı: Headless frontend + Frappe backend; REST sayfalama temeli ağ bütçesi, düşük veri modu veya çevrimdışı çalışma teslimi değildir.",
+      "itemIds": ["channels-9", "views-14"]
+    },
+    {
+      "id": "useful-notification-digest",
+      "kind": "merge",
+      "title": "Bildirim özeti ve sessiz saatler",
+      "reason": "Kategori: Kullanıma bağlı değer sağlayanlar. Fayda: Bağlama bağlı. Öncelik: İhtiyaç doğrulandıktan sonra. Bildirim hacmi yüksekse rutin olayları özetlemek dikkati korur; geliştirme yükü orta, mevcut bildirim tercihleri kapsamına bağlanır. Kritik güvenlik ve işlem mesajları için ayrı açık politika gerekir. Kabul: Kanal, sıklık, saat dilimi ve sessiz saat tercihi korunsun; yinelenen özet tekilleşsin, izin değişen içerik gönderilmesin; kritik istisnalar kullanıcıya açıklansın, önemli olay sessizce kaybolmasın. Sorumluluk ve Frappe sınırı: Bildirim backend'i + headless frontend + kanal sağlayıcıları; Frappe Notification temeli bütün kanal/özet politikasını kendiliğinden sağlamaz.",
+      "itemIds": ["notifications-6"]
     }
   ],
   "coverage": [
@@ -1276,16 +1511,16 @@
     }
   ],
   "copy": {
-    "title": "Kapsam ve entegrasyon planı",
-    "summary": "Özgün 326 madde ve önceki 18 ekleme korundu; entegrasyon planına 7 ayrı boşluk eklendi. Toplam 351 madde, 49 başlık.",
-    "intro": "Frappe yeterliliği, zorunlu kapsam ve tamamlanma ayrı kararlardır. 2026-10-11 planında sekiz entegrasyon modeli zorunludur; M0–M3 teslim sırasıdır, isteğe bağlılık değildir. Genel AI/RAG/ajan kapsamı ileri aşamada kalır.",
+    "title": "Kapsam, entegrasyon ve faydalı UX planı",
+    "summary": "Önceki 351 madde korundu; 25 faydalı UX önerisinin 13'ü mevcut kapsamla birleştirildi, 12 ayrı boşluk eklendi. Toplam 363 madde, 49 başlık.",
+    "intro": "Fayda ve geliştirme önceliği, zorunlu kapsamdan, Frappe yeterliliğinden ve tamamlanmadan ayrıdır. 25 öneri dört grupta değerlendirilir: Emeği ve veriyi koruyanlar (çok yüksek fayda, ilk paket); İşi tamamlamayı kolaylaştıranlar (yüksek fayda, ikinci paket); Günlük kullanımı hızlandıranlar (orta/yüksek fayda, kullanım sıklığına göre); Kullanıma bağlı değer sağlayanlar (ihtiyaç doğrulandıktan sonra). Yeni 12 madde ürüne bağlıdır; önceki kapsam kararları korunur. Sekiz entegrasyon modeli zorunlu, M0–M3 teslim sırasıdır; genel AI/RAG/ajan kapsamı ileri aşamada kalır. Hedef Frappe/Keycloak sürümleri seçilmedi; bu statik dokümantasyon çalışan SaaS özellikleri sunulduğu anlamına gelmez.",
     "filterLabel": "Geliştirme kapsamı",
     "allScopes": "Tüm kapsamlar",
     "scopeReason": "Kapsam gerekçesi",
     "decisions": "Birleştirme, aşamalandırma ve düzeltme kararları",
     "coverage": "Kaynak bölümlerinin mevcut başlıklardaki karşılığı",
     "source": "Tarihsel ilk karşılaştırma kaynağı",
-    "unchanged": "Önceki 344 maddenin tüm alanları, kimlikleri ve sıraları korunmuştur. Tarihsel ilk karşılaştırmadaki 402 ifade 17 bölüm düzeyinde eşlenmiştir; yeni entegrasyon kararları kullanıcının sonraki kapsam talebidir.",
+    "unchanged": "Önceki 351 maddenin bütün alanları, kimlikleri, sıraları, değerlendirmeleri ve 53 önceki inceleme kararı korunmuştur. 25 faydalı UX önerisi mevcut 49 başlığa dağıtılır; 13 mevcut yetenek yeniden eklenmez. Tarihsel ilk karşılaştırmadaki 402 ifade ve 17 bölüm eşlemesi korunur; sonraki entegrasyon ve faydalı UX kararları ayrı kullanıcı talepleridir.",
     "decisionLabels": {
       "merge": "Mevcut kapsamla birleştir",
       "defer": "Koşula veya ileri aşamaya bağla",

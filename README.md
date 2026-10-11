@@ -2,7 +2,7 @@
 
 [Canlı site](https://karacaismail.github.io/saas/) · [MIT lisansı](LICENSE)
 
-Frappe Framework backend, bağımsız headless frontend ve Keycloak için 12 küme, 49 başlık ve 351 maddelik geliştirme yol haritası. Her maddede Frappe yeterliliği, yapılacak iş, sorumlu katman, dayanak, kabul ölçütü ve kaynak bulunur. Özellikleri plan kapsamı/yeterlilik/iş/kaynak/küme ile süzün ve seçilenleri JSON, CSV veya Markdown olarak indirin.
+Frappe Framework backend, bağımsız headless frontend ve Keycloak için 12 küme, 49 başlık ve 363 maddelik geliştirme yol haritası. Her maddede Frappe yeterliliği, yapılacak iş, sorumlu katman, dayanak, kabul ölçütü ve kaynak bulunur. Özellikleri plan kapsamı/yeterlilik/iş/kaynak/küme ile süzün ve seçilenleri JSON, CSV veya Markdown olarak indirin.
 
 Mavi **özgün kapsamı**, yeşil **kapsam içi eksikleri**, kırmızı **yeni alanları** gösterir. Üç sınıfta madde metni, kaynak etiketi ve checkbox aynı rengi taşır; renkler %100 doygundur ve normal metin kontrastı en az4.5:1'dir. Kaynak renkleri madde, legend ve filtre zeminlerinde%5 opaklıkla da kullanılır; yazılar tam opaktır. Yeterlilik ve iş etiketleri kategoriye göre pastel, sorumlu etiketleri ortak sakin tondadır. Renkler Frappe yeterliliği değildir. Yeterlilik etiketleri: **Çekirdekte var / Kısmen var / Ek Frappe uygulaması / Çekirdekte hazır değil / Harici sorumluluk / Doğrulanmalı**. Küme sırası altyapı ve güven sınırlarından ürün ve gelir modeline ilerler. ERPNext ve diğer ek uygulamalar Framework çekirdeği sayılmaz; Desk ekranları headless frontend'de otomatik hazır değildir.
 
@@ -48,3 +48,7 @@ Görünen bütün metinler sınıflandırılmış JSON dosyalarından gelir. `da
 2026-10-11 entegrasyon planı: mevcut 344 maddenin bütün alanları ve kimlikleri korunarak 7 açık entegrasyon maddesi eklendi. Webhook, REST, GraphQL, SOAP, WebSocket, XML besleme, JSON/CSV/XLSX aktarımı ve MCP/AI Mapping bu projenin zorunlu yetenek kapsamıdır. Aşamalar teslim sırasıdır; ileri aşamada teslim etmek isteğe bağlı olmak anlamına gelmez. Frappe temeli, kalan iş, yön, bağımlılık ve kabul ölçütleri [entegrasyon planında](docs/integration-plan.md) açıklanır. Bu site, gelecekteki SaaS veri entegrasyonlarını çalıştıran bir servis değildir.
 
 Entegrasyon tesliminin yerel test, veri koruma, bağımsız inceleme ve gerçek cihaz sınırları [doğrulama kaydında](docs/integration-verification.md) açıklanır.
+
+## Faydalı panel deneyimleri
+
+2026-10-11 kullanıcı onayıyla 25 öneri dört fayda grubunda planlandı. 13 öneri mevcut maddelerle eşleştirildi; 12 ayrı boşluk grup sonlarına eklendi. Önceki 351 kayıt ve 53 karar korunarak toplam 363 maddeye ulaşıldı. Fayda ve teslim önceliği zorunlu kapsamdan ayrıdır. Ayrıntılar [faydalı UX planında](docs/usefulness-plan.md), kayıpsızlık ve tarayıcı kanıtı [doğrulama kaydında](docs/usefulness-verification.md).

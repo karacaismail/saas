@@ -49,8 +49,8 @@ test('classified content preserves the entire frozen atlas, not only feature tit
       g.items.map((_item, index) => `${g.id}-${index + 1}`),
     ),
   );
-  assert.equal(ids.length, 351);
-  assert.equal(new Set(ids).size, 351);
+  assert.equal(ids.length, 363);
+  assert.equal(new Set(ids).size, 363);
 });
 
 test('classified JSON is content only, with no embedded markup, styles or programs', async () => {

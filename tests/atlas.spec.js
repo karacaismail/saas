@@ -33,7 +33,7 @@ const sizes = [
 
 async function visit(page) {
   await page.goto('./');
-  await expect(page.locator('.feature')).toHaveCount(351);
+  await expect(page.locator('.feature')).toHaveCount(363);
   await expect(page.locator('#search')).toBeEnabled();
   await page.evaluate(() => document.fonts.ready);
 }
@@ -184,11 +184,11 @@ async function expectClearSearchTarget(page, testInfo) {
   return clear;
 }
 
-test('all 351 entries have an accessible square selection control', async ({
+test('all 363 entries have an accessible square selection control', async ({
   page,
 }) => {
   await visit(page);
-  await expect(page.locator('.feature-check')).toHaveCount(351);
+  await expect(page.locator('.feature-check')).toHaveCount(363);
   await expect(page.locator('.cluster')).toHaveCount(12);
   await expect(page.locator('#export-selected')).toBeDisabled();
   const failures = await page.locator('.feature').evaluateAll((rows) =>
@@ -635,7 +635,7 @@ test('colored feature text has full saturation and readable contrast; checkboxes
         result.filter((row) => row.kind === kind).length,
       ]),
     ),
-  ).toEqual({ o: 105, g: 212, n: 34 });
+  ).toEqual({ o: 105, g: 224, n: 34 });
   expect(
     new Set(result.map((row) => JSON.stringify(row.checkboxColor))).size,
   ).toBe(3);
@@ -1067,7 +1067,7 @@ test('coarse and hybrid input use real touch with reachable targets and preserve
     );
   expect(external).toBe(true);
   await page.locator('#reset-all').tap();
-  await expect(page.locator('.feature:not([hidden])')).toHaveCount(351);
+  await expect(page.locator('.feature:not([hidden])')).toHaveCount(363);
   await expect(page.locator('.group:visible')).toHaveCount(49);
   const scope = page.locator('[data-scope-filter="conditional"]');
   expect((await scope.boundingBox()).height).toBeGreaterThanOrEqual(48);
@@ -1081,7 +1081,7 @@ test('coarse and hybrid input use real touch with reachable targets and preserve
   ).toBe(true);
   await expect(page.locator('.group[open]')).toHaveCount(1);
   await page.locator('#reset-all').tap();
-  await expect(page.locator('.feature:not([hidden])')).toHaveCount(351);
+  await expect(page.locator('.feature:not([hidden])')).toHaveCount(363);
   const review = page.locator('#scope-review > summary');
   expect((await review.boundingBox()).height).toBeGreaterThanOrEqual(48);
   await review.tap();

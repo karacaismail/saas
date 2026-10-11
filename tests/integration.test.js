@@ -136,7 +136,7 @@ function readableMarkdown(value) {
     .replaceAll('&gt;', '>');
 }
 
-test('integration baseline freezes all 344 full records and permits only seven tail additions', () => {
+test('integration baseline freezes all 344 full records and retains the seven integration additions', () => {
   assert.equal(
     hash(baseline),
     '6eb2e2e6f874ad59cce85e5e22a04d4d219c54e111cc465536ef4eee8a09facd',
@@ -161,10 +161,14 @@ test('integration baseline freezes all 344 full records and permits only seven t
       g.items = g.items.slice(0, oldGroup.items.length);
     }
   assert.deepEqual(projected, baseline.clusters);
-  assert.deepEqual(added.sort(), [...additions].sort());
-  assert.equal(entries.length, 351);
-  assert.equal(data.review.expectedItems, 351);
-  assert.equal(data.review.addedItemIds.length, 25);
+  assert.equal(added.length, 19);
+  assert.deepEqual(
+    added.filter((id) => additions.includes(id)).sort(),
+    [...additions].sort(),
+  );
+  assert.equal(entries.length, 363);
+  assert.equal(data.review.expectedItems, 363);
+  assert.equal(data.review.addedItemIds.length, 37);
   assert.equal(
     hash(data.review.decisions.slice(0, 38)),
     '1536d1334c9478d7107fe179bc37d0b2e2aad86172fc7ae69adf9a4f2183f512',

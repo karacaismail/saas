@@ -94,12 +94,15 @@ for (const [name, paths] of Object.entries(groups)) {
 // Classified JSON is fetched by the browser engine. The generated snapshot keeps
 // the complete experience readable and exportable when JSON requests fail.
 // The explicit delivery-scope budget revision is recorded in docs/content-model.md.
-assert.ok(sizes.html.gzip <= 192 * 1024, 'HTML gzip budget 192 KiB');
+// The user-approved 25 useful UX plans and twelve full assessments are delivered
+// in both the no-JS snapshot and classified JSON. Only this content scope grows;
+// the runtime JS/CSS/JSON limits and explicit file allowlist remain unchanged.
+assert.ok(sizes.html.gzip <= 216 * 1024, 'HTML gzip budget 216 KiB');
 assert.ok(sizes.css.gzip <= 12 * 1024, 'CSS gzip budget12 KiB');
 assert.ok(sizes.js.gzip <= 24 * 1024, 'JS gzip budget24 KiB');
 assert.ok(sizes.json.gzip <= 104 * 1024, 'Content JSON gzip budget104 KiB');
 const total = Object.values(sizes).reduce((sum, s) => sum + s.gzip, 0);
-assert.ok(total <= 360 * 1024, 'Initial shared assets gzip budget360 KiB');
+assert.ok(total <= 384 * 1024, 'Initial shared assets gzip budget384 KiB');
 console.log(
   JSON.stringify(
     {

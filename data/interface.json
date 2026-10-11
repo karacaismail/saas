@@ -1,6 +1,6 @@
 {
   "meta": {
-    "content_1": "Frappe backend, headless frontend ve Keycloak için 351 maddelik SaaS geliştirme yol haritası. Yeterlilik, geliştirme işi ve kabul ölçütleri.",
+    "content_1": "Frappe backend, headless frontend ve Keycloak için 363 maddelik SaaS geliştirme yol haritası. Yeterlilik, geliştirme işi ve kabul ölçütleri.",
     "text_2": "SaaS Atlas — Frappe geliştirme yol haritası",
     "skip_3": "Envantere geç"
   },
@@ -19,7 +19,7 @@
     "numbers_13": "küme",
     "numbers_14": "49",
     "numbers_15": "başlık",
-    "numbers_16": "351",
+    "numbers_16": "363",
     "numbers_17": "madde",
     "structure_18": "Küme → Başlık → Madde",
     "legend_19": "Madde sınıfları",
@@ -32,11 +32,11 @@
     "toolbar_24": "Envanter araçları",
     "filter_row_25": "Kaynağa göre filtrele",
     "filter_label_26": "Tümü",
-    "count_27": "351",
+    "count_27": "363",
     "filter_label_28": "Özgün kapsam",
     "count_29": "105",
     "filter_label_30": "İç eksikler",
-    "count_31": "212",
+    "count_31": "224",
     "filter_label_32": "Yeni alanlar",
     "count_33": "34",
     "roadmap_filters_34": "Kapsam, Frappe ve iş filtreleri",
@@ -53,7 +53,7 @@
     "cluster_value_45": "Bütün kümeler",
     "reset_all_46": "Filtreleri sıfırla",
     "print_47": "Yazdır",
-    "visible_status_48": "351 / 351 madde · 49 grup",
+    "visible_status_48": "363 / 363 madde · 49 grup",
     "toggle_relations_49": "İlişkileri göster",
     "selected_only_50": "Yalnızca seçilenler",
     "toggle_original_51": "Özgün ifadeleri göster",
@@ -246,6 +246,17 @@
     "integration.supportCount.ecosystem": "32",
     "integration.supportCount.absent": "59",
     "integration.supportCount.verify": "12",
-    "integration.review.copy.title": "Kapsam ve kaynak incelemesi"
+    "integration.review.copy.title": "Kapsam ve kaynak incelemesi",
+    "usefulness": {
+      "review.copy.title": "Kapsam ve entegrasyon planı",
+      "review.copy.summary": "Özgün 326 madde ve önceki 18 ekleme korundu; entegrasyon planına 7 ayrı boşluk eklendi. Toplam 351 madde, 49 başlık.",
+      "review.copy.intro": "Frappe yeterliliği, zorunlu kapsam ve tamamlanma ayrı kararlardır. 2026-10-11 planında sekiz entegrasyon modeli zorunludur; M0–M3 teslim sırasıdır, isteğe bağlılık değildir. Genel AI/RAG/ajan kapsamı ileri aşamada kalır.",
+      "review.copy.unchanged": "Önceki 344 maddenin tüm alanları, kimlikleri ve sıraları korunmuştur. Tarihsel ilk karşılaştırmadaki 402 ifade 17 bölüm düzeyinde eşlenmiştir; yeni entegrasyon kararları kullanıcının sonraki kapsam talebidir.",
+      "meta.content_1": "Frappe backend, headless frontend ve Keycloak için 351 maddelik SaaS geliştirme yol haritası. Yeterlilik, geliştirme işi ve kabul ölçütleri.",
+      "hero.numbers_16": "351",
+      "toolbar.count_27": "351",
+      "toolbar.count_31": "212",
+      "toolbar.visible_status_48": "351 / 351 madde · 49 grup"
+    }
   }
 }

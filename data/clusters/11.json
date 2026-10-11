@@ -920,6 +920,29 @@
               }
             ]
           }
+        },
+        {
+          "kind": "g",
+          "text": "Silinen kayıtları kontrollü kurtarma; yetkili önizleme, saklama süresi, ilişki ve iş kuralı doğrulaması.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Frappe backend + headless frontend",
+            "confidence": "design",
+            "reviewedAt": "2026-10-11",
+            "note": "Frappe version-15 Deleted Document.restore kaynak kodunda System Manager, create ve read denetimleriyle geri yükleme temeli vardır. Bu, hedef sürümde her kayıt için hazır tenant geri dönüşüm kutusu değildir; headless seçim, ilişki, saklama/silme politikası ve domain güvenliği ayrıca tasarlanır. Hedef Frappe sürümü henüz seçilmedi.",
+            "acceptance": "Yetkili kullanıcı geri yüklenecek veriyi önizlesin; başka tenant veya yetkisiz silinen kayıt görünmesin. Kimlik/ilişki çakışması ve kritik durum doğrulansın, geri yükleme denetlensin; aynı kayıt tekrar kurtarılarak çoğalmasın. Saklama süresi bitmiş veya kalıcı silme politikasına tabi veri geri getirilmesin; backup restore ayrı kalsın.",
+            "sources": [
+              {
+                "title": "Frappe: Deleted Document restore kaynak kodu, version-15",
+                "url": "https://raw.githubusercontent.com/frappe/frappe/version-15/frappe/core/doctype/deleted_document/deleted_document.py"
+              },
+              {
+                "title": "Frappe: Document API",
+                "url": "https://docs.frappe.io/framework/user/en/api/document"
+              }
+            ]
+          }
         }
       ],
       "sources": [],

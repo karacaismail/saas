@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 async function visit(page) {
   await page.setViewportSize({ width: 320, height: 568 });
   await page.goto('./');
-  await expect(page.locator('.feature')).toHaveCount(351);
+  await expect(page.locator('.feature')).toHaveCount(363);
   await expect(page.locator('#search')).toBeEnabled();
   await page.evaluate(() => document.fonts.ready);
 }
@@ -122,7 +122,7 @@ function expectSourcePaint(row) {
   ).toBeGreaterThanOrEqual(4.5);
 }
 
-test('all 351 source tints use five percent alpha while text stays opaque', async ({
+test('all 363 source tints use five percent alpha while text stays opaque', async ({
   page,
 }) => {
   await visit(page);
@@ -174,10 +174,10 @@ test('support, action and owner pills have readable semantic pastels with six di
   for (const tag of ['support', 'action', 'owner'])
     await expect(
       page.locator(`.assessment-tags > [data-tag="${tag}"]`),
-    ).toHaveCount(351);
+    ).toHaveCount(363);
   const rows = await page.locator('.feature').evaluateAll(collectPaint);
   const pills = rows.flatMap((row) => row.pills);
-  expect(pills).toHaveLength(351 * 3);
+  expect(pills).toHaveLength(363 * 3);
   expect(new Set(pills.map((pill) => pill.tag))).toEqual(
     new Set(['support', 'action', 'owner']),
   );
@@ -245,7 +245,7 @@ async function prepareLongOwner(page) {
   await visit(page);
   await expect(
     page.locator('.assessment-tags > [data-tag="owner"]'),
-  ).toHaveCount(351);
+  ).toHaveCount(363);
   const initialRoot = await page.evaluate(() =>
     parseFloat(getComputedStyle(document.documentElement).fontSize),
   );
@@ -307,7 +307,10 @@ test('long owner pills reflow at 200% root text and preserve pastel contrast dur
   expect(state.contentWidth).toBeLessThanOrEqual(state.availableWidth + 1);
   expect(state.pageWidth).toBeLessThanOrEqual(state.viewportWidth + 1);
 
-  const wordLines = await row.evaluate((element) => {
+  // The longest owner may change as records are appended. Keep the original
+  // real-word regression tied to its stable record, independently of that pill.
+  const wordRow = await openFeature(page, 'feature-deployment-3');
+  const wordLines = await wordRow.evaluate((element) => {
     return [
       ['.feature-title', 'Subdomain'],
       ['.assessment > summary > span', 'Değerlendirme'],
@@ -332,6 +335,8 @@ test('long owner pills reflow at 200% root text and preserve pastel contrast dur
   });
   for (const entry of wordLines)
     expect(entry.lines, `${entry.word} wraps only between words`).toBe(1);
+
+  await openFeature(page, await row.getAttribute('id'));
 
   const [before] = await row.evaluateAll(collectPaint);
   expectSourcePaint(before);

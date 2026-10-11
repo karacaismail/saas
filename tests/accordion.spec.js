@@ -9,7 +9,7 @@ test('320px collapsed groups preserve all content and pass automated accessibili
   await expect(page.locator('#search')).toBeEnabled();
   await expect(page.locator('.group')).toHaveCount(49);
   await expect(page.locator('.group[open]')).toHaveCount(0);
-  await expect(page.locator('.feature')).toHaveCount(351);
+  await expect(page.locator('.feature')).toHaveCount(363);
   const accessibility = await new AxeBuilder({ page })
     .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
     .analyze();
