@@ -32,7 +32,11 @@ jobs:
           ATLAS_SHARD: ${{ matrix.shard }}
           ATLAS_BROWSER: ${{ matrix.browser }}
         run: |
-          PLAYWRIGHT_HTML_REPORT="playwright-report/$ATLAS_BROWSER" npm run test:browser -- --project="$ATLAS_BROWSER" --shard="$ATLAS_SHARD/3" --output="test-results/$ATLAS_BROWSER"
+          atlas_browser_workers=3
+          if [ "$ATLAS_BROWSER" = "firefox" ]; then
+            atlas_browser_workers=1
+          fi
+          PLAYWRIGHT_HTML_REPORT="playwright-report/$ATLAS_BROWSER" npm run test:browser -- --project="$ATLAS_BROWSER" --workers="$atlas_browser_workers" --shard="$ATLAS_SHARD/3" --output="test-results/$ATLAS_BROWSER"
           if [ "$ATLAS_BROWSER" = "chromium" ] && [ "$ATLAS_SHARD" = "1" ]; then
             PLAYWRIGHT_HTML_REPORT=playwright-report/input npm run test:browser -- --project=chromium-touch --project=webkit-touch --project=chromium-hybrid --output=test-results/input
           fi
