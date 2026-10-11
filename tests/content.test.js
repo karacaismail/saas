@@ -20,6 +20,7 @@ async function sourceDocuments() {
     manifest.messages,
     manifest.review,
     ...manifest.clusters,
+    manifest.componentCatalog,
   ];
   assert.equal(new Set(paths).size, paths.length, 'One owner per content file');
   assert.equal(manifest.clusters.length, 12);
@@ -31,7 +32,8 @@ async function sourceDocuments() {
 
 test('classified content preserves the entire frozen atlas, not only feature titles', async () => {
   const { documents } = await sourceDocuments();
-  const [metadata, roadmap, _copy, _messages, _review, ...clusters] = documents;
+  const [metadata, roadmap] = documents;
+  const clusters = documents.slice(5, 17);
   const projected = structuredClone(clusters);
   for (const c of projected)
     for (const g of c.groups)
@@ -49,8 +51,8 @@ test('classified content preserves the entire frozen atlas, not only feature tit
       g.items.map((_item, index) => `${g.id}-${index + 1}`),
     ),
   );
-  assert.equal(ids.length, 377);
-  assert.equal(new Set(ids).size, 377);
+  assert.equal(ids.length, 387);
+  assert.equal(new Set(ids).size, 387);
 });
 
 test('classified JSON is content only, with no embedded markup, styles or programs', async () => {

@@ -1338,6 +1338,95 @@
               }
             ]
           }
+        },
+        {
+          "kind": "g",
+          "text": "Tauri 2 ile Android/iOS ve masaüstü için ortak React, Ant Design ve Ant Design X arayüzünü paketleme.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "Hüseyin Cengiz + istemci ekibi",
+            "confidence": "design",
+            "reviewedAt": "2026-10-11",
+            "note": "Kullanıcının kesin kararı Tauri 2 mobil ve masaüstüdür. Android AAB/APK ve iOS IPA, Vite üretim varlıkları frontendDist ile gömülerek hazırlanır; masaüstü hedefleri channels-13 kapsamında kalır. Ant Design ve Ant Design X ortak React web arayüzüdür; Tauri sistem WebView kullanır, bileşenleri tamamen native ekranlara dönüştürmez. Capacitor ve Capawesome aktif bağımlılık değildir; channels-12 tarihsel alternatif olarak saklanır. Web Vite/PWA, eklenti WXT/Manifest V3 olarak kalır. Frappe paketleme sağlamaz; hedef araç/OS/WebView sürümleri henüz sabitlenmedi.",
+            "acceptance": "Aynı ortak frontend çıktısı gerçek Android ve iOS hedeflerinde gömülü varlıklarla açılmalı; ilk çevrimiçi hazırlık sonrası ağsız açılış doğrulanmalı. Ayrı imza/mağaza paketleri, sistem WebView uyumu ve masaüstü dağıtımı test edilmeli; uzaktaki siteyi açmak offline kabulü sayılmamalı.",
+            "sources": [
+              {
+                "title": "Tauri 2 — Dağıtım",
+                "url": "https://v2.tauri.app/distribute/"
+              },
+              {
+                "title": "Tauri 2 — Google Play",
+                "url": "https://v2.tauri.app/distribute/google-play/"
+              },
+              {
+                "title": "Tauri 2 — App Store",
+                "url": "https://v2.tauri.app/distribute/app-store/"
+              },
+              {
+                "title": "Tauri 2 — Vite frontend",
+                "url": "https://v2.tauri.app/start/frontend/vite/"
+              },
+              {
+                "title": "Tauri 2 — WebView sürümleri",
+                "url": "https://v2.tauri.app/reference/webview-versions/"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Tauri mobil cihaz iş akışları: belge fotoğrafı, barkod, güvenli dosya erişimi ve bildirimden yetkili kayda geçiş.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "İstemci uygulamaları",
+            "confidence": "design",
+            "reviewedAt": "2026-10-11",
+            "note": "Ortak iş/veri çekirdeği korunur; kamera, dosya, bildirim, güvenli anahtar ve login dönüşü seçilmiş Tauri eklentisi veya Kotlin/Swift adapter ile bağlanır. Resmî barkod eklentisi genel belge fotoğrafı çözümü değildir. Üründe kullanılan yetenekler için en az izin/capability kapsamı, kullanıcı reddinde alternatif ve tenant/kayıt yetkisi gerekir; uzak içerik ayrıcalıklı native köprüye erişemez. Frappe API bu cihaz davranışlarını hazır sağlamaz.",
+            "acceptance": "Gerçek cihazda izin kabul/red/sonradan iptal, fotoğraf ekleme veya barkod yolu, dosya sınırı ve bildirim bağlantısı test edilmeli. Çevrimdışı eklenen dosya/kayıt kalıcı kuyruğa bağlanmalı; yanlış tenant veya yetkisiz deep link reddedilmeli; kullanılmayan yetenek izin istememeli.",
+            "sources": [
+              {
+                "title": "Tauri 2 — Barkod tarayıcı",
+                "url": "https://v2.tauri.app/plugin/barcode-scanner/"
+              },
+              {
+                "title": "Tauri 2 — Mobil adapter geliştirme",
+                "url": "https://v2.tauri.app/develop/plugins/develop-mobile/"
+              },
+              {
+                "title": "Tauri 2 — Native capability sınırları",
+                "url": "https://v2.tauri.app/security/capabilities/"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Mobil yaşam döngüsü: sistem geri hareketi, klavye, safe area, arka plan dönüşü ve işletim sistemi sonlandırması.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "İstemci uygulamaları",
+            "confidence": "design",
+            "reviewedAt": "2026-10-11",
+            "note": "Tauri 2 ortak frontend kararını korumak, mobil etkileşimi ayrıca tasarlama gereğini kaldırmaz. 320 CSS px önceliği; doğal sarım, büyük metin, görünür klavye odağı ve erişilebilir hedefler korunur. Geri/gesture, sanal klavye, izin reddi, background/foreground, çağrı veya OS sonlandırması sırasında taslak, yerel kayıt, outbox ve seçilmiş iş bağlamı korunmalıdır. Cihaz yeteneği ekran genişliğinden çıkarılmaz.",
+            "acceptance": "320/360/375/390, kısa yatay ve gerçek Android/iOS cihazlarında klavye örtmesi, sistem geri hareketi, büyük metin, izin reddi ve süreç sonlandırması test edilmeli. Başarıyla kaydedilen iş/outbox yeniden açılışta bulunmalı; görünür durum kaydetme ile merkez kabulünü ayırmalı; ekran okuyucu ve odak dönüşü ayrıca doğrulanmalı.",
+            "sources": [
+              {
+                "title": "Tauri 2 — Mobil adapter geliştirme",
+                "url": "https://v2.tauri.app/develop/plugins/develop-mobile/"
+              },
+              {
+                "title": "Tauri 2 — WebView sürümleri",
+                "url": "https://v2.tauri.app/reference/webview-versions/"
+              },
+              {
+                "title": "Tauri 2 — Native capability sınırları",
+                "url": "https://v2.tauri.app/security/capabilities/"
+              }
+            ]
+          }
         }
       ],
       "sources": ["reflow"],

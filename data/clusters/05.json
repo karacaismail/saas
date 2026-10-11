@@ -166,6 +166,37 @@
               }
             ]
           }
+        },
+        {
+          "kind": "g",
+          "text": "Frappe şemasını bağımsız frontend’e taşıyan sürümlü ve izinli metadata adaptörü; semantik alan, Link/Dynamic Link, child table ve Desk davranış sınırları.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Frappe backend + headless frontend",
+            "confidence": "design",
+            "reviewedAt": "2026-10-11",
+            "note": "DocType/DocField ve sunucu metadata yapı taşları mevcuttur; bunların React/Ant Design uygulama bileşenlerine kontrollü aktarımı hazır Desk taşınması değildir. Metadata kaynağı, şema sürümü, kullanıcı/tenant/alan izinleri, semantik türler, ilişki ve alt tablo davranışları onaylı adapter sözleşmesinde tanımlanır. Desk frm/Form Script otomatik yürütülmez; desteklenen bildirimsel eşleme, özel bileşen ve desteklenmeyen davranış açık listelenir. Kritik iş doğrulaması sunucuda kalır; hedef Frappe sürümü seçilmeden kararlı metadata endpointi veya çalışan renderer varsayılmaz.",
+            "acceptance": "İzinli DocType metadata’sı doğru sürümle renderer’a ulaşsın; yasak alan ve başka tenant metadata’sı görünmesin. Para/tarih türü, Link/Dynamic Link hedefi ve child table ana-kayıt ilişkisi doğru eşlensin; geçersiz/silinmiş referans kaydetmede sunucuda reddedilsin. Destek dışı frm/script davranışı sessizce çalışıyor sayılmasın; sürüm uyuşmazlığı güvenli açıklansın; eski istek/önbellek bağlam değişiminde yeni kullanıcı verisini ezmesin.",
+            "sources": [
+              {
+                "title": "Frappe: field types, Link, Dynamic Link and Table",
+                "url": "https://docs.frappe.io/framework/user/en/basics/doctypes/fieldtypes"
+              },
+              {
+                "title": "Frappe: REST API",
+                "url": "https://docs.frappe.io/framework/user/en/api/rest"
+              },
+              {
+                "title": "Frappe: Document API",
+                "url": "https://docs.frappe.io/framework/user/en/api/document"
+              },
+              {
+                "title": "Frappe: Desk Form API and frm",
+                "url": "https://docs.frappe.io/framework/user/en/api/form"
+              }
+            ]
+          }
         }
       ],
       "sources": [],

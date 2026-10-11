@@ -14,7 +14,7 @@ const all = model.clusters.flatMap((c) =>
   ),
 );
 
-test('reviewed expansion preserves every original field and adds only the declared 51 capabilities', () => {
+test('reviewed expansion preserves every original field and adds only the declared 61 capabilities', () => {
   assert.equal(model.review?.version, 1);
   const projected = structuredClone(model.clusters);
   for (const c of projected)
@@ -26,7 +26,7 @@ test('reviewed expansion preserves every original field and adds only the declar
           .groups.find((x) => x.id === g.id).items.length,
       );
   assert.deepEqual(projected, baseline.clusters);
-  assert.equal(all.length, 377);
+  assert.equal(all.length, 387);
   const oldIds = new Set(
     baseline.clusters.flatMap((c) =>
       c.groups.flatMap((g) => g.items.map((_, i) => `${g.id}-${i + 1}`)),
@@ -36,7 +36,7 @@ test('reviewed expansion preserves every original field and adds only the declar
     .filter((x) => !oldIds.has(x.id))
     .map((x) => x.id)
     .sort();
-  assert.equal(added.length, 51);
+  assert.equal(added.length, 61);
   assert.deepEqual([...model.review.addedItemIds].sort(), added);
   assert.equal(model.review.source.itemCount, 402);
   assert.equal(model.review.source.clusterCount, 17);
@@ -113,6 +113,6 @@ test('rendered review is readable without JavaScript and each feature has scope 
   assert.match(html, /data-scope="conditional"/);
   assert.match(html, /data-scope="advanced"/);
   assert.match(html, /data-scope="implementation"/);
-  assert.equal((html.match(/class="scope-note"/g) || []).length, 377);
+  assert.equal((html.match(/class="scope-note"/g) || []).length, 387);
   assert.match(html, /data-scope-filter="required"/);
 });

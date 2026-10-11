@@ -1,6 +1,6 @@
 {
   "meta": {
-    "content_1": "Bulutta Frappe, bağımsız headless frontend ve Keycloak için 377 maddelik SaaS yol haritası. Çevrimdışı çoklu platform, yeterlilik ve kabul planı.",
+    "content_1": "Bulutta Frappe, Ant Design / Ant Design X ve Keycloak için 387 maddelik SaaS yol haritası; Tauri 2 ve 63 bileşen tanımı.",
     "text_2": "SaaS Atlas — Frappe geliştirme yol haritası",
     "skip_3": "Envantere geç"
   },
@@ -13,13 +13,13 @@
   "hero": {
     "eyebrow_8": "Frappe geliştirme yol haritası",
     "page_title_9": "Hazır olanı kullanın. Kalan işi görün.",
-    "desc_10": "Frappe yeterliliğini ve kalan işi görün. Ortak istemci, çevrimdışı veri ve platform paketlerini planlayın; seçtiğiniz maddeleri dışa aktarın.",
+    "desc_10": "Frappe yeterliliğini ve kalan işi görün. Ant Design / Ant Design X ortak arayüzünü, Tauri 2 platformlarını ve çevrimdışı veriyi planlayın; seçtiğiniz maddeleri dışa aktarın.",
     "start_link_11": "Özellikleri incele",
     "numbers_12": "12",
     "numbers_13": "küme",
     "numbers_14": "49",
     "numbers_15": "başlık",
-    "numbers_16": "377",
+    "numbers_16": "387",
     "numbers_17": "madde",
     "structure_18": "Küme → Başlık → Madde",
     "legend_19": "Madde sınıfları",
@@ -32,11 +32,11 @@
     "toolbar_24": "Envanter araçları",
     "filter_row_25": "Kaynağa göre filtrele",
     "filter_label_26": "Tümü",
-    "count_27": "377",
+    "count_27": "387",
     "filter_label_28": "Özgün kapsam",
     "count_29": "105",
     "filter_label_30": "İç eksikler",
-    "count_31": "238",
+    "count_31": "248",
     "filter_label_32": "Yeni alanlar",
     "count_33": "34",
     "roadmap_filters_34": "Kapsam, Frappe ve iş filtreleri",
@@ -53,7 +53,7 @@
     "cluster_value_45": "Bütün kümeler",
     "reset_all_46": "Filtreleri sıfırla",
     "print_47": "Yazdır",
-    "visible_status_48": "377 / 377 madde · 49 grup",
+    "visible_status_48": "387 / 387 madde · 49 grup",
     "toggle_relations_49": "İlişkileri göster",
     "selected_only_50": "Yalnızca seçilenler",
     "toggle_original_51": "Özgün ifadeleri göster",
@@ -61,12 +61,12 @@
   },
   "context": {
     "context_details_53": "Teknik yaklaşım ve etiket rehberi",
-    "context_description_54": "Bulutta Frappe · Keycloak auth · Headless ortak istemci",
+    "context_description_54": "Frappe · Keycloak · Ant Design / Ant X · Tauri 2",
     "roadmap_title_55": "Frappe ile geliştirme yol haritası",
     "roadmap_56": "Backend:",
     "roadmap_57": "buluttaki Frappe Framework",
     "roadmap_58": ". SaaS admin paneli:",
-    "roadmap_59": "bağımsız headless frontend",
+    "roadmap_59": "React, Ant Design ve Ant Design X ile bağımsız headless frontend",
     "roadmap_60": ". Giriş, MFA ve oturum:",
     "roadmap_61": "Keycloak",
     "roadmap_62": ". Backend yetkilendirmesi Frappe'te kalır.",
@@ -269,6 +269,55 @@
     "offline.toolbar.count_31": "224",
     "offline.toolbar.visible_status_48": "363 / 363 madde · 49 grup",
     "offline.context.context_description_54": "Frappe backend · Keycloak auth · Headless panel",
-    "offline.context.roadmap_57": "Frappe Framework"
+    "offline.context.roadmap_57": "Frappe Framework",
+    "mobile": {
+      "itemOverrides": {
+        "channels-12": {
+          "scope": "required",
+          "reason": "2026-10-11 kullanıcı talebi: buluttaki Frappe, bağımsız headless frontend ve çevrimdışı çoklu platform varyantı için zorunludur; bütün SaaS ürünlerinin evrensel asgari kapsamı değildir. O3 teslim aşamasıdır, isteğe bağlılık veya tamamlanma kanıtı değildir; ilk Keycloak girişi ve cihaz/veri hazırlığı çevrimiçi yapılır."
+        },
+        "channels-13": {
+          "scope": "required",
+          "reason": "2026-10-11 kullanıcı talebi: buluttaki Frappe, bağımsız headless frontend ve çevrimdışı çoklu platform varyantı için zorunludur; bütün SaaS ürünlerinin evrensel asgari kapsamı değildir. O3 teslim aşamasıdır, isteğe bağlılık veya tamamlanma kanıtı değildir; ilk Keycloak girişi ve cihaz/veri hazırlığı çevrimiçi yapılır."
+        },
+        "channels-15": {
+          "scope": "required",
+          "reason": "2026-10-11 kullanıcı talebi: buluttaki Frappe, bağımsız headless frontend ve çevrimdışı çoklu platform varyantı için zorunludur; bütün SaaS ürünlerinin evrensel asgari kapsamı değildir. O1 teslim aşamasıdır, isteğe bağlılık veya tamamlanma kanıtı değildir; ilk Keycloak girişi ve cihaz/veri hazırlığı çevrimiçi yapılır."
+        },
+        "identity-9": {
+          "scope": "required",
+          "reason": "2026-10-11 kullanıcı talebi: buluttaki Frappe, bağımsız headless frontend ve çevrimdışı çoklu platform varyantı için zorunludur; bütün SaaS ürünlerinin evrensel asgari kapsamı değildir. O0 teslim aşamasıdır, isteğe bağlılık veya tamamlanma kanıtı değildir; ilk Keycloak girişi ve cihaz/veri hazırlığı çevrimiçi yapılır."
+        }
+      },
+      "copy": {
+        "review.title": "Kapsam, entegrasyon ve çevrimdışı platform planı",
+        "review.summary": "Önceki 363 madde ve 78 karar korundu; bulutta Frappe ve çevrimdışı çoklu platform planı için 14 boşluk ve 16 karar eklendi. Toplam 377 madde, 49 başlık; önceki 25 faydalı UX önerisi kapsamda kalır.",
+        "review.intro": "Bulutta Frappe + bağımsız headless frontend + ortak istemci çekirdeği + platform paketleri bu varyantın hedefidir; yerel Frappe sunucusu gerekmez. Web Vite/PWA, Android/iOS Capacitor, masaüstü Tauri 2 ve Chrome eklentisi WXT/Manifest V3 plan tercihidir; hedef sürümler seçilmedi. O0 mimari/kimlik sözleşmeleri → O1 yerel kalıcılık ve kural eşliği → O2 senkronizasyon/soğuk açılış/çatışma politikaları → O3 paketleme, güncelleme, yedek ve hata kabulü; aşamalar isteğe bağlılık değildir. İlk Keycloak girişi ve cihaz/veri hazırlığı çevrimiçidir. 14 yeni madde ile channels-2/channels-7 bu talep için zorunludur; bütün SaaS ürünlerine evrensel asgari kapsam değildir. Önceki kanal/çevrimdışı erteleme kararları tarihsel kalır; yeni tarihli kapsam geçerlidir. 25 faydalı UX önerisinin dört fayda grubu korunur: Emeği ve veriyi koruyanlar; İşi tamamlamayı kolaylaştıranlar; Günlük kullanımı hızlandıranlar; Kullanıma bağlı değer sağlayanlar. Fayda/öncelik zorunluluk, Frappe yeterliliği veya tamamlanma değildir. Sekiz entegrasyon modeli zorunlu, M0–M3 teslim sırasıdır; genel AI/RAG/ajan kapsamı ileri aşamada kalır. Bu statik plan çalışan çevrimdışı uygulama veya üretilmiş platform paketi kanıtı değildir.",
+        "review.unchanged": "Önceki 363 maddenin bütün alanları, kimlikleri, sıraları ve değerlendirmeleri ile 78 inceleme kararı korunmuştur; yalnız mevcut başlıkların sonuna 14 madde eklenir. Önceki scope atamalarından yalnız channels-2 ve channels-7 yeni kullanıcı talebiyle zorunluya yükseltilir; eski erteleme gerekçeleri yeni kararlarla birlikte geçmiş olarak saklanır. Önceki 25 faydalı UX önerisi, 13 mevcut yetenek eşlemesi ve sekiz zorunlu entegrasyon ailesi korunur. Tarihsel ilk kaynakta 402 ifade ve 17 bölüm eşlemesi değişmez.",
+        "meta.content_1": "Bulutta Frappe, bağımsız headless frontend ve Keycloak için 377 maddelik SaaS yol haritası. Çevrimdışı çoklu platform, yeterlilik ve kabul planı.",
+        "hero.desc_10": "Frappe yeterliliğini ve kalan işi görün. Ortak istemci, çevrimdışı veri ve platform paketlerini planlayın; seçtiğiniz maddeleri dışa aktarın.",
+        "hero.numbers_16": "377",
+        "toolbar.count_27": "377",
+        "toolbar.count_31": "238",
+        "toolbar.visible_status_48": "377 / 377 madde · 49 grup",
+        "context.context_description_54": "Bulutta Frappe · Keycloak auth · Headless ortak istemci",
+        "context.roadmap_59": "bağımsız headless frontend"
+      }
+    },
+    "catalog": {
+      "review": {
+        "title": "Kesin frontend, Tauri 2 ve geliştirme kapsamı",
+        "summary": "Önceki 377 madde ve 94 karar korundu; Tauri 2, Ant Design ve Ant Design X kararları ile mobil yayın/kimlik/GenUI kapsamına 7 madde ve 12 karar eklendi. Toplam 384 madde, 49 başlık.",
+        "intro": "Kesin kullanıcı kararları: ortak React + Ant Design + Ant Design X frontend; Android/iOS ve masaüstünde Tauri 2. Backend bulutta Frappe, tüm login/auth Keycloak; web Vite/PWA ve eklenti WXT/Manifest V3 olarak kalır. Capacitor ve Capawesome aktif mimari değildir. Eski kayıtlar silinmez: dört madde sürekli görünen güncel etiket, dört eski karar tarihsel açıklama taşır; mobile-* kararları güncel seçimdir. Mobilde imzalı mağaza paketleri temel yoldur; Tauri masaüstü updater mobil OTA sayılmaz. AI/GenUI ileri aşama, cihaz işlevleri ürün ihtiyacına bağlıdır. Önceki 25 faydalı UX önerisi ve sekiz zorunlu entegrasyon ailesi korunur. Bu statik yol haritası çalışan native uygulama veya OTA kanıtı değildir.",
+        "unchanged": "Önceki 377 tam madde ve 94 kararın bütün alanları, kimlikleri ve sıraları korundu. Yalnız grup sonlarına 7 madde ve karar sonuna 12 karar eklenir. Dört mevcut maddeye görünür güncel seçim etiketi/gerekçesi eklenir; channels-12 tarihsel alternatif olarak teknik tercih kapsamına alınır. Eski scope gerekçeleri ve değişen arayüz metinleri JSON arşivinde korunur. Ant Design/Ant Design X ve Tauri 2 kesin kararları aktif metinlerde geçerlidir."
+      },
+      "interface": {
+        "meta.content_1": "Bulutta Frappe, Keycloak, Ant Design / Ant Design X ve Tauri 2 için 384 maddelik SaaS geliştirme yol haritası.",
+        "hero.numbers_16": "384",
+        "toolbar.count_27": "384",
+        "toolbar.count_31": "245",
+        "toolbar.visible_status_48": "384 / 384 madde · 49 grup"
+      }
+    }
   }
 }

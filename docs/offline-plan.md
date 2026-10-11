@@ -2,7 +2,7 @@
 
 2026-10-11 kullanıcı talebi. Bu belge, gelecekte geliştirilecek SaaS'ın çoklu platform ve çevrimdışı varyantını planlar. Atlasın kendisine Frappe, Vite, Service Worker, Capacitor, Tauri, WXT veya bir veritabanı kurulmaz. Çalışan çevrimdışı ürün ya da kayıpsızlık garantisi iddiası yoktur.
 
-Merkez buluttaki Frappe'dir. Bağımsız headless frontend, ortak istemci iş/veri/senkronizasyon çekirdeği ve platform adapter'ları kullanır. Cihazda Frappe/Python sunucusu gerektirilmez. Login/auth tamamen Keycloak'ta kalır; sunucu kayıt ve alan yetkisini ayrıca uygular. Desteklenecek Frappe, Keycloak, paketleme araçları, işletim sistemleri ve SQLite eklentilerinin kesin sürümleri henüz seçilmedi. Aşağıdaki araçlar planlanan seçimdir; uyumluluk kabul testinden sonra sabitlenir.
+Merkez buluttaki Frappe'dir. Bağımsız headless frontend, ortak istemci iş/veri/senkronizasyon çekirdeği ve platform adapter'ları kullanır. Cihazda Frappe/Python sunucusu gerektirilmez. Login/auth tamamen Keycloak'ta kalır; sunucu kayıt ve alan yetkisini ayrıca uygular. Desteklenecek Frappe, Keycloak, paketleme araçları, işletim sistemleri ve SQLite eklentilerinin kesin sürümleri henüz seçilmedi. Araç aileleri kullanıcı kararıyla seçilmiştir; kesin release/OS matrisi uyumluluk kabulünden sonra sabitlenir. Güncel frontend React + Ant Design + Ant Design X; mobil ve masaüstü Tauri 2’dir. Önceki Capacitor notları tarihsel olarak korunur; güncel ayrıntılar [mobil planındadır](mobile-plan.md).
 
 ## Kayıpsız kapsam güncellemesi
 
@@ -16,13 +16,13 @@ Merkez buluttaki Frappe'dir. Bağımsız headless frontend, ortak istemci iş/ve
 | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
 | Ortak istemci çekirdeği            | Tasarım tokenları, bileşenler, iş kuralları, veri erişimi ve sync ortak; yerleşim, cihaz izinleri ve depo/anahtar adapter'ları platforma göre | `channels-10` |
 | Web / SaaS                         | Vite üretim çıktısı + ayrıca geliştirilen PWA / Service Worker, önbellek ve offline açılış                                                    | `channels-11` |
-| Android / iOS                      | Capacitor; gömülü üretim varlıkları; Android AAB/APK, iOS IPA; ayrı imzalama ve mağaza süreçleri                                              | `channels-12` |
+| Android / iOS                      | Tauri 2; gömülü üretim varlıkları; Android AAB/APK, iOS IPA; ayrı imzalama ve mağaza süreçleri                                                | `channels-17` |
 | Windows / macOS / Linux            | Tauri 2; EXE/MSI, APP/DMG, hedefe göre AppImage/DEB/RPM; ayrı işletim sistemi derleme/imzalama/dağıtım                                        | `channels-13` |
 | Chrome extension                   | WXT + Manifest V3; paket içi yürütülebilir kod ve manifest, yayımlama ZIP'i; en az izin/CSP ve worker yeniden başlama                         | `channels-14` |
 | Yerel veritabanı                   | Mobil/masaüstü SQLite adapter'ı, web/extension IndexedDB adapter'ı; aynı mantıksal veri/outbox sözleşmesi                                     | `channels-15` |
 | Önceden hazırlanmış offline açılış | Gerekli uygulama varlıkları, yetkili çalışma verisi ve açıkça seçilmiş dosyalar; uygulama/cihaz yeniden başlatma                              | `channels-16` |
 
-Tauri 2 mobil alternatif olarak değerlendirilebilir; varsayılan Capacitor seçiminin yanında ikinci paralel mobil ürün zorunlu değildir. Tek depo, bütün kodun yüzde yüz aynı olması anlamına gelmez. SQLite adaptörü, şifreleme, yedekleme veya sync motoru değildir. Capacitor SQLite eklentisi ve bakım/işletim sistemi desteği ayrıca seçilir; Tauri SQL eklentisi tek başına uçtan uca çözüm sayılmaz. Webde PWA etiketi veya Service Worker kaydı, veriyle çevrimdışı çalışma kabulü değildir. Mobil/masaüstü açılışı uzaktaki web sayfasına bağımlı yapılmaz; extension çalıştırılabilir mantığı uzaktan indirmez.
+Tauri 2 Android/iOS ve masaüstünün kesin seçimidir; Capacitor eski, seçilmemiş alternatiftir. `channels-12` bu geçmişi görünür etiketle korur. Tek depo, bütün kodun yüzde yüz aynı olması anlamına gelmez. SQLite adaptörü, şifreleme, yedekleme veya sync motoru değildir. Tauri 2 SQLite adapterının bakım/işletim sistemi desteği ayrıca doğrulanır; Tauri SQL eklentisi tek başına uçtan uca çözüm sayılmaz. Webde PWA etiketi veya Service Worker kaydı, veriyle çevrimdışı çalışma kabulü değildir. Mobil/masaüstü açılışı uzaktaki web sayfasına bağımlı yapılmaz; extension çalıştırılabilir mantığı uzaktan indirmez.
 
 ## Veri akışı ve kaydetme sözleşmesi
 
@@ -36,7 +36,7 @@ Frappe REST/Document/database temelleri bu protokolün hazır olduğu anlamına 
 
 ## Kimlik, çakışma ve merkezi iş sınırları
 
-`identity-9`: ilk cihaz hazırlığı ve login çevrimiçidir. Public client, uygun Authorization Code + PKCE akışı ve native tarafta sistem tarayıcısı kullanılır; paket içine client secret/admin anahtarı konmaz. Keycloak `offline_access`, Keycloak sunucusundan token yenileme yeteneğidir, internetsiz login değildir. Capacitor sistem tarayıcısı/callback akışı için uygun özel auth adapter'ı seçilir; web Keycloak adapter'ı bunu hazır sağlamaz. Web adapter access/refresh tokenları için bellek saklama sınırı korunur; offline açılış için uzun ömürlü tokenları tarayıcı deposuna yazma çözümü üretilmez.
+`identity-9`: ilk cihaz hazırlığı ve login çevrimiçidir. Public client, uygun Authorization Code + PKCE akışı ve native tarafta sistem tarayıcısı kullanılır; paket içine client secret/admin anahtarı konmaz. Keycloak `offline_access`, Keycloak sunucusundan token yenileme yeteneğidir, internetsiz login değildir. Tauri 2 sistem oturumu/tarayıcısı ve callback akışı için uygun özel auth adapter'ı doğrulanır; web Keycloak adapter'ı bunu hazır sağlamaz. Web adapter access/refresh tokenları için bellek saklama sınırı korunur; offline açılış için uzun ömürlü tokenları tarayıcı deposuna yazma çözümü üretilmez.
 
 Önceden hazırlanmış cihazda yerel kilit açma, kimlik sağlayıcısından bağımsız yeni bir login olarak sunulmaz. Sınırlı süre/kayıt/işlem kapsamı, yerel anahtar koruma, tenant/kullanıcı ayrımı, cihaz saatiyle oynama politikası, erişim süresi dolması ve yeniden bağlanınca Keycloak/yetki doğrulaması tasarlanır. Bağlantısız cihaza anlık iptal ulaştırılamayacağı açıkça kabul edilir; çevrimiçi yetki reddi sonrasında kör senkronizasyon yapılmaz. Desteklenen veri duyarlılığına uygun OS key store veya eşdeğer adapter seçilir; web tarayıcısındaki anahtar koruma sınırları native kasayla eşit sayılmaz.
 

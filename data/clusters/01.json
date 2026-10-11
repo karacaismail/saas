@@ -383,6 +383,37 @@
               }
             ]
           }
+        },
+        {
+          "kind": "g",
+          "text": "Keycloak giriş sunumu sözleşmesi: markalı tema ile tamamen bağımsız headless login ayrımı.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "Headless frontend + Keycloak",
+            "confidence": "design",
+            "reviewedAt": "2026-10-11",
+            "note": "Tüm login/auth Keycloak sorumluluğunda kalır. Ant Design/Ant Design X uygulama arayüzü kararı, Keycloak login sayfasını kendiliğinden headless yapmaz. Keycloakify, Keycloak tarafından üretilen login/account/email ekranlarını temalandıran bir seçenektir. Tamamen bağımsız credential ekranı ayrıca kimlik entegrasyonu/güvenlik geliştirmesidir; tema çözümü bunun sağlanmış hali değildir. Uygulamada parola toplayıp Direct Grant/ROPC ile gönderme kestirmesi varsayılan olmaz. Tauri 2 native public client sistem oturumu ve PKCE adapterı identity-9 ve mobile-oidc ile birlikte doğrulanır.",
+            "acceptance": "Giriş görünümünün tema mı bağımsız kimlik UI mı olduğu açık karar kaydı taşımalı. Sistem oturumunda Keycloak OIDC/MFA/sosyal akış, redirect/state/nonce/PKCE ve iptal/dönüş test edilmeli; uygulama paketinde client secret bulunmamalı. Google authorization kontrollü embedded WebView içinde açılmamalı; headless uygulama ile login sunumu karıştırılmamalı.",
+            "sources": [
+              {
+                "title": "Keycloakify — Keycloak temaları",
+                "url": "https://docs.keycloakify.dev/"
+              },
+              {
+                "title": "Keycloak — OIDC ve Direct Grant sınırı",
+                "url": "https://www.keycloak.org/securing-apps/oidc-layers"
+              },
+              {
+                "title": "IETF RFC 8252 — Native uygulama OAuth",
+                "url": "https://www.rfc-editor.org/rfc/rfc8252.html"
+              },
+              {
+                "title": "Google — OAuth embedded user-agent politikası",
+                "url": "https://developers.google.com/identity/protocols/oauth2/policies"
+              }
+            ]
+          }
         }
       ],
       "sources": ["session", "scim"],

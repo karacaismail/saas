@@ -92,7 +92,7 @@ for (const [name, ids] of [
     page,
   }) => {
     await visit(page);
-    await expect(page.locator('.feature')).toHaveCount(377);
+    await expect(page.locator('.feature')).toHaveCount(387);
     await expect(page.locator('.group[open]')).toHaveCount(0);
     for (const id of ids) {
       const item = await openItem(page, id);
@@ -242,7 +242,7 @@ test.describe('integration content without JavaScript', () => {
       page,
     }) => {
       await page.goto('./');
-      await expect(page.locator('.feature')).toHaveCount(377);
+      await expect(page.locator('.feature')).toHaveCount(387);
       await expect(page.locator('.group[open]')).toHaveCount(0);
       const item = await openItem(page, id);
       await expect(item.locator('.feature-title')).toBeVisible();

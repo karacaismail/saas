@@ -25,6 +25,9 @@ const contentFiles = [
   manifest.interface,
   manifest.messages,
   manifest.review,
+  ...(Object.hasOwn(manifest, 'componentCatalog')
+    ? [manifest.componentCatalog]
+    : []),
   ...manifest.clusters,
 ];
 for (const path of contentFiles) {

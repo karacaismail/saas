@@ -234,6 +234,8 @@ export function validateAtlas(data) {
     'inventory.count',
   );
   if (data.review) validateReview(data.review, groupIds, itemIds);
+  if (own(data, 'componentCatalog'))
+    validateCatalog(data.componentCatalog, itemIds);
   for (const cluster of data.clusters) {
     for (const id of cluster.dependsOn)
       requireValue(clusterIds.has(id), 'cluster.dependency');
@@ -261,7 +263,7 @@ export function resolvePlanning(review, groupId, itemId) {
     review.itemOverrides[itemId] ?? review.groupDefaults[groupId];
   return {
     scope: decision.scope,
-    label: review.scopeLabels[decision.scope],
+    label: decision.label ?? review.scopeLabels[decision.scope],
     reason: decision.reason,
   };
 }
@@ -303,6 +305,8 @@ function validateReview(review, groupIds, itemIds) {
       value && own(review.scopeLabels, value.scope) && text(value.reason),
       'review.planning.value',
     );
+    if (own(value, 'label'))
+      requireValue(text(value.label), 'review.planning.label');
   }
   for (const id of groupIds) decision(review.groupDefaults[id]);
   for (const [id, value] of Object.entries(review.groupDefaults)) {
@@ -341,6 +345,16 @@ function validateReview(review, groupIds, itemIds) {
     for (const id of entry.itemIds)
       requireValue(itemIds.has(id), 'review.decision.target');
   }
+  if (own(review, 'decisionNotes')) {
+    requireValue(
+      review.decisionNotes &&
+        typeof review.decisionNotes === 'object' &&
+        !Array.isArray(review.decisionNotes),
+      'review.decisionNotes',
+    );
+    for (const [id, note] of Object.entries(review.decisionNotes))
+      requireValue(decisions.has(id) && text(note), 'review.decisionNote');
+  }
   requireValue(
     Array.isArray(review.coverage) &&
       review.coverage.length === 17 &&
@@ -376,12 +390,124 @@ function validateReview(review, groupIds, itemIds) {
     );
 }
 
+function validateCatalog(catalog, itemIds) {
+  requireValue(catalog && catalog.version === 1, 'catalog.version');
+  for (const key of ['title', 'intro', 'summary'])
+    requireValue(text(catalog[key]), 'catalog.copy');
+  for (const key of [
+    'description',
+    'need',
+    'frappe',
+    'work',
+    'acceptance',
+    'itemIds',
+    'source',
+    'technology',
+    'notes',
+    'category',
+  ])
+    requireValue(text(catalog.labels?.[key]), 'catalog.labels');
+  for (const key of ['core', 'conditional', 'project'])
+    requireValue(text(catalog.needLabels?.[key]), 'catalog.needLabels');
+  requireValue(
+    text(catalog.source?.name) &&
+      /^[a-f0-9]{64}$/.test(catalog.source.sha256) &&
+      /^\d{4}-\d{2}-\d{2}$/.test(catalog.source.reviewedAt) &&
+      Number.isFinite(Date.parse(catalog.source.reviewedAt)) &&
+      new Date(catalog.source.reviewedAt).toISOString().slice(0, 10) ===
+        catalog.source.reviewedAt,
+    'catalog.source',
+  );
+  requireValue(
+    Array.isArray(catalog.sections) && catalog.sections.length === 3,
+    'catalog.sections',
+  );
+  const ids = new Set();
+  for (const [i, section] of catalog.sections.entries()) {
+    requireValue(
+      section.id === ['families', 'views', 'providers'][i] &&
+        text(section.title) &&
+        Array.isArray(section.entries) &&
+        section.entries.length === [40, 15, 8][i],
+      'catalog.section',
+    );
+    for (const entry of section.entries) {
+      for (const key of [
+        'title',
+        'description',
+        'category',
+        'frappe',
+        'work',
+        'acceptance',
+      ])
+        requireValue(text(entry[key]), 'catalog.entry.copy');
+      requireValue(
+        typeof entry.id === 'string' &&
+          /^[a-z][a-z0-9-]+$/.test(entry.id) &&
+          !ids.has(entry.id),
+        'catalog.entry.id',
+      );
+      ids.add(entry.id);
+      requireValue(
+        text(entry.need) &&
+          ['core', 'conditional', 'project'].includes(entry.need),
+        'catalog.entry.need',
+      );
+      requireValue(
+        Array.isArray(entry.itemIds) &&
+          entry.itemIds.length > 0 &&
+          new Set(entry.itemIds).size === entry.itemIds.length &&
+          entry.itemIds.every((id) => itemIds.has(id)),
+        'catalog.entry.targets',
+      );
+    }
+  }
+  requireValue(
+    Array.isArray(catalog.technologyDecisions) &&
+      catalog.technologyDecisions.length > 0,
+    'catalog.technology',
+  );
+  const technologyIds = new Set();
+  for (const entry of catalog.technologyDecisions) {
+    requireValue(
+      text(entry.id) &&
+        !technologyIds.has(entry.id) &&
+        text(entry.title) &&
+        text(entry.description),
+      'catalog.technology.entry',
+    );
+    technologyIds.add(entry.id);
+  }
+  requireValue(
+    Array.isArray(catalog.paragraphs) &&
+      catalog.paragraphs.length > 0 &&
+      catalog.paragraphs.every(text),
+    'catalog.paragraphs',
+  );
+  requireValue(
+    Array.isArray(catalog.sources) && catalog.sources.length > 0,
+    'catalog.sources',
+  );
+  for (const source of catalog.sources)
+    requireValue(
+      text(source.title) && new URL(source.url).protocol === 'https:',
+      'catalog.source.url',
+    );
+}
+
+function renderCatalog(catalog) {
+  if (!catalog) return '';
+  const labels = catalog.labels;
+  return `<details class="context-disclosure component-catalog" id="component-catalog"><summary><span>${escape(catalog.title)}<span class="context-description">${escape(catalog.summary)}</span></span></summary><div class="review-body"><p>${escape(catalog.intro)}</p><h2>${escape(labels.technology)}</h2>${catalog.technologyDecisions.map((entry) => `<p><strong>${escape(entry.title)}</strong> ${escape(entry.description)}</p>`).join('')}${catalog.sections.map((section) => `<section aria-labelledby="catalog-${escape(section.id)}"><h2 id="catalog-${escape(section.id)}">${escape(section.title)}</h2>${section.entries.map((entry) => `<details class="catalog-entry" name="atlas-components" id="component-${escape(entry.id)}"><summary>${escape(entry.title)}</summary><div class="assessment-body"><p><strong>${escape(labels.need)}</strong> ${escape(catalog.needLabels[entry.need])}</p>${['category', 'description', 'frappe', 'work', 'acceptance'].map((key) => `<p><strong>${escape(labels[key])}</strong> ${escape(entry[key])}</p>`).join('')}<p><strong>${escape(labels.itemIds)}</strong> ${entry.itemIds.map((id) => `<a href="#feature-${escape(id)}" data-jump="feature-${escape(id)}">${escape(id)}</a>`).join(' · ')}</p></div></details>`).join('')}</section>`).join('')}<h2>${escape(labels.notes)}</h2>${catalog.paragraphs.map((paragraph) => `<p>${escape(paragraph)}</p>`).join('')}<p class="catalog-source"><strong>${escape(labels.source)}</strong> ${escape(catalog.source.name)} · ${escape(catalog.source.sha256)} · ${escape(catalog.source.reviewedAt)}</p><ul>${catalog.sources.map((source) => `<li><a href="${escape(source.url)}" target="_blank" rel="noopener noreferrer">${escape(source.title)}</a></li>`).join('')}</ul></div></details>`;
+}
+
 export function assembleAtlas({
   metadata,
   roadmap,
   interface: copy,
   messages,
   review,
+  componentCatalog,
   clusters,
 }) {
   return validateAtlas({
@@ -391,6 +517,7 @@ export function assembleAtlas({
     interface: copy,
     messages,
     ...(review ? { review } : {}),
+    ...(componentCatalog !== undefined ? { componentCatalog } : {}),
   });
 }
 
@@ -460,9 +587,10 @@ export function renderDocument(data) {
           )
           .join(
             '',
-          )}</dl><h2>${escape(review.copy.decisions)}</h2><ul class="review-decisions">${review.decisions.map((entry) => `<li><p><strong>${escape(review.copy.decisionLabels[entry.kind])} · ${escape(entry.title)}</strong></p><p>${escape(entry.reason)}</p><p>${entry.itemIds.map((id) => `<a href="#feature-${escape(id)}" data-jump="feature-${escape(id)}">${escape(id)}</a>`).join(' · ')}</p></li>`).join('')}</ul><h2>${escape(review.copy.coverage)}</h2><ol class="review-coverage">${review.coverage.map((entry) => `<li><p><strong>${escape(entry.id)} · ${escape(entry.title)}</strong></p><p>${escape(entry.reason)}</p><p>${entry.groupIds.map((id) => `<a href="#group-${escape(id)}" data-jump="group-${escape(id)}">${escape(groupMap.get(id).title)}</a>`).join(' · ')}</p></li>`).join('')}</ol><p class="review-source"><strong>${escape(review.copy.source)}</strong> ${escape(review.source.title)} · ${review.source.itemCount} · ${escape(review.reviewedAt)}</p></div></details>`
+          )}</dl><h2>${escape(review.copy.decisions)}</h2><ul class="review-decisions">${review.decisions.map((entry) => `<li data-decision-id="${escape(entry.id)}">${review.decisionNotes?.[entry.id] ? `<p class="decision-note"><strong>${escape(review.decisionNotes[entry.id])}</strong></p>` : ''}<p><strong>${escape(review.copy.decisionLabels[entry.kind])} · ${escape(entry.title)}</strong></p><p>${escape(entry.reason)}</p><p>${entry.itemIds.map((id) => `<a href="#feature-${escape(id)}" data-jump="feature-${escape(id)}">${escape(id)}</a>`).join(' · ')}</p></li>`).join('')}</ul><h2>${escape(review.copy.coverage)}</h2><ol class="review-coverage">${review.coverage.map((entry) => `<li><p><strong>${escape(entry.id)} · ${escape(entry.title)}</strong></p><p>${escape(entry.reason)}</p><p>${entry.groupIds.map((id) => `<a href="#group-${escape(id)}" data-jump="group-${escape(id)}">${escape(groupMap.get(id).title)}</a>`).join(' · ')}</p></li>`).join('')}</ol><p class="review-source"><strong>${escape(review.copy.source)}</strong> ${escape(review.source.title)} · ${review.source.itemCount} · ${escape(review.reviewedAt)}</p></div></details>`
       : '',
 
+    COMPONENT_CATALOG: renderCatalog(data.componentCatalog),
     DATA: JSON.stringify(data).replaceAll('<', '\\u003c'),
     CLUSTERS: data.clusters.map(cluster).join(''),
     NAVIGATION: data.clusters
@@ -562,6 +690,7 @@ export async function loadAtlas() {
       manifest.interface,
       manifest.messages,
       manifest.review,
+      ...(own(manifest, 'componentCatalog') ? [manifest.componentCatalog] : []),
       ...manifest.clusters,
     ];
     requireValue(new Set(paths).size === paths.length, 'manifest.paths');
@@ -574,14 +703,19 @@ export async function loadAtlas() {
       );
       return new URL(path, manifestUrl);
     });
-    const [metadata, roadmap, copy, messages, review, ...clusters] =
+    const [metadata, roadmap, copy, messages, review, ...rest] =
       await Promise.all(urls.map(read));
+    const componentCatalog = own(manifest, 'componentCatalog')
+      ? rest.shift()
+      : undefined;
+    const clusters = rest;
     const data = assembleAtlas({
       metadata,
       roadmap,
       interface: copy,
       messages,
       review,
+      componentCatalog,
       clusters,
     });
     const html = renderDocument(data);

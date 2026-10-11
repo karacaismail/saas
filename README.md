@@ -2,7 +2,7 @@
 
 [Canlı site](https://karacaismail.github.io/saas/) · [MIT lisansı](LICENSE)
 
-Frappe Framework backend, bağımsız headless frontend ve Keycloak için 12 küme, 49 başlık ve 377 maddelik geliştirme yol haritası. Her maddede Frappe yeterliliği, yapılacak iş, sorumlu katman, dayanak, kabul ölçütü ve kaynak bulunur. Özellikleri plan kapsamı/yeterlilik/iş/kaynak/küme ile süzün ve seçilenleri JSON, CSV veya Markdown olarak indirin.
+Frappe Framework backend, bağımsız React / Ant Design / Ant Design X frontend ve Keycloak için 12 küme, 49 başlık ve 387 maddelik geliştirme yol haritası. Her maddede Frappe yeterliliği, yapılacak iş, sorumlu katman, dayanak, kabul ölçütü ve kaynak bulunur. Özellikleri plan kapsamı/yeterlilik/iş/kaynak/küme ile süzün ve seçilenleri JSON, CSV veya Markdown olarak indirin.
 
 Mavi **özgün kapsamı**, yeşil **kapsam içi eksikleri**, kırmızı **yeni alanları** gösterir. Üç sınıfta madde metni, kaynak etiketi ve checkbox aynı rengi taşır; renkler %100 doygundur ve normal metin kontrastı en az4.5:1'dir. Kaynak renkleri madde, legend ve filtre zeminlerinde%5 opaklıkla da kullanılır; yazılar tam opaktır. Yeterlilik ve iş etiketleri kategoriye göre pastel, sorumlu etiketleri ortak sakin tondadır. Renkler Frappe yeterliliği değildir. Yeterlilik etiketleri: **Çekirdekte var / Kısmen var / Ek Frappe uygulaması / Çekirdekte hazır değil / Harici sorumluluk / Doğrulanmalı**. Küme sırası altyapı ve güven sınırlarından ürün ve gelir modeline ilerler. ERPNext ve diğer ek uygulamalar Framework çekirdeği sayılmaz; Desk ekranları headless frontend'de otomatik hazır değildir.
 
@@ -55,4 +55,14 @@ Entegrasyon tesliminin yerel test, veri koruma, bağımsız inceleme ve gerçek 
 
 ## Çoklu platform ve çevrimdışı varyant
 
-2026-10-11 yeni mimari talebiyle bulutta Frappe, ortak headless istemci çekirdeği, Vite/PWA web, Capacitor mobil, Tauri2 masaüstü ve WXT/MV3 extension planlandı. SQLite/IndexedDB, kalıcı outbox, özel Frappe sync, Keycloak sınırları, kural eşliği, offline yeniden açılış, stok hakkı, imzalı migration ve cihaz yedeği kabul koşullarıyla ele alındı. Önceki363 tam kayıt ve78 karar korunarak14 madde ve16 karar eklendi. Yalnız web dışı kanallar ve offline çalışma için eski erteleme kapsamı bu varyantta zorunlu oldu; diğer atamalar korunur. [Mimari ve dört günlük kesinti kabul planı](docs/offline-plan.md). Araçlar kurulmuş veya gelecekteki SaaS'ın çevrimdışı davranışı doğrulanmış sayılmaz.
+2026-10-11 yeni mimari talebiyle bulutta Frappe, ortak headless istemci çekirdeği, Vite/PWA web, **Tauri 2 mobil ve masaüstü**, WXT/MV3 extension planlanır. Önceki Capacitor mobil önerisi kullanıcı kararıyla tarihsel alternatife alınmıştır. SQLite/IndexedDB, kalıcı outbox, özel Frappe sync, Keycloak sınırları, kural eşliği, offline yeniden açılış, stok hakkı, imzalı migration ve cihaz yedeği kabul koşullarıyla ele alındı. Önceki363 tam kayıt ve78 karar korunarak14 madde ve16 karar eklendi. Yalnız web dışı kanallar ve offline çalışma için eski erteleme kapsamı bu varyantta zorunlu oldu; diğer atamalar korunur. [Mimari ve dört günlük kesinti kabul planı](docs/offline-plan.md). Araçlar kurulmuş veya gelecekteki SaaS'ın çevrimdışı davranışı doğrulanmış sayılmaz.
+
+## Kesin arayüz ve paketleme kararları
+
+Ant Design ve Ant Design X ortak React frontend için; Tauri 2 Android/iOS ve Windows/macOS/Linux için kullanıcının kesin seçimidir. Ant Design Pro iş bileşenleri ve X Cards GenUI kataloğu bu aile içinde değerlendirilir. Capacitor/Capawesome seçilmiş bağımlılık değildir. Mobil temel yayın yolu imzalı mağaza paketidir; Tauri masaüstü updater mobil OTA desteği sayılmaz. 7 yeni madde ve 12 karar, önceki377 tam kayıt ve94 kararı koruyarak384/106 aşamasını oluşturur. [Mobil, kimlik ve GenUI planı](docs/mobile-plan.md).
+
+## Uygulama bileşen kataloğu
+
+40 uygulama ailesi, 15 koleksiyon görünümü ve 8 destek katmanı `data/component-catalog.json` içinde mevcut özelliklere bağlanır. Frappe yeterliliği, kalan headless iş ve kabul koşulları ayrı gösterilir. 384 kayıt ve106 karar korunarak yalnız metadata adaptörü, modüller arası iş kuyruğu ve şablonlu belge çıktısı eklenir; güncel toplam387 madde ve109 karardır. Seçili maddelerin ilgili katalog tanımları JSON/Markdown çıktısına katılır. [Katalog ve teknoloji sözleşmesi](docs/component-catalog.md).
+
+TanStack Router ve TanStack Query seçilmiştir; AG Grid / TanStack Table kararı açıktır. Tamamen bağımsız Keycloak giriş UI hedefi korunur, tema veya standart yönlendirmeyle tamamlanmış sayılmaz; desteklenen protokol ve güvenlik PoC’si ayrıca gerekir.

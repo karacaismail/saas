@@ -1,0 +1,1127 @@
+{
+  "version": 1,
+  "title": "Uygulama bileşen aileleri, kayıt görünümleri ve ortak sağlayıcılar",
+  "intro": "Bu katalog, farklı Frappe tabanlı SaaS ürünlerinde tekrar kullanılacak veri, etkileşim, yetki ve iş kuralı sözleşmelerini sınıflandırır: 40 uygulama ailesi, 15 koşullu koleksiyon görünümü ve 8 görünmeyen destek ailesi. Bir UI paketinin hazır parçaları uygulama ailesinin tamamı değildir. Temel aile bütün gelişmiş özelliklerin ilk sürümde bitmesi anlamına gelmez; koşullu görünüm uygun veri ve gerçek kullanıcı ihtiyacıyla açılır. Frappe backend, React/Ant Design bağımsız frontend, Ant Design X GenUI, Keycloak auth ve Tauri 2 native paketler seçilmiştir; katalog bir kurulum, tamamlanmış bileşen veya üretim kabulü kanıtı değildir.",
+  "source": {
+    "name": "Yapıştırılan metin.txt — Application Component Families / Application Component Catalog",
+    "sha256": "5a37beca9a1bdafa4dd655d35b81cb4cedece1d325d0425897519bd44a06bf27",
+    "reviewedAt": "2026-10-11"
+  },
+  "labels": {
+    "description": "İçerdiği yetenekler",
+    "need": "Gereklilik",
+    "frappe": "Frappe ve hazır bileşen sınırı",
+    "work": "Planlanan geliştirme ve bağlantılar",
+    "acceptance": "Somut kabul koşulu",
+    "itemIds": "Özellik haritasındaki ilgili maddeler",
+    "source": "Kaynak ve inceleme",
+    "technology": "Teknoloji kararları",
+    "notes": "Ayrımlar, örnekler ve ortaklaştırma sırası",
+    "category": "Bileşen kümesi"
+  },
+  "needLabels": {
+    "core": "Ortak temel",
+    "conditional": "İhtiyaca ve veri modeline bağlı",
+    "project": "Bu projenin seçilmiş hedefi"
+  },
+  "sections": [
+    {
+      "id": "families",
+      "title": "Uygulama bileşen aileleri",
+      "entries": [
+        {
+          "id": "family-01",
+          "title": "Application Shell & Layout — uygulama kabuğu ve yerleşim",
+          "description": "Üst alan, yan menü, içerik, sayfa başlığı, işlem çubuğu, bölünebilir paneller ve mobil yerleşim bütün ailelerin ortak kabuğunu oluşturur.",
+          "need": "core",
+          "acceptance": "320 CSS pikselden masaüstüne ana işlem erişilebilir kalsın; yerleşim değişiminde form girdisi, bağlam ve odak kaybolmasın.",
+          "itemIds": [
+            "shell-1",
+            "shell-2",
+            "shell-10",
+            "channels-4",
+            "channels-10"
+          ],
+          "frappe": "Frappe Desk ayrı bir kabuktur; bağımsız frontend kabuğunu sağlamaz.",
+          "work": "React/Ant Design kabukları, semantik tokenlar ve alana göre yerleşim hazırlanmalı.",
+          "category": "Uygulama kabuğu, gezinme ve erişim"
+        },
+        {
+          "id": "family-02",
+          "title": "Navigation & Commands — gezinme ve komutlar",
+          "description": "Menü, sekmeler, sayfa yolu, geri dönüş, son kayıtlar, favoriler ve komut paleti izinli gezinme ile işlem keşfini ortaklaştırır.",
+          "need": "core",
+          "acceptance": "Geri/ileri ve yenileme doğru bağlama dönsün; yetkisiz komut görünmesin veya API üzerinden çalışmasın; klavye odağı korunsun.",
+          "itemIds": ["shell-6", "shell-9", "channels-8"],
+          "frappe": "Desk menüsü bağımsız uygulamanın rotası veya izinli komut kataloğu değildir.",
+          "work": "TanStack Router ile rota, URL durumu ve güvenli dönüş; katalogla izinli komutlar bağlanmalı.",
+          "category": "Uygulama kabuğu, gezinme ve erişim"
+        },
+        {
+          "id": "family-03",
+          "title": "Identity & Session — kimlik ve oturum",
+          "description": "Giriş başlatma, oturum kontrolü, kullanıcı menüsü, hesap bilgisi, süre uyarısı ve yeniden kimlik doğrulama birlikte planlanır.",
+          "need": "core",
+          "acceptance": "Süre bitiminde korunmuş form güvenli yeniden girişten sonra devam etsin; issuer/audience/state/callback denetlensin; giriş dönüşü otomatik mutasyon veya kalıcı web tokenı üretmesin.",
+          "itemIds": [
+            "identity-1",
+            "identity-4",
+            "identity-7",
+            "identity-9",
+            "identity-10",
+            "shell-4"
+          ],
+          "frappe": "Kimlik Keycloak sorumluluğudur; Frappe kullanıcı ve iş yetkisi eşlemesi ayrıca gerekir.",
+          "work": "OIDC/PKCE ve native sistem oturumu bağlanmalı; tamamen bağımsız headless giriş isteği doğrulanmış hazır çözüm sayılmamalı, parola Direct Grant kestirmesi kullanılmamalı.",
+          "category": "Uygulama kabuğu, gezinme ve erişim"
+        },
+        {
+          "id": "family-04",
+          "title": "Context Switcher — çalışma bağlamı değiştirici",
+          "description": "Müşteri hesabı, şirket, şube, çalışma alanı veya uygulama değiştirir; etkin bağlamı açık gösterir.",
+          "need": "conditional",
+          "acceptance": "Bağlam değişiminde eski istek iptal edilsin, veri/önbellek/seçim yeni kapsama ayrılsın; başka tenant kaydı kısa süreli bile gösterilmesin; bekleyen form kaybolmasın.",
+          "itemIds": ["tenant-2", "tenant-4", "tenant-5", "shell-7"],
+          "frappe": "Frappe site ayrımı ile ürünün kurum/şube/çalışma alanı ayrımı aynı kabul edilmez.",
+          "work": "Birden fazla bağlam varsa güvenli seçici, önbellek ayrımı ve değişim politikası kurulmalı.",
+          "category": "Uygulama kabuğu, gezinme ve erişim"
+        },
+        {
+          "id": "family-05",
+          "title": "Permission & Capability — izin ve kullanılabilir işlemler",
+          "description": "Sayfa, alan ve işlem görünürlüğü; salt okunur hâl, erişim reddi ve kullanılamayan işlemin gerekçesi ortaklaştırılır.",
+          "need": "core",
+          "acceptance": "İzin değişince görünüm yenilensin; salt okunur ve kapalı işlem açıklansın; doğrudan API çağrısı yetkisiz yazımı reddetsin.",
+          "itemIds": [
+            "access-1",
+            "access-2",
+            "access-3",
+            "entitlements-2",
+            "views-8"
+          ],
+          "frappe": "Arayüzde düğme gizlemek sunucu yetki denetiminin yerine geçmez; Frappe kayıt/alan/işlem politikası her çağrıda uygulanır.",
+          "work": "Rol, bağlam, paket hakkı ve kayıt durumu için açıklanabilir işlem çözümleyicisi gerekir.",
+          "category": "Uygulama kabuğu, gezinme ve erişim"
+        },
+        {
+          "id": "family-06",
+          "title": "State & Feedback — durum ve geri bildirim",
+          "description": "Yükleniyor, kayıt yok, sonuç yok, hata, yeniden dene, başarı, bağlantı kesildi ve yenileniyor durumları ayrı gösterilir.",
+          "need": "core",
+          "acceptance": "401/403 çevrimdışı sayılmasın; boş kayıt ve boş arama ayrılsın; belirsiz mutasyon kör tekrar edilmesin; canlı duyuru odağı çalmasın.",
+          "itemIds": [
+            "views-6",
+            "views-8",
+            "views-11",
+            "views-12",
+            "views-13",
+            "views-14",
+            "views-16"
+          ],
+          "frappe": "Frappe API yanıtı bu durumların erişilebilir frontend sunumu değildir.",
+          "work": "Durum modeli gerçek istek, son temas ve kalıcılık sonucuna bağlanmalı.",
+          "category": "Uygulama kabuğu, gezinme ve erişim"
+        },
+        {
+          "id": "family-07",
+          "title": "Dialog & Interaction Surfaces — yardımcı etkileşim yüzeyleri",
+          "description": "Onay penceresi, yan panel, hızlı düzenleme, mobil alt panel ve kaydedilmemiş değişiklik uyarısı ortak davranış sunar.",
+          "need": "core",
+          "acceptance": "Açılış/kapanış odağı doğru yönetsin; iptal yan etki üretmesin; mobil klavye ana eylemi örtmesin; kaydedilmemiş içerik uyarısız kaybolmasın.",
+          "itemIds": ["views-9", "views-15", "shell-10", "channels-19"],
+          "frappe": "Desk diyalogları bağımsız Ant Design etkileşim sözleşmesini sağlamaz.",
+          "work": "Erişilebilir odak, Escape/geri davranışı, güvenli kapatma ve değişiklik koruması hazırlanmalı.",
+          "category": "Uygulama kabuğu, gezinme ve erişim"
+        },
+        {
+          "id": "family-08",
+          "title": "Collection Views & View Switcher — kayıt görünümleri ve görünüm değiştirici",
+          "description": "Aynı koleksiyonu tablo, liste, kart, takvim veya Kanban sunumuyla gösterir. Değiştirici, renderer, filtre, ayar, seçim ve veri bağlantısından ayrıdır.",
+          "need": "conditional",
+          "acceptance": "Tablodan Kanban’a geçince yetkili koleksiyon ve bana atananlar filtresi korunsun; yalnız tabloya ait sütun genişliği Kanban’a taşınmasın; uygunsuz görünüm açılmasın.",
+          "itemIds": ["views-2", "views-5", "views-7"],
+          "frappe": "Frappe Desk görünüm seti bağımsız headless renderer koleksiyonu değildir.",
+          "work": "Birden fazla anlamlı görünüm varsa ortak sorgu/seçim durumu ve görünüme özel ayar adaptörleri tanımlanmalı.",
+          "category": "Kayıt koleksiyonlarını görüntüleme ve yönetme"
+        },
+        {
+          "id": "family-09",
+          "title": "Table & Data Grid — tablo ve gelişmiş veri tablosu",
+          "description": "Sütunlar, hücreler, satır detayı, sabitleme, boyutlandırma, satır içi düzenleme ve gerektiğinde büyük veri davranışını kapsar.",
+          "need": "core",
+          "acceptance": "Gerçek uzun adlar kırılmadan okunabilsin; dar ekranda tablo kendi içinde kaydırılsın; düzenleme yetki/validasyon/sürüm kontrolünden geçsin; klavye ve dokunma çalışsın.",
+          "itemIds": [
+            "views-2",
+            "views-7",
+            "views-10",
+            "channels-4",
+            "channels-5",
+            "channels-6"
+          ],
+          "frappe": "Frappe liste verisi headless tablo etkileşimi veya performans kanıtı değildir.",
+          "work": "AG Grid ile TanStack Table arasında karar açıktır; yetenek, erişilebilirlik, lisans ve gerçek veri performansı karşılaştırılmalı.",
+          "category": "Kayıt koleksiyonlarını görüntüleme ve yönetme"
+        },
+        {
+          "id": "family-10",
+          "title": "Search & Discovery — arama ve kayıt bulma",
+          "description": "Genel/liste içi arama, öneriler, son aramalar ve birden fazla kayıt türünün sonuç sunumunu kapsar.",
+          "need": "core",
+          "acceptance": "Hızlı sorgu değişiminde eski yanıt yeni sonucu ezmesin; başka tenant veya yetkisiz alan görünmesin; sonuç yok ve erişim hatası açıklansın.",
+          "itemIds": ["search-1", "search-4", "search-6", "shell-9"],
+          "frappe": "Arama altyapısı kullanıcı/kayıt/alan yetkisini kendiliğinden garanti etmez.",
+          "work": "Yetkili veri sağlayıcı, gecikmeli istek iptali ve sonuç grupları bağlanmalı; gelişmiş motor ihtiyaçla seçilmeli.",
+          "category": "Kayıt koleksiyonlarını görüntüleme ve yönetme"
+        },
+        {
+          "id": "family-11",
+          "title": "Filter & Query Builder — filtreleme ve sorgu oluşturma",
+          "description": "Hızlı filtre, gelişmiş koşul, tarih aralığı, ve/veya grupları, aktif filtreler ve temizleme davranışını kapsar.",
+          "need": "core",
+          "acceptance": "İç içe ve/veya koşulu beklenen kayıtları versin; yasak alan ve desteklenmeyen operatör reddedilsin; temizleme seçim/sayfalama durumunu tutarlı yenilesin.",
+          "itemIds": ["views-7", "search-2", "search-4"],
+          "frappe": "REST filtreleme temeli vardır; ürünün izinli koşul dili ve headless query builder ayrıca gerekir.",
+          "work": "İzinli alan/operatör şeması, URL serileştirme ve sunucu doğrulaması tanımlanmalı.",
+          "category": "Kayıt koleksiyonlarını görüntüleme ve yönetme"
+        },
+        {
+          "id": "family-12",
+          "title": "View Configuration & Saved Views — görünüm ayarları ve kayıtlı görünümler",
+          "description": "Sıralama, gruplama, sütun seçimi ve yoğunluk ayarlarını isimli görünüm olarak kaydeder; paylaşım ihtiyaç varsa açılır.",
+          "need": "core",
+          "acceptance": "Bana atanan açık işler yeniden açılışta korunsun; izin kaybı eski görünümle veri açmasın; paylaşılan URL secret veya hassas filtre taşımadan aynı yetkili bağlama dönsün.",
+          "itemIds": ["views-7", "shell-6", "channels-8"],
+          "frappe": "Frappe filtre/sıralama verisi headless görünüm tercihi, sahipliği veya paylaşımı değildir.",
+          "work": "Kullanıcı/kiracı kapsamlı görünüm şeması ve sürümü; paylaşımda alıcı yetkisi tanımlanmalı.",
+          "category": "Kayıt koleksiyonlarını görüntüleme ve yönetme"
+        },
+        {
+          "id": "family-13",
+          "title": "Collection Navigation — kayıt kümesinde ilerleme",
+          "description": "Sayfalama, daha fazla yükleme, sonsuz kaydırma, toplam sayısı ve sayfa büyüklüğünden göreve uygun model seçilir.",
+          "need": "core",
+          "acceptance": "Filtre değişince geçersiz sayfa sıfırlansın; kayıtlar tekrarlanmasın/atlanmasın; klavyeyle sonuca ulaşılabilsin; toplam bilinmiyorsa tahmin kesin sayı gibi sunulmasın.",
+          "itemIds": ["views-7", "channels-9"],
+          "frappe": "Frappe REST sayfalama sağlar; gezinme modeli, toplam sayının maliyeti ve frontend erişilebilirliği ayrıca tasarlanır.",
+          "work": "Sorgu/filtreyle tutarlı imleç veya sayfa modeli, yükleme sonu ve veri tüketimi politikası kurulmalı.",
+          "category": "Kayıt koleksiyonlarını görüntüleme ve yönetme"
+        },
+        {
+          "id": "family-14",
+          "title": "Selection & Bulk Actions — seçim ve toplu işlemler",
+          "description": "Tekli/çoklu seçim, seçili sayısı, toplu atama/güncelleme/silme/export ve kısmi başarısızlık sonucunu kapsar.",
+          "need": "conditional",
+          "acceptance": "Kapsam onaydan önce görünür olsun; her kayıt tekrar yetkilendirilsin; kısmi başarı kaybolmasın; filtre/bağlam değişimi eski seçimi yanlış kayda uygulamasın.",
+          "itemIds": ["views-3", "views-15", "integrity-4", "transfer-6"],
+          "frappe": "Tek kayıt API’si tüm filtre sonucunu seçme veya güvenli toplu işlem protokolü değildir.",
+          "work": "Görünen sayfa ile tüm sorgu sonucunun seçimi ayrılmalı; önizleme, sunucu yetkisi ve satır sonucu bağlanmalı.",
+          "category": "Kayıt koleksiyonlarını görüntüleme ve yönetme"
+        },
+        {
+          "id": "family-15",
+          "title": "Record Detail & Preview — kayıt detayı ve önizleme",
+          "description": "Düzenlemeden inceleme, özet, alanlar, durum, ilişkiler ve liste içinden yan panel önizlemesi sunar.",
+          "need": "core",
+          "acceptance": "Önizleme veri değiştirmesin; yetkisiz alan görünmesin; silinen kayıt açıklansın; kapatınca liste konumu/odağı korunsun.",
+          "itemIds": ["views-1", "views-4", "views-15"],
+          "frappe": "Frappe tek kayıt verisi sunar; izinli detay yerleşimi ve önizleme ayrı frontend işidir.",
+          "work": "Kayıt detayı ile düzenleme ayrılmalı; ilişki verisi ve güvenli doğrudan bağlantı bağlanmalı.",
+          "category": "Tekil kayıt, form ve iş süreci"
+        },
+        {
+          "id": "family-16",
+          "title": "Form & Validation — form ve doğrulama",
+          "description": "Oluşturma/düzenleme, alan grupları, adımlar, koşullu alanlar, hata, taslak ve kaydedilmemiş değişiklikleri kapsar.",
+          "need": "core",
+          "acceptance": "Alan ve sunucu hatası doğru alana bağlansın; eski taslak uyumsuzluğu açıklansın; kapatma/çökmede kabul edilen kalıcı taslak korunsun; istemci manipülasyonu sunucuyu atlayamasın.",
+          "itemIds": [
+            "forms-1",
+            "forms-2",
+            "forms-3",
+            "forms-4",
+            "forms-5",
+            "forms-6",
+            "views-9",
+            "views-12",
+            "views-16"
+          ],
+          "frappe": "DocField/controller temeli vardır; Desk Form Script ve frm davranışı bağımsız formda otomatik çalışmaz; kritik doğrulama sunucuda kalır.",
+          "work": "Onaylı metadata renderer, desteklenen davranış eşlemesi, form sürümü ve taslak kurtarma bağlanmalı.",
+          "category": "Tekil kayıt, form ve iş süreci"
+        },
+        {
+          "id": "family-17",
+          "title": "Semantic Fields — anlamlı veri alanları",
+          "description": "Para, yüzde, tarih/saat, süre, adres, telefon, kişi, şirket, etiket ve ölçü birimlerinin ortak gösterim/düzenleme davranışını tanımlar.",
+          "need": "core",
+          "acceptance": "Para/yuvarlama, saat dilimi, yüzde ve ölçü birimi dönüşümlerinde kayıp oluşmasın; görünen biçim sunucu değerine doğru dönüşsün; hata erişilebilir olsun.",
+          "itemIds": ["model-2", "model-6", "locale-4", "forms-2", "model-8"],
+          "frappe": "Frappe fieldtype ve metadata sağlar; biçim, hassasiyet, birim ve frontend etkileşimi ayrıca eşlenir.",
+          "work": "Türlü alan adaptörleri, yerel biçim ile saklanan değerin ayrımı ve desteklenmeyen tür politikası hazırlanmalı.",
+          "category": "Tekil kayıt, form ve iş süreci"
+        },
+        {
+          "id": "family-18",
+          "title": "Reference & Relationship — kayıt seçimi ve ilişkiler",
+          "description": "Yetkili kayıt arama/seçme, önizleme, ilgili kayıt oluşturma, ilişki kurma/kaldırma ve bağlantılı kayıtları gösterme aileleşir.",
+          "need": "core",
+          "acceptance": "Başka tenant sonucu gelmesin; bağlantı tipi ve hedef kayıt geçerli olsun; silinen/izin kaybedilen seçim kaydetmede tekrar denetlensin; ilgili kayıt oluşturma ayrı yetki istesin.",
+          "itemIds": ["forms-5", "model-4", "search-4", "access-2", "model-8"],
+          "frappe": "Link ve Dynamic Link sunucu yapı taşlarıdır; sıradan Select kontrolü ilişkinin veri/izin/bağlam sözleşmesi değildir.",
+          "work": "Arama→yetkili sonuç→bağlam daraltma→seçim→önizleme→yeniden geçerlilik denetimi ortak adaptöre bağlanmalı.",
+          "category": "Tekil kayıt, form ve iş süreci"
+        },
+        {
+          "id": "family-19",
+          "title": "Child Table & Repeating Sections — alt tablo ve tekrarlanan alanlar",
+          "description": "Sipariş kalemi, masraf satırı veya eğitim geçmişi gibi ana kayda bağlı satır ekleme/silme/sıralama ve satır doğrulamasını kapsar.",
+          "need": "conditional",
+          "acceptance": "Satır sırası ve ilişkiler korunarak kaydedilsin; satır hatası doğru yerde gösterilsin; başka ana kaydın çocuk kimliği enjekte edilemesin; başarısız kayıt yarım satırlar bırakmasın.",
+          "itemIds": ["forms-5", "model-4", "forms-2", "model-8"],
+          "frappe": "Table/child DocType temeli vardır; headless satır düzenleyici ve ana-çocuk yetkisi ayrıca gerekir.",
+          "work": "Veri modeli gerektiriyorsa satır kimliği, sırası, hata eşlemesi ve tutarlı ana kayıt kaydı tanımlanmalı.",
+          "category": "Tekil kayıt, form ve iş süreci"
+        },
+        {
+          "id": "family-20",
+          "title": "Record Actions & Document Lifecycle — kayıt işlemleri ve belge yaşam döngüsü",
+          "description": "Kaydetme, çoğaltma, silme; destekleyen kayıt türlerinde kesinleştirme, iptal ve düzeltme, mevcut duruma göre sunulur.",
+          "need": "core",
+          "acceptance": "Geçersiz submit/cancel/amend geçişi reddedilsin; görünmeyen işlem API’den çalışmasın; kritik iptal gerekçesi ve değişmez kayıt korunarak düzeltme ilişkisi izlenebilsin.",
+          "itemIds": [
+            "workflow-3",
+            "workflow-7",
+            "views-9",
+            "views-17",
+            "integrity-5",
+            "integrity-6"
+          ],
+          "frappe": "Frappe docstatus taslak/kesinleştirilmiş/iptal durumudur; workflow iş durumuyla aynı kavram değildir. Headless eylem sözleşmesi ayrıca bağlanır.",
+          "work": "Kayıt türünün desteklediği eylemler, güncel durum, sunucu yetkisi ve düzeltme zinciri açık tanımlanmalı.",
+          "category": "Tekil kayıt, form ve iş süreci"
+        },
+        {
+          "id": "family-21",
+          "title": "Workflow & Approval — iş akışı ve onay",
+          "description": "Onaya gönderme, onay/red/iade, gerekçe, sonraki adım ve bekleyen onaylar ortak sunulur.",
+          "need": "conditional",
+          "acceptance": "Yetkisiz veya kendi kendine yasak onay reddedilsin; kayıt değişince doğru yeniden onay gereksin; red/iade gerekçesi ve sonraki adım görünür olsun.",
+          "itemIds": [
+            "workflow-1",
+            "workflow-3",
+            "workflow-4",
+            "workflow-7",
+            "approvals-1",
+            "approvals-2",
+            "approvals-3",
+            "approvals-4",
+            "approvals-5",
+            "approvals-6"
+          ],
+          "frappe": "Frappe workflow durum/rol/koşul temeli sağlar; docstatus veya tam BPMN motoruyla eşit değildir.",
+          "work": "Kullanılan akışların headless eylem ve onay kuyruğu API’si, değişiklik sonrası yeniden onay ve vekâlet bağlanmalı.",
+          "category": "Tekil kayıt, form ve iş süreci"
+        },
+        {
+          "id": "family-22",
+          "title": "File & Media — dosya ve medya",
+          "description": "Yükleme/indirme, önizleme, ilerleme, yeniden deneme, kayda bağlama ve dosya erişim durumu ortaklaştırılır.",
+          "need": "conditional",
+          "acceptance": "İptal/yeniden deneme dosyayı çoğaltmasın; gerçek içerik denetlensin; özel dosya başka kullanıcıya açılmasın; bağlantısız ek kalıcı kayıtla tutarlı kalsın.",
+          "itemIds": [
+            "files-1",
+            "files-2",
+            "files-3",
+            "files-4",
+            "files-5",
+            "files-6",
+            "files-7",
+            "files-8",
+            "forms-5",
+            "channels-18"
+          ],
+          "frappe": "Frappe File ve storage yapı taşları güvenli, çevrimdışı ve erişilebilir dosya deneyiminin tamamı değildir.",
+          "work": "İzinli yükleme, tür/zararlı içerik denetimi, kayıt ilişkisi ve gerektiğinde yerel ek kuyruğu bağlanmalı.",
+          "category": "Dosya, iletişim ve izlenebilirlik"
+        },
+        {
+          "id": "family-23",
+          "title": "Content Editor & Viewer — içerik düzenleyici ve görüntüleyici",
+          "description": "Biçimli açıklama, not, belge, önizleme ve ihtiyaca göre özel editörler sunar.",
+          "need": "conditional",
+          "acceptance": "Zararlı içerik çalışmasın; düzenleme/önizleme izinli aynı içeriği göstersin; taslak/sürüm kaybolmasın; klavye ve erişilebilir hata davranışı korunsun.",
+          "itemIds": ["content-1", "content-4", "content-6", "forms-1"],
+          "frappe": "Frappe içerik ve alan tipleri sağlayabilir; bağımsız editör, çıktı temizleme ve güvenli görüntüleme ayrıca gerekir.",
+          "work": "Ürüne uygun editör/format, sanitizasyon, sürüm ve medya bağlantısı seçilmeli.",
+          "category": "Dosya, iletişim ve izlenebilirlik"
+        },
+        {
+          "id": "family-24",
+          "title": "Comments & Communication — yorumlar ve iletişim",
+          "description": "Kayıt yorumu, bahsetme, yanıt, iç not ve ilişkili yazışma geçmişini bir araya getirir.",
+          "need": "conditional",
+          "acceptance": "İç not dış kullanıcıya açılmasın; mention alıcısı yetkisiz kayıt içeriği almasın; yeniden bağlantıda ileti tekrarlanmasın; kullanıcıya gösterilen akış audit yerine geçmesin.",
+          "itemIds": ["realtime-4", "realtime-6", "crm-3", "email-4"],
+          "frappe": "Frappe yorum/iletişim temeli vardır; headless mention, görünürlük ve iç/dış ileti ayrımı ayrıca bağlanır.",
+          "work": "Kayıt erişimiyle yorum kanalı ve bildirim alıcıları eşlenmeli.",
+          "category": "Dosya, iletişim ve izlenebilirlik"
+        },
+        {
+          "id": "family-25",
+          "title": "Assignment & Work Queue — atama ve iş kuyruğu",
+          "description": "Sorumlu, atama, takipçi, son tarih, hatırlatma ve Benim işlerim alanı farklı kayıt türleri için ortaklaştırılır.",
+          "need": "conditional",
+          "acceptance": "Farklı modüllerdeki yetkili işler tek kuyrukta görünsün; atama değişimi kaydedilsin; takip/hatırlatma izinsiz veri sızdırmasın; yetki kaybı kuyruktan düşsün.",
+          "itemIds": ["crm-3", "support-5", "realtime-4", "realtime-7"],
+          "frappe": "Mevcut kapsam CRM ve helpdesk atamasını kısmen içerir; genel modüller arası headless atama/kişisel iş kuyruğu ayrı boşluktur.",
+          "work": "Ortak atama ilişkisi, iş sahipliği, yetkili birleşik kuyruk ve geçerli durum eylemleri tasarlanmalı.",
+          "category": "Dosya, iletişim ve izlenebilirlik"
+        },
+        {
+          "id": "family-26",
+          "title": "Notification Center — bildirim merkezi",
+          "description": "Saklanan bildirim listesi, okunma, kayda geçiş, tercih ve işlem gerektiren bildirimler sunar; anlık toast ile aynı aile değildir.",
+          "need": "conditional",
+          "acceptance": "Bildirim sonradan yeniden incelenebilsin; okundu durumu tutarlı kalsın; tercih/sessiz saat uygulansın; izin kaybında bağlantı özel kaydı açmasın.",
+          "itemIds": [
+            "notifications-1",
+            "notifications-5",
+            "notifications-6",
+            "notifications-7",
+            "notifications-8",
+            "channels-8"
+          ],
+          "frappe": "Framework bildirim temeli headless merkez, kanal tercihi ve kayıt erişimini tek başına sağlamaz.",
+          "work": "Bildirim kimliği, okundu durumu, tekilleştirme ve yetkili deep link bağlanmalı.",
+          "category": "Dosya, iletişim ve izlenebilirlik"
+        },
+        {
+          "id": "family-27",
+          "title": "History, Audit & Version Comparison — geçmiş, denetim ve sürüm karşılaştırma",
+          "description": "Kim/ne/zaman değişti, eski-yeni değer, sürüm farkları ve izinli geri alma sunulur; faaliyet akışından amacı ve erişimi ayrılır.",
+          "need": "conditional",
+          "acceptance": "İzinli farklar doğru aktör/zamanla gösterilsin; hassas alan açılmasın; geri alma yeni doğrulanmış sürüm oluştursun; audit silme/koruma politikası faaliyet görünümünden ayrı uygulansın.",
+          "itemIds": [
+            "audit-1",
+            "audit-2",
+            "audit-3",
+            "audit-4",
+            "audit-5",
+            "integrity-2",
+            "views-4"
+          ],
+          "frappe": "Frappe Version ve denetim yapı taşları değişmez audit, tüm harici aktörler veya hazır headless karşılaştırma garantisi değildir.",
+          "work": "Alan maskeleme, gerçek/etkin aktör, sürüm karşılaştırma ve kontrollü geri alma bağlanmalı.",
+          "category": "Dosya, iletişim ve izlenebilirlik"
+        },
+        {
+          "id": "family-28",
+          "title": "Report Viewer & Report Builder — rapor görüntüleyici ve oluşturucu",
+          "description": "Parametre, filtre, sonuç tablosu, toplam, gruplama ve kullanıcı rapor tanımı kapsanır; görüntüleyici ile oluşturucu ayrı alt bileşendir.",
+          "need": "conditional",
+          "acceptance": "Görüntüleme yetkisi rapor tasarlama yetkisi vermesin; toplamlar kaynakla uzlaşsın; ham SQL kapsamı alan/kayıt iznini atlamasın; uzun rapor job merkezine bağlansın.",
+          "itemIds": [
+            "reports-1",
+            "reports-2",
+            "reports-3",
+            "reports-4",
+            "reports-5",
+            "reports-7"
+          ],
+          "frappe": "Frappe rapor motoru ve ayrı BI ürünleri vardır; headless rapor yönetimi ve her sorguda yetki garantisi ayrıca kurulmalıdır.",
+          "work": "Rapor şeması, parametre doğrulaması, yetkili sonuç ve oluşturucu yayın sürümü tanımlanmalı.",
+          "category": "Raporlama, veri aktarımı ve uzun işlemler"
+        },
+        {
+          "id": "family-29",
+          "title": "Dashboard & Data Visualization — gösterge paneli ve veri görselleştirme",
+          "description": "Özet göstergeler, grafikler, karşılaştırmalar, dönem seçimi ve metrikten ilgili kayıtlara geçiş ortak sunulur.",
+          "need": "conditional",
+          "acceptance": "Aynı dönem/para birimi aynı sonucu versin; eski veya hatalı veri sağlıklı gösterilmesin; metrikten detay aynı filtreyle ve güncel yetkiyle açılsın.",
+          "itemIds": ["shell-3", "reports-2", "reports-7", "reports-8"],
+          "frappe": "Desk dashboard veya harici BI bağımsız frontend dashboard teslimi değildir.",
+          "work": "Metrik sahibi/sürümü/tazeliği, ortak filtre ve izinli detay bağlantısı kurulmalı.",
+          "category": "Raporlama, veri aktarımı ve uzun işlemler"
+        },
+        {
+          "id": "family-30",
+          "title": "Import & Export — içe ve dışa aktarma",
+          "description": "Dosya, eşleme, önizleme, doğrulama, hatalı satırlar, sonuç ve export kapsamını kapsar; uzun işlerde yalnız bir düğme değildir.",
+          "need": "conditional",
+          "acceptance": "Eşleme önizleme veri değiştirmesin; satır hataları kaybolmasın; büyük iş sayfa kapansa izlenebilsin; export yetkisiz/hassas alan taşımadan doğru kapsamı teslim etsin.",
+          "itemIds": [
+            "transfer-1",
+            "transfer-2",
+            "transfer-3",
+            "transfer-4",
+            "transfer-5",
+            "transfer-6",
+            "transfer-7",
+            "jobs-8"
+          ],
+          "frappe": "Frappe aktarım/job temelleri ürünün her format, alan izni ve güvenli dosya teslimi sözleşmesini otomatik tamamlamaz.",
+          "work": "JSON/CSV/XLSX sözleşmesi, satır sonuçları, ilerleme/iptal ve süreli teslim bağlanmalı.",
+          "category": "Raporlama, veri aktarımı ve uzun işlemler"
+        },
+        {
+          "id": "family-31",
+          "title": "Print & Document Output — yazdırma ve belge çıktısı",
+          "description": "Şablon seçimi, baskı önizlemesi, belge/PDF oluşturma, indirme ve toplu belge üretimini kapsar.",
+          "need": "conditional",
+          "acceptance": "Önizleme ve çıktı aynı şablon/veriyi kullansın; özel alan/dosya sızmasın; toplu üretim kayıt bazlı hata bildirsin; yalnız yetkili kullanıcı süreli çıktıyı indirebilsin.",
+          "itemIds": [
+            "reports-1",
+            "reports-5",
+            "transfer-6",
+            "jobs-8",
+            "reports-9"
+          ],
+          "frappe": "Mevcut rapor/export kapsamı belge şablonu ve print/PDF ailesi değildir; Frappe print yapı taşları hedef sürümde ayrıca doğrulanmalı.",
+          "work": "Şablon/sürüm, yetkili önizleme, güvenli renderer ve toplu çıktı işi ayrı yetenek olarak eklenmeli.",
+          "category": "Raporlama, veri aktarımı ve uzun işlemler"
+        },
+        {
+          "id": "family-32",
+          "title": "Background Job Monitor — arka plan işlem takibi",
+          "description": "Uzun import/rapor işinde bekliyor/çalışıyor/tamamlandı, ilerleme, hata, güvenli iptal ve devam sunar.",
+          "need": "conditional",
+          "acceptance": "Sayfa kapansa iş izlenebilsin; yeniden deneme mükerrer etki üretmesin; iptal desteklenmiyorsa açık olsun; başka tenant işi veya sonucu görünmesin.",
+          "itemIds": ["jobs-2", "jobs-3", "jobs-4", "jobs-5", "jobs-8"],
+          "frappe": "Frappe queue/realtime temeli kullanıcı işleri merkezi veya her işin güvenli iptali değildir.",
+          "work": "İş kimliği, sonuç saklama, yetki, gerçek ilerleme ve eylem sınırı bağlanmalı.",
+          "category": "Raporlama, veri aktarımı ve uzun işlemler"
+        },
+        {
+          "id": "family-33",
+          "title": "Settings & Preferences — ayarlar ve tercihler",
+          "description": "Kullanıcı/kurum ayarı, dil, saat dilimi, sayı/tarih biçimi, görünüm tercihleri ve varsayılanları yönetir.",
+          "need": "core",
+          "acceptance": "Override kaldırılınca doğru üst değer dönsün; başka tenant ayarı değişmesin; saat/para biçimi değişimi saklanan iş değerini değiştirmesin.",
+          "itemIds": [
+            "shell-4",
+            "shell-7",
+            "locale-1",
+            "locale-3",
+            "locale-4",
+            "locale-5"
+          ],
+          "frappe": "Bench/site config ile platform/tenant/kullanıcı ürün ayarı aynı kapsam değildir.",
+          "work": "Ayar sahipliği, miras/öncelik ve biçim tercihleri API ile ortaklaştırılmalı.",
+          "category": "SaaS ortak yönetim ve genişleme"
+        },
+        {
+          "id": "family-34",
+          "title": "Membership & Access Management — üyelik ve erişim yönetimi",
+          "description": "Davet, ekip üyeleri, rol seçimi, izin matrisi ve üyelik durumu; izin uygulayan aileden ayrı yönetim arayüzüdür.",
+          "need": "conditional",
+          "acceptance": "Yetkisiz yönetici rol yükseltemesin; davet/iptal iki tarafta uzlaşsın; son sahip yanlışlıkla kaybedilmesin; dönemsel erişim kararı denetlensin.",
+          "itemIds": [
+            "tenant-4",
+            "access-1",
+            "access-2",
+            "access-3",
+            "access-8",
+            "identity-8"
+          ],
+          "frappe": "Keycloak kimlik yönetimi ile Frappe iş üyelik/rol eşlemesi ayrı sorumluluklardır.",
+          "work": "Davet/üyelik sahipliği, en az yetki, son yönetici koruması ve iptal uzlaştırması bağlanmalı.",
+          "category": "SaaS ortak yönetim ve genişleme"
+        },
+        {
+          "id": "family-35",
+          "title": "Subscription & Usage — abonelik ve kullanım",
+          "description": "Plan seçici, karşılaştırma, kullanım, kota uyarısı, yükseltme ve abonelik durumu ürün içinden yönetilecekse sunulur.",
+          "need": "conditional",
+          "acceptance": "Plan değişimi doğru dönemde ve tek uygulanmalı; kota/hak sunucuda korunmalı; askı durumunda izinli ödeme/export istisnaları açık görünmeli.",
+          "itemIds": [
+            "catalog-1",
+            "catalog-2",
+            "catalog-3",
+            "catalog-4",
+            "catalog-5",
+            "catalog-6",
+            "subscriptions-1",
+            "subscriptions-3",
+            "subscriptions-5",
+            "usage-1",
+            "usage-2",
+            "usage-5",
+            "usage-6",
+            "usage-7",
+            "entitlements-1",
+            "entitlements-2",
+            "entitlements-5"
+          ],
+          "frappe": "Frappe Framework hazır SaaS billing/entitlement ürünü değildir; ERPNext veya sağlayıcı entegrasyonu ayrı değerlendirilir.",
+          "work": "Fiyat sürümü, kullanım ölçümü, hak etkisi ve ödeme/iptal geri bildirimi ortaklaştırılmalı.",
+          "category": "SaaS ortak yönetim ve genişleme"
+        },
+        {
+          "id": "family-36",
+          "title": "Integration & Connection — entegrasyon ve bağlantı",
+          "description": "Bağlantı kartı, bağlan/ayır, hesap eşleme, sağlık ve son aktarım durumunu ortaklaştırır.",
+          "need": "conditional",
+          "acceptance": "Bağlantı testi gerçek sonucu versin; süresi biten erişim yeniden yetkilendirme istesin; bağlantıyı kesme bekleyen iş/veri politikasına uysun; sırlar UI/log/exporta çıkmasın.",
+          "itemIds": [
+            "integration-1",
+            "integration-6",
+            "integration-7",
+            "integration-9",
+            "integration-10",
+            "integration-11",
+            "integration-12",
+            "integration-13",
+            "integration-14"
+          ],
+          "frappe": "API ve protokol desteği her dış ürünle hazır bağlayıcı veya uyumluluk garantisi değildir.",
+          "work": "Sağlayıcı kimliği, sır yönetimi, bağlantı durumu, yetki yenileme ve senkron sonucu API’ye bağlanmalı.",
+          "category": "SaaS ortak yönetim ve genişleme"
+        },
+        {
+          "id": "family-37",
+          "title": "Onboarding & Help — başlangıç rehberi ve yardım",
+          "description": "İlk kullanım, kurulum kontrol listesi, açıklayıcı boş durum, bağlamsal yardım ve özellik tanıtımı temel düzeyde önerilir.",
+          "need": "core",
+          "acceptance": "Adım gerçek iş tamamlanınca işaretlensin; kullanıcı atlayıp yeniden dönebilsin; yardım yetkisiz iş veya iç ayrıntı göstermesin; boş durum uygulanabilir sonraki adım sunsun.",
+          "itemIds": ["support-2", "support-6", "content-1", "crm-6"],
+          "frappe": "Frappe Desk yardım/onboarding parçaları bağımsız ürün yolculuğu değildir.",
+          "work": "Rol/bağlamla ilgili adımlar, gerçek tamamlanma sinyali ve sürdürülen yardım içeriği bağlanmalı.",
+          "category": "SaaS ortak yönetim ve genişleme"
+        },
+        {
+          "id": "family-38",
+          "title": "Configuration & Automation Builders — yapılandırma ve otomasyon tasarımcıları",
+          "description": "Kullanıcı form/görünüm/kural/workflow tanımlar; tetikleyici, koşul ve işlem seçer. Kullanım ekranından ayrı tasarım araçlarıdır.",
+          "need": "conditional",
+          "acceptance": "Tasarımcı yetkisiz alan/eylem yayınlayamasın; örnek deneme yan etki üretmesin; döngü/kota korunsun; yeni sürüm eski instance/taslağı sessiz bozmasın.",
+          "itemIds": [
+            "forms-1",
+            "model-1",
+            "model-2",
+            "rules-1",
+            "rules-2",
+            "rules-3",
+            "rules-4",
+            "rules-5",
+            "workflow-4",
+            "workflow-5"
+          ],
+          "frappe": "Frappe yapılandırma araçları başsız tasarımcı veya koşulsuz BPMN yürütüm uyumluluğu sağlamaz.",
+          "work": "İzinli şema/eylem kataloğu, deneme, sürüm, yayın ve çalışan kayıtların geçiş politikası tanımlanmalı.",
+          "category": "SaaS ortak yönetim ve genişleme"
+        },
+        {
+          "id": "family-39",
+          "title": "GenUI — üretken kullanıcı arayüzü",
+          "description": "Asistan, önerilen eylem, üretilmiş form/kart, sonuç önizlemesi ve kullanıcı onaylı değişiklikler bu proje hedefinde gereklidir.",
+          "need": "project",
+          "acceptance": "Öneri, onay, yerel kayıt ve sunucu kabulü ayrı gösterilsin; katalog dışı eylem reddedilsin; onay sonrası sunucu tekrar yetkilendirsin; bulut AI yokken standart iş ekranları çalışsın.",
+          "itemIds": ["ai-7", "shell-10", "agents-2", "agents-3", "views-15"],
+          "frappe": "Ant Design X/X Cards sunum araçları Frappe kayıt ve yetkilerini tanıyan hazır güvenli uygulama değildir.",
+          "work": "Model şemalı intent üretsin; policy/validation ve onaylı component/action registry deterministik runtimea bağlansın; serbest çalıştırılabilir kod alınmasın.",
+          "category": "SaaS ortak yönetim ve genişleme"
+        },
+        {
+          "id": "family-40",
+          "title": "Offline, Synchronization & Conflict — çevrimdışı çalışma ve çakışma",
+          "description": "Yerel kayıt/sunucu kabulü, bekleyen işler, son eşitleme, bağlantı ve çakışma çözümü önceki proje hedefinin gereğidir.",
+          "need": "project",
+          "acceptance": "İlk çevrimiçi hazırlıktan sonra kayıt/yeniden başlatma çalışsın; yarım aktarım tekrarı çoğalmasın; iki cihaz sessizce birbirini ezmesin; süre bitimi veri kaybına yol açmadan erişimi sınırlasın.",
+          "itemIds": [
+            "channels-7",
+            "channels-15",
+            "channels-16",
+            "integrity-1",
+            "integrity-7",
+            "integrity-8",
+            "integrity-9",
+            "integrity-10",
+            "views-11",
+            "views-12",
+            "views-13",
+            "views-14"
+          ],
+          "frappe": "Frappe REST CRUD ve TanStack Query kalıcı cihaz outboxı veya çift yönlü sync motoru değildir.",
+          "work": "Yerel atomic kayıt/outbox, mutasyon kimliği, commit ack, cursor/tombstone, yetki yenileme ve işleme özgü çakışma UX’i bağlanmalı.",
+          "category": "SaaS ortak yönetim ve genişleme"
+        }
+      ]
+    },
+    {
+      "id": "views",
+      "title": "Koleksiyon görünümü kataloğu",
+      "entries": [
+        {
+          "id": "view-table",
+          "title": "Table / Data Grid View — tablo görünümü",
+          "description": "Yapılandırılmış ve karşılaştırılabilir alanları satır/sütunlarla sunar.",
+          "need": "conditional",
+          "frappe": "Desk tablosu bağımsız React grid rendererı değildir.",
+          "work": "İzinli sütun şeması, sabit satır kimliği ve veri hacmine uygun veri modeli gerekir; AG Grid/TanStack Table seçimi henüz açık.",
+          "acceptance": "Alanlar doğal sarılsın; yatay kaydırma tablo içinde kalsın; sıralama/filtre/seçim/düzenleme aynı yetkili kayıt kimliklerini kullansın.",
+          "itemIds": ["views-2", "views-7", "views-10"],
+          "category": "Koleksiyon görünümü kataloğu"
+        },
+        {
+          "id": "view-list",
+          "title": "List View — liste görünümü",
+          "description": "Kısa özet, durum ve temel işlemleri hızlı tarama ve mobil kullanım için sunar.",
+          "need": "conditional",
+          "frappe": "Frappe liste verisi hazır headless liste bileşeni değildir.",
+          "work": "Anlamlı kayıt başlığı/özet alanı ve izinli temel işlemler tanımlanmalı; dar alanda gerekli bilgi önceliklendirilmeli.",
+          "acceptance": "320 pikselde durum ve ana işlem okunabilsin; detaydan dönüşte liste konumu/filtre korunsun; yalnız hover ile erişilen işlem olmasın.",
+          "itemIds": ["views-1", "views-2", "channels-4"],
+          "category": "Koleksiyon görünümü kataloğu"
+        },
+        {
+          "id": "view-gallery",
+          "title": "Card / Gallery View — kart veya galeri görünümü",
+          "description": "Ürün, kişi, dosya ve görsel ağırlıklı kaydı bağımsız kartla gösterir.",
+          "need": "conditional",
+          "frappe": "Desk kart/medya yetenekleri bağımsız galeri veya dosya erişim kanıtı değildir.",
+          "work": "Görsel/özet alanları, alternatif metin ve güvenli önizleme kaynağı belirlenmeli.",
+          "acceptance": "Eksik görsel kullanılabilir yedek sunum versin; özel medya izinsiz yüklenmesin; filtre/seçim tabloyla ortak kalsın; kart eylemleri klavyeyle çalışsın.",
+          "itemIds": ["views-2", "files-7", "files-6"],
+          "category": "Koleksiyon görünümü kataloğu"
+        },
+        {
+          "id": "view-kanban",
+          "title": "Kanban View — sütunlu iş panosu",
+          "description": "Durum, aşama veya kategori alanına göre kayıtları sütunlara ayırır.",
+          "need": "conditional",
+          "frappe": "Frappe workflow geçişi temeli hazır headless sürükleme panosu değildir.",
+          "work": "Gruplama alanı gereklidir; sütun değiştirme mutasyonsa geçerli geçiş, yetki ve sürüm kontrolü tanımlanmalı.",
+          "acceptance": "Geçersiz sürükleme sunucuda reddedilsin; klavye/menü alternatifi bulunsun; başarısız geçiş eski duruma dönsün; filtrelenmiş koleksiyon kaybolmasın.",
+          "itemIds": ["views-2", "workflow-3", "workflow-7", "access-3"],
+          "category": "Koleksiyon görünümü kataloğu"
+        },
+        {
+          "id": "view-calendar",
+          "title": "Calendar / Agenda View — takvim ve tarih sıralı ajanda",
+          "description": "Tarih/saatli olayları takvimde veya ajanda listesinde sunar; süre, saat dilimi ve tekrar ihtiyaçla eklenir.",
+          "need": "conditional",
+          "frappe": "Framework Event ve Desk takvimi bağımsız takvim/ajanda arayüzünü otomatik sağlamaz.",
+          "work": "Başlangıç/bitiş ve saat dilimi sözleşmesi; varsa tekrar, katılımcı ve yetkili zaman değişimi bağlanmalı.",
+          "acceptance": "Saat dilimi/yaz saati sınırında doğru zaman görünsün; ajanda aynı olayları sunsun; görünüm aralığı dışında gereksiz veri indirilmesin; iptal/tekrar hatası açıklansın.",
+          "itemIds": [
+            "calendar-1",
+            "calendar-2",
+            "calendar-3",
+            "calendar-4",
+            "locale-4"
+          ],
+          "category": "Koleksiyon görünümü kataloğu"
+        },
+        {
+          "id": "view-timeline",
+          "title": "Timeline / Roadmap View — zaman çizelgesi ve yol haritası",
+          "description": "İşleri veya dönemleri başlangıç/bitiş ve zaman ekseninde sunar.",
+          "need": "conditional",
+          "frappe": "Mevcut tarih alanları bu özel rendererın planlanmış veya hazır olduğu anlamına gelmez; koşullu katalog varyantıdır.",
+          "work": "Geçerli tarih/dönem verisi, eksen ölçeği ve gerekiyorsa değişiklik kuralları tanımlanmalı; read-only ilk deneyim mümkündür.",
+          "acceptance": "Tarih sınırı/eksik tarih açıklansın; aynı kayıt farklı ölçeklerde tutarlı kalsın; 320 pikselde erişilebilir liste alternatifi bulunsun; zaman değişimi güncel yetkiyle doğrulansın.",
+          "itemIds": ["calendar-1", "model-2", "views-2"],
+          "category": "Koleksiyon görünümü kataloğu"
+        },
+        {
+          "id": "view-gantt",
+          "title": "Gantt View — süre ve bağımlılık çizelgesi",
+          "description": "İşin başlangıç/bitişini ve kullanılıyorsa bağımlılıklarını gösterir.",
+          "need": "conditional",
+          "frappe": "Desk Gantt referanstır; bağımsız headless Gantt, bağımlılık hesabı veya kritik yol motoru hazır sayılmaz.",
+          "work": "Süre/tarih alanları gereklidir; bağımlılık gösterilecekse ilişki verisi, döngü ve yeniden planlama politikası gerekir.",
+          "acceptance": "Başlangıç/bitiş ve bağımlılık çelişkileri açıklansın; yetkisiz tarih değişimi reddedilsin; klavye/liste alternatifi olsun; modelde olmayan bağımlılık varsayılmasın.",
+          "itemIds": ["calendar-1", "calendar-2", "model-4", "views-2"],
+          "category": "Koleksiyon görünümü kataloğu"
+        },
+        {
+          "id": "view-scheduler",
+          "title": "Resource Scheduler View — kaynak bazlı zaman planı",
+          "description": "Kişi, oda, makine veya araç için zaman aralıklarını; ihtiyaçta müsaitlik ve kapasiteyi gösterir.",
+          "need": "conditional",
+          "frappe": "Mevcut kaynak rezervasyonu kapsamı özel headless scheduler rendererını tek başına sağlamaz.",
+          "work": "Kaynak kimliği ve zaman verisi gerekir; eşzamanlı rezervasyon, kapasite ve saat dilimi politikası bağlanmalı.",
+          "acceptance": "Aynı kapasite eşzamanlı istekle aşılmasın; görünüm müsaitliği güncel veriye dayansın; izinli kaynaklar görünsün; kısa/yoğun ekranda okunabilir alternatif bulunsun.",
+          "itemIds": ["calendar-1", "calendar-2", "calendar-3"],
+          "category": "Koleksiyon görünümü kataloğu"
+        },
+        {
+          "id": "view-tree",
+          "title": "Tree / Tree Grid View — ağaç ve ağaç tablo",
+          "description": "Kategori, organizasyon, hesap veya klasör gibi üst-alt hiyerarşiyi sunar; Tree Grid tabloyla birleşimdir.",
+          "need": "conditional",
+          "frappe": "Frappe ağaç veri araçları başsız tree/tree-grid etkileşimini otomatik taşımaz.",
+          "work": "Üst-alt ilişkisi, kök/sıra, tembel yükleme ve görünür atalar politikası tanımlanmalı.",
+          "acceptance": "Döngülü ilişki reddedilsin; yetkisiz düğüm/ata bilgisi sızmasın; aç/kapat klavyeyle çalışsın; taşınan düğüm referans ve sıra bütünlüğünü korusun.",
+          "itemIds": ["model-3", "model-4", "views-2", "access-2"],
+          "category": "Koleksiyon görünümü kataloğu"
+        },
+        {
+          "id": "view-pivot",
+          "title": "Pivot / Cross-tab View — çapraz özet tablo",
+          "description": "Şube × ay × satış tutarı gibi boyutlara göre toplar ve karşılaştırır.",
+          "need": "conditional",
+          "frappe": "Genel rapor/BI kapsamı belirli pivot rendererı ve doğru toplama sözleşmesinin hazır olduğu anlamına gelmez.",
+          "work": "Boyut, ölçüm, toplama, boş değer, para/birim ve sorgu hacmi sınırları tanımlanmalı.",
+          "acceptance": "Satır/sütun toplamı kaynakla uzlaşsın; yetkisiz detay özet yoluyla açılmasın; büyük çapraz tablo kapsayıcı içinde kaydırılsın; farklı birimler yanlış toplanmasın.",
+          "itemIds": ["reports-1", "reports-2", "reports-5", "reports-7"],
+          "category": "Koleksiyon görünümü kataloğu"
+        },
+        {
+          "id": "view-map",
+          "title": "Map View — harita görünümü",
+          "description": "Konum veya koordinata dönüştürülebilen adresle kayıtların coğrafi dağılımını sunar.",
+          "need": "conditional",
+          "frappe": "Mevcut alan/veri modeli harita sağlayıcısı, geocoding veya headless map teslimi değildir.",
+          "work": "Konum verisi ve ürün ihtiyacı gerekir; harita/geocoding adaptörü, gizlilik, kota/lisans ve liste alternatifi ayrıca seçilmeli.",
+          "acceptance": "Konum izni reddinde ilgili liste çalışsın; özel konum dış sağlayıcıya onaysız aktarılmasın; yanlış/eksik adres açıklansın; harita seçim/filter bağlamını korusun.",
+          "itemIds": ["model-2", "locale-4", "views-2", "access-2"],
+          "category": "Koleksiyon görünümü kataloğu"
+        },
+        {
+          "id": "view-chart",
+          "title": "Chart / Analytical View — grafik ve analitik görünüm",
+          "description": "Ölçüm ve gruplama boyutlarına göre toplam, dağılım ve eğilimleri sunar.",
+          "need": "conditional",
+          "frappe": "Rapor API’si headless grafik erişilebilirliği veya doğru metrik hesabı garantisi değildir.",
+          "work": "Ölçüm/boyut/toplama ve zaman aralığı tanımlanmalı; grafik ile tablo/metin eşdeğeri bağlanmalı.",
+          "acceptance": "Grafik kaynak toplamıyla uzlaşsın; eksen/birim ve güncellik görünsün; yalnız renk anlam taşımasın; detay bağlantısı aynı yetkili filtreye açılsın.",
+          "itemIds": ["shell-3", "reports-2", "reports-7", "reports-5"],
+          "category": "Koleksiyon görünümü kataloğu"
+        },
+        {
+          "id": "view-graph",
+          "title": "Graph / Network View — ilişki ağı görünümü",
+          "description": "Birden fazla yönde bağlı kayıtları düğüm ve bağlantılarla sunar.",
+          "need": "conditional",
+          "frappe": "İlişki verisi özel ağ rendererı veya graf analitiği motoru değildir; yeni koşullu katalog varyantıdır.",
+          "work": "Düğüm/kenar tipi, yön, derinlik/hacim sınırı ve yetkili gezinme gerekir.",
+          "acceptance": "Yalnız izinli düğüm ve bağlantılar görünsün; sınırlandırılmış grafik eksik veri olduğunu açıklasın; klavye/liste alternatifi olsun; seçilen düğüm doğru kayda açılsın.",
+          "itemIds": ["model-4", "views-2", "access-2"],
+          "category": "Koleksiyon görünümü kataloğu"
+        },
+        {
+          "id": "view-feed",
+          "title": "Activity / Feed View — faaliyet akışı görünümü",
+          "description": "Değişiklik, iletişim, işlem ve faaliyet olaylarını zaman sırasıyla sunar.",
+          "need": "conditional",
+          "frappe": "Kullanıcı faaliyet akışı denetim kaydıyla aynı amaç, saklama veya erişim sözleşmesi değildir.",
+          "work": "Olay kimliği/zamanı, sıralama, yeniden bağlantı ve izinli kullanıcı sunumu tanımlanmalı.",
+          "acceptance": "Aynı olay tekrarlanmasın; kaçırılan olaylar kontrollü tamamlansın; hassas iç audit bilgisi faaliyete sızmasın; kaynak kayıt yetkisi güncel denetlensin.",
+          "itemIds": ["realtime-4", "realtime-6", "audit-1", "audit-2"],
+          "category": "Koleksiyon görünümü kataloğu"
+        },
+        {
+          "id": "view-matrix",
+          "title": "Matrix / Heatmap View — matris ve yoğunluk haritası",
+          "description": "İki eksen arasındaki değer, durum veya yoğunluğu; yetkinlik, kapasite veya risk gibi ihtiyaçlarda gösterir.",
+          "need": "conditional",
+          "frappe": "Genel karşılaştırma/BI kapsamı özel matris veya heatmap rendererı değildir; yeni koşullu katalog varyantıdır.",
+          "work": "İki eksen, hücre anlamı, ölçüm/toplama ve renk dışı eşdeğer sunum tanımlanmalı.",
+          "acceptance": "Hücre değeri/ölçeği açıklansın; yalnız renkle durum iletilmesin; yetkisiz kombinasyon görünmesin; dar alanda tablo kendi içinde kaydırılsın ve metin küçültülmesin.",
+          "itemIds": ["reports-2", "reports-7", "views-4", "access-2"],
+          "category": "Koleksiyon görünümü kataloğu"
+        }
+      ]
+    },
+    {
+      "id": "providers",
+      "title": "Görünmeyen ortak destek aileleri",
+      "entries": [
+        {
+          "id": "provider-data",
+          "title": "Data Provider / Frappe Adapter — veri sağlayıcı",
+          "description": "Listeleme, kayıt okuma, oluşturma, güncelleme ve izinli işlemleri ortaklaştırır; her tablo/form ayrı backend bağlantısı yazmaz.",
+          "need": "core",
+          "frappe": "Frappe REST/Document API sunar; ürünün Keycloak kimliğini Frappe kullanıcısı ve tenant/kayıt/alan yetkisine bağlayan adapterı ayrıca gerekir.",
+          "work": "Sürümlü veri/işlem sözleşmesi, standart hata, iptal ve güvenli kimlik geçişi tanımlanmalı; frontend sunucu kontrolünü atlamamalı.",
+          "acceptance": "Aynı adapter liste/detay/formda tutarlı sonucu versin; başka tenant verisi gelmesin; iptal edilen eski okuma yeni bağlamı ezmesin; write sunucuda yeniden yetkilendirilsin.",
+          "itemIds": [
+            "integration-1",
+            "integration-9",
+            "channels-10",
+            "access-3"
+          ],
+          "category": "Görünmeyen ortak destek aileleri"
+        },
+        {
+          "id": "provider-metadata",
+          "title": "Schema & Metadata Provider — şema ve üst veri sağlayıcı",
+          "description": "Alan tipi, seçenek, zorunluluk ve desteklenen davranışı kontrollü sözleşmeyle bileşenlere taşır.",
+          "need": "core",
+          "frappe": "DocType/DocField ve sunucu metadata araçları vardır; Desk frm/Form Script bağımsız Ant Design ekranında otomatik yürütülmez.",
+          "work": "Metadata kaynağı/sürümü, izinli alanlar, Link/Dynamic Link/child table adaptörleri ve desteklenmeyen davranış listesi tanımlanmalı; yeni metadata-adapter gereksinimine bağlanmalı.",
+          "acceptance": "Yetkisiz metadata/alan taşınmasın; sürüm uyuşmazlığı açık engellensin; desteklenmeyen script hazır sayılmasın; kritik iş kuralı yalnız UI koşuluna bırakılmasın.",
+          "itemIds": [
+            "model-1",
+            "model-2",
+            "model-4",
+            "model-5",
+            "model-6",
+            "forms-1",
+            "forms-2",
+            "forms-5",
+            "model-8"
+          ],
+          "category": "Görünmeyen ortak destek aileleri"
+        },
+        {
+          "id": "provider-query",
+          "title": "Query & Mutation Coordinator — veri okuma ve değiştirme koordinasyonu",
+          "description": "Veri getirme, önbellek, yenileme, değişiklik sonrası ekran güncelleme ve istek durumlarını ortaklaştırır.",
+          "need": "core",
+          "frappe": "TanStack Query seçilmiş sunucu-state aracıdır; Frappe yetkisi veya kalıcı offline iş modeli değildir.",
+          "work": "Query key kullanıcı/tenant/bağlam/kaynak/filtre/sürüm kapsamını içermeli; okuma iptali, ilgili invalidation ve mutasyon sonucu doğrulaması tanımlanmalı.",
+          "acceptance": "Bağlam değişiminde önceki yanıt/cache sızmasın; başarılı mutation ilgili liste/detayı yenilesin; timeout kesin başarısız sayılmasın; finansal write kör retry veya sahte optimistic başarı üretmesin.",
+          "itemIds": [
+            "views-5",
+            "views-14",
+            "views-13",
+            "integrity-1",
+            "channels-10"
+          ],
+          "category": "Görünmeyen ortak destek aileleri"
+        },
+        {
+          "id": "provider-viewstate",
+          "title": "View State Controller — görünüm durumu yöneticisi",
+          "description": "Aktif görünüm, filtre, sıralama, sayfalama ve seçimi koordine eder; ortak ve sunuma özel durumları ayırır.",
+          "need": "core",
+          "frappe": "Backend filtre/paging sözleşmesi frontend durum yönetimi veya güvenli paylaşılabilir URL değildir.",
+          "work": "TanStack Router URL durumu, Query server cache ve yerel form/seçim ayrı yönetilmeli; bağlam ve görünüm değişim kuralları sürümlenmeli.",
+          "acceptance": "Görünüm değişimi ortak filtreyi korusun; tablo sütunu diğer sunuma zorlanmasın; bağlam değişimi geçersiz seçimi temizlesin; URL secret taşımadan yenileme/geri dönüşte aynı yetkili sonucu açsın.",
+          "itemIds": ["views-5", "views-7", "views-3", "channels-8"],
+          "category": "Görünmeyen ortak destek aileleri"
+        },
+        {
+          "id": "provider-permission",
+          "title": "Permission & Action Resolver — izin ve işlem çözücüsü",
+          "description": "Kullanıcı, çalışma bağlamı, paket hakkı ve kayıt durumuna göre alan/eylem kullanılabilirliğini UI’ya bildirir.",
+          "need": "core",
+          "frappe": "Resolver kullanıcı deneyimidir; Frappe sunucu yetkisini, workflow doğrulamasını veya Keycloak kimliğini ikame etmez.",
+          "work": "Onaylı action registry, neden kodları, güncel policy ve yerel offline sınırı ortaklaştırılmalı.",
+          "acceptance": "Gizlenen eylem API’den yetkisiz çalışmasın; kullanılmama gerekçesi açıklansın; yetki/plan/durum değişiminde eski yetenek sonucu geçersizleşsin; sunucu son kararı versin.",
+          "itemIds": [
+            "access-1",
+            "access-2",
+            "access-3",
+            "entitlements-2",
+            "workflow-7",
+            "modules-6"
+          ],
+          "category": "Görünmeyen ortak destek aileleri"
+        },
+        {
+          "id": "provider-realtime",
+          "title": "Realtime Event Bridge — gerçek zamanlı olay köprüsü",
+          "description": "Sunucu değişikliklerini kayıt, liste ve bildirim yüzeylerine taşır; gerekiyorsa veriyi yeniden aldırır.",
+          "need": "core",
+          "frappe": "Frappe Socket.IO temeli hazır Keycloak/headless event bridge veya kalıcı olay tamamlama protokolü değildir.",
+          "work": "Kimlik/tenant/oda sınırı, şema, tekrar/sıra ve reconnect sonrası kontrollü invalidation tanımlanmalı.",
+          "acceptance": "Başka tenant olayı gelmesin; aynı olay mükerrer etki üretmesin; bağlam değişiminde eski abonelik kapansın; reconnect eksik veriyi tamamlasın ve tazelik doğru gösterilsin.",
+          "itemIds": ["realtime-1", "realtime-3", "events-3", "views-14"],
+          "category": "Görünmeyen ortak destek aileleri"
+        },
+        {
+          "id": "provider-offline",
+          "title": "Offline & Sync Coordinator — çevrimdışı ve eşitleme koordinasyonu",
+          "description": "Kalıcı yerel işlem, gönderim sırası, yeniden deneme, sunucu kabulü ve çakışma sonuçlarını ortaklaştırır.",
+          "need": "project",
+          "frappe": "Frappe API ve Query cache hazır sync motoru değildir; sunucu doğrulaması ve cihazdaki kalıcı outbox ayrıca tasarlanır.",
+          "work": "Tauri SQLite ve web IndexedDB native/web adaptörleri aynı transaction, mutation ID, ack, cursor ve yetki sözleşmesini izlemeli.",
+          "acceptance": "Yerel iş/outbox atomik kalsın; kesintide aynı işlem ikinci kez uygulanmasın; reconnect öncesi yetki yenilensin; çakışma/süre/kota hatası kullanıcı verisini sessiz silmesin.",
+          "itemIds": [
+            "channels-15",
+            "integrity-7",
+            "integrity-8",
+            "integrity-9",
+            "events-4",
+            "events-5",
+            "identity-9"
+          ],
+          "category": "Görünmeyen ortak destek aileleri"
+        },
+        {
+          "id": "provider-registry",
+          "title": "Component & Action Registry — bileşen ve işlem kataloğu",
+          "description": "GenUI’nin hangi bileşeni hangi veri ve izinli eylemle kullanabileceğini sürümlü katalogda sınırlar.",
+          "need": "project",
+          "frappe": "Ant Design X/X Cards Frappe iş şeması ve sunucu yetkisini hazır bilmez; registry güvenlik politikasının tek yerine geçmez.",
+          "work": "Şemalı intent→policy/validation→onaylı React/Ant Design component/capability→runtime hattı kurulmalı; arbitrary code/eval kabul edilmemeli.",
+          "acceptance": "Bilinmeyen bileşen/eylem reddedilsin; her write onay ve güncel sunucu yetkisiyle yürüsün; öneri/önizleme mutasyon olmasın; AI yokken deterministik normal ekranlar çalışsın.",
+          "itemIds": [
+            "ai-7",
+            "shell-10",
+            "modules-6",
+            "events-2",
+            "agents-2",
+            "agents-3"
+          ],
+          "category": "Görünmeyen ortak destek aileleri"
+        }
+      ]
+    }
+  ],
+  "technologyDecisions": [
+    {
+      "id": "architecture-frappe",
+      "title": "Frappe backend ve Desk’ten bağımsız frontend",
+      "description": "Seçilen backend Frappe’dir. DocType/DocField/Document, sunucu doğrulamaları, veri işlemleri, izinler ve kullanılan iş süreçleri arkada kalır. React/Ant Design ekranları Desk’ten bağımsız geliştirilir; backendin hazır ekranını kullanmamak iş kurallarını veya yetkiyi istemciye devretmez. Hedef Frappe sürümü ve gerçek çalışma kanıtı ayrı doğrulanır."
+    },
+    {
+      "id": "architecture-react-ant",
+      "title": "React + Ant Design ortak uygulama arayüzü",
+      "description": "Ortak frontend React ve Ant Design kullanır; yerleşim, veri girişi/gösterimi, gezinme, diyalog ve geri bildirim parçaları uygulama ailelerine birleştirilir. Frappe açısından headless olmak Ant Design’ın unstyled bir kütüphane olduğu anlamına gelmez. Outfit, en az 1rem, semantik tokenlar, WCAG 2.2 AA, 320 CSS piksel ve erişilebilir odak proje kurallarıdır."
+    },
+    {
+      "id": "architecture-antx",
+      "title": "Ant Design X ve onaylı GenUI kataloğu",
+      "description": "Ant Design X asistan/konuşma, X Cards ekosistemi yapılandırılmış dinamik kart yüzeyleri için kullanılır. İş kayıtlarını ve yetkili eylemleri tanıyan catalog/policy/validation/runtime ayrıca geliştirilir; modelin serbest çalıştırılabilir kodu alınmaz. Bu projede GenUI hedefi vardır; bütün SaaS ürünlerinin evrensel zorunluluğu değildir."
+    },
+    {
+      "id": "architecture-tauri",
+      "title": "Tauri 2 mobil ve masaüstü için kesin tercih",
+      "description": "Android/iOS ve Windows/macOS/Linux yerel paketleri için kullanıcı kararı Tauri 2’dir. Ortak web arayüzü pakete gömülür; platform cihaz/API/güvenli saklama/SQLite/auth callback adaptörleri ayrı doğrulanır. Tauri WebView kullanır; tamamen native iş ekranına dönüşüm iddiası yoktur. Capacitor/Capawesome aktif yol değildir; Vite/PWA web ve WXT/Manifest V3 eklenti kapsamı korunur."
+    },
+    {
+      "id": "architecture-router",
+      "title": "TanStack Router seçilmiş gezinme altyapısı",
+      "description": "Rotayı, adresle taşınan izinli görünüm durumunu, yenileme ve geri/ileri davranışını ortaklaştırır. URL, yerel form/seçim ve sunucu önbelleği ayrıdır; paylaşım bağlantısı yetki vermez ve secret/hassas veri taşımaz. Native deep link ve Keycloak dönüşü Tauri platform adaptöründe güvenli eşlenir; tarayıcı rotası tek başına native auth değildir."
+    },
+    {
+      "id": "architecture-query",
+      "title": "TanStack Query seçilmiş sunucu veri koordinasyonu",
+      "description": "Sunucu verisi getirme, cache, yenileme, mutation sonucu ve ilgili ekran invalidationı için seçilmiştir. Query key kullanıcı/tenant/çalışma bağlamı/kaynak/filtre ve uygun sözleşme sürümünü ayırır. Eski okuma iptali ve abonelik temizliği veri sızıntısını önlemeye yardımcı olur; sunucu yetkisini ikame etmez. Query kalıcı outbox veya bütün çevrimdışı iş modelinin yerine geçmez."
+    },
+    {
+      "id": "architecture-grid-open",
+      "title": "AG Grid veya TanStack Table kararı açık",
+      "description": "AG Grid hazır grid yetenekleri, TanStack Table ise görünümü uygulamaya bırakan tablo mantığı sağlar. Seçim henüz yapılmadı; gerçek veri, klavye/dokunma, 320px, performans, gereken yetenekler ve lisans karşılaştırılmalıdır. Ant Design tablo ailesiyle uyum değerlendirilir; diğer uygulama ailelerinin yerine grid motoru konmaz. Hedef sürümler ve yüklenmiş paketler bu planla kanıtlanmaz. AG Grid Community ve Enterprise özellik/lisans farkı ayrıca incelenir; pivot gibi ileri yeteneklerin ücretsiz pakette hazır olduğu varsayılmaz."
+    },
+    {
+      "id": "architecture-keycloak",
+      "title": "Keycloak auth ve bağımsız headless giriş hedefi",
+      "description": "Tüm login/auth Keycloak’tadır; uygulama oturumu Frappe kullanıcısı, kurum üyeliği ve kayıt/alan yetkisine ayrıca bağlanır. Keycloak’ın hiç giriş sayfası üretmediği bağımsız headless giriş kullanıcı hedefidir; standart OIDC yönlendirmesi veya tema/Keycloakify bunun hazır karşılığı sayılmaz. Desteklenen protokol, sosyal/MFA/passkey akışı ve tehdit modeli PoC/güvenlik incelemesiyle doğrulanmadan tamamlandı denmez. ROPC/Direct Grant ile kullanıcı parolasını istemcide toplayan kestirme kullanılmaz."
+    },
+    {
+      "id": "architecture-native-auth",
+      "title": "Native kimlik ve cihaz sözleşmeleri",
+      "description": "Tauri paketinde public client/Authorization Code+PKCE, sistem kimlik oturumu ve doğrulanmış redirect/callback gerekir; client_secret gömülmez, Google girişini uygulamanın denetlediği WebView’a taşımak çözüm sayılmaz. Kamera/dosya/bildirim izinleri, geri hareketi, klavye, güvenli saklama, app resume/OS sonlandırması ve sürüm uyumu her hedefte ayrıca doğrulanır; web derlemesi cihaz veya mağaza kabulü kanıtı değildir."
+    },
+    {
+      "id": "architecture-metadata",
+      "title": "Kontrollü metadata; otomatik Desk script taşıma yok",
+      "description": "Frappe şeması bileşenlerin kontrollü sözleşmesine dönüştürülür; metadata kaynağı, sürümü, tenant/kullanıcı kapsamı ve izinli alanları açık tutulur. Link/Dynamic Link/Table, semantik alan ve koşullar onaylı adaptörlerle eşlenir. Desk Form Script’in frm davranışları otomatik çalışmaz; desteklenen eşleme, özel bileşen ve destek dışı davranış ayrı kaydedilir. Kritik kurallar Frappe sunucusunda yeniden uygulanır."
+    },
+    {
+      "id": "architecture-offline",
+      "title": "Kalıcı offline çekirdek ile server cache ayrımı",
+      "description": "İlk çevrimiçi Keycloak/cihaz/veri hazırlığından sonra desteklenen iş yerel veri katmanından yürür. Tauri cihazlarında seçilen SQLite adaptörü, web/eklentide IndexedDB; atomic iş/outbox, sabit mutation kimliği, commit ack, cursor/tombstone ve kontrollü çakışma politikası gerekir. AI önerisi, kullanıcı onayı, cihaza kalıcı kayıt ve sunucu kabulü farklı durumlardır; Query cache veya bağlantı göstergesi bu yeteneği sağlamış sayılmaz."
+    },
+    {
+      "id": "architecture-delivery",
+      "title": "Ayrı platform kabulü ve yayın sorumluluğu",
+      "description": "Ortak kaynak kodu tek mağaza paketi veya tek imza/yayın süreci değildir. Tauri mobil/masaüstü, web/PWA ve eklenti ayrı build/imza/politika/rollback kabulüne tabidir; masaüstü updater mobil OTA çözümü sayılmaz. Teknik CI/CD, imzalama, deploy ve rollback sahibi Hüseyin Cengiz’dir; istemci ekibi adaptörleri sağlar. Bu katalog yazılım kurmaz, native paket veya dört günlük kesinti testinin yapılmış olduğunu iddia etmez."
+    }
+  ],
+  "paragraphs": [
+    "Uygulama bileşeni ailesi yalnız düğme, metin alanı veya açılır seçim değildir: veri, etkileşim, yetki ve iş kurallarını birlikte ele alan tekrar kullanılabilir bir uygulama sözleşmesidir. Hedef çalışan, ürün veya izin talebi için her seferinde ayrı tablo/form/dosya/onay sistemi yazmak değil, aynı aileleri farklı kayıt ve eylem tanımlarıyla kullanmaktır.",
+    "Katalogdaki ortak temel, bu veri ve iş süreci ağırlıklı altyapıda ortaklaştırılması önerilen tabandır; ailenin bütün gelişmiş yeteneklerini ilk sürüme koyma talimatı değildir. Koşullu aile veya görünüm ihtiyaç/veri doğrulandığında açılır. Proje hedefi GenUI ve gerçek offline çalışma için seçilmiş gereksinimi belirtir; bütün SaaS ürünlerinin evrensel asgari kapsamı değildir.",
+    "View Switcher yalnız sunumu seçtirir. Değiştirici, görünümü çizen bileşen, filtreler, görünüm ayarları, seçim ve veri bağlantısı birlikte çalışır. Tablo→Kanban geçişinde Bana atananlar filtresi korunur; tablo sütun genişliğinin Kanban’a taşınması gerekmez. Yetkili ortak koleksiyon ve sunuma özel ayar ayrılır.",
+    "Table/List/Card/Kanban/Calendar gibi koleksiyon görünümleri yalnız ilgili veri modelinde anlamlı olanlarla açılır. Agenda takvim verisinin liste biçimidir; TreeGrid ağaç ve tablonun birleşimidir. Her kayıt türünde bütün 15 görünümü açmak, uygun veri bulunmadan gerçek destek iddia etmek veya Desk görünümünü headless teslim saymak doğru değildir.",
+    "Form ve Detail çoğunlukla tekil kaydı düzenleme/inceleme yüzeyidir. Split/Master–Detail bir yerleşimdir; bir yanda liste, diğer yanda detay veya form bulunabilir. Dashboard birden fazla gösterge/görünümü birleştirir. Bunları koleksiyon görünüm değiştiricisinde aynı seviyeye koymak yerine aile ve yerleşim ilişkileriyle sınıflandırmak gerekir.",
+    "Frappe DocType kayıt türünü, DocField alan metadata’sını ve Document tekil kaydı temsil eder. Link başka kayıt türünü seçer; Dynamic Link hedef türü dinamik belirleyebilir; Table ana kayda bağlı alt satırları temsil eder. İlişkili kayıt seçici ve child table editörü sıradan metin alanı/Select değil, yetkili veri ve ilişki kurallarıyla çalışan ayrı uygulama alt aileleridir.",
+    "İlişkili kayıt seçici örneği: arama→yetkili sonuçları getirme→doğru çalışma bağlamına daraltma→seçim→önizleme→seçimin hâlâ geçerli olduğunu doğrulama. Ant Design görsel kontrolü tek başına bu zinciri sağlamaz; veri sağlayıcı, ilişki politikası ve sunucuda tekrar denetim gerekir.",
+    "Belge yaşam döngüsü ve onay akışı farklıdır. Frappe docstatus taslak 0, kesinleştirilmiş 1, iptal 2 durumlarını ayırır; workflow Birim yöneticisi onayında veya Finans kontrolünde gibi ek iş durumları taşıyabilir. Kaydet/submit/cancel/amend ile onay/red/iade eylemleri ilişkili olsa da aynı kavram ve yetki değildir.",
+    "Anlık Kaydedildi toast/snackbar’ı yapılan işleme geri bildirimdir. Bildirim merkezi kullanıcının sonradan açıp inceleyebildiği saklanan bildirim deneyimidir. Kullanıcı faaliyet akışı da korumalı denetim kaydının erişim, saklama ve kanıt amacından ayrılır.",
+    "Dışa aktar düğmesi veri aktarım ailesinin tamamı değildir. Büyük işte kapsam seçimi, sunucuda job başlatma, ilerleme, kısmi hata/iptal ve sonuç dosyasını yetkili teslim etme gerekir. Rapor görüntüleyici ve rapor oluşturucu da ayrı alt bileşenlerdir; görüntülemek tasarlama/yayınlama yetkisi vermez.",
+    "Frappe API ve metadata bağlantısını her görsel kontrol içine dağıtmak yerine ortak data/schema/permission adaptörlerinde toplamak gerekir. Provider, coordinator ve registry isimleri bu katalogdaki mimari sorumluluklardır; hepsinin hazır Frappe bileşen adı veya kurulu paket olduğu iddia edilmez.",
+    "Bağımsız headless frontend’de Desk Form Script’in frm üzerinden alan açma/kapama veya özel eylem davranışı otomatik çalışmaz. Hangi davranışın kontrollü şemaya taşındığı, hangisinin özel uygulama bileşeni ve hangisinin destek dışı olduğu kaydedilir. Kritik hesaplama/yetki/iş kuralı yalnız UI’da kalmaz; Frappe sunucusu yeniden doğrular.",
+    "GenUI’de Asistan önerdi, kullanıcı onayladı, cihaza kalıcı kaydedildi ve sunucu işlemi kabul etti ayrı durumlardır. Tek bir Başarılı mesajı ile birleştirilmez. Registry dışı serbest kod çalıştırılmaz; bulut modeline erişim yokken normal iş ekranları ve yetkili offline yolculuk mümkün kalır.",
+    "İlk ortak çekirdek: uygulama kabuğu, gezinme, oturum, erişim, durum/hata; koleksiyon, tablo, arama, filtre, görünüm ayarı; kayıt detayı, form, semantik alan ve kayıt eylemleri. Frappe bağlantı çekirdeği: yetkili ilişki seçimi, model gerektiriyorsa child table, belge yaşam döngüsü ve kullanılan onaylar; data/metadata/permission adaptörleri. GenUI katalog/policy ve offline kayıt/sync/çakışma sözleşmeleri çekirdekle birlikte baştan tasarlanır; bütün ekranları veya bütün gelişmiş görünümleri ilk sürümde bitirme anlamına gelmez.",
+    "Teknoloji veya katalog seçimi gerçek çalışma kanıtı değildir. Web tarayıcısı kontrolü gerçek Tauri Android/iOS/masaüstü paketini, sistem auth oturumunu, native izinleri, mağaza kabulünü veya dört günlük offline dayanıklılık testini doğrulamış sayılmaz. Gereken gerçek platform kabulü ayrıca kayıt altına alınır."
+  ],
+  "sources": [
+    {
+      "title": "Frappe: users and permissions",
+      "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+    },
+    {
+      "title": "Frappe: field types, Link, Dynamic Link and Table",
+      "url": "https://docs.frappe.io/framework/user/en/basics/doctypes/fieldtypes"
+    },
+    {
+      "title": "Frappe: document status",
+      "url": "https://docs.frappe.io/framework/doctypes/docstatus"
+    },
+    {
+      "title": "Frappe: Desk capabilities and independent frontend boundary",
+      "url": "https://docs.frappe.io/framework/user/en/desk"
+    },
+    {
+      "title": "Frappe: background jobs",
+      "url": "https://docs.frappe.io/framework/user/en/api/background_jobs"
+    },
+    {
+      "title": "Frappe: REST API",
+      "url": "https://docs.frappe.io/framework/user/en/api/rest"
+    },
+    {
+      "title": "Frappe: Document API",
+      "url": "https://docs.frappe.io/framework/user/en/api/document"
+    },
+    {
+      "title": "Frappe: Desk Form API and frm",
+      "url": "https://docs.frappe.io/framework/user/en/api/form"
+    },
+    {
+      "title": "Ant Design: component overview",
+      "url": "https://ant.design/components/overview/"
+    },
+    {
+      "title": "AG Grid: React Data Grid",
+      "url": "https://www.ag-grid.com/react-data-grid/getting-started/"
+    },
+    {
+      "title": "TanStack Table: React table",
+      "url": "https://tanstack.com/table/latest/docs/framework/react/react-table"
+    },
+    {
+      "title": "TanStack Router: React overview",
+      "url": "https://tanstack.com/router/latest/docs/framework/react/overview"
+    },
+    {
+      "title": "TanStack Query: React overview",
+      "url": "https://tanstack.com/query/latest/docs/framework/react/overview"
+    },
+    {
+      "title": "Keycloak: JavaScript adapter and token boundaries",
+      "url": "https://www.keycloak.org/securing-apps/javascript-adapter"
+    },
+    {
+      "title": "Keycloak: OIDC protocol layers and Direct Grant boundary",
+      "url": "https://www.keycloak.org/securing-apps/oidc-layers"
+    },
+    {
+      "title": "Ant Design X: assistant and dynamic interface ecosystem",
+      "url": "https://x.ant.design/docs/react/introduce/"
+    },
+    {
+      "title": "Tauri 2: distribution and platform outputs",
+      "url": "https://v2.tauri.app/distribute/"
+    },
+    {
+      "title": "RFC 8252: native app authorization and external user agents",
+      "url": "https://www.rfc-editor.org/rfc/rfc8252.html"
+    },
+    {
+      "title": "AG Grid — Community ve Enterprise özellik/lisans sınırı",
+      "url": "https://www.ag-grid.com/react-data-grid/community-vs-enterprise/"
+    },
+    {
+      "title": "Frappe — Yazdırma ve belge çıktısı",
+      "url": "https://docs.frappe.io/framework/user/en/desk/printing"
+    }
+  ],
+  "summary": "40 bileşen ailesi · 15 koleksiyon görünümü · 8 ortak destek katmanı"
+}

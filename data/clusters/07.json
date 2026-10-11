@@ -540,6 +540,33 @@
               }
             ]
           }
+        },
+        {
+          "kind": "g",
+          "text": "Modüller arası ortak atama ve Benim işlerim kuyruğu; sorumlu, takipçi, son tarih, hatırlatma ve yetkili kayıt eylemleri.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Frappe backend + headless frontend",
+            "confidence": "design",
+            "reviewedAt": "2026-10-11",
+            "note": "Desk atama/kayıt etkileşimi yapı taşları ile mevcut CRM ve helpdesk atamaları referanstır; farklı modülleri birleştiren bağımsız yetkili iş kuyruğu hazır teslim değildir. Ortak kayıt referansı, sorumlu/takipçi, son tarih, durum, sahiplik devri ve bildirim ilişkisi tanımlanır. Benim işlerim yalnız kullanıcının güncel tenant/kayıt/alan izniyle görebildiği işleri sunar; workflow onayı ve teknik background job kuyruğuyla aynı kavram sayılmaz.",
+            "acceptance": "En az iki iş modülünün atanmış kayıtları aynı yetkili kuyrukta görünür olsun; filtre/sıralama/tarih ve kayda dönüş tutarlı çalışsın. Atama/yeniden atama sunucuda yetkilendirilsin, denetim izi ve tekilleştirilmiş hatırlatma oluşsun. Üyelik veya kayıt izni kaldırılınca iş/veri görünmesin; başka tenant görevi ve iç not sızmasın; tamamlanmış işin geçersiz eylemi reddedilsin.",
+            "sources": [
+              {
+                "title": "Frappe: Desk capabilities and independent frontend boundary",
+                "url": "https://docs.frappe.io/framework/user/en/desk"
+              },
+              {
+                "title": "Frappe: users and permissions",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              },
+              {
+                "title": "Frappe: Document API",
+                "url": "https://docs.frappe.io/framework/user/en/api/document"
+              }
+            ]
+          }
         }
       ],
       "sources": [],

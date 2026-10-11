@@ -180,9 +180,9 @@ test('integration baseline freezes all 344 full records and retains the seven in
   assert.deepEqual(projected, baseline.clusters);
   assert.equal(added.length, 7);
   assert.deepEqual(added.sort(), [...additions].sort());
-  assert.equal(entries.length, 377);
-  assert.equal(data.review.expectedItems, 377);
-  assert.equal(data.review.addedItemIds.length, 51);
+  assert.equal(entries.length, 387);
+  assert.equal(data.review.expectedItems, 387);
+  assert.equal(data.review.addedItemIds.length, 61);
   assert.equal(
     hash(data.review.decisions.slice(0, 38)),
     '1536d1334c9478d7107fe179bc37d0b2e2aad86172fc7ae69adf9a4f2183f512',

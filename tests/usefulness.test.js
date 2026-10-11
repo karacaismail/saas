@@ -210,10 +210,10 @@ test('the twelve declared usefulness tail capabilities retain their exact histor
     }
   }
   assert.deepEqual(added.sort(), [...additions].sort());
-  assert.equal(entries.length, 377);
+  assert.equal(entries.length, 387);
   assert.equal(data.clusters.length, 12);
   assert.equal(data.clusters.flatMap((c) => c.groups).length, 49);
-  assert.equal(data.review.expectedItems, 377);
+  assert.equal(data.review.expectedItems, 387);
   assert.equal(data.review.expectedGroups, 49);
   const stageIds = new Set(
     projected.flatMap((c) =>
@@ -228,7 +228,7 @@ test('the twelve declared usefulness tail capabilities retain their exact histor
     [...baseline.review.addedItemIds, ...additions].sort(),
   );
   assert.equal(new Set(stageAddedIds).size, 37);
-  assert.equal(new Set(data.review.addedItemIds).size, 51);
+  assert.equal(new Set(data.review.addedItemIds).size, 61);
 });
 
 test('the 53 earlier decisions remain unchanged and only two approved offline scopes supersede earlier assignments', () => {
@@ -298,7 +298,7 @@ test('all 25 recommendations have categorized benefit, priority, acceptance and 
     Object.keys(criticalTargets).map((id) => `useful-${id}`),
     recommendationIds,
   );
-  assert.equal(data.review.decisions.length, 94);
+  assert.equal(data.review.decisions.length, 109);
   for (const [index, decision] of decisions.entries()) {
     assert.ok(['add', 'merge'].includes(decision.kind), decision.id);
     assert.ok(decision.title.trim(), decision.id);

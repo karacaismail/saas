@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 async function visit(page) {
   await page.setViewportSize({ width: 320, height: 568 });
   await page.goto('./');
-  await expect(page.locator('.feature')).toHaveCount(377);
+  await expect(page.locator('.feature')).toHaveCount(387);
   await expect(page.locator('#search')).toBeEnabled();
   await page.evaluate(() => document.fonts.ready);
 }
@@ -139,7 +139,7 @@ function expectSourcePaint(row) {
   ).toBeGreaterThanOrEqual(4.5);
 }
 
-test('all 377 source tints use five percent alpha while text stays opaque', async ({
+test('all 387 source tints use five percent alpha while text stays opaque', async ({
   page,
 }) => {
   await visit(page);
@@ -191,10 +191,10 @@ test('support, action and owner pills have readable semantic pastels with six di
   for (const tag of ['support', 'action', 'owner'])
     await expect(
       page.locator(`.assessment-tags > [data-tag="${tag}"]`),
-    ).toHaveCount(377);
+    ).toHaveCount(387);
   const rows = await page.locator('.feature').evaluateAll(collectPaint);
   const pills = rows.flatMap((row) => row.pills);
-  expect(pills).toHaveLength(377 * 3);
+  expect(pills).toHaveLength(387 * 3);
   expect(new Set(pills.map((pill) => pill.tag))).toEqual(
     new Set(['support', 'action', 'owner']),
   );
@@ -262,7 +262,7 @@ async function prepareLongOwner(page) {
   await visit(page);
   await expect(
     page.locator('.assessment-tags > [data-tag="owner"]'),
-  ).toHaveCount(377);
+  ).toHaveCount(387);
   const initialRoot = await page.evaluate(() =>
     parseFloat(getComputedStyle(document.documentElement).fontSize),
   );

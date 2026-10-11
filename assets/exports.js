@@ -58,7 +58,7 @@ function copyRoadmap(roadmap) {
 }
 
 function copyReview(review, selectedIds) {
-  return {
+  const result = {
     version: review.version,
     reviewedAt: review.reviewedAt,
     scopeLabels: { ...review.scopeLabels },
@@ -81,6 +81,14 @@ function copyReview(review, selectedIds) {
         itemIds: [...itemIds],
       })),
   };
+  const decisionIds = new Set(result.decisions.map((decision) => decision.id));
+  const notes = Object.fromEntries(
+    Object.entries(review.decisionNotes ?? {}).filter(([id]) =>
+      decisionIds.has(id),
+    ),
+  );
+  if (Object.keys(notes).length) result.decisionNotes = notes;
+  return result;
 }
 
 function assessmentLabel(labels, value) {
@@ -186,6 +194,21 @@ export function buildSelection(data, selectedIds = []) {
     }
   }
   if (data.review) payload.review = copyReview(data.review, exportedIds);
+  if (data.componentCatalog) {
+    const catalog = structuredClone(data.componentCatalog);
+    catalog.sections = catalog.sections
+      .map((section) => ({
+        ...section,
+        entries: section.entries
+          .filter((entry) => entry.itemIds.some((id) => exportedIds.has(id)))
+          .map((entry) => ({
+            ...entry,
+            itemIds: entry.itemIds.filter((id) => exportedIds.has(id)),
+          })),
+      }))
+      .filter((section) => section.entries.length);
+    if (catalog.sections.length) payload.componentCatalog = catalog;
+  }
   return payload;
 }
 
@@ -322,9 +345,58 @@ function markdownReview(review) {
     lines.push('', `#### ${markdownText(copy.reviewDecisions)}`, '');
     for (const decision of review.decisions)
       lines.push(
-        `- **${markdownText(decision.title)}** (${markdownText(decision.id)} · ${markdownText(decision.kind)}): ${markdownText(decision.reason)}; ${decision.itemIds.map(markdownText).join(', ')}`,
+        `- **${markdownText(decision.title)}** (${markdownText(decision.id)} · ${markdownText(decision.kind)}): ${review.decisionNotes?.[decision.id] ? `**${markdownText(review.decisionNotes[decision.id])}** ` : ''}${markdownText(decision.reason)}; ${decision.itemIds.map(markdownText).join(', ')}`,
       );
   }
+  return lines;
+}
+
+function markdownCatalog(catalog) {
+  const copy = catalog.labels;
+  const lines = [
+    '',
+    `## ${markdownText(catalog.title)}`,
+    '',
+    markdownText(catalog.summary),
+    '',
+    markdownText(catalog.intro),
+    '',
+    `${markdownText(copy.source)}: ${markdownText(catalog.source.name)} · ${markdownText(catalog.source.sha256)} · ${markdownText(catalog.source.reviewedAt)}`,
+    '',
+    `### ${markdownText(copy.technology)}`,
+    '',
+  ];
+  for (const entry of catalog.technologyDecisions)
+    lines.push(
+      `- **${markdownText(entry.title)}** (${markdownText(entry.id)}): ${markdownText(entry.description)}`,
+    );
+  for (const section of catalog.sections) {
+    lines.push('', `### ${markdownText(section.title)}`, '');
+    for (const entry of section.entries) {
+      lines.push(
+        `- **${markdownText(entry.title)}** (${markdownText(entry.id)})`,
+        `  - ${markdownText(copy.need)}: ${markdownText(catalog.needLabels[entry.need])} (${markdownText(entry.need)})`,
+      );
+      for (const key of [
+        'category',
+        'description',
+        'frappe',
+        'work',
+        'acceptance',
+      ])
+        lines.push(
+          `  - ${markdownText(copy[key])}: ${markdownText(entry[key])}`,
+        );
+      lines.push(
+        `  - ${markdownText(copy.itemIds)}: ${entry.itemIds.map(markdownText).join(', ')}`,
+      );
+    }
+  }
+  lines.push('', `### ${markdownText(copy.notes)}`, '');
+  for (const paragraph of catalog.paragraphs)
+    lines.push(`- ${markdownText(paragraph)}`);
+  for (const source of catalog.sources)
+    lines.push(`- ${markdownText(copy.source)}: ${markdownSource(source)}`);
   return lines;
 }
 
@@ -440,6 +512,8 @@ function toMarkdown(payload) {
     }
   }
 
+  if (payload.componentCatalog)
+    lines.push(...markdownCatalog(payload.componentCatalog));
   return `${lines.join('\n')}\n`;
 }
 

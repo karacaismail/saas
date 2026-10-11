@@ -945,6 +945,60 @@
               }
             ]
           }
+        },
+        {
+          "kind": "g",
+          "text": "Tauri 2 mobilde imzalı mağaza güncellemesi; masaüstü updater ile mobil OTA sınırını ayırma.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "Hüseyin Cengiz + istemci ekibi",
+            "confidence": "design",
+            "reviewedAt": "2026-10-11",
+            "note": "Tauri 2 kesin seçimdir. Belgelenen Tauri updater masaüstüne yöneliktir; mobilde temel yol ayrı imzalı App Store/Google Play paketidir. Capawesome Tauri mobil için hazır Live Updates çözümü değildir. OTA istenirse Tauri ile uyumlu teknik çözüm, native sürüm/şema, imza, sağlık kontrolü, güvenli geri dönüş ve mağaza politikası ayrı PoC ile doğrulanmadan açık sayılmaz. Web yayını telefondaki kodu otomatik etkinleştirmez. Frappe bu istemci yayın sistemini sağlamaz.",
+            "acceptance": "Kullanıcı form doldururken zorla yenileme yapılmamalı; bekleyen kayıt/outbox ve dosyalar mağaza güncellemesi/migration/geri dönüşte korunmalı. İmza, native/plugin uyumu ve soğuk açılış sağlığı test edilmeli. Uyumlu rollback yoksa veri kaybettiren geri dönüş engellenmeli; mobil OTA test edilmediyse destekleniyor denmemeli.",
+            "sources": [
+              {
+                "title": "Tauri 2 — Masaüstü updater",
+                "url": "https://v2.tauri.app/plugin/updater/"
+              },
+              {
+                "title": "Tauri 2 — Google Play",
+                "url": "https://v2.tauri.app/distribute/google-play/"
+              },
+              {
+                "title": "Tauri 2 — App Store",
+                "url": "https://v2.tauri.app/distribute/app-store/"
+              },
+              {
+                "title": "Capawesome — Tauri Live Updates sınırlaması",
+                "url": "https://capawesome.io/docs/cloud/live-updates/faq/"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Mobil mağaza kabulü ve yayın kapısı: gerçek uygulama faydası, izinler, indirilen kod ve login politikaları.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "Hüseyin Cengiz + ürün ekibi",
+            "confidence": "design",
+            "reviewedAt": "2026-10-11",
+            "note": "Apple 4.2 WebView kullanımını tek başına yasaklamaz; yeniden paketlenmiş web sitesinin ötesinde anlamlı işlev/deneyim ister ve birkaç cihaz özelliği kabul garantisi vermez. Apple 2.5.2 ve ilgili sözleşme ile Google Play kuralları indirilen kod/yeni işlevin dağıtım sınırlarını belirler. JavaScript olmak veya sürüme küçük demek inceleme muafiyeti değildir. Native kod/eklenti/izin değişimi yeni imzalı paket ister. Sosyal giriş ve Apple 4.8 gereği kullanılan akış/istisnaya göre incelenir; yalnız Keycloak kullanmak otomatik Sign in with Apple zorunluluğu doğurmaz.",
+            "acceptance": "Her yayın metin/görünüm düzeltmesi, yeni işlev/veri/ödeme değişimi ve native/izin değişimi olarak içerik bazında değerlendirilmeli. Mobil uyum ve güncel mağaza kuralları geçmeden OTA veya mağaza dağıtımı açılmamalı; gerçek fayda/izin açıklamaları ve inceleme kanıtı kaydedilmeli, kabul garantisi verilmemeli.",
+            "sources": [
+              {
+                "title": "Apple — Uygulama inceleme kuralları",
+                "url": "https://developer.apple.com/app-store/review/guidelines/"
+              },
+              {
+                "title": "Google Play — Cihaz ve ağ kötüye kullanım politikası",
+                "url": "https://support.google.com/googleplay/android-developer/answer/16559646?hl=en"
+              }
+            ]
+          }
         }
       ],
       "sources": [],

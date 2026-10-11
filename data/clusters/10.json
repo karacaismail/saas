@@ -208,6 +208,41 @@
               }
             ]
           }
+        },
+        {
+          "kind": "g",
+          "text": "Yazdırma ve belge çıktısı ailesi; sürümlü şablon, yetkili önizleme, PDF/indirme ve toplu belge üretimi.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Frappe backend + headless frontend",
+            "confidence": "design",
+            "reviewedAt": "2026-10-11",
+            "note": "Frappe Desk/Document ve arka plan işi yapı taşları başlangıçtır; rapor görüntüleme veya veri exportu genel headless belge şablonu/print/PDF ailesinin tamamı değildir. Hedef sürümde print formatı, renderer ve çıktı bağımlılıkları doğrulanır; şablon seçimi/sürümü, baskı önizlemesi, kayıt/alan izinleri, güvenli dosya teslimi ve toplu üretim ayrı bağlanır. Dış içerik/şablon girdileri renderer güvenlik sınırını aşamaz; üretilmiş özel dosyalar erişim ve saklama politikasına tabidir.",
+            "acceptance": "Seçilen şablonun sürümü ile önizleme ve nihai belge aynı yetkili veriyi kullansın; para/tarih/dil ve sayfa taşması gerçek uzun içerikle doğrulansın. PDF veya indirme yetkisiz alan/özel ek göstermesin; başka tenant belge kimliğiyle erişilemesin. Toplu üretim arka planda ilerleme ve kayıt bazlı hata sunsun; tekrar deneme istem dışı çoğaltmasın; yalnız yetkili kullanıcı geçerli süre içinde çıktıyı indirebilsin.",
+            "sources": [
+              {
+                "title": "Frappe: Desk capabilities and independent frontend boundary",
+                "url": "https://docs.frappe.io/framework/user/en/desk"
+              },
+              {
+                "title": "Frappe: Document API",
+                "url": "https://docs.frappe.io/framework/user/en/api/document"
+              },
+              {
+                "title": "Frappe: background jobs",
+                "url": "https://docs.frappe.io/framework/user/en/api/background_jobs"
+              },
+              {
+                "title": "Frappe: users and permissions",
+                "url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions"
+              },
+              {
+                "title": "Frappe — Yazdırma ve belge çıktısı",
+                "url": "https://docs.frappe.io/framework/user/en/desk/printing"
+              }
+            ]
+          }
         }
       ],
       "sources": ["tenant"],

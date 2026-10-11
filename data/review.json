@@ -1,7 +1,7 @@
 {
   "version": 1,
   "reviewedAt": "2026-10-11",
-  "expectedItems": 377,
+  "expectedItems": 387,
   "expectedGroups": 49,
   "source": {
     "title": "SaaS Paneli Özellik Haritası",
@@ -672,12 +672,14 @@
       "reason": "2026-10-11 kullanıcı talebi: buluttaki Frappe, bağımsız headless frontend ve çevrimdışı çoklu platform varyantı için zorunludur; bütün SaaS ürünlerinin evrensel asgari kapsamı değildir. O3 teslim aşamasıdır, isteğe bağlılık veya tamamlanma kanıtı değildir; ilk Keycloak girişi ve cihaz/veri hazırlığı çevrimiçi yapılır."
     },
     "channels-12": {
-      "scope": "required",
-      "reason": "2026-10-11 kullanıcı talebi: buluttaki Frappe, bağımsız headless frontend ve çevrimdışı çoklu platform varyantı için zorunludur; bütün SaaS ürünlerinin evrensel asgari kapsamı değildir. O3 teslim aşamasıdır, isteğe bağlılık veya tamamlanma kanıtı değildir; ilk Keycloak girişi ve cihaz/veri hazırlığı çevrimiçi yapılır."
+      "scope": "implementation",
+      "label": "Tarihsel alternatif · Güncel mobil yol Tauri 2",
+      "reason": "Capacitor önerisi son kullanıcı kararıyla seçilmemiş tarihsel alternatiftir. Etkin Android/iOS ve masaüstü kararı Tauri 2; güncel mobil gereksinim channels-17, yayın releases-12/13 kapsamındadır. Aşağıdaki eski değerlendirme geçmiş kanıttır; yeni tercih olarak uygulanmaz."
     },
     "channels-13": {
       "scope": "required",
-      "reason": "2026-10-11 kullanıcı talebi: buluttaki Frappe, bağımsız headless frontend ve çevrimdışı çoklu platform varyantı için zorunludur; bütün SaaS ürünlerinin evrensel asgari kapsamı değildir. O3 teslim aşamasıdır, isteğe bağlılık veya tamamlanma kanıtı değildir; ilk Keycloak girişi ve cihaz/veri hazırlığı çevrimiçi yapılır."
+      "label": "Güncel seçim · Tauri 2 mobil ve masaüstü",
+      "reason": "Tauri 2 masaüstü seçimi devam eder ve kullanıcı kararıyla Android/iOS da Tauri 2 olur. Eski nottaki seçilen Capacitor ifadesi tarihsel olarak geçersizdir. Mobil paket ve mağaza kabulü channels-17/releases-12/13; masaüstü updater mobil OTA sayılmaz."
     },
     "channels-14": {
       "scope": "required",
@@ -685,7 +687,8 @@
     },
     "channels-15": {
       "scope": "required",
-      "reason": "2026-10-11 kullanıcı talebi: buluttaki Frappe, bağımsız headless frontend ve çevrimdışı çoklu platform varyantı için zorunludur; bütün SaaS ürünlerinin evrensel asgari kapsamı değildir. O1 teslim aşamasıdır, isteğe bağlılık veya tamamlanma kanıtı değildir; ilk Keycloak girişi ve cihaz/veri hazırlığı çevrimiçi yapılır."
+      "label": "Güncel depo katmanı · Tauri 2 / SQLite",
+      "reason": "Mobil/masaüstü SQLite adapterı Tauri 2 hedefleri için seçilir; eski Capacitor eklentisi atfı aktif bağımlılık değildir. Web/eklenti IndexedDB olarak kalır. Tauri SQL veya Stronghold tek başına şifreli veritabanı, atomik outbox, sync ya da yedekleme garantisi değildir."
     },
     "channels-16": {
       "scope": "required",
@@ -693,7 +696,8 @@
     },
     "identity-9": {
       "scope": "required",
-      "reason": "2026-10-11 kullanıcı talebi: buluttaki Frappe, bağımsız headless frontend ve çevrimdışı çoklu platform varyantı için zorunludur; bütün SaaS ürünlerinin evrensel asgari kapsamı değildir. O0 teslim aşamasıdır, isteğe bağlılık veya tamamlanma kanıtı değildir; ilk Keycloak girişi ve cihaz/veri hazırlığı çevrimiçi yapılır."
+      "label": "Güncel kimlik adapterı · Tauri 2 / Keycloak",
+      "reason": "Native public client Authorization Code + PKCE, iOS sistem kimlik oturumu ve Android sistem tarayıcısı akışı Tauri 2 adapterı üzerinden doğrulanır. Eski Capacitor adapter atfı tarihsel kalır. AppAuth/opener/deep link hazır uçtan uca Tauri login çözümü sayılmaz; state/nonce/redirect, iptal, yaşam döngüsü ve yeniden yetkilendirme ayrıca test edilir."
     },
     "integrity-7": {
       "scope": "required",
@@ -718,6 +722,46 @@
     "backup-7": {
       "scope": "required",
       "reason": "2026-10-11 kullanıcı talebi: buluttaki Frappe, bağımsız headless frontend ve çevrimdışı çoklu platform varyantı için zorunludur; bütün SaaS ürünlerinin evrensel asgari kapsamı değildir. O3 teslim aşamasıdır, isteğe bağlılık veya tamamlanma kanıtı değildir; ilk Keycloak girişi ve cihaz/veri hazırlığı çevrimiçi yapılır."
+    },
+    "channels-17": {
+      "scope": "required",
+      "reason": "Kullanıcının kesin kararı Tauri 2 mobil ve masaüstüdür. Android AAB/APK ve iOS IPA, Vite üretim varlıkları frontendDist ile gömülerek hazırlanır; masaüstü hedefleri channels-13 kapsamında kalır. Ant Design ve Ant Design X ortak React web arayüzüdür; Tauri sistem WebView kullanır, bileşenleri tamamen native ekranlara dönüştürmez. Capacitor ve Capawesome aktif bağımlılık değildir; channels-12 tarihsel alternatif olarak saklanır. Web Vite/PWA, eklenti WXT/Manifest V3 olarak kalır. Frappe paketleme sağlamaz; hedef araç/OS/WebView sürümleri henüz sabitlenmedi. Kabul: Aynı ortak frontend çıktısı gerçek Android ve iOS hedeflerinde gömülü varlıklarla açılmalı; ilk çevrimiçi hazırlık sonrası ağsız açılış doğrulanmalı. Ayrı imza/mağaza paketleri, sistem WebView uyumu ve masaüstü dağıtımı test edilmeli; uzaktaki siteyi açmak offline kabulü sayılmamalı."
+    },
+    "channels-18": {
+      "scope": "conditional",
+      "reason": "Ortak iş/veri çekirdeği korunur; kamera, dosya, bildirim, güvenli anahtar ve login dönüşü seçilmiş Tauri eklentisi veya Kotlin/Swift adapter ile bağlanır. Resmî barkod eklentisi genel belge fotoğrafı çözümü değildir. Üründe kullanılan yetenekler için en az izin/capability kapsamı, kullanıcı reddinde alternatif ve tenant/kayıt yetkisi gerekir; uzak içerik ayrıcalıklı native köprüye erişemez. Frappe API bu cihaz davranışlarını hazır sağlamaz. Kabul: Gerçek cihazda izin kabul/red/sonradan iptal, fotoğraf ekleme veya barkod yolu, dosya sınırı ve bildirim bağlantısı test edilmeli. Çevrimdışı eklenen dosya/kayıt kalıcı kuyruğa bağlanmalı; yanlış tenant veya yetkisiz deep link reddedilmeli; kullanılmayan yetenek izin istememeli."
+    },
+    "channels-19": {
+      "scope": "required",
+      "reason": "Tauri 2 ortak frontend kararını korumak, mobil etkileşimi ayrıca tasarlama gereğini kaldırmaz. 320 CSS px önceliği; doğal sarım, büyük metin, görünür klavye odağı ve erişilebilir hedefler korunur. Geri/gesture, sanal klavye, izin reddi, background/foreground, çağrı veya OS sonlandırması sırasında taslak, yerel kayıt, outbox ve seçilmiş iş bağlamı korunmalıdır. Cihaz yeteneği ekran genişliğinden çıkarılmaz. Kabul: 320/360/375/390, kısa yatay ve gerçek Android/iOS cihazlarında klavye örtmesi, sistem geri hareketi, büyük metin, izin reddi ve süreç sonlandırması test edilmeli. Başarıyla kaydedilen iş/outbox yeniden açılışta bulunmalı; görünür durum kaydetme ile merkez kabulünü ayırmalı; ekran okuyucu ve odak dönüşü ayrıca doğrulanmalı."
+    },
+    "releases-12": {
+      "scope": "required",
+      "reason": "Tauri 2 kesin seçimdir. Belgelenen Tauri updater masaüstüne yöneliktir; mobilde temel yol ayrı imzalı App Store/Google Play paketidir. Capawesome Tauri mobil için hazır Live Updates çözümü değildir. OTA istenirse Tauri ile uyumlu teknik çözüm, native sürüm/şema, imza, sağlık kontrolü, güvenli geri dönüş ve mağaza politikası ayrı PoC ile doğrulanmadan açık sayılmaz. Web yayını telefondaki kodu otomatik etkinleştirmez. Frappe bu istemci yayın sistemini sağlamaz. Kabul: Kullanıcı form doldururken zorla yenileme yapılmamalı; bekleyen kayıt/outbox ve dosyalar mağaza güncellemesi/migration/geri dönüşte korunmalı. İmza, native/plugin uyumu ve soğuk açılış sağlığı test edilmeli. Uyumlu rollback yoksa veri kaybettiren geri dönüş engellenmeli; mobil OTA test edilmediyse destekleniyor denmemeli."
+    },
+    "releases-13": {
+      "scope": "required",
+      "reason": "Apple 4.2 WebView kullanımını tek başına yasaklamaz; yeniden paketlenmiş web sitesinin ötesinde anlamlı işlev/deneyim ister ve birkaç cihaz özelliği kabul garantisi vermez. Apple 2.5.2 ve ilgili sözleşme ile Google Play kuralları indirilen kod/yeni işlevin dağıtım sınırlarını belirler. JavaScript olmak veya sürüme küçük demek inceleme muafiyeti değildir. Native kod/eklenti/izin değişimi yeni imzalı paket ister. Sosyal giriş ve Apple 4.8 gereği kullanılan akış/istisnaya göre incelenir; yalnız Keycloak kullanmak otomatik Sign in with Apple zorunluluğu doğurmaz. Kabul: Her yayın metin/görünüm düzeltmesi, yeni işlev/veri/ödeme değişimi ve native/izin değişimi olarak içerik bazında değerlendirilmeli. Mobil uyum ve güncel mağaza kuralları geçmeden OTA veya mağaza dağıtımı açılmamalı; gerçek fayda/izin açıklamaları ve inceleme kanıtı kaydedilmeli, kabul garantisi verilmemeli."
+    },
+    "identity-10": {
+      "scope": "required",
+      "reason": "Tüm login/auth Keycloak sorumluluğunda kalır. Ant Design/Ant Design X uygulama arayüzü kararı, Keycloak login sayfasını kendiliğinden headless yapmaz. Keycloakify, Keycloak tarafından üretilen login/account/email ekranlarını temalandıran bir seçenektir. Tamamen bağımsız credential ekranı ayrıca kimlik entegrasyonu/güvenlik geliştirmesidir; tema çözümü bunun sağlanmış hali değildir. Uygulamada parola toplayıp Direct Grant/ROPC ile gönderme kestirmesi varsayılan olmaz. Tauri 2 native public client sistem oturumu ve PKCE adapterı identity-9 ve mobile-oidc ile birlikte doğrulanır. Kabul: Giriş görünümünün tema mı bağımsız kimlik UI mı olduğu açık karar kaydı taşımalı. Sistem oturumunda Keycloak OIDC/MFA/sosyal akış, redirect/state/nonce/PKCE ve iptal/dönüş test edilmeli; uygulama paketinde client secret bulunmamalı. Google authorization kontrollü embedded WebView içinde açılmamalı; headless uygulama ile login sunumu karıştırılmamalı."
+    },
+    "ai-7": {
+      "scope": "advanced",
+      "reason": "Ant Design ve Ant Design X kesin frontend kararıdır. GenUI model çıktısı çalıştırılabilir kod değil, onaylı Ant Design X Cards bileşen kataloğuna ait yapılandırılmış JSON olmalıdır. Şema/özellik doğrulaması, tenant/kapsam ve sunucu yetkisi/policy kontrolünden sonra deterministik bileşen ve izinli eylem oluşur. Ant Design Pro iş bileşenleri ve Ant X agent yüzeyleri ortak token/Outfit/1rem yaklaşımını paylaşır. Şema, sunucu yetkilendirmesinin yerine geçmez. Bulut AI yokken temel yerel form/veri/iş akışları çalışır; GenUI ileri aşama kapsamıdır. Kabul: Bilinmeyen bileşen, yürütülebilir model kodu, yetkisiz eylem ve kapsam dışı veri reddedilmeli. Tenant/kapsam ve gerekli işlem onayı görünür olmalı; uydurma ilerleme veya yapılmamış mutation gösterilmemeli. AI/ağ kesintisinde normal iş ekranı, yerel kayıt ve senkronizasyon kuyruğu erişilebilir kalmalı; 320px ve büyük metin kabulü katalog bileşenlerini de kapsamalı."
+    },
+    "model-8": {
+      "scope": "required",
+      "reason": "Seçilen Frappe backend + bağımsız React/Ant Design/GenUI uygulama kataloğunda metadata tabanlı ortak alan/ilişki bileşenlerini güvenli beslemek gerekir. Bu projeye ait ortak adapter sözleşmesidir; her SaaS’ın her Desk davranışını yeniden üretmesi gerektiği anlamına gelmez. Tasarım planıdır, hedef sürüm ve runtime kanıtı bekler."
+    },
+    "realtime-7": {
+      "scope": "conditional",
+      "reason": "İş dağıtımı ve birden fazla kayıt türünde kişisel görev takibi sunan ürünlerde ortaklaştırılır. CRM/helpdesk’e özel atamaların tekrar yazılmasını azaltır; bütün SaaS ürünlerine zorunlu genel görev modülü yüklemez. Kullanıcı işi, workflow onay kuyruğu ve teknik arka plan işi birbirinden ayrılır."
+    },
+    "reports-9": {
+      "scope": "conditional",
+      "reason": "Belge çıktısı sunan ürünlerde şablon, önizleme ve PDF/toplu üretim birlikte planlanır. CSV/JSON/XLSX veri aktarımı veya dashboard/rapor görüntüleyiciyle aynı aile değildir; belge ihtiyacı olmayan bütün SaaS ürünleri için evrensel zorunluluk sayılmaz. Hedef renderer/sürüm ve gerçek çıktı kabulü ayrıca doğrulanır."
     }
   },
   "addedItemIds": [
@@ -771,7 +815,17 @@
     "integrity-9",
     "integrity-10",
     "releases-11",
-    "backup-7"
+    "backup-7",
+    "channels-17",
+    "channels-18",
+    "channels-19",
+    "releases-12",
+    "releases-13",
+    "identity-10",
+    "ai-7",
+    "model-8",
+    "realtime-7",
+    "reports-9"
   ],
   "decisions": [
     {
@@ -1527,6 +1581,131 @@
         "integrity-7",
         "backup-7"
       ]
+    },
+    {
+      "id": "mobile-stack",
+      "kind": "correct",
+      "title": "Kesin karar: Tauri 2 mobil ve masaüstü",
+      "reason": "MOB0: Kullanıcının kesin seçimi Tauri 2 ile Android ve iOS yanında Windows/macOS/Linux paketleridir. React + Ant Design + Ant Design X arayüzü gömülü Vite çıktısı ve ortak çekirdeği paylaşır. Capacitor ile Capawesome seçilmiş çözüm değildir; eski dört offline karar notla tarihsel olarak işaretlenir. Web Vite/PWA ve Chrome WXT/MV3 devam eder. Kabul: Hedef sürüm/OS/WebView matrisi ve imzalı AAB/APK/IPA/masaüstü paketleri gerçek hedefte doğrulansın; yerel Frappe kurulumu gerekmesin. Sorumlu: istemci ekibi; teknik yayın/imza Hüseyin Cengiz.",
+      "itemIds": [
+        "channels-17",
+        "channels-12",
+        "channels-13",
+        "channels-15",
+        "identity-9"
+      ]
+    },
+    {
+      "id": "mobile-ui",
+      "kind": "correct",
+      "title": "Kesin karar: ortak Ant Design ve Ant Design X frontend",
+      "reason": "MOB0: React, Ant Design ve Ant Design X kesin frontend seçimidir; Ant Design Pro iş bileşenleri, Ant X agent yüzeyleri ve X Cards katalogları aynı tasarım/Outfit/token katmanını kullanır. Tauri sistem WebView kullanır; tamamen native kontrollere derleme iddiası yoktur. React Native/Expo ayrı ekran geliştirme alternatifi, TWA Android tarayıcı yolu, Electron başka masaüstü yolu olarak değerlendirilmiş ve seçilmemiştir; WXT eklenti hedefinde kalır. Kabul: Ortak iş/veri çekirdeği kopyalanmasın; platforma uygun sunum/etkileşim, 320px/1rem/400 ve erişilebilir odak test edilsin.",
+      "itemIds": ["shell-10", "channels-10", "channels-17", "ai-7"]
+    },
+    {
+      "id": "mobile-devices",
+      "kind": "add",
+      "title": "İhtiyaca bağlı native cihaz işlevleri",
+      "reason": "MOB1: Kamera/belge fotoğrafı, barkod, dosya, bildirim ve güvenli anahtar ihtiyaçları Tauri capability sınırları ve doğrulanmış adapterlarla bağlanır. Barkod eklentisi genel kamera belge çözümü sayılmaz; sırf mağaza kabulü için göstermelik özellik eklenmez. Kabul: İzin reddi alternatifi, tenant/kayıt yetkisi, offline dosya kuyruğu ve kullanılmayan iznin istenmemesi gerçek cihazda geçsin.",
+      "itemIds": ["channels-18", "channels-3", "channels-8", "files-1"]
+    },
+    {
+      "id": "mobile-lifecycle",
+      "kind": "add",
+      "title": "Mobil yaşam döngüsünü ortak ürün kabulüne ekle",
+      "reason": "MOB1: Tek arayüz kod tabanı mobil uyarlamayı kaldırmaz. Sistem geri hareketi/gesture, klavye/safe area, arka plan/dönüş, OS sonlandırması, büyük metin ve ekran okuyucu kritik yolculuğa eklenir. Kabul: Kaydedilmiş veri/outbox yeniden açılışta bulunsun; taslak ve odak güvenli biçimde geri gelsin; ekran genişliğinden giriş yeteneği çıkarılmasın.",
+      "itemIds": [
+        "channels-19",
+        "channels-4",
+        "channels-5",
+        "channels-6",
+        "integrity-10"
+      ]
+    },
+    {
+      "id": "mobile-release",
+      "kind": "add",
+      "title": "Tauri mobil için imzalı mağaza paketi temel yol",
+      "reason": "MOB3: Mobil varsayılan App Store/Google Play için ayrı imzalı paketlerdir; masaüstü Tauri updater imza gereksinimiyle ayrı uygulanır. Web yayını her telefona anında kod etkinleştirmez; yeni native plugin/izin yeni binary ister. Kabul: Form sırasında zorla yenileme olmasın; pending kayıt/dosya/outbox, şema ve desteklenen geri dönüş korunsun. İmza, deploy ve rollback sahibi Hüseyin Cengiz; istemci ekibi migration/sağlık kanıtını sağlar.",
+      "itemIds": ["releases-12", "releases-11", "channels-17", "channels-13"]
+    },
+    {
+      "id": "mobile-ota",
+      "kind": "correct",
+      "title": "Mobil OTA bir destek iddiası değil doğrulanacak boşluk",
+      "reason": "MOB3: Tauri masaüstü updater mobil OTA çözümü değildir. Capawesome Live Update SDK MIT ve self-hosted dağıtımı olan Capacitor ekosistemi seçeneğidir; managed Cloud ayrı hizmettir, Tauri hedefinde canlı güncelleme desteği varsayılmaz ve aktif bağımlılık yapılmaz. Tauri 2 kararını değiştirmeden mobil OTA ancak uygun ayrı teknik çözüm ve güncel mağaza kuralları kanıtıyla açılabilir. İmza, native/runtime/şema hedefleme, sınırlı dağıtım, sağlıklı açılış teyidi, güvenli etkinleştirme ve veriye uyumlu rollback şarttır; dosya rollback tek başına DB rollback değildir. Kabul: PoC ve politika kabulü yoksa destekleniyor denmesin; temel signed-store yol çalışsın; ücretli servis kurulmasın.",
+      "itemIds": ["releases-12", "releases-13", "releases-11"]
+    },
+    {
+      "id": "mobile-store",
+      "kind": "add",
+      "title": "WebView ve OTA mağaza kabulünden muaf değildir",
+      "reason": "MOB3: Apple4.2 gerçek ürün faydası ister; WebView otomatik ret veya kabul değildir. Apple2.5.2/ilgili sözleşme ve Google Play indirilen kod politikaları değişiklik içeriğine göre değerlendirilir; yorumlanan JavaScript istisnası tüm kuralları kaldırmaz. Kabul: Metin/görünüm, yeni kullanıcı işlevi/ödeme/veri ve native/izin değişimi ayrı yayın kapısından geçsin; gerekli değişiklik mağaza sürümüne alınsın, otomatik kabul sözü verilmesin.",
+      "itemIds": ["releases-13", "releases-12", "channels-18"]
+    },
+    {
+      "id": "mobile-oidc",
+      "kind": "correct",
+      "title": "Tauri 2 native OIDC için sistem oturumu adapterı",
+      "reason": "MOB0: Keycloak kimliği public client Authorization Code + PKCE ile; iOS ASWebAuthenticationSession/AppAuth ve Android Custom Tabs/AppAuth gibi sistem oturumuna bağlanır. Tauri opener/deep link yalnız taşıma temelidir; hazır güvenli login entegrasyonu değildir. State, nonce, redirect ve token doğrulama, iptal/soğuk dönüş ve başlatan istek eşlemesi gerekir. Paket içine client secret konmaz; Google authorization uygulamanın denetlediği WebView içinde açılmaz. Kabul: Yanlış state/redirect, yinelenen callback ve tenant bağlamı reddedilsin; offline_access internetsiz login sanılmasın.",
+      "itemIds": ["identity-9", "identity-10", "identity-6", "channels-17"]
+    },
+    {
+      "id": "mobile-login-theme",
+      "kind": "correct",
+      "title": "Keycloak tema sunumu headless login olarak sunulmaz",
+      "reason": "MOB0: Uygulama Ant Design/Ant X ile Frappe ekranlarından bağımsızdır; Keycloak login sunumu ayrı sözleşmedir. Keycloakify teması Keycloak tarafından üretilen UI görünümünü özelleştirir. Tamamen bağımsız credential UI ek kimlik/güvenlik kapsamıdır; Direct Grant/ROPC parola kestirmesi seçilmez. Kabul: Tema ve bağımsız login ayrımı karar kaydında görünür olsun; MFA/sosyal giriş ve sistem oturumu bütünlüğü korunsun; tüm auth Keycloak üzerinde kalsın.",
+      "itemIds": ["identity-10", "identity-9", "identity-1"]
+    },
+    {
+      "id": "mobile-social",
+      "kind": "correct",
+      "title": "Apple sosyal login değerlendirmesi bağlama bağlıdır",
+      "reason": "MOB3: Keycloak seçimi kendi başına Sign in with Apple zorunluluğu yaratmaz. Google gibi sosyal login ile birincil hesap oluşturma/giriş, kurumsal/kendi hesap istisnaları ve Apple4.8 güncel koşullara göre incelenir. Kabul: Kullanılan provider/hesap akışı ve istisna gerekçesi belgelenip gerekli eşdeğer gizlilik seçeneği sağlansın; mağaza onayı garanti diye sunulmasın.",
+      "itemIds": ["identity-6", "identity-10", "releases-13"]
+    },
+    {
+      "id": "mobile-offline",
+      "kind": "merge",
+      "title": "Mobil gerçek iş yolculuğu ve güncelleme kabulü",
+      "reason": "MOB1→MOB3: Çevrimiçi Keycloak/cihaz hazırlığı → kayıt oluştur/fotoğraf ekle → ağı kes → atomik yerel kayıt/outbox → kapat/aç → veriyi doğrula → bağlantıyı getir → merkezde tek iş etkisi → başka kayıt beklerken güncelle. Offline gereken ekran/dosya koşullu indirme yüzünden ilk açılışta ağa bağımlı kalmaz; localStorage kritik kaydın tek kopyası olmaz. Yerel erişim süresi dolması kayıt silmek veya sunucu yeniden yetkisini atlamak değildir. Kabul: Gerçek Tauri2Android/iOS üzerinde lifecycle/izin/klavye ve dört günlük fault suite geçsin; başarı merkez ack ve yerel kalıcılıkla doğru ayrılsın.",
+      "itemIds": [
+        "channels-17",
+        "channels-18",
+        "channels-19",
+        "channels-15",
+        "channels-16",
+        "integrity-10",
+        "releases-12"
+      ]
+    },
+    {
+      "id": "mobile-genui",
+      "kind": "merge",
+      "title": "Ant X Cards ile katalog ve policy üzerinden GenUI",
+      "reason": "MOB2: Ant Design ve Ant Design X seçimi korunur. Model → yapılandırılmış JSON → şema/katalog doğrulama → tenant/yetki/policy → deterministik izinli bileşen/eylem akışı kullanılır; serbest çalıştırılabilir model kodu yoktur. Kabul: Bilinmeyen capability/eylem ve yetkisiz veri reddedilsin; gerçek araç olayı/onay/önce-sonra/geri alma görünür olsun; bulut AI kesilince normal yerel iş ekranı çalışsın. Genel AI/RAG/ajan kapsamı ileri aşamada kalır, bu statik doküman çalışan AI entegrasyonu değildir.",
+      "itemIds": ["ai-7", "shell-10", "agents-1", "channels-10"]
+    },
+    {
+      "id": "component-metadata-adapter",
+      "kind": "add",
+      "title": "Kontrollü Frappe metadata adaptörünü uygulama kataloğuna ekle",
+      "reason": "Mevcut model-1/model-2/forms-5 veri ve alan yapı taşlarını kapsar; bağımsız frontend’in kaynak/sürüm/izinli metadata sözleşmesi ve Desk frm davranışlarının açık eşlenmesi ayrı sorumluluktur. Yeni model-8 bunu semantik alan, Link/Dynamic Link ve child table kabulüyle ortaklaştırır; iş kuralları sunucuda korunur.",
+      "itemIds": ["model-8", "model-1", "model-2", "forms-5", "access-2"]
+    },
+    {
+      "id": "component-assignment-work-queue",
+      "kind": "add",
+      "title": "Atamayı CRM/helpdesk sınırından ortak kayıt iş kuyruğuna genişlet",
+      "reason": "crm-3 ve support-5 domain ataması; realtime-4 yorum/takip; jobs-8 teknik uzun iş izleme kapsamıdır. Modüller arası sorumlu, takipçi, son tarih ve Benim işlerim ortak deneyimi realtime-7 olarak eklenir; mevcut alanlar değiştirilmeden yetkili kayıt bağlantılarıyla birleştirilir.",
+      "itemIds": ["realtime-7", "crm-3", "support-5", "realtime-4", "jobs-8"]
+    },
+    {
+      "id": "component-print-document-output",
+      "kind": "add",
+      "title": "Veri aktarımından ayrı yazdırma ve belge çıktısı yeteneği ekle",
+      "reason": "reports-1 raporları, transfer-6 yetkili veri teslimini ve jobs-8 uzun iş izlemeyi kapsar; sürümlü belge şablonu, baskı önizlemesi, PDF ve toplu çıktı ayrı eksiktir. reports-9 bu aileyi hedef Frappe sürümü, izinli renderer ve güvenli çıktı kabulüyle tamamlar; mevcut rapor/export yetenekleri korunur.",
+      "itemIds": ["reports-9", "reports-1", "reports-5", "transfer-6", "jobs-8"]
     }
   ],
   "coverage": [
@@ -1706,21 +1885,27 @@
     }
   ],
   "copy": {
-    "title": "Kapsam, entegrasyon ve çevrimdışı platform planı",
-    "summary": "Önceki 363 madde ve 78 karar korundu; bulutta Frappe ve çevrimdışı çoklu platform planı için 14 boşluk ve 16 karar eklendi. Toplam 377 madde, 49 başlık; önceki 25 faydalı UX önerisi kapsamda kalır.",
-    "intro": "Bulutta Frappe + bağımsız headless frontend + ortak istemci çekirdeği + platform paketleri bu varyantın hedefidir; yerel Frappe sunucusu gerekmez. Web Vite/PWA, Android/iOS Capacitor, masaüstü Tauri 2 ve Chrome eklentisi WXT/Manifest V3 plan tercihidir; hedef sürümler seçilmedi. O0 mimari/kimlik sözleşmeleri → O1 yerel kalıcılık ve kural eşliği → O2 senkronizasyon/soğuk açılış/çatışma politikaları → O3 paketleme, güncelleme, yedek ve hata kabulü; aşamalar isteğe bağlılık değildir. İlk Keycloak girişi ve cihaz/veri hazırlığı çevrimiçidir. 14 yeni madde ile channels-2/channels-7 bu talep için zorunludur; bütün SaaS ürünlerine evrensel asgari kapsam değildir. Önceki kanal/çevrimdışı erteleme kararları tarihsel kalır; yeni tarihli kapsam geçerlidir. 25 faydalı UX önerisinin dört fayda grubu korunur: Emeği ve veriyi koruyanlar; İşi tamamlamayı kolaylaştıranlar; Günlük kullanımı hızlandıranlar; Kullanıma bağlı değer sağlayanlar. Fayda/öncelik zorunluluk, Frappe yeterliliği veya tamamlanma değildir. Sekiz entegrasyon modeli zorunlu, M0–M3 teslim sırasıdır; genel AI/RAG/ajan kapsamı ileri aşamada kalır. Bu statik plan çalışan çevrimdışı uygulama veya üretilmiş platform paketi kanıtı değildir.",
+    "title": "Kapsam kararları ve geliştirme yol haritası",
+    "summary": "387 madde · 109 karar · Kesin Ant Design / Ant X / Tauri 2 seçimleri",
+    "intro": "Bulutta Frappe, bağımsız React / Ant Design / Ant Design X frontend, Keycloak auth ve Tauri 2 mobil/masaüstü için geliştirme planı. Önce entegrasyon ve faydalı panel yetenekleri, sonra çevrimdışı mimari ve kesin platform kararları, ardından 40 bileşen ailesi / 15 görünüm / 8 destek katmanı mevcut maddelere bağlanmıştır. Hedef release ve gerçek ürün kabulü ayrıca doğrulanır.",
     "filterLabel": "Geliştirme kapsamı",
     "allScopes": "Tüm kapsamlar",
     "scopeReason": "Kapsam gerekçesi",
     "decisions": "Birleştirme, aşamalandırma ve düzeltme kararları",
     "coverage": "Kaynak bölümlerinin mevcut başlıklardaki karşılığı",
     "source": "Tarihsel ilk karşılaştırma kaynağı",
-    "unchanged": "Önceki 363 maddenin bütün alanları, kimlikleri, sıraları ve değerlendirmeleri ile 78 inceleme kararı korunmuştur; yalnız mevcut başlıkların sonuna 14 madde eklenir. Önceki scope atamalarından yalnız channels-2 ve channels-7 yeni kullanıcı talebiyle zorunluya yükseltilir; eski erteleme gerekçeleri yeni kararlarla birlikte geçmiş olarak saklanır. Önceki 25 faydalı UX önerisi, 13 mevcut yetenek eşlemesi ve sekiz zorunlu entegrasyon ailesi korunur. Tarihsel ilk kaynakta 402 ifade ve 17 bölüm eşlemesi değişmez.",
+    "unchanged": "Önceki 377 yayımlanmış maddenin ve 94 kararın tamamı korunur. Tauri/Ant aşamasındaki 384 kayıt ve 106 karar da katalog eklemesinde değişmez; yalnız üç gerçek boşluk ve üç karar eklenir. Eski mobil alternatifler görünür tarihsel açıklamayla saklanır; mevcut kimlik/sıra/seçimler korunur.",
     "decisionLabels": {
       "merge": "Mevcut kapsamla birleştir",
       "defer": "Koşula veya ileri aşamaya bağla",
       "correct": "Sınırı veya varsayımı düzelt",
       "add": "Ayrı boşluk olarak ekle"
     }
+  },
+  "decisionNotes": {
+    "offline-mobile": "Tarihsel karar · Kullanıcının güncel mobil ve masaüstü seçimi Tauri 2; Capacitor önerisi geçersizdir. mobile-stack ve channels-17 geçerlidir.",
+    "offline-desktop": "Tarihsel karar · Masaüstü Tauri 2 korunur; mobilde Capacitor seçildiği ifadesi geçersizdir. Güncel mobil seçim de Tauri 2 olur.",
+    "offline-storage": "Tarihsel karar · SQLite/IndexedDB ayrımı korunur; Capacitor eklentisi atfı geçersizdir. Mobil ve masaüstü adapterları Tauri 2 için doğrulanır.",
+    "offline-auth": "Tarihsel karar · Keycloak/PKCE ve offline erişim sınırları korunur; güncel native adapter hedefi Tauri 2 olur. mobile-oidc geçerlidir."
   }
 }

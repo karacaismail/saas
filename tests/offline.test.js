@@ -68,7 +68,7 @@ const markdownText = (value) =>
     .replaceAll('&lt;', '<')
     .replaceAll('&gt;', '>');
 
-test('offline expansion freezes all363 full records and all78 decisions without rewriting history', () => {
+test('offline expansion freezes all363 full records and all78 decisions without rewriting history', async () => {
   assert.equal(
     createHash('sha256').update(JSON.stringify(baseline)).digest('hex'),
     'c830949da7c9159bf2c95de3f8769bc7a48c9bd6fcc3ab5334eac640fb2dcced',
@@ -77,7 +77,11 @@ test('offline expansion freezes all363 full records and all78 decisions without 
     baseline.clusters.flatMap((c) => c.groups.flatMap((g) => g.items)).length,
     363,
   );
-  const projected = structuredClone(data.clusters);
+  // Project this stage through the immutable pre-mobile publication.
+  const stage = JSON.parse(
+    await readFile(new URL('./fixtures/mobile-baseline.json', import.meta.url)),
+  );
+  const projected = structuredClone(stage.clusters);
   const added = [];
   for (const c of projected)
     for (const g of c.groups) {
@@ -93,19 +97,19 @@ test('offline expansion freezes all363 full records and all78 decisions without 
     }
   assert.deepEqual(projected, baseline.clusters);
   assert.deepEqual(added.sort(), [...additions].sort());
-  assert.equal(entries.length, 377);
-  assert.equal(data.review.expectedItems, 377);
+  assert.equal(entries.length, 387);
+  assert.equal(data.review.expectedItems, 387);
   assert.equal(data.review.expectedGroups, 49);
   assert.deepEqual(
     data.review.addedItemIds.slice(0, 37),
     baseline.review.addedItemIds,
   );
-  assert.equal(data.review.addedItemIds.length, 51);
+  assert.equal(data.review.addedItemIds.length, 61);
   assert.deepEqual(
     data.review.decisions.slice(0, 78),
     baseline.review.decisions,
   );
-  assert.equal(data.review.decisions.length, 94);
+  assert.equal(data.review.decisions.length, 109);
   for (const key of ['groupDefaults', 'source', 'scopeLabels', 'coverage'])
     assert.deepEqual(data.review[key], baseline.review[key], key);
   for (const [id, planning] of Object.entries(baseline.review.itemOverrides)) {
@@ -159,7 +163,7 @@ test('all requested offline platform decisions link real capabilities and separa
     assert.notEqual(e.item.assessment.support, 'native', id);
     assert.equal(
       resolvePlanning(data.review, e.group, id).scope,
-      'required',
+      id === 'channels-12' ? 'implementation' : 'required',
       id,
     );
     for (const key of ['owner', 'note', 'acceptance'])

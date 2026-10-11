@@ -12,15 +12,15 @@ const originalIds = new Set(originalInventory.map((item) => item.id));
 function expectPreservedInventory(clusters, review) {
   expect(originalIds.size).toBe(326);
   const entries = flattenInventory(clusters);
-  expect(entries).toHaveLength(377);
-  expect(new Set(entries.map((item) => item.id)).size).toBe(377);
+  expect(entries).toHaveLength(387);
+  expect(new Set(entries.map((item) => item.id)).size).toBe(387);
   expect(entries.filter((item) => originalIds.has(item.id))).toEqual(
     [...originalInventory].sort((left, right) =>
       left.id.localeCompare(right.id),
     ),
   );
   const additions = entries.filter((item) => !originalIds.has(item.id));
-  expect(additions).toHaveLength(51);
+  expect(additions).toHaveLength(61);
   expect(additions.map((item) => item.id).sort()).toEqual(
     [...review.addedItemIds].sort(),
   );
@@ -34,7 +34,7 @@ async function visit(page, source = 'json') {
     'data-content-source',
     source,
   );
-  await expect(page.locator('.feature')).toHaveCount(377);
+  await expect(page.locator('.feature')).toHaveCount(387);
 }
 
 async function openFirstFeature(page) {
@@ -108,12 +108,13 @@ test('classified JSON drives all 12 clusters without changing the 326 original c
     manifest.interface,
     manifest.messages,
     manifest.review,
+    manifest.componentCatalog,
     ...manifest.clusters,
   ].map((path) => new URL(path, manifestUrl).href);
-  expect(paths).toHaveLength(17);
+  expect(paths).toHaveLength(18);
   expect(new Set(paths).size).toBe(paths.length);
   for (const url of paths) expect(documents.has(url), url).toBe(true);
-  expect(documents.size).toBe(18);
+  expect(documents.size).toBe(19);
   const clusters = await Promise.all(
     manifest.clusters.map((path) =>
       documents.get(new URL(path, manifestUrl).href),
@@ -140,6 +141,9 @@ test('classified JSON drives all 12 clusters without changing the 326 original c
   }));
   expect(rendered.data.clusters).toEqual(clusters);
   expect(rendered.data.review).toEqual(review);
+  expect(rendered.data.componentCatalog).toEqual(
+    await documents.get(new URL(manifest.componentCatalog, manifestUrl).href),
+  );
   expect(rendered.entries).toEqual(
     clusters.flatMap((cluster) =>
       cluster.groups.flatMap((group) =>
@@ -156,7 +160,7 @@ test('classified JSON drives all 12 clusters without changing the 326 original c
       {
         manifestUrl,
         documents: [...documents.keys()],
-        itemCount: 377,
+        itemCount: 387,
         originalItemCount: originalIds.size,
         addedItemIds: review.addedItemIds,
       },
@@ -507,7 +511,7 @@ test('the JSON loading deadline keeps all fallback content and working selection
     await expect(page.locator('#search')).toBeEnabled();
     releaseResponse();
     await routeFinished;
-    await expect(page.locator('.feature')).toHaveCount(377);
+    await expect(page.locator('.feature')).toHaveCount(387);
     const data = await page
       .locator('#atlas-data')
       .evaluate((element) => JSON.parse(element.textContent));

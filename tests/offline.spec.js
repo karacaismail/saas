@@ -52,7 +52,14 @@ for (const [label, ids] of additions.map((id) => [id, [id]])) {
       if ((await group.getAttribute('open')) === null)
         await group.locator(':scope > summary').click();
       const row = page.locator(`#feature-${id}`);
-      await expect(row).toHaveAttribute('data-scope', 'required');
+      await expect(row).toHaveAttribute(
+        'data-scope',
+        id === 'channels-12' ? 'implementation' : 'required',
+      );
+      if (id === 'channels-12')
+        await expect(row.locator('.scope-label')).toContainText(
+          'Tarihsel alternatif',
+        );
       await row.locator('.feature-label').click();
       await expect(row.locator('.feature-check')).toBeChecked();
       await row.locator('.assessment > summary').click();
@@ -150,7 +157,7 @@ test('offline architecture decisions retain all78 historical decisions and super
 }) => {
   await visit(page);
   await page.locator('#scope-review > summary').press('Enter');
-  await expect(page.locator('.review-decisions > li')).toHaveCount(94);
+  await expect(page.locator('.review-decisions > li')).toHaveCount(109);
   const text = await page.locator('#scope-review').innerText();
   for (const d of data.review.decisions.filter((d) =>
     d.id.startsWith('offline-'),

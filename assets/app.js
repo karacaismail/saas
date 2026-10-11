@@ -402,6 +402,7 @@ window.addEventListener('beforeprint', () => {
   printState = [
     $('#context-details'),
     ...($('#scope-review') ? [$('#scope-review')] : []),
+    ...document.querySelectorAll('#component-catalog, .catalog-entry'),
     ...groups.map((group) => group.el),
   ].map((element) => ({
     element,

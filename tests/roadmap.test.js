@@ -90,7 +90,7 @@ test('roadmap order starts with operation, identity, security and data before mo
 
 test('public roadmap ownership uses approved roles and the user-designated delivery owner', async () => {
   // The user's standing policy explicitly names Hüseyin Cengiz for new
-  // CI/CD and rollback plans. Only this new delivery item has that exception.
+  // CI/CD, signing and rollback plans; exceptions stay tied to exact delivery IDs.
   const approvedRoles = new Set([
     'AI ajan platformu',
     'AI araç güvenliği',
@@ -234,7 +234,9 @@ test('public roadmap ownership uses approved roles and the user-designated deliv
   ]);
   const approvedOwner = (id, owner) =>
     approvedRoles.has(owner) ||
-    (id === 'releases-11' && owner === 'Hüseyin Cengiz + istemci ekibi');
+    (['releases-11', 'releases-12', 'channels-17'].includes(id) &&
+      owner === 'Hüseyin Cengiz + istemci ekibi') ||
+    (id === 'releases-13' && owner === 'Hüseyin Cengiz + ürün ekibi');
   const assessmentFiles = (
     await readdir(new URL('../data/clusters/', import.meta.url))
   )

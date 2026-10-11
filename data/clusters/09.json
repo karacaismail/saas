@@ -704,6 +704,33 @@
               }
             ]
           }
+        },
+        {
+          "kind": "g",
+          "text": "Ant Design X / X Cards ile izinli katalogdan şemalı GenUI ve AI kesintisinde normal iş ekranları.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "AI araç güvenliği",
+            "confidence": "design",
+            "reviewedAt": "2026-10-11",
+            "note": "Ant Design ve Ant Design X kesin frontend kararıdır. GenUI model çıktısı çalıştırılabilir kod değil, onaylı Ant Design X Cards bileşen kataloğuna ait yapılandırılmış JSON olmalıdır. Şema/özellik doğrulaması, tenant/kapsam ve sunucu yetkisi/policy kontrolünden sonra deterministik bileşen ve izinli eylem oluşur. Ant Design Pro iş bileşenleri ve Ant X agent yüzeyleri ortak token/Outfit/1rem yaklaşımını paylaşır. Şema, sunucu yetkilendirmesinin yerine geçmez. Bulut AI yokken temel yerel form/veri/iş akışları çalışır; GenUI ileri aşama kapsamıdır.",
+            "acceptance": "Bilinmeyen bileşen, yürütülebilir model kodu, yetkisiz eylem ve kapsam dışı veri reddedilmeli. Tenant/kapsam ve gerekli işlem onayı görünür olmalı; uydurma ilerleme veya yapılmamış mutation gösterilmemeli. AI/ağ kesintisinde normal iş ekranı, yerel kayıt ve senkronizasyon kuyruğu erişilebilir kalmalı; 320px ve büyük metin kabulü katalog bileşenlerini de kapsamalı.",
+            "sources": [
+              {
+                "title": "Ant Design — React arayüzü",
+                "url": "https://ant.design/docs/react/introduce"
+              },
+              {
+                "title": "Ant Design X — AI arayüz bileşenleri",
+                "url": "https://x.ant.design/docs/react/introduce/"
+              },
+              {
+                "title": "Ant Design X Cards — Şemalı bileşen kataloğu",
+                "url": "https://x.ant.design/x-cards/introduce/"
+              }
+            ]
+          }
         }
       ],
       "sources": ["ai"],
