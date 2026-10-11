@@ -11,6 +11,14 @@ assert.equal(config.expect.timeout, policy.controls.expectTimeout);
 assert.equal(config.use.trace, policy.controls.trace);
 assert.equal(config.repeatEach ?? 1, policy.controls.repeatEach);
 assert.equal(config.retries ?? 0, policy.controls.retries);
+const workflow = await readFile('.github/workflows/pages.yml', 'utf8');
+assert.equal(
+  (workflow.match(/^\s*- run: npm run check\s*$/gm) ?? []).length,
+  1,
+  'Test policy: shared Node checks must run once, outside browser shards',
+);
+assert.match(workflow, /^  verify:\n    needs: source\n/m);
+assert.match(workflow, /^    needs: \[source, verify\]$/m);
 
 // Collection evaluates the existing test declarations; it opens no browser and
 // executes no test body. Expanded parameter cases count, assertions do not.

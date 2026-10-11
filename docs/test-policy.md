@@ -16,6 +16,7 @@ Uygulayıcı değişen dosyaları, korunacak sözleşmeyi, olası hatayı ve onu
 ## Koşu sınırları
 
 - Yerelde hedefli kontroller çalışır. Kaynak son halini aldıktan sonra `npm run check` ve `npm run build` bir kez çalışır. Yerelde tam tarayıcı paketi varsayılan değildir.
+- CI formatter/syntax/policy/Node paketini tek `source` işinde çalıştırır; dokuz browser shard aynı75 Node kontrolünü tekrar çalıştırmaz. Browser işleri source kapısından sonra kendi hermetik dist build’ini yapar; deploy source ve bütün browser işlerine bağlıdır.
 - Mevcut CI matrisi tam tarayıcı regresyonunu bir kez çalıştırır. Yayında yalnız değişen kritik yol ve canlı sürüm doğrulanır. Zaten kanıtlanan eski yayını tekrar audit etme.
 - Aynı kaynakta aynı başarılı kontrol tekrarlanmaz. Tekrarın nedeni yeni değişiklik, başarısızlığın düzeltilmesi veya açık kalan belirli bir kanıt olmalıdır. Değişmeyen testleri sırf güven hissi için tekrar çalıştırma.
 - Yeni senaryo, motor, viewport projesi, shard veya benzer kombinasyon eklemeden önce hangi yakalanmamış hatayı yakalayacağı ve neden mevcut yolculuğa eklenemediği yazılır. Rutin içerik eklemesi yeni matris ekseni açmaz.
@@ -27,7 +28,7 @@ Geliştirme planı için beş Node kontrolü ve üç yeni tarayıcı yolculuğu 
 
 ## Kilitler ve değişiklik usulü
 
-`npm run test:policy`, `test-policy.json` sınırlarını gerçek Playwright toplama çıktısına uygular; tarayıcı açmaz ve test gövdesi çalıştırmaz. Proje matrisi, genişletilmiş vaka sayısı, timeout45s, expect6s, retry0, repeatEach1, varsayılan worker3 ve trace retain-on-failure korunur. CI Firefox mevcut worker1 kullanır. `npm run check` bu kilidi çalıştırır. Node75 sınırı gerçek Node sonuç özetiyle incelemede kontrol edilir; bu script Node senaryolarını statik tahmin etmez.
+`npm run test:policy`, `test-policy.json` sınırlarını gerçek Playwright toplama çıktısına uygular; tarayıcı açmaz ve test gövdesi çalıştırmaz. Proje matrisi, genişletilmiş vaka sayısı, timeout45s, expect6s, retry0, repeatEach1, varsayılan worker3 ve trace retain-on-failure korunur. CI Firefox mevcut worker1 kullanır. `npm run check` bu kilidi çalıştırır; guard ayrıca workflow içinde tek ortak check ve source→verify→deploy kapılarını denetler. Node75 sınırı gerçek Node sonuç özetiyle incelemede kontrol edilir; bu script Node senaryolarını statik tahmin etmez.
 
 AGENTS.md kuralları koşu seçimini ve tekrarı sınırlar. Script yalnız repodaki normal kontrol akışını denetler; yönerge veya script değiştirilemez bir güvenlik sınırı değildir. Başka komutla başlatılan tüm süreçleri veya gerçek cihazları denetlediği iddia edilmez.
 
