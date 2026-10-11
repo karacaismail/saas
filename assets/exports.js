@@ -209,6 +209,30 @@ export function buildSelection(data, selectedIds = []) {
       .filter((section) => section.entries.length);
     if (catalog.sections.length) payload.componentCatalog = catalog;
   }
+  if (data.developmentPlan && exportedIds.size) {
+    const plan = structuredClone(data.developmentPlan);
+    plan.assignments = plan.assignments.filter((a) =>
+      exportedIds.has(a.itemId),
+    );
+    if (plan.assignments.length !== data.developmentPlan.assignments.length) {
+      const primaryIds = new Set(plan.assignments.map((a) => a.unitId));
+      const includedIds = new Set(primaryIds);
+      const byId = new Map(plan.units.map((unit) => [unit.id, unit]));
+      const includeDependencies = (id) => {
+        for (const dependency of byId.get(id).dependsOn) {
+          if (includedIds.has(dependency)) continue;
+          includedIds.add(dependency);
+          includeDependencies(dependency);
+        }
+      };
+      for (const id of primaryIds) includeDependencies(id);
+      plan.units = plan.units.filter((unit) => includedIds.has(unit.id));
+      plan.contextUnitIds = plan.units
+        .filter((unit) => !primaryIds.has(unit.id))
+        .map((unit) => unit.id);
+    }
+    if (plan.assignments.length) payload.developmentPlan = plan;
+  }
   return payload;
 }
 
@@ -400,6 +424,99 @@ function markdownCatalog(catalog) {
   return lines;
 }
 
+function markdownDevelopmentPlan(plan, roadmap) {
+  const copy = plan.labels;
+  const lines = [
+    '',
+    `## ${markdownText(plan.title)}`,
+    '',
+    markdownText(plan.intro),
+    '',
+  ];
+  const field = (label, value) =>
+    lines.push(`- **${markdownText(label)}:** ${markdownText(value)}`);
+  const section = (title) => lines.push('', `### ${markdownText(title)}`, '');
+  const entry = (title, id) =>
+    lines.push('', `#### ${markdownText(title)} (${markdownText(id)})`, '');
+  const stages = new Map(plan.stages.map((stage) => [stage.id, stage.title]));
+  const units = new Map(plan.units.map((unit) => [unit.id, unit.title]));
+  field(copy.reviewedAt, plan.reviewedAt);
+  section(copy.architecture);
+  for (const item of plan.architecture) {
+    entry(item.title, item.id);
+    lines.push(markdownText(item.description), '');
+    field(copy.acceptance, item.acceptance);
+  }
+  section(copy.stack);
+  for (const item of plan.stack) {
+    entry(item.title, item.id);
+    lines.push(markdownText(item.decision), '');
+    field(copy.scope, item.status);
+  }
+  section(copy.stages);
+  for (const stage of plan.stages) {
+    entry(stage.title, stage.id);
+    field(copy.goal, stage.goal);
+    field(copy.entry, stage.entry);
+    field(copy.deliverables, stage.deliverables.join('; '));
+    field(copy.exit, stage.exit.join('; '));
+  }
+  section(copy.units);
+  for (const unit of plan.units) {
+    entry(unit.title, unit.id);
+    if (plan.contextUnitIds?.includes(unit.id))
+      lines.push(`**${markdownText(copy.dependencyContext)}**`, '');
+    field(copy.kind, `${plan.kindLabels[unit.kind]} (${unit.kind})`);
+    field(copy.need, `${plan.needLabels[unit.need]} (${unit.need})`);
+    field(copy.startsAt, stages.get(unit.startsAt));
+    field(copy.targetStage, stages.get(unit.targetStage));
+    for (const key of [
+      'condition',
+      'frappe',
+      'customWork',
+      'dataOwnership',
+      'acceptance',
+      'owner',
+    ])
+      field(copy[key], unit[key]);
+    field(copy.contracts, unit.contracts.join('; '));
+    field(
+      copy.dependencies,
+      unit.dependsOn.map((id) => `${units.get(id)} (${id})`).join('; '),
+    );
+  }
+  section(copy.assignments);
+  for (const a of plan.assignments) {
+    entry(a.itemId, a.unitId);
+    field(copy.units, units.get(a.unitId));
+    field(copy.stage, `${stages.get(a.stageId)} (${a.stageId})`);
+    field(copy.delivery, assessmentLabel(roadmap?.actionLabels, a.delivery));
+    field(copy.reason, a.reason);
+  }
+  section(plan.maturity.title);
+  lines.push(markdownText(plan.maturity.intro), '');
+  for (const level of plan.maturity.levels) {
+    entry(level.title, level.id);
+    field(copy.definition, level.definition);
+  }
+  for (const dimension of plan.maturity.dimensions) {
+    entry(dimension.title, dimension.id);
+    field(copy.measurement, dimension.measurement);
+    field(copy.evidence, dimension.evidence);
+  }
+  field(copy.acceptance, plan.maturity.gate);
+  section(copy.decisions);
+  for (const decision of plan.decisions) {
+    entry(decision.title, decision.id);
+    field(copy.stage, stages.get(decision.stageId));
+    lines.push(markdownText(decision.description), '');
+    field(copy.acceptance, decision.acceptance);
+  }
+  section(copy.sources);
+  for (const source of plan.sources) lines.push(`- ${markdownSource(source)}`);
+  return lines;
+}
+
 function toMarkdown(payload) {
   const copy = messages().markdown;
   const lines = [`# ${markdownText(payload.title)}`];
@@ -514,6 +631,8 @@ function toMarkdown(payload) {
 
   if (payload.componentCatalog)
     lines.push(...markdownCatalog(payload.componentCatalog));
+  if (payload.developmentPlan)
+    lines.push(...markdownDevelopmentPlan(payload.developmentPlan, roadmap));
   return `${lines.join('\n')}\n`;
 }
 

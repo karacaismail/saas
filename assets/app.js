@@ -238,7 +238,11 @@ function jump(target) {
   if (element.closest('[hidden]')) reset();
   const group = element.closest('.group');
   if (group) openGroup(group);
-  else if (element.tagName === 'DETAILS') element.open = true;
+  else if (element.matches('.plan-entry, #development-plan')) {
+    $('#context-details').open = true;
+    $('#development-plan').open = true;
+    element.open = true;
+  } else if (element.tagName === 'DETAILS') element.open = true;
   syncGroupToggle();
   element.scrollIntoView({
     behavior: matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -250,6 +254,8 @@ function jump(target) {
     $('summary', element).focus({ preventScroll: true });
   else if (element.matches('.feature'))
     $('.feature-check', element).focus({ preventScroll: true });
+  else if (element.matches('.plan-entry, #development-plan'))
+    $('summary', element).focus({ preventScroll: true });
   try {
     history.replaceState(null, '', '#' + target);
   } catch {
@@ -403,6 +409,7 @@ window.addEventListener('beforeprint', () => {
     $('#context-details'),
     ...($('#scope-review') ? [$('#scope-review')] : []),
     ...document.querySelectorAll('#component-catalog, .catalog-entry'),
+    ...document.querySelectorAll('#development-plan, .plan-entry'),
     ...groups.map((group) => group.el),
   ].map((element) => ({
     element,

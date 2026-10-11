@@ -19,5 +19,6 @@
     "./clusters/10.json"
   ],
   "review": "./review.json",
-  "componentCatalog": "./component-catalog.json"
+  "componentCatalog": "./component-catalog.json",
+  "developmentPlan": "./development-plan.json"
 }

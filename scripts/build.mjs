@@ -28,6 +28,9 @@ const contentFiles = [
   ...(Object.hasOwn(manifest, 'componentCatalog')
     ? [manifest.componentCatalog]
     : []),
+  ...(Object.hasOwn(manifest, 'developmentPlan')
+    ? [manifest.developmentPlan]
+    : []),
   ...manifest.clusters,
 ];
 for (const path of contentFiles) {

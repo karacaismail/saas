@@ -21,6 +21,7 @@ async function sourceDocuments() {
     manifest.review,
     ...manifest.clusters,
     manifest.componentCatalog,
+    manifest.developmentPlan,
   ];
   assert.equal(new Set(paths).size, paths.length, 'One owner per content file');
   assert.equal(manifest.clusters.length, 12);

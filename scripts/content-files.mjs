@@ -32,6 +32,9 @@ export async function readContentSources(directory = process.cwd()) {
     ...(Object.hasOwn(manifest, 'componentCatalog')
       ? [manifest.componentCatalog]
       : []),
+    ...(Object.hasOwn(manifest, 'developmentPlan')
+      ? [manifest.developmentPlan]
+      : []),
     ...manifest.clusters,
   ];
   if (new Set(paths).size !== paths.length)
@@ -39,6 +42,9 @@ export async function readContentSources(directory = process.cwd()) {
   const [metadata, roadmap, copy, messages, review, ...rest] =
     await Promise.all(paths.map(read));
   const componentCatalog = Object.hasOwn(manifest, 'componentCatalog')
+    ? rest.shift()
+    : undefined;
+  const developmentPlan = Object.hasOwn(manifest, 'developmentPlan')
     ? rest.shift()
     : undefined;
   const clusters = rest;
@@ -49,6 +55,7 @@ export async function readContentSources(directory = process.cwd()) {
     messages,
     review,
     componentCatalog,
+    developmentPlan,
     clusters,
   });
 }

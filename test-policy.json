@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "baselineCommit": "bbda567bc46c264801ac5b202f0d6fcf81ee7526",
+  "rationale": "Existing coverage is retained. The development plan adds five Node checks and three browser journeys; browser engines reuse those journeys.",
+  "nodeChecksMax": 75,
+  "browserCasesMax": 714,
+  "projects": {
+    "chromium": 237,
+    "firefox": 237,
+    "webkit": 237,
+    "chromium-touch": 1,
+    "webkit-touch": 1,
+    "chromium-hybrid": 1
+  },
+  "controls": {
+    "timeout": 45000,
+    "expectTimeout": 6000,
+    "workers": 3,
+    "repeatEach": 1,
+    "retries": 0,
+    "trace": "retain-on-failure"
+  }
+}

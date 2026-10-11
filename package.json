@@ -13,8 +13,9 @@
     "build": "node scripts/update-roadmap.mjs --check && node scripts/build.mjs && node scripts/verify-build.mjs",
     "test": "node --test tests/*.test.js",
     "test:browser": "playwright test",
+    "test:policy": "node scripts/check-test-policy.mjs",
     "format": "prettier --write .",
-    "check": "prettier --check . && node --check assets/app.js && node --check assets/exports.js && node --check assets/content-engine.js && node --check assets/content-templates.js && npm test"
+    "check": "prettier --check . && node --check assets/app.js && node --check assets/exports.js && node --check assets/content-engine.js && node --check assets/content-templates.js && npm run test:policy && npm test"
   },
   "devDependencies": {
     "@playwright/test": "1.64.0",

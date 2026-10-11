@@ -43,6 +43,9 @@ const contentPaths = [
   ...(Object.hasOwn(manifest, 'componentCatalog')
     ? [manifest.componentCatalog]
     : []),
+  ...(Object.hasOwn(manifest, 'developmentPlan')
+    ? [manifest.developmentPlan]
+    : []),
   ...manifest.clusters,
 ].map((path) => `data/${path.replace(/^\.\//, '')}`);
 for (const path of contentPaths)
@@ -97,15 +100,15 @@ for (const [name, paths] of Object.entries(groups)) {
 // Classified JSON is fetched by the browser engine. The generated snapshot keeps
 // the complete experience readable and exportable when JSON requests fail.
 // The explicit delivery-scope budget revision is recorded in docs/content-model.md.
-// User-requested mobile decisions and the40/15/8 component catalog are delivered
+// User-requested decisions, component catalog and the complete development plan are delivered
 // both as a readable no-JS snapshot and classified JSON. Measured scope growth
 // and the single budget set are recorded in docs/content-model.md.
-assert.ok(sizes.html.gzip <= 304 * 1024, 'HTML gzip budget 304 KiB');
+assert.ok(sizes.html.gzip <= 376 * 1024, 'HTML gzip budget 376 KiB');
 assert.ok(sizes.css.gzip <= 12 * 1024, 'CSS gzip budget12 KiB');
 assert.ok(sizes.js.gzip <= 24 * 1024, 'JS gzip budget24 KiB');
-assert.ok(sizes.json.gzip <= 152 * 1024, 'Content JSON gzip budget152 KiB');
+assert.ok(sizes.json.gzip <= 192 * 1024, 'Content JSON gzip budget192 KiB');
 const total = Object.values(sizes).reduce((sum, s) => sum + s.gzip, 0);
-assert.ok(total <= 528 * 1024, 'Initial shared assets gzip budget528 KiB');
+assert.ok(total <= 648 * 1024, 'Initial shared assets gzip budget648 KiB');
 console.log(
   JSON.stringify(
     {

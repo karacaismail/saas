@@ -109,12 +109,13 @@ test('classified JSON drives all 12 clusters without changing the 326 original c
     manifest.messages,
     manifest.review,
     manifest.componentCatalog,
+    manifest.developmentPlan,
     ...manifest.clusters,
   ].map((path) => new URL(path, manifestUrl).href);
-  expect(paths).toHaveLength(18);
+  expect(paths).toHaveLength(19);
   expect(new Set(paths).size).toBe(paths.length);
   for (const url of paths) expect(documents.has(url), url).toBe(true);
-  expect(documents.size).toBe(19);
+  expect(documents.size).toBe(20);
   const clusters = await Promise.all(
     manifest.clusters.map((path) =>
       documents.get(new URL(path, manifestUrl).href),

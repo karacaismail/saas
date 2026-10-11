@@ -26,6 +26,8 @@ Tarayıcıda `http://127.0.0.1:4173` adresini açın. `dist/` yalnız yayın dos
 
 Kümeler, başlıklar, maddeler ve tüm değerlendirmeler `data/clusters/<id>.json`; etiketler ve sıra `data/roadmap.json`; arayüz ve rehber metinleri `data/interface.json` ve `data/messages.json` içindedir. `npm run roadmap` aynı JS engine ile statik görünüm ve yükleme-hatası snapshot'ını üretir; build eski görünümü reddeder. Tam veri ve görünen metinler değişmez fixture'larla korunur.
 
+Yerelde önce değişen davranışın hedefli regresyonlarını çalıştırın; nihai kaynak hazır olduğunda tam `npm run check` bir kez çalışır. Tam tarayıcı matrisi varsayılan olarak CI'dadır; aşağıdaki komut gerekçeli yerel tam koşu için kullanılabilir. `npm run test:policy`, testleri yürütmeden koleksiyon ve yapılandırma sınırlarını denetler; `npm run check` bunu otomatik çağırır. Risk seçimi, tekrar gerekçesi ve doğrudan CLI kullanımının sınırları [test politikasında](docs/test-policy.md) açıklanır.
+
 ```sh
 npx playwright install chromium firefox webkit
 npm run test:browser
@@ -66,3 +68,11 @@ Ant Design ve Ant Design X ortak React frontend için; Tauri 2 Android/iOS ve Wi
 40 uygulama ailesi, 15 koleksiyon görünümü ve 8 destek katmanı `data/component-catalog.json` içinde mevcut özelliklere bağlanır. Frappe yeterliliği, kalan headless iş ve kabul koşulları ayrı gösterilir. 384 kayıt ve106 karar korunarak yalnız metadata adaptörü, modüller arası iş kuyruğu ve şablonlu belge çıktısı eklenir; güncel toplam387 madde ve109 karardır. Seçili maddelerin ilgili katalog tanımları JSON/Markdown çıktısına katılır. [Katalog ve teknoloji sözleşmesi](docs/component-catalog.md).
 
 TanStack Router ve TanStack Query seçilmiştir; AG Grid / TanStack Table kararı açıktır. Tamamen bağımsız Keycloak giriş UI hedefi korunur, tema veya standart yönlendirmeyle tamamlanmış sayılmaz; desteklenen protokol ve güvenlik PoC’si ayrıca gerekir.
+
+## Aşamalı geliştirme ve modül sınırları
+
+`data/development-plan.json`, **PoC → MVP → post_mvp → scale → enterprise → maturity** sırasını, aşama giriş/çıkış koşullarını ve mevcut 387 maddenin tamamının hangi mimari birimde, hangi aşamada ele alınacağını tanımlar. Yeni envanter maddesi eklenmez; 12 küme, 49 başlık, 387 madde, 109 inceleme kararı, mevcut kapsam atamaları ve tarihsel değerlendirmeler korunur. Önceki 18 içerik dosyasının byte hashleri `tests/fixtures/development-baseline.json` ile sabittir.
+
+Hedef mimari düşük bağımlılıklı modüler monolittir. Frappe uygulamasındaki iş modülleri; ortak çekirdek, backend adaptörleri, headless frontend paketleri, platform adaptörleri, harici hizmetler ve operasyon sorumluluklarından ayrılır. Her birimin veri sahipliği, sözleşmeleri, bağımlılıkları, zorunlu/koşullu/opsiyonel niteliği ve özel geliştirme işi belirtilir. Teslim aşaması, zorunlu kapsam veya tamamlanma etiketi değildir; olgunluk düzeyi kanıtlarla ölçülür. Güncel mimari için yeni geliştirme planı esas alınır; eski kararlar tarihsel bağlamıyla korunur. Kesin Tauri 2, Ant Design / Ant Design X ve Keycloak kararları geçerlidir.
+
+Plan, mevcut teknik rehber içindeki kapalı native accordion ile okunur; modüllerdeki özellik bağlantıları aynı envanter maddelerine gider. JSON/Markdown seçimi, yalnız seçili madde atamalarını ve bunların birim/bağımlılık bağlamını taşır; bütün maddeler seçilirse planın tamamını korur. CSV 18 sütun ve planı olmayan legacy çıktı davranışı değişmez. Ayrıntılar [geliştirme planında](docs/development-plan.md), veri sözleşmesi [içerik modelinde](docs/content-model.md) bulunur. Bu belge gelecekteki SaaS'ın uygulanmış veya doğrulanmış mimarisi olduğu iddiasını taşımaz.

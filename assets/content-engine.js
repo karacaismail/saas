@@ -236,6 +236,8 @@ export function validateAtlas(data) {
   if (data.review) validateReview(data.review, groupIds, itemIds);
   if (own(data, 'componentCatalog'))
     validateCatalog(data.componentCatalog, itemIds);
+  if (own(data, 'developmentPlan'))
+    validateDevelopmentPlan(data.developmentPlan, itemIds);
   for (const cluster of data.clusters) {
     for (const id of cluster.dependsOn)
       requireValue(clusterIds.has(id), 'cluster.dependency');
@@ -501,6 +503,351 @@ function renderCatalog(catalog) {
   return `<details class="context-disclosure component-catalog" id="component-catalog"><summary><span>${escape(catalog.title)}<span class="context-description">${escape(catalog.summary)}</span></span></summary><div class="review-body"><p>${escape(catalog.intro)}</p><h2>${escape(labels.technology)}</h2>${catalog.technologyDecisions.map((entry) => `<p><strong>${escape(entry.title)}</strong> ${escape(entry.description)}</p>`).join('')}${catalog.sections.map((section) => `<section aria-labelledby="catalog-${escape(section.id)}"><h2 id="catalog-${escape(section.id)}">${escape(section.title)}</h2>${section.entries.map((entry) => `<details class="catalog-entry" name="atlas-components" id="component-${escape(entry.id)}"><summary>${escape(entry.title)}</summary><div class="assessment-body"><p><strong>${escape(labels.need)}</strong> ${escape(catalog.needLabels[entry.need])}</p>${['category', 'description', 'frappe', 'work', 'acceptance'].map((key) => `<p><strong>${escape(labels[key])}</strong> ${escape(entry[key])}</p>`).join('')}<p><strong>${escape(labels.itemIds)}</strong> ${entry.itemIds.map((id) => `<a href="#feature-${escape(id)}" data-jump="feature-${escape(id)}">${escape(id)}</a>`).join(' · ')}</p></div></details>`).join('')}</section>`).join('')}<h2>${escape(labels.notes)}</h2>${catalog.paragraphs.map((paragraph) => `<p>${escape(paragraph)}</p>`).join('')}<p class="catalog-source"><strong>${escape(labels.source)}</strong> ${escape(catalog.source.name)} · ${escape(catalog.source.sha256)} · ${escape(catalog.source.reviewedAt)}</p><ul>${catalog.sources.map((source) => `<li><a href="${escape(source.url)}" target="_blank" rel="noopener noreferrer">${escape(source.title)}</a></li>`).join('')}</ul></div></details>`;
 }
 
+const PLAN_STAGES = [
+  'poc',
+  'mvp',
+  'post_mvp',
+  'scale',
+  'enterprise',
+  'maturity',
+];
+const PLAN_KINDS = [
+  'frappe_module',
+  'shared_kernel',
+  'backend_adapter',
+  'frontend_package',
+  'platform_adapter',
+  'external_service',
+  'operations',
+];
+const PLAN_NEEDS = ['required', 'conditional', 'optional'];
+const PLAN_DELIVERY = ['configure', 'extend', 'integrate', 'build', 'validate'];
+
+function validateDevelopmentPlan(plan, itemIds) {
+  requireValue(plan && plan.version === 1, 'developmentPlan.version');
+  const strings = (entry, keys, name) => {
+    requireValue(entry && typeof entry === 'object', name);
+    for (const key of keys) requireValue(text(entry[key]), `${name}.${key}`);
+  };
+  const list = (values, name, allowEmpty = false) =>
+    requireValue(
+      Array.isArray(values) &&
+        (allowEmpty || values.length > 0) &&
+        values.every(text),
+      name,
+    );
+  const collection = (entries, name) => {
+    requireValue(Array.isArray(entries) && entries.length > 0, name);
+    const ids = new Set();
+    for (const entry of entries) {
+      requireValue(
+        entry &&
+          typeof entry.id === 'string' &&
+          /^[a-z][a-z0-9_-]*$/.test(entry.id) &&
+          !ids.has(entry.id),
+        `${name}.id`,
+      );
+      ids.add(entry.id);
+    }
+    return ids;
+  };
+  strings(plan, ['title', 'intro', 'reviewedAt'], 'developmentPlan');
+  requireValue(
+    /^\d{4}-\d{2}-\d{2}$/.test(plan.reviewedAt) &&
+      Number.isFinite(Date.parse(plan.reviewedAt)) &&
+      new Date(plan.reviewedAt).toISOString().slice(0, 10) === plan.reviewedAt,
+    'developmentPlan.reviewedAt',
+  );
+  strings(
+    plan.labels,
+    [
+      'architecture',
+      'stack',
+      'stages',
+      'units',
+      'assignments',
+      'maturity',
+      'decisions',
+      'sources',
+      'kind',
+      'need',
+      'startsAt',
+      'targetStage',
+      'condition',
+      'frappe',
+      'customWork',
+      'dataOwnership',
+      'contracts',
+      'dependencies',
+      'dependencyContext',
+      'acceptance',
+      'owner',
+      'item',
+      'scope',
+      'stage',
+      'delivery',
+      'reason',
+      'goal',
+      'entry',
+      'deliverables',
+      'exit',
+      'definition',
+      'measurement',
+      'evidence',
+      'reviewedAt',
+    ],
+    'developmentPlan.labels',
+  );
+  strings(plan.kindLabels, PLAN_KINDS, 'developmentPlan.kindLabels');
+  strings(plan.needLabels, PLAN_NEEDS, 'developmentPlan.needLabels');
+  collection(plan.architecture, 'developmentPlan.architecture');
+  for (const entry of plan.architecture)
+    strings(
+      entry,
+      ['title', 'description', 'acceptance'],
+      'developmentPlan.architecture',
+    );
+  collection(plan.stack, 'developmentPlan.stack');
+  for (const entry of plan.stack)
+    strings(entry, ['title', 'decision', 'status'], 'developmentPlan.stack');
+  collection(plan.stages, 'developmentPlan.stages');
+  requireValue(
+    plan.stages.length === PLAN_STAGES.length &&
+      plan.stages.every((stage, index) => stage.id === PLAN_STAGES[index]),
+    'developmentPlan.stageOrder',
+  );
+  for (const stage of plan.stages) {
+    strings(stage, ['title', 'goal', 'entry'], 'developmentPlan.stage');
+    list(stage.deliverables, 'developmentPlan.stage.deliverables');
+    list(stage.exit, 'developmentPlan.stage.exit');
+  }
+  const unitIds = collection(plan.units, 'developmentPlan.units');
+  const units = new Map(plan.units.map((unit) => [unit.id, unit]));
+  for (const unit of plan.units) {
+    strings(
+      unit,
+      [
+        'title',
+        'condition',
+        'frappe',
+        'customWork',
+        'dataOwnership',
+        'acceptance',
+        'owner',
+      ],
+      'developmentPlan.unit',
+    );
+    requireValue(
+      PLAN_KINDS.includes(unit.kind) &&
+        PLAN_NEEDS.includes(unit.need) &&
+        PLAN_STAGES.includes(unit.startsAt) &&
+        PLAN_STAGES.includes(unit.targetStage) &&
+        PLAN_STAGES.indexOf(unit.startsAt) <=
+          PLAN_STAGES.indexOf(unit.targetStage),
+      'developmentPlan.unit.codes',
+    );
+    list(unit.contracts, 'developmentPlan.unit.contracts');
+    list(unit.dependsOn, 'developmentPlan.unit.dependsOn', true);
+    requireValue(
+      new Set(unit.dependsOn).size === unit.dependsOn.length &&
+        unit.dependsOn.every((id) => unitIds.has(id) && id !== unit.id),
+      'developmentPlan.unit.dependencies',
+    );
+    if (unit.need === 'required')
+      requireValue(
+        unit.dependsOn.every((id) => units.get(id).need === 'required'),
+        'developmentPlan.unit.requiredDependency',
+      );
+  }
+  const visited = new Set(),
+    visiting = new Set();
+  function visit(id) {
+    requireValue(!visiting.has(id), 'developmentPlan.unit.cycle');
+    if (visited.has(id)) return;
+    visiting.add(id);
+    for (const dependency of units.get(id).dependsOn) visit(dependency);
+    visiting.delete(id);
+    visited.add(id);
+  }
+  for (const id of unitIds) visit(id);
+  requireValue(
+    Array.isArray(plan.assignments) && plan.assignments.length === itemIds.size,
+    'developmentPlan.assignments',
+  );
+  const orderedItems = [...itemIds];
+  for (const [index, assignment] of plan.assignments.entries()) {
+    requireValue(
+      assignment &&
+        assignment.itemId === orderedItems[index] &&
+        unitIds.has(assignment.unitId) &&
+        PLAN_STAGES.includes(assignment.stageId) &&
+        PLAN_DELIVERY.includes(assignment.delivery) &&
+        text(assignment.reason),
+      'developmentPlan.assignment',
+    );
+    requireValue(
+      PLAN_STAGES.indexOf(assignment.stageId) >=
+        PLAN_STAGES.indexOf(units.get(assignment.unitId).startsAt),
+      'developmentPlan.assignment.stage',
+    );
+  }
+  strings(
+    plan.maturity,
+    ['title', 'intro', 'gate'],
+    'developmentPlan.maturity',
+  );
+  collection(plan.maturity.levels, 'developmentPlan.maturity.levels');
+  for (const level of plan.maturity.levels)
+    strings(level, ['title', 'definition'], 'developmentPlan.maturity.level');
+  collection(plan.maturity.dimensions, 'developmentPlan.maturity.dimensions');
+  for (const dimension of plan.maturity.dimensions)
+    strings(
+      dimension,
+      ['title', 'measurement', 'evidence'],
+      'developmentPlan.maturity.dimension',
+    );
+  collection(plan.decisions, 'developmentPlan.decisions');
+  for (const decision of plan.decisions) {
+    strings(
+      decision,
+      ['title', 'description', 'acceptance'],
+      'developmentPlan.decision',
+    );
+    requireValue(
+      PLAN_STAGES.includes(decision.stageId),
+      'developmentPlan.decision.stage',
+    );
+  }
+  requireValue(
+    Array.isArray(plan.sources) && plan.sources.length > 0,
+    'developmentPlan.sources',
+  );
+  for (const source of plan.sources) {
+    strings(source, ['title', 'url'], 'developmentPlan.source');
+    requireValue(
+      /^https?:\/\//.test(source.url) &&
+        ['http:', 'https:'].includes(new URL(source.url).protocol),
+      'developmentPlan.source.url',
+    );
+  }
+}
+
+function renderDevelopmentPlan(plan, data) {
+  if (!plan) return '';
+  const labels = plan.labels;
+  const stageTitles = new Map(
+    plan.stages.map((stage) => [stage.id, stage.title]),
+  );
+  const unitTitles = new Map(plan.units.map((unit) => [unit.id, unit.title]));
+  const itemTitles = new Map(
+    data.clusters.flatMap((cluster) =>
+      cluster.groups.flatMap((group) =>
+        group.items.map((item, index) => [
+          `${group.id}-${index + 1}`,
+          item.text,
+        ]),
+      ),
+    ),
+  );
+  const field = (label, value) =>
+    `<p><strong>${escape(label)}</strong> ${escape(value)}</p>`;
+  const list = (label, values) =>
+    `<h3>${escape(label)}</h3><ul>${values.map((value) => `<li>${escape(value)}</li>`).join('')}</ul>`;
+  const entry = (id, title, body, attributes = '') =>
+    `<details class="plan-entry" name="atlas-development-plan" id="plan-${escape(id)}"${attributes}><summary>${escape(title)}</summary><div class="assessment-body">${body}</div></details>`;
+  const architecture = entry(
+    'architecture',
+    labels.architecture,
+    plan.architecture
+      .map(
+        (item) =>
+          `<h3>${escape(item.title)}</h3><p>${escape(item.description)}</p>${field(labels.acceptance, item.acceptance)}`,
+      )
+      .join(''),
+  );
+  const stack = entry(
+    'stack',
+    labels.stack,
+    plan.stack
+      .map(
+        (item) =>
+          `<h3>${escape(item.title)}</h3><p><strong>${escape(item.status)}</strong> ${escape(item.decision)}</p>`,
+      )
+      .join(''),
+  );
+  const stages = `<h2>${escape(labels.stages)}</h2>${plan.stages
+    .map((stage) =>
+      entry(
+        `stage-${stage.id}`,
+        stage.title,
+        field(labels.goal, stage.goal) +
+          field(labels.entry, stage.entry) +
+          list(labels.deliverables, stage.deliverables) +
+          list(labels.exit, stage.exit),
+        ` data-plan-stage="${escape(stage.id)}"`,
+      ),
+    )
+    .join('')}`;
+  const units = `<h2>${escape(labels.units)}</h2>${plan.units
+    .map((unit) => {
+      const assignments = plan.assignments.filter(
+        (assignment) => assignment.unitId === unit.id,
+      );
+      const assigned = plan.stages
+        .map((stage) => {
+          const items = assignments.filter(
+            (assignment) => assignment.stageId === stage.id,
+          );
+          return items.length
+            ? `<div class="plan-stage-assignments" data-stage="${escape(stage.id)}"><p><strong>${escape(stage.title)}</strong></p><ul class="plan-item-links">${items.map((assignment) => `<li><a href="#feature-${escape(assignment.itemId)}" data-jump="feature-${escape(assignment.itemId)}" data-plan-item="${escape(assignment.itemId)}">${escape(itemTitles.get(assignment.itemId))}</a></li>`).join('')}</ul></div>`
+            : '';
+        })
+        .join('');
+      const dependencies = unit.dependsOn.length
+        ? `<p><strong>${escape(labels.dependencies)}</strong> ${unit.dependsOn.map((id) => `<a href="#plan-unit-${escape(id)}" data-jump="plan-unit-${escape(id)}">${escape(unitTitles.get(id))}</a>`).join(' · ')}</p>`
+        : '';
+      return entry(
+        `unit-${unit.id}`,
+        unit.title,
+        field(labels.kind, plan.kindLabels[unit.kind]) +
+          field(labels.need, plan.needLabels[unit.need]) +
+          field(labels.startsAt, stageTitles.get(unit.startsAt)) +
+          field(labels.targetStage, stageTitles.get(unit.targetStage)) +
+          ['condition', 'frappe', 'customWork', 'dataOwnership']
+            .map((key) => field(labels[key], unit[key]))
+            .join('') +
+          list(labels.contracts, unit.contracts) +
+          dependencies +
+          field(labels.acceptance, unit.acceptance) +
+          field(labels.owner, unit.owner) +
+          (assigned ? `<h3>${escape(labels.assignments)}</h3>${assigned}` : ''),
+        ` data-plan-unit="${escape(unit.id)}"`,
+      );
+    })
+    .join('')}`;
+  const maturity = entry(
+    'maturity',
+    labels.maturity,
+    `<h3>${escape(plan.maturity.title)}</h3><p>${escape(plan.maturity.intro)}</p>${plan.maturity.levels.map((level) => `<h3>${escape(level.title)}</h3>${field(labels.definition, level.definition)}`).join('')}${plan.maturity.dimensions.map((dimension) => `<h3>${escape(dimension.title)}</h3>${field(labels.measurement, dimension.measurement)}${field(labels.evidence, dimension.evidence)}`).join('')}${field(labels.acceptance, plan.maturity.gate)}`,
+  );
+  const decisions = entry(
+    'decisions',
+    labels.decisions,
+    plan.decisions
+      .map(
+        (decision) =>
+          `<h3>${escape(decision.title)}</h3>${field(labels.stage, stageTitles.get(decision.stageId))}<p>${escape(decision.description)}</p>${field(labels.acceptance, decision.acceptance)}`,
+      )
+      .join(''),
+  );
+  const sources = entry(
+    'sources',
+    labels.sources,
+    `<ul>${plan.sources.map((source) => `<li><a href="${escape(source.url)}" target="_blank" rel="noopener noreferrer">${escape(source.title)}</a></li>`).join('')}</ul>`,
+  );
+  return `<details class="context-disclosure development-plan" id="development-plan"><summary><span>${escape(plan.title)}</span></summary><div class="review-body"><p>${escape(plan.intro)}</p>${field(labels.reviewedAt, plan.reviewedAt)}${architecture}${stack}${stages}${units}${maturity}${decisions}${sources}</div></details>`;
+}
+
 export function assembleAtlas({
   metadata,
   roadmap,
@@ -508,6 +855,7 @@ export function assembleAtlas({
   messages,
   review,
   componentCatalog,
+  developmentPlan,
   clusters,
 }) {
   return validateAtlas({
@@ -518,6 +866,7 @@ export function assembleAtlas({
     messages,
     ...(review ? { review } : {}),
     ...(componentCatalog !== undefined ? { componentCatalog } : {}),
+    ...(developmentPlan !== undefined ? { developmentPlan } : {}),
   });
 }
 
@@ -590,6 +939,7 @@ export function renderDocument(data) {
           )}</dl><h2>${escape(review.copy.decisions)}</h2><ul class="review-decisions">${review.decisions.map((entry) => `<li data-decision-id="${escape(entry.id)}">${review.decisionNotes?.[entry.id] ? `<p class="decision-note"><strong>${escape(review.decisionNotes[entry.id])}</strong></p>` : ''}<p><strong>${escape(review.copy.decisionLabels[entry.kind])} · ${escape(entry.title)}</strong></p><p>${escape(entry.reason)}</p><p>${entry.itemIds.map((id) => `<a href="#feature-${escape(id)}" data-jump="feature-${escape(id)}">${escape(id)}</a>`).join(' · ')}</p></li>`).join('')}</ul><h2>${escape(review.copy.coverage)}</h2><ol class="review-coverage">${review.coverage.map((entry) => `<li><p><strong>${escape(entry.id)} · ${escape(entry.title)}</strong></p><p>${escape(entry.reason)}</p><p>${entry.groupIds.map((id) => `<a href="#group-${escape(id)}" data-jump="group-${escape(id)}">${escape(groupMap.get(id).title)}</a>`).join(' · ')}</p></li>`).join('')}</ol><p class="review-source"><strong>${escape(review.copy.source)}</strong> ${escape(review.source.title)} · ${review.source.itemCount} · ${escape(review.reviewedAt)}</p></div></details>`
       : '',
 
+    DEVELOPMENT_PLAN: renderDevelopmentPlan(data.developmentPlan, data),
     COMPONENT_CATALOG: renderCatalog(data.componentCatalog),
     DATA: JSON.stringify(data).replaceAll('<', '\\u003c'),
     CLUSTERS: data.clusters.map(cluster).join(''),
@@ -691,6 +1041,7 @@ export async function loadAtlas() {
       manifest.messages,
       manifest.review,
       ...(own(manifest, 'componentCatalog') ? [manifest.componentCatalog] : []),
+      ...(own(manifest, 'developmentPlan') ? [manifest.developmentPlan] : []),
       ...manifest.clusters,
     ];
     requireValue(new Set(paths).size === paths.length, 'manifest.paths');
@@ -708,6 +1059,9 @@ export async function loadAtlas() {
     const componentCatalog = own(manifest, 'componentCatalog')
       ? rest.shift()
       : undefined;
+    const developmentPlan = own(manifest, 'developmentPlan')
+      ? rest.shift()
+      : undefined;
     const clusters = rest;
     const data = assembleAtlas({
       metadata,
@@ -716,6 +1070,7 @@ export async function loadAtlas() {
       messages,
       review,
       componentCatalog,
+      developmentPlan,
       clusters,
     });
     const html = renderDocument(data);

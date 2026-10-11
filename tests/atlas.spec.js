@@ -1466,6 +1466,7 @@ test('cold navigation and bounded interactions request only local shared product
     'data/messages.json',
     'data/review.json',
     'data/component-catalog.json',
+    'data/development-plan.json',
     ...[
       '12',
       '01',

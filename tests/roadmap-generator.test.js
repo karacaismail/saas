@@ -62,6 +62,8 @@ async function fixture(t) {
     manifest.interface,
     manifest.messages,
     manifest.review,
+    ...(manifest.componentCatalog ? [manifest.componentCatalog] : []),
+    ...(manifest.developmentPlan ? [manifest.developmentPlan] : []),
     ...manifest.clusters,
   ].map((path) => path.replace(/^\.\//, ''));
   const paths = [
