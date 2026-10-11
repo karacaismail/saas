@@ -37,3 +37,13 @@ Bağımsız incelemede320px/%200root durumunda `Subdomain` ve `Değerlendirme` k
 Kullanıcı fotoğrafında başlıkların açık başlaması ve Aç/Daralt rozetlerinin eylemi belirsizleştirmesi görüldü. 49 başlık artık HTML kaynağında kapalıdır; JavaScript olmadan da aynı davranır. Tek native summary satırı başlık, madde sayısı ve sağa hizalı chevron içerir. Ok kapalıyken aşağı, açıkken yukarı bakar; metin rozeti yoktur. İşlevsel ince ayırıcılar başlık sınırını, bütün satırın hover yüzeyi tıklama alanını gösterir. Native Enter/Space ve tek focus-visible göstergesi korunur.
 
 Arama/filtre kullanıcının açık bulma eylemidir ve eşleşen başlıkları açar. Seçim güncellemesi bu eylemden ayrıdır; elle kapatılan başlık checkbox veya toplu seçim sonrasında kapalı kalır. Toplu kontrol genişlet/daralt metnini gerçek başlık durumuyla eşler ve sonuç yoksa devre dışıdır. “Eşleşenleri seç” kapalı başlıklar dahil arama/filtre kapsamını anlatır. Kararlı feature hash bağlantısı kendi üst başlığını açar; yazdırma geçici açılıştan sonra önceki karışık durumu geri yükler.
+
+## 2026-10-12 — Envanterden görev çalışma alanına
+
+Önceki ekran, çok geniş kapsamı kapalı teknik rehberde ve uzun özellik listesinde saklıyordu. Geliştirme görevi, yazma sınırı, bağımlılık ve teslim kapısı birlikte görülemiyordu. Yeni ana yol, waterfall kapısı → ürün aşaması/katman → mikro küme → tekil görevdir. Küme ve görev ayrı, kalıcı sayfalardır; atlas kaynak kanıtı olarak korunur.
+
+Süt beyazı/Outfit kimliği sürer. Masaüstünde sakin sol yönlendirme, geniş ana çalışma alanı;320px’de yatay kaydırılabilir kısa navigasyon ve doğrudan görevlere bağlantı vardır. Dört kapsam sayacı tamamlanma oranı göstermez. Aşama ve katman markalı radio gruplarıdır; native OS dropdown yoktur. Görev listesi30, küme görünümü12 kayıtla sayfalanır; tablo kendi içinde yatay kayar. Bütün görevler SSR sayfalarda JavaScript olmadan da bulunur.
+
+Görev detayı amaç, teslim dosyaları, yasak yollar, kabul, sürümlü sözleşme/bağımlılıklar, Frappe kaynak yeterliliği ve worktree bütünleştirme sınırını ayrı okunabilir alanlarda gösterir. Her bilgi kart çerçevesine alınmaz. Pastel renkler katman/yeterlilik anlamı taşır; kanonik kaynak mavi/yeşil/kırmızı metin ve%5 yüzeyleri korunur. Taslak ve dondurulmamış baseline açıkça görünür. Kopyala, JSON ve Markdown doğrudan görev bağlamındadır; fallback gerçek başarısızlığa göre açılır.
+
+Ortak varlık seti task/home için küçüktür; eski atlas JS/JSON’u yeni arayüze taşınmaz. Klavye odağı tek kontrol üzerindedir; dokunma hedefleri44/coarse48px, tüm yeni metin1rem/400’dür. Fiziksel cihaz kabulü otomatik tarayıcı kanıtından ayrılır.

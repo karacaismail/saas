@@ -16,13 +16,13 @@ Uygulayıcı değişen dosyaları, korunacak sözleşmeyi, olası hatayı ve onu
 ## Koşu sınırları
 
 - Yerelde hedefli kontroller çalışır. Kaynak son halini aldıktan sonra `npm run check` ve `npm run build` bir kez çalışır. Yerelde tam tarayıcı paketi varsayılan değildir.
-- CI formatter/syntax/policy/Node paketini tek `source` işinde çalıştırır; dokuz browser shard aynı75 Node kontrolünü tekrar çalıştırmaz. Browser işleri source kapısından sonra kendi hermetik dist build’ini yapar; deploy source ve bütün browser işlerine bağlıdır.
+- CI formatter/syntax/policy/Node paketini tek `source` işinde çalıştırır; dokuz browser shard aynı Node kontrolünü tekrar çalıştırmaz. Browser işleri source kapısından sonra kendi hermetik dist build’ini yapar; deploy source ve bütün browser işlerine bağlıdır.
 - Mevcut CI matrisi tam tarayıcı regresyonunu bir kez çalıştırır. Yayında yalnız değişen kritik yol ve canlı sürüm doğrulanır. Zaten kanıtlanan eski yayını tekrar audit etme.
 - Aynı kaynakta aynı başarılı kontrol tekrarlanmaz. Tekrarın nedeni yeni değişiklik, başarısızlığın düzeltilmesi veya açık kalan belirli bir kanıt olmalıdır. Değişmeyen testleri sırf güven hissi için tekrar çalıştırma.
 - Yeni senaryo, motor, viewport projesi, shard veya benzer kombinasyon eklemeden önce hangi yakalanmamış hatayı yakalayacağı ve neden mevcut yolculuğa eklenemediği yazılır. Rutin içerik eklemesi yeni matris ekseni açmaz.
 - Parametreleri aynı davranış etrafında bir senaryoda dolaş; bağımsız hata/saklama/etkileşim yolları veya gerçek trace maliyeti gerektiğinde ayır. Daha düşük sayı uğruna assertion silme, testleri yapay biçimde birleştirme veya çalışmayan testi geçer sayma.
 
-## Bu teslimin sınırı
+## Önceki teslimin sınırı — 2026-10-11
 
 Geliştirme planı için beş Node kontrolü ve üç yeni tarayıcı yolculuğu ayrılmıştır: veri/şema koruması;320px accordion ve klavye; gerçek JSON/Markdown export; JSON-hatası fallback ve print durumunun geri yüklenmesi. Üç motor bu üç yolculuğu tekrar kullanır; dokuz çalıştırma, dokuz ayrı özellik değildir. Önceki234 temel tarayıcı senaryosu237 olur; altı mevcut proje toplam714 toplama kaydı üretir. Mevcut Node toplamı için üst sınır75'tir. Bu sayılar hedef değil üst sınırlardır.
 
@@ -30,7 +30,7 @@ Yedi genişlik ve200% yazı kontrolü ilk yolculukta; aynı320px plan DOM'unun a
 
 ## Kilitler ve değişiklik usulü
 
-`npm run test:policy`, `test-policy.json` sınırlarını gerçek Playwright toplama çıktısına uygular; tarayıcı açmaz ve test gövdesi çalıştırmaz. Proje matrisi, genişletilmiş vaka sayısı, timeout45s, expect6s, retry0, repeatEach1, varsayılan worker3 ve trace retain-on-failure korunur. CI Firefox ve üç dokunma/hibrit projesinin ortak input adımı worker1 kullanır; kaynak paylaşımı sınırlanır, vaka sayısı değişmez. `npm run check` bu kilidi çalıştırır; guard ayrıca workflow içinde tek ortak check, source→verify→deploy kapılarını ve input adımının tek worker sınırını denetler. Node75 sınırı gerçek Node sonuç özetiyle incelemede kontrol edilir; bu script Node senaryolarını statik tahmin etmez.
+`npm run test:policy`, `test-policy.json` sınırlarını gerçek Playwright toplama çıktısına uygular; tarayıcı açmaz ve test gövdesi çalıştırmaz. Proje matrisi, genişletilmiş vaka sayısı, timeout45s, expect6s, retry0, repeatEach1, varsayılan worker3 ve trace retain-on-failure korunur. CI Firefox ve üç dokunma/hibrit projesinin ortak input adımı worker1 kullanır; kaynak paylaşımı sınırlanır, vaka sayısı değişmez. `npm run check` bu kilidi çalıştırır; guard ayrıca workflow içinde tek ortak check, source→verify→deploy kapılarını ve input adımının tek worker sınırını denetler. Node üst sınırı gerçek Node sonuç özetiyle incelemede kontrol edilir; bu script Node senaryolarını statik tahmin etmez.
 
 AGENTS.md kuralları koşu seçimini ve tekrarı sınırlar. Script yalnız repodaki normal kontrol akışını denetler; yönerge veya script değiştirilemez bir güvenlik sınırı değildir. Başka komutla başlatılan tüm süreçleri veya gerçek cihazları denetlediği iddia edilmez.
 
@@ -39,3 +39,9 @@ Sınır değişecekse gerekçe, eski/yeni senaryo sayısı, çalışma maliyeti 
 ## Bitiş koşulu
 
 Hedefli kontroller, zorunlu check/build, ilgili bağımsız inceleme, CI ve canlı kritik yol tamamlanınca görev biter. Yeni somut bulgu yoksa daha geniş test arama. Sonuçta yalnız gerçekten çalıştırılan kontroller ve eksik kalan fiziksel cihaz/runtime doğrulamaları bildirilir.
+
+## 2026-10-12 — Açık kullanıcı talebiyle proje çalışma alanı kapsamı
+
+Yeni ayrı görev sayfaları, ownership/DAG modeli ve görev paketi export’u önceki atlas davranışından farklıdır. Bu nedenle4 Node kontrolü (20 dosya byte koruması;387/63/33 izlenebilirlik ve tek artefakt; hatalı ownership/cycle/path sınırı; kayıpsız görev paketi) ve3 browser yolculuğu (320-first filtre/görünüm/küme; tekil görev/download/copy/fallback; seçili paket/hata/no-JS) eklenir. 248 küme veya994 görev için ayrı senaryo eklenmez. Eski75→79 Node,237→240 temel senaryo/motor,714→723 toplam koşu üst sınırı değişir. Altı proje, shard,45s/6s/retry0/trace ve worker sınırları aynıdır.
+
+Önce yeni model/UI yokluğunda RED kaydedilir. Yerelde yeni3 yolculuk ve değişen `/atlas/` URL/ağ sözleşmesine ait2 mevcut kontrol üç motorda hedeflenir. Eski görsel referanslar değişmez. Tam yerel tarayıcı paketi çalıştırılmaz; nihai CI bir kez bütün regresyonu çalıştırır. Canlıda yalnız yeni kritik yol ve dosya sürümü doğrulanır. Bu kapsamın dışına ancak somut başarısızlık veya yeni açık kullanıcı talebiyle çıkılır.

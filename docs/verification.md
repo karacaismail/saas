@@ -1,5 +1,23 @@
 # Doğrulama kaydı
 
+## 2026-10-12 — Paralel geliştirme çalışma alanı
+
+Bu teslim `/` ana sayfasını görev odaklı bir proje çalışma alanına dönüştürür. Eski atlas `/atlas/` altında, önceki20 kanonik JSON dosyası byte düzeyinde aynı kalır. 387 gereksinim,109 karar,63 katalog girdisi ve33 mimari birim korunur. Yeni yedi JSON kaynağında248 mikro küme ve994 taslak görev tanımlıdır. Bütün görevlerde `baseCommit: null` korunur; hedef SaaS deposu, sürümler ve sözleşmeler henüz dondurulmamıştır. Bu teslim çalışan SaaS, gerçek worktree izolasyonu veya sıfır merge conflict kanıtı değildir.
+
+Her görev/küme için gerçek statik URL; tekil ve seçili JSON/Markdown; kaynak gereksinimi, Frappe değerlendirmesi, bağımlılık, kabul, dosya sahipliği ve entegrasyon sınırı sunulur. Liste/küme/tablo, aşama/katman/arama filtreleri, sayfalama ve varsayılan kapalı waterfall kapıları yeni sunumun parçalarıdır. Seçim tamamlanma durumu değildir. JavaScript kapalıyken küme üzerinden bütün görevlere ve doğrudan dosyalara ulaşılır.
+
+Gözlenen ortam macOS26.5.1 arm64, Node24.21.0/npm11.19.0; sabit Playwright1.64.0, axe4.13.0 ve Prettier3.9.10’dur. Yerel üretim sunucusu127.0.0.1:4187 kullanıldı. Mevcut üç masaüstü motor projesi ve altı toplam proje korunur; fiziksel Safari/iOS/Android ve ekran okuyucu `not_run` durumundadır. WebKit gerçek Safari değildir.
+
+RED kayıtları `artifacts/project-red-node.log` ve `project-red-browser.log` yeni model/ekranın yokluğunu gösterir. İlk build, ana HTML gzip bütçesini191176B ile aştı. Bütçe artırılmadan ilk30 görev satırı ve kompakt görev indeksi kullanıldı; diğer satırlar filtre/sayfa değişiminde oluşturulur. JavaScript kapalı ulaşılabilirlik küme bağlantılarıyla korunur. Son build3271 allowlist dosyası,994 paket ve33346 yerel bağlantıyı doğruladı. Ana sayfa toplam129975B gzip: HTML73460/CSS4901/runtime4735/font46879B; en büyük görev HTML16871B gzip. Bunlar Node/zlib ölçümüdür, CDN veya saha performansı değildir. Atlasın önceki650343B gzip ölçümü değişmedi.
+
+`npm run check` formatter/syntax/politika ve79 Node kontrolüyle geçti; `artifacts/project-final-check.log`. Son dar UI düzeltmelerinden sonra ilgili4 proje Node kontrolü ve syntax/formatter tekrar geçti; `project-final-node.log`. Görev başına test eklenmedi: yalnız4 yeni Node kontrolü ve3 yeni tarayıcı yolculuğu vardır. Politika79 Node/240 temel senaryo/motor ve723 toplam koşu üst sınırını,45s/6s/retry0/trace/worker sınırlarını korur. Tam yerel tarayıcı matrisi çalıştırılmadı.
+
+Hedefli tarayıcı doğrulaması, 320/360/375/390/yatay/tablet/masaüstü ve%200 kök yazı; gerçek filtre sonuçları, kapı/odak, klavye tablo kaydırma, copy/download/fallback, filtrelerden bağımsız paket, başarısız/stale paket reddi, saklama ve no-JS akışlarını kapsar. Ayrı `/atlas/` yolunda değişen iki ağ/JSON kontrolü ve altı mevcut görsel senaryo geçti;18 eski görsel referans değişmedi. Kanıtlar `artifacts/project-final-browser/` ve `project-reviewed-browser/` içindedir.
+
+Bulunan gerçek kusurlar: dar filtre grid’inin min-content taşması;%200 yazıda görev başlıkları ve kapı okları; iç içe%5 yüzeyde yeşil etiket kontrastı; seçili listeden kaldırılan checkbox sonrası odak kaybı; WebKit native yatay klavye kaydırması; Firefox Escape dönüşünde görünmeyen klavye odağı. Her biri kaynağında düzeltildi, ilgili mevcut yolculuk tekrarlandı. Firefox computed `:focus-visible` RED kaydı `project-focus-red.log`; düzeltme yalnız klavye Escape dönüşünde görünür odağı ister. Fare kapatma davranışı ayrıdır. Tablo handler’ı yalnız odaktaki kaydırma alanında, taşma varsa, değiştirici tuş olmadan çalışır; iç kontrollerin tuşlarını yakalamaz.
+
+Bağımsız inceleme uygulayıcıdan farklı sahipliklerle salt okunur yapıldı: model/build uygulayıcısı UI/model/görev paketlerini; veri uygulayıcısı build/allowlist/test politikasını inceledi. İnceleyiciler kendi uyguladıkları dosyaları onaylamadı ve test/komut/kurulum çalıştırmadı. Altı yeni macOS görsel adayı ve değişen adayların önce/sonra/farkları bağımsız piksel incelemesinde kabul edildi;18 eski referans aynı kaldı. Görünür görev seçimi etiketi accessible name içinde korundu. Açık actionable bulgu kalmadı. Son etkilenen üç görev yolculuğu, computed odak ve gerçek görsel karşılaştırmayla3pass/3.7s verdi (`artifacts/project-task-green/`). Workspace ve seçili export yolculukları da üç motorda ilgili son koşularında geçti; aynı geniş matrisi yeniden çalıştırmak yerine yalnız değişen görev akışı tekrarlandı. Gerçek GitHub CI/deploy ve canlı sürüm sonuçları yayımdan sonra ayrı kanıtla raporlanır.
+
 Tarih: 10 Ekim 2026, Europe/Istanbul. Ürün: statik SaaS Atlas.
 
 ## Kapsam ve ortam

@@ -1,0 +1,493 @@
+{
+  "version": 1,
+  "description": "Frappe DocType ve headless frontend component/page düzeyinde parçalanmış, sözleşme ve dosya sahipliğiyle sınırlandırılmış geliştirme planı.",
+  "reviewedAt": "2026-10-12",
+  "title": "SaaS — paralel geliştirme çalışma alanı",
+  "intro": "Her iş paketi tek artefakta bağlıdır. Aynı anda geliştirme, dondurulmuş sözleşmeler ve ayrık dosya sahipliğiyle yürür; ortak dosyalar tek entegrasyon hattında birleştirilir.",
+  "ui": {
+    "brand": "SaaS Proje Çerçevesi",
+    "siteTitle": "SaaS — paralel geliştirme çalışma alanı",
+    "description": "Frappe DocType ve headless frontend component/page düzeyinde parçalanmış, sözleşme ve dosya sahipliğiyle sınırlandırılmış geliştirme planı.",
+    "skip": "İçeriğe geç",
+    "workspace": "Çalışma alanı",
+    "workspaceNote": "Kapsam korunur; görevler sözleşme ve baseline kapıları tamamlanana kadar taslaktır.",
+    "homeTitle": "Paralel geliştirme planı",
+    "homeDescription": "Her iş paketi tek artefakta bağlıdır. Aynı anda geliştirme, dondurulmuş sözleşmeler ve ayrık dosya sahipliğiyle yürür; ortak dosyalar tek entegrasyon hattında birleştirilir.",
+    "clusterTitle": "Mikro kümeler",
+    "taskTitle": "Görevler",
+    "navWorkspace": "Genel bakış",
+    "navTasks": "Görevler",
+    "navClusters": "Mikro kümeler",
+    "navGates": "Teslim kapıları",
+    "navAtlas": "Özellik atlası",
+    "navArchitecture": "Mimari plan",
+    "scopeSummary": "Korunan kapsam",
+    "taskCount": "Görev",
+    "clusterCount": "Mikro küme",
+    "requirementCount": "Gereksinim",
+    "stageCount": "Ürün aşaması",
+    "draft": "Taslak",
+    "draftNote": "Hedef SaaS deposu, framework sürümleri, onaylı sözleşme digestleri ve base commit henüz dondurulmadı. Görev sayısı geliştirme veya hazır olma kanıtı değildir.",
+    "stageFilter": "Ürün aşaması",
+    "allStages": "Bütün aşamalar",
+    "layerFilter": "Katman",
+    "allLayers": "Bütün katmanlar",
+    "searchLabel": "Görev ara",
+    "searchPlaceholder": "Görev, DocType, component veya gereksinim kimliği",
+    "resetFilters": "Filtreleri sıfırla",
+    "viewLabel": "Gösterim",
+    "listView": "Liste",
+    "clusterView": "Kümeler",
+    "tableView": "Tablo",
+    "resultsCount": "{visible} / {total} görev",
+    "noResults": "Eşleşen görev yok",
+    "noResultsHint": "Aramayı kısaltın veya filtreleri sıfırlayın.",
+    "selectionTitle": "Görev paketi",
+    "selectionNote": "Seçim geliştirme tamamlandı anlamına gelmez. Export ilgili gereksinimleri, Frappe değerlendirmesini ve bağımlılık bağlamını içerir.",
+    "selectionCount": "{count} görev seçildi",
+    "selectVisible": "Bu sayfadaki görevleri seç",
+    "clearSelection": "Seçimi temizle",
+    "exportJson": "JSON dışa aktar",
+    "exportMarkdown": "Markdown dışa aktar",
+    "selectedOnly": "Seçili görevler",
+    "jsRequired": "Arama, seçim ve kopyalama için JavaScript gerekir. Tekil görev ve küme sayfaları JavaScript olmadan da okunabilir.",
+    "gatesTitle": "Waterfall teslim kapıları",
+    "gatesDescription": "Her ürün aşaması G0–G6 kapılarından geçer. Aşamalar sprint değildir; sözleşme dondurulduktan sonra ayrık worktree uygulamaları paralel ilerler.",
+    "gateEntry": "Giriş koşulu",
+    "gateExit": "Çıkış koşulu",
+    "artifactLabel": "Artefakt",
+    "artifactLimit": "Backend kümesi en fazla bir DocType; frontend kümesi en fazla bir page veya component içerir.",
+    "proposed": "Önerilen sınır",
+    "nativeReuse": "Native yeniden kullanım",
+    "stageLabel": "Ürün aşaması",
+    "layerLabel": "Katman",
+    "readinessLabel": "Hazırlık",
+    "ownerLabel": "Sorumlu rol",
+    "openCluster": "Kümeyi incele",
+    "openTask": "Görevi incele",
+    "selectTask": "Dışa aktarma için seç: {title}",
+    "selectTaskShort": "Görev paketine ekle",
+    "taskPurpose": "Görevin amacı",
+    "taskOutputs": "Teslim çıktıları",
+    "ownedFiles": "Yazma sahipliği",
+    "readFiles": "Okuma bağlamı",
+    "forbiddenFiles": "Yazılması yasak yollar",
+    "acceptance": "Kabul ölçütleri",
+    "dependencies": "Bağımlılıklar",
+    "contractReferences": "Sözleşmeler",
+    "dependencyContext": "Bağımlılık bağlamı",
+    "requirements": "İlgili gereksinimler",
+    "frappeAssessment": "Frappe yeterliliği",
+    "source": "Kaynak",
+    "sourceRequirements": "Kanonik gereksinimler",
+    "scopeLabel": "Kapsam",
+    "copyTask": "Görev paketini kopyala",
+    "downloadJson": "JSON indir",
+    "downloadMarkdown": "Markdown indir",
+    "copySuccess": "Görev paketi kopyalandı.",
+    "copyFailure": "Otomatik kopyalama kullanılamıyor.",
+    "copyFallbackLabel": "Kopyalanabilir görev paketi",
+    "copyFallbackHint": "Metni seçip sistem kopyalama komutunu kullanın.",
+    "closeFallback": "Kopyalama alanını kapat",
+    "exportSuccess": "{count} görev {format} olarak dışa aktarıldı.",
+    "exportFailure": "Dışa aktarma tamamlanamadı. Seçiminizi koruyup yeniden deneyin.",
+    "storageUnavailable": "Seçim bu oturumda korunuyor; tarayıcıya kalıcı kaydedilemiyor.",
+    "selectionCleared": "Görev seçimi temizlendi.",
+    "selectionRestored": "Kaydedilmiş görev seçimi yüklendi.",
+    "selectionEmpty": "Önce en az bir görev seçin.",
+    "integrationTitle": "Worktree ve birleştirme sınırı",
+    "branchLabel": "Dal önerisi",
+    "worktreeLabel": "Worktree önerisi",
+    "baseCommitLabel": "Başlangıç commit’i",
+    "baseCommitUnknown": "Henüz dondurulmadı; dokümantasyon commit’i hedef SaaS baseline’ı değildir.",
+    "ownerLaneLabel": "Birleştirme hattı",
+    "fragmentPaths": "Birleştirme fragment hedefleri",
+    "sharedFileOwners": "Ortak dosya sahipliği",
+    "notStarted": "Uygulama başlamadı",
+    "contractVersion": "Sözleşme sürümü",
+    "dependencyContract": "Sözleşme bağımlılığı",
+    "dependencyImplementation": "Uygulama bağımlılığı",
+    "dependencyIntegration": "Birleştirme bağımlılığı",
+    "sourceDigestLabel": "Kanonik kaynak özeti",
+    "packetVersion": "Paket sürümü",
+    "taskIdentity": "Görev kimliği",
+    "clusterIdentity": "Küme kimliği",
+    "categoryLabel": "Kategori",
+    "artifactKindDoctype": "Tek DocType",
+    "artifactKindNativeAdapter": "Native kayıt adaptörü",
+    "artifactKindComponent": "Tek component",
+    "artifactKindPage": "Tek page",
+    "artifactKindAdapter": "Tek adaptör",
+    "artifactKindConfig": "Tek yapılandırma",
+    "emptyList": "Yok",
+    "sourceKindOriginal": "Özgün kapsam",
+    "sourceKindGap": "Kapsam içi eksik",
+    "sourceKindNew": "Yeni alan",
+    "tableSelect": "Seç",
+    "tableTask": "Görev",
+    "tableCluster": "Küme",
+    "tableArtifact": "Artefakt",
+    "tableStage": "Aşama",
+    "tableReadiness": "Hazırlık",
+    "footer": "Kapsam dokümantasyonu ve iş paketleri; çalışan Frappe, Keycloak veya Tauri kabulü değildir.",
+    "taskPacketTitle": "Bağımsız geliştirme görev paketi",
+    "requirementContext": "Gereksinim bağlamı",
+    "assemblyRules": "Paralel geliştirme kuralları",
+    "conflictNote": "Ayrık dosya sahipliği metin conflict riskini azaltır; Git merge conflict veya semantik çakışma olmayacağını garanti etmez. Sözleşme, bağımlılık ve integration kapıları zorunludur.",
+    "copyLoading": "Görev paketi hazırlanıyor.",
+    "exportLoading": "Dışa aktarma hazırlanıyor.",
+    "bundleTitle": "Seçili görev paketi",
+    "paginationLabel": "Sonuç sayfaları",
+    "previousPage": "Önceki sayfa",
+    "nextPage": "Sonraki sayfa",
+    "pageCount": "{page} / {pages} sayfa",
+    "jumpToTasks": "Görevleri incele",
+    "catalogContext": "Bileşen kataloğu bağlamı",
+    "noSourceRequirements": "Bu hazırlık görevi kaynak özelliklerin uygulanmasına sözleşme veya entegrasyon zemini hazırlar; doğrudan gereksinim ataması yoktur."
+  },
+  "layers": [
+    {
+      "id": "backend",
+      "title": "Frappe kayıtları"
+    },
+    {
+      "id": "frontend",
+      "title": "Headless frontend"
+    },
+    {
+      "id": "adapters",
+      "title": "API ve hizmet adaptörleri"
+    },
+    {
+      "id": "platform",
+      "title": "Platform ve yerel veri"
+    },
+    {
+      "id": "operations",
+      "title": "İşletim ve güvenlik"
+    }
+  ],
+  "stages": [
+    {
+      "id": "poc",
+      "title": "PoC — riskleri doğrula"
+    },
+    {
+      "id": "mvp",
+      "title": "MVP — güvenilir ilk ürün"
+    },
+    {
+      "id": "post_mvp",
+      "title": "post_mvp — seçilmiş kapsamı tamamla"
+    },
+    {
+      "id": "scale",
+      "title": "scale — ölçülen kapasite"
+    },
+    {
+      "id": "enterprise",
+      "title": "enterprise — sözleşmeye bağlı güvence"
+    },
+    {
+      "id": "maturity",
+      "title": "maturity — sürekli işletim kanıtı"
+    }
+  ],
+  "gates": [
+    {
+      "id": "G0",
+      "title": "Kapsam ve baseline",
+      "summary": "Hangi ürün aşamasında hangi gereksinim ve artefaktın teslim edileceğini dondur.",
+      "entry": ["Kanonik gereksinim ve izlenebilirlik kimlikleri mevcut."],
+      "exit": [
+        "Hedef SaaS deposu ve kesin base commit seçildi.",
+        "Frappe, Keycloak, Node, Ant ailesi ve Tauri hedef sürümleri kaydedildi.",
+        "Gereksinim delta listesi ve risk kapsamı onaylandı."
+      ]
+    },
+    {
+      "id": "G1",
+      "title": "Sözleşme dondurma",
+      "summary": "Veri, API, olay, yetki ve frontend prop sözleşmelerini sürümlendir.",
+      "entry": ["G0 kapsamı belli; bu görev alanının tek sahibi atandı."],
+      "exit": [
+        "Contract JSON, örnek fixture ve digest integration owner tarafından onaylandı.",
+        "Contract bağımlılıkları hazır; backend ve frontend aynı fixture üzerinden bağımsız başlayabilir.",
+        "Headless Keycloak PoC güvenli desteklenen protokolü kanıtladı veya ilgili görev bloklu kaldı."
+      ]
+    },
+    {
+      "id": "G2",
+      "title": "Ayrıştırma ve yazma sahipliği",
+      "summary": "Her worktree için tek görev, ayrık dosya yolları ve integration fragmentı ayır.",
+      "entry": ["G1 sözleşmesi donduruldu."],
+      "exit": [
+        "Tek DocType/page/component sınırı ve izinli dosyalar doğrulandı.",
+        "Global dosya sahipliği yalnız integration hattında.",
+        "Worktree base commit ve task manifesti kaydedildi; çakışan sahiplik reddedildi."
+      ]
+    },
+    {
+      "id": "G3",
+      "title": "Paralel uygulama",
+      "summary": "Sözleşmeye bağlı küçük parçaları farklı worktree’lerde geliştir.",
+      "entry": ["G2 sahipliği ve sözleşme fixture’ı hazır."],
+      "exit": [
+        "Görev kabul ölçütleri ve riskle orantılı hedefli doğrulama geçti.",
+        "Başka görev dosyası veya global kayıt düzenlenmedi.",
+        "İlgili değişiklik farkı ve fragment teslim edildi; gereksiz tam test tekrarları yapılmadı."
+      ]
+    },
+    {
+      "id": "G4",
+      "title": "Tek entegrasyon hattı",
+      "summary": "Fragmentları bir owner ile küresel kayıtlara işle ve bağımlılık sırasıyla birleştir.",
+      "entry": ["İlgili G3 parçaları ve implementation bağımlılıkları hazır."],
+      "exit": [
+        "Integration owner hooks/modules/patches/routes/menu/registry/lockfile değişikliklerini tek hatta üretti.",
+        "Frappe migrate, import/permission/API uyumu ve UI contract tüketimi ilgili kapsamda doğrulandı.",
+        "Metin conflict ve semantik çakışma çözüldü; upstream değişiminde yeni base/sözleşme yeniden doğrulandı."
+      ]
+    },
+    {
+      "id": "G5",
+      "title": "Aşama kabulü",
+      "summary": "Birleşik ürünün aşamaya ait davranışını kanıtla.",
+      "entry": ["G4 entegrasyonu tamamlandı."],
+      "exit": [
+        "387 maddelik kayıp kontrolü ve aşamanın ilgili ürün kabulü geçti.",
+        "Kimlik, yetki, veri kaybı, offline ve platform kontrolleri gerçek risk kapsamıyla kanıtlandı.",
+        "Uygulayıcıdan bağımsız inceleme ve eksik/not_run kontroller kaydedildi."
+      ]
+    },
+    {
+      "id": "G6",
+      "title": "Yayın ve devir",
+      "summary": "Aşama çıktısını sürümle, geri dönüş ve işletim sorumluluğuyla devret.",
+      "entry": ["G5 kabul kanıtları mevcut."],
+      "exit": [
+        "Hüseyin Cengiz CI/CD, imzalama, deploy ve rollback kanıtını tamamladı.",
+        "DNS gerekiyorsa Asistan Hüseyin uygulaması ve Hüseyin Cengiz sonuç doğrulaması ayrı kaydedildi.",
+        "Canlı sürüm ve rollback/restore kanıtı doğrulandı; olgunluk seviyesi yalnız ölçülmüş kanıttan güncellendi."
+      ]
+    }
+  ],
+  "readinessLabels": {
+    "draft": "Taslak"
+  },
+  "artifactStatusLabels": {
+    "proposed": "Önerilen sınır",
+    "native_reuse": "Native yeniden kullanım"
+  },
+  "sourceDigest": "974cd96a6bf17a94b4aeda850ac352ba58608cf6acb336811a2c46dbd69e5dc6",
+  "sourceFiles": [
+    {
+      "path": "data/atlas.json",
+      "sha256": "f89f4d662bb6c94cb3df75ad43d4006b12981cf6779c63bd76a57a23bc1255d0"
+    },
+    {
+      "path": "data/clusters/01.json",
+      "sha256": "e7eb5bf1562611d8940c500f5c3b3fb687b8feee865e9cac888b4ced422c5047"
+    },
+    {
+      "path": "data/clusters/02.json",
+      "sha256": "3449cdf5e73e23b2fc93fc9b309abc392f642befa970c2b88df31a0a02130828"
+    },
+    {
+      "path": "data/clusters/03.json",
+      "sha256": "029ea354d475e9771235a0739a36999250c6e8d6ce191c21c29506a6e4dd2af3"
+    },
+    {
+      "path": "data/clusters/04.json",
+      "sha256": "c96b6dd2df6b64e759d2c285bb0dcdb7dd2598d7ed63b791d156e40b64f9969e"
+    },
+    {
+      "path": "data/clusters/05.json",
+      "sha256": "fb19bc428000f48090db9125864d92f614e6c4233e4fabf62f8ff38cc481561e"
+    },
+    {
+      "path": "data/clusters/06.json",
+      "sha256": "63c9dcac09fefd03c9a0a444a04f7da316c11c797f9129c16b982095766850d9"
+    },
+    {
+      "path": "data/clusters/07.json",
+      "sha256": "dfba35a22214a7c3cd7a1b552c3c18bcf26ed28af46efde129e9ae10284d582c"
+    },
+    {
+      "path": "data/clusters/08.json",
+      "sha256": "0f0248d7e2640efa2a9841d78514bba0732225f5636ca6f1005b7359f771db2e"
+    },
+    {
+      "path": "data/clusters/09.json",
+      "sha256": "e90225fb13ed4734b190856bcca3ba9ba7cd4b057b0d3b93fef039df5a97e585"
+    },
+    {
+      "path": "data/clusters/10.json",
+      "sha256": "2ad6f9420975148351e5a72d5ac18999534cd7ecfe32184ade6a63bee3d96249"
+    },
+    {
+      "path": "data/clusters/11.json",
+      "sha256": "2d879c37bf49799a842cf19d6d2908beb89ce7a1a6750de18f4b92197ce9736c"
+    },
+    {
+      "path": "data/clusters/12.json",
+      "sha256": "d48eca5e5c252810306269ba890eb8f2fcf652c49a9256703b52af611e37caa0"
+    },
+    {
+      "path": "data/component-catalog.json",
+      "sha256": "06e4778f4c7956d6d15faba5f915a319016c560a0dd69291d22ed0415569b4ee"
+    },
+    {
+      "path": "data/development-plan.json",
+      "sha256": "a8a1f6eb9751ff06c43fc26e1d7b161ee87ba9c1782ad90db037b095aa618145"
+    },
+    {
+      "path": "data/interface.json",
+      "sha256": "69e3bb59e9cc1dac503b5e545a6d2f6ed72bfe5e51e33a7de94b61927d98332e"
+    },
+    {
+      "path": "data/manifest.json",
+      "sha256": "14fec05df8d64273bd989310fcbc13c8f40754a52422b6092170cc1a41896c9a"
+    },
+    {
+      "path": "data/messages.json",
+      "sha256": "78abd0f0cf5fc5970dbb7a28f0185e4cb1c51d463ee764ac8804f7c0ab31e05a"
+    },
+    {
+      "path": "data/review.json",
+      "sha256": "4121ec9456b74337fac5c7f504cef98191ebae7c1e4cc29dd4cf79a390ab71b8"
+    },
+    {
+      "path": "data/roadmap.json",
+      "sha256": "8153ece1db7200dd274fe2706663bed4f0645ffef3dd1c41d851930cf3925ff5"
+    }
+  ],
+  "baseline": {
+    "targetRepository": null,
+    "baseCommit": null,
+    "state": "draft",
+    "note": "Henüz dondurulmadı; dokümantasyon commit’i hedef SaaS baseline’ı değildir."
+  },
+  "deliveryRules": [
+    {
+      "id": "single-artifact",
+      "title": "Tek artefakt sınırı",
+      "description": "Backend kümesi en fazla bir DocType; frontend kümesi en fazla bir page veya component içerir."
+    },
+    {
+      "id": "single-writer",
+      "title": "Tek dosya, tek yazar",
+      "description": "Bir görev yalnız owns yollarını değiştirir; farklı task manifestleri aynı veya iç içe yazma sahipliğini alamaz. Başkasının editini geri alma."
+    },
+    {
+      "id": "contracts-first",
+      "title": "Önce sözleşme, sonra paralellik",
+      "description": "Contract fixture ve digest dondurulmadan yüzlerce bağımsız worktree başlatılmaz. Frontend backend uygulamasını beklemeden onaylı fixture üzerinden ilerler."
+    },
+    {
+      "id": "integration-owner",
+      "title": "Ortak dosyalar tek hatta",
+      "description": "hooks.py, modules.txt, patches.txt, routes, menu, registry, package manifest ve lockfile yalnız integration owner tarafından değiştirilir; worker benzersiz fragment teslim eder."
+    },
+    {
+      "id": "no-conflict-promise",
+      "title": "Conflict riski yönetilir",
+      "description": "Ayrık dosya sahipliği metin conflict riskini azaltır; Git merge conflict veya semantik çakışma olmayacağını garanti etmez. Sözleşme, bağımlılık ve integration kapıları zorunludur."
+    },
+    {
+      "id": "draft-readiness",
+      "title": "Hazır olma kanıtla değişir",
+      "description": "Hedef SaaS deposu, framework sürümleri, onaylı sözleşme digestleri ve base commit henüz dondurulmadı. Görev sayısı geliştirme veya hazır olma kanıtı değildir."
+    },
+    {
+      "id": "proportional-checks",
+      "title": "Riskle orantılı doğrulama",
+      "description": "Değişen contract/davranış hedefli doğrulanır. Test veya matris sayısı hedef değildir; geçerli sonuçtan sonra gerekçesiz tekrar yapılmaz."
+    },
+    {
+      "id": "native-reuse",
+      "title": "Native kayıtlar kopyalanmaz",
+      "description": "User, Role, File, Workflow, Report ve diğer native kayıtlar app-owned policy/API adaptörüyle yeniden kullanılır. ERPNext, CRM ve Helpdesk ayrı uygulamalardır."
+    }
+  ],
+  "sharedFileOwners": [
+    {
+      "path": "backend/saas_platform/saas_platform/hooks.py",
+      "ownerLane": "integration",
+      "reason": "Birden çok task fragmentı bu kayda bağlanabilir; paralel doğrudan yazım yasaktır."
+    },
+    {
+      "path": "backend/saas_platform/saas_platform/modules.txt",
+      "ownerLane": "integration",
+      "reason": "Birden çok task fragmentı bu kayda bağlanabilir; paralel doğrudan yazım yasaktır."
+    },
+    {
+      "path": "backend/saas_platform/saas_platform/patches.txt",
+      "ownerLane": "integration",
+      "reason": "Birden çok task fragmentı bu kayda bağlanabilir; paralel doğrudan yazım yasaktır."
+    },
+    {
+      "path": "frontend/package.json",
+      "ownerLane": "integration",
+      "reason": "Birden çok task fragmentı bu kayda bağlanabilir; paralel doğrudan yazım yasaktır."
+    },
+    {
+      "path": "package-lock.json",
+      "ownerLane": "integration",
+      "reason": "Birden çok task fragmentı bu kayda bağlanabilir; paralel doğrudan yazım yasaktır."
+    },
+    {
+      "path": "frontend/apps/web/src/routes.tsx",
+      "ownerLane": "integration",
+      "reason": "Birden çok task fragmentı bu kayda bağlanabilir; paralel doğrudan yazım yasaktır."
+    },
+    {
+      "path": "frontend/packages/ui/src/index.ts",
+      "ownerLane": "integration",
+      "reason": "Birden çok task fragmentı bu kayda bağlanabilir; paralel doğrudan yazım yasaktır."
+    },
+    {
+      "path": "frontend/packages/ui/src/navigation.ts",
+      "ownerLane": "integration",
+      "reason": "Birden çok task fragmentı bu kayda bağlanabilir; paralel doğrudan yazım yasaktır."
+    },
+    {
+      "path": "frontend/packages/ui/src/registry.ts",
+      "ownerLane": "integration",
+      "reason": "Birden çok task fragmentı bu kayda bağlanabilir; paralel doğrudan yazım yasaktır."
+    },
+    {
+      "path": "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "ownerLane": "integration",
+      "reason": "Birden çok task fragmentı bu kayda bağlanabilir; paralel doğrudan yazım yasaktır."
+    },
+    {
+      "path": "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "ownerLane": "integration",
+      "reason": "Birden çok task fragmentı bu kayda bağlanabilir; paralel doğrudan yazım yasaktır."
+    },
+    {
+      "path": "frontend/apps/extension/wxt.config.ts",
+      "ownerLane": "integration",
+      "reason": "Birden çok task fragmentı bu kayda bağlanabilir; paralel doğrudan yazım yasaktır."
+    }
+  ],
+  "sources": [
+    {
+      "title": "Frappe DocType",
+      "url": "https://docs.frappe.io/framework/user/en/basics/doctypes"
+    },
+    {
+      "title": "Frappe Hooks",
+      "url": "https://docs.frappe.io/framework/user/en/python-api/hooks"
+    },
+    {
+      "title": "Frappe Database Migrations",
+      "url": "https://docs.frappe.io/framework/user/en/database-migrations"
+    },
+    {
+      "title": "Git worktree",
+      "url": "https://git-scm.com/docs/git-worktree"
+    }
+  ]
+}

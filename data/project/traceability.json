@@ -1,0 +1,2639 @@
+{
+  "items": [
+    {
+      "itemId": "observability-1",
+      "primaryTaskId": "metrics-export--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "observability-2",
+      "primaryTaskId": "metrics-export--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "observability-3",
+      "primaryTaskId": "trace-logging--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "observability-4",
+      "primaryTaskId": "metrics-export--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "observability-5",
+      "primaryTaskId": "trace-logging--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "observability-6",
+      "primaryTaskId": "trace-logging--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "observability-7",
+      "primaryTaskId": "alert-routing--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "observability-8",
+      "primaryTaskId": "slo-policy--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "performance-1",
+      "primaryTaskId": "cache-policy--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "performance-2",
+      "primaryTaskId": "cache-policy--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "performance-3",
+      "primaryTaskId": "cache-policy--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "performance-4",
+      "primaryTaskId": "database-capacity--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "performance-5",
+      "primaryTaskId": "dependency-resilience--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "performance-6",
+      "primaryTaskId": "tenant-fairness--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "performance-7",
+      "primaryTaskId": "edge-delivery--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "deployment-1",
+      "primaryTaskId": "on-premise-package--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "deployment-2",
+      "primaryTaskId": "cluster-capacity--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "deployment-3",
+      "primaryTaskId": "domain-lifecycle--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "deployment-4",
+      "primaryTaskId": "cluster-capacity--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "deployment-5",
+      "primaryTaskId": "domain-lifecycle--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "deployment-6",
+      "primaryTaskId": "installation-health--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "deployment-7",
+      "primaryTaskId": "cluster-capacity--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "deployment-8",
+      "primaryTaskId": "domain-lifecycle--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "deployment-9",
+      "primaryTaskId": "on-premise-package--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "deployment-10",
+      "primaryTaskId": "infrastructure-code--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "releases-1",
+      "primaryTaskId": "ci-pipeline--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "releases-2",
+      "primaryTaskId": "ci-pipeline--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "releases-3",
+      "primaryTaskId": "release-rollback--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "releases-4",
+      "primaryTaskId": "schema-migration--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "releases-5",
+      "primaryTaskId": "demo-seed--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "releases-6",
+      "primaryTaskId": "release-rollback--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "releases-7",
+      "primaryTaskId": "schema-migration--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "releases-8",
+      "primaryTaskId": "demo-seed--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "releases-9",
+      "primaryTaskId": "release-rollback--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "releases-10",
+      "primaryTaskId": "release-rollback--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "releases-11",
+      "primaryTaskId": "client-migration--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "releases-12",
+      "primaryTaskId": "tauri-mobile-release--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "releases-13",
+      "primaryTaskId": "tauri-mobile-release--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "backup-1",
+      "primaryTaskId": "server-backup--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "backup-2",
+      "primaryTaskId": "server-backup--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "backup-3",
+      "primaryTaskId": "tenant-restore--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "backup-4",
+      "primaryTaskId": "server-backup--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "backup-5",
+      "primaryTaskId": "server-backup--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "backup-6",
+      "primaryTaskId": "server-backup--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "backup-7",
+      "primaryTaskId": "client-backup--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "service-1",
+      "primaryTaskId": "status-page--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "service-2",
+      "primaryTaskId": "incident-comms--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "service-3",
+      "primaryTaskId": "incident-comms--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "service-4",
+      "primaryTaskId": "service-credit--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "tenant-1",
+      "primaryTaskId": "tenant-registry--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "tenant-2",
+      "primaryTaskId": "organization-unit--implementation",
+      "supportingTaskIds": ["ui-family-04--implementation-mvp"]
+    },
+    {
+      "itemId": "tenant-3",
+      "primaryTaskId": "tenant-registry--implementation-mvp",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "tenant-4",
+      "primaryTaskId": "membership--implementation",
+      "supportingTaskIds": [
+        "ui-family-04--implementation-mvp",
+        "ui-family-34--implementation-mvp"
+      ]
+    },
+    {
+      "itemId": "tenant-5",
+      "primaryTaskId": "tenant-registry--implementation",
+      "supportingTaskIds": ["ui-family-04--implementation"]
+    },
+    {
+      "itemId": "tenant-6",
+      "primaryTaskId": "tenant-registry--implementation-scale",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "tenant-7",
+      "primaryTaskId": "tenant-registry--implementation-post-mvp",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "identity-1",
+      "primaryTaskId": "keycloak-login--implementation-mvp",
+      "supportingTaskIds": ["ui-family-03--implementation-mvp"]
+    },
+    {
+      "itemId": "identity-2",
+      "primaryTaskId": "keycloak-login--implementation-mvp",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "identity-3",
+      "primaryTaskId": "keycloak-session--implementation-post-mvp",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "identity-4",
+      "primaryTaskId": "keycloak-session--implementation",
+      "supportingTaskIds": ["ui-family-03--implementation-mvp"]
+    },
+    {
+      "itemId": "identity-5",
+      "primaryTaskId": "keycloak-login--implementation-mvp",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "identity-6",
+      "primaryTaskId": "keycloak-login--implementation-post-mvp",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "identity-7",
+      "primaryTaskId": "keycloak-federation--implementation",
+      "supportingTaskIds": ["ui-family-03--implementation-enterprise"]
+    },
+    {
+      "itemId": "identity-8",
+      "primaryTaskId": "keycloak-scim--implementation",
+      "supportingTaskIds": ["ui-family-34--implementation-enterprise"]
+    },
+    {
+      "itemId": "identity-9",
+      "primaryTaskId": "device-grant--implementation",
+      "supportingTaskIds": [
+        "ui-family-03--implementation",
+        "ui-provider-offline--implementation"
+      ]
+    },
+    {
+      "itemId": "identity-10",
+      "primaryTaskId": "keycloak-login--implementation",
+      "supportingTaskIds": ["ui-family-03--implementation"]
+    },
+    {
+      "itemId": "access-1",
+      "primaryTaskId": "native-user-policy--implementation",
+      "supportingTaskIds": [
+        "ui-family-05--implementation",
+        "ui-family-34--implementation",
+        "ui-provider-permission--implementation"
+      ]
+    },
+    {
+      "itemId": "access-2",
+      "primaryTaskId": "native-role-scope--implementation",
+      "supportingTaskIds": [
+        "ui-family-05--implementation",
+        "ui-family-18--implementation",
+        "ui-family-34--implementation",
+        "ui-view-tree--implementation",
+        "ui-view-map--implementation",
+        "ui-view-graph--implementation",
+        "ui-view-matrix--implementation",
+        "ui-provider-permission--implementation"
+      ]
+    },
+    {
+      "itemId": "access-3",
+      "primaryTaskId": "native-user-policy--implementation",
+      "supportingTaskIds": [
+        "ui-family-05--implementation",
+        "ui-family-34--implementation",
+        "ui-view-kanban--implementation",
+        "ui-provider-data--implementation",
+        "ui-provider-permission--implementation"
+      ]
+    },
+    {
+      "itemId": "access-4",
+      "primaryTaskId": "support-grant--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "access-5",
+      "primaryTaskId": "support-grant--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "access-6",
+      "primaryTaskId": "delegation-policy--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "access-7",
+      "primaryTaskId": "service-credential--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "access-8",
+      "primaryTaskId": "access-review--implementation",
+      "supportingTaskIds": ["ui-family-34--implementation-enterprise"]
+    },
+    {
+      "itemId": "security-1",
+      "primaryTaskId": "security-baseline--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "security-2",
+      "primaryTaskId": "edge-abuse--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "security-3",
+      "primaryTaskId": "edge-abuse--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "security-4",
+      "primaryTaskId": "rate-limit--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "security-5",
+      "primaryTaskId": "secret-lifecycle--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "security-6",
+      "primaryTaskId": "encryption-profile--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "security-7",
+      "primaryTaskId": "security-baseline--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "security-8",
+      "primaryTaskId": "rate-limit--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "security-9",
+      "primaryTaskId": "security-incident--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "security-10",
+      "primaryTaskId": "tenant-key--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "security-11",
+      "primaryTaskId": "vulnerability-scan--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "security-12",
+      "primaryTaskId": "independent-pentest--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "audit-1",
+      "primaryTaskId": "audit-envelope--implementation",
+      "supportingTaskIds": [
+        "ui-family-27--implementation",
+        "ui-view-feed--implementation"
+      ]
+    },
+    {
+      "itemId": "audit-2",
+      "primaryTaskId": "audit-envelope--implementation",
+      "supportingTaskIds": [
+        "ui-family-27--implementation",
+        "ui-view-feed--implementation"
+      ]
+    },
+    {
+      "itemId": "audit-3",
+      "primaryTaskId": "audit-envelope--implementation",
+      "supportingTaskIds": ["ui-family-27--implementation"]
+    },
+    {
+      "itemId": "audit-4",
+      "primaryTaskId": "audit-envelope--implementation",
+      "supportingTaskIds": ["ui-family-27--implementation"]
+    },
+    {
+      "itemId": "audit-5",
+      "primaryTaskId": "audit-envelope--implementation",
+      "supportingTaskIds": ["ui-family-27--implementation"]
+    },
+    {
+      "itemId": "legal-1",
+      "primaryTaskId": "consent-evidence--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "legal-2",
+      "primaryTaskId": "policy-document--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "legal-3",
+      "primaryTaskId": "policy-document--implementation",
+      "supportingTaskIds": ["consent-policy-reference--implementation"]
+    },
+    {
+      "itemId": "legal-4",
+      "primaryTaskId": "consent-evidence--implementation",
+      "supportingTaskIds": ["consent-policy-reference--implementation"]
+    },
+    {
+      "itemId": "legal-5",
+      "primaryTaskId": "consent-evidence--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "legal-6",
+      "primaryTaskId": "contract-commitment--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "legal-7",
+      "primaryTaskId": "consent-evidence--implementation-post-mvp",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "governance-1",
+      "primaryTaskId": "data-classification--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "governance-2",
+      "primaryTaskId": "retention-rule--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "governance-3",
+      "primaryTaskId": "retention-rule--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "governance-4",
+      "primaryTaskId": "data-subject-request--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "governance-5",
+      "primaryTaskId": "legal-hold--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "governance-6",
+      "primaryTaskId": "residency-policy--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "governance-7",
+      "primaryTaskId": "retention-rule--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "integrity-1",
+      "primaryTaskId": "record-integrity--implementation",
+      "supportingTaskIds": [
+        "ui-family-40--implementation",
+        "ui-provider-query--implementation"
+      ]
+    },
+    {
+      "itemId": "integrity-2",
+      "primaryTaskId": "native-version--implementation",
+      "supportingTaskIds": ["ui-family-27--implementation-post-mvp"]
+    },
+    {
+      "itemId": "integrity-3",
+      "primaryTaskId": "record-integrity--implementation-post-mvp",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "integrity-4",
+      "primaryTaskId": "record-integrity--implementation-mvp",
+      "supportingTaskIds": ["ui-family-14--implementation"]
+    },
+    {
+      "itemId": "integrity-5",
+      "primaryTaskId": "record-integrity--implementation-mvp",
+      "supportingTaskIds": ["ui-family-20--implementation"]
+    },
+    {
+      "itemId": "integrity-6",
+      "primaryTaskId": "record-integrity--implementation-post-mvp",
+      "supportingTaskIds": ["ui-family-20--implementation-post-mvp"]
+    },
+    {
+      "itemId": "integrity-7",
+      "primaryTaskId": "sync-receipt--implementation",
+      "supportingTaskIds": [
+        "ui-family-40--implementation-mvp",
+        "ui-provider-offline--implementation-mvp"
+      ]
+    },
+    {
+      "itemId": "integrity-8",
+      "primaryTaskId": "client-rule-parity--implementation",
+      "supportingTaskIds": [
+        "ui-family-40--implementation",
+        "ui-provider-offline--implementation"
+      ]
+    },
+    {
+      "itemId": "integrity-9",
+      "primaryTaskId": "offline-reservation--implementation",
+      "supportingTaskIds": [
+        "ui-family-40--implementation-post-mvp",
+        "ui-provider-offline--implementation-post-mvp"
+      ]
+    },
+    {
+      "itemId": "integrity-10",
+      "primaryTaskId": "client-offline-faults--implementation",
+      "supportingTaskIds": ["ui-family-40--implementation-post-mvp"]
+    },
+    {
+      "itemId": "model-1",
+      "primaryTaskId": "native-doctype-schema--implementation",
+      "supportingTaskIds": [
+        "ui-family-38--implementation",
+        "ui-provider-metadata--implementation"
+      ]
+    },
+    {
+      "itemId": "model-2",
+      "primaryTaskId": "native-doctype-schema--implementation-mvp",
+      "supportingTaskIds": [
+        "ui-family-17--implementation-mvp",
+        "ui-family-38--implementation-mvp",
+        "ui-view-timeline--implementation",
+        "ui-view-map--implementation-mvp",
+        "ui-provider-metadata--implementation-mvp"
+      ]
+    },
+    {
+      "itemId": "model-3",
+      "primaryTaskId": "taxonomy-term--implementation",
+      "supportingTaskIds": ["ui-view-tree--implementation-mvp"]
+    },
+    {
+      "itemId": "model-4",
+      "primaryTaskId": "native-doctype-schema--implementation",
+      "supportingTaskIds": [
+        "ui-family-18--implementation",
+        "ui-family-19--implementation",
+        "ui-view-gantt--implementation",
+        "ui-view-tree--implementation",
+        "ui-view-graph--implementation",
+        "ui-provider-metadata--implementation"
+      ]
+    },
+    {
+      "itemId": "model-5",
+      "primaryTaskId": "native-doctype-schema--implementation-post-mvp",
+      "supportingTaskIds": ["ui-provider-metadata--implementation-post-mvp"]
+    },
+    {
+      "itemId": "model-6",
+      "primaryTaskId": "native-doctype-schema--implementation-mvp",
+      "supportingTaskIds": [
+        "ui-family-17--implementation-mvp",
+        "ui-provider-metadata--implementation-mvp"
+      ]
+    },
+    {
+      "itemId": "model-7",
+      "primaryTaskId": "native-doctype-schema--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "model-8",
+      "primaryTaskId": "permissioned-metadata--implementation",
+      "supportingTaskIds": [
+        "ui-family-17--implementation",
+        "ui-family-18--implementation",
+        "ui-family-19--implementation",
+        "ui-provider-metadata--implementation"
+      ]
+    },
+    {
+      "itemId": "files-1",
+      "primaryTaskId": "native-file--implementation",
+      "supportingTaskIds": ["ui-family-22--implementation-post-mvp"]
+    },
+    {
+      "itemId": "files-2",
+      "primaryTaskId": "file-type-policy--implementation",
+      "supportingTaskIds": ["ui-family-22--implementation-post-mvp"]
+    },
+    {
+      "itemId": "files-3",
+      "primaryTaskId": "malware-scan--implementation",
+      "supportingTaskIds": ["ui-family-22--implementation-post-mvp"]
+    },
+    {
+      "itemId": "files-4",
+      "primaryTaskId": "object-storage--implementation",
+      "supportingTaskIds": ["ui-family-22--implementation-post-mvp"]
+    },
+    {
+      "itemId": "files-5",
+      "primaryTaskId": "native-file--implementation",
+      "supportingTaskIds": ["ui-family-22--implementation-post-mvp"]
+    },
+    {
+      "itemId": "files-6",
+      "primaryTaskId": "native-file--implementation",
+      "supportingTaskIds": [
+        "ui-family-22--implementation-post-mvp",
+        "ui-view-gallery--implementation"
+      ]
+    },
+    {
+      "itemId": "files-7",
+      "primaryTaskId": "asset-rendition--implementation",
+      "supportingTaskIds": [
+        "ui-family-22--implementation-post-mvp",
+        "ui-view-gallery--implementation"
+      ]
+    },
+    {
+      "itemId": "files-8",
+      "primaryTaskId": "native-file--implementation",
+      "supportingTaskIds": ["ui-family-22--implementation-post-mvp"]
+    },
+    {
+      "itemId": "search-1",
+      "primaryTaskId": "search-index--implementation",
+      "supportingTaskIds": ["ui-family-10--implementation-post-mvp"]
+    },
+    {
+      "itemId": "search-2",
+      "primaryTaskId": "search-query--implementation",
+      "supportingTaskIds": ["ui-family-11--implementation"]
+    },
+    {
+      "itemId": "search-3",
+      "primaryTaskId": "vector-search--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "search-4",
+      "primaryTaskId": "search-query--implementation",
+      "supportingTaskIds": [
+        "ui-family-10--implementation-post-mvp",
+        "ui-family-11--implementation",
+        "ui-family-18--implementation-post-mvp"
+      ]
+    },
+    {
+      "itemId": "search-5",
+      "primaryTaskId": "search-index--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "search-6",
+      "primaryTaskId": "search-query--implementation",
+      "supportingTaskIds": ["ui-family-10--implementation-post-mvp"]
+    },
+    {
+      "itemId": "search-7",
+      "primaryTaskId": "search-index--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "transfer-1",
+      "primaryTaskId": "transfer-run--implementation",
+      "supportingTaskIds": ["ui-family-30--implementation"]
+    },
+    {
+      "itemId": "transfer-2",
+      "primaryTaskId": "transfer-run--implementation",
+      "supportingTaskIds": [
+        "ui-family-30--implementation",
+        "field-mapping-rule--implementation"
+      ]
+    },
+    {
+      "itemId": "transfer-3",
+      "primaryTaskId": "transfer-run--implementation",
+      "supportingTaskIds": [
+        "ui-family-30--implementation",
+        "transfer-row-result--implementation"
+      ]
+    },
+    {
+      "itemId": "transfer-4",
+      "primaryTaskId": "transfer-run--implementation",
+      "supportingTaskIds": [
+        "ui-family-30--implementation",
+        "transfer-row-result--implementation"
+      ]
+    },
+    {
+      "itemId": "transfer-5",
+      "primaryTaskId": "transfer-run--implementation",
+      "supportingTaskIds": ["ui-family-30--implementation"]
+    },
+    {
+      "itemId": "transfer-6",
+      "primaryTaskId": "transfer-run--implementation",
+      "supportingTaskIds": [
+        "ui-family-14--implementation",
+        "ui-family-30--implementation",
+        "ui-family-31--implementation"
+      ]
+    },
+    {
+      "itemId": "transfer-7",
+      "primaryTaskId": "transfer-run--implementation",
+      "supportingTaskIds": ["ui-family-30--implementation"]
+    },
+    {
+      "itemId": "integration-1",
+      "primaryTaskId": "connection--implementation",
+      "supportingTaskIds": [
+        "ui-family-36--implementation",
+        "ui-provider-data--implementation"
+      ]
+    },
+    {
+      "itemId": "integration-2",
+      "primaryTaskId": "activepieces-bridge--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "integration-3",
+      "primaryTaskId": "api-middleware--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "integration-4",
+      "primaryTaskId": "api-response--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "integration-5",
+      "primaryTaskId": "delivery-attempt--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "integration-6",
+      "primaryTaskId": "api-response--implementation",
+      "supportingTaskIds": ["ui-family-36--implementation-mvp"]
+    },
+    {
+      "itemId": "integration-7",
+      "primaryTaskId": "connection--implementation-mvp",
+      "supportingTaskIds": ["ui-family-36--implementation-mvp"]
+    },
+    {
+      "itemId": "integration-8",
+      "primaryTaskId": "api-response--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "integration-9",
+      "primaryTaskId": "rest-api--implementation",
+      "supportingTaskIds": [
+        "ui-family-36--implementation-mvp",
+        "ui-provider-data--implementation-mvp"
+      ]
+    },
+    {
+      "itemId": "integration-10",
+      "primaryTaskId": "graphql-api--implementation",
+      "supportingTaskIds": ["ui-family-36--implementation-post-mvp"]
+    },
+    {
+      "itemId": "integration-11",
+      "primaryTaskId": "soap-api--implementation",
+      "supportingTaskIds": ["ui-family-36--implementation-post-mvp"]
+    },
+    {
+      "itemId": "integration-12",
+      "primaryTaskId": "xml-feed--implementation",
+      "supportingTaskIds": ["ui-family-36--implementation-post-mvp"]
+    },
+    {
+      "itemId": "integration-13",
+      "primaryTaskId": "mcp-api--implementation",
+      "supportingTaskIds": ["ui-family-36--implementation-post-mvp"]
+    },
+    {
+      "itemId": "integration-14",
+      "primaryTaskId": "field-mapping--implementation",
+      "supportingTaskIds": [
+        "ui-family-36--implementation-post-mvp",
+        "field-mapping-rule--implementation-post-mvp"
+      ]
+    },
+    {
+      "itemId": "events-1",
+      "primaryTaskId": "event-dispatch--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "events-2",
+      "primaryTaskId": "event-dispatch--implementation",
+      "supportingTaskIds": ["ui-provider-registry--implementation"]
+    },
+    {
+      "itemId": "events-3",
+      "primaryTaskId": "event-dispatch--implementation",
+      "supportingTaskIds": ["ui-provider-realtime--implementation"]
+    },
+    {
+      "itemId": "events-4",
+      "primaryTaskId": "outbox--implementation",
+      "supportingTaskIds": ["ui-provider-offline--implementation"]
+    },
+    {
+      "itemId": "events-5",
+      "primaryTaskId": "inbox--implementation",
+      "supportingTaskIds": ["ui-provider-offline--implementation"]
+    },
+    {
+      "itemId": "events-6",
+      "primaryTaskId": "outbox--implementation-mvp",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "events-7",
+      "primaryTaskId": "event-dispatch--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "ai-1",
+      "primaryTaskId": "ai-model-connection--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "ai-2",
+      "primaryTaskId": "ai-model-connection--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "ai-3",
+      "primaryTaskId": "prompt-template--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "ai-4",
+      "primaryTaskId": "ai-call-record--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "ai-5",
+      "primaryTaskId": "ai-policy--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "ai-6",
+      "primaryTaskId": "ai-policy--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "ai-7",
+      "primaryTaskId": "ui-family-39--implementation-post-mvp",
+      "supportingTaskIds": ["ui-provider-registry--implementation-post-mvp"]
+    },
+    {
+      "itemId": "rag-1",
+      "primaryTaskId": "rag-source--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "rag-2",
+      "primaryTaskId": "rag-source--implementation",
+      "supportingTaskIds": ["rag-chunk-reference--implementation"]
+    },
+    {
+      "itemId": "rag-3",
+      "primaryTaskId": "rag-source--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "rag-4",
+      "primaryTaskId": "rag-source--implementation",
+      "supportingTaskIds": ["rag-chunk-reference--implementation"]
+    },
+    {
+      "itemId": "rag-5",
+      "primaryTaskId": "rag-source--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "agents-1",
+      "primaryTaskId": "agent-run--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "agents-2",
+      "primaryTaskId": "agent-capability--implementation",
+      "supportingTaskIds": [
+        "ui-family-39--implementation-scale",
+        "ui-provider-registry--implementation-scale"
+      ]
+    },
+    {
+      "itemId": "agents-3",
+      "primaryTaskId": "human-decision--implementation",
+      "supportingTaskIds": [
+        "ui-family-39--implementation-scale",
+        "ui-provider-registry--implementation-scale"
+      ]
+    },
+    {
+      "itemId": "agents-4",
+      "primaryTaskId": "agent-run--implementation",
+      "supportingTaskIds": ["agent-step--implementation"]
+    },
+    {
+      "itemId": "agents-5",
+      "primaryTaskId": "agent-run--implementation",
+      "supportingTaskIds": ["agent-step--implementation"]
+    },
+    {
+      "itemId": "agents-6",
+      "primaryTaskId": "agent-run--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "shell-1",
+      "primaryTaskId": "page-super-admin--implementation",
+      "supportingTaskIds": ["ui-family-01--implementation-mvp"]
+    },
+    {
+      "itemId": "shell-2",
+      "primaryTaskId": "page-tenant-admin--implementation",
+      "supportingTaskIds": ["ui-family-01--implementation-mvp"]
+    },
+    {
+      "itemId": "shell-3",
+      "primaryTaskId": "ui-family-29--implementation",
+      "supportingTaskIds": ["ui-view-chart--implementation"]
+    },
+    {
+      "itemId": "shell-4",
+      "primaryTaskId": "page-profile--implementation",
+      "supportingTaskIds": [
+        "ui-family-03--implementation-mvp",
+        "ui-family-33--implementation"
+      ]
+    },
+    {
+      "itemId": "shell-5",
+      "primaryTaskId": "ui-theme--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "shell-6",
+      "primaryTaskId": "ui-family-02--implementation-post-mvp",
+      "supportingTaskIds": ["ui-family-12--implementation"]
+    },
+    {
+      "itemId": "shell-7",
+      "primaryTaskId": "ui-family-33--implementation",
+      "supportingTaskIds": ["ui-family-04--implementation-mvp"]
+    },
+    {
+      "itemId": "shell-8",
+      "primaryTaskId": "ui-theme--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "shell-9",
+      "primaryTaskId": "ui-family-02--implementation",
+      "supportingTaskIds": ["ui-family-10--implementation"]
+    },
+    {
+      "itemId": "shell-10",
+      "primaryTaskId": "ui-family-01--implementation",
+      "supportingTaskIds": [
+        "ui-family-07--implementation",
+        "ui-family-39--implementation",
+        "ui-provider-registry--implementation"
+      ]
+    },
+    {
+      "itemId": "views-1",
+      "primaryTaskId": "page-record-list--implementation",
+      "supportingTaskIds": [
+        "ui-family-15--implementation",
+        "ui-view-list--implementation",
+        "page-record-detail--implementation"
+      ]
+    },
+    {
+      "itemId": "views-2",
+      "primaryTaskId": "ui-family-08--implementation-post-mvp",
+      "supportingTaskIds": [
+        "ui-family-09--implementation-post-mvp",
+        "ui-view-table--implementation",
+        "ui-view-list--implementation-post-mvp",
+        "ui-view-gallery--implementation",
+        "ui-view-kanban--implementation-post-mvp",
+        "ui-view-timeline--implementation-post-mvp",
+        "ui-view-gantt--implementation-post-mvp",
+        "ui-view-tree--implementation-post-mvp",
+        "ui-view-map--implementation-post-mvp",
+        "ui-view-graph--implementation-post-mvp"
+      ]
+    },
+    {
+      "itemId": "views-3",
+      "primaryTaskId": "ui-family-14--implementation-post-mvp",
+      "supportingTaskIds": ["ui-provider-viewstate--implementation-post-mvp"]
+    },
+    {
+      "itemId": "views-4",
+      "primaryTaskId": "ui-family-15--implementation-post-mvp",
+      "supportingTaskIds": [
+        "ui-family-27--implementation-post-mvp",
+        "ui-view-matrix--implementation-post-mvp",
+        "page-record-detail--implementation-post-mvp"
+      ]
+    },
+    {
+      "itemId": "views-5",
+      "primaryTaskId": "ui-view-state--implementation",
+      "supportingTaskIds": [
+        "ui-family-08--implementation",
+        "ui-provider-query--implementation-mvp",
+        "ui-provider-viewstate--implementation"
+      ]
+    },
+    {
+      "itemId": "views-6",
+      "primaryTaskId": "ui-family-06--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "views-7",
+      "primaryTaskId": "ui-family-12--implementation",
+      "supportingTaskIds": [
+        "ui-family-08--implementation-post-mvp",
+        "ui-family-09--implementation-post-mvp",
+        "ui-family-11--implementation",
+        "ui-family-13--implementation",
+        "ui-view-table--implementation",
+        "ui-provider-viewstate--implementation-post-mvp"
+      ]
+    },
+    {
+      "itemId": "views-8",
+      "primaryTaskId": "ui-family-06--implementation",
+      "supportingTaskIds": ["ui-family-05--implementation-mvp"]
+    },
+    {
+      "itemId": "views-9",
+      "primaryTaskId": "ui-family-07--implementation-mvp",
+      "supportingTaskIds": [
+        "ui-family-16--implementation",
+        "ui-family-20--implementation"
+      ]
+    },
+    {
+      "itemId": "views-10",
+      "primaryTaskId": "ui-family-09--implementation-post-mvp",
+      "supportingTaskIds": ["ui-view-table--implementation"]
+    },
+    {
+      "itemId": "views-11",
+      "primaryTaskId": "ui-family-06--implementation",
+      "supportingTaskIds": ["ui-family-40--implementation-mvp"]
+    },
+    {
+      "itemId": "views-12",
+      "primaryTaskId": "ui-family-06--implementation",
+      "supportingTaskIds": [
+        "ui-family-16--implementation",
+        "ui-family-40--implementation-mvp"
+      ]
+    },
+    {
+      "itemId": "views-13",
+      "primaryTaskId": "ui-family-06--implementation",
+      "supportingTaskIds": [
+        "ui-family-40--implementation-mvp",
+        "ui-provider-query--implementation-mvp"
+      ]
+    },
+    {
+      "itemId": "views-14",
+      "primaryTaskId": "ui-family-06--implementation",
+      "supportingTaskIds": [
+        "ui-family-40--implementation-mvp",
+        "ui-provider-query--implementation-mvp",
+        "ui-provider-realtime--implementation-mvp"
+      ]
+    },
+    {
+      "itemId": "views-15",
+      "primaryTaskId": "ui-family-07--implementation-post-mvp",
+      "supportingTaskIds": [
+        "ui-family-14--implementation-post-mvp",
+        "ui-family-15--implementation-post-mvp",
+        "ui-family-39--implementation-post-mvp"
+      ]
+    },
+    {
+      "itemId": "views-16",
+      "primaryTaskId": "ui-family-06--implementation",
+      "supportingTaskIds": ["ui-family-16--implementation"]
+    },
+    {
+      "itemId": "views-17",
+      "primaryTaskId": "ui-family-20--implementation-post-mvp",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "forms-1",
+      "primaryTaskId": "ui-family-16--implementation",
+      "supportingTaskIds": [
+        "ui-family-23--implementation",
+        "ui-family-38--implementation-mvp",
+        "ui-provider-metadata--implementation-mvp"
+      ]
+    },
+    {
+      "itemId": "forms-2",
+      "primaryTaskId": "ui-family-16--implementation",
+      "supportingTaskIds": [
+        "ui-family-17--implementation-mvp",
+        "ui-family-19--implementation-mvp",
+        "ui-provider-metadata--implementation-mvp"
+      ]
+    },
+    {
+      "itemId": "forms-3",
+      "primaryTaskId": "ui-family-16--implementation-post-mvp",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "forms-4",
+      "primaryTaskId": "ui-family-16--implementation-post-mvp",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "forms-5",
+      "primaryTaskId": "ui-family-19--implementation-mvp",
+      "supportingTaskIds": [
+        "ui-family-16--implementation",
+        "ui-family-18--implementation-mvp",
+        "ui-family-22--implementation",
+        "ui-provider-metadata--implementation-mvp"
+      ]
+    },
+    {
+      "itemId": "forms-6",
+      "primaryTaskId": "ui-family-16--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "locale-1",
+      "primaryTaskId": "ui-localization--implementation",
+      "supportingTaskIds": ["ui-family-33--implementation-post-mvp"]
+    },
+    {
+      "itemId": "locale-2",
+      "primaryTaskId": "ui-localization--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "locale-3",
+      "primaryTaskId": "ui-localization--implementation",
+      "supportingTaskIds": ["ui-family-33--implementation-post-mvp"]
+    },
+    {
+      "itemId": "locale-4",
+      "primaryTaskId": "ui-family-17--implementation-mvp",
+      "supportingTaskIds": [
+        "ui-family-33--implementation",
+        "ui-view-calendar--implementation",
+        "ui-view-map--implementation-mvp"
+      ]
+    },
+    {
+      "itemId": "locale-5",
+      "primaryTaskId": "ui-localization--implementation",
+      "supportingTaskIds": ["ui-family-33--implementation-post-mvp"]
+    },
+    {
+      "itemId": "channels-1",
+      "primaryTaskId": "web-build--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "channels-2",
+      "primaryTaskId": "client-channel-continuity--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "channels-3",
+      "primaryTaskId": "auth-channel-bridge--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "channels-4",
+      "primaryTaskId": "ui-family-01--implementation-mvp",
+      "supportingTaskIds": [
+        "ui-family-09--implementation",
+        "ui-view-list--implementation"
+      ]
+    },
+    {
+      "itemId": "channels-5",
+      "primaryTaskId": "ui-family-01--implementation-mvp",
+      "supportingTaskIds": ["ui-family-09--implementation"]
+    },
+    {
+      "itemId": "channels-6",
+      "primaryTaskId": "ui-family-01--implementation-mvp",
+      "supportingTaskIds": ["ui-family-09--implementation"]
+    },
+    {
+      "itemId": "channels-7",
+      "primaryTaskId": "client-local-outbox--implementation",
+      "supportingTaskIds": ["ui-family-40--implementation-mvp"]
+    },
+    {
+      "itemId": "channels-8",
+      "primaryTaskId": "client-channel-continuity--implementation",
+      "supportingTaskIds": [
+        "ui-family-02--implementation-post-mvp",
+        "ui-family-12--implementation",
+        "ui-family-26--implementation",
+        "ui-provider-viewstate--implementation-post-mvp"
+      ]
+    },
+    {
+      "itemId": "channels-9",
+      "primaryTaskId": "client-data-budget--implementation",
+      "supportingTaskIds": ["ui-family-13--implementation"]
+    },
+    {
+      "itemId": "channels-10",
+      "primaryTaskId": "client-rule-parity--implementation",
+      "supportingTaskIds": [
+        "ui-family-01--implementation",
+        "ui-provider-data--implementation",
+        "ui-provider-query--implementation"
+      ]
+    },
+    {
+      "itemId": "channels-11",
+      "primaryTaskId": "pwa-service-worker--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "channels-12",
+      "primaryTaskId": "tauri-mobile-package--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "channels-13",
+      "primaryTaskId": "tauri-desktop-package--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "channels-14",
+      "primaryTaskId": "wxt-extension--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "channels-15",
+      "primaryTaskId": "client-local-outbox--implementation",
+      "supportingTaskIds": [
+        "ui-family-40--implementation-mvp",
+        "ui-provider-offline--implementation-mvp"
+      ]
+    },
+    {
+      "itemId": "channels-16",
+      "primaryTaskId": "client-offline-boot--implementation",
+      "supportingTaskIds": ["ui-family-40--implementation-mvp"]
+    },
+    {
+      "itemId": "channels-17",
+      "primaryTaskId": "tauri-mobile-package--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "channels-18",
+      "primaryTaskId": "tauri-device-capability--implementation",
+      "supportingTaskIds": ["ui-family-22--implementation-post-mvp"]
+    },
+    {
+      "itemId": "channels-19",
+      "primaryTaskId": "tauri-mobile-lifecycle--implementation",
+      "supportingTaskIds": ["ui-family-07--implementation-post-mvp"]
+    },
+    {
+      "itemId": "workflow-1",
+      "primaryTaskId": "native-workflow--implementation",
+      "supportingTaskIds": ["ui-family-21--implementation"]
+    },
+    {
+      "itemId": "workflow-2",
+      "primaryTaskId": "process-definition--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "workflow-3",
+      "primaryTaskId": "native-workflow--implementation",
+      "supportingTaskIds": [
+        "ui-family-20--implementation-post-mvp",
+        "ui-family-21--implementation",
+        "ui-view-kanban--implementation-post-mvp"
+      ]
+    },
+    {
+      "itemId": "workflow-4",
+      "primaryTaskId": "process-definition--implementation",
+      "supportingTaskIds": [
+        "ui-family-21--implementation",
+        "ui-family-38--implementation-post-mvp",
+        "process-step--implementation"
+      ]
+    },
+    {
+      "itemId": "workflow-5",
+      "primaryTaskId": "process-definition--implementation-scale",
+      "supportingTaskIds": ["ui-family-38--implementation-scale"]
+    },
+    {
+      "itemId": "workflow-6",
+      "primaryTaskId": "process-definition--implementation-scale",
+      "supportingTaskIds": ["process-step--implementation-scale"]
+    },
+    {
+      "itemId": "workflow-7",
+      "primaryTaskId": "native-workflow--implementation",
+      "supportingTaskIds": [
+        "ui-family-20--implementation-post-mvp",
+        "ui-family-21--implementation",
+        "ui-view-kanban--implementation-post-mvp",
+        "ui-provider-permission--implementation-post-mvp"
+      ]
+    },
+    {
+      "itemId": "rules-1",
+      "primaryTaskId": "automation-rule--implementation",
+      "supportingTaskIds": ["ui-family-38--implementation-post-mvp"]
+    },
+    {
+      "itemId": "rules-2",
+      "primaryTaskId": "automation-rule--implementation",
+      "supportingTaskIds": ["ui-family-38--implementation-post-mvp"]
+    },
+    {
+      "itemId": "rules-3",
+      "primaryTaskId": "automation-rule--implementation",
+      "supportingTaskIds": ["ui-family-38--implementation-post-mvp"]
+    },
+    {
+      "itemId": "rules-4",
+      "primaryTaskId": "automation-rule--implementation",
+      "supportingTaskIds": ["ui-family-38--implementation-post-mvp"]
+    },
+    {
+      "itemId": "rules-5",
+      "primaryTaskId": "automation-rule--implementation",
+      "supportingTaskIds": ["ui-family-38--implementation-post-mvp"]
+    },
+    {
+      "itemId": "approvals-1",
+      "primaryTaskId": "approval-chain--implementation",
+      "supportingTaskIds": ["ui-family-21--implementation"]
+    },
+    {
+      "itemId": "approvals-2",
+      "primaryTaskId": "approval-chain--implementation",
+      "supportingTaskIds": [
+        "ui-family-21--implementation",
+        "approval-step--implementation"
+      ]
+    },
+    {
+      "itemId": "approvals-3",
+      "primaryTaskId": "approval-chain--implementation",
+      "supportingTaskIds": [
+        "ui-family-21--implementation",
+        "approval-step--implementation"
+      ]
+    },
+    {
+      "itemId": "approvals-4",
+      "primaryTaskId": "approval-decision--implementation",
+      "supportingTaskIds": ["ui-family-21--implementation"]
+    },
+    {
+      "itemId": "approvals-5",
+      "primaryTaskId": "approval-chain--implementation",
+      "supportingTaskIds": ["ui-family-21--implementation"]
+    },
+    {
+      "itemId": "approvals-6",
+      "primaryTaskId": "approval-chain--implementation",
+      "supportingTaskIds": ["ui-family-21--implementation"]
+    },
+    {
+      "itemId": "jobs-1",
+      "primaryTaskId": "native-schedule--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "jobs-2",
+      "primaryTaskId": "job-state--implementation",
+      "supportingTaskIds": ["ui-family-32--implementation"]
+    },
+    {
+      "itemId": "jobs-3",
+      "primaryTaskId": "job-state--implementation",
+      "supportingTaskIds": ["ui-family-32--implementation"]
+    },
+    {
+      "itemId": "jobs-4",
+      "primaryTaskId": "job-state--implementation",
+      "supportingTaskIds": ["ui-family-32--implementation"]
+    },
+    {
+      "itemId": "jobs-5",
+      "primaryTaskId": "job-state--implementation",
+      "supportingTaskIds": ["ui-family-32--implementation"]
+    },
+    {
+      "itemId": "jobs-6",
+      "primaryTaskId": "native-schedule--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "jobs-7",
+      "primaryTaskId": "job-state--implementation-scale",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "jobs-8",
+      "primaryTaskId": "job-state--implementation-post-mvp",
+      "supportingTaskIds": [
+        "ui-family-30--implementation-post-mvp",
+        "ui-family-31--implementation-post-mvp",
+        "ui-family-32--implementation-post-mvp"
+      ]
+    },
+    {
+      "itemId": "notifications-1",
+      "primaryTaskId": "notification-message--implementation",
+      "supportingTaskIds": ["ui-family-26--implementation"]
+    },
+    {
+      "itemId": "notifications-2",
+      "primaryTaskId": "sms-push-delivery--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "notifications-3",
+      "primaryTaskId": "web-desktop-push--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "notifications-4",
+      "primaryTaskId": "social-message-delivery--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "notifications-5",
+      "primaryTaskId": "notification-preference--implementation",
+      "supportingTaskIds": ["ui-family-26--implementation"]
+    },
+    {
+      "itemId": "notifications-6",
+      "primaryTaskId": "notification-preference--implementation",
+      "supportingTaskIds": ["ui-family-26--implementation"]
+    },
+    {
+      "itemId": "notifications-7",
+      "primaryTaskId": "notification-message--implementation",
+      "supportingTaskIds": [
+        "ui-family-26--implementation",
+        "notification-delivery--implementation"
+      ]
+    },
+    {
+      "itemId": "notifications-8",
+      "primaryTaskId": "notification-message--implementation",
+      "supportingTaskIds": ["ui-family-26--implementation"]
+    },
+    {
+      "itemId": "notifications-9",
+      "primaryTaskId": "team-message-delivery--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "email-1",
+      "primaryTaskId": "email-template--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "email-2",
+      "primaryTaskId": "keycloak-login--implementation-mvp",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "email-3",
+      "primaryTaskId": "email-provider--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "email-4",
+      "primaryTaskId": "email-template--implementation",
+      "supportingTaskIds": ["ui-family-24--implementation"]
+    },
+    {
+      "itemId": "email-5",
+      "primaryTaskId": "email-template--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "email-6",
+      "primaryTaskId": "email-domain--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "email-7",
+      "primaryTaskId": "email-provider--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "realtime-1",
+      "primaryTaskId": "websocket-api--implementation",
+      "supportingTaskIds": ["ui-provider-realtime--implementation-post-mvp"]
+    },
+    {
+      "itemId": "realtime-2",
+      "primaryTaskId": "sse-api--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "realtime-3",
+      "primaryTaskId": "websocket-api--implementation",
+      "supportingTaskIds": ["ui-provider-realtime--implementation-post-mvp"]
+    },
+    {
+      "itemId": "realtime-4",
+      "primaryTaskId": "native-comment--implementation",
+      "supportingTaskIds": [
+        "ui-family-24--implementation-post-mvp",
+        "ui-family-25--implementation",
+        "ui-view-feed--implementation-post-mvp"
+      ]
+    },
+    {
+      "itemId": "realtime-5",
+      "primaryTaskId": "ui-presence--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "realtime-6",
+      "primaryTaskId": "ui-family-24--implementation-post-mvp",
+      "supportingTaskIds": ["ui-view-feed--implementation-post-mvp"]
+    },
+    {
+      "itemId": "realtime-7",
+      "primaryTaskId": "native-assignment--implementation",
+      "supportingTaskIds": ["ui-family-25--implementation"]
+    },
+    {
+      "itemId": "modules-1",
+      "primaryTaskId": "capability-activation--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "modules-2",
+      "primaryTaskId": "capability-definition--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "modules-3",
+      "primaryTaskId": "capability-definition--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "modules-4",
+      "primaryTaskId": "capability-activation--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "modules-5",
+      "primaryTaskId": "feature-flag--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "modules-6",
+      "primaryTaskId": "capability-definition--implementation",
+      "supportingTaskIds": [
+        "ui-provider-permission--implementation",
+        "ui-provider-registry--implementation"
+      ]
+    },
+    {
+      "itemId": "modules-7",
+      "primaryTaskId": "capability-activation--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "catalog-1",
+      "primaryTaskId": "plan-definition--implementation",
+      "supportingTaskIds": [
+        "ui-family-35--implementation",
+        "plan-feature--implementation"
+      ]
+    },
+    {
+      "itemId": "catalog-2",
+      "primaryTaskId": "plan-definition--implementation",
+      "supportingTaskIds": ["ui-family-35--implementation"]
+    },
+    {
+      "itemId": "catalog-3",
+      "primaryTaskId": "plan-definition--implementation",
+      "supportingTaskIds": ["ui-family-35--implementation"]
+    },
+    {
+      "itemId": "catalog-4",
+      "primaryTaskId": "plan-definition--implementation",
+      "supportingTaskIds": ["ui-family-35--implementation"]
+    },
+    {
+      "itemId": "catalog-5",
+      "primaryTaskId": "plan-definition--implementation",
+      "supportingTaskIds": [
+        "ui-family-35--implementation",
+        "plan-feature--implementation"
+      ]
+    },
+    {
+      "itemId": "catalog-6",
+      "primaryTaskId": "plan-definition--implementation",
+      "supportingTaskIds": ["ui-family-35--implementation"]
+    },
+    {
+      "itemId": "subscriptions-1",
+      "primaryTaskId": "subscription--implementation",
+      "supportingTaskIds": ["ui-family-35--implementation"]
+    },
+    {
+      "itemId": "subscriptions-2",
+      "primaryTaskId": "subscription--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "subscriptions-3",
+      "primaryTaskId": "subscription--implementation",
+      "supportingTaskIds": ["ui-family-35--implementation"]
+    },
+    {
+      "itemId": "subscriptions-4",
+      "primaryTaskId": "subscription--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "subscriptions-5",
+      "primaryTaskId": "subscription--implementation",
+      "supportingTaskIds": ["ui-family-35--implementation"]
+    },
+    {
+      "itemId": "subscriptions-6",
+      "primaryTaskId": "subscription--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "entitlements-1",
+      "primaryTaskId": "entitlement-grant--implementation",
+      "supportingTaskIds": ["ui-family-35--implementation"]
+    },
+    {
+      "itemId": "entitlements-2",
+      "primaryTaskId": "entitlement-grant--implementation",
+      "supportingTaskIds": [
+        "ui-family-05--implementation-post-mvp",
+        "ui-family-35--implementation",
+        "ui-provider-permission--implementation-post-mvp"
+      ]
+    },
+    {
+      "itemId": "entitlements-3",
+      "primaryTaskId": "entitlement-grant--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "entitlements-4",
+      "primaryTaskId": "entitlement-grant--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "entitlements-5",
+      "primaryTaskId": "entitlement-grant--implementation",
+      "supportingTaskIds": ["ui-family-35--implementation"]
+    },
+    {
+      "itemId": "entitlements-6",
+      "primaryTaskId": "entitlement-grant--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "usage-1",
+      "primaryTaskId": "usage-ledger--implementation",
+      "supportingTaskIds": ["ui-family-35--implementation"]
+    },
+    {
+      "itemId": "usage-2",
+      "primaryTaskId": "usage-ledger--implementation",
+      "supportingTaskIds": ["ui-family-35--implementation"]
+    },
+    {
+      "itemId": "usage-3",
+      "primaryTaskId": "usage-ledger--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "usage-4",
+      "primaryTaskId": "usage-ledger--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "usage-5",
+      "primaryTaskId": "usage-ledger--implementation",
+      "supportingTaskIds": ["ui-family-35--implementation"]
+    },
+    {
+      "itemId": "usage-6",
+      "primaryTaskId": "usage-ledger--implementation",
+      "supportingTaskIds": [
+        "ui-family-35--implementation",
+        "usage-reservation--implementation"
+      ]
+    },
+    {
+      "itemId": "usage-7",
+      "primaryTaskId": "usage-ledger--implementation",
+      "supportingTaskIds": ["ui-family-35--implementation"]
+    },
+    {
+      "itemId": "usage-8",
+      "primaryTaskId": "usage-ledger--implementation",
+      "supportingTaskIds": ["usage-reservation--implementation"]
+    },
+    {
+      "itemId": "campaigns-1",
+      "primaryTaskId": "campaign--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "campaigns-2",
+      "primaryTaskId": "campaign--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "campaigns-3",
+      "primaryTaskId": "campaign--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "campaigns-4",
+      "primaryTaskId": "campaign--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "campaigns-5",
+      "primaryTaskId": "campaign--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "campaigns-6",
+      "primaryTaskId": "partner-referral--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "payments-1",
+      "primaryTaskId": "payment-attempt--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "payments-2",
+      "primaryTaskId": "payment-attempt--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "payments-3",
+      "primaryTaskId": "payment-attempt--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "payments-4",
+      "primaryTaskId": "payment-attempt--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "payments-5",
+      "primaryTaskId": "payment-attempt--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "payments-6",
+      "primaryTaskId": "payment-attempt--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "finance-1",
+      "primaryTaskId": "billing-instruction--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "finance-2",
+      "primaryTaskId": "currency-tax-policy--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "finance-3",
+      "primaryTaskId": "reconciliation-run--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "finance-4",
+      "primaryTaskId": "billing-instruction--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "finance-5",
+      "primaryTaskId": "billing-instruction--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "finance-6",
+      "primaryTaskId": "reconciliation-run--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "finance-7",
+      "primaryTaskId": "accounting-bridge--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "finance-8",
+      "primaryTaskId": "billing-instruction--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "finance-9",
+      "primaryTaskId": "billing-instruction--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "crm-1",
+      "primaryTaskId": "crm-lead-bridge--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "crm-2",
+      "primaryTaskId": "crm-lead-bridge--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "crm-3",
+      "primaryTaskId": "crm-interaction--implementation",
+      "supportingTaskIds": [
+        "ui-family-24--implementation-post-mvp",
+        "ui-family-25--implementation"
+      ]
+    },
+    {
+      "itemId": "crm-4",
+      "primaryTaskId": "crm-lead-bridge--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "crm-5",
+      "primaryTaskId": "account-health--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "crm-6",
+      "primaryTaskId": "onboarding-checklist--implementation",
+      "supportingTaskIds": ["ui-family-37--implementation"]
+    },
+    {
+      "itemId": "support-1",
+      "primaryTaskId": "helpdesk-ticket-bridge--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "support-2",
+      "primaryTaskId": "onboarding-checklist--implementation",
+      "supportingTaskIds": ["ui-family-37--implementation"]
+    },
+    {
+      "itemId": "support-3",
+      "primaryTaskId": "support-feedback--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "support-4",
+      "primaryTaskId": "helpdesk-ticket-bridge--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "support-5",
+      "primaryTaskId": "helpdesk-ticket-bridge--implementation",
+      "supportingTaskIds": ["ui-family-25--implementation"]
+    },
+    {
+      "itemId": "support-6",
+      "primaryTaskId": "onboarding-checklist--implementation",
+      "supportingTaskIds": ["ui-family-37--implementation"]
+    },
+    {
+      "itemId": "support-7",
+      "primaryTaskId": "support-feedback--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "support-8",
+      "primaryTaskId": "helpdesk-ticket-bridge--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "support-9",
+      "primaryTaskId": "support-package--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "calendar-1",
+      "primaryTaskId": "native-calendar-event--implementation",
+      "supportingTaskIds": [
+        "ui-view-calendar--implementation-post-mvp",
+        "ui-view-timeline--implementation-post-mvp",
+        "ui-view-gantt--implementation-post-mvp",
+        "ui-view-scheduler--implementation"
+      ]
+    },
+    {
+      "itemId": "calendar-2",
+      "primaryTaskId": "native-calendar-event--implementation",
+      "supportingTaskIds": [
+        "ui-view-calendar--implementation-post-mvp",
+        "ui-view-gantt--implementation-post-mvp",
+        "ui-view-scheduler--implementation"
+      ]
+    },
+    {
+      "itemId": "calendar-3",
+      "primaryTaskId": "native-calendar-event--implementation",
+      "supportingTaskIds": [
+        "ui-view-calendar--implementation-post-mvp",
+        "ui-view-scheduler--implementation"
+      ]
+    },
+    {
+      "itemId": "calendar-4",
+      "primaryTaskId": "native-calendar-event--implementation",
+      "supportingTaskIds": ["ui-view-calendar--implementation-post-mvp"]
+    },
+    {
+      "itemId": "content-1",
+      "primaryTaskId": "native-web-page--implementation",
+      "supportingTaskIds": [
+        "ui-family-23--implementation-post-mvp",
+        "ui-family-37--implementation"
+      ]
+    },
+    {
+      "itemId": "content-2",
+      "primaryTaskId": "native-web-page--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "content-3",
+      "primaryTaskId": "programmatic-seo--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "content-4",
+      "primaryTaskId": "moderation-case--implementation",
+      "supportingTaskIds": ["ui-family-23--implementation-post-mvp"]
+    },
+    {
+      "itemId": "content-5",
+      "primaryTaskId": "release-note--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "content-6",
+      "primaryTaskId": "native-web-page--implementation",
+      "supportingTaskIds": ["ui-family-23--implementation-post-mvp"]
+    },
+    {
+      "itemId": "content-7",
+      "primaryTaskId": "native-web-page--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "content-8",
+      "primaryTaskId": "moderation-case--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "reports-1",
+      "primaryTaskId": "native-report--implementation",
+      "supportingTaskIds": [
+        "ui-family-28--implementation",
+        "ui-family-31--implementation-post-mvp",
+        "ui-view-pivot--implementation"
+      ]
+    },
+    {
+      "itemId": "reports-2",
+      "primaryTaskId": "bi-embedding--implementation",
+      "supportingTaskIds": [
+        "ui-family-28--implementation-scale",
+        "ui-family-29--implementation-scale",
+        "ui-view-pivot--implementation-scale",
+        "ui-view-chart--implementation-scale",
+        "ui-view-matrix--implementation-scale"
+      ]
+    },
+    {
+      "itemId": "reports-3",
+      "primaryTaskId": "bi-embedding--implementation",
+      "supportingTaskIds": ["ui-family-28--implementation-scale"]
+    },
+    {
+      "itemId": "reports-4",
+      "primaryTaskId": "native-report--implementation",
+      "supportingTaskIds": ["ui-family-28--implementation"]
+    },
+    {
+      "itemId": "reports-5",
+      "primaryTaskId": "native-report--implementation",
+      "supportingTaskIds": [
+        "ui-family-28--implementation",
+        "ui-family-31--implementation-post-mvp",
+        "ui-view-pivot--implementation",
+        "ui-view-chart--implementation"
+      ]
+    },
+    {
+      "itemId": "reports-6",
+      "primaryTaskId": "reporting-read-model--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "reports-7",
+      "primaryTaskId": "native-report--implementation",
+      "supportingTaskIds": [
+        "ui-family-28--implementation",
+        "ui-family-29--implementation",
+        "ui-view-pivot--implementation",
+        "ui-view-chart--implementation",
+        "ui-view-matrix--implementation-post-mvp"
+      ]
+    },
+    {
+      "itemId": "reports-8",
+      "primaryTaskId": "business-metric--implementation",
+      "supportingTaskIds": ["ui-family-29--implementation-scale"]
+    },
+    {
+      "itemId": "reports-9",
+      "primaryTaskId": "document-template--implementation",
+      "supportingTaskIds": ["ui-family-31--implementation-post-mvp"]
+    },
+    {
+      "itemId": "analytics-1",
+      "primaryTaskId": "analytics-consent--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "analytics-2",
+      "primaryTaskId": "analytics-consent--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "analytics-3",
+      "primaryTaskId": "utm-definition--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "analytics-4",
+      "primaryTaskId": "analytics-event-spec--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "analytics-5",
+      "primaryTaskId": "analytics-event-spec--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "analytics-6",
+      "primaryTaskId": "analytics-consent--implementation",
+      "supportingTaskIds": []
+    },
+    {
+      "itemId": "analytics-7",
+      "primaryTaskId": "experiment--implementation",
+      "supportingTaskIds": []
+    }
+  ],
+  "catalog": [
+    {
+      "catalogEntryId": "family-01",
+      "taskIds": [
+        "ui-family-01--implementation",
+        "ui-family-01--implementation-mvp"
+      ]
+    },
+    {
+      "catalogEntryId": "family-02",
+      "taskIds": [
+        "ui-family-02--implementation",
+        "ui-family-02--implementation-post-mvp"
+      ]
+    },
+    {
+      "catalogEntryId": "family-03",
+      "taskIds": [
+        "ui-family-03--implementation",
+        "ui-family-03--implementation-mvp",
+        "ui-family-03--implementation-enterprise"
+      ]
+    },
+    {
+      "catalogEntryId": "family-04",
+      "taskIds": [
+        "ui-family-04--implementation",
+        "ui-family-04--implementation-mvp"
+      ]
+    },
+    {
+      "catalogEntryId": "family-05",
+      "taskIds": [
+        "ui-family-05--implementation",
+        "ui-family-05--implementation-mvp",
+        "ui-family-05--implementation-post-mvp"
+      ]
+    },
+    {
+      "catalogEntryId": "family-06",
+      "taskIds": ["ui-family-06--implementation"]
+    },
+    {
+      "catalogEntryId": "family-07",
+      "taskIds": [
+        "ui-family-07--implementation",
+        "ui-family-07--implementation-mvp",
+        "ui-family-07--implementation-post-mvp"
+      ]
+    },
+    {
+      "catalogEntryId": "family-08",
+      "taskIds": [
+        "ui-family-08--implementation",
+        "ui-family-08--implementation-post-mvp"
+      ]
+    },
+    {
+      "catalogEntryId": "family-09",
+      "taskIds": [
+        "ui-family-09--implementation",
+        "ui-family-09--implementation-post-mvp"
+      ]
+    },
+    {
+      "catalogEntryId": "family-10",
+      "taskIds": [
+        "ui-family-10--implementation",
+        "ui-family-10--implementation-post-mvp"
+      ]
+    },
+    {
+      "catalogEntryId": "family-11",
+      "taskIds": ["ui-family-11--implementation"]
+    },
+    {
+      "catalogEntryId": "family-12",
+      "taskIds": ["ui-family-12--implementation"]
+    },
+    {
+      "catalogEntryId": "family-13",
+      "taskIds": ["ui-family-13--implementation"]
+    },
+    {
+      "catalogEntryId": "family-14",
+      "taskIds": [
+        "ui-family-14--implementation",
+        "ui-family-14--implementation-post-mvp"
+      ]
+    },
+    {
+      "catalogEntryId": "family-15",
+      "taskIds": [
+        "ui-family-15--implementation",
+        "ui-family-15--implementation-post-mvp"
+      ]
+    },
+    {
+      "catalogEntryId": "family-16",
+      "taskIds": [
+        "ui-family-16--implementation",
+        "ui-family-16--implementation-post-mvp"
+      ]
+    },
+    {
+      "catalogEntryId": "family-17",
+      "taskIds": [
+        "ui-family-17--implementation",
+        "ui-family-17--implementation-mvp"
+      ]
+    },
+    {
+      "catalogEntryId": "family-18",
+      "taskIds": [
+        "ui-family-18--implementation",
+        "ui-family-18--implementation-mvp",
+        "ui-family-18--implementation-post-mvp"
+      ]
+    },
+    {
+      "catalogEntryId": "family-19",
+      "taskIds": [
+        "ui-family-19--implementation",
+        "ui-family-19--implementation-mvp"
+      ]
+    },
+    {
+      "catalogEntryId": "family-20",
+      "taskIds": [
+        "ui-family-20--implementation",
+        "ui-family-20--implementation-post-mvp"
+      ]
+    },
+    {
+      "catalogEntryId": "family-21",
+      "taskIds": ["ui-family-21--implementation"]
+    },
+    {
+      "catalogEntryId": "family-22",
+      "taskIds": [
+        "ui-family-22--implementation",
+        "ui-family-22--implementation-post-mvp"
+      ]
+    },
+    {
+      "catalogEntryId": "family-23",
+      "taskIds": [
+        "ui-family-23--implementation",
+        "ui-family-23--implementation-post-mvp"
+      ]
+    },
+    {
+      "catalogEntryId": "family-24",
+      "taskIds": [
+        "ui-family-24--implementation",
+        "ui-family-24--implementation-post-mvp"
+      ]
+    },
+    {
+      "catalogEntryId": "family-25",
+      "taskIds": ["ui-family-25--implementation"]
+    },
+    {
+      "catalogEntryId": "family-26",
+      "taskIds": ["ui-family-26--implementation"]
+    },
+    {
+      "catalogEntryId": "family-27",
+      "taskIds": [
+        "ui-family-27--implementation",
+        "ui-family-27--implementation-post-mvp"
+      ]
+    },
+    {
+      "catalogEntryId": "family-28",
+      "taskIds": [
+        "ui-family-28--implementation",
+        "ui-family-28--implementation-scale"
+      ]
+    },
+    {
+      "catalogEntryId": "family-29",
+      "taskIds": [
+        "ui-family-29--implementation",
+        "ui-family-29--implementation-scale"
+      ]
+    },
+    {
+      "catalogEntryId": "family-30",
+      "taskIds": [
+        "ui-family-30--implementation",
+        "ui-family-30--implementation-post-mvp"
+      ]
+    },
+    {
+      "catalogEntryId": "family-31",
+      "taskIds": [
+        "ui-family-31--implementation",
+        "ui-family-31--implementation-post-mvp"
+      ]
+    },
+    {
+      "catalogEntryId": "family-32",
+      "taskIds": [
+        "ui-family-32--implementation",
+        "ui-family-32--implementation-post-mvp"
+      ]
+    },
+    {
+      "catalogEntryId": "family-33",
+      "taskIds": [
+        "ui-family-33--implementation",
+        "ui-family-33--implementation-post-mvp"
+      ]
+    },
+    {
+      "catalogEntryId": "family-34",
+      "taskIds": [
+        "ui-family-34--implementation",
+        "ui-family-34--implementation-mvp",
+        "ui-family-34--implementation-enterprise"
+      ]
+    },
+    {
+      "catalogEntryId": "family-35",
+      "taskIds": ["ui-family-35--implementation"]
+    },
+    {
+      "catalogEntryId": "family-36",
+      "taskIds": [
+        "ui-family-36--implementation",
+        "ui-family-36--implementation-mvp",
+        "ui-family-36--implementation-post-mvp"
+      ]
+    },
+    {
+      "catalogEntryId": "family-37",
+      "taskIds": ["ui-family-37--implementation"]
+    },
+    {
+      "catalogEntryId": "family-38",
+      "taskIds": [
+        "ui-family-38--implementation",
+        "ui-family-38--implementation-mvp",
+        "ui-family-38--implementation-post-mvp",
+        "ui-family-38--implementation-scale"
+      ]
+    },
+    {
+      "catalogEntryId": "family-39",
+      "taskIds": [
+        "ui-family-39--implementation",
+        "ui-family-39--implementation-post-mvp",
+        "ui-family-39--implementation-scale"
+      ]
+    },
+    {
+      "catalogEntryId": "family-40",
+      "taskIds": [
+        "ui-family-40--implementation",
+        "ui-family-40--implementation-mvp",
+        "ui-family-40--implementation-post-mvp"
+      ]
+    },
+    {
+      "catalogEntryId": "view-table",
+      "taskIds": ["ui-view-table--implementation"]
+    },
+    {
+      "catalogEntryId": "view-list",
+      "taskIds": [
+        "ui-view-list--implementation",
+        "ui-view-list--implementation-post-mvp"
+      ]
+    },
+    {
+      "catalogEntryId": "view-gallery",
+      "taskIds": ["ui-view-gallery--implementation"]
+    },
+    {
+      "catalogEntryId": "view-kanban",
+      "taskIds": [
+        "ui-view-kanban--implementation",
+        "ui-view-kanban--implementation-post-mvp"
+      ]
+    },
+    {
+      "catalogEntryId": "view-calendar",
+      "taskIds": [
+        "ui-view-calendar--implementation",
+        "ui-view-calendar--implementation-post-mvp"
+      ]
+    },
+    {
+      "catalogEntryId": "view-timeline",
+      "taskIds": [
+        "ui-view-timeline--implementation",
+        "ui-view-timeline--implementation-post-mvp"
+      ]
+    },
+    {
+      "catalogEntryId": "view-gantt",
+      "taskIds": [
+        "ui-view-gantt--implementation",
+        "ui-view-gantt--implementation-post-mvp"
+      ]
+    },
+    {
+      "catalogEntryId": "view-scheduler",
+      "taskIds": ["ui-view-scheduler--implementation"]
+    },
+    {
+      "catalogEntryId": "view-tree",
+      "taskIds": [
+        "ui-view-tree--implementation",
+        "ui-view-tree--implementation-mvp",
+        "ui-view-tree--implementation-post-mvp"
+      ]
+    },
+    {
+      "catalogEntryId": "view-pivot",
+      "taskIds": [
+        "ui-view-pivot--implementation",
+        "ui-view-pivot--implementation-scale"
+      ]
+    },
+    {
+      "catalogEntryId": "view-map",
+      "taskIds": [
+        "ui-view-map--implementation",
+        "ui-view-map--implementation-mvp",
+        "ui-view-map--implementation-post-mvp"
+      ]
+    },
+    {
+      "catalogEntryId": "view-chart",
+      "taskIds": [
+        "ui-view-chart--implementation",
+        "ui-view-chart--implementation-scale"
+      ]
+    },
+    {
+      "catalogEntryId": "view-graph",
+      "taskIds": [
+        "ui-view-graph--implementation",
+        "ui-view-graph--implementation-post-mvp"
+      ]
+    },
+    {
+      "catalogEntryId": "view-feed",
+      "taskIds": [
+        "ui-view-feed--implementation",
+        "ui-view-feed--implementation-post-mvp"
+      ]
+    },
+    {
+      "catalogEntryId": "view-matrix",
+      "taskIds": [
+        "ui-view-matrix--implementation",
+        "ui-view-matrix--implementation-post-mvp",
+        "ui-view-matrix--implementation-scale"
+      ]
+    },
+    {
+      "catalogEntryId": "provider-data",
+      "taskIds": [
+        "ui-provider-data--implementation",
+        "ui-provider-data--implementation-mvp"
+      ]
+    },
+    {
+      "catalogEntryId": "provider-metadata",
+      "taskIds": [
+        "ui-provider-metadata--implementation",
+        "ui-provider-metadata--implementation-mvp",
+        "ui-provider-metadata--implementation-post-mvp"
+      ]
+    },
+    {
+      "catalogEntryId": "provider-query",
+      "taskIds": [
+        "ui-provider-query--implementation",
+        "ui-provider-query--implementation-mvp"
+      ]
+    },
+    {
+      "catalogEntryId": "provider-viewstate",
+      "taskIds": [
+        "ui-provider-viewstate--implementation",
+        "ui-provider-viewstate--implementation-post-mvp"
+      ]
+    },
+    {
+      "catalogEntryId": "provider-permission",
+      "taskIds": [
+        "ui-provider-permission--implementation",
+        "ui-provider-permission--implementation-post-mvp"
+      ]
+    },
+    {
+      "catalogEntryId": "provider-realtime",
+      "taskIds": [
+        "ui-provider-realtime--implementation",
+        "ui-provider-realtime--implementation-mvp",
+        "ui-provider-realtime--implementation-post-mvp"
+      ]
+    },
+    {
+      "catalogEntryId": "provider-offline",
+      "taskIds": [
+        "ui-provider-offline--implementation",
+        "ui-provider-offline--implementation-mvp",
+        "ui-provider-offline--implementation-post-mvp"
+      ]
+    },
+    {
+      "catalogEntryId": "provider-registry",
+      "taskIds": [
+        "ui-provider-registry--implementation",
+        "ui-provider-registry--implementation-post-mvp",
+        "ui-provider-registry--implementation-scale"
+      ]
+    }
+  ]
+}

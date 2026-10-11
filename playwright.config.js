@@ -1,4 +1,8 @@
 import { defineConfig } from '@playwright/test';
+const siteRoot = (process.env.BASE_URL || 'http://127.0.0.1:4173').replace(
+  /\/?$/,
+  '/',
+);
 export default defineConfig({
   testDir: './tests',
   testMatch: '**/*.spec.js',
@@ -8,7 +12,7 @@ export default defineConfig({
   workers: 3,
   reporter: [['list'], ['html', { open: 'never' }]],
   use: {
-    baseURL: process.env.BASE_URL || 'http://127.0.0.1:4173',
+    baseURL: new URL('atlas/', siteRoot).href,
     locale: 'tr-TR',
     timezoneId: 'Europe/Istanbul',
     colorScheme: 'light',

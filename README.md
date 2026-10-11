@@ -1,6 +1,12 @@
-# SaaS Atlas
+# SaaS Proje Çerçevesi
 
 [Canlı site](https://karacaismail.github.io/saas/) · [MIT lisansı](LICENSE)
+
+Ana sayfa artık **paralel geliştirme çalışma alanıdır**: PoC → MVP → post_mvp → scale → enterprise → maturity aşamalarında, waterfall teslim kapılarıyla ilerleyen tekil görevler sunar. Her görev ayrı URL, JSON/Markdown paketi, kopyalama, bağımlılık, kabul ölçütü ve ayrık dosya sahipliği içerir. Görevler katman/aşama/arama ile süzülür; liste, mikro küme ve tablo görünümleri sayfalanır. Seçim, geliştirme ilerlemesi değildir.
+
+248 mikro küme ve 994 görev, **387 mevcut gereksinimi ve 63 bileşen kataloğu kaydını** kapsar. Her backend kümesi en fazla bir DocType; her frontend kümesi en fazla bir page veya component sınırındadır. Frappe’nin native kayıtları yeniden yazılmaz; adaptör ve kabul işleri ayrılır. Ortak dosyalar yalnız integration sahibi tarafından değiştirilir. Bu model conflict riskini azaltır; sıfır conflict garantisi vermez. Bütün görevler, hedef SaaS deposu/sürümler/sözleşmeler/base commit dondurulana kadar taslaktır.
+
+[Görev modeli ve waterfall kuralları](docs/project-model.md) · [Korunan özellik atlası](https://karacaismail.github.io/saas/atlas/)
 
 Frappe Framework backend, bağımsız React / Ant Design / Ant Design X frontend ve Keycloak için 12 küme, 49 başlık ve 387 maddelik geliştirme yol haritası. Her maddede Frappe yeterliliği, yapılacak iş, sorumlu katman, dayanak, kabul ölçütü ve kaynak bulunur. Özellikleri plan kapsamı/yeterlilik/iş/kaynak/küme ile süzün ve seçilenleri JSON, CSV veya Markdown olarak indirin.
 
@@ -43,7 +49,7 @@ Outfit dosyaları Google Fonts'tan alınmıştır ve [SIL Open Font License](ass
 
 ## İçerik kaynağı
 
-Görünen bütün metinler sınıflandırılmış JSON dosyalarından gelir. `data/clusters/` altında 12 tam küme; `data/interface.json` ve `data/messages.json` içinde arayüz/rehber/çıktı metinleri bulunur. HTML ve JS kaynaklarına içerik eklemeyin. `npm run roadmap` ortak JS engine ile yayın görünümünü üretir; tarayıcı aynı engine ile JSON'u yükler. Veri koruma ve düzenleme sözleşmesi [docs/content-model.md](docs/content-model.md) içindedir.
+Görünen bütün metinler sınıflandırılmış JSON dosyalarından gelir. `data/clusters/` altında 12 tam küme; `data/interface.json` ve `data/messages.json` içinde arayüz/rehber/çıktı metinleri bulunur. HTML ve JS kaynaklarına içerik eklemeyin. `npm run roadmap` eski atlas snapshot’ını üretir; build yeni görev çalışma alanını ve tekil sayfaları JSON’dan üretir. Atlas tarayıcı engine’i yalnız `/atlas/` sayfasında çalışır. Veri koruma ve düzenleme sözleşmesi [docs/content-model.md](docs/content-model.md) içindedir.
 
 2026-10-10 karşılaştırması: sağlanan HTML ve Markdown aynı 402 maddelik, 17 kümeli kaynak haritadır. Mevcut 326 madde ve kimlikleri korunarak 18 gerçek boşluk eklendi. `data/review.json` zorunlu temel, ürüne bağlı, ileri aşama ve teknik tercih kapsamlarını; ekleme/birleştirme/erteleme/düzeltme kararlarını ve 17 kaynak kümesinin atlas karşılığını taşır. Ayrıntılar [kaynak incelemesinde](docs/source-review.md).
 
@@ -75,4 +81,4 @@ TanStack Router ve TanStack Query seçilmiştir; AG Grid / TanStack Table karar�
 
 Hedef mimari düşük bağımlılıklı modüler monolittir. Frappe uygulamasındaki iş modülleri; ortak çekirdek, backend adaptörleri, headless frontend paketleri, platform adaptörleri, harici hizmetler ve operasyon sorumluluklarından ayrılır. Her birimin veri sahipliği, sözleşmeleri, bağımlılıkları, zorunlu/koşullu/opsiyonel niteliği ve özel geliştirme işi belirtilir. Teslim aşaması, zorunlu kapsam veya tamamlanma etiketi değildir; olgunluk düzeyi kanıtlarla ölçülür. Güncel mimari için yeni geliştirme planı esas alınır; eski kararlar tarihsel bağlamıyla korunur. Kesin Tauri 2, Ant Design / Ant Design X ve Keycloak kararları geçerlidir.
 
-Plan, mevcut teknik rehber içindeki kapalı native accordion ile okunur; modüllerdeki özellik bağlantıları aynı envanter maddelerine gider. JSON/Markdown seçimi, yalnız seçili madde atamalarını ve bunların birim/bağımlılık bağlamını taşır; bütün maddeler seçilirse planın tamamını korur. CSV 18 sütun ve planı olmayan legacy çıktı davranışı değişmez. Ayrıntılar [geliştirme planında](docs/development-plan.md), veri sözleşmesi [içerik modelinde](docs/content-model.md) bulunur. Bu belge gelecekteki SaaS'ın uygulanmış veya doğrulanmış mimarisi olduğu iddiasını taşımaz.
+Önceki plan `/atlas/` içindeki kapalı teknik rehberde korunur; ana çalışma alanı bunu mikro görev modeline bağlar; modüllerdeki özellik bağlantıları aynı envanter maddelerine gider. JSON/Markdown seçimi, yalnız seçili madde atamalarını ve bunların birim/bağımlılık bağlamını taşır; bütün maddeler seçilirse planın tamamını korur. CSV 18 sütun ve planı olmayan legacy çıktı davranışı değişmez. Ayrıntılar [geliştirme planında](docs/development-plan.md), veri sözleşmesi [içerik modelinde](docs/content-model.md) bulunur. Bu belge gelecekteki SaaS'ın uygulanmış veya doğrulanmış mimarisi olduğu iddiasını taşımaz.

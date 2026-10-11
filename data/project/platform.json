@@ -1,0 +1,3519 @@
+{
+  "clusters": [
+    {
+      "id": "web-build",
+      "title": "Vite web üretim paketi",
+      "unitId": "web-pwa",
+      "layer": "platform",
+      "artifact": {
+        "kind": "adapter",
+        "name": "web-build",
+        "status": "proposed",
+        "doctypeCount": 0,
+        "pageCount": 0,
+        "availability": "custom_proposed"
+      },
+      "summary": "web-build sınırında vite web üretim paketi yeteneğini geliştir; başka kayıt veya ekranın sahipliğini devralma.",
+      "tasks": [
+        {
+          "clusterId": "web-build",
+          "readiness": "draft",
+          "ownerRole": "İstemci ve platform geliştirici",
+          "id": "web-build--contract",
+          "title": "web-build: sözleşmeyi dondur",
+          "summary": "Vite web üretim paketi için girdiler, çıktılar, yetki/tenant sınırı ve hata biçimini tek sürümlü sözleşmede tanımla. Tüketici backend tamamlanmasını beklemeden bu sözleşmenin fixture’ıyla başlayabilsin.",
+          "requirementIds": [],
+          "catalogEntryIds": [],
+          "stageId": "mvp",
+          "gateId": "G1",
+          "dependsOn": [
+            {
+              "taskId": "kernel-envelope--contract",
+              "type": "contract"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-web-build",
+              "version": 1
+            }
+          ],
+          "reads": [],
+          "owns": ["contracts/web-build.v1.json"],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "web-build sınırı, gerekli alan/tipler, hata ve izin koşulları tanımlı; başka kayıt veya sayfanın sahipliği yok.",
+            "Sözleşme sürümü ve örnekler integration owner tarafından onaylanmadan durum draft olarak kalır."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/web-build--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "read_only_target"
+          }
+        },
+        {
+          "clusterId": "web-build",
+          "readiness": "draft",
+          "ownerRole": "İstemci ve platform geliştirici",
+          "id": "web-build--implementation",
+          "title": "web-build: MVP uygulaması",
+          "summary": "web-build sınırında vite web üretim paketi yeteneğini geliştir; başka kayıt veya ekranın sahipliğini devralma.",
+          "requirementIds": ["channels-1"],
+          "catalogEntryIds": [],
+          "stageId": "mvp",
+          "gateId": "G3",
+          "dependsOn": [
+            {
+              "taskId": "web-build--contract",
+              "type": "contract"
+            },
+            {
+              "taskId": "ui-family-01--contract",
+              "type": "contract"
+            },
+            {
+              "taskId": "client-rule-parity--contract",
+              "type": "contract"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-web-build",
+              "version": 1
+            },
+            {
+              "id": "contract-ui-family-01",
+              "version": 1
+            },
+            {
+              "id": "contract-client-rule-parity",
+              "version": 1
+            }
+          ],
+          "reads": [
+            "contracts/web-build.v1.json",
+            "contracts/ui-family-01.v1.json",
+            "contracts/client-rule-parity.v1.json"
+          ],
+          "owns": [
+            "frontend/packages/platform/src/web-build/web_build_mvp.tsx"
+          ],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "İlk ziyaret, giriş, tenant seçimi ve yetkili kayıt işlemi üretim API sözleşmesiyle uçtan uca çalışmalı.",
+            "Yalnız sahip olunan dosya değişir; ilgili davranış için riskle orantılı doğrulama ve kanıt sunulur, tüm test matrisi gerekçesiz tekrarlanmaz."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/web-build--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "read_only_target"
+          }
+        },
+        {
+          "clusterId": "web-build",
+          "readiness": "draft",
+          "ownerRole": "Entegrasyon sorumlusu",
+          "id": "web-build--integration",
+          "title": "web-build: mvp entegrasyon fragmentı",
+          "summary": "web-build için bu ürün aşamasının rota, hook, registry, ModuleDef veya paket bağlantısı gereksinimlerini tek fragmentta bildir. Global dosyaları worker worktree’si değiştirmez; integration owner fragmentı birleştirir.",
+          "requirementIds": [],
+          "catalogEntryIds": [],
+          "stageId": "mvp",
+          "gateId": "G4",
+          "dependsOn": [
+            {
+              "taskId": "web-build--implementation",
+              "type": "integration"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-web-build",
+              "version": 1
+            }
+          ],
+          "reads": [
+            "contracts/web-build.v1.json",
+            "frontend/packages/platform/src/web-build/web_build_mvp.tsx"
+          ],
+          "owns": ["integration/fragments/web-build--integration.json"],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "Fragment yalnız bu aşamanın dosya/contract/bağımlılık referanslarını içerir; global dosya doğrudan değiştirilmez.",
+            "Integration owner kesin base commit ve sözleşme digestini dondurup conflict/semantik uyum kontrolünü geçirmeden merge-ready veya tamamlandı ilan edilmez."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/web-build--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "owned_output"
+          }
+        }
+      ]
+    },
+    {
+      "id": "pwa-service-worker",
+      "title": "PWA Service Worker önbellek profili",
+      "unitId": "web-pwa",
+      "layer": "platform",
+      "artifact": {
+        "kind": "adapter",
+        "name": "pwa-service-worker",
+        "status": "proposed",
+        "doctypeCount": 0,
+        "pageCount": 0,
+        "availability": "custom_proposed"
+      },
+      "summary": "pwa-service-worker sınırında pwa service worker önbellek profili yeteneğini geliştir; başka kayıt veya ekranın sahipliğini devralma.",
+      "tasks": [
+        {
+          "clusterId": "pwa-service-worker",
+          "readiness": "draft",
+          "ownerRole": "İstemci ve platform geliştirici",
+          "id": "pwa-service-worker--contract",
+          "title": "pwa-service-worker: sözleşmeyi dondur",
+          "summary": "PWA Service Worker önbellek profili için girdiler, çıktılar, yetki/tenant sınırı ve hata biçimini tek sürümlü sözleşmede tanımla. Tüketici backend tamamlanmasını beklemeden bu sözleşmenin fixture’ıyla başlayabilsin.",
+          "requirementIds": [],
+          "catalogEntryIds": [],
+          "stageId": "mvp",
+          "gateId": "G1",
+          "dependsOn": [
+            {
+              "taskId": "kernel-envelope--contract",
+              "type": "contract"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-pwa-service-worker",
+              "version": 1
+            }
+          ],
+          "reads": [],
+          "owns": ["contracts/pwa-service-worker.v1.json"],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "pwa-service-worker sınırı, gerekli alan/tipler, hata ve izin koşulları tanımlı; başka kayıt veya sayfanın sahipliği yok.",
+            "Sözleşme sürümü ve örnekler integration owner tarafından onaylanmadan durum draft olarak kalır."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/pwa-service-worker--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "read_only_target"
+          }
+        },
+        {
+          "clusterId": "pwa-service-worker",
+          "readiness": "draft",
+          "ownerRole": "İstemci ve platform geliştirici",
+          "id": "pwa-service-worker--implementation",
+          "title": "pwa-service-worker: MVP uygulaması",
+          "summary": "pwa-service-worker sınırında pwa service worker önbellek profili yeteneğini geliştir; başka kayıt veya ekranın sahipliğini devralma.",
+          "requirementIds": ["channels-11"],
+          "catalogEntryIds": [],
+          "stageId": "mvp",
+          "gateId": "G3",
+          "dependsOn": [
+            {
+              "taskId": "pwa-service-worker--contract",
+              "type": "contract"
+            },
+            {
+              "taskId": "ui-family-01--contract",
+              "type": "contract"
+            },
+            {
+              "taskId": "client-rule-parity--contract",
+              "type": "contract"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-pwa-service-worker",
+              "version": 1
+            },
+            {
+              "id": "contract-ui-family-01",
+              "version": 1
+            },
+            {
+              "id": "contract-client-rule-parity",
+              "version": 1
+            }
+          ],
+          "reads": [
+            "contracts/pwa-service-worker.v1.json",
+            "contracts/ui-family-01.v1.json",
+            "contracts/client-rule-parity.v1.json"
+          ],
+          "owns": [
+            "frontend/packages/platform/src/pwa-service-worker/pwa_service_worker_mvp.tsx"
+          ],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "İlk çevrimiçi hazırlıktan sonra gereken uygulama dosyaları ve izinli veri/dosyalar ağ yokken açılsın; önbellek hatası açıkça gösterilsin. Yeni Service Worker bekleyen işlemleri kaybetmeden devreye girsin; kullanıcı/tenant değişiminde eski veriye erişim olmasın. Web dağıtımı diğer platformların imza/yayın sürecinden ayrı doğrulansın. Derleme, imza, yayın ve rollback sahibi Hüseyin Cengiz; istemci ekibi platform adaptörlerini sağlar.",
+            "Yalnız sahip olunan dosya değişir; ilgili davranış için riskle orantılı doğrulama ve kanıt sunulur, tüm test matrisi gerekçesiz tekrarlanmaz."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/pwa-service-worker--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "read_only_target"
+          }
+        },
+        {
+          "clusterId": "pwa-service-worker",
+          "readiness": "draft",
+          "ownerRole": "Entegrasyon sorumlusu",
+          "id": "pwa-service-worker--integration",
+          "title": "pwa-service-worker: mvp entegrasyon fragmentı",
+          "summary": "pwa-service-worker için bu ürün aşamasının rota, hook, registry, ModuleDef veya paket bağlantısı gereksinimlerini tek fragmentta bildir. Global dosyaları worker worktree’si değiştirmez; integration owner fragmentı birleştirir.",
+          "requirementIds": [],
+          "catalogEntryIds": [],
+          "stageId": "mvp",
+          "gateId": "G4",
+          "dependsOn": [
+            {
+              "taskId": "pwa-service-worker--implementation",
+              "type": "integration"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-pwa-service-worker",
+              "version": 1
+            }
+          ],
+          "reads": [
+            "contracts/pwa-service-worker.v1.json",
+            "frontend/packages/platform/src/pwa-service-worker/pwa_service_worker_mvp.tsx"
+          ],
+          "owns": [
+            "integration/fragments/pwa-service-worker--integration.json"
+          ],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "Fragment yalnız bu aşamanın dosya/contract/bağımlılık referanslarını içerir; global dosya doğrudan değiştirilmez.",
+            "Integration owner kesin base commit ve sözleşme digestini dondurup conflict/semantik uyum kontrolünü geçirmeden merge-ready veya tamamlandı ilan edilmez."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/pwa-service-worker--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "owned_output"
+          }
+        }
+      ]
+    },
+    {
+      "id": "tauri-mobile-package",
+      "title": "Tauri 2 Android iOS paketi",
+      "unitId": "tauri-mobile",
+      "layer": "platform",
+      "artifact": {
+        "kind": "adapter",
+        "name": "tauri-mobile-package",
+        "status": "proposed",
+        "doctypeCount": 0,
+        "pageCount": 0,
+        "availability": "custom_proposed"
+      },
+      "summary": "Android/iOS için kesin karar Tauri 2’dir; channels-12 kaynak metnindeki Capacitor önerisi tarihsel korunur, güncel görevin aracı değildir.",
+      "tasks": [
+        {
+          "clusterId": "tauri-mobile-package",
+          "readiness": "draft",
+          "ownerRole": "İstemci ve platform geliştirici",
+          "id": "tauri-mobile-package--contract",
+          "title": "tauri-mobile-package: sözleşmeyi dondur",
+          "summary": "Tauri 2 Android iOS paketi için girdiler, çıktılar, yetki/tenant sınırı ve hata biçimini tek sürümlü sözleşmede tanımla. Tüketici backend tamamlanmasını beklemeden bu sözleşmenin fixture’ıyla başlayabilsin. Bu birimin PoC başlangıç sözleşmesi olduğu için uygulama/şema daha sonraki aşamada kalsa da yalnız arayüz sınırı PoC kapısında dondurulur.",
+          "requirementIds": [],
+          "catalogEntryIds": [],
+          "stageId": "poc",
+          "gateId": "G1",
+          "dependsOn": [
+            {
+              "taskId": "kernel-envelope--contract",
+              "type": "contract"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-tauri-mobile-package",
+              "version": 1
+            }
+          ],
+          "reads": [],
+          "owns": ["contracts/tauri-mobile-package.v1.json"],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "tauri-mobile-package sınırı, gerekli alan/tipler, hata ve izin koşulları tanımlı; başka kayıt veya sayfanın sahipliği yok.",
+            "Sözleşme sürümü ve örnekler integration owner tarafından onaylanmadan durum draft olarak kalır."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/tauri-mobile-package--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "read_only_target"
+          }
+        },
+        {
+          "clusterId": "tauri-mobile-package",
+          "readiness": "draft",
+          "ownerRole": "İstemci ve platform geliştirici",
+          "id": "tauri-mobile-package--implementation",
+          "title": "tauri-mobile-package: post_mvp uygulaması",
+          "summary": "Android/iOS için kesin karar Tauri 2’dir; channels-12 kaynak metnindeki Capacitor önerisi tarihsel korunur, güncel görevin aracı değildir.",
+          "requirementIds": ["channels-12", "channels-17"],
+          "catalogEntryIds": [],
+          "stageId": "post_mvp",
+          "gateId": "G3",
+          "dependsOn": [
+            {
+              "taskId": "tauri-mobile-package--contract",
+              "type": "contract"
+            },
+            {
+              "taskId": "ui-family-01--contract",
+              "type": "contract"
+            },
+            {
+              "taskId": "client-rule-parity--contract",
+              "type": "contract"
+            },
+            {
+              "taskId": "keycloak-login--contract",
+              "type": "contract"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-tauri-mobile-package",
+              "version": 1
+            },
+            {
+              "id": "contract-ui-family-01",
+              "version": 1
+            },
+            {
+              "id": "contract-client-rule-parity",
+              "version": 1
+            },
+            {
+              "id": "contract-keycloak-login",
+              "version": 1
+            }
+          ],
+          "reads": [
+            "contracts/tauri-mobile-package.v1.json",
+            "contracts/ui-family-01.v1.json",
+            "contracts/client-rule-parity.v1.json",
+            "contracts/keycloak-login.v1.json"
+          ],
+          "owns": [
+            "frontend/packages/platform/src/tauri-mobile-package/tauri_mobile_package_post_mvp.tsx"
+          ],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "Android ve iOS paketleri ilk çevrimiçi hazırlıktan sonra uçak modunda soğuk açılışı ve kalıcı yerel işlemi geçsin. Sistem izinleri, Keycloak callback, güvenli saklama, imzalama, güncelleme ve mağaza dağıtımı her hedefte ayrı doğrulansın; web derlemesi mobil yayın kanıtı sayılmasın. Derleme, imza, yayın ve rollback sahibi Hüseyin Cengiz; istemci ekibi platform adaptörlerini sağlar.",
+            "Aynı ortak frontend çıktısı gerçek Android ve iOS hedeflerinde gömülü varlıklarla açılmalı; ilk çevrimiçi hazırlık sonrası ağsız açılış doğrulanmalı. Ayrı imza/mağaza paketleri, sistem WebView uyumu ve masaüstü dağıtımı test edilmeli; uzaktaki siteyi açmak offline kabulü sayılmamalı.",
+            "Yalnız sahip olunan dosya değişir; ilgili davranış için riskle orantılı doğrulama ve kanıt sunulur, tüm test matrisi gerekçesiz tekrarlanmaz."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/tauri-mobile-package--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "read_only_target"
+          }
+        },
+        {
+          "clusterId": "tauri-mobile-package",
+          "readiness": "draft",
+          "ownerRole": "Entegrasyon sorumlusu",
+          "id": "tauri-mobile-package--integration",
+          "title": "tauri-mobile-package: post_mvp entegrasyon fragmentı",
+          "summary": "tauri-mobile-package için bu ürün aşamasının rota, hook, registry, ModuleDef veya paket bağlantısı gereksinimlerini tek fragmentta bildir. Global dosyaları worker worktree’si değiştirmez; integration owner fragmentı birleştirir.",
+          "requirementIds": [],
+          "catalogEntryIds": [],
+          "stageId": "post_mvp",
+          "gateId": "G4",
+          "dependsOn": [
+            {
+              "taskId": "tauri-mobile-package--implementation",
+              "type": "integration"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-tauri-mobile-package",
+              "version": 1
+            }
+          ],
+          "reads": [
+            "contracts/tauri-mobile-package.v1.json",
+            "frontend/packages/platform/src/tauri-mobile-package/tauri_mobile_package_post_mvp.tsx"
+          ],
+          "owns": [
+            "integration/fragments/tauri-mobile-package--integration.json"
+          ],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "Fragment yalnız bu aşamanın dosya/contract/bağımlılık referanslarını içerir; global dosya doğrudan değiştirilmez.",
+            "Integration owner kesin base commit ve sözleşme digestini dondurup conflict/semantik uyum kontrolünü geçirmeden merge-ready veya tamamlandı ilan edilmez."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/tauri-mobile-package--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "owned_output"
+          }
+        }
+      ]
+    },
+    {
+      "id": "tauri-desktop-package",
+      "title": "Tauri 2 masaüstü paketi",
+      "unitId": "tauri-desktop",
+      "layer": "platform",
+      "artifact": {
+        "kind": "adapter",
+        "name": "tauri-desktop-package",
+        "status": "proposed",
+        "doctypeCount": 0,
+        "pageCount": 0,
+        "availability": "custom_proposed"
+      },
+      "summary": "tauri-desktop-package sınırında tauri 2 masaüstü paketi yeteneğini geliştir; başka kayıt veya ekranın sahipliğini devralma.",
+      "tasks": [
+        {
+          "clusterId": "tauri-desktop-package",
+          "readiness": "draft",
+          "ownerRole": "İstemci ve platform geliştirici",
+          "id": "tauri-desktop-package--contract",
+          "title": "tauri-desktop-package: sözleşmeyi dondur",
+          "summary": "Tauri 2 masaüstü paketi için girdiler, çıktılar, yetki/tenant sınırı ve hata biçimini tek sürümlü sözleşmede tanımla. Tüketici backend tamamlanmasını beklemeden bu sözleşmenin fixture’ıyla başlayabilsin. Bu birimin PoC başlangıç sözleşmesi olduğu için uygulama/şema daha sonraki aşamada kalsa da yalnız arayüz sınırı PoC kapısında dondurulur.",
+          "requirementIds": [],
+          "catalogEntryIds": [],
+          "stageId": "poc",
+          "gateId": "G1",
+          "dependsOn": [
+            {
+              "taskId": "kernel-envelope--contract",
+              "type": "contract"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-tauri-desktop-package",
+              "version": 1
+            }
+          ],
+          "reads": [],
+          "owns": ["contracts/tauri-desktop-package.v1.json"],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "tauri-desktop-package sınırı, gerekli alan/tipler, hata ve izin koşulları tanımlı; başka kayıt veya sayfanın sahipliği yok.",
+            "Sözleşme sürümü ve örnekler integration owner tarafından onaylanmadan durum draft olarak kalır."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/tauri-desktop-package--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "read_only_target"
+          }
+        },
+        {
+          "clusterId": "tauri-desktop-package",
+          "readiness": "draft",
+          "ownerRole": "İstemci ve platform geliştirici",
+          "id": "tauri-desktop-package--implementation",
+          "title": "tauri-desktop-package: post_mvp uygulaması",
+          "summary": "tauri-desktop-package sınırında tauri 2 masaüstü paketi yeteneğini geliştir; başka kayıt veya ekranın sahipliğini devralma.",
+          "requirementIds": ["channels-13"],
+          "catalogEntryIds": [],
+          "stageId": "post_mvp",
+          "gateId": "G3",
+          "dependsOn": [
+            {
+              "taskId": "tauri-desktop-package--contract",
+              "type": "contract"
+            },
+            {
+              "taskId": "ui-family-01--contract",
+              "type": "contract"
+            },
+            {
+              "taskId": "client-rule-parity--contract",
+              "type": "contract"
+            },
+            {
+              "taskId": "keycloak-login--contract",
+              "type": "contract"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-tauri-desktop-package",
+              "version": 1
+            },
+            {
+              "id": "contract-ui-family-01",
+              "version": 1
+            },
+            {
+              "id": "contract-client-rule-parity",
+              "version": 1
+            },
+            {
+              "id": "contract-keycloak-login",
+              "version": 1
+            }
+          ],
+          "reads": [
+            "contracts/tauri-desktop-package.v1.json",
+            "contracts/ui-family-01.v1.json",
+            "contracts/client-rule-parity.v1.json",
+            "contracts/keycloak-login.v1.json"
+          ],
+          "owns": [
+            "frontend/packages/platform/src/tauri-desktop-package/tauri_desktop_package_post_mvp.tsx"
+          ],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "Her hedef işletim sisteminde kurulum, kaldırma, Keycloak yönlendirmesi, yerel dosya/izin sınırı ve çevrimdışı yeniden başlatma doğrulansın. İmzalama/notarizasyon veya dağıtım doğrulaması hedefe göre kaydedilsin; istemci güncellemesi ve yerel veri migrationı bekleyen kuyruğu korusun. Derleme, imza, yayın ve rollback sahibi Hüseyin Cengiz; istemci ekibi platform adaptörlerini sağlar.",
+            "Yalnız sahip olunan dosya değişir; ilgili davranış için riskle orantılı doğrulama ve kanıt sunulur, tüm test matrisi gerekçesiz tekrarlanmaz."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/tauri-desktop-package--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "read_only_target"
+          }
+        },
+        {
+          "clusterId": "tauri-desktop-package",
+          "readiness": "draft",
+          "ownerRole": "Entegrasyon sorumlusu",
+          "id": "tauri-desktop-package--integration",
+          "title": "tauri-desktop-package: post_mvp entegrasyon fragmentı",
+          "summary": "tauri-desktop-package için bu ürün aşamasının rota, hook, registry, ModuleDef veya paket bağlantısı gereksinimlerini tek fragmentta bildir. Global dosyaları worker worktree’si değiştirmez; integration owner fragmentı birleştirir.",
+          "requirementIds": [],
+          "catalogEntryIds": [],
+          "stageId": "post_mvp",
+          "gateId": "G4",
+          "dependsOn": [
+            {
+              "taskId": "tauri-desktop-package--implementation",
+              "type": "integration"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-tauri-desktop-package",
+              "version": 1
+            }
+          ],
+          "reads": [
+            "contracts/tauri-desktop-package.v1.json",
+            "frontend/packages/platform/src/tauri-desktop-package/tauri_desktop_package_post_mvp.tsx"
+          ],
+          "owns": [
+            "integration/fragments/tauri-desktop-package--integration.json"
+          ],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "Fragment yalnız bu aşamanın dosya/contract/bağımlılık referanslarını içerir; global dosya doğrudan değiştirilmez.",
+            "Integration owner kesin base commit ve sözleşme digestini dondurup conflict/semantik uyum kontrolünü geçirmeden merge-ready veya tamamlandı ilan edilmez."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/tauri-desktop-package--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "owned_output"
+          }
+        }
+      ]
+    },
+    {
+      "id": "tauri-device-capability",
+      "title": "Tauri mobil cihaz yetenekleri",
+      "unitId": "tauri-mobile",
+      "layer": "platform",
+      "artifact": {
+        "kind": "adapter",
+        "name": "tauri-device-capability",
+        "status": "proposed",
+        "doctypeCount": 0,
+        "pageCount": 0,
+        "availability": "custom_proposed"
+      },
+      "summary": "tauri-device-capability sınırında tauri mobil cihaz yetenekleri yeteneğini geliştir; başka kayıt veya ekranın sahipliğini devralma.",
+      "tasks": [
+        {
+          "clusterId": "tauri-device-capability",
+          "readiness": "draft",
+          "ownerRole": "İstemci ve platform geliştirici",
+          "id": "tauri-device-capability--contract",
+          "title": "tauri-device-capability: sözleşmeyi dondur",
+          "summary": "Tauri mobil cihaz yetenekleri için girdiler, çıktılar, yetki/tenant sınırı ve hata biçimini tek sürümlü sözleşmede tanımla. Tüketici backend tamamlanmasını beklemeden bu sözleşmenin fixture’ıyla başlayabilsin.",
+          "requirementIds": [],
+          "catalogEntryIds": [],
+          "stageId": "post_mvp",
+          "gateId": "G1",
+          "dependsOn": [
+            {
+              "taskId": "kernel-envelope--contract",
+              "type": "contract"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-tauri-device-capability",
+              "version": 1
+            }
+          ],
+          "reads": [],
+          "owns": ["contracts/tauri-device-capability.v1.json"],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "tauri-device-capability sınırı, gerekli alan/tipler, hata ve izin koşulları tanımlı; başka kayıt veya sayfanın sahipliği yok.",
+            "Sözleşme sürümü ve örnekler integration owner tarafından onaylanmadan durum draft olarak kalır."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/tauri-device-capability--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "read_only_target"
+          }
+        },
+        {
+          "clusterId": "tauri-device-capability",
+          "readiness": "draft",
+          "ownerRole": "İstemci ve platform geliştirici",
+          "id": "tauri-device-capability--implementation",
+          "title": "tauri-device-capability: post_mvp uygulaması",
+          "summary": "tauri-device-capability sınırında tauri mobil cihaz yetenekleri yeteneğini geliştir; başka kayıt veya ekranın sahipliğini devralma.",
+          "requirementIds": ["channels-18"],
+          "catalogEntryIds": [],
+          "stageId": "post_mvp",
+          "gateId": "G3",
+          "dependsOn": [
+            {
+              "taskId": "tauri-device-capability--contract",
+              "type": "contract"
+            },
+            {
+              "taskId": "ui-family-01--contract",
+              "type": "contract"
+            },
+            {
+              "taskId": "client-rule-parity--contract",
+              "type": "contract"
+            },
+            {
+              "taskId": "keycloak-login--contract",
+              "type": "contract"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-tauri-device-capability",
+              "version": 1
+            },
+            {
+              "id": "contract-ui-family-01",
+              "version": 1
+            },
+            {
+              "id": "contract-client-rule-parity",
+              "version": 1
+            },
+            {
+              "id": "contract-keycloak-login",
+              "version": 1
+            }
+          ],
+          "reads": [
+            "contracts/tauri-device-capability.v1.json",
+            "contracts/ui-family-01.v1.json",
+            "contracts/client-rule-parity.v1.json",
+            "contracts/keycloak-login.v1.json"
+          ],
+          "owns": [
+            "frontend/packages/platform/src/tauri-device-capability/tauri_device_capability_post_mvp.tsx"
+          ],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "Gerçek cihazda izin kabul/red/sonradan iptal, fotoğraf ekleme veya barkod yolu, dosya sınırı ve bildirim bağlantısı test edilmeli. Çevrimdışı eklenen dosya/kayıt kalıcı kuyruğa bağlanmalı; yanlış tenant veya yetkisiz deep link reddedilmeli; kullanılmayan yetenek izin istememeli.",
+            "Yalnız sahip olunan dosya değişir; ilgili davranış için riskle orantılı doğrulama ve kanıt sunulur, tüm test matrisi gerekçesiz tekrarlanmaz."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/tauri-device-capability--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "read_only_target"
+          }
+        },
+        {
+          "clusterId": "tauri-device-capability",
+          "readiness": "draft",
+          "ownerRole": "Entegrasyon sorumlusu",
+          "id": "tauri-device-capability--integration",
+          "title": "tauri-device-capability: post_mvp entegrasyon fragmentı",
+          "summary": "tauri-device-capability için bu ürün aşamasının rota, hook, registry, ModuleDef veya paket bağlantısı gereksinimlerini tek fragmentta bildir. Global dosyaları worker worktree’si değiştirmez; integration owner fragmentı birleştirir.",
+          "requirementIds": [],
+          "catalogEntryIds": [],
+          "stageId": "post_mvp",
+          "gateId": "G4",
+          "dependsOn": [
+            {
+              "taskId": "tauri-device-capability--implementation",
+              "type": "integration"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-tauri-device-capability",
+              "version": 1
+            }
+          ],
+          "reads": [
+            "contracts/tauri-device-capability.v1.json",
+            "frontend/packages/platform/src/tauri-device-capability/tauri_device_capability_post_mvp.tsx"
+          ],
+          "owns": [
+            "integration/fragments/tauri-device-capability--integration.json"
+          ],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "Fragment yalnız bu aşamanın dosya/contract/bağımlılık referanslarını içerir; global dosya doğrudan değiştirilmez.",
+            "Integration owner kesin base commit ve sözleşme digestini dondurup conflict/semantik uyum kontrolünü geçirmeden merge-ready veya tamamlandı ilan edilmez."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/tauri-device-capability--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "owned_output"
+          }
+        }
+      ]
+    },
+    {
+      "id": "tauri-mobile-lifecycle",
+      "title": "Tauri mobil yaşam döngüsü",
+      "unitId": "tauri-mobile",
+      "layer": "platform",
+      "artifact": {
+        "kind": "adapter",
+        "name": "tauri-mobile-lifecycle",
+        "status": "proposed",
+        "doctypeCount": 0,
+        "pageCount": 0,
+        "availability": "custom_proposed"
+      },
+      "summary": "tauri-mobile-lifecycle sınırında tauri mobil yaşam döngüsü yeteneğini geliştir; başka kayıt veya ekranın sahipliğini devralma.",
+      "tasks": [
+        {
+          "clusterId": "tauri-mobile-lifecycle",
+          "readiness": "draft",
+          "ownerRole": "İstemci ve platform geliştirici",
+          "id": "tauri-mobile-lifecycle--contract",
+          "title": "tauri-mobile-lifecycle: sözleşmeyi dondur",
+          "summary": "Tauri mobil yaşam döngüsü için girdiler, çıktılar, yetki/tenant sınırı ve hata biçimini tek sürümlü sözleşmede tanımla. Tüketici backend tamamlanmasını beklemeden bu sözleşmenin fixture’ıyla başlayabilsin.",
+          "requirementIds": [],
+          "catalogEntryIds": [],
+          "stageId": "post_mvp",
+          "gateId": "G1",
+          "dependsOn": [
+            {
+              "taskId": "kernel-envelope--contract",
+              "type": "contract"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-tauri-mobile-lifecycle",
+              "version": 1
+            }
+          ],
+          "reads": [],
+          "owns": ["contracts/tauri-mobile-lifecycle.v1.json"],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "tauri-mobile-lifecycle sınırı, gerekli alan/tipler, hata ve izin koşulları tanımlı; başka kayıt veya sayfanın sahipliği yok.",
+            "Sözleşme sürümü ve örnekler integration owner tarafından onaylanmadan durum draft olarak kalır."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/tauri-mobile-lifecycle--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "read_only_target"
+          }
+        },
+        {
+          "clusterId": "tauri-mobile-lifecycle",
+          "readiness": "draft",
+          "ownerRole": "İstemci ve platform geliştirici",
+          "id": "tauri-mobile-lifecycle--implementation",
+          "title": "tauri-mobile-lifecycle: post_mvp uygulaması",
+          "summary": "tauri-mobile-lifecycle sınırında tauri mobil yaşam döngüsü yeteneğini geliştir; başka kayıt veya ekranın sahipliğini devralma.",
+          "requirementIds": ["channels-19"],
+          "catalogEntryIds": [],
+          "stageId": "post_mvp",
+          "gateId": "G3",
+          "dependsOn": [
+            {
+              "taskId": "tauri-mobile-lifecycle--contract",
+              "type": "contract"
+            },
+            {
+              "taskId": "ui-family-01--contract",
+              "type": "contract"
+            },
+            {
+              "taskId": "client-rule-parity--contract",
+              "type": "contract"
+            },
+            {
+              "taskId": "keycloak-login--contract",
+              "type": "contract"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-tauri-mobile-lifecycle",
+              "version": 1
+            },
+            {
+              "id": "contract-ui-family-01",
+              "version": 1
+            },
+            {
+              "id": "contract-client-rule-parity",
+              "version": 1
+            },
+            {
+              "id": "contract-keycloak-login",
+              "version": 1
+            }
+          ],
+          "reads": [
+            "contracts/tauri-mobile-lifecycle.v1.json",
+            "contracts/ui-family-01.v1.json",
+            "contracts/client-rule-parity.v1.json",
+            "contracts/keycloak-login.v1.json"
+          ],
+          "owns": [
+            "frontend/packages/platform/src/tauri-mobile-lifecycle/tauri_mobile_lifecycle_post_mvp.tsx"
+          ],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "320/360/375/390, kısa yatay ve gerçek Android/iOS cihazlarında klavye örtmesi, sistem geri hareketi, büyük metin, izin reddi ve süreç sonlandırması test edilmeli. Başarıyla kaydedilen iş/outbox yeniden açılışta bulunmalı; görünür durum kaydetme ile merkez kabulünü ayırmalı; ekran okuyucu ve odak dönüşü ayrıca doğrulanmalı.",
+            "Yalnız sahip olunan dosya değişir; ilgili davranış için riskle orantılı doğrulama ve kanıt sunulur, tüm test matrisi gerekçesiz tekrarlanmaz."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/tauri-mobile-lifecycle--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "read_only_target"
+          }
+        },
+        {
+          "clusterId": "tauri-mobile-lifecycle",
+          "readiness": "draft",
+          "ownerRole": "Entegrasyon sorumlusu",
+          "id": "tauri-mobile-lifecycle--integration",
+          "title": "tauri-mobile-lifecycle: post_mvp entegrasyon fragmentı",
+          "summary": "tauri-mobile-lifecycle için bu ürün aşamasının rota, hook, registry, ModuleDef veya paket bağlantısı gereksinimlerini tek fragmentta bildir. Global dosyaları worker worktree’si değiştirmez; integration owner fragmentı birleştirir.",
+          "requirementIds": [],
+          "catalogEntryIds": [],
+          "stageId": "post_mvp",
+          "gateId": "G4",
+          "dependsOn": [
+            {
+              "taskId": "tauri-mobile-lifecycle--implementation",
+              "type": "integration"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-tauri-mobile-lifecycle",
+              "version": 1
+            }
+          ],
+          "reads": [
+            "contracts/tauri-mobile-lifecycle.v1.json",
+            "frontend/packages/platform/src/tauri-mobile-lifecycle/tauri_mobile_lifecycle_post_mvp.tsx"
+          ],
+          "owns": [
+            "integration/fragments/tauri-mobile-lifecycle--integration.json"
+          ],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "Fragment yalnız bu aşamanın dosya/contract/bağımlılık referanslarını içerir; global dosya doğrudan değiştirilmez.",
+            "Integration owner kesin base commit ve sözleşme digestini dondurup conflict/semantik uyum kontrolünü geçirmeden merge-ready veya tamamlandı ilan edilmez."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/tauri-mobile-lifecycle--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "owned_output"
+          }
+        }
+      ]
+    },
+    {
+      "id": "tauri-mobile-release",
+      "title": "Mobil imza ve mağaza kapısı",
+      "unitId": "tauri-mobile",
+      "layer": "platform",
+      "artifact": {
+        "kind": "adapter",
+        "name": "tauri-mobile-release",
+        "status": "proposed",
+        "doctypeCount": 0,
+        "pageCount": 0,
+        "availability": "custom_proposed"
+      },
+      "summary": "Mobil güncelleme imzalı mağaza paketidir; Tauri desktop updater mobil OTA kabulü sayılmaz.",
+      "tasks": [
+        {
+          "clusterId": "tauri-mobile-release",
+          "readiness": "draft",
+          "ownerRole": "İstemci ve platform geliştirici",
+          "id": "tauri-mobile-release--contract",
+          "title": "tauri-mobile-release: sözleşmeyi dondur",
+          "summary": "Mobil imza ve mağaza kapısı için girdiler, çıktılar, yetki/tenant sınırı ve hata biçimini tek sürümlü sözleşmede tanımla. Tüketici backend tamamlanmasını beklemeden bu sözleşmenin fixture’ıyla başlayabilsin.",
+          "requirementIds": [],
+          "catalogEntryIds": [],
+          "stageId": "post_mvp",
+          "gateId": "G1",
+          "dependsOn": [
+            {
+              "taskId": "kernel-envelope--contract",
+              "type": "contract"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-tauri-mobile-release",
+              "version": 1
+            }
+          ],
+          "reads": [],
+          "owns": ["contracts/tauri-mobile-release.v1.json"],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "tauri-mobile-release sınırı, gerekli alan/tipler, hata ve izin koşulları tanımlı; başka kayıt veya sayfanın sahipliği yok.",
+            "Sözleşme sürümü ve örnekler integration owner tarafından onaylanmadan durum draft olarak kalır."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/tauri-mobile-release--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "read_only_target"
+          }
+        },
+        {
+          "clusterId": "tauri-mobile-release",
+          "readiness": "draft",
+          "ownerRole": "İstemci ve platform geliştirici",
+          "id": "tauri-mobile-release--implementation",
+          "title": "tauri-mobile-release: post_mvp uygulaması",
+          "summary": "Mobil güncelleme imzalı mağaza paketidir; Tauri desktop updater mobil OTA kabulü sayılmaz.",
+          "requirementIds": ["releases-12", "releases-13"],
+          "catalogEntryIds": [],
+          "stageId": "post_mvp",
+          "gateId": "G3",
+          "dependsOn": [
+            {
+              "taskId": "tauri-mobile-release--contract",
+              "type": "contract"
+            },
+            {
+              "taskId": "ui-family-01--contract",
+              "type": "contract"
+            },
+            {
+              "taskId": "client-rule-parity--contract",
+              "type": "contract"
+            },
+            {
+              "taskId": "keycloak-login--contract",
+              "type": "contract"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-tauri-mobile-release",
+              "version": 1
+            },
+            {
+              "id": "contract-ui-family-01",
+              "version": 1
+            },
+            {
+              "id": "contract-client-rule-parity",
+              "version": 1
+            },
+            {
+              "id": "contract-keycloak-login",
+              "version": 1
+            }
+          ],
+          "reads": [
+            "contracts/tauri-mobile-release.v1.json",
+            "contracts/ui-family-01.v1.json",
+            "contracts/client-rule-parity.v1.json",
+            "contracts/keycloak-login.v1.json"
+          ],
+          "owns": [
+            "frontend/packages/platform/src/tauri-mobile-release/tauri_mobile_release_post_mvp.tsx"
+          ],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "Kullanıcı form doldururken zorla yenileme yapılmamalı; bekleyen kayıt/outbox ve dosyalar mağaza güncellemesi/migration/geri dönüşte korunmalı. İmza, native/plugin uyumu ve soğuk açılış sağlığı test edilmeli. Uyumlu rollback yoksa veri kaybettiren geri dönüş engellenmeli; mobil OTA test edilmediyse destekleniyor denmemeli.",
+            "Her yayın metin/görünüm düzeltmesi, yeni işlev/veri/ödeme değişimi ve native/izin değişimi olarak içerik bazında değerlendirilmeli. Mobil uyum ve güncel mağaza kuralları geçmeden OTA veya mağaza dağıtımı açılmamalı; gerçek fayda/izin açıklamaları ve inceleme kanıtı kaydedilmeli, kabul garantisi verilmemeli.",
+            "Yalnız sahip olunan dosya değişir; ilgili davranış için riskle orantılı doğrulama ve kanıt sunulur, tüm test matrisi gerekçesiz tekrarlanmaz."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/tauri-mobile-release--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "read_only_target"
+          }
+        },
+        {
+          "clusterId": "tauri-mobile-release",
+          "readiness": "draft",
+          "ownerRole": "Entegrasyon sorumlusu",
+          "id": "tauri-mobile-release--integration",
+          "title": "tauri-mobile-release: post_mvp entegrasyon fragmentı",
+          "summary": "tauri-mobile-release için bu ürün aşamasının rota, hook, registry, ModuleDef veya paket bağlantısı gereksinimlerini tek fragmentta bildir. Global dosyaları worker worktree’si değiştirmez; integration owner fragmentı birleştirir.",
+          "requirementIds": [],
+          "catalogEntryIds": [],
+          "stageId": "post_mvp",
+          "gateId": "G4",
+          "dependsOn": [
+            {
+              "taskId": "tauri-mobile-release--implementation",
+              "type": "integration"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-tauri-mobile-release",
+              "version": 1
+            }
+          ],
+          "reads": [
+            "contracts/tauri-mobile-release.v1.json",
+            "frontend/packages/platform/src/tauri-mobile-release/tauri_mobile_release_post_mvp.tsx"
+          ],
+          "owns": [
+            "integration/fragments/tauri-mobile-release--integration.json"
+          ],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "Fragment yalnız bu aşamanın dosya/contract/bağımlılık referanslarını içerir; global dosya doğrudan değiştirilmez.",
+            "Integration owner kesin base commit ve sözleşme digestini dondurup conflict/semantik uyum kontrolünü geçirmeden merge-ready veya tamamlandı ilan edilmez."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/tauri-mobile-release--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "owned_output"
+          }
+        }
+      ]
+    },
+    {
+      "id": "wxt-extension",
+      "title": "WXT Manifest V3 eklenti paketi",
+      "unitId": "browser-extension",
+      "layer": "platform",
+      "artifact": {
+        "kind": "adapter",
+        "name": "wxt-extension",
+        "status": "proposed",
+        "doctypeCount": 0,
+        "pageCount": 0,
+        "availability": "custom_proposed"
+      },
+      "summary": "wxt-extension sınırında wxt manifest v3 eklenti paketi yeteneğini geliştir; başka kayıt veya ekranın sahipliğini devralma.",
+      "tasks": [
+        {
+          "clusterId": "wxt-extension",
+          "readiness": "draft",
+          "ownerRole": "İstemci ve platform geliştirici",
+          "id": "wxt-extension--contract",
+          "title": "wxt-extension: sözleşmeyi dondur",
+          "summary": "WXT Manifest V3 eklenti paketi için girdiler, çıktılar, yetki/tenant sınırı ve hata biçimini tek sürümlü sözleşmede tanımla. Tüketici backend tamamlanmasını beklemeden bu sözleşmenin fixture’ıyla başlayabilsin.",
+          "requirementIds": [],
+          "catalogEntryIds": [],
+          "stageId": "post_mvp",
+          "gateId": "G1",
+          "dependsOn": [
+            {
+              "taskId": "kernel-envelope--contract",
+              "type": "contract"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-wxt-extension",
+              "version": 1
+            }
+          ],
+          "reads": [],
+          "owns": ["contracts/wxt-extension.v1.json"],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "wxt-extension sınırı, gerekli alan/tipler, hata ve izin koşulları tanımlı; başka kayıt veya sayfanın sahipliği yok.",
+            "Sözleşme sürümü ve örnekler integration owner tarafından onaylanmadan durum draft olarak kalır."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/wxt-extension--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "read_only_target"
+          }
+        },
+        {
+          "clusterId": "wxt-extension",
+          "readiness": "draft",
+          "ownerRole": "İstemci ve platform geliştirici",
+          "id": "wxt-extension--implementation",
+          "title": "wxt-extension: post_mvp uygulaması",
+          "summary": "wxt-extension sınırında wxt manifest v3 eklenti paketi yeteneğini geliştir; başka kayıt veya ekranın sahipliğini devralma.",
+          "requirementIds": ["channels-14"],
+          "catalogEntryIds": [],
+          "stageId": "post_mvp",
+          "gateId": "G3",
+          "dependsOn": [
+            {
+              "taskId": "wxt-extension--contract",
+              "type": "contract"
+            },
+            {
+              "taskId": "ui-family-01--contract",
+              "type": "contract"
+            },
+            {
+              "taskId": "client-rule-parity--contract",
+              "type": "contract"
+            },
+            {
+              "taskId": "keycloak-login--contract",
+              "type": "contract"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-wxt-extension",
+              "version": 1
+            },
+            {
+              "id": "contract-ui-family-01",
+              "version": 1
+            },
+            {
+              "id": "contract-client-rule-parity",
+              "version": 1
+            },
+            {
+              "id": "contract-keycloak-login",
+              "version": 1
+            }
+          ],
+          "reads": [
+            "contracts/wxt-extension.v1.json",
+            "contracts/ui-family-01.v1.json",
+            "contracts/client-rule-parity.v1.json",
+            "contracts/keycloak-login.v1.json"
+          ],
+          "owns": [
+            "frontend/packages/platform/src/wxt-extension/wxt_extension_post_mvp.tsx"
+          ],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "ZIP açıldığında bütün çalıştırılabilir kod ve manifest hazır olsun; uzaktaki kod isteği oluşmasın. Service Worker durdurulup yeniden başlayınca yerel veri/kuyruk korunsun; izin reddi, Keycloak callback, tenant ayrımı ve CSP doğrulansın; mağaza gönderimi ayrı kaydedilsin. Derleme, imza, yayın ve rollback sahibi Hüseyin Cengiz; istemci ekibi platform adaptörlerini sağlar.",
+            "Yalnız sahip olunan dosya değişir; ilgili davranış için riskle orantılı doğrulama ve kanıt sunulur, tüm test matrisi gerekçesiz tekrarlanmaz."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/wxt-extension--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "read_only_target"
+          }
+        },
+        {
+          "clusterId": "wxt-extension",
+          "readiness": "draft",
+          "ownerRole": "Entegrasyon sorumlusu",
+          "id": "wxt-extension--integration",
+          "title": "wxt-extension: post_mvp entegrasyon fragmentı",
+          "summary": "wxt-extension için bu ürün aşamasının rota, hook, registry, ModuleDef veya paket bağlantısı gereksinimlerini tek fragmentta bildir. Global dosyaları worker worktree’si değiştirmez; integration owner fragmentı birleştirir.",
+          "requirementIds": [],
+          "catalogEntryIds": [],
+          "stageId": "post_mvp",
+          "gateId": "G4",
+          "dependsOn": [
+            {
+              "taskId": "wxt-extension--implementation",
+              "type": "integration"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-wxt-extension",
+              "version": 1
+            }
+          ],
+          "reads": [
+            "contracts/wxt-extension.v1.json",
+            "frontend/packages/platform/src/wxt-extension/wxt_extension_post_mvp.tsx"
+          ],
+          "owns": ["integration/fragments/wxt-extension--integration.json"],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "Fragment yalnız bu aşamanın dosya/contract/bağımlılık referanslarını içerir; global dosya doğrudan değiştirilmez.",
+            "Integration owner kesin base commit ve sözleşme digestini dondurup conflict/semantik uyum kontrolünü geçirmeden merge-ready veya tamamlandı ilan edilmez."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/wxt-extension--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "owned_output"
+          }
+        }
+      ]
+    },
+    {
+      "id": "client-rule-parity",
+      "title": "Ortak istemci iş kuralı eşliği",
+      "unitId": "client-core",
+      "layer": "platform",
+      "artifact": {
+        "kind": "adapter",
+        "name": "client-rule-parity",
+        "status": "proposed",
+        "doctypeCount": 0,
+        "pageCount": 0,
+        "availability": "custom_proposed"
+      },
+      "summary": "Frappe Python iş kuralları paketleme ile cihaza taşınmaz; izinli çevrimdışı kurallar ortak istemcide uygulanır ve sunucu yeniden doğrular.",
+      "tasks": [
+        {
+          "clusterId": "client-rule-parity",
+          "readiness": "draft",
+          "ownerRole": "İstemci ve platform geliştirici",
+          "id": "client-rule-parity--contract",
+          "title": "client-rule-parity: sözleşmeyi dondur",
+          "summary": "Ortak istemci iş kuralı eşliği için girdiler, çıktılar, yetki/tenant sınırı ve hata biçimini tek sürümlü sözleşmede tanımla. Tüketici backend tamamlanmasını beklemeden bu sözleşmenin fixture’ıyla başlayabilsin. Bu birimin PoC başlangıç sözleşmesi olduğu için uygulama/şema daha sonraki aşamada kalsa da yalnız arayüz sınırı PoC kapısında dondurulur.",
+          "requirementIds": [],
+          "catalogEntryIds": [],
+          "stageId": "poc",
+          "gateId": "G1",
+          "dependsOn": [
+            {
+              "taskId": "kernel-envelope--contract",
+              "type": "contract"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-client-rule-parity",
+              "version": 1
+            }
+          ],
+          "reads": [],
+          "owns": ["contracts/client-rule-parity.v1.json"],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "client-rule-parity sınırı, gerekli alan/tipler, hata ve izin koşulları tanımlı; başka kayıt veya sayfanın sahipliği yok.",
+            "Sözleşme sürümü ve örnekler integration owner tarafından onaylanmadan durum draft olarak kalır."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/client-rule-parity--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "read_only_target"
+          }
+        },
+        {
+          "clusterId": "client-rule-parity",
+          "readiness": "draft",
+          "ownerRole": "İstemci ve platform geliştirici",
+          "id": "client-rule-parity--implementation",
+          "title": "client-rule-parity: PoC uygulaması",
+          "summary": "Frappe Python iş kuralları paketleme ile cihaza taşınmaz; izinli çevrimdışı kurallar ortak istemcide uygulanır ve sunucu yeniden doğrular.",
+          "requirementIds": ["integrity-8", "channels-10"],
+          "catalogEntryIds": [],
+          "stageId": "poc",
+          "gateId": "G3",
+          "dependsOn": [
+            {
+              "taskId": "client-rule-parity--contract",
+              "type": "contract"
+            },
+            {
+              "taskId": "kernel-envelope--contract",
+              "type": "contract"
+            },
+            {
+              "taskId": "sync-receipt--contract",
+              "type": "contract"
+            },
+            {
+              "taskId": "device-grant--contract",
+              "type": "contract"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-client-rule-parity",
+              "version": 1
+            },
+            {
+              "id": "contract-kernel-envelope",
+              "version": 1
+            },
+            {
+              "id": "contract-sync-receipt",
+              "version": 1
+            },
+            {
+              "id": "contract-device-grant",
+              "version": 1
+            }
+          ],
+          "reads": [
+            "contracts/client-rule-parity.v1.json",
+            "contracts/kernel-envelope.v1.json",
+            "contracts/sync-receipt.v1.json",
+            "contracts/device-grant.v1.json"
+          ],
+          "owns": [
+            "frontend/packages/platform/src/client-rule-parity/client_rule_parity_poc.tsx"
+          ],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "Aynı sınır ve hata girdileri istemci ile Python tarafında beklenen aynı sonucu versin; destek dışı kural sürümü açıkça reddedilsin. İstemcide kabul edilen fakat sunucuda artık geçersiz işlem kaybolmadan gerekçesiyle uzlaştırılsın; istemci manipülasyonu sunucu doğrulamasını veya izin denetimini atlayamasın.",
+            "Web, mobil, masaüstü ve eklenti aynı çekirdek sözleşmesi ve test vektörünü kullansın; platform izinleri ayrı doğrulansın. Paketler gömülü arayüz dosyalarıyla açılabilsin; ortak iş kuralı değişikliği bütün hedeflerde doğrulansın, yerel backend gerektirmesin.",
+            "Yalnız sahip olunan dosya değişir; ilgili davranış için riskle orantılı doğrulama ve kanıt sunulur, tüm test matrisi gerekçesiz tekrarlanmaz."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/client-rule-parity--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "read_only_target"
+          }
+        },
+        {
+          "clusterId": "client-rule-parity",
+          "readiness": "draft",
+          "ownerRole": "Entegrasyon sorumlusu",
+          "id": "client-rule-parity--integration",
+          "title": "client-rule-parity: poc entegrasyon fragmentı",
+          "summary": "client-rule-parity için bu ürün aşamasının rota, hook, registry, ModuleDef veya paket bağlantısı gereksinimlerini tek fragmentta bildir. Global dosyaları worker worktree’si değiştirmez; integration owner fragmentı birleştirir.",
+          "requirementIds": [],
+          "catalogEntryIds": [],
+          "stageId": "poc",
+          "gateId": "G4",
+          "dependsOn": [
+            {
+              "taskId": "client-rule-parity--implementation",
+              "type": "integration"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-client-rule-parity",
+              "version": 1
+            }
+          ],
+          "reads": [
+            "contracts/client-rule-parity.v1.json",
+            "frontend/packages/platform/src/client-rule-parity/client_rule_parity_poc.tsx"
+          ],
+          "owns": [
+            "integration/fragments/client-rule-parity--integration.json"
+          ],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "Fragment yalnız bu aşamanın dosya/contract/bağımlılık referanslarını içerir; global dosya doğrudan değiştirilmez.",
+            "Integration owner kesin base commit ve sözleşme digestini dondurup conflict/semantik uyum kontrolünü geçirmeden merge-ready veya tamamlandı ilan edilmez."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/client-rule-parity--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "owned_output"
+          }
+        }
+      ]
+    },
+    {
+      "id": "client-local-outbox",
+      "title": "Kalıcı yerel kayıt ve outbox",
+      "unitId": "client-core",
+      "layer": "platform",
+      "artifact": {
+        "kind": "adapter",
+        "name": "client-local-outbox",
+        "status": "proposed",
+        "doctypeCount": 0,
+        "pageCount": 0,
+        "availability": "custom_proposed"
+      },
+      "summary": "SQLite/IndexedDB portu altında iş kaydı ve outbox atomik yazılır; TanStack Query cache kalıcı veritabanı veya senkronizasyon motoru değildir.",
+      "tasks": [
+        {
+          "clusterId": "client-local-outbox",
+          "readiness": "draft",
+          "ownerRole": "İstemci ve platform geliştirici",
+          "id": "client-local-outbox--contract",
+          "title": "client-local-outbox: sözleşmeyi dondur",
+          "summary": "Kalıcı yerel kayıt ve outbox için girdiler, çıktılar, yetki/tenant sınırı ve hata biçimini tek sürümlü sözleşmede tanımla. Tüketici backend tamamlanmasını beklemeden bu sözleşmenin fixture’ıyla başlayabilsin.",
+          "requirementIds": [],
+          "catalogEntryIds": [],
+          "stageId": "mvp",
+          "gateId": "G1",
+          "dependsOn": [
+            {
+              "taskId": "kernel-envelope--contract",
+              "type": "contract"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-client-local-outbox",
+              "version": 1
+            }
+          ],
+          "reads": [],
+          "owns": ["contracts/client-local-outbox.v1.json"],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "client-local-outbox sınırı, gerekli alan/tipler, hata ve izin koşulları tanımlı; başka kayıt veya sayfanın sahipliği yok.",
+            "Sözleşme sürümü ve örnekler integration owner tarafından onaylanmadan durum draft olarak kalır."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/client-local-outbox--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "read_only_target"
+          }
+        },
+        {
+          "clusterId": "client-local-outbox",
+          "readiness": "draft",
+          "ownerRole": "İstemci ve platform geliştirici",
+          "id": "client-local-outbox--implementation",
+          "title": "client-local-outbox: MVP uygulaması",
+          "summary": "SQLite/IndexedDB portu altında iş kaydı ve outbox atomik yazılır; TanStack Query cache kalıcı veritabanı veya senkronizasyon motoru değildir.",
+          "requirementIds": ["channels-7", "channels-15"],
+          "catalogEntryIds": [],
+          "stageId": "mvp",
+          "gateId": "G3",
+          "dependsOn": [
+            {
+              "taskId": "client-local-outbox--contract",
+              "type": "contract"
+            },
+            {
+              "taskId": "kernel-envelope--contract",
+              "type": "contract"
+            },
+            {
+              "taskId": "sync-receipt--contract",
+              "type": "contract"
+            },
+            {
+              "taskId": "device-grant--contract",
+              "type": "contract"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-client-local-outbox",
+              "version": 1
+            },
+            {
+              "id": "contract-kernel-envelope",
+              "version": 1
+            },
+            {
+              "id": "contract-sync-receipt",
+              "version": 1
+            },
+            {
+              "id": "contract-device-grant",
+              "version": 1
+            }
+          ],
+          "reads": [
+            "contracts/client-local-outbox.v1.json",
+            "contracts/kernel-envelope.v1.json",
+            "contracts/sync-receipt.v1.json",
+            "contracts/device-grant.v1.json"
+          ],
+          "owns": [
+            "frontend/packages/platform/src/client-local-outbox/client_local_outbox_mvp.tsx"
+          ],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "Çevrimdışı işlem tekrar bağlanınca bir kez uygulanmalı; iki cihaz çakışması kullanıcıya çözüm sunmalı.",
+            "Kayıt sırasında kapanma ya iki kaydı birlikte korusun ya ikisini de geri alsın; kuyruksuz iş kaydı oluşmasın. Kota dolması, izin reddi ve depolama hatası başarı sayılmasın; yerel kayıt, bekleyen aktarım ve sunucu kabulü ayrı gösterilsin. Yeniden açılışta veri/kuyruk, kullanıcı/tenant sınırı ve anahtar erişimi doğrulansın; tarayıcı deposu tek başına mutlak kayıpsızlık garantisi sayılmasın.",
+            "Yalnız sahip olunan dosya değişir; ilgili davranış için riskle orantılı doğrulama ve kanıt sunulur, tüm test matrisi gerekçesiz tekrarlanmaz."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/client-local-outbox--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "read_only_target"
+          }
+        },
+        {
+          "clusterId": "client-local-outbox",
+          "readiness": "draft",
+          "ownerRole": "Entegrasyon sorumlusu",
+          "id": "client-local-outbox--integration",
+          "title": "client-local-outbox: mvp entegrasyon fragmentı",
+          "summary": "client-local-outbox için bu ürün aşamasının rota, hook, registry, ModuleDef veya paket bağlantısı gereksinimlerini tek fragmentta bildir. Global dosyaları worker worktree’si değiştirmez; integration owner fragmentı birleştirir.",
+          "requirementIds": [],
+          "catalogEntryIds": [],
+          "stageId": "mvp",
+          "gateId": "G4",
+          "dependsOn": [
+            {
+              "taskId": "client-local-outbox--implementation",
+              "type": "integration"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-client-local-outbox",
+              "version": 1
+            }
+          ],
+          "reads": [
+            "contracts/client-local-outbox.v1.json",
+            "frontend/packages/platform/src/client-local-outbox/client_local_outbox_mvp.tsx"
+          ],
+          "owns": [
+            "integration/fragments/client-local-outbox--integration.json"
+          ],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "Fragment yalnız bu aşamanın dosya/contract/bağımlılık referanslarını içerir; global dosya doğrudan değiştirilmez.",
+            "Integration owner kesin base commit ve sözleşme digestini dondurup conflict/semantik uyum kontrolünü geçirmeden merge-ready veya tamamlandı ilan edilmez."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/client-local-outbox--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "owned_output"
+          }
+        }
+      ]
+    },
+    {
+      "id": "client-offline-boot",
+      "title": "Hazırlanmış çevrimdışı soğuk açılış",
+      "unitId": "client-core",
+      "layer": "platform",
+      "artifact": {
+        "kind": "adapter",
+        "name": "client-offline-boot",
+        "status": "proposed",
+        "doctypeCount": 0,
+        "pageCount": 0,
+        "availability": "custom_proposed"
+      },
+      "summary": "client-offline-boot sınırında hazırlanmış çevrimdışı soğuk açılış yeteneğini geliştir; başka kayıt veya ekranın sahipliğini devralma.",
+      "tasks": [
+        {
+          "clusterId": "client-offline-boot",
+          "readiness": "draft",
+          "ownerRole": "İstemci ve platform geliştirici",
+          "id": "client-offline-boot--contract",
+          "title": "client-offline-boot: sözleşmeyi dondur",
+          "summary": "Hazırlanmış çevrimdışı soğuk açılış için girdiler, çıktılar, yetki/tenant sınırı ve hata biçimini tek sürümlü sözleşmede tanımla. Tüketici backend tamamlanmasını beklemeden bu sözleşmenin fixture’ıyla başlayabilsin.",
+          "requirementIds": [],
+          "catalogEntryIds": [],
+          "stageId": "mvp",
+          "gateId": "G1",
+          "dependsOn": [
+            {
+              "taskId": "kernel-envelope--contract",
+              "type": "contract"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-client-offline-boot",
+              "version": 1
+            }
+          ],
+          "reads": [],
+          "owns": ["contracts/client-offline-boot.v1.json"],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "client-offline-boot sınırı, gerekli alan/tipler, hata ve izin koşulları tanımlı; başka kayıt veya sayfanın sahipliği yok.",
+            "Sözleşme sürümü ve örnekler integration owner tarafından onaylanmadan durum draft olarak kalır."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/client-offline-boot--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "read_only_target"
+          }
+        },
+        {
+          "clusterId": "client-offline-boot",
+          "readiness": "draft",
+          "ownerRole": "İstemci ve platform geliştirici",
+          "id": "client-offline-boot--implementation",
+          "title": "client-offline-boot: MVP uygulaması",
+          "summary": "client-offline-boot sınırında hazırlanmış çevrimdışı soğuk açılış yeteneğini geliştir; başka kayıt veya ekranın sahipliğini devralma.",
+          "requirementIds": ["channels-16"],
+          "catalogEntryIds": [],
+          "stageId": "mvp",
+          "gateId": "G3",
+          "dependsOn": [
+            {
+              "taskId": "client-offline-boot--contract",
+              "type": "contract"
+            },
+            {
+              "taskId": "kernel-envelope--contract",
+              "type": "contract"
+            },
+            {
+              "taskId": "sync-receipt--contract",
+              "type": "contract"
+            },
+            {
+              "taskId": "device-grant--contract",
+              "type": "contract"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-client-offline-boot",
+              "version": 1
+            },
+            {
+              "id": "contract-kernel-envelope",
+              "version": 1
+            },
+            {
+              "id": "contract-sync-receipt",
+              "version": 1
+            },
+            {
+              "id": "contract-device-grant",
+              "version": 1
+            }
+          ],
+          "reads": [
+            "contracts/client-offline-boot.v1.json",
+            "contracts/kernel-envelope.v1.json",
+            "contracts/sync-receipt.v1.json",
+            "contracts/device-grant.v1.json"
+          ],
+          "owns": [
+            "frontend/packages/platform/src/client-offline-boot/client_offline_boot_mvp.tsx"
+          ],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "Uygulama ve cihaz ağ kapalıyken yeniden başlatılsın; hazırlanmış yetkili çalışma alanı ve gerekli dosyalar açılsın. Eksik veri/dosya ve bitmiş yerel yetki süresi anlaşılır biçimde sınırlandırılsın; başka kullanıcı/tenant verisi açılmasın. İlk hazırlık yapılmamış cihaz çevrimiçi giriş gereğini göstersin; senkronizasyon bekleyen kayıtlar korunarak bağlantı sonrası yetki yeniden doğrulansın.",
+            "Yalnız sahip olunan dosya değişir; ilgili davranış için riskle orantılı doğrulama ve kanıt sunulur, tüm test matrisi gerekçesiz tekrarlanmaz."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/client-offline-boot--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "read_only_target"
+          }
+        },
+        {
+          "clusterId": "client-offline-boot",
+          "readiness": "draft",
+          "ownerRole": "Entegrasyon sorumlusu",
+          "id": "client-offline-boot--integration",
+          "title": "client-offline-boot: mvp entegrasyon fragmentı",
+          "summary": "client-offline-boot için bu ürün aşamasının rota, hook, registry, ModuleDef veya paket bağlantısı gereksinimlerini tek fragmentta bildir. Global dosyaları worker worktree’si değiştirmez; integration owner fragmentı birleştirir.",
+          "requirementIds": [],
+          "catalogEntryIds": [],
+          "stageId": "mvp",
+          "gateId": "G4",
+          "dependsOn": [
+            {
+              "taskId": "client-offline-boot--implementation",
+              "type": "integration"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-client-offline-boot",
+              "version": 1
+            }
+          ],
+          "reads": [
+            "contracts/client-offline-boot.v1.json",
+            "frontend/packages/platform/src/client-offline-boot/client_offline_boot_mvp.tsx"
+          ],
+          "owns": [
+            "integration/fragments/client-offline-boot--integration.json"
+          ],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "Fragment yalnız bu aşamanın dosya/contract/bağımlılık referanslarını içerir; global dosya doğrudan değiştirilmez.",
+            "Integration owner kesin base commit ve sözleşme digestini dondurup conflict/semantik uyum kontrolünü geçirmeden merge-ready veya tamamlandı ilan edilmez."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/client-offline-boot--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "owned_output"
+          }
+        }
+      ]
+    },
+    {
+      "id": "client-channel-continuity",
+      "title": "Çapraz kanal devam ve derin bağlantı",
+      "unitId": "client-core",
+      "layer": "platform",
+      "artifact": {
+        "kind": "adapter",
+        "name": "client-channel-continuity",
+        "status": "proposed",
+        "doctypeCount": 0,
+        "pageCount": 0,
+        "availability": "custom_proposed"
+      },
+      "summary": "client-channel-continuity sınırında çapraz kanal devam ve derin bağlantı yeteneğini geliştir; başka kayıt veya ekranın sahipliğini devralma.",
+      "tasks": [
+        {
+          "clusterId": "client-channel-continuity",
+          "readiness": "draft",
+          "ownerRole": "İstemci ve platform geliştirici",
+          "id": "client-channel-continuity--contract",
+          "title": "client-channel-continuity: sözleşmeyi dondur",
+          "summary": "Çapraz kanal devam ve derin bağlantı için girdiler, çıktılar, yetki/tenant sınırı ve hata biçimini tek sürümlü sözleşmede tanımla. Tüketici backend tamamlanmasını beklemeden bu sözleşmenin fixture’ıyla başlayabilsin.",
+          "requirementIds": [],
+          "catalogEntryIds": [],
+          "stageId": "post_mvp",
+          "gateId": "G1",
+          "dependsOn": [
+            {
+              "taskId": "kernel-envelope--contract",
+              "type": "contract"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-client-channel-continuity",
+              "version": 1
+            }
+          ],
+          "reads": [],
+          "owns": ["contracts/client-channel-continuity.v1.json"],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "client-channel-continuity sınırı, gerekli alan/tipler, hata ve izin koşulları tanımlı; başka kayıt veya sayfanın sahipliği yok.",
+            "Sözleşme sürümü ve örnekler integration owner tarafından onaylanmadan durum draft olarak kalır."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/client-channel-continuity--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "read_only_target"
+          }
+        },
+        {
+          "clusterId": "client-channel-continuity",
+          "readiness": "draft",
+          "ownerRole": "İstemci ve platform geliştirici",
+          "id": "client-channel-continuity--implementation",
+          "title": "client-channel-continuity: post_mvp uygulaması",
+          "summary": "client-channel-continuity sınırında çapraz kanal devam ve derin bağlantı yeteneğini geliştir; başka kayıt veya ekranın sahipliğini devralma.",
+          "requirementIds": ["channels-2", "channels-8"],
+          "catalogEntryIds": [],
+          "stageId": "post_mvp",
+          "gateId": "G3",
+          "dependsOn": [
+            {
+              "taskId": "client-channel-continuity--contract",
+              "type": "contract"
+            },
+            {
+              "taskId": "kernel-envelope--contract",
+              "type": "contract"
+            },
+            {
+              "taskId": "sync-receipt--contract",
+              "type": "contract"
+            },
+            {
+              "taskId": "device-grant--contract",
+              "type": "contract"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-client-channel-continuity",
+              "version": 1
+            },
+            {
+              "id": "contract-kernel-envelope",
+              "version": 1
+            },
+            {
+              "id": "contract-sync-receipt",
+              "version": 1
+            },
+            {
+              "id": "contract-device-grant",
+              "version": 1
+            }
+          ],
+          "reads": [
+            "contracts/client-channel-continuity.v1.json",
+            "contracts/kernel-envelope.v1.json",
+            "contracts/sync-receipt.v1.json",
+            "contracts/device-grant.v1.json"
+          ],
+          "owns": [
+            "frontend/packages/platform/src/client-channel-continuity/client_channel_continuity_post_mvp.tsx"
+          ],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "Her hedef kanalın kurulum/güncelleme, login callback ve izin modeli ayrı doğrulanmalı.",
+            "Oturumsuz deep link girişten sonra aynı yetkili kayda dönmeli; başka tenant kaydını açmamalı.",
+            "Yalnız sahip olunan dosya değişir; ilgili davranış için riskle orantılı doğrulama ve kanıt sunulur, tüm test matrisi gerekçesiz tekrarlanmaz."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/client-channel-continuity--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "read_only_target"
+          }
+        },
+        {
+          "clusterId": "client-channel-continuity",
+          "readiness": "draft",
+          "ownerRole": "Entegrasyon sorumlusu",
+          "id": "client-channel-continuity--integration",
+          "title": "client-channel-continuity: post_mvp entegrasyon fragmentı",
+          "summary": "client-channel-continuity için bu ürün aşamasının rota, hook, registry, ModuleDef veya paket bağlantısı gereksinimlerini tek fragmentta bildir. Global dosyaları worker worktree’si değiştirmez; integration owner fragmentı birleştirir.",
+          "requirementIds": [],
+          "catalogEntryIds": [],
+          "stageId": "post_mvp",
+          "gateId": "G4",
+          "dependsOn": [
+            {
+              "taskId": "client-channel-continuity--implementation",
+              "type": "integration"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-client-channel-continuity",
+              "version": 1
+            }
+          ],
+          "reads": [
+            "contracts/client-channel-continuity.v1.json",
+            "frontend/packages/platform/src/client-channel-continuity/client_channel_continuity_post_mvp.tsx"
+          ],
+          "owns": [
+            "integration/fragments/client-channel-continuity--integration.json"
+          ],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "Fragment yalnız bu aşamanın dosya/contract/bağımlılık referanslarını içerir; global dosya doğrudan değiştirilmez.",
+            "Integration owner kesin base commit ve sözleşme digestini dondurup conflict/semantik uyum kontrolünü geçirmeden merge-ready veya tamamlandı ilan edilmez."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/client-channel-continuity--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "owned_output"
+          }
+        }
+      ]
+    },
+    {
+      "id": "client-data-budget",
+      "title": "Düşük veri tüketimi profili",
+      "unitId": "client-core",
+      "layer": "platform",
+      "artifact": {
+        "kind": "adapter",
+        "name": "client-data-budget",
+        "status": "proposed",
+        "doctypeCount": 0,
+        "pageCount": 0,
+        "availability": "custom_proposed"
+      },
+      "summary": "client-data-budget sınırında düşük veri tüketimi profili yeteneğini geliştir; başka kayıt veya ekranın sahipliğini devralma.",
+      "tasks": [
+        {
+          "clusterId": "client-data-budget",
+          "readiness": "draft",
+          "ownerRole": "İstemci ve platform geliştirici",
+          "id": "client-data-budget--contract",
+          "title": "client-data-budget: sözleşmeyi dondur",
+          "summary": "Düşük veri tüketimi profili için girdiler, çıktılar, yetki/tenant sınırı ve hata biçimini tek sürümlü sözleşmede tanımla. Tüketici backend tamamlanmasını beklemeden bu sözleşmenin fixture’ıyla başlayabilsin.",
+          "requirementIds": [],
+          "catalogEntryIds": [],
+          "stageId": "post_mvp",
+          "gateId": "G1",
+          "dependsOn": [
+            {
+              "taskId": "kernel-envelope--contract",
+              "type": "contract"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-client-data-budget",
+              "version": 1
+            }
+          ],
+          "reads": [],
+          "owns": ["contracts/client-data-budget.v1.json"],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "client-data-budget sınırı, gerekli alan/tipler, hata ve izin koşulları tanımlı; başka kayıt veya sayfanın sahipliği yok.",
+            "Sözleşme sürümü ve örnekler integration owner tarafından onaylanmadan durum draft olarak kalır."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/client-data-budget--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "read_only_target"
+          }
+        },
+        {
+          "clusterId": "client-data-budget",
+          "readiness": "draft",
+          "ownerRole": "İstemci ve platform geliştirici",
+          "id": "client-data-budget--implementation",
+          "title": "client-data-budget: post_mvp uygulaması",
+          "summary": "client-data-budget sınırında düşük veri tüketimi profili yeteneğini geliştir; başka kayıt veya ekranın sahipliğini devralma.",
+          "requirementIds": ["channels-9"],
+          "catalogEntryIds": [],
+          "stageId": "post_mvp",
+          "gateId": "G3",
+          "dependsOn": [
+            {
+              "taskId": "client-data-budget--contract",
+              "type": "contract"
+            },
+            {
+              "taskId": "kernel-envelope--contract",
+              "type": "contract"
+            },
+            {
+              "taskId": "sync-receipt--contract",
+              "type": "contract"
+            },
+            {
+              "taskId": "device-grant--contract",
+              "type": "contract"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-client-data-budget",
+              "version": 1
+            },
+            {
+              "id": "contract-kernel-envelope",
+              "version": 1
+            },
+            {
+              "id": "contract-sync-receipt",
+              "version": 1
+            },
+            {
+              "id": "contract-device-grant",
+              "version": 1
+            }
+          ],
+          "reads": [
+            "contracts/client-data-budget.v1.json",
+            "contracts/kernel-envelope.v1.json",
+            "contracts/sync-receipt.v1.json",
+            "contracts/device-grant.v1.json"
+          ],
+          "owns": [
+            "frontend/packages/platform/src/client-data-budget/client_data_budget_post_mvp.tsx"
+          ],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "Mod tercihi korunarak gereksiz otomatik yenileme, medya ve ağır yanıt azaltılsın; aynı gerçek yolculukta aktarılan baytlar ölçülsün. Kritik hizmet durumları ve kullanıcı eylemleri kaybolmasın; verinin tazeliği açıklansın, kullanıcı gerektiğinde yenileyebilsin; Save-Data olmayan tarayıcıda da mod çalışsın.",
+            "Yalnız sahip olunan dosya değişir; ilgili davranış için riskle orantılı doğrulama ve kanıt sunulur, tüm test matrisi gerekçesiz tekrarlanmaz."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/client-data-budget--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "read_only_target"
+          }
+        },
+        {
+          "clusterId": "client-data-budget",
+          "readiness": "draft",
+          "ownerRole": "Entegrasyon sorumlusu",
+          "id": "client-data-budget--integration",
+          "title": "client-data-budget: post_mvp entegrasyon fragmentı",
+          "summary": "client-data-budget için bu ürün aşamasının rota, hook, registry, ModuleDef veya paket bağlantısı gereksinimlerini tek fragmentta bildir. Global dosyaları worker worktree’si değiştirmez; integration owner fragmentı birleştirir.",
+          "requirementIds": [],
+          "catalogEntryIds": [],
+          "stageId": "post_mvp",
+          "gateId": "G4",
+          "dependsOn": [
+            {
+              "taskId": "client-data-budget--implementation",
+              "type": "integration"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-client-data-budget",
+              "version": 1
+            }
+          ],
+          "reads": [
+            "contracts/client-data-budget.v1.json",
+            "frontend/packages/platform/src/client-data-budget/client_data_budget_post_mvp.tsx"
+          ],
+          "owns": [
+            "integration/fragments/client-data-budget--integration.json"
+          ],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "Fragment yalnız bu aşamanın dosya/contract/bağımlılık referanslarını içerir; global dosya doğrudan değiştirilmez.",
+            "Integration owner kesin base commit ve sözleşme digestini dondurup conflict/semantik uyum kontrolünü geçirmeden merge-ready veya tamamlandı ilan edilmez."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/client-data-budget--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "owned_output"
+          }
+        }
+      ]
+    },
+    {
+      "id": "client-migration",
+      "title": "Yerel migration ve imzalı güncelleme",
+      "unitId": "client-core",
+      "layer": "platform",
+      "artifact": {
+        "kind": "adapter",
+        "name": "client-migration",
+        "status": "proposed",
+        "doctypeCount": 0,
+        "pageCount": 0,
+        "availability": "custom_proposed"
+      },
+      "summary": "client-migration sınırında yerel migration ve imzalı güncelleme yeteneğini geliştir; başka kayıt veya ekranın sahipliğini devralma.",
+      "tasks": [
+        {
+          "clusterId": "client-migration",
+          "readiness": "draft",
+          "ownerRole": "İstemci ve platform geliştirici",
+          "id": "client-migration--contract",
+          "title": "client-migration: sözleşmeyi dondur",
+          "summary": "Yerel migration ve imzalı güncelleme için girdiler, çıktılar, yetki/tenant sınırı ve hata biçimini tek sürümlü sözleşmede tanımla. Tüketici backend tamamlanmasını beklemeden bu sözleşmenin fixture’ıyla başlayabilsin.",
+          "requirementIds": [],
+          "catalogEntryIds": [],
+          "stageId": "post_mvp",
+          "gateId": "G1",
+          "dependsOn": [
+            {
+              "taskId": "kernel-envelope--contract",
+              "type": "contract"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-client-migration",
+              "version": 1
+            }
+          ],
+          "reads": [],
+          "owns": ["contracts/client-migration.v1.json"],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "client-migration sınırı, gerekli alan/tipler, hata ve izin koşulları tanımlı; başka kayıt veya sayfanın sahipliği yok.",
+            "Sözleşme sürümü ve örnekler integration owner tarafından onaylanmadan durum draft olarak kalır."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/client-migration--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "read_only_target"
+          }
+        },
+        {
+          "clusterId": "client-migration",
+          "readiness": "draft",
+          "ownerRole": "İstemci ve platform geliştirici",
+          "id": "client-migration--implementation",
+          "title": "client-migration: post_mvp uygulaması",
+          "summary": "client-migration sınırında yerel migration ve imzalı güncelleme yeteneğini geliştir; başka kayıt veya ekranın sahipliğini devralma.",
+          "requirementIds": ["releases-11"],
+          "catalogEntryIds": [],
+          "stageId": "post_mvp",
+          "gateId": "G3",
+          "dependsOn": [
+            {
+              "taskId": "client-migration--contract",
+              "type": "contract"
+            },
+            {
+              "taskId": "kernel-envelope--contract",
+              "type": "contract"
+            },
+            {
+              "taskId": "sync-receipt--contract",
+              "type": "contract"
+            },
+            {
+              "taskId": "device-grant--contract",
+              "type": "contract"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-client-migration",
+              "version": 1
+            },
+            {
+              "id": "contract-kernel-envelope",
+              "version": 1
+            },
+            {
+              "id": "contract-sync-receipt",
+              "version": 1
+            },
+            {
+              "id": "contract-device-grant",
+              "version": 1
+            }
+          ],
+          "reads": [
+            "contracts/client-migration.v1.json",
+            "contracts/kernel-envelope.v1.json",
+            "contracts/sync-receipt.v1.json",
+            "contracts/device-grant.v1.json"
+          ],
+          "owns": [
+            "frontend/packages/platform/src/client-migration/client_migration_post_mvp.tsx"
+          ],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "Güncelleme/migration ortasında kapanma sonrası eski ya da yeni tutarlı sürüm açılabilsin; bekleyen işlemler kaybolmadan ve çoğalmadan eşitlensin. Bozuk/yanlış imzalı paket reddedilsin; yerel migration ve desteklenen client/API sürüm matrisi doğrulansın. Geri dönüş provası veri şeması ve kuyruğu da kapsasın; PWA güncellemesi kaydedilmemiş işi zorla yeniden yüklemeyle silmesin.",
+            "Yalnız sahip olunan dosya değişir; ilgili davranış için riskle orantılı doğrulama ve kanıt sunulur, tüm test matrisi gerekçesiz tekrarlanmaz."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/client-migration--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "read_only_target"
+          }
+        },
+        {
+          "clusterId": "client-migration",
+          "readiness": "draft",
+          "ownerRole": "Entegrasyon sorumlusu",
+          "id": "client-migration--integration",
+          "title": "client-migration: post_mvp entegrasyon fragmentı",
+          "summary": "client-migration için bu ürün aşamasının rota, hook, registry, ModuleDef veya paket bağlantısı gereksinimlerini tek fragmentta bildir. Global dosyaları worker worktree’si değiştirmez; integration owner fragmentı birleştirir.",
+          "requirementIds": [],
+          "catalogEntryIds": [],
+          "stageId": "post_mvp",
+          "gateId": "G4",
+          "dependsOn": [
+            {
+              "taskId": "client-migration--implementation",
+              "type": "integration"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-client-migration",
+              "version": 1
+            }
+          ],
+          "reads": [
+            "contracts/client-migration.v1.json",
+            "frontend/packages/platform/src/client-migration/client_migration_post_mvp.tsx"
+          ],
+          "owns": ["integration/fragments/client-migration--integration.json"],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "Fragment yalnız bu aşamanın dosya/contract/bağımlılık referanslarını içerir; global dosya doğrudan değiştirilmez.",
+            "Integration owner kesin base commit ve sözleşme digestini dondurup conflict/semantik uyum kontrolünü geçirmeden merge-ready veya tamamlandı ilan edilmez."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/client-migration--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "owned_output"
+          }
+        }
+      ]
+    },
+    {
+      "id": "client-backup",
+      "title": "Bağımsız cihaz yedeği ve restore",
+      "unitId": "client-core",
+      "layer": "platform",
+      "artifact": {
+        "kind": "adapter",
+        "name": "client-backup",
+        "status": "proposed",
+        "doctypeCount": 0,
+        "pageCount": 0,
+        "availability": "custom_proposed"
+      },
+      "summary": "client-backup sınırında bağımsız cihaz yedeği ve restore yeteneğini geliştir; başka kayıt veya ekranın sahipliğini devralma.",
+      "tasks": [
+        {
+          "clusterId": "client-backup",
+          "readiness": "draft",
+          "ownerRole": "İstemci ve platform geliştirici",
+          "id": "client-backup--contract",
+          "title": "client-backup: sözleşmeyi dondur",
+          "summary": "Bağımsız cihaz yedeği ve restore için girdiler, çıktılar, yetki/tenant sınırı ve hata biçimini tek sürümlü sözleşmede tanımla. Tüketici backend tamamlanmasını beklemeden bu sözleşmenin fixture’ıyla başlayabilsin.",
+          "requirementIds": [],
+          "catalogEntryIds": [],
+          "stageId": "post_mvp",
+          "gateId": "G1",
+          "dependsOn": [
+            {
+              "taskId": "kernel-envelope--contract",
+              "type": "contract"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-client-backup",
+              "version": 1
+            }
+          ],
+          "reads": [],
+          "owns": ["contracts/client-backup.v1.json"],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "client-backup sınırı, gerekli alan/tipler, hata ve izin koşulları tanımlı; başka kayıt veya sayfanın sahipliği yok.",
+            "Sözleşme sürümü ve örnekler integration owner tarafından onaylanmadan durum draft olarak kalır."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/client-backup--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "read_only_target"
+          }
+        },
+        {
+          "clusterId": "client-backup",
+          "readiness": "draft",
+          "ownerRole": "İstemci ve platform geliştirici",
+          "id": "client-backup--implementation",
+          "title": "client-backup: post_mvp uygulaması",
+          "summary": "client-backup sınırında bağımsız cihaz yedeği ve restore yeteneğini geliştir; başka kayıt veya ekranın sahipliğini devralma.",
+          "requirementIds": ["backup-7"],
+          "catalogEntryIds": [],
+          "stageId": "post_mvp",
+          "gateId": "G3",
+          "dependsOn": [
+            {
+              "taskId": "client-backup--contract",
+              "type": "contract"
+            },
+            {
+              "taskId": "kernel-envelope--contract",
+              "type": "contract"
+            },
+            {
+              "taskId": "sync-receipt--contract",
+              "type": "contract"
+            },
+            {
+              "taskId": "device-grant--contract",
+              "type": "contract"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-client-backup",
+              "version": 1
+            },
+            {
+              "id": "contract-kernel-envelope",
+              "version": 1
+            },
+            {
+              "id": "contract-sync-receipt",
+              "version": 1
+            },
+            {
+              "id": "contract-device-grant",
+              "version": 1
+            }
+          ],
+          "reads": [
+            "contracts/client-backup.v1.json",
+            "contracts/kernel-envelope.v1.json",
+            "contracts/sync-receipt.v1.json",
+            "contracts/device-grant.v1.json"
+          ],
+          "owns": [
+            "frontend/packages/platform/src/client-backup/client_backup_post_mvp.tsx"
+          ],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "Ağ yokken üretilmiş, henüz eşitlenmemiş kayıt ve kuyruğu başka cihazda yetkili biçimde geri yükle; anahtar kurtarma provası geçsin. Bağlantı sonrası eski mutasyon kimlikleri korunsun, merkezde kabul edilmiş işlem tekrar uygulanmasın. Bozuk/yanlış anahtarlı yedek reddedilsin; tenant kapsamı, saklama süresi, gerçek kurtarma noktası ve cihaz kaybı sınırı açıkça gösterilsin. Geri yükleme özgün kaynak cihaz kapsamını, işlem zarfını ve kimliğini değiştirmesin; yeni cihaz güncel yetkiyle doğrulansın. Sunucu tekilleştirme penceresi dışındaki eski işler yeni işlem gibi yeniden gönderilmesin; sonuç sorgusu veya kontrollü uzlaştırma gereksinimi açıklansın.",
+            "Yalnız sahip olunan dosya değişir; ilgili davranış için riskle orantılı doğrulama ve kanıt sunulur, tüm test matrisi gerekçesiz tekrarlanmaz."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/client-backup--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "read_only_target"
+          }
+        },
+        {
+          "clusterId": "client-backup",
+          "readiness": "draft",
+          "ownerRole": "Entegrasyon sorumlusu",
+          "id": "client-backup--integration",
+          "title": "client-backup: post_mvp entegrasyon fragmentı",
+          "summary": "client-backup için bu ürün aşamasının rota, hook, registry, ModuleDef veya paket bağlantısı gereksinimlerini tek fragmentta bildir. Global dosyaları worker worktree’si değiştirmez; integration owner fragmentı birleştirir.",
+          "requirementIds": [],
+          "catalogEntryIds": [],
+          "stageId": "post_mvp",
+          "gateId": "G4",
+          "dependsOn": [
+            {
+              "taskId": "client-backup--implementation",
+              "type": "integration"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-client-backup",
+              "version": 1
+            }
+          ],
+          "reads": [
+            "contracts/client-backup.v1.json",
+            "frontend/packages/platform/src/client-backup/client_backup_post_mvp.tsx"
+          ],
+          "owns": ["integration/fragments/client-backup--integration.json"],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "Fragment yalnız bu aşamanın dosya/contract/bağımlılık referanslarını içerir; global dosya doğrudan değiştirilmez.",
+            "Integration owner kesin base commit ve sözleşme digestini dondurup conflict/semantik uyum kontrolünü geçirmeden merge-ready veya tamamlandı ilan edilmez."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/client-backup--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "owned_output"
+          }
+        }
+      ]
+    },
+    {
+      "id": "client-offline-faults",
+      "title": "Dört gün çevrimdışı kabul senaryosu",
+      "unitId": "client-core",
+      "layer": "platform",
+      "artifact": {
+        "kind": "adapter",
+        "name": "client-offline-faults",
+        "status": "proposed",
+        "doctypeCount": 0,
+        "pageCount": 0,
+        "availability": "custom_proposed"
+      },
+      "summary": "Gerçek cihaz/uygulama yeniden başlatma, kayıt çökmesi ve aktarım kesintisini kabul kapısında doğrula; statik dokümantasyon testi ürün kanıtı değildir.",
+      "tasks": [
+        {
+          "clusterId": "client-offline-faults",
+          "readiness": "draft",
+          "ownerRole": "İstemci ve platform geliştirici",
+          "id": "client-offline-faults--contract",
+          "title": "client-offline-faults: sözleşmeyi dondur",
+          "summary": "Dört gün çevrimdışı kabul senaryosu için girdiler, çıktılar, yetki/tenant sınırı ve hata biçimini tek sürümlü sözleşmede tanımla. Tüketici backend tamamlanmasını beklemeden bu sözleşmenin fixture’ıyla başlayabilsin.",
+          "requirementIds": [],
+          "catalogEntryIds": [],
+          "stageId": "post_mvp",
+          "gateId": "G1",
+          "dependsOn": [
+            {
+              "taskId": "kernel-envelope--contract",
+              "type": "contract"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-client-offline-faults",
+              "version": 1
+            }
+          ],
+          "reads": [],
+          "owns": ["contracts/client-offline-faults.v1.json"],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "client-offline-faults sınırı, gerekli alan/tipler, hata ve izin koşulları tanımlı; başka kayıt veya sayfanın sahipliği yok.",
+            "Sözleşme sürümü ve örnekler integration owner tarafından onaylanmadan durum draft olarak kalır."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/client-offline-faults--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "read_only_target"
+          }
+        },
+        {
+          "clusterId": "client-offline-faults",
+          "readiness": "draft",
+          "ownerRole": "İstemci ve platform geliştirici",
+          "id": "client-offline-faults--implementation",
+          "title": "client-offline-faults: post_mvp uygulaması",
+          "summary": "Gerçek cihaz/uygulama yeniden başlatma, kayıt çökmesi ve aktarım kesintisini kabul kapısında doğrula; statik dokümantasyon testi ürün kanıtı değildir.",
+          "requirementIds": ["integrity-10"],
+          "catalogEntryIds": [],
+          "stageId": "post_mvp",
+          "gateId": "G3",
+          "dependsOn": [
+            {
+              "taskId": "client-offline-faults--contract",
+              "type": "contract"
+            },
+            {
+              "taskId": "kernel-envelope--contract",
+              "type": "contract"
+            },
+            {
+              "taskId": "sync-receipt--contract",
+              "type": "contract"
+            },
+            {
+              "taskId": "device-grant--contract",
+              "type": "contract"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-client-offline-faults",
+              "version": 1
+            },
+            {
+              "id": "contract-kernel-envelope",
+              "version": 1
+            },
+            {
+              "id": "contract-sync-receipt",
+              "version": 1
+            },
+            {
+              "id": "contract-device-grant",
+              "version": 1
+            }
+          ],
+          "reads": [
+            "contracts/client-offline-faults.v1.json",
+            "contracts/kernel-envelope.v1.json",
+            "contracts/sync-receipt.v1.json",
+            "contracts/device-grant.v1.json"
+          ],
+          "owns": [
+            "frontend/packages/platform/src/client-offline-faults/client_offline_faults_post_mvp.tsx"
+          ],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "Onaylanmış test yetkisiyle dört gün kesinti boyunca başarıyla kalıcı kaydedilen hiçbir işlem kontrollü kapanma/çökme/yeniden başlatma senaryolarında kaybolmasın; bağlantı gelince hiçbir işlem iki kez uygulanmasın. Süreli yetki bitince yasak işlemler engellensin; bekleyen kayıtlar korunsun. Sunucu sonuçları, yerel kuyruk, çakışmalar ve yedekten geri yükleme mutasyon kimlikleriyle karşılaştırılıp kanıt kaydedilsin.",
+            "Yalnız sahip olunan dosya değişir; ilgili davranış için riskle orantılı doğrulama ve kanıt sunulur, tüm test matrisi gerekçesiz tekrarlanmaz."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/client-offline-faults--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "read_only_target"
+          }
+        },
+        {
+          "clusterId": "client-offline-faults",
+          "readiness": "draft",
+          "ownerRole": "Entegrasyon sorumlusu",
+          "id": "client-offline-faults--integration",
+          "title": "client-offline-faults: post_mvp entegrasyon fragmentı",
+          "summary": "client-offline-faults için bu ürün aşamasının rota, hook, registry, ModuleDef veya paket bağlantısı gereksinimlerini tek fragmentta bildir. Global dosyaları worker worktree’si değiştirmez; integration owner fragmentı birleştirir.",
+          "requirementIds": [],
+          "catalogEntryIds": [],
+          "stageId": "post_mvp",
+          "gateId": "G4",
+          "dependsOn": [
+            {
+              "taskId": "client-offline-faults--implementation",
+              "type": "integration"
+            }
+          ],
+          "contractRefs": [
+            {
+              "id": "contract-client-offline-faults",
+              "version": 1
+            }
+          ],
+          "reads": [
+            "contracts/client-offline-faults.v1.json",
+            "frontend/packages/platform/src/client-offline-faults/client_offline_faults_post_mvp.tsx"
+          ],
+          "owns": [
+            "integration/fragments/client-offline-faults--integration.json"
+          ],
+          "forbiddenWrites": [
+            "backend/saas_platform/saas_platform/hooks.py",
+            "backend/saas_platform/saas_platform/modules.txt",
+            "backend/saas_platform/saas_platform/patches.txt",
+            "frontend/package.json",
+            "package-lock.json",
+            "frontend/apps/web/src/routes.tsx",
+            "frontend/packages/ui/src/index.ts",
+            "frontend/packages/ui/src/navigation.ts",
+            "frontend/packages/ui/src/registry.ts",
+            "frontend/apps/tauri/src-tauri/tauri.conf.json",
+            "frontend/apps/tauri/src-tauri/Cargo.toml",
+            "frontend/apps/extension/wxt.config.ts",
+            "backend/frappe/**",
+            "backend/erpnext/**",
+            "data/clusters/**",
+            "data/development-plan.json"
+          ],
+          "acceptance": [
+            "Fragment yalnız bu aşamanın dosya/contract/bağımlılık referanslarını içerir; global dosya doğrudan değiştirilmez.",
+            "Integration owner kesin base commit ve sözleşme digestini dondurup conflict/semantik uyum kontrolünü geçirmeden merge-ready veya tamamlandı ilan edilmez."
+          ],
+          "integration": {
+            "baseCommit": null,
+            "fragmentPaths": [
+              "integration/fragments/client-offline-faults--integration.json"
+            ],
+            "ownerLane": "integration",
+            "fragmentMode": "owned_output"
+          }
+        }
+      ]
+    }
+  ]
+}

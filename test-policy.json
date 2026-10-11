@@ -1,13 +1,13 @@
 {
   "version": 1,
   "baselineCommit": "bbda567bc46c264801ac5b202f0d6fcf81ee7526",
-  "rationale": "Existing coverage is retained. The development plan adds five Node checks and three browser journeys; browser engines reuse those journeys.",
-  "nodeChecksMax": 75,
-  "browserCasesMax": 714,
+  "rationale": "The new project workspace adds four Node integrity/ownership/export checks and three browser journeys. Existing coverage, matrix and run controls are retained; no per-task test expansion.",
+  "nodeChecksMax": 79,
+  "browserCasesMax": 723,
   "projects": {
-    "chromium": 237,
-    "firefox": 237,
-    "webkit": 237,
+    "chromium": 240,
+    "firefox": 240,
+    "webkit": 240,
     "chromium-touch": 1,
     "webkit-touch": 1,
     "chromium-hybrid": 1

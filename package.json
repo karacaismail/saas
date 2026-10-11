@@ -15,7 +15,7 @@
     "test:browser": "playwright test",
     "test:policy": "node scripts/check-test-policy.mjs",
     "format": "prettier --write .",
-    "check": "prettier --check . && node --check assets/app.js && node --check assets/exports.js && node --check assets/content-engine.js && node --check assets/content-templates.js && npm run test:policy && npm test"
+    "check": "prettier --check . && node --check assets/app.js && node --check assets/exports.js && node --check assets/content-engine.js && node --check assets/content-templates.js && node --check assets/project-app.js && node --check assets/project-templates.js && npm run test:policy && npm test"
   },
   "devDependencies": {
     "@playwright/test": "1.64.0",

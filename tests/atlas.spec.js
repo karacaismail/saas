@@ -1490,14 +1490,14 @@ test('cold navigation and bounded interactions request only local shared product
   ];
   const allowedUrls = new Set(
     [
-      './',
+      page.url(),
       'assets/styles.css',
       'assets/favicon.svg',
       'assets/fonts/outfit-latin.woff2',
       'assets/fonts/outfit-latin-ext.woff2',
       ...scriptPaths,
       ...contentPaths,
-    ].map((path) => new URL(path, page.url()).href),
+    ].map((path) => new URL(path, new URL('../', page.url())).href),
   );
   expect(
     requests.filter(
@@ -1511,7 +1511,7 @@ test('cold navigation and bounded interactions request only local shared product
   const requestedUrls = new Set(requests.map(({ url }) => url));
   for (const path of [...scriptPaths, ...contentPaths, 'assets/styles.css'])
     expect(
-      requestedUrls.has(new URL(path, page.url()).href),
+      requestedUrls.has(new URL(path, new URL('../', page.url())).href),
       `Required shared asset: ${path}`,
     ).toBe(true);
   const responses = await Promise.all(responseBodies);

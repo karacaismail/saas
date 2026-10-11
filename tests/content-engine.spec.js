@@ -98,7 +98,7 @@ test('classified JSON drives all 12 clusters without changing the 326 original c
       documents.set(response.url(), response.json());
   });
   await visit(page);
-  const manifestUrl = new URL('./data/manifest.json', page.url()).href;
+  const manifestUrl = new URL('../data/manifest.json', page.url()).href;
   expect(documents.has(manifestUrl)).toBe(true);
   const manifest = await documents.get(manifestUrl);
   expect(manifest.clusters).toHaveLength(12);
