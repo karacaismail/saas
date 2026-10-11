@@ -88,8 +88,9 @@ test('roadmap order starts with operation, identity, security and data before mo
   assert.match(data.roadmap.target, /Keycloak/);
 });
 
-test('public roadmap ownership uses approved roles instead of personal identities', async () => {
-  // New public owner labels require review as responsibilities, not people.
+test('public roadmap ownership uses approved roles and the user-designated delivery owner', async () => {
+  // The user's standing policy explicitly names Hüseyin Cengiz for new
+  // CI/CD and rollback plans. Only this new delivery item has that exception.
   const approvedRoles = new Set([
     'AI ajan platformu',
     'AI araç güvenliği',
@@ -231,6 +232,9 @@ test('public roadmap ownership uses approved roles instead of personal identitie
     'İş olayı ve e-posta',
     'Şablon yönetimi',
   ]);
+  const approvedOwner = (id, owner) =>
+    approvedRoles.has(owner) ||
+    (id === 'releases-11' && owner === 'Hüseyin Cengiz + istemci ekibi');
   const assessmentFiles = (
     await readdir(new URL('../data/clusters/', import.meta.url))
   )
@@ -249,14 +253,14 @@ test('public roadmap ownership uses approved roles instead of personal identitie
         const id = `${group.id}-${index + 1}`,
           assessment = item.assessment;
         assert.ok(
-          approvedRoles.has(assessment.owner),
+          approvedOwner(id, assessment.owner),
           `${name}:${id}: owner must be an approved public role`,
         );
       }
   }
   for (const { id, item } of rows) {
     assert.ok(
-      approvedRoles.has(item.assessment?.owner),
+      approvedOwner(id, item.assessment?.owner),
       `${id}: published owner must be an approved public role`,
     );
   }

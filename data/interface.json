@@ -1,6 +1,6 @@
 {
   "meta": {
-    "content_1": "Frappe backend, headless frontend ve Keycloak için 363 maddelik SaaS geliştirme yol haritası. Yeterlilik, geliştirme işi ve kabul ölçütleri.",
+    "content_1": "Bulutta Frappe, bağımsız headless frontend ve Keycloak için 377 maddelik SaaS yol haritası. Çevrimdışı çoklu platform, yeterlilik ve kabul planı.",
     "text_2": "SaaS Atlas — Frappe geliştirme yol haritası",
     "skip_3": "Envantere geç"
   },
@@ -13,13 +13,13 @@
   "hero": {
     "eyebrow_8": "Frappe geliştirme yol haritası",
     "page_title_9": "Hazır olanı kullanın. Kalan işi görün.",
-    "desc_10": "Frappe yeterliliğini değerlendirin, kalan geliştirme işini planlayın. Seçtiğiniz maddeleri dışa aktarın.",
+    "desc_10": "Frappe yeterliliğini ve kalan işi görün. Ortak istemci, çevrimdışı veri ve platform paketlerini planlayın; seçtiğiniz maddeleri dışa aktarın.",
     "start_link_11": "Özellikleri incele",
     "numbers_12": "12",
     "numbers_13": "küme",
     "numbers_14": "49",
     "numbers_15": "başlık",
-    "numbers_16": "363",
+    "numbers_16": "377",
     "numbers_17": "madde",
     "structure_18": "Küme → Başlık → Madde",
     "legend_19": "Madde sınıfları",
@@ -32,11 +32,11 @@
     "toolbar_24": "Envanter araçları",
     "filter_row_25": "Kaynağa göre filtrele",
     "filter_label_26": "Tümü",
-    "count_27": "363",
+    "count_27": "377",
     "filter_label_28": "Özgün kapsam",
     "count_29": "105",
     "filter_label_30": "İç eksikler",
-    "count_31": "224",
+    "count_31": "238",
     "filter_label_32": "Yeni alanlar",
     "count_33": "34",
     "roadmap_filters_34": "Kapsam, Frappe ve iş filtreleri",
@@ -53,7 +53,7 @@
     "cluster_value_45": "Bütün kümeler",
     "reset_all_46": "Filtreleri sıfırla",
     "print_47": "Yazdır",
-    "visible_status_48": "363 / 363 madde · 49 grup",
+    "visible_status_48": "377 / 377 madde · 49 grup",
     "toggle_relations_49": "İlişkileri göster",
     "selected_only_50": "Yalnızca seçilenler",
     "toggle_original_51": "Özgün ifadeleri göster",
@@ -61,10 +61,10 @@
   },
   "context": {
     "context_details_53": "Teknik yaklaşım ve etiket rehberi",
-    "context_description_54": "Frappe backend · Keycloak auth · Headless panel",
+    "context_description_54": "Bulutta Frappe · Keycloak auth · Headless ortak istemci",
     "roadmap_title_55": "Frappe ile geliştirme yol haritası",
     "roadmap_56": "Backend:",
-    "roadmap_57": "Frappe Framework",
+    "roadmap_57": "buluttaki Frappe Framework",
     "roadmap_58": ". SaaS admin paneli:",
     "roadmap_59": "bağımsız headless frontend",
     "roadmap_60": ". Giriş, MFA ve oturum:",
@@ -257,6 +257,18 @@
       "toolbar.count_27": "351",
       "toolbar.count_31": "212",
       "toolbar.visible_status_48": "351 / 351 madde · 49 grup"
-    }
+    },
+    "offline.review.copy.title": "Kapsam, entegrasyon ve faydalı UX planı",
+    "offline.review.copy.summary": "Önceki 351 madde korundu; 25 faydalı UX önerisinin 13'ü mevcut kapsamla birleştirildi, 12 ayrı boşluk eklendi. Toplam 363 madde, 49 başlık.",
+    "offline.review.copy.intro": "Fayda ve geliştirme önceliği, zorunlu kapsamdan, Frappe yeterliliğinden ve tamamlanmadan ayrıdır. 25 öneri dört grupta değerlendirilir: Emeği ve veriyi koruyanlar (çok yüksek fayda, ilk paket); İşi tamamlamayı kolaylaştıranlar (yüksek fayda, ikinci paket); Günlük kullanımı hızlandıranlar (orta/yüksek fayda, kullanım sıklığına göre); Kullanıma bağlı değer sağlayanlar (ihtiyaç doğrulandıktan sonra). Yeni 12 madde ürüne bağlıdır; önceki kapsam kararları korunur. Sekiz entegrasyon modeli zorunlu, M0–M3 teslim sırasıdır; genel AI/RAG/ajan kapsamı ileri aşamada kalır. Hedef Frappe/Keycloak sürümleri seçilmedi; bu statik dokümantasyon çalışan SaaS özellikleri sunulduğu anlamına gelmez.",
+    "offline.review.copy.unchanged": "Önceki 351 maddenin bütün alanları, kimlikleri, sıraları, değerlendirmeleri ve 53 önceki inceleme kararı korunmuştur. 25 faydalı UX önerisi mevcut 49 başlığa dağıtılır; 13 mevcut yetenek yeniden eklenmez. Tarihsel ilk karşılaştırmadaki 402 ifade ve 17 bölüm eşlemesi korunur; sonraki entegrasyon ve faydalı UX kararları ayrı kullanıcı talepleridir.",
+    "offline.meta.content_1": "Frappe backend, headless frontend ve Keycloak için 363 maddelik SaaS geliştirme yol haritası. Yeterlilik, geliştirme işi ve kabul ölçütleri.",
+    "offline.hero.desc_10": "Frappe yeterliliğini değerlendirin, kalan geliştirme işini planlayın. Seçtiğiniz maddeleri dışa aktarın.",
+    "offline.hero.numbers_16": "363",
+    "offline.toolbar.count_27": "363",
+    "offline.toolbar.count_31": "224",
+    "offline.toolbar.visible_status_48": "363 / 363 madde · 49 grup",
+    "offline.context.context_description_54": "Frappe backend · Keycloak auth · Headless panel",
+    "offline.context.roadmap_57": "Frappe Framework"
   }
 }

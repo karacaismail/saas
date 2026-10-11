@@ -1,7 +1,7 @@
 {
   "version": 1,
   "reviewedAt": "2026-10-11",
-  "expectedItems": 363,
+  "expectedItems": 377,
   "expectedGroups": 49,
   "source": {
     "title": "SaaS Paneli Özellik Haritası",
@@ -368,8 +368,8 @@
       "reason": "Yazı sistemleri arasında dönüşüm arama veya veri girişi ihtiyacı doğurduğunda eklenir; çeviri ile aynı iş değildir."
     },
     "channels-2": {
-      "scope": "conditional",
-      "reason": "Web dışı uygulama kanalı veya kanallar arası devam ürün hedefi olarak seçilirse kapsam ve oturum davranışı ayrıca doğrulanır."
+      "scope": "required",
+      "reason": "2026-10-11 kullanıcı talebi mobil, masaüstü ve Chrome eklentisini bu çevrimdışı çoklu platform varyantının zorunlu kapsamına yükseltti. Önceki conditional kapsamı ve defer-platforms-ai kararı tarihsel olarak korunur; bu kanallar için yeni O0–O3 planı geçerlidir. Diğer SaaS ürünlerine evrensel zorunluluk veya hazır paket iddiası değildir; ilk giriş/hazırlık çevrimiçidir."
     },
     "channels-3": {
       "scope": "conditional",
@@ -380,8 +380,8 @@
       "reason": "Web dışı uygulama kanalı veya kanallar arası devam ürün hedefi olarak seçilirse kapsam ve oturum davranışı ayrıca doğrulanır."
     },
     "channels-7": {
-      "scope": "advanced",
-      "reason": "Çevrimdışı yazım ve uzlaştırma gerçek saha gereksinimi ve veri çakışması politikasıyla ileri aşamada açılır."
+      "scope": "required",
+      "reason": "2026-10-11 kullanıcı talebi gerçek çevrimdışı çalışma ve çift yönlü uzlaştırmayı bu çoklu platform varyantında zorunlu kıldı. Önceki advanced kapsamı ile defer-platforms-ai/useful-offline-sync gerekçeleri tarihsel olarak korunur, bu yetenek için yeni O0–O3 planıyla geçersiz kılınmıştır. Diğer SaaS ürünleri için evrensel asgari kapsam değildir; ilk Keycloak girişi ve yetkili cihaz/veri hazırlığı çevrimiçidir."
     },
     "workflow-5": {
       "scope": "advanced",
@@ -662,6 +662,62 @@
     "channels-9": {
       "scope": "conditional",
       "reason": "Kategori: Kullanıma bağlı değer sağlayanlar. Fayda: Bağlama bağlı. Öncelik: İhtiyaç doğrulandıktan sonra. Üründeki ilgili kullanıcı yolculuğu ve veri riski doğrulanınca uygulanır; fayda düzeyi zorunluluk veya tamamlanma değildir. Düşük veri tüketimi modu."
+    },
+    "channels-10": {
+      "scope": "required",
+      "reason": "2026-10-11 kullanıcı talebi: buluttaki Frappe, bağımsız headless frontend ve çevrimdışı çoklu platform varyantı için zorunludur; bütün SaaS ürünlerinin evrensel asgari kapsamı değildir. O0 teslim aşamasıdır, isteğe bağlılık veya tamamlanma kanıtı değildir; ilk Keycloak girişi ve cihaz/veri hazırlığı çevrimiçi yapılır."
+    },
+    "channels-11": {
+      "scope": "required",
+      "reason": "2026-10-11 kullanıcı talebi: buluttaki Frappe, bağımsız headless frontend ve çevrimdışı çoklu platform varyantı için zorunludur; bütün SaaS ürünlerinin evrensel asgari kapsamı değildir. O3 teslim aşamasıdır, isteğe bağlılık veya tamamlanma kanıtı değildir; ilk Keycloak girişi ve cihaz/veri hazırlığı çevrimiçi yapılır."
+    },
+    "channels-12": {
+      "scope": "required",
+      "reason": "2026-10-11 kullanıcı talebi: buluttaki Frappe, bağımsız headless frontend ve çevrimdışı çoklu platform varyantı için zorunludur; bütün SaaS ürünlerinin evrensel asgari kapsamı değildir. O3 teslim aşamasıdır, isteğe bağlılık veya tamamlanma kanıtı değildir; ilk Keycloak girişi ve cihaz/veri hazırlığı çevrimiçi yapılır."
+    },
+    "channels-13": {
+      "scope": "required",
+      "reason": "2026-10-11 kullanıcı talebi: buluttaki Frappe, bağımsız headless frontend ve çevrimdışı çoklu platform varyantı için zorunludur; bütün SaaS ürünlerinin evrensel asgari kapsamı değildir. O3 teslim aşamasıdır, isteğe bağlılık veya tamamlanma kanıtı değildir; ilk Keycloak girişi ve cihaz/veri hazırlığı çevrimiçi yapılır."
+    },
+    "channels-14": {
+      "scope": "required",
+      "reason": "2026-10-11 kullanıcı talebi: buluttaki Frappe, bağımsız headless frontend ve çevrimdışı çoklu platform varyantı için zorunludur; bütün SaaS ürünlerinin evrensel asgari kapsamı değildir. O3 teslim aşamasıdır, isteğe bağlılık veya tamamlanma kanıtı değildir; ilk Keycloak girişi ve cihaz/veri hazırlığı çevrimiçi yapılır."
+    },
+    "channels-15": {
+      "scope": "required",
+      "reason": "2026-10-11 kullanıcı talebi: buluttaki Frappe, bağımsız headless frontend ve çevrimdışı çoklu platform varyantı için zorunludur; bütün SaaS ürünlerinin evrensel asgari kapsamı değildir. O1 teslim aşamasıdır, isteğe bağlılık veya tamamlanma kanıtı değildir; ilk Keycloak girişi ve cihaz/veri hazırlığı çevrimiçi yapılır."
+    },
+    "channels-16": {
+      "scope": "required",
+      "reason": "2026-10-11 kullanıcı talebi: buluttaki Frappe, bağımsız headless frontend ve çevrimdışı çoklu platform varyantı için zorunludur; bütün SaaS ürünlerinin evrensel asgari kapsamı değildir. O2 teslim aşamasıdır, isteğe bağlılık veya tamamlanma kanıtı değildir; ilk Keycloak girişi ve cihaz/veri hazırlığı çevrimiçi yapılır."
+    },
+    "identity-9": {
+      "scope": "required",
+      "reason": "2026-10-11 kullanıcı talebi: buluttaki Frappe, bağımsız headless frontend ve çevrimdışı çoklu platform varyantı için zorunludur; bütün SaaS ürünlerinin evrensel asgari kapsamı değildir. O0 teslim aşamasıdır, isteğe bağlılık veya tamamlanma kanıtı değildir; ilk Keycloak girişi ve cihaz/veri hazırlığı çevrimiçi yapılır."
+    },
+    "integrity-7": {
+      "scope": "required",
+      "reason": "2026-10-11 kullanıcı talebi: buluttaki Frappe, bağımsız headless frontend ve çevrimdışı çoklu platform varyantı için zorunludur; bütün SaaS ürünlerinin evrensel asgari kapsamı değildir. O2 teslim aşamasıdır, isteğe bağlılık veya tamamlanma kanıtı değildir; ilk Keycloak girişi ve cihaz/veri hazırlığı çevrimiçi yapılır."
+    },
+    "integrity-8": {
+      "scope": "required",
+      "reason": "2026-10-11 kullanıcı talebi: buluttaki Frappe, bağımsız headless frontend ve çevrimdışı çoklu platform varyantı için zorunludur; bütün SaaS ürünlerinin evrensel asgari kapsamı değildir. O1 teslim aşamasıdır, isteğe bağlılık veya tamamlanma kanıtı değildir; ilk Keycloak girişi ve cihaz/veri hazırlığı çevrimiçi yapılır."
+    },
+    "integrity-9": {
+      "scope": "required",
+      "reason": "2026-10-11 kullanıcı talebi: buluttaki Frappe, bağımsız headless frontend ve çevrimdışı çoklu platform varyantı için zorunludur; bütün SaaS ürünlerinin evrensel asgari kapsamı değildir. O2 teslim aşamasıdır, isteğe bağlılık veya tamamlanma kanıtı değildir; ilk Keycloak girişi ve cihaz/veri hazırlığı çevrimiçi yapılır."
+    },
+    "integrity-10": {
+      "scope": "required",
+      "reason": "2026-10-11 kullanıcı talebi: buluttaki Frappe, bağımsız headless frontend ve çevrimdışı çoklu platform varyantı için zorunludur; bütün SaaS ürünlerinin evrensel asgari kapsamı değildir. O3 teslim aşamasıdır, isteğe bağlılık veya tamamlanma kanıtı değildir; ilk Keycloak girişi ve cihaz/veri hazırlığı çevrimiçi yapılır."
+    },
+    "releases-11": {
+      "scope": "required",
+      "reason": "2026-10-11 kullanıcı talebi: buluttaki Frappe, bağımsız headless frontend ve çevrimdışı çoklu platform varyantı için zorunludur; bütün SaaS ürünlerinin evrensel asgari kapsamı değildir. O3 teslim aşamasıdır, isteğe bağlılık veya tamamlanma kanıtı değildir; ilk Keycloak girişi ve cihaz/veri hazırlığı çevrimiçi yapılır."
+    },
+    "backup-7": {
+      "scope": "required",
+      "reason": "2026-10-11 kullanıcı talebi: buluttaki Frappe, bağımsız headless frontend ve çevrimdışı çoklu platform varyantı için zorunludur; bütün SaaS ürünlerinin evrensel asgari kapsamı değildir. O3 teslim aşamasıdır, isteğe bağlılık veya tamamlanma kanıtı değildir; ilk Keycloak girişi ve cihaz/veri hazırlığı çevrimiçi yapılır."
     }
   },
   "addedItemIds": [
@@ -701,7 +757,21 @@
     "integrity-6",
     "jobs-8",
     "support-9",
-    "channels-9"
+    "channels-9",
+    "channels-10",
+    "channels-11",
+    "channels-12",
+    "channels-13",
+    "channels-14",
+    "channels-15",
+    "channels-16",
+    "identity-9",
+    "integrity-7",
+    "integrity-8",
+    "integrity-9",
+    "integrity-10",
+    "releases-11",
+    "backup-7"
   ],
   "decisions": [
     {
@@ -1332,6 +1402,131 @@
       "title": "Bildirim özeti ve sessiz saatler",
       "reason": "Kategori: Kullanıma bağlı değer sağlayanlar. Fayda: Bağlama bağlı. Öncelik: İhtiyaç doğrulandıktan sonra. Bildirim hacmi yüksekse rutin olayları özetlemek dikkati korur; geliştirme yükü orta, mevcut bildirim tercihleri kapsamına bağlanır. Kritik güvenlik ve işlem mesajları için ayrı açık politika gerekir. Kabul: Kanal, sıklık, saat dilimi ve sessiz saat tercihi korunsun; yinelenen özet tekilleşsin, izin değişen içerik gönderilmesin; kritik istisnalar kullanıcıya açıklansın, önemli olay sessizce kaybolmasın. Sorumluluk ve Frappe sınırı: Bildirim backend'i + headless frontend + kanal sağlayıcıları; Frappe Notification temeli bütün kanal/özet politikasını kendiliğinden sağlamaz.",
       "itemIds": ["notifications-6"]
+    },
+    {
+      "id": "offline-architecture",
+      "kind": "correct",
+      "title": "Bulutta Frappe, ortak istemci çekirdeği ve ayrı platform kabukları",
+      "reason": "O0: Buluttaki Frappe + bağımsız headless frontend + Keycloak kimliği korunur; yerel Frappe sunucusu önceliklendirilmez. Ortak tasarım, iş kuralları, veri ve sync çekirdeği kopyalanmadan paylaşılır; cihaz özellikleri ve ekran kabukları adaptörlerle ayrılır. Önceki ek kanal ertelemesi bu kullanıcı talebiyle yalnız bu varyant için zorunlu kapsam olarak güncellenir; genel AI/ajan ertelemesi sürer. Kabul: İlk çevrimiçi Keycloak girişi/hazırlıktan sonra hedef paketler gömülü arayüzle açılsın; ortak sözleşme testleri geçsin. Frappe sınırı: Backend API, hazır çoklu platform istemcisi değildir; hedef araç sürümleri henüz seçilmedi.",
+      "itemIds": ["channels-10", "channels-1", "channels-2", "channels-7"]
+    },
+    {
+      "id": "offline-web",
+      "kind": "add",
+      "title": "Vite web çıktısı ve gerçek çevrimdışı PWA hazırlığı",
+      "reason": "O3: Vite web derlemesi, PWA Service Worker önbelleği ve HTTPS yayını ayrı hazırlanır; yayın/rollback sahibi Hüseyin Cengiz'dir. PWA etiketi çevrimdışı iş kaydı veya senkronizasyon kanıtı değildir. Kabul: İlk çevrimiçi kimlik/veri hazırlığı sonrası uygulama kabuğu ve gerekli yetkili veri/dosyalar ağsız yeniden açılsın; önbellek/güncelleme hatası bekleyen kayıtları silmesin. Frappe sınırı: Bulut API web istemcisinin kalıcılık ve soğuk açılışını sağlamaz.",
+      "itemIds": ["channels-11", "channels-16"]
+    },
+    {
+      "id": "offline-mobile",
+      "kind": "add",
+      "title": "Capacitor Android/iOS paketleme ve yerel adaptörler",
+      "reason": "O3: Android AAB/APK ve iOS IPA, ortak derlenmiş arayüz gömülerek Capacitor ile ayrı hazırlanır; mobil SQLite eklentisi ve güvenli anahtar saklama adaptörü seçilmelidir. İmza/yayın/güncelleme sahibi Hüseyin Cengiz'dir; istemci ekibi adaptörleri sağlar. Kabul: İlk çevrimiçi hazırlık sonrası gerçek hedef cihazda ağsız açılış/kayıt, izinler, Keycloak callback, imzalama ve mağaza güncellemesi ayrı geçsin. Frappe sınırı: API, mobil paket veya native depolama sağlamaz; yerel Frappe/Python kurulumu gerekmez.",
+      "itemIds": ["channels-12", "channels-15", "identity-9"]
+    },
+    {
+      "id": "offline-desktop",
+      "kind": "add",
+      "title": "Tauri 2 Windows/macOS/Linux dağıtımı",
+      "reason": "O3: Windows EXE/MSI, macOS APP/DMG ve Linux AppImage/DEB/RPM hedefleri ortak web çıktısı ile Tauri 2 üzerinden ayrı derlenir. İmza/yayın/rollback sahibi Hüseyin Cengiz'dir. Tauri mobil alternatifi seçilen Capacitor yolunun yerine sessizce geçirilmez. Kabul: İlk çevrimiçi Keycloak/cihaz hazırlığı sonrası hedefte kurulum, ağsız yeniden başlatma ve veri koruyan güncelleme geçsin. Frappe sınırı: Bulut backend masaüstü paketi veya SQLite adaptörü değildir.",
+      "itemIds": ["channels-13", "channels-15", "releases-11"]
+    },
+    {
+      "id": "offline-extension",
+      "kind": "add",
+      "title": "WXT ve Manifest V3 eklentisinde paket kodu ve kalıcı kuyruk",
+      "reason": "O3: WXT, eklenti giriş noktaları ve Manifest V3 ZIP dağıtımı için seçilen adaydır; çalıştırılabilir kod paket içinde bulunur, uzaktan kod ve CSP ihlali yapılmaz. Service Worker belleği kalıcı işlem kuyruğu sayılamaz; yayın/rollback sahibi Hüseyin Cengiz'dir. Kabul: İlk çevrimiçi kimlik/veri hazırlığından sonra worker durdurulup açılınca kuyruk korunsun; izinler, callback, tenant sınırı ve paket içi kod doğrulansın. Frappe sınırı: API eklenti paketini, mağaza kabulünü veya worker sürekliliğini sağlamaz.",
+      "itemIds": ["channels-14", "channels-15", "identity-9"]
+    },
+    {
+      "id": "offline-storage",
+      "kind": "add",
+      "title": "SQLite ve IndexedDB üzerinde aynı yerel veri sözleşmesi",
+      "reason": "O1: Mobil/masaüstü SQLite, web/eklenti IndexedDB adaptörleriyle çevrimdışı desteklenen işlemler bağlantı varken de yokken de önce yerel katmandan geçer. Tauri SQL ve seçilecek Capacitor eklentisi şifreleme/sync motoru sayılmaz; kalıcılık, kota, tenant sınırı ve anahtar yönetimi ayrıca tasarlanır. Kabul: İlk çevrimiçi hazırlık sonrasında kota/izin/yazma hatasında sahte başarı gösterilmesin; çökme sonrası tutarlı veri açılsın. Frappe sınırı: Bulut veritabanı cihazdaki çalışma kopyasının yerine geçmez; tarayıcı deposu mutlak kayıpsızlık garantisi vermez.",
+      "itemIds": ["channels-15", "channels-16", "backup-7"]
+    },
+    {
+      "id": "offline-outbox",
+      "kind": "merge",
+      "title": "Yerel iş kaydı ve kalıcı gönderim kaydı tek transactionda",
+      "reason": "O1: Mevcut olay/outbox ve tüketici tekilleştirme kapsamı cihazdaki Transactional Outbox ile birleştirilir; iş kaydı ve gönderim kuyruğu aynı yerel transactionda kalıcılaşır. Yerel kayıt, aktarım bekliyor ve merkez kabul etti durumları ayrıdır. Kabul: İlk çevrimiçi cihaz hazırlığı sonrası kayıt ortasında çökmede iki kayıt birlikte korunsun veya geri alınsın; sunucu commit/ack kaybında aynı kimlik tekrar uygulanmasın. Frappe sınırı: Backend transaction ve olay temeli hazır yerel outbox adaptörü değildir.",
+      "itemIds": [
+        "events-4",
+        "events-5",
+        "channels-15",
+        "integrity-7",
+        "views-12",
+        "views-13"
+      ]
+    },
+    {
+      "id": "offline-sync",
+      "kind": "add",
+      "title": "Özel Frappe push/pull senkronizasyon uygulaması",
+      "reason": "O2: Mevcut idempotency/tekrar deneme kapsamı özel Frappe sync uygulamasına bağlanır; imleç, sayfalama, silme işaretleri, mutasyon kimliği/içerik özeti ve commit sonrası kabul sözleşmesi kurulur. Kabul: İlk çevrimiçi kimlik/veri hazırlığından sonra kesintili push/pull kaldığı yerden sürsün; değişiklik/silme atlanmasın, tekrar gönderim çoğalmasın, aynı kimliğin farklı içeriği reddedilsin. Frappe sınırı: REST CRUD hazır çift yönlü cihaz eşitlemesi değildir; her çağrı güncel kayıt/alan yetkisiyle doğrulanır.",
+      "itemIds": ["integrity-7", "integration-7", "channels-7", "events-5"]
+    },
+    {
+      "id": "offline-rules",
+      "kind": "add",
+      "title": "İstemci hesaplamaları ile Python kurallarını ortak testlerle eşleştir",
+      "reason": "O1: Çevrimdışı hesaplama/doğrulamalar ortak istemci çekirdeğine ayrıca geliştirilir; Frappe Python kodu paketlemeyle cihaza taşınmaz. Kabul: İlk çevrimiçi hazırlıkta kural sürümü indirilmiş olsun; ortak sınır testleri para/yuvarlama, zaman ve durum sonuçlarını karşılaştırsın; sunucu bütün gelen işlemleri yeniden doğrulasın. Frappe sınırı: İstemci kabulü sunucu yetkisi veya kesin iş sonucu değildir; doğrudan DB yazımı Document doğrulamalarını atlamasın.",
+      "itemIds": ["integrity-8", "channels-10", "integrity-7"]
+    },
+    {
+      "id": "offline-auth",
+      "kind": "add",
+      "title": "Keycloak girişinden ayrı süreli yerel erişim ve kilit açma",
+      "reason": "O0: İlk login/auth ve cihaz yetkilendirmesi çevrimiçi Keycloak üzerinden yapılır; public client/PKCE, native sistem tarayıcısı ve güvenli dönüş bağlantısı kullanılır. Çevrimdışı kilit açma yeni kimlik sağlayıcısı değildir; offline_access sunucuya bağlı token yenilemesidir. Kabul: Kullanıcı/tenant/cihaz kapsamı ve azami yerel süre aşılamasın; bağlantı gelince iptal/üyelik Frappe kayıt/alan izinleriyle kuyruk gönderiminden önce doğrulansın; secret gömülmesin, web tokenları kalıcı saklanmasın. Frappe sınırı: API yetkilendirmesi Keycloak kimliğinden ve süreli yerel politikadan ayrıdır; bağlantısız anlık iptal garantisi verilemez.",
+      "itemIds": ["identity-9", "identity-1", "identity-4", "channels-3"]
+    },
+    {
+      "id": "offline-bootstrap",
+      "kind": "add",
+      "title": "Hazırlanmış cihazda dosya ve veriyle ağsız soğuk açılış",
+      "reason": "O2: İlk Keycloak girişi, uygulama/veri/dosya indirme ve süreli yerel erişim hazırlığı çevrimiçi tamamlanır; hazırlanmadıkça internetsiz ilk giriş vaat edilmez. Kabul: Ağ kapalıyken uygulama ve cihaz yeniden başlatılsın; gerekli yetkili çalışma verisi/dosyalar açılsın, eksik kaynak ve süresi biten yetki açıkça sınırlandırılsın, bekleyen kayıtlar korunsun. Frappe sınırı: Buluttaki API cihaz açılışında zorunlu bağımlılık olamaz; paketlenmiş UI tek başına veri ve yerel yetki sağlamaz.",
+      "itemIds": ["channels-16", "channels-11", "identity-9"]
+    },
+    {
+      "id": "offline-conflicts",
+      "kind": "merge",
+      "title": "Çevrimdışı çakışmaları mevcut sürüm korumasına bağla",
+      "reason": "O2: Mevcut optimistic locking ve eşzamanlı düzenleme kapsamı çevrimdışı yazımlar için genişletilir; sessiz son yazan kazanır uygulanmaz. Kabul: İlk çevrimiçi hazırlıktan sonra iki cihazın ayrık değişiklikleri yeniden bağlanınca sürüm denetiminden geçsin; kullanıcı verisi korunarak işleme özgü birleştirme, yeniden yükleme veya onay sunulsun. Frappe sınırı: Document.save sürüm koruması hazır CRDT veya headless çakışma çözüm ekranı değildir; sunucu yetki ve iş kurallarını yeniden doğrular.",
+      "itemIds": ["integrity-1", "realtime-5", "integrity-7", "channels-7"]
+    },
+    {
+      "id": "offline-inventory",
+      "kind": "add",
+      "title": "Ortak stok hakkı ve uzak hizmetler için bağlantı politikası",
+      "reason": "O2: Kopuk cihazlarda stok/kota için önceden ayrılmış hak veya merkezi onay gerekir; yalnız senkronizasyon çift tüketimi engellemez. Uzak belge/ödeme/e-posta gönderimi bağlantıyı ve sunucu kabulünü bekler. Kabul: İlk çevrimiçi hazırlıkta ayrılan hak iki cihazda tekrar harcanmasın; hakkı olmayan işlem beklesin; yeniden bağlantıda yetki/kaynak tekrar kontrol edilip dış etki tekilleştirilsin. Frappe sınırı: Backend transaction hazır çevrimdışı stok rezervasyon protokolü değildir; internetsiz belge oluşturmak gönderilmiş olmak değildir.",
+      "itemIds": ["integrity-9", "integrity-7", "events-4", "events-5"]
+    },
+    {
+      "id": "offline-migrations",
+      "kind": "add",
+      "title": "İstemci imzaları, yerel migration ve kuyruk koruyan geri dönüş",
+      "reason": "O3: Mevcut sunucu migrationından ayrı mobil/masaüstü/eklenti/PWA yayın hattı kurulur; imza/yayın/rollback sahibi Hüseyin Cengiz'dir, istemci ekibi yerel migrationı sağlar. İlk çevrimiçi hazırlık ve güncelleme indirmesi sonrası yerel şema geçişi kurtarma noktasıyla ilerler. Kabul: Güncelleme ortasında kapanınca tutarlı sürüm açılsın; bekleyen outbox, kimlik ve imleç kaybolmasın; yanlış imza ve uyumsuz rollback reddedilsin, veri geri dönüşü ayrıca denensin. Frappe sınırı: Bench migrate cihaz SQLite/IndexedDB şemasını veya istemci mağaza yayınını yönetmez.",
+      "itemIds": ["releases-11", "releases-4", "channels-15"]
+    },
+    {
+      "id": "offline-backup",
+      "kind": "add",
+      "title": "Bulut yedeğinden ayrı cihaz verisi ve kuyruk kurtarma",
+      "reason": "O3: Henüz gönderilmemiş yerel kayıtlar Frappe bulut yedeğinde bulunmaz; şifreli, tutarlı ve ayrı fiziksel ortamda yedek ile anahtar kurtarma politikası gerekir. Kabul: İlk çevrimiçi Keycloak/cihaz hazırlığından sonra çevrimdışı üretilen veriyi ve outboxı başka yetkili cihazda geri yükle; eski mutasyon kimlikleri korunup bağlantıda çoğalma olmasın, bozuk/yanlış anahtar reddedilsin. Frappe sınırı: Bench restore ve mevcut restore doğrulaması yerel cihaz kurtarması değildir; tek cihazın fiziksel kaybına mutlak garanti verilemez.",
+      "itemIds": ["backup-7", "backup-4", "channels-15", "integrity-7"]
+    },
+    {
+      "id": "offline-acceptance",
+      "kind": "add",
+      "title": "Dört günlük kesinti ve çökme testini yayın kabulüne bağla",
+      "reason": "O3: İlk çevrimiçi kimlik/veri/anahtar hazırlığından sonra dört gün internet kesme, uygulama/cihaz yeniden başlatma, kayıt sırasında kapatma ve aktarım ortasında yeniden kesme senaryoları uygulanır. Kabul: Kalıcı başarı bildirilen kayıt kontrollü çökmede kaybolmasın, sunucu commit/ack kesintisi tekrar uygulama üretmesin; süreli yetki bitimi, kota, çakışma ve yedekten kurtarma da geçsin. Frappe sınırı: REST erişimi bu dayanıklılık testlerinin yerine geçmez; test süresi üretim yerel yetki süresi taahhüdü değildir, gerçek hedef cihaz kanıtı ayrıca gerekir.",
+      "itemIds": [
+        "integrity-10",
+        "channels-16",
+        "identity-9",
+        "integrity-7",
+        "backup-7"
+      ]
     }
   ],
   "coverage": [
@@ -1511,16 +1706,16 @@
     }
   ],
   "copy": {
-    "title": "Kapsam, entegrasyon ve faydalı UX planı",
-    "summary": "Önceki 351 madde korundu; 25 faydalı UX önerisinin 13'ü mevcut kapsamla birleştirildi, 12 ayrı boşluk eklendi. Toplam 363 madde, 49 başlık.",
-    "intro": "Fayda ve geliştirme önceliği, zorunlu kapsamdan, Frappe yeterliliğinden ve tamamlanmadan ayrıdır. 25 öneri dört grupta değerlendirilir: Emeği ve veriyi koruyanlar (çok yüksek fayda, ilk paket); İşi tamamlamayı kolaylaştıranlar (yüksek fayda, ikinci paket); Günlük kullanımı hızlandıranlar (orta/yüksek fayda, kullanım sıklığına göre); Kullanıma bağlı değer sağlayanlar (ihtiyaç doğrulandıktan sonra). Yeni 12 madde ürüne bağlıdır; önceki kapsam kararları korunur. Sekiz entegrasyon modeli zorunlu, M0–M3 teslim sırasıdır; genel AI/RAG/ajan kapsamı ileri aşamada kalır. Hedef Frappe/Keycloak sürümleri seçilmedi; bu statik dokümantasyon çalışan SaaS özellikleri sunulduğu anlamına gelmez.",
+    "title": "Kapsam, entegrasyon ve çevrimdışı platform planı",
+    "summary": "Önceki 363 madde ve 78 karar korundu; bulutta Frappe ve çevrimdışı çoklu platform planı için 14 boşluk ve 16 karar eklendi. Toplam 377 madde, 49 başlık; önceki 25 faydalı UX önerisi kapsamda kalır.",
+    "intro": "Bulutta Frappe + bağımsız headless frontend + ortak istemci çekirdeği + platform paketleri bu varyantın hedefidir; yerel Frappe sunucusu gerekmez. Web Vite/PWA, Android/iOS Capacitor, masaüstü Tauri 2 ve Chrome eklentisi WXT/Manifest V3 plan tercihidir; hedef sürümler seçilmedi. O0 mimari/kimlik sözleşmeleri → O1 yerel kalıcılık ve kural eşliği → O2 senkronizasyon/soğuk açılış/çatışma politikaları → O3 paketleme, güncelleme, yedek ve hata kabulü; aşamalar isteğe bağlılık değildir. İlk Keycloak girişi ve cihaz/veri hazırlığı çevrimiçidir. 14 yeni madde ile channels-2/channels-7 bu talep için zorunludur; bütün SaaS ürünlerine evrensel asgari kapsam değildir. Önceki kanal/çevrimdışı erteleme kararları tarihsel kalır; yeni tarihli kapsam geçerlidir. 25 faydalı UX önerisinin dört fayda grubu korunur: Emeği ve veriyi koruyanlar; İşi tamamlamayı kolaylaştıranlar; Günlük kullanımı hızlandıranlar; Kullanıma bağlı değer sağlayanlar. Fayda/öncelik zorunluluk, Frappe yeterliliği veya tamamlanma değildir. Sekiz entegrasyon modeli zorunlu, M0–M3 teslim sırasıdır; genel AI/RAG/ajan kapsamı ileri aşamada kalır. Bu statik plan çalışan çevrimdışı uygulama veya üretilmiş platform paketi kanıtı değildir.",
     "filterLabel": "Geliştirme kapsamı",
     "allScopes": "Tüm kapsamlar",
     "scopeReason": "Kapsam gerekçesi",
     "decisions": "Birleştirme, aşamalandırma ve düzeltme kararları",
     "coverage": "Kaynak bölümlerinin mevcut başlıklardaki karşılığı",
     "source": "Tarihsel ilk karşılaştırma kaynağı",
-    "unchanged": "Önceki 351 maddenin bütün alanları, kimlikleri, sıraları, değerlendirmeleri ve 53 önceki inceleme kararı korunmuştur. 25 faydalı UX önerisi mevcut 49 başlığa dağıtılır; 13 mevcut yetenek yeniden eklenmez. Tarihsel ilk karşılaştırmadaki 402 ifade ve 17 bölüm eşlemesi korunur; sonraki entegrasyon ve faydalı UX kararları ayrı kullanıcı talepleridir.",
+    "unchanged": "Önceki 363 maddenin bütün alanları, kimlikleri, sıraları ve değerlendirmeleri ile 78 inceleme kararı korunmuştur; yalnız mevcut başlıkların sonuna 14 madde eklenir. Önceki scope atamalarından yalnız channels-2 ve channels-7 yeni kullanıcı talebiyle zorunluya yükseltilir; eski erteleme gerekçeleri yeni kararlarla birlikte geçmiş olarak saklanır. Önceki 25 faydalı UX önerisi, 13 mevcut yetenek eşlemesi ve sekiz zorunlu entegrasyon ailesi korunur. Tarihsel ilk kaynakta 402 ifade ve 17 bölüm eşlemesi değişmez.",
     "decisionLabels": {
       "merge": "Mevcut kapsamla birleştir",
       "defer": "Koşula veya ileri aşamaya bağla",

@@ -15,6 +15,9 @@ const baseline = JSON.parse(
     new URL('./fixtures/usefulness-baseline.json', import.meta.url),
   ),
 );
+const usefulnessStage = JSON.parse(
+  await readFile(new URL('./fixtures/offline-baseline.json', import.meta.url)),
+);
 const data = await readContentSources();
 configureExportMessages(data.messages.export);
 const additions = [
@@ -176,9 +179,26 @@ test('usefulness expansion preserves all 351 complete historical records and the
   assert.deepEqual(projected, baseline.clusters);
 });
 
-test('only the twelve declared tail capabilities expand the 49-heading inventory', () => {
+test('the twelve declared usefulness tail capabilities retain their exact historical stage', () => {
+  const projected = structuredClone(data.clusters);
+  for (const cluster of projected) {
+    const stageCluster = usefulnessStage.clusters.find(
+      (c) => c.id === cluster.id,
+    );
+    assert.ok(stageCluster, cluster.id);
+    for (const group of cluster.groups) {
+      const stageGroup = stageCluster.groups.find((g) => g.id === group.id);
+      assert.ok(stageGroup, group.id);
+      group.items = group.items.slice(0, stageGroup.items.length);
+    }
+  }
+  assert.deepEqual(projected, usefulnessStage.clusters);
+  assert.equal(
+    projected.flatMap((c) => c.groups.flatMap((g) => g.items)).length,
+    363,
+  );
   const added = [];
-  for (const cluster of data.clusters) {
+  for (const cluster of projected) {
     const oldCluster = baseline.clusters.find((c) => c.id === cluster.id);
     for (const group of cluster.groups) {
       const oldGroup = oldCluster.groups.find((g) => g.id === group.id);
@@ -190,27 +210,43 @@ test('only the twelve declared tail capabilities expand the 49-heading inventory
     }
   }
   assert.deepEqual(added.sort(), [...additions].sort());
-  assert.equal(entries.length, 363);
+  assert.equal(entries.length, 377);
   assert.equal(data.clusters.length, 12);
   assert.equal(data.clusters.flatMap((c) => c.groups).length, 49);
-  assert.equal(data.review.expectedItems, 363);
+  assert.equal(data.review.expectedItems, 377);
   assert.equal(data.review.expectedGroups, 49);
+  const stageIds = new Set(
+    projected.flatMap((c) =>
+      c.groups.flatMap((g) => g.items.map((_, i) => `${g.id}-${i + 1}`)),
+    ),
+  );
+  const stageAddedIds = data.review.addedItemIds.filter((id) =>
+    stageIds.has(id),
+  );
   assert.deepEqual(
-    [...data.review.addedItemIds].sort(),
+    [...stageAddedIds].sort(),
     [...baseline.review.addedItemIds, ...additions].sort(),
   );
-  assert.equal(new Set(data.review.addedItemIds).size, 37);
+  assert.equal(new Set(stageAddedIds).size, 37);
+  assert.equal(new Set(data.review.addedItemIds).size, 51);
 });
 
-test('the 53 earlier decisions and existing scope assignments remain unchanged, including all required integrations', () => {
+test('the 53 earlier decisions remain unchanged and only two approved offline scopes supersede earlier assignments', () => {
   assert.equal(baseline.review.decisions.length, 53);
   assert.deepEqual(
     data.review.decisions.slice(0, 53),
     baseline.review.decisions,
   );
   assert.deepEqual(data.review.groupDefaults, baseline.review.groupDefaults);
-  for (const [id, decision] of Object.entries(baseline.review.itemOverrides))
-    assert.deepEqual(data.review.itemOverrides[id], decision, id);
+  const changedScopes = [];
+  for (const [id, decision] of Object.entries(baseline.review.itemOverrides)) {
+    if (['channels-2', 'channels-7'].includes(id)) {
+      assert.equal(data.review.itemOverrides[id].scope, 'required', id);
+      assert.notDeepEqual(data.review.itemOverrides[id], decision, id);
+      changedScopes.push(id);
+    } else assert.deepEqual(data.review.itemOverrides[id], decision, id);
+  }
+  assert.deepEqual(changedScopes.sort(), ['channels-2', 'channels-7']);
   for (const key of ['source', 'scopeLabels', 'coverage'])
     assert.deepEqual(data.review[key], baseline.review[key], key);
   const oldIntegrationDecisions = baseline.review.decisions.filter((d) =>
@@ -262,7 +298,7 @@ test('all 25 recommendations have categorized benefit, priority, acceptance and 
     Object.keys(criticalTargets).map((id) => `useful-${id}`),
     recommendationIds,
   );
-  assert.equal(data.review.decisions.length, 78);
+  assert.equal(data.review.decisions.length, 94);
   for (const [index, decision] of decisions.entries()) {
     assert.ok(['add', 'merge'].includes(decision.kind), decision.id);
     assert.ok(decision.title.trim(), decision.id);

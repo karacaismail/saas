@@ -352,6 +352,37 @@
               }
             ]
           }
+        },
+        {
+          "kind": "g",
+          "text": "Keycloak kimliğiyle süreli çevrimdışı yetkilendirme ve yerel kilit açma; public client/PKCE ve güvenli saklama.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "Keycloak + istemciler",
+            "confidence": "design",
+            "reviewedAt": "2026-10-11",
+            "note": "Tüm login/auth Keycloak'tadır; ilk giriş ve cihaz yetkilendirmesi çevrimiçi yapılır. Public client ve PKCE kullanılır; yerel uygulamada sistem tarayıcısı ve doğrulanmış dönüş bağlantısı seçilir, client secret gömülmez. Çevrimdışı kullanım önceden verilmiş, kullanıcı/tenant/cihaz/işlem kapsamlı süreli yerel yetkinin kilidini açar; yeni Keycloak girişi veya alternatif kimlik sağlayıcısı değildir. offline_access yalnız sunucudan token yenilemeye yarar, bağlantısız giriş sağlamaz. Web tokenları bellekte kalır; yerel veri anahtarları ve native kimlik bilgileri uygun güvenli adaptörde tutulur. Çevrimdışıyken anlık iptal öğrenilemez; azami süre ve risk politikası açıkça belirlenir. Capacitor sistem tarayıcısı/callback akışı için uygun özel auth adaptörü gerekir; web Keycloak adapterı native entegrasyonu hazır sağlamış sayılmaz.",
+            "acceptance": "Süre aşımı, cihaz saati geri alma ve kullanıcı/tenant değişimi yerel politika sınırını aşamasın; kilitli veya yetkisiz işlem gönderilmesin. Bağlantı geldiğinde Keycloak oturumu, üyelik/iptal ve Frappe kayıt/alan izinleri kuyruk gönderiminden önce yeniden doğrulansın. İptal edilmiş yetkide kayıtlar kısıtlı kurtarma politikasıyla korunsun; token/secret loga veya kalıcı web deposuna yazılmasın.",
+            "sources": [
+              {
+                "title": "Keycloak: JavaScript adapter ve token saklama",
+                "url": "https://www.keycloak.org/securing-apps/javascript-adapter"
+              },
+              {
+                "title": "Keycloak: offline_access ve sunucuya bağlı yenileme",
+                "url": "https://www.keycloak.org/docs/latest/server_admin/index.html#_offline-access"
+              },
+              {
+                "title": "RFC 8252: yerel uygulamalarda sistem tarayıcısı ve PKCE",
+                "url": "https://www.rfc-editor.org/rfc/rfc8252.html"
+              },
+              {
+                "title": "Frappe: Document API",
+                "url": "https://docs.frappe.io/framework/user/en/api/document"
+              }
+            ]
+          }
         }
       ],
       "sources": ["session", "scim"],

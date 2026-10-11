@@ -910,6 +910,41 @@
               }
             ]
           }
+        },
+        {
+          "kind": "g",
+          "text": "İmzalı istemci güncellemeleri ve yerel veritabanı migrationı; bekleyen outbox korunması ve doğrulanmış geri dönüş.",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "Hüseyin Cengiz + istemci ekibi",
+            "confidence": "design",
+            "reviewedAt": "2026-10-11",
+            "note": "Frappe migrate buluttaki siteyi günceller; cihazdaki SQLite/IndexedDB şemasını ve istemci paketini güncellemez. Mobil mağaza imzaları, Tauri dağıtım/updater doğrulaması, eklenti mağazası ve HTTPS üzerinden sürümlü PWA yayını ayrı yönetilir. Yerel migration öncesi tutarlı kurtarma noktası hazırlanır; iş kayıtları, gönderim kuyruğu/outbox, mutasyon kimlikleri ve sync imleci korunur. Uygulama rollbacki veri şemasını kendiliğinden geri almaz; uyumsuz sürüme dönüş engellenir veya denenmiş veri geri dönüşü uygulanır.",
+            "acceptance": "Güncelleme/migration ortasında kapanma sonrası eski ya da yeni tutarlı sürüm açılabilsin; bekleyen işlemler kaybolmadan ve çoğalmadan eşitlensin. Bozuk/yanlış imzalı paket reddedilsin; yerel migration ve desteklenen client/API sürüm matrisi doğrulansın. Geri dönüş provası veri şeması ve kuyruğu da kapsasın; PWA güncellemesi kaydedilmemiş işi zorla yeniden yüklemeyle silmesin.",
+            "sources": [
+              {
+                "title": "Tauri 2: imzalı updater",
+                "url": "https://v2.tauri.app/plugin/updater/"
+              },
+              {
+                "title": "Tauri 2: dağıtım ve platform paketleri",
+                "url": "https://v2.tauri.app/distribute/"
+              },
+              {
+                "title": "Capacitor: yerel paket iş akışı",
+                "url": "https://capacitorjs.com/docs/basics/workflow"
+              },
+              {
+                "title": "Frappe: bench migrate",
+                "url": "https://docs.frappe.io/framework/user/en/bench/reference/migrate"
+              },
+              {
+                "title": "MDN: IndexedDB işlemleri",
+                "url": "https://developer.mozilla.org/en-US/docs/Web/API/IDBDatabase/transaction"
+              }
+            ]
+          }
         }
       ],
       "sources": [],
@@ -1070,6 +1105,37 @@
               {
                 "title": "Keycloak OIDC Layers",
                 "url": "https://www.keycloak.org/securing-apps/oidc-layers"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Cihazdaki çalışma verisi ve eşitlenmemiş kayıtlar için şifreli bağımsız yedek, anahtar kurtarma ve geri yükleme.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "İstemci uygulamaları",
+            "confidence": "design",
+            "reviewedAt": "2026-10-11",
+            "note": "Buluttaki Frappe yedeği henüz gönderilmemiş cihaz kayıtlarını içermez. Yerel veri, outbox, mutasyon kimlikleri, şema/kural sürümü ve sync imleci tutarlı kurtarma manifestiyle şifrelenerek ayrı fiziksel ortama yedeklenir; aynı cihazdaki ikinci dosya bağımsız yedek sayılmaz. Anahtar kurtarma ve erişim politikası yedekten ayrı yönetilir; SQLite veya IndexedDB tek başına şifreleme/yedekleme sağlamaz. Cihaz ve tek kopya birlikte kaybolursa senkronizasyon veriyi geri getiremez.",
+            "acceptance": "Ağ yokken üretilmiş, henüz eşitlenmemiş kayıt ve kuyruğu başka cihazda yetkili biçimde geri yükle; anahtar kurtarma provası geçsin. Bağlantı sonrası eski mutasyon kimlikleri korunsun, merkezde kabul edilmiş işlem tekrar uygulanmasın. Bozuk/yanlış anahtarlı yedek reddedilsin; tenant kapsamı, saklama süresi, gerçek kurtarma noktası ve cihaz kaybı sınırı açıkça gösterilsin. Geri yükleme özgün kaynak cihaz kapsamını, işlem zarfını ve kimliğini değiştirmesin; yeni cihaz güncel yetkiyle doğrulansın. Sunucu tekilleştirme penceresi dışındaki eski işler yeni işlem gibi yeniden gönderilmesin; sonuç sorgusu veya kontrollü uzlaştırma gereksinimi açıklansın.",
+            "sources": [
+              {
+                "title": "Tauri 2: Stronghold güvenli saklama",
+                "url": "https://v2.tauri.app/plugin/stronghold/"
+              },
+              {
+                "title": "Tauri 2: SQL eklentisi",
+                "url": "https://v2.tauri.app/plugin/sql/"
+              },
+              {
+                "title": "MDN: depolama kotası ve silinme koşulları",
+                "url": "https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria"
+              },
+              {
+                "title": "AWS: Transactional Outbox deseni",
+                "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html"
               }
             ]
           }

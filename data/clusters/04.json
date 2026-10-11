@@ -1125,6 +1125,219 @@
               }
             ]
           }
+        },
+        {
+          "kind": "g",
+          "text": "Buluttaki Frappe için ortak istemci çekirdeği, tasarım sistemi ve platform adaptörleri.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "İstemci uygulamaları",
+            "confidence": "design",
+            "reviewedAt": "2026-10-11",
+            "note": "Frappe bulutta, admin arayüzü bağımsız headless kalır; yerel Frappe/Python sunucusu kurulmaz. Ortak tasarım, çevrimdışı hesaplama/doğrulama, veri erişimi ve senkronizasyon çekirdeği kopyalanmadan paylaşılır. Ekran kabukları, kamera, dosya, bildirim, güvenli anahtar saklama ve yerel veri erişimi platform adaptörleridir; bütün kodun yüzde yüz aynı olması hedeflenmez. Araçlar plan tercihidir; hedef sürümler ve kurulu uygulama kanıtı henüz yoktur.",
+            "acceptance": "Web, mobil, masaüstü ve eklenti aynı çekirdek sözleşmesi ve test vektörünü kullansın; platform izinleri ayrı doğrulansın. Paketler gömülü arayüz dosyalarıyla açılabilsin; ortak iş kuralı değişikliği bütün hedeflerde doğrulansın, yerel backend gerektirmesin.",
+            "sources": [
+              {
+                "title": "Frappe: REST API",
+                "url": "https://docs.frappe.io/framework/user/en/api/rest"
+              },
+              {
+                "title": "Capacitor: yerel paket iş akışı",
+                "url": "https://capacitorjs.com/docs/basics/workflow"
+              },
+              {
+                "title": "Tauri 2: dağıtım ve platform paketleri",
+                "url": "https://v2.tauri.app/distribute/"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Web/SaaS için Vite üretim çıktısı ve Service Worker ile hazırlanan PWA.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "Headless frontend + platform",
+            "confidence": "design",
+            "reviewedAt": "2026-10-11",
+            "note": "Vite dağıtılabilir web dosyalarını üretir; PWA ve Service Worker uygulama kabuğu/önbellek yaşam döngüsünü ayrıca gerektirir. PWA etiketi tek başına çevrimdışı açılış, veri yazımı veya senkronizasyon sağlamaz. Buluttaki Frappe API bağlantısı korunur; HTTPS, sürümlü önbellek, yetkili veri kapsamı ve güncelleme politikası headless istemci işidir.",
+            "acceptance": "İlk çevrimiçi hazırlıktan sonra gereken uygulama dosyaları ve izinli veri/dosyalar ağ yokken açılsın; önbellek hatası açıkça gösterilsin. Yeni Service Worker bekleyen işlemleri kaybetmeden devreye girsin; kullanıcı/tenant değişiminde eski veriye erişim olmasın. Web dağıtımı diğer platformların imza/yayın sürecinden ayrı doğrulansın. Derleme, imza, yayın ve rollback sahibi Hüseyin Cengiz; istemci ekibi platform adaptörlerini sağlar.",
+            "sources": [
+              {
+                "title": "Vite: üretim derlemesi",
+                "url": "https://vite.dev/guide/build"
+              },
+              {
+                "title": "Chrome Workbox: Service Worker kapsamı",
+                "url": "https://developer.chrome.com/docs/workbox/service-worker-overview/"
+              },
+              {
+                "title": "MDN: depolama kotası ve silinme koşulları",
+                "url": "https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Android/iOS için Capacitor ile gömülü arayüz ve ayrı imzalı AAB/APK/IPA paketleri.",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "İstemci uygulamaları",
+            "confidence": "design",
+            "reviewedAt": "2026-10-11",
+            "note": "Capacitor ortak web arayüzünün derlenmiş dosyalarını uygulamaya gömer; yalnız uzaktaki bulut sayfasını açmak hedef değildir. Android .aab/.apk ve iOS .ipa çıktıları ayrı yerel araç zinciri, imzalama ve mağaza yayını gerektirir. Kamera, bildirim, dosya ve güvenli anahtar saklama adaptörleri ile SQLite eklentisi ayrıca seçilir; Capacitor çekirdeğinde hazır SQLite varsayılmaz. Hedef sürüm/eklenti kararı ve cihaz kabulü bekler.",
+            "acceptance": "Android ve iOS paketleri ilk çevrimiçi hazırlıktan sonra uçak modunda soğuk açılışı ve kalıcı yerel işlemi geçsin. Sistem izinleri, Keycloak callback, güvenli saklama, imzalama, güncelleme ve mağaza dağıtımı her hedefte ayrı doğrulansın; web derlemesi mobil yayın kanıtı sayılmasın. Derleme, imza, yayın ve rollback sahibi Hüseyin Cengiz; istemci ekibi platform adaptörlerini sağlar.",
+            "sources": [
+              {
+                "title": "Capacitor: yerel paket iş akışı",
+                "url": "https://capacitorjs.com/docs/basics/workflow"
+              },
+              {
+                "title": "Capacitor: depolama ve SQLite seçimi",
+                "url": "https://capacitorjs.com/docs/guides/storage"
+              },
+              {
+                "title": "RFC 8252: yerel uygulamalarda sistem tarayıcısı ve PKCE",
+                "url": "https://www.rfc-editor.org/rfc/rfc8252.html"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Windows/macOS/Linux için Tauri 2 ile gömülü arayüz ve imzalı masaüstü dağıtımı.",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "İstemci uygulamaları",
+            "confidence": "design",
+            "reviewedAt": "2026-10-11",
+            "note": "Tauri 2 ortak web çıktısını masaüstü kabuğunda paketleme adayıdır: Windows .exe/.msi, macOS .app/.dmg, Linux dağıtımına göre .AppImage/.deb/.rpm. Vite bağlantısı, yerel SQL ve güvenli saklama eklentileri ayrıca yapılandırılır. Her format bütün hedeflerde aynı imza/mağaza sürecini kullanmaz; hedef sürüm, işletim sistemi ve dağıtım matrisi seçilmeden hazır kurulum iddiası üretilmez. Tauri 2 mobil paketleme için ayrıca değerlendirilebilir; seçilen mobil yol Capacitor'dur.",
+            "acceptance": "Her hedef işletim sisteminde kurulum, kaldırma, Keycloak yönlendirmesi, yerel dosya/izin sınırı ve çevrimdışı yeniden başlatma doğrulansın. İmzalama/notarizasyon veya dağıtım doğrulaması hedefe göre kaydedilsin; istemci güncellemesi ve yerel veri migrationı bekleyen kuyruğu korusun. Derleme, imza, yayın ve rollback sahibi Hüseyin Cengiz; istemci ekibi platform adaptörlerini sağlar.",
+            "sources": [
+              {
+                "title": "Tauri 2: dağıtım ve platform paketleri",
+                "url": "https://v2.tauri.app/distribute/"
+              },
+              {
+                "title": "Tauri 2: Vite frontend bağlantısı",
+                "url": "https://v2.tauri.app/start/frontend/vite/"
+              },
+              {
+                "title": "Tauri 2: SQL eklentisi",
+                "url": "https://v2.tauri.app/plugin/sql/"
+              },
+              {
+                "title": "Tauri 2: Stronghold güvenli saklama",
+                "url": "https://v2.tauri.app/plugin/stronghold/"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Chrome eklentisi için WXT, Manifest V3 ve paket içi kod içeren ZIP dağıtımı.",
+          "assessment": {
+            "support": "external",
+            "action": "integrate",
+            "owner": "İstemci uygulamaları",
+            "confidence": "design",
+            "reviewedAt": "2026-10-11",
+            "note": "WXT ile eklentiye özgü giriş noktaları, ortak bileşenler ve manifest.json hazırlanır; Manifest V3 mağaza ZIP'i ayrı derleme/yayın akışıdır. Çalıştırılabilir kod paket içinde kalır; uzaktan kod yükleme/eval ile CSP sınırı aşılmaz. İzinler ve host kapsamı en az yetkiyle seçilir. Eklenti Service Worker'ının askıya alınması normaldir; kalıcı kuyruk yalnız bellekte tutulamaz. WXT paketi mağaza kabulünü veya Frappe desteğini kendiliğinden sağlamaz.",
+            "acceptance": "ZIP açıldığında bütün çalıştırılabilir kod ve manifest hazır olsun; uzaktaki kod isteği oluşmasın. Service Worker durdurulup yeniden başlayınca yerel veri/kuyruk korunsun; izin reddi, Keycloak callback, tenant ayrımı ve CSP doğrulansın; mağaza gönderimi ayrı kaydedilsin. Derleme, imza, yayın ve rollback sahibi Hüseyin Cengiz; istemci ekibi platform adaptörlerini sağlar.",
+            "sources": [
+              {
+                "title": "WXT: Manifest yapılandırması",
+                "url": "https://wxt.dev/guide/essentials/config/manifest.html"
+              },
+              {
+                "title": "WXT: yayın ve ZIP paketleri",
+                "url": "https://wxt.dev/guide/essentials/publishing.html"
+              },
+              {
+                "title": "Chrome: Manifest V3 güvenliği",
+                "url": "https://developer.chrome.com/docs/extensions/develop/migrate/improve-security"
+              },
+              {
+                "title": "Chrome: eklenti Service Worker yaşam döngüsü",
+                "url": "https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "SQLite/IndexedDB adaptörleri; kalıcı yerel iş kaydı ve Transactional Outbox, kota ve anahtar yönetimi.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "İstemci uygulamaları",
+            "confidence": "design",
+            "reviewedAt": "2026-10-11",
+            "note": "Mobil/masaüstünde SQLite, web/eklentide IndexedDB aynı yerel veri sözleşmesine bağlanır; çevrimdışı desteklenen işlemler bağlantı varken de yokken de bu katmandan yürür. İş kaydı ile gönderim kuyruğu aynı veritabanı transactionında yazılır; kalıcılık seviyesi platformda doğrulanmadan başarı gösterilmez. Tauri SQL eklentisi ve seçilecek Capacitor SQLite eklentisi kendiliğinden şifreleme veya senkronizasyon sağlamaz. Tarayıcı kota, kalıcılık izni ve silinme riski yönetilir; yerel şifreleme/anahtar adaptörü ayrıca seçilir, web erişim/yenileme tokenları IndexedDB veya localStorage'a konmaz.",
+            "acceptance": "Kayıt sırasında kapanma ya iki kaydı birlikte korusun ya ikisini de geri alsın; kuyruksuz iş kaydı oluşmasın. Kota dolması, izin reddi ve depolama hatası başarı sayılmasın; yerel kayıt, bekleyen aktarım ve sunucu kabulü ayrı gösterilsin. Yeniden açılışta veri/kuyruk, kullanıcı/tenant sınırı ve anahtar erişimi doğrulansın; tarayıcı deposu tek başına mutlak kayıpsızlık garantisi sayılmasın.",
+            "sources": [
+              {
+                "title": "Tauri 2: SQL eklentisi",
+                "url": "https://v2.tauri.app/plugin/sql/"
+              },
+              {
+                "title": "Capacitor: depolama ve SQLite seçimi",
+                "url": "https://capacitorjs.com/docs/guides/storage"
+              },
+              {
+                "title": "MDN: IndexedDB işlemleri",
+                "url": "https://developer.mozilla.org/en-US/docs/Web/API/IDBDatabase/transaction"
+              },
+              {
+                "title": "MDN: depolama kotası ve silinme koşulları",
+                "url": "https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria"
+              },
+              {
+                "title": "AWS: Transactional Outbox deseni",
+                "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html"
+              },
+              {
+                "title": "Keycloak: JavaScript adapter ve token saklama",
+                "url": "https://www.keycloak.org/securing-apps/javascript-adapter"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "İlk çevrimiçi hazırlıktan sonra gerçek çevrimdışı soğuk açılış; gerekli veri, dosya ve sınırlı yerel yetki.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "İstemci uygulamaları",
+            "confidence": "design",
+            "reviewedAt": "2026-10-11",
+            "note": "İlk Keycloak girişi, cihaz hazırlığı ve yetkili veri/dosya indirme çevrimiçi yapılır. Sonraki çevrimdışı açılış için uygulama dosyaları, çalışma verisi, gereken ekler ve süreli yerel erişim politikası cihazda bulunmalıdır; gömülü arayüz veya Service Worker tek başına yeterli değildir. Frappe bulutta kalır; önceden hazırlanmamış yeni cihazda internetsiz ilk giriş vaat edilmez. Yerel kilit açma yeni bir kimlik sağlayıcısı değildir.",
+            "acceptance": "Uygulama ve cihaz ağ kapalıyken yeniden başlatılsın; hazırlanmış yetkili çalışma alanı ve gerekli dosyalar açılsın. Eksik veri/dosya ve bitmiş yerel yetki süresi anlaşılır biçimde sınırlandırılsın; başka kullanıcı/tenant verisi açılmasın. İlk hazırlık yapılmamış cihaz çevrimiçi giriş gereğini göstersin; senkronizasyon bekleyen kayıtlar korunarak bağlantı sonrası yetki yeniden doğrulansın.",
+            "sources": [
+              {
+                "title": "Chrome Workbox: Service Worker kapsamı",
+                "url": "https://developer.chrome.com/docs/workbox/service-worker-overview/"
+              },
+              {
+                "title": "Capacitor: yerel paket iş akışı",
+                "url": "https://capacitorjs.com/docs/basics/workflow"
+              },
+              {
+                "title": "MDN: depolama kotası ve silinme koşulları",
+                "url": "https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria"
+              },
+              {
+                "title": "Keycloak: JavaScript adapter ve token saklama",
+                "url": "https://www.keycloak.org/securing-apps/javascript-adapter"
+              }
+            ]
+          }
         }
       ],
       "sources": ["reflow"],

@@ -14,7 +14,7 @@ const all = model.clusters.flatMap((c) =>
   ),
 );
 
-test('reviewed expansion preserves every original field and adds only the declared 37 capabilities', () => {
+test('reviewed expansion preserves every original field and adds only the declared 51 capabilities', () => {
   assert.equal(model.review?.version, 1);
   const projected = structuredClone(model.clusters);
   for (const c of projected)
@@ -26,7 +26,7 @@ test('reviewed expansion preserves every original field and adds only the declar
           .groups.find((x) => x.id === g.id).items.length,
       );
   assert.deepEqual(projected, baseline.clusters);
-  assert.equal(all.length, 363);
+  assert.equal(all.length, 377);
   const oldIds = new Set(
     baseline.clusters.flatMap((c) =>
       c.groups.flatMap((g) => g.items.map((_, i) => `${g.id}-${i + 1}`)),
@@ -36,7 +36,7 @@ test('reviewed expansion preserves every original field and adds only the declar
     .filter((x) => !oldIds.has(x.id))
     .map((x) => x.id)
     .sort();
-  assert.equal(added.length, 37);
+  assert.equal(added.length, 51);
   assert.deepEqual([...model.review.addedItemIds].sort(), added);
   assert.equal(model.review.source.itemCount, 402);
   assert.equal(model.review.source.clusterCount, 17);
@@ -57,7 +57,8 @@ test('every item has an independent scope decision and reviewed merges retain co
     assert.ok(p.reason?.trim(), id);
   }
   assert.equal(model.review.itemOverrides['identity-8'].scope, 'conditional');
-  assert.equal(model.review.itemOverrides['channels-2'].scope, 'conditional');
+  assert.equal(model.review.itemOverrides['channels-2'].scope, 'required');
+  assert.equal(model.review.itemOverrides['channels-7'].scope, 'required');
   assert.equal(model.review.itemOverrides['modules-2'].scope, 'implementation');
   assert.equal(model.review.itemOverrides['ai-1'].scope, 'advanced');
   assert.equal(model.review.groupDefaults.access.scope, 'required');
@@ -112,6 +113,6 @@ test('rendered review is readable without JavaScript and each feature has scope 
   assert.match(html, /data-scope="conditional"/);
   assert.match(html, /data-scope="advanced"/);
   assert.match(html, /data-scope="implementation"/);
-  assert.equal((html.match(/class="scope-note"/g) || []).length, 363);
+  assert.equal((html.match(/class="scope-note"/g) || []).length, 377);
   assert.match(html, /data-scope-filter="required"/);
 });

@@ -943,6 +943,118 @@
               }
             ]
           }
+        },
+        {
+          "kind": "g",
+          "text": "Buluttaki Frappe için özel çift yönlü senkronizasyon; imleç, silme kaydı, idempotent işlem ve commit sonrası kabul.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Frappe backend + headless frontend",
+            "confidence": "design",
+            "reviewedAt": "2026-10-11",
+            "note": "Frappe REST/Document API bağlantı ve sunucu transaction temeli sağlar; hazır cihaz eşitleme motoru değildir. Özel sync uygulaması push/pull, yetkili değişiklik imleci (cursor), silme işareti (tombstone), sayfalama ve yeniden başlama sözleşmesini kurar. Her mutasyon kullanıcı/tenant/cihaz kapsamlı benzersiz kimlik ve değişmeyen içerik özeti taşır; aynı kimlik farklı içerikte reddedilir. Alıcı tekilleştirme kaydı, iş değişikliği ve sonucu aynı transactionda korur; sunucu commitinden sonra ack verir. Yanıt kaybolursa aynı işlem sorgulanır/yeniden denenir, ikinci kez uygulanmaz. Yedekten geri dönen bekleyen işlem özgün kaynak cihaz kapsamını ve operasyon zarfını korur; yeni cihazın güncel erişim yetkisi ayrı doğrulanır. Tekilleştirme saklama penceresi izin verilen çevrimdışı ve yedekten geri yükleme süresini kapsar; pencere dışındaki eski işlem kör tekrar yerine sonuç sorgusu veya kontrollü uzlaştırmaya alınır.",
+            "acceptance": "İletim, sunucu commit ve ack arasındaki her kesinti/çökmede yeniden gönderim tek iş sonucu üretsin. Merkez kabulü alınmadan aktarıldı denmesin; pull yeniden başlayınca sayfa arası değişiklik/silme atlanmasın ve başka tenant verisi gelmesin. Sürümü eski veya yetkisi iptal edilmiş yazım kontrollü reddedilsin; sunucu ve istemci kalıcı kuyrukları yeniden başlatmada korunsun.",
+            "sources": [
+              {
+                "title": "Frappe: REST API",
+                "url": "https://docs.frappe.io/framework/user/en/api/rest"
+              },
+              {
+                "title": "Frappe: Document API",
+                "url": "https://docs.frappe.io/framework/user/en/api/document"
+              },
+              {
+                "title": "Frappe: Database API",
+                "url": "https://docs.frappe.io/framework/user/en/api/database"
+              },
+              {
+                "title": "AWS: Transactional Outbox deseni",
+                "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Ortak istemci iş kuralları ile Frappe Python kurallarının test eşliği ve sunucuda yeniden doğrulama.",
+          "assessment": {
+            "support": "partial",
+            "action": "extend",
+            "owner": "Frappe backend + headless frontend",
+            "confidence": "design",
+            "reviewedAt": "2026-10-11",
+            "note": "Frappe Python hesaplama/doğrulamaları arayüz paketlenince cihaza taşınmaz. Çevrimdışı desteklenen hesaplamalar ve doğrulamalar ortak istemci çekirdeğinde geliştirilir; para/yuvarlama, tarih/saat, durum ve yetki girdileri sürümlü ortak test vektörleriyle sunucuyla karşılaştırılır. Buluttaki Frappe her gelen işlemi güncel iş kuralı, kullanıcı/tenant ve kayıt/alan izinleriyle yeniden doğrular; istemci sonucu geçici olabilir. Document doğrulamalarını atlayan doğrudan veritabanı yazımı bu kabul yolu değildir.",
+            "acceptance": "Aynı sınır ve hata girdileri istemci ile Python tarafında beklenen aynı sonucu versin; destek dışı kural sürümü açıkça reddedilsin. İstemcide kabul edilen fakat sunucuda artık geçersiz işlem kaybolmadan gerekçesiyle uzlaştırılsın; istemci manipülasyonu sunucu doğrulamasını veya izin denetimini atlayamasın.",
+            "sources": [
+              {
+                "title": "Frappe: Document API",
+                "url": "https://docs.frappe.io/framework/user/en/api/document"
+              },
+              {
+                "title": "Frappe: Database API",
+                "url": "https://docs.frappe.io/framework/user/en/api/database"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Bağlantısız cihazlarda stok/kota hakkı ayırma, merkezi onay ve uzaktaki etkileri bağlantıya erteleme.",
+          "assessment": {
+            "support": "absent",
+            "action": "build",
+            "owner": "Frappe backend + headless frontend",
+            "confidence": "design",
+            "reviewedAt": "2026-10-11",
+            "note": "Birbirinden kopuk cihazların aynı sınırlı kaynağı tüketmesi yalnız sonradan eşitlemeyle güvenli hâle gelmez. Stok veya benzeri ortak kota için önceden ayrılmış, çift harcamayı engelleyen hak ya da merkezi onay politikası gerekir; hak yokken yerel belge taslak/bekleyen kalır. Ödeme, dış belge gönderimi, e-posta ve diğer uzak hizmet etkileri bağlantı ve sunucu kabulünü bekler. Frappe transaction/API temeli hazır dağıtık çevrimdışı rezervasyon sistemi değildir; domain politikası ayrıca geliştirilir.",
+            "acceptance": "İki çevrimdışı cihaz aynı stok hakkını iki kez harcayamasın; ayrılan sınır aşılırsa işlem bloklansın veya merkezi onay beklesin. Bağlantı sonrası süresi/kapsamı bitmiş hak tekrar doğrulansın; uzak etki yalnız yetkili sunucu kabulüyle bir kez gönderilsin. İnternetsiz belge oluşturulması dış hizmete gönderilmiş gibi gösterilmesin.",
+            "sources": [
+              {
+                "title": "Frappe: Database API",
+                "url": "https://docs.frappe.io/framework/user/en/api/database"
+              },
+              {
+                "title": "Frappe: Document API",
+                "url": "https://docs.frappe.io/framework/user/en/api/document"
+              },
+              {
+                "title": "AWS: Transactional Outbox deseni",
+                "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "g",
+          "text": "Dört gün bağlantısız çalışma, cihaz/uygulama yeniden başlatma, kayıt çökmesi ve aktarım ortasında kesinti kabulü.",
+          "assessment": {
+            "support": "external",
+            "action": "build",
+            "owner": "İstemci uygulamaları",
+            "confidence": "design",
+            "reviewedAt": "2026-10-11",
+            "note": "Bu mimari için hata enjeksiyonlu kabul paketi hazırlanır: dört gün ağı kesme; uygulama ve cihazı yeniden başlatma; kayıt transactionı sırasında kapatma; push/pull ve sunucu commit/ack arasında yeniden kesinti; mükerrer gönderim ve sürüm çakışması. Yerel başarı, kalıcı commit tamamlandıktan sonra bildirilir. Yerel yetki süresi ayrıca sınanır; dört günlük test süresi üretimde dört gün yetki verme zorunluluğu değildir. Tek fiziksel cihazdaki kopyanın kaybına karşı mutlak garanti yoktur; bağımsız yedek ve geri yükleme ayrı kabul koşuludur.",
+            "acceptance": "Onaylanmış test yetkisiyle dört gün kesinti boyunca başarıyla kalıcı kaydedilen hiçbir işlem kontrollü kapanma/çökme/yeniden başlatma senaryolarında kaybolmasın; bağlantı gelince hiçbir işlem iki kez uygulanmasın. Süreli yetki bitince yasak işlemler engellensin; bekleyen kayıtlar korunsun. Sunucu sonuçları, yerel kuyruk, çakışmalar ve yedekten geri yükleme mutasyon kimlikleriyle karşılaştırılıp kanıt kaydedilsin.",
+            "sources": [
+              {
+                "title": "AWS: Transactional Outbox deseni",
+                "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html"
+              },
+              {
+                "title": "MDN: IndexedDB işlemleri",
+                "url": "https://developer.mozilla.org/en-US/docs/Web/API/IDBDatabase/transaction"
+              },
+              {
+                "title": "MDN: depolama kotası ve silinme koşulları",
+                "url": "https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria"
+              },
+              {
+                "title": "Frappe: Database API",
+                "url": "https://docs.frappe.io/framework/user/en/api/database"
+              }
+            ]
+          }
         }
       ],
       "sources": [],

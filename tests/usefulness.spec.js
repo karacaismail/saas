@@ -84,7 +84,7 @@ test('useful connection indicator is readable and selectable at 320 without pret
   page,
 }, testInfo) => {
   await visit(page);
-  await expect(page.locator('.feature')).toHaveCount(363);
+  await expect(page.locator('.feature')).toHaveCount(377);
   await expect(page.locator('.group[open]')).toHaveCount(0);
   const item = await openItem(page, 'views-11');
   await expect(item.locator('.feature-title')).toContainText(/bağlantı/i);
@@ -370,7 +370,7 @@ for (const [name, start, end] of [
     const expected = useful.slice(start, end);
     await page.locator('#scope-review > summary').click();
     const list = page.locator('.review-decisions > li');
-    await expect(list).toHaveCount(78);
+    await expect(list).toHaveCount(94);
     const actual = await list.evaluateAll(
       (elements, range) =>
         elements.slice(range[0], range[1]).map((el) => ({
@@ -531,7 +531,7 @@ test.describe('useful connection planning without JavaScript', () => {
     page,
   }, testInfo) => {
     await page.goto('./');
-    await expect(page.locator('.feature')).toHaveCount(363);
+    await expect(page.locator('.feature')).toHaveCount(377);
     await expect(page.locator('.group[open]')).toHaveCount(0);
     const item = await openItem(page, 'views-11');
     await expect(item.locator('.feature-title')).toContainText(/bağlantı/i);

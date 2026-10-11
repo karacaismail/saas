@@ -19,6 +19,11 @@ const baseline = JSON.parse(
     new URL('./fixtures/integration-baseline.json', import.meta.url),
   ),
 );
+const integrationStage = JSON.parse(
+  await readFile(
+    new URL('./fixtures/usefulness-baseline.json', import.meta.url),
+  ),
+);
 const data = await readContentSources();
 configureExportMessages(data.messages.export);
 const additions = [
@@ -147,6 +152,18 @@ test('integration baseline freezes all 344 full records and retains the seven in
     344,
   );
   const projected = structuredClone(data.clusters);
+  for (const c of projected)
+    for (const g of c.groups) {
+      const stageGroup = integrationStage.clusters
+        .find((stage) => stage.id === c.id)
+        .groups.find((stage) => stage.id === g.id);
+      g.items = g.items.slice(0, stageGroup.items.length);
+    }
+  assert.deepEqual(projected, integrationStage.clusters);
+  assert.equal(
+    projected.flatMap((c) => c.groups.flatMap((g) => g.items)).length,
+    351,
+  );
   const added = [];
   for (const c of projected)
     for (const g of c.groups) {
@@ -161,14 +178,11 @@ test('integration baseline freezes all 344 full records and retains the seven in
       g.items = g.items.slice(0, oldGroup.items.length);
     }
   assert.deepEqual(projected, baseline.clusters);
-  assert.equal(added.length, 19);
-  assert.deepEqual(
-    added.filter((id) => additions.includes(id)).sort(),
-    [...additions].sort(),
-  );
-  assert.equal(entries.length, 363);
-  assert.equal(data.review.expectedItems, 363);
-  assert.equal(data.review.addedItemIds.length, 37);
+  assert.equal(added.length, 7);
+  assert.deepEqual(added.sort(), [...additions].sort());
+  assert.equal(entries.length, 377);
+  assert.equal(data.review.expectedItems, 377);
+  assert.equal(data.review.addedItemIds.length, 51);
   assert.equal(
     hash(data.review.decisions.slice(0, 38)),
     '1536d1334c9478d7107fe179bc37d0b2e2aad86172fc7ae69adf9a4f2183f512',

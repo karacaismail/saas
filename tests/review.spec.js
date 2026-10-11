@@ -30,7 +30,7 @@ test('scope decisions filter independently, preserve old selections and export t
     ),
   );
   await visit(page);
-  await expect(page.locator('.feature')).toHaveCount(363);
+  await expect(page.locator('.feature')).toHaveCount(377);
   await expect(page.locator('.feature-check:checked')).toHaveCount(3);
   await page.locator('#roadmap-filters > summary').click();
   await page.locator('[data-scope-filter="required"]').click();
@@ -78,7 +78,7 @@ test('scope decisions filter independently, preserve old selections and export t
   expect(md).toContain('Plan kapsamı');
   expect(md).toContain('Kapsam gerekçesi');
   await page.locator('#reset-all').click();
-  await expect(page.locator('.feature:not([hidden])')).toHaveCount(363);
+  await expect(page.locator('.feature:not([hidden])')).toHaveCount(377);
   await page.reload();
   await expect(page.locator('.feature-check:checked')).toHaveCount(3);
   await testInfo.attach('scope-selection-v3', {
@@ -321,7 +321,7 @@ for (const failure of ['missing-group', 'dangling-decision', 'missing-copy'])
       'data-content-source',
       'fallback',
     );
-    await expect(page.locator('.feature')).toHaveCount(363);
+    await expect(page.locator('.feature')).toHaveCount(377);
     await expect(page.locator('.feature-check:checked')).toHaveCount(1);
     const result = JSON.parse(await downloadText(page, 'json'));
     expect(result.schemaVersion).toBe(3);
@@ -353,7 +353,7 @@ for (const shape of ['object', 'extra-column'])
       'data-content-source',
       'fallback',
     );
-    await expect(page.locator('.feature')).toHaveCount(363);
+    await expect(page.locator('.feature')).toHaveCount(377);
     const csv = await downloadText(page, 'csv');
     expect(csv.split('\r\n')[0].split(',')).toHaveLength(18);
     expect(csv).toContain('Plan kapsamı');

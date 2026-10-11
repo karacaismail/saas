@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 async function visit(page) {
   await page.setViewportSize({ width: 320, height: 568 });
   await page.goto('./');
-  await expect(page.locator('.feature')).toHaveCount(363);
+  await expect(page.locator('.feature')).toHaveCount(377);
   await expect(page.locator('#search')).toBeEnabled();
   await page.evaluate(() => document.fonts.ready);
 }
@@ -139,7 +139,7 @@ function expectSourcePaint(row) {
   ).toBeGreaterThanOrEqual(4.5);
 }
 
-test('all 363 source tints use five percent alpha while text stays opaque', async ({
+test('all 377 source tints use five percent alpha while text stays opaque', async ({
   page,
 }) => {
   await visit(page);
@@ -191,10 +191,10 @@ test('support, action and owner pills have readable semantic pastels with six di
   for (const tag of ['support', 'action', 'owner'])
     await expect(
       page.locator(`.assessment-tags > [data-tag="${tag}"]`),
-    ).toHaveCount(363);
+    ).toHaveCount(377);
   const rows = await page.locator('.feature').evaluateAll(collectPaint);
   const pills = rows.flatMap((row) => row.pills);
-  expect(pills).toHaveLength(363 * 3);
+  expect(pills).toHaveLength(377 * 3);
   expect(new Set(pills.map((pill) => pill.tag))).toEqual(
     new Set(['support', 'action', 'owner']),
   );
@@ -262,7 +262,7 @@ async function prepareLongOwner(page) {
   await visit(page);
   await expect(
     page.locator('.assessment-tags > [data-tag="owner"]'),
-  ).toHaveCount(363);
+  ).toHaveCount(377);
   const initialRoot = await page.evaluate(() =>
     parseFloat(getComputedStyle(document.documentElement).fontSize),
   );
@@ -366,9 +366,21 @@ test('long owner pills reflow at 200% root text with compact readable geometry',
   page,
 }, testInfo) => {
   const { initialRoot, row, owner, id } = await prepareLongOwner(page);
-  // This 363-record regression fixture has support-9 as its new longest owner.
-  // The preparation still selects the actual maximum rather than forcing that row.
-  expect(id).toBe('feature-support-9');
+  // Approved additions may change the maximum. Verify the DOM selection against
+  // canonical owner content while retaining the separate stable real-word journey.
+  const source = JSON.parse(await page.locator('#atlas-data').textContent());
+  const longest = source.clusters
+    .flatMap((c) =>
+      c.groups.flatMap((g) =>
+        g.items.map((item, i) => ({
+          id: `${g.id}-${i + 1}`,
+          owner: item.assessment.owner,
+        })),
+      ),
+    )
+    .sort((a, b) => b.owner.trim().length - a.owner.trim().length)[0];
+  expect(id).toBe(`feature-${longest.id}`);
+  await expect(owner).toHaveText(longest.owner);
   const state = await owner.evaluate(collectOwnerGeometry);
   expectOwnerGeometry(state, initialRoot);
   const [paint] = await row.evaluateAll(collectPaint);
