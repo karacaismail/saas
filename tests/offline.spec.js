@@ -40,15 +40,7 @@ const readable = (value) =>
     .replaceAll('&lt;', '<')
     .replaceAll('&gt;', '>');
 
-for (const [label, ids] of [
-  ['shared core and platform packages', additions.slice(0, 4)],
-  ['extension storage cold boot and Keycloak', additions.slice(4, 8)],
-  [
-    'synchronization rules inventory and fault acceptance',
-    additions.slice(8, 12),
-  ],
-  ['signed migrations and device recovery', additions.slice(12)],
-])
+for (const [label, ids] of additions.map((id) => [id, [id]])) {
   test(`offline architecture ${label} stays readable and selectable at320`, async ({
     page,
   }, testInfo) => {
@@ -95,6 +87,7 @@ for (const [label, ids] of [
       contentType: 'image/png',
     });
   });
+}
 
 for (const format of ['json', 'md', 'csv'])
   test(`offline architecture full selected content exports as ${format} despite active filters`, async ({

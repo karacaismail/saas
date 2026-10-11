@@ -947,9 +947,7 @@ test('search clear has a complete fine or coarse input target and returns focus 
   await expect(page.locator('#search')).toBeFocused();
 });
 
-test('denied browser storage falls back to in-memory selection without breaking export', async ({
-  page,
-}) => {
+const visitWithDeniedStorage = async (page) => {
   const errors = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await page.addInitScript(() => {
@@ -967,12 +965,27 @@ test('denied browser storage falls back to in-memory selection without breaking 
   });
   await page.setViewportSize({ width: 320, height: 480 });
   await visit(page);
+  return errors;
+};
+
+test('denied browser storage exports and clears in-memory selection', async ({
+  page,
+}) => {
+  const errors = await visitWithDeniedStorage(page);
   await selectFeature(page, selectedIds[0]);
   const json = JSON.parse(await exportText(page, 'json'));
   expect(json.selectedCount).toBe(1);
   await page.locator('#clear-selection').click();
   await expect(page.locator('.feature-check:checked')).toHaveCount(0);
   await expect(page.locator('#export-selected')).toBeDisabled();
+  expect(errors).toEqual([]);
+});
+
+test('denied browser storage forgets selection on reload and supports another export', async ({
+  page,
+}) => {
+  const errors = await visitWithDeniedStorage(page);
+  await selectFeature(page, selectedIds[0]);
   await page.reload();
   await expect(page.locator('.feature-check:checked')).toHaveCount(0);
   await selectFeature(page, selectedIds[1]);
