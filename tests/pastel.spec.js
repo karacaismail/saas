@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 async function visit(page, longOwner = false) {
-  await page.setViewportSize({ width: 320, height: 568 });
+  if (!longOwner) await page.setViewportSize({ width: 320, height: 568 });
   await page.goto('./');
   await expect(page.locator('#search')).toBeEnabled();
   const state = await page.evaluate(async (includeOwner) => {
@@ -11,12 +11,15 @@ async function visit(page, longOwner = false) {
     const owners = [
       ...document.querySelectorAll('.assessment-tags > [data-tag="owner"]'),
     ];
+    const initialRoot = parseFloat(
+      getComputedStyle(document.documentElement).fontSize,
+    );
+    const openGroups = document.querySelectorAll('.group[open]').length;
     return {
       count,
       owners: owners.length,
-      initialRoot: parseFloat(
-        getComputedStyle(document.documentElement).fontSize,
-      ),
+      initialRoot,
+      openGroups,
       id: owners
         .sort(
           (a, b) => b.textContent.trim().length - a.textContent.trim().length,
@@ -41,7 +44,21 @@ async function openFeature(page, id) {
   return row;
 }
 
-function collectPaint(rows, transitionWordId) {
+function collectPaint(
+  rows,
+  { transitionWordId, includeOwnerGeometry = false, applyRoot200 = false } = {},
+) {
+  // Preserve the real open-group → enlarged-root transition without a separate
+  // traced API call; all following style and layout reads observe the resize.
+  const groupOpenBeforeRootResize = applyRoot200
+    ? rows.map((row) => row.closest('.group').open)
+    : undefined;
+  if (applyRoot200)
+    document.documentElement.style.setProperty(
+      'font-size',
+      '200%',
+      'important',
+    );
   const isVisible = (element) => {
     const rect = element.getBoundingClientRect();
     return (
@@ -92,7 +109,7 @@ function collectPaint(rows, transitionWordId) {
     );
     return (levels[0] + 0.05) / (levels[1] + 0.05);
   };
-  return rows.map((row) => {
+  return rows.map((row, index) => {
     const title = row.querySelector('.feature-title');
     const origin = row.querySelector('.origin');
     const checkbox = row.querySelector('.feature-check');
@@ -108,6 +125,47 @@ function collectPaint(rows, transitionWordId) {
       border: rgba(getComputedStyle(checkbox).borderTopColor),
       fill: rgba(getComputedStyle(checkbox).backgroundColor),
       checked: checkbox.checked,
+      root: parseFloat(getComputedStyle(document.documentElement).fontSize),
+      groupOpen: row.closest('.group').open,
+      visible: isVisible(row),
+      ...(applyRoot200
+        ? { groupOpenBeforeRootResize: groupOpenBeforeRootResize[index] }
+        : {}),
+      ...(includeOwnerGeometry
+        ? {
+            ownerGeometry: (() => {
+              const element = row.querySelector(
+                '.assessment-tags > [data-tag="owner"]',
+              );
+              const style = getComputedStyle(element);
+              const range = document.createRange();
+              range.selectNodeContents(element);
+              return {
+                text: element.textContent,
+                root: parseFloat(
+                  getComputedStyle(document.documentElement).fontSize,
+                ),
+                size: parseFloat(style.fontSize),
+                weight: +style.fontWeight,
+                paddingBlock: parseFloat(style.paddingTop),
+                paddingInline: parseFloat(style.paddingLeft),
+                radius: parseFloat(style.borderTopLeftRadius),
+                height: element.getBoundingClientRect().height,
+                textLines: new Set(
+                  [...range.getClientRects()].map((rect) => rect.top),
+                ).size,
+                contentWidth: element.scrollWidth,
+                availableWidth: element.clientWidth,
+                pageWidth: document.documentElement.scrollWidth,
+                viewportWidth: document.documentElement.clientWidth,
+                titleSize: parseFloat(
+                  getComputedStyle(row.querySelector('.feature-title'))
+                    .fontSize,
+                ),
+              };
+            })(),
+          }
+        : {}),
       pageWidth: document.documentElement.scrollWidth,
       viewportWidth: document.documentElement.clientWidth,
       contrast: contrast(text, backgroundFor(title)),
@@ -286,41 +344,30 @@ test('support, action and owner pills have readable semantic pastels with six di
 });
 
 async function prepareLongOwner(page) {
-  const { owners, initialRoot, id, source } = await visit(page, true);
+  const { owners, initialRoot, id, source, openGroups } = await visit(
+    page,
+    true,
+  );
   expect(owners).toBe(387);
   expect(initialRoot).toBeGreaterThanOrEqual(16);
-  const row = await openFeature(page, id);
-  const owner = row.locator('.assessment-tags > [data-tag="owner"]');
-  await page.addStyleTag({ content: 'html { font-size: 200% !important; }' });
-  await owner.scrollIntoViewIfNeeded();
-  return { initialRoot, row, owner, id, source };
+  expect(openGroups).toBe(0);
+  const row = page.locator(`#${id}`);
+  // A fresh page has every group closed. Preserve the real native-summary click;
+  // its open/visibility result is checked with the next paint observation.
+  await row
+    .locator('xpath=ancestor::details[contains(@class,"group")]')
+    .locator(':scope > summary')
+    .click();
+  return { initialRoot, row, id, source };
 }
 
-function collectOwnerGeometry(element) {
-  const style = getComputedStyle(element);
-  const range = document.createRange();
-  range.selectNodeContents(element);
-  return {
-    text: element.textContent,
-    root: parseFloat(getComputedStyle(document.documentElement).fontSize),
-    size: parseFloat(style.fontSize),
-    weight: +style.fontWeight,
-    paddingBlock: parseFloat(style.paddingTop),
-    paddingInline: parseFloat(style.paddingLeft),
-    radius: parseFloat(style.borderTopLeftRadius),
-    height: element.getBoundingClientRect().height,
-    textLines: new Set([...range.getClientRects()].map((rect) => rect.top))
-      .size,
-    contentWidth: element.scrollWidth,
-    availableWidth: element.clientWidth,
-    pageWidth: document.documentElement.scrollWidth,
-    viewportWidth: document.documentElement.clientWidth,
-    titleSize: parseFloat(
-      getComputedStyle(
-        element.closest('.feature').querySelector('.feature-title'),
-      ).fontSize,
-    ),
-  };
+function expectLongOwnerPaint(paint, initialRoot) {
+  expectSourcePaint(paint);
+  if ('groupOpenBeforeRootResize' in paint)
+    expect(paint.groupOpenBeforeRootResize).toBe(true);
+  expect(paint.root).toBe(initialRoot * 2);
+  expect(paint.groupOpen).toBe(true);
+  expect(paint.visible).toBe(true);
 }
 
 function expectOwnerGeometry(state, initialRoot) {
@@ -378,134 +425,152 @@ function collectWordLines(element, ownerId) {
   };
 }
 
-// Keep geometry, the real cross-group word journey and keyboard paint in
-// independent cases. The combined Firefox case reached the unchanged
-// 45-second CI limit after the longest owner moved to the new support record.
-test('long owner pills reflow at 200% root text with compact readable geometry', async ({
-  page,
-}, testInfo) => {
-  const { initialRoot, row, owner, id, source } = await prepareLongOwner(page);
-  // Approved additions may change the maximum. Verify the DOM selection against
-  // canonical owner content while retaining the separate stable real-word journey.
-  const longest = source.clusters
-    .flatMap((c) =>
-      c.groups.flatMap((g) =>
-        g.items.map((item, i) => ({
-          id: `${g.id}-${i + 1}`,
-          owner: item.assessment.owner,
-        })),
-      ),
-    )
-    .sort((a, b) => b.owner.trim().length - a.owner.trim().length)[0];
-  expect(id).toBe(`feature-${longest.id}`);
-  const state = await owner.evaluate(collectOwnerGeometry);
-  expect(state.text.replace(/\s+/gu, ' ').trim()).toBe(
-    longest.owner.replace(/\s+/gu, ' ').trim(),
-  );
-  expectOwnerGeometry(state, initialRoot);
-  const [paint] = await row.evaluateAll(collectPaint);
-  expectSourcePaint(paint);
-  await testInfo.attach('long-owner-geometry-200-percent', {
-    body: await row.screenshot({ animations: 'disabled' }),
-    contentType: 'image/png',
-  });
-  await testInfo.attach('long-owner-geometry-200-percent-computed', {
-    body: JSON.stringify({ id, state, row: paint }, null, 2),
-    contentType: 'application/json',
-  });
-});
+test.describe('long owner at 200% root text', () => {
+  test.use({ viewport: { width: 320, height: 568 } });
 
-test('long owner pills retain state across the real Subdomain and Değerlendirme word journey at 200% root text', async ({
-  page,
-}, testInfo) => {
-  const { row, id } = await prepareLongOwner(page);
-  const [before] = await row.evaluateAll(collectPaint);
-  expectSourcePaint(before);
-  // The longest owner can change as records are appended. The real-word
-  // regression still belongs to its stable deployment record.
-  const wordRow = await openFeature(page, 'feature-deployment-3');
-  const wordStage = await wordRow.evaluate(collectWordLines, id);
-  expect(wordStage.ownerVisible).toBe(false);
-  expect(wordStage.wordVisible).toBe(true);
-  expect(wordStage.openGroups).toBe(1);
-  const { wordLines } = wordStage;
-  for (const entry of wordLines)
-    expect(entry.lines, `${entry.word} wraps only between words`).toBe(1);
-  await openFeature(page, id);
-  const [returned] = await row.evaluateAll(
-    collectPaint,
-    'feature-deployment-3',
-  );
-  expect(returned.transition.ownerVisible).toBe(true);
-  expect(returned.transition.wordVisible).toBe(false);
-  expect(returned.transition.openGroups).toBe(1);
-  expectSourcePaint(returned);
-  expect(returned.checked).toBe(false);
-  expect(returned.background).toEqual(before.background);
-  expect(returned.text).toEqual(before.text);
-  expect(returned.pills).toEqual(before.pills);
-  await testInfo.attach(
-    'long-owner-real-word-transition-200-percent-computed',
-    {
-      body: JSON.stringify({ id, wordStage, before, returned }, null, 2),
+  // Keep geometry, the real cross-group word journey and keyboard paint in
+  // independent cases. The combined Firefox case reached the unchanged
+  // 45-second CI limit after the longest owner moved to the new support record.
+  test('long owner pills reflow at 200% root text with compact readable geometry', async ({
+    page,
+  }, testInfo) => {
+    const { initialRoot, row, id, source } = await prepareLongOwner(page);
+    // Approved additions may change the maximum. Verify the DOM selection against
+    // canonical owner content while retaining the separate stable real-word journey.
+    const longest = source.clusters
+      .flatMap((c) =>
+        c.groups.flatMap((g) =>
+          g.items.map((item, i) => ({
+            id: `${g.id}-${i + 1}`,
+            owner: item.assessment.owner,
+          })),
+        ),
+      )
+      .sort((a, b) => b.owner.trim().length - a.owner.trim().length)[0];
+    expect(id).toBe(`feature-${longest.id}`);
+    const [paint] = await row.evaluateAll(collectPaint, {
+      applyRoot200: true,
+      includeOwnerGeometry: true,
+    });
+    const state = paint.ownerGeometry;
+    expect(state.text.replace(/\s+/gu, ' ').trim()).toBe(
+      longest.owner.replace(/\s+/gu, ' ').trim(),
+    );
+    expectOwnerGeometry(state, initialRoot);
+    expectLongOwnerPaint(paint, initialRoot);
+    await testInfo.attach('long-owner-geometry-200-percent', {
+      body: await row.screenshot({ animations: 'disabled' }),
+      contentType: 'image/png',
+    });
+    await testInfo.attach('long-owner-geometry-200-percent-computed', {
+      body: JSON.stringify({ id, state, row: paint }, null, 2),
       contentType: 'application/json',
-    },
-  );
-});
-
-test('long owner pills preserve pastel contrast during Space selection and clearing at 200% root text', async ({
-  page,
-}, testInfo) => {
-  const { row, owner } = await prepareLongOwner(page);
-  const [before] = await row.evaluateAll(collectPaint);
-  expectSourcePaint(before);
-  const checkbox = row.locator('.feature-check');
-  await checkbox.focus();
-  await page.keyboard.press('Space');
-  const [selected] = await row.evaluateAll(collectPaint);
-  expect(selected.checked).toBe(true);
-  expectSourcePaint(selected);
-  expect(selected.background).toEqual(before.background);
-  expect(selected.pills).toEqual(before.pills);
-  selected.pills.forEach((pill) =>
-    expect(pill.contrast).toBeGreaterThanOrEqual(4.5),
-  );
-  await testInfo.attach('long-owner-pastel-200-percent', {
-    body: await row.screenshot({ animations: 'disabled' }),
-    contentType: 'image/png',
+    });
   });
-  await testInfo.attach('long-owner-pastel-200-percent-computed', {
-    body: JSON.stringify(
-      { state: await owner.evaluate(collectOwnerGeometry), row: selected },
-      null,
-      2,
-    ),
-    contentType: 'application/json',
-  });
-  await page.keyboard.press('Space');
-  const [cleared] = await row.evaluateAll(collectPaint);
-  expect(cleared.checked).toBe(false);
-  expect(cleared.background).toEqual(before.background);
-});
 
-test('long owner pills preserve cleared keyboard selection and pastel geometry across 200% text boundaries', async ({
-  page,
-}) => {
-  const { row } = await prepareLongOwner(page);
-  const [before] = await row.evaluateAll(collectPaint);
-  expectSourcePaint(before);
-  const checkbox = row.locator('.feature-check');
-  await checkbox.focus();
-  await page.keyboard.press('Space');
-  await expect(checkbox).toBeChecked();
-  await page.keyboard.press('Space');
-  await expect(checkbox).not.toBeChecked();
-  // At 200% root, the 16rem inventory transition is at 576 CSS px.
-  for (const width of [575, 576, 577]) {
-    await page.setViewportSize({ width, height: 568 });
-    const [paint] = await row.evaluateAll(collectPaint);
-    expect(paint.pageWidth).toBeLessThanOrEqual(paint.viewportWidth + 1);
-    expect(paint.checked).toBe(false);
-    expect(paint.background).toEqual(before.background);
-  }
+  test('long owner pills retain state across the real Subdomain and Değerlendirme word journey at 200% root text', async ({
+    page,
+  }, testInfo) => {
+    const { row, id, initialRoot } = await prepareLongOwner(page);
+    const [before] = await row.evaluateAll(collectPaint, {
+      applyRoot200: true,
+    });
+    expectLongOwnerPaint(before, initialRoot);
+    // The longest owner can change as records are appended. The real-word
+    // regression still belongs to its stable deployment record.
+    const wordRow = page.locator('#feature-deployment-3');
+    await page.locator('#group-deployment > summary').click();
+    const wordStage = await wordRow.evaluate(collectWordLines, id);
+    expect(wordStage.ownerVisible).toBe(false);
+    expect(wordStage.wordVisible).toBe(true);
+    expect(wordStage.openGroups).toBe(1);
+    const { wordLines } = wordStage;
+    for (const entry of wordLines)
+      expect(entry.lines, `${entry.word} wraps only between words`).toBe(1);
+    await row
+      .locator('xpath=ancestor::details[contains(@class,"group")]')
+      .locator(':scope > summary')
+      .click();
+    const [returned] = await row.evaluateAll(collectPaint, {
+      transitionWordId: 'feature-deployment-3',
+    });
+    expect(returned.transition.ownerVisible).toBe(true);
+    expect(returned.transition.wordVisible).toBe(false);
+    expect(returned.transition.openGroups).toBe(1);
+    expectLongOwnerPaint(returned, initialRoot);
+    expect(returned.checked).toBe(false);
+    expect(returned.background).toEqual(before.background);
+    expect(returned.text).toEqual(before.text);
+    expect(returned.pills).toEqual(before.pills);
+    await testInfo.attach(
+      'long-owner-real-word-transition-200-percent-computed',
+      {
+        body: JSON.stringify({ id, wordStage, before, returned }, null, 2),
+        contentType: 'application/json',
+      },
+    );
+  });
+
+  test('long owner pills preserve pastel contrast during Space selection and clearing at 200% root text', async ({
+    page,
+  }, testInfo) => {
+    const { row, initialRoot } = await prepareLongOwner(page);
+    const [before] = await row.evaluateAll(collectPaint, {
+      applyRoot200: true,
+    });
+    expectLongOwnerPaint(before, initialRoot);
+    const checkbox = row.locator('.feature-check');
+    await checkbox.focus();
+    await page.keyboard.press('Space');
+    const [selected] = await row.evaluateAll(collectPaint, {
+      includeOwnerGeometry: true,
+    });
+    expect(selected.checked).toBe(true);
+    expectLongOwnerPaint(selected, initialRoot);
+    expect(selected.background).toEqual(before.background);
+    expect(selected.pills).toEqual(before.pills);
+    selected.pills.forEach((pill) =>
+      expect(pill.contrast).toBeGreaterThanOrEqual(4.5),
+    );
+    await testInfo.attach('long-owner-pastel-200-percent', {
+      body: await row.screenshot({ animations: 'disabled' }),
+      contentType: 'image/png',
+    });
+    await testInfo.attach('long-owner-pastel-200-percent-computed', {
+      body: JSON.stringify(
+        { state: selected.ownerGeometry, row: selected },
+        null,
+        2,
+      ),
+      contentType: 'application/json',
+    });
+    await page.keyboard.press('Space');
+    const [cleared] = await row.evaluateAll(collectPaint);
+    expect(cleared.checked).toBe(false);
+    expect(cleared.background).toEqual(before.background);
+  });
+
+  test('long owner pills preserve cleared keyboard selection and pastel geometry across 200% text boundaries', async ({
+    page,
+  }) => {
+    const { row, initialRoot } = await prepareLongOwner(page);
+    const [before] = await row.evaluateAll(collectPaint, {
+      applyRoot200: true,
+    });
+    expectLongOwnerPaint(before, initialRoot);
+    const checkbox = row.locator('.feature-check');
+    await checkbox.focus();
+    await page.keyboard.press('Space');
+    await expect(checkbox).toBeChecked();
+    await page.keyboard.press('Space');
+    await expect(checkbox).not.toBeChecked();
+    // At 200% root, the 16rem inventory transition is at 576 CSS px.
+    for (const width of [575, 576, 577]) {
+      await page.setViewportSize({ width, height: 568 });
+      const [paint] = await row.evaluateAll(collectPaint);
+      expect(paint.pageWidth).toBeLessThanOrEqual(paint.viewportWidth + 1);
+      expect(paint.checked).toBe(false);
+      expect(paint.background).toEqual(before.background);
+    }
+  });
 });
