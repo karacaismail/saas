@@ -20,7 +20,7 @@ async function openFeature(page, id) {
   return row;
 }
 
-function collectPaint(rows) {
+function collectPaint(rows, transitionWordId) {
   const rgba = (color) => {
     const numbers = color.match(/[\d.]+/g).map(Number);
     const channels = color.startsWith('color(srgb')
@@ -76,6 +76,23 @@ function collectPaint(rows) {
       fill: rgba(getComputedStyle(checkbox).backgroundColor),
       checked: checkbox.checked,
       contrast: contrast(text, backgroundFor(title)),
+      ...(transitionWordId
+        ? {
+            transition: {
+              ownerVisible: row.checkVisibility({
+                contentVisibilityAuto: true,
+                visibilityProperty: true,
+              }),
+              wordVisible: document
+                .getElementById(transitionWordId)
+                .checkVisibility({
+                  contentVisibilityAuto: true,
+                  visibilityProperty: true,
+                }),
+              openGroups: document.querySelectorAll('.group[open]').length,
+            },
+          }
+        : {}),
       pills: [...row.querySelectorAll('.assessment-tags > span')].map(
         (pill) => {
           const pillStyle = getComputedStyle(pill);
@@ -264,38 +281,36 @@ async function prepareLongOwner(page) {
   const owner = row.locator('.assessment-tags > [data-tag="owner"]');
   await page.addStyleTag({ content: 'html { font-size: 200% !important; }' });
   await owner.scrollIntoViewIfNeeded();
-  return { initialRoot, row, owner };
+  return { initialRoot, row, owner, id };
 }
 
-test('long owner pills reflow at 200% root text and preserve pastel contrast during keyboard selection', async ({
-  page,
-}, testInfo) => {
-  const { initialRoot, row, owner } = await prepareLongOwner(page);
-  const state = await owner.evaluate((element) => {
-    const style = getComputedStyle(element);
-    const range = document.createRange();
-    range.selectNodeContents(element);
-    return {
-      root: parseFloat(getComputedStyle(document.documentElement).fontSize),
-      size: parseFloat(style.fontSize),
-      weight: +style.fontWeight,
-      paddingBlock: parseFloat(style.paddingTop),
-      paddingInline: parseFloat(style.paddingLeft),
-      radius: parseFloat(style.borderTopLeftRadius),
-      height: element.getBoundingClientRect().height,
-      textLines: new Set([...range.getClientRects()].map((rect) => rect.top))
-        .size,
-      contentWidth: element.scrollWidth,
-      availableWidth: element.clientWidth,
-      pageWidth: document.documentElement.scrollWidth,
-      viewportWidth: document.documentElement.clientWidth,
-      titleSize: parseFloat(
-        getComputedStyle(
-          element.closest('.feature').querySelector('.feature-title'),
-        ).fontSize,
-      ),
-    };
-  });
+function collectOwnerGeometry(element) {
+  const style = getComputedStyle(element);
+  const range = document.createRange();
+  range.selectNodeContents(element);
+  return {
+    root: parseFloat(getComputedStyle(document.documentElement).fontSize),
+    size: parseFloat(style.fontSize),
+    weight: +style.fontWeight,
+    paddingBlock: parseFloat(style.paddingTop),
+    paddingInline: parseFloat(style.paddingLeft),
+    radius: parseFloat(style.borderTopLeftRadius),
+    height: element.getBoundingClientRect().height,
+    textLines: new Set([...range.getClientRects()].map((rect) => rect.top))
+      .size,
+    contentWidth: element.scrollWidth,
+    availableWidth: element.clientWidth,
+    pageWidth: document.documentElement.scrollWidth,
+    viewportWidth: document.documentElement.clientWidth,
+    titleSize: parseFloat(
+      getComputedStyle(
+        element.closest('.feature').querySelector('.feature-title'),
+      ).fontSize,
+    ),
+  };
+}
+
+function expectOwnerGeometry(state, initialRoot) {
   expect(state.root).toBe(initialRoot * 2);
   expect(Math.abs(state.size - state.root * 0.8)).toBeLessThanOrEqual(0.01);
   expect(state.weight).toBeGreaterThanOrEqual(400);
@@ -306,38 +321,110 @@ test('long owner pills reflow at 200% root text and preserve pastel contrast dur
   expect(state.textLines).toBeGreaterThan(1);
   expect(state.contentWidth).toBeLessThanOrEqual(state.availableWidth + 1);
   expect(state.pageWidth).toBeLessThanOrEqual(state.viewportWidth + 1);
+}
 
-  // The longest owner may change as records are appended. Keep the original
-  // real-word regression tied to its stable record, independently of that pill.
-  const wordRow = await openFeature(page, 'feature-deployment-3');
-  const wordLines = await wordRow.evaluate((element) => {
-    return [
-      ['.feature-title', 'Subdomain'],
-      ['.assessment > summary > span', 'Değerlendirme'],
-    ].map(([selector, word]) => {
-      const parent = element.querySelector(selector);
-      const walker = document.createTreeWalker(parent, NodeFilter.SHOW_TEXT);
-      let node;
-      while ((node = walker.nextNode())) {
-        const start = node.textContent.indexOf(word);
-        if (start < 0) continue;
-        const range = document.createRange();
-        range.setStart(node, start);
-        range.setEnd(node, start + word.length);
-        return {
-          word,
-          lines: new Set([...range.getClientRects()].map((rect) => rect.top))
-            .size,
-        };
-      }
-      throw new Error(`Missing real-content word: ${word}`);
-    });
+function collectWordLines(element, ownerId) {
+  const wordLines = [
+    ['.feature-title', 'Subdomain'],
+    ['.assessment > summary > span', 'Değerlendirme'],
+  ].map(([selector, word]) => {
+    const parent = element.querySelector(selector);
+    const walker = document.createTreeWalker(parent, NodeFilter.SHOW_TEXT);
+    let node;
+    while ((node = walker.nextNode())) {
+      const start = node.textContent.indexOf(word);
+      if (start < 0) continue;
+      const range = document.createRange();
+      range.setStart(node, start);
+      range.setEnd(node, start + word.length);
+      return {
+        word,
+        lines: new Set([...range.getClientRects()].map((rect) => rect.top))
+          .size,
+      };
+    }
+    throw new Error(`Missing real-content word: ${word}`);
   });
+  return {
+    wordLines,
+    ownerVisible: document.getElementById(ownerId).checkVisibility({
+      contentVisibilityAuto: true,
+      visibilityProperty: true,
+    }),
+    wordVisible: element.checkVisibility({
+      contentVisibilityAuto: true,
+      visibilityProperty: true,
+    }),
+    openGroups: document.querySelectorAll('.group[open]').length,
+  };
+}
+
+// Keep geometry, the real cross-group word journey and keyboard paint in
+// independent cases. The combined Firefox case reached the unchanged
+// 45-second CI limit after the longest owner moved to the new support record.
+test('long owner pills reflow at 200% root text with compact readable geometry', async ({
+  page,
+}, testInfo) => {
+  const { initialRoot, row, owner, id } = await prepareLongOwner(page);
+  // This 363-record regression fixture has support-9 as its new longest owner.
+  // The preparation still selects the actual maximum rather than forcing that row.
+  expect(id).toBe('feature-support-9');
+  const state = await owner.evaluate(collectOwnerGeometry);
+  expectOwnerGeometry(state, initialRoot);
+  const [paint] = await row.evaluateAll(collectPaint);
+  expectSourcePaint(paint);
+  await testInfo.attach('long-owner-geometry-200-percent', {
+    body: await row.screenshot({ animations: 'disabled' }),
+    contentType: 'image/png',
+  });
+  await testInfo.attach('long-owner-geometry-200-percent-computed', {
+    body: JSON.stringify({ id, state, row: paint }, null, 2),
+    contentType: 'application/json',
+  });
+});
+
+test('long owner pills retain state across the real Subdomain and Değerlendirme word journey at 200% root text', async ({
+  page,
+}, testInfo) => {
+  const { row, id } = await prepareLongOwner(page);
+  const [before] = await row.evaluateAll(collectPaint);
+  expectSourcePaint(before);
+  // The longest owner can change as records are appended. The real-word
+  // regression still belongs to its stable deployment record.
+  const wordRow = await openFeature(page, 'feature-deployment-3');
+  const wordStage = await wordRow.evaluate(collectWordLines, id);
+  expect(wordStage.ownerVisible).toBe(false);
+  expect(wordStage.wordVisible).toBe(true);
+  expect(wordStage.openGroups).toBe(1);
+  const { wordLines } = wordStage;
   for (const entry of wordLines)
     expect(entry.lines, `${entry.word} wraps only between words`).toBe(1);
+  await openFeature(page, id);
+  const [returned] = await row.evaluateAll(
+    collectPaint,
+    'feature-deployment-3',
+  );
+  expect(returned.transition.ownerVisible).toBe(true);
+  expect(returned.transition.wordVisible).toBe(false);
+  expect(returned.transition.openGroups).toBe(1);
+  expectSourcePaint(returned);
+  expect(returned.checked).toBe(false);
+  expect(returned.background).toEqual(before.background);
+  expect(returned.text).toEqual(before.text);
+  expect(returned.pills).toEqual(before.pills);
+  await testInfo.attach(
+    'long-owner-real-word-transition-200-percent-computed',
+    {
+      body: JSON.stringify({ id, wordStage, before, returned }, null, 2),
+      contentType: 'application/json',
+    },
+  );
+});
 
-  await openFeature(page, await row.getAttribute('id'));
-
+test('long owner pills preserve pastel contrast during Space selection and clearing at 200% root text', async ({
+  page,
+}, testInfo) => {
+  const { row, owner } = await prepareLongOwner(page);
   const [before] = await row.evaluateAll(collectPaint);
   expectSourcePaint(before);
   const checkbox = row.locator('.feature-check');
@@ -356,7 +443,11 @@ test('long owner pills reflow at 200% root text and preserve pastel contrast dur
     contentType: 'image/png',
   });
   await testInfo.attach('long-owner-pastel-200-percent-computed', {
-    body: JSON.stringify({ state, wordLines, row: selected }, null, 2),
+    body: JSON.stringify(
+      { state: await owner.evaluate(collectOwnerGeometry), row: selected },
+      null,
+      2,
+    ),
     contentType: 'application/json',
   });
   await page.keyboard.press('Space');

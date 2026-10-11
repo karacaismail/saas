@@ -163,9 +163,9 @@ test('inventory entry and technical context remain natural links and disclosures
   }
 });
 
-test('expanded technical context reflows at 200% root text with visible keyboard focus', async ({
-  page,
-}, testInfo) => {
+// Keep the real keyboard-open state common to geometry/focus and full-page axe
+// cases. Together they exceeded 42 seconds in Firefox CI with DOM tracing.
+async function openEnlargedTechnicalContext(page) {
   await page.setViewportSize({ width: 320, height: 480 });
   await page.goto('./');
   await expect(page.locator('#search')).toBeEnabled();
@@ -180,6 +180,13 @@ test('expanded technical context reflows at 200% root text with visible keyboard
   await guide.locator(':scope > summary').focus();
   await page.keyboard.press('Enter');
   await expect(guide).toHaveAttribute('open', '');
+  return { context, guide };
+}
+
+test('expanded technical context reflows at 200% root text with visible keyboard focus', async ({
+  page,
+}, testInfo) => {
+  const { context, guide } = await openEnlargedTechnicalContext(page);
   const state = await context.evaluate((element) => {
     const root = parseFloat(
       getComputedStyle(document.documentElement).fontSize,
@@ -215,14 +222,6 @@ test('expanded technical context reflows at 200% root text with visible keyboard
   expect(state.focusVisible).toBe(true);
   expect(state.focusedElement).toBe('SUMMARY');
   await expect(guide.locator('.note-body')).toBeVisible();
-  const accessibility = await new AxeBuilder({ page })
-    .withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'])
-    .analyze();
-  await testInfo.attach('ux-expanded-context-axe', {
-    body: JSON.stringify(accessibility, null, 2),
-    contentType: 'application/json',
-  });
-  expect(accessibility.violations).toEqual([]);
   await testInfo.attach('ux-expanded-context-200-percent-computed', {
     body: JSON.stringify(state, null, 2),
     contentType: 'application/json',
@@ -234,6 +233,21 @@ test('expanded technical context reflows at 200% root text with visible keyboard
   await page.keyboard.press('Enter');
   await expectClosed(guide);
   await expect(guide.locator(':scope > summary')).toBeFocused();
+});
+
+test('expanded technical context has no automated WCAG violations at 200% root text', async ({
+  page,
+}, testInfo) => {
+  const { guide } = await openEnlargedTechnicalContext(page);
+  await expect(guide.locator('.note-body')).toBeVisible();
+  const accessibility = await new AxeBuilder({ page })
+    .withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'])
+    .analyze();
+  await testInfo.attach('ux-expanded-context-axe', {
+    body: JSON.stringify(accessibility, null, 2),
+    contentType: 'application/json',
+  });
+  expect(accessibility.violations).toEqual([]);
 });
 
 test('print lifecycle reveals technical context and restores disclosure and selection state after repeated preparation', async ({

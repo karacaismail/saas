@@ -115,11 +115,11 @@ test('useful connection indicator is readable and selectable at 320 without pret
   });
 });
 
-// Two records per case keep the real expanded-content journey bounded while
-// covering every new assessment with the unchanged test timeout and tracing.
-for (let start = 0; start < newIds.length; start += 2) {
-  const ids = newIds.slice(start, start + 2);
-  test(`usefulness assessment reflow and selection survive 320 to 390 to enlarged-root 320: ${ids.join(' and ')}`, async ({
+// Each assessment keeps its complete three-state journey in one bounded case.
+// Cross-item selection and enlarged-root transitions have separate real journeys;
+// the timeout, tracing and all content/readability assertions remain unchanged.
+for (const id of newIds) {
+  test(`usefulness assessment reflow and selection survive 320 to 390 to enlarged-root 320: ${id}`, async ({
     page,
   }, testInfo) => {
     await visit(page);
@@ -135,162 +135,222 @@ for (let start = 0; start < newIds.length; start += 2) {
         })),
       ),
     );
-    const originalRootStyle = await page
-      .locator('html')
-      .evaluate((el) => el.style.fontSize);
     const evidence = [];
-    for (const id of ids) {
-      await page.locator('html').evaluate((el, value) => {
-        el.style.fontSize = value;
-      }, originalRootStyle);
-      await page.setViewportSize({ width: 320, height: 568 });
-      const item = await openItem(page, id);
-      const original = records.find((record) => record.id === id);
-      expect(original).toBeTruthy();
-      await expect(item.locator('.feature-title')).toBeVisible();
-      await item.locator('.feature-check').check();
-      await item.locator('.assessment > summary').click();
-      await expect(item.locator('.assessment-body')).toBeVisible();
-      const baseRootSize = await page
-        .locator('html')
-        .evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
-      for (const [name, width, enlarge] of [
-        ['320', 320, false],
-        ['390', 390, false],
-        ['320-root-125', 320, true],
-      ]) {
+    const item = await openItem(page, id);
+    const original = records.find((record) => record.id === id);
+    expect(original).toBeTruthy();
+    await expect(item.locator('.feature-title')).toBeVisible();
+    await item.locator('.feature-check').check();
+    await item.locator('.assessment > summary').click();
+    await expect(item.locator('.assessment-body')).toBeVisible();
+    const baseRootSize = await page
+      .locator('html')
+      .evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
+    for (const [name, width, enlarge] of [
+      ['320', 320, false],
+      ['390', 390, false],
+      ['320-root-125', 320, true],
+    ]) {
+      if (width !== 320 || enlarge)
         await page.setViewportSize({ width, height: 568 });
-        if (enlarge)
-          await page.locator('html').evaluate((el) => {
-            el.style.fontSize = '125%';
-          });
-        const metrics = await item.evaluate((el) => {
-          const rootSize = parseFloat(
-            getComputedStyle(document.documentElement).fontSize,
-          );
-          // Resolve the explicit passive-pill exception through the engine;
-          // Firefox serializes 0.8rem as 12.7969px at a 16px root.
-          const pillReference = document.createElement('span');
-          pillReference.style.fontSize = '0.8rem';
-          el.append(pillReference);
-          const pillMinimum = parseFloat(
-            getComputedStyle(pillReference).fontSize,
-          );
-          pillReference.remove();
-          const title = el.querySelector('.feature-title');
-          const body = el.querySelector('.assessment-body');
-          const texts = [
-            ...el.querySelectorAll(
-              '.feature-title, .origin, .scope-note, .assessment > summary, .assessment-body p, .assessment-body li, .assessment-body a, .assessment-tags > span',
-            ),
-          ].map((text) => {
-            const style = getComputedStyle(text);
-            const pill = text.matches('.assessment-tags > span');
-            return {
-              text: text.textContent,
-              fontSize: parseFloat(style.fontSize),
-              minimum: pill ? pillMinimum : rootSize,
-              weight: parseFloat(style.fontWeight),
-              visible:
-                text.getClientRects().length > 0 &&
-                style.visibility !== 'hidden',
-              contained: [...text.getClientRects()].every(
-                (rect) => rect.left >= 0 && rect.right <= innerWidth,
-              ),
-            };
-          });
+      if (enlarge)
+        await page.locator('html').evaluate((el) => {
+          el.style.fontSize = '125%';
+        });
+      const metrics = await item.evaluate((el) => {
+        const rootSize = parseFloat(
+          getComputedStyle(document.documentElement).fontSize,
+        );
+        // Resolve the explicit passive-pill exception through the engine;
+        // Firefox serializes 0.8rem as 12.7969px at a 16px root.
+        const pillReference = document.createElement('span');
+        pillReference.style.fontSize = '0.8rem';
+        el.append(pillReference);
+        const pillMinimum = parseFloat(
+          getComputedStyle(pillReference).fontSize,
+        );
+        pillReference.remove();
+        const title = el.querySelector('.feature-title');
+        const body = el.querySelector('.assessment-body');
+        const texts = [
+          ...el.querySelectorAll(
+            '.feature-title, .origin, .scope-note, .assessment > summary, .assessment-body p, .assessment-body li, .assessment-body a, .assessment-tags > span',
+          ),
+        ].map((text) => {
+          const style = getComputedStyle(text);
+          const pill = text.matches('.assessment-tags > span');
           return {
-            width: innerWidth,
-            rootSize,
-            pageContained: document.documentElement.scrollWidth <= innerWidth,
-            itemContained: el.scrollWidth <= el.clientWidth,
-            titleVisible: title.getClientRects().length > 0,
-            bodyVisible: body.getClientRects().length > 0,
-            checked: el.querySelector('.feature-check').checked,
-            assessmentOpen: el.querySelector('.assessment').open,
-            groupOpen: el.closest('.group').open,
-            openGroups: document.querySelectorAll('.group[open]').length,
-            title: title.textContent,
-            support: el.querySelector('[data-tag="support"]').textContent,
-            action: el.querySelector('[data-tag="action"]').textContent,
-            owner: el.querySelector('[data-tag="owner"]').textContent,
-            scope: el.querySelector('.scope-label').textContent,
-            note: el.querySelector('.assessment-note').textContent,
-            basis: el.querySelector('.assessment-basis').textContent,
-            body: body.textContent,
-            links: [...body.querySelectorAll('a')].map((link) => ({
-              title: link.textContent,
-              url: link.getAttribute('href'),
-            })),
-            texts,
+            text: text.textContent,
+            fontSize: parseFloat(style.fontSize),
+            minimum: pill ? pillMinimum : rootSize,
+            weight: parseFloat(style.fontWeight),
+            visible:
+              text.getClientRects().length > 0 && style.visibility !== 'hidden',
+            contained: [...text.getClientRects()].every(
+              (rect) => rect.left >= 0 && rect.right <= innerWidth,
+            ),
           };
         });
-        expect(metrics.width).toBe(width);
-        expect(metrics.rootSize).toBe(
-          enlarge ? baseRootSize * 1.25 : baseRootSize,
-        );
-        expect(metrics.pageContained).toBe(true);
-        expect(metrics.itemContained).toBe(true);
-        expect(metrics.titleVisible).toBe(true);
-        expect(metrics.bodyVisible).toBe(true);
-        expect(metrics.checked).toBe(true);
-        expect(metrics.assessmentOpen).toBe(true);
-        expect(metrics.groupOpen).toBe(true);
-        expect(metrics.openGroups).toBe(1);
-        expect(metrics.title).toBe(original.item.text);
-        expect(metrics.support).toBe(
-          source.roadmap.supportLabels[original.item.assessment.support],
-        );
-        expect(metrics.action).toBe(
-          source.roadmap.actionLabels[original.item.assessment.action],
-        );
-        expect(metrics.owner).toBe(original.item.assessment.owner);
-        expect(metrics.scope).toBe(
-          source.review.scopeLabels[original.planning.scope],
-        );
-        // Snapshot minification retains surrounding text-node whitespace.
-        expect(metrics.note.trim()).toBe(original.item.assessment.note);
-        expect(metrics.body).toContain(original.planning.reason);
-        expect(metrics.body).toContain(original.item.assessment.acceptance);
-        expect(metrics.basis).toContain(
-          source.roadmap.confidenceLabels[original.item.assessment.confidence],
-        );
-        expect(metrics.basis).toContain(
-          original.item.assessment.reviewedAt ?? source.roadmap.reviewedAt,
-        );
-        expect(metrics.links).toEqual(original.item.assessment.sources);
-        expect(metrics.texts.length).toBeGreaterThan(0);
-        for (const text of metrics.texts) {
-          expect(text.visible, `${id} ${name}: ${text.text}`).toBe(true);
-          expect(text.contained, `${id} ${name}: ${text.text}`).toBe(true);
-          expect(
-            text.fontSize,
-            `${id} ${name}: ${text.text}`,
-          ).toBeGreaterThanOrEqual(text.minimum);
-          expect(
-            text.weight,
-            `${id} ${name}: ${text.text}`,
-          ).toBeGreaterThanOrEqual(400);
-        }
-        evidence.push({ id, state: name, metrics });
-        await testInfo.attach(`usefulness-assessment-${id}-${name}`, {
-          body: await item.screenshot(),
-          contentType: 'image/png',
-        });
+        return {
+          width: innerWidth,
+          rootSize,
+          pageContained: document.documentElement.scrollWidth <= innerWidth,
+          itemContained: el.scrollWidth <= el.clientWidth,
+          titleVisible: title.getClientRects().length > 0,
+          bodyVisible: body.getClientRects().length > 0,
+          checked: el.querySelector('.feature-check').checked,
+          assessmentOpen: el.querySelector('.assessment').open,
+          groupOpen: el.closest('.group').open,
+          openGroups: document.querySelectorAll('.group[open]').length,
+          title: title.textContent,
+          support: el.querySelector('[data-tag="support"]').textContent,
+          action: el.querySelector('[data-tag="action"]').textContent,
+          owner: el.querySelector('[data-tag="owner"]').textContent,
+          scope: el.querySelector('.scope-label').textContent,
+          note: el.querySelector('.assessment-note').textContent,
+          basis: el.querySelector('.assessment-basis').textContent,
+          body: body.textContent,
+          links: [...body.querySelectorAll('a')].map((link) => ({
+            title: link.textContent,
+            url: link.getAttribute('href'),
+          })),
+          texts,
+        };
+      });
+      expect(metrics.width).toBe(width);
+      expect(metrics.rootSize).toBe(
+        enlarge ? baseRootSize * 1.25 : baseRootSize,
+      );
+      expect(metrics.pageContained).toBe(true);
+      expect(metrics.itemContained).toBe(true);
+      expect(metrics.titleVisible).toBe(true);
+      expect(metrics.bodyVisible).toBe(true);
+      expect(metrics.checked).toBe(true);
+      expect(metrics.assessmentOpen).toBe(true);
+      expect(metrics.groupOpen).toBe(true);
+      expect(metrics.openGroups).toBe(1);
+      expect(metrics.title).toBe(original.item.text);
+      expect(metrics.support).toBe(
+        source.roadmap.supportLabels[original.item.assessment.support],
+      );
+      expect(metrics.action).toBe(
+        source.roadmap.actionLabels[original.item.assessment.action],
+      );
+      expect(metrics.owner).toBe(original.item.assessment.owner);
+      expect(metrics.scope).toBe(
+        source.review.scopeLabels[original.planning.scope],
+      );
+      // Snapshot minification retains surrounding text-node whitespace.
+      expect(metrics.note.trim()).toBe(original.item.assessment.note);
+      expect(metrics.body).toContain(original.planning.reason);
+      expect(metrics.body).toContain(original.item.assessment.acceptance);
+      expect(metrics.basis).toContain(
+        source.roadmap.confidenceLabels[original.item.assessment.confidence],
+      );
+      expect(metrics.basis).toContain(
+        original.item.assessment.reviewedAt ?? source.roadmap.reviewedAt,
+      );
+      expect(metrics.links).toEqual(original.item.assessment.sources);
+      expect(metrics.texts.length).toBeGreaterThan(0);
+      for (const text of metrics.texts) {
+        expect(text.visible, `${id} ${name}: ${text.text}`).toBe(true);
+        expect(text.contained, `${id} ${name}: ${text.text}`).toBe(true);
+        expect(
+          text.fontSize,
+          `${id} ${name}: ${text.text}`,
+        ).toBeGreaterThanOrEqual(text.minimum);
+        expect(
+          text.weight,
+          `${id} ${name}: ${text.text}`,
+        ).toBeGreaterThanOrEqual(400);
       }
+      evidence.push({ id, state: name, metrics });
+      await testInfo.attach(`usefulness-assessment-${id}-${name}`, {
+        body: await item.screenshot(),
+        contentType: 'image/png',
+      });
     }
     expect(
       await page
         .locator('.feature-check:checked')
         .evaluateAll((inputs) => inputs.map((input) => input.value).sort()),
-    ).toEqual([...ids].sort());
-    await testInfo.attach(
-      `usefulness-assessment-metrics-${start}-${start + 2}`,
-      {
-        body: JSON.stringify(evidence, null, 2),
-        contentType: 'application/json',
-      },
+    ).toEqual([id]);
+    await testInfo.attach(`usefulness-assessment-metrics-${id}`, {
+      body: JSON.stringify(evidence, null, 2),
+      contentType: 'application/json',
+    });
+  });
+}
+
+// Preserve every original pair's selection across a real expanded assessment,
+// a 125% root, restoring the root, and opening the next item/group.
+for (let start = 0; start < newIds.length; start += 2) {
+  const ids = newIds.slice(start, start + 2);
+  test(`usefulness paired selection and assessment state survive enlarged-root reset and item transition: ${ids.join(' and ')}`, async ({
+    page,
+  }, testInfo) => {
+    await visit(page);
+    const initialRoot = await page.locator('html').evaluate((el) => ({
+      style: el.style.fontSize,
+      size: parseFloat(getComputedStyle(el).fontSize),
+    }));
+    const before = await openItem(page, ids[0]);
+    await before.locator('.feature-check').check();
+    await before.locator('.assessment > summary').click();
+    const enlarged = await page.locator('html').evaluate((el) => {
+      el.style.fontSize = '125%';
+      return parseFloat(getComputedStyle(el).fontSize);
+    });
+    expect(enlarged).toBe(initialRoot.size * 1.25);
+    await page.locator('html').evaluate((el, value) => {
+      el.style.fontSize = value;
+    }, initialRoot.style);
+    const after = await openItem(page, ids[1]);
+    await after.locator('.feature-check').check();
+    await after.locator('.assessment > summary').click();
+    const state = await page.evaluate(
+      (ids) => ({
+        root: parseFloat(getComputedStyle(document.documentElement).fontSize),
+        width: innerWidth,
+        contained: document.documentElement.scrollWidth <= innerWidth,
+        openGroups: document.querySelectorAll('.group[open]').length,
+        checkedIds: [...document.querySelectorAll('.feature-check:checked')]
+          .map((input) => input.value)
+          .sort(),
+        items: ids.map((id) => {
+          const el = document.getElementById(`feature-${id}`);
+          return {
+            id,
+            checked: el.querySelector('.feature-check').checked,
+            assessmentOpen: el.querySelector('.assessment').open,
+            bodyVisible: el.querySelector('.assessment-body').checkVisibility({
+              contentVisibilityAuto: true,
+              visibilityProperty: true,
+            }),
+            groupOpen: el.closest('.group').open,
+          };
+        }),
+      }),
+      ids,
     );
+    expect(state.root).toBe(initialRoot.size);
+    expect(state.width).toBe(320);
+    expect(state.contained).toBe(true);
+    expect(state.openGroups).toBe(1);
+    expect(state.checkedIds).toEqual([...ids].sort());
+    for (const item of state.items) {
+      expect(item.checked).toBe(true);
+      expect(item.assessmentOpen).toBe(true);
+      const activeGroup =
+        item.id.slice(0, item.id.lastIndexOf('-')) ===
+        ids[1].slice(0, ids[1].lastIndexOf('-'));
+      expect(item.groupOpen).toBe(activeGroup);
+      expect(item.bodyVisible).toBe(activeGroup);
+    }
+    await testInfo.attach(`usefulness-paired-transition-${start}`, {
+      body: JSON.stringify({ ids, initialRoot, enlarged, state }, null, 2),
+      contentType: 'application/json',
+    });
   });
 }
 

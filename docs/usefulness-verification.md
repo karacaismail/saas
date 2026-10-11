@@ -23,7 +23,9 @@ Ortam: macOS, Node 24.21.0, npm 11.19.0; manifest Node >=22; Playwright 1.64.0, 
 | `npm run build`                               | Pass; 29 dosyalık yayın allowlist'i korunuyor                                  |
 | İlk hedefli `tests/usefulness.spec.js` koşusu | 24/24 pass; 3 engine, seçim, 25 karar, gerçek JSON/MD/CSV indirmeleri ve no-JS |
 | Ek bounded assessment koşusu                  | 18/18 pass; 12 yeni maddenin tamamında 320 → 390 → 320 px / %125 kök metin     |
-| Tam tarayıcı paketi                           | 339 pass / 3 skip / 0 fail; 342 vaka, değişmeyen timeout/retry/worker ayarları |
+| İlk tam tarayıcı paketi                       | 339 pass / 3 skip / 0 fail; 342 vaka, değişmeyen timeout/retry/worker ayarları |
+
+CI düzeltmesinin son tam koşusu: 402 vaka, 399 pass / 3 skip / 0 fail, 6.0 dakika. Son beş test dosyasını kapsar; timeout45s, retry0, workers3 ve trace/screenshot ayarları aynıdır. Önceki 81/81 hedefli koşu son atlas/UX ayrımı ve pastel batching değişikliğinden önceydi; son kaynakların kanıtı 402 vakalık tam koşudur. Üç skip, `hasTouch` olmayan temel motor projelerindedir; aynı senaryo ayrı touch/hybrid emülasyon projelerinde geçti.
 
 Ek assessment koşusunda 108 PNG ve 18 hesaplanmış stil JSON'u kaydedildi. Gerçek madde başlıkları, bütün değerlendirme metni, kaynaklar, sorumlu, kapsam, checkbox seçimi ve tek açık grup durumu denetlendi. Normal metinler en az 1rem/400; mevcut pasif pill istisnası 0.8rem ölçülür. Kök boyutu, taşma ve durum korunumu üç motorda doğrulanır.
 
@@ -33,7 +35,7 @@ Ek assessment koşusunda 108 PNG ve 18 hesaplanmış stil JSON'u kaydedildi. Ger
 
 11 görsel adayın 33 önce/sonra/fark görüntüsü bağımsız incelenerek yalnız bu referanslar onaylandı: 320/1280 araç çubuğu × üç motor; 320 export × Chromium/Firefox; 320 seçim × üç motor. Altı araç çubuğu farkı yalnız 351→363 ve 212→224 sayaçlarıdır. Diğer beş mobil fark, yeni inceleme özetinin akışından doğan kesirli clip/raster kaymasıdır. Eski HEAD ve yeni build'de aynı kutu genişliği/yüksekliği ve stiller ölçüldü. Diğer yedi görsel referans byte olarak değişmedi. Toplu referans güncellemesi veya tolerans gevşetmesi yapılmadı.
 
-Yeni 12 maddenin 320 Chromium, 390 WebKit ve %125 kök metin Firefox görselleri bağımsız incelendi; 108 durumun hesaplanmış stil denetimleriyle uyumlu bulundu. Son tam koşunun 342 vakası, 288 kanıt dosyası, 15 sıfır ihlalli axe taraması ve frozen üretim hashleri bağımsız incelendi; açık actionable bulgu kalmadı.
+Yeni 12 maddenin 320 Chromium, 390 WebKit ve %125 kök metin Firefox görselleri bağımsız incelendi; 108 durumun hesaplanmış stil denetimleriyle uyumlu bulundu. İlk başarılı tam koşunun 342 vakası, 288 kanıt dosyası, 15 sıfır ihlalli axe taraması ve frozen üretim hashleri bağımsız incelendi; açık actionable bulgu kalmadı.
 
 ## Yayın paketi ve bütçe
 
@@ -42,6 +44,10 @@ Yeni 12 maddenin 320 Chromium, 390 WebKit ve %125 kök metin Firefox görselleri
 Önceki frozen build ile yalnız yedi üretim içerik dosyası farklıdır: index, dört küme JSON'u, interface ve review. Diğer 22 dosya, bütün JS/CSS/fontlar dahil, byte olarak aynıdır. Yeni bağımlılık, runtime modülü veya servis kurulmadı. Gzip ölçümü saha/CDN performans iddiası değildir.
 
 ## CI, canlı yayın ve sınırlar
+
+İlk exact-head CI (`81056fe`, [38141198214](https://github.com/karacaismail/saas/actions/runs/38141198214)) 325 pass / 9 skip / 8 fail verdi; Pages deploy atlandı. Sekiz Firefox vakası 45 saniyelik toplam test sınırına takıldı. Trace'lerde önceki assertion'lar başarılıydı; uzun inceleme testinin ilk dört PNG'si tamamlanırken beşinci çekim yaklaşık 44.9. saniyede başlamıştı. Yerel başarı CI başarısı sayılmadı.
+
+Bu vakalar aynı kapsam korunarak bölündü: 12 ayrı tam assessment yolculuğu ve altı gerçek çift seçim/root-reset geçişi; owner geometri, gerçek kelime/grup geçişi ve Space renk kontrolü; ayrı klavye, tüm bölüme axe ve orijinal beş PNG diliminin üç batch'i. Assessment'ların 108 durum görüntüsü, bütün metin/stil/kaynak kontrolleri ve beş bitişik inceleme diliminin tam yükseklik/union denetimi korunur. Kapalı native details içindeki görünürlük için yalnız `getClientRects()` yeterli olmadığından ek geçiş testi `checkVisibility()` kullanır. Timeout45s, retry0, workers3, trace/screenshot, görsel referanslar ve toleranslar değişmez. Üretimin 29 dosyası bu düzeltmede byte olarak aynıdır. Aynı CI raporunda başarılı olsa da 43.831 saniye ve 42.936 saniye süren seçim kalıcılığı ve %200 teknik bağlam vakaları da önlem olarak bölündü; gerçek fare/Space/reload/temizleme zincirleri, tüm sayfaya axe, klavye odağı ve görüntü kanıtı korunur.
 
 Exact-head CI, deploy ve canlı hash/smoke doğrulaması yerel başarıdan ayrı yürütülür. Bu belgedeki pass sonuçları yereldir; yayımlanan commit için gerçek CI/deploy sonucu [GitHub Actions](https://github.com/karacaismail/saas/actions/workflows/pages.yml) üzerinde, canlı hash/smoke sonucu sohbet tesliminde ve yerel release kanıtında bildirilir. CI yalnız başarılı doğrulama işinden sonra Pages deploy yapar.
 

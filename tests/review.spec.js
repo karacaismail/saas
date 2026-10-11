@@ -154,9 +154,9 @@ test('scope review at 320 through desktop keeps text readable including 200% roo
   ).toBe(true);
 });
 
-test('scope review keyboard focus and accessible content at 320px', async ({
+test('scope review keyboard focus and native disclosure at 320px', async ({
   page,
-}, testInfo) => {
+}) => {
   await page.setViewportSize({ width: 320, height: 568 });
   await visit(page);
   await page.locator('#scope-review > summary').click();
@@ -164,6 +164,7 @@ test('scope review keyboard focus and accessible content at 320px', async ({
   await summary.focus();
   await page.keyboard.press('Tab');
   await page.keyboard.press('Shift+Tab');
+  await expect(summary).toBeFocused();
   expect(
     await summary.evaluate((el) => getComputedStyle(el).outlineStyle),
   ).not.toBe('none');
@@ -171,50 +172,99 @@ test('scope review keyboard focus and accessible content at 320px', async ({
   await expect(page.locator('#scope-review')).not.toHaveAttribute('open');
   await page.keyboard.press('Enter');
   await expect(page.locator('#scope-review')).toHaveAttribute('open', '');
+});
+
+test('scope review accessible content at 320px', async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 320, height: 568 });
+  await visit(page);
+  await page.locator('#scope-review > summary').click();
   const axe = await new AxeBuilder({ page })
     .include('#scope-review')
     .withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'])
     .analyze();
   expect(axe.violations).toEqual([]);
-  // Preserve the complete review evidence in bounded image slices: Firefox
-  // cannot capture one PNG taller than 32767px as the decision list grows.
-  const bounds = await page.locator('#scope-review').evaluate((el) => {
-    const rect = el.getBoundingClientRect();
-    return {
-      x: rect.x + scrollX,
-      y: rect.y + scrollY,
-      width: rect.width,
-      height: rect.height,
-    };
-  });
-  expect(bounds.width).toBeGreaterThan(0);
-  expect(bounds.height).toBeGreaterThan(0);
-  const slices = [];
-  for (let offset = 0; offset < bounds.height; offset += 8000) {
-    const clip = {
-      x: bounds.x,
-      y: bounds.y + offset,
-      width: bounds.width,
-      height: Math.min(8000, bounds.height - offset),
-    };
-    await testInfo.attach(`scope-review-320-slice-${slices.length}`, {
-      body: await page.screenshot({ fullPage: true, clip }),
-      contentType: 'image/png',
-    });
-    slices.push(clip);
-  }
-  expect(slices.reduce((sum, slice) => sum + slice.height, 0)).toBe(
-    bounds.height,
-  );
-  await testInfo.attach('scope-review-image-bounds', {
-    body: JSON.stringify({ bounds, slices }, null, 2),
-    contentType: 'application/json',
-  });
   await testInfo.attach('scope-review-axe', {
     body: JSON.stringify(axe, null, 2),
     contentType: 'application/json',
   });
 });
+
+for (const [batchIndex, region] of ['upper', 'middle', 'lower'].entries())
+  test(`scope review complete image slices at 320px: ${region}`, async ({
+    page,
+  }, testInfo) => {
+    await page.setViewportSize({ width: 320, height: 568 });
+    await visit(page);
+    await page.locator('#scope-review > summary').click();
+    await page.evaluate(async () => {
+      await document.fonts.ready;
+    });
+    // Preserve the original full document-coordinate image plan, while
+    // bounding each independent case's screenshot and trace workload.
+    const bounds = await page.locator('#scope-review').evaluate((el) => {
+      const rect = el.getBoundingClientRect();
+      return {
+        x: rect.x + scrollX,
+        y: rect.y + scrollY,
+        width: rect.width,
+        height: rect.height,
+      };
+    });
+    expect(bounds.width).toBeGreaterThan(0);
+    expect(bounds.height).toBeGreaterThan(0);
+    const slices = [];
+    for (let offset = 0; offset < bounds.height; offset += 8000) {
+      slices.push({
+        x: bounds.x,
+        y: bounds.y + offset,
+        width: bounds.width,
+        height: Math.min(8000, bounds.height - offset),
+      });
+    }
+    expect(slices.reduce((sum, slice) => sum + slice.height, 0)).toBe(
+      bounds.height,
+    );
+    expect(slices[0].y).toBe(bounds.y);
+    const lastSlice = slices.at(-1);
+    expect(lastSlice.y + lastSlice.height).toBe(bounds.y + bounds.height);
+    for (const [index, slice] of slices.entries()) {
+      expect(slice.x).toBe(bounds.x);
+      expect(slice.width).toBe(bounds.width);
+      expect(slice.height).toBeGreaterThan(0);
+      expect(slice.height).toBeLessThanOrEqual(8000);
+      expect(slice.y).toBe(bounds.y + index * 8000);
+      if (index > 0)
+        expect(slice.y).toBe(slices[index - 1].y + slices[index - 1].height);
+    }
+    // Every planned slice belongs to a batch. Very short reviews may repeat
+    // one slice so each case retains real image evidence.
+    const batches = [0, 1, 2].map((index) => {
+      const first = Math.floor((slices.length * index) / 3);
+      const after = Math.max(
+        first + 1,
+        Math.floor((slices.length * (index + 1)) / 3),
+      );
+      return slices.slice(first, after).map((_, offset) => first + offset);
+    });
+    expect([...new Set(batches.flat())]).toEqual(
+      slices.map((_, index) => index),
+    );
+    const capturedSliceIndices = batches[batchIndex];
+    expect(capturedSliceIndices.length).toBeGreaterThan(0);
+    for (const index of capturedSliceIndices)
+      await testInfo.attach(`scope-review-320-slice-${index}`, {
+        body: await page.screenshot({ fullPage: true, clip: slices[index] }),
+        contentType: 'image/png',
+      });
+    await testInfo.attach('scope-review-image-bounds', {
+      body: JSON.stringify(
+        { bounds, slices, batches, region, capturedSliceIndices },
+        null,
+        2,
+      ),
+      contentType: 'application/json',
+    });
+  });
 
 test('review JSON supplies scope copy and changed rationale before render, search and export', async ({
   page,

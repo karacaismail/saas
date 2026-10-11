@@ -251,7 +251,7 @@ test('mouse labels and keyboard Space toggle only their own item', async ({
   ]);
 });
 
-test('selected and keyboard-cleared items persist after reload before clearing the selection', async ({
+test('selected and keyboard-cleared items persist after reload', async ({
   page,
 }) => {
   await visit(page);
@@ -271,7 +271,27 @@ test('selected and keyboard-cleared items persist after reload before clearing t
     expect(second.getByRole('checkbox')).not.toBeChecked(),
   ]);
   expect(stored).toContain(selectedIds[0].replace(/^feature-/, ''));
+});
+
+test('persisted mouse selection can be globally cleared and remains empty after reload', async ({
+  page,
+}) => {
+  await visit(page);
+  await selectFeature(page, selectedIds[0]);
+  await page.reload();
+  await expect(page.locator('#search')).toBeEnabled();
+  const [stored] = await Promise.all([
+    page.evaluate((key) => localStorage.getItem(key), selectionKey),
+    expect(page.locator(`#${selectedIds[0]} .feature-check`)).toBeChecked(),
+  ]);
+  expect(stored).toContain(selectedIds[0].replace(/^feature-/, ''));
   await page.locator('#clear-selection').click();
+  await Promise.all([
+    expect(page.locator('.feature-check:checked')).toHaveCount(0),
+    expect(page.locator('#export-selected')).toBeDisabled(),
+  ]);
+  await page.reload();
+  await expect(page.locator('#search')).toBeEnabled();
   await Promise.all([
     expect(page.locator('.feature-check:checked')).toHaveCount(0),
     expect(page.locator('#export-selected')).toBeDisabled(),
