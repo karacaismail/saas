@@ -26,7 +26,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        browser: [chromium, firefox, webkit]
+        browser: [chromium, webkit]
         shard: [1, 2, 3]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -36,17 +36,13 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
-      - run: npx playwright install --with-deps chromium firefox webkit
+      - run: npx playwright install --with-deps chromium webkit
       - name: Verify browser shard
         env:
           ATLAS_SHARD: ${{ matrix.shard }}
           ATLAS_BROWSER: ${{ matrix.browser }}
         run: |
-          atlas_browser_workers=3
-          if [ "$ATLAS_BROWSER" = "firefox" ]; then
-            atlas_browser_workers=1
-          fi
-          PLAYWRIGHT_HTML_REPORT="playwright-report/$ATLAS_BROWSER" npm run test:browser -- --project="$ATLAS_BROWSER" --workers="$atlas_browser_workers" --shard="$ATLAS_SHARD/3" --output="test-results/$ATLAS_BROWSER"
+          PLAYWRIGHT_HTML_REPORT="playwright-report/$ATLAS_BROWSER" npm run test:browser -- --project="$ATLAS_BROWSER" --workers=3 --shard="$ATLAS_SHARD/3" --output="test-results/$ATLAS_BROWSER"
           if [ "$ATLAS_BROWSER" = "chromium" ] && [ "$ATLAS_SHARD" = "1" ]; then
             PLAYWRIGHT_HTML_REPORT=playwright-report/input npm run test:browser -- --project=chromium-touch --project=webkit-touch --project=chromium-hybrid --workers=1 --output=test-results/input
           fi

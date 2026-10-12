@@ -19,6 +19,8 @@ assert.equal(
 );
 assert.match(workflow, /^  verify:\n    needs: source\n/m);
 assert.match(workflow, /^    needs: \[source, verify\]$/m);
+assert.match(workflow, /browser: \[chromium, webkit\]/);
+assert.doesNotMatch(workflow, /\bfirefox\b/);
 assert.match(
   workflow,
   /--project=chromium-touch --project=webkit-touch --project=chromium-hybrid --workers=1 --output=test-results\/input/,

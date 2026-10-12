@@ -1,12 +1,11 @@
 {
   "version": 1,
   "baselineCommit": "bbda567bc46c264801ac5b202f0d6fcf81ee7526",
-  "rationale": "The new project workspace adds four Node integrity/ownership/export checks and three browser journeys. Existing coverage, matrix and run controls are retained; no per-task test expansion.",
+  "rationale": "2026-10-12 explicit user decision: Firefox is outside this project’s required browser/release scope. Chromium, WebKit and the three existing touch/hybrid journeys remain; all run controls and Node coverage are unchanged.",
   "nodeChecksMax": 79,
-  "browserCasesMax": 723,
+  "browserCasesMax": 483,
   "projects": {
     "chromium": 240,
-    "firefox": 240,
     "webkit": 240,
     "chromium-touch": 1,
     "webkit-touch": 1,

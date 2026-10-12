@@ -35,7 +35,7 @@ Kümeler, başlıklar, maddeler ve tüm değerlendirmeler `data/clusters/<id>.js
 Yerelde önce değişen davranışın hedefli regresyonlarını çalıştırın; nihai kaynak hazır olduğunda tam `npm run check` bir kez çalışır. Tam tarayıcı matrisi varsayılan olarak CI'dadır; aşağıdaki komut gerekçeli yerel tam koşu için kullanılabilir. `npm run test:policy`, testleri yürütmeden koleksiyon ve yapılandırma sınırlarını denetler; `npm run check` bunu otomatik çağırır. Risk seçimi, tekrar gerekçesi ve doğrudan CLI kullanımının sınırları [test politikasında](docs/test-policy.md) açıklanır.
 
 ```sh
-npx playwright install chromium firefox webkit
+npx playwright install chromium webkit
 npm run test:browser
 ```
 

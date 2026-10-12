@@ -1,5 +1,9 @@
 # Doğrulama kaydı
 
+## Güncel tarayıcı kapsamı — 2026-10-12
+
+Kullanıcının açık “Firefox’a gerek yok” kararıyla zorunlu yayın matrisi Chromium ve WebKit olarak güncellendi. Üç shard ile altı verify işi, üç mevcut dokunma/hibrit yolculuğuyla toplam beş Playwright projesi ve 483 koşu üst sınırı vardır. Node sınırı79, timeout45s, expect6s, retry0, repeatEach1, trace ve source→verify→deploy kapıları korunur. Bu bölüm güncel kapsamı belirtir; aşağıdaki Firefox ve üç motor sonuçları önceki teslimlere ait tarihsel kanıtlardır. Yeni CI/yayın sonucu tamamlandığında ayrıca doğrulanır.
+
 ## 2026-10-12 — Paralel geliştirme çalışma alanı
 
 Bu teslim `/` ana sayfasını görev odaklı bir proje çalışma alanına dönüştürür. Eski atlas `/atlas/` altında, önceki20 kanonik JSON dosyası byte düzeyinde aynı kalır. 387 gereksinim,109 karar,63 katalog girdisi ve33 mimari birim korunur. Yeni yedi JSON kaynağında248 mikro küme ve994 taslak görev tanımlıdır. Bütün görevlerde `baseCommit: null` korunur; hedef SaaS deposu, sürümler ve sözleşmeler henüz dondurulmamıştır. Bu teslim çalışan SaaS, gerçek worktree izolasyonu veya sıfır merge conflict kanıtı değildir.
