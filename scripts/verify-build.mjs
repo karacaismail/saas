@@ -144,6 +144,14 @@ const expected = [
       (name) => `dist/plan/tasks/${routeId(task.id)}/${name}`,
     ),
   ),
+  'dist/reuse/index.html',
+  'dist/reuse/reuse-plan.json',
+  'dist/reuse/reuse-plan.md',
+  ...project.meta.reusePlan.tasks.flatMap((task) =>
+    ['index.html', 'task.json', 'task.md'].map(
+      (name) => `dist/reuse/tasks/${routeId(task.id)}/${name}`,
+    ),
+  ),
   ...assetPaths.map((path) => `dist/${path}`),
   ...[...contentPaths, ...projectPaths].map((path) => `dist/${path}`),
   ...clusterRoutes.map((path) => `dist/${path}`),
@@ -301,30 +309,34 @@ async function verifyProjectPage(path, route, taskId) {
   routeSizes.push({ path, route, ...size });
 }
 await verifyProjectPage('index.html', 'home');
-for (const taskId of [
-  undefined,
-  ...project.meta.currentPlan.tasks.map((task) => task.id),
-]) {
-  const directory = taskId ? `plan/tasks/${routeId(taskId)}` : 'plan';
-  const packet = createCurrentPlanPacket(project, taskId);
-  const stem = taskId ? 'task' : 'current-plan';
-  assert.deepEqual(
-    JSON.parse(await readFile(`dist/${directory}/${stem}.json`, 'utf8')),
-    packet,
-  );
-  assert.equal(
-    await readFile(`dist/${directory}/${stem}.md`, 'utf8'),
-    serializeCurrentPlanMarkdown(packet),
-  );
-  assert.equal(
-    await readFile(`dist/${directory}/index.html`, 'utf8'),
-    renderCurrentPlanPage(project, taskId),
-  );
-  await verifyProjectPage(
-    `${directory}/index.html`,
-    taskId ? 'plan-task' : 'plan',
-  );
-}
+for (const [planKey, slug, planStem] of [
+  ['currentPlan', 'plan', 'current-plan'],
+  ['reusePlan', 'reuse', 'reuse-plan'],
+])
+  for (const taskId of [
+    undefined,
+    ...project.meta[planKey].tasks.map((task) => task.id),
+  ]) {
+    const directory = taskId ? `${slug}/tasks/${routeId(taskId)}` : slug;
+    const packet = createCurrentPlanPacket(project, taskId, planKey);
+    const stem = taskId ? 'task' : planStem;
+    assert.deepEqual(
+      JSON.parse(await readFile(`dist/${directory}/${stem}.json`, 'utf8')),
+      packet,
+    );
+    assert.equal(
+      await readFile(`dist/${directory}/${stem}.md`, 'utf8'),
+      serializeCurrentPlanMarkdown(packet),
+    );
+    assert.equal(
+      await readFile(`dist/${directory}/index.html`, 'utf8'),
+      renderCurrentPlanPage(project, taskId, planKey),
+    );
+    await verifyProjectPage(
+      `${directory}/index.html`,
+      taskId ? `${slug}-task` : slug,
+    );
+  }
 for (const path of clusterRoutes) await verifyProjectPage(path, 'cluster');
 for (const [index, task] of project.tasks.entries()) {
   const packet = createTaskPacket(project, task.id);

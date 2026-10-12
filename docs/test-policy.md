@@ -4,7 +4,9 @@ Amaç hata ve veri kaybını önlemek; test sayısını büyütmek bir başarı 
 
 ## Güncel zorunlu matris — 2026-10-12
 
-Kullanıcının açık “Firefox’a gerek yok” kararıyla Firefox bu projede zorunlu test ve yayın kapsamından çıkarılmıştır. Bu karar ürün kapsamını daraltır; kalan davranış kontrollerini zayıflatmaz. Aktif matris Chromium/WebKit × 3 shard = 6 verify işi ve üç mevcut dokunma/hibrit projesiyle toplam 5 Playwright projesidir. Node üst sınırı 79, temel motor başına 240 ve toplam 240 × 2 + 3 = 483 koşu üst sınırıdır; bunlar hedef değildir.
+Kullanıcının açık “Firefox’a gerek yok” kararıyla Firefox bu projede zorunlu test ve yayın kapsamından çıkarılmıştır. Bu karar dokümantasyon sitesinin tarayıcı kapsamını daraltır; kalan davranış kontrollerini zayıflatmaz. Aktif matris Chromium/WebKit × 3 shard = 6 verify işi ve üç mevcut dokunma/hibrit projesiyle toplam 5 Playwright projesidir. Node üst sınırı 79, temel motor başına 240 ve toplam 240 × 2 + 3 = 483 koşu üst sınırıdır; bunlar hedef değildir.
+
+Bu karar yalnız bu GitHub Pages dokümantasyonunun test/yayın kapsamıdır; gelecekteki SaaS ürününün tarayıcı desteğini veya TDD kabul koşullarını değiştirmez. Yeniden kullanım mimarisi eklenirken mevcut proje kontrolleri genişletilir; yeni senaryo, tarayıcı veya matris ekseni eklenmez.
 
 Timeout 45s, expect 6s, retry 0, repeatEach 1, trace retain-on-failure, varsayılan worker 3 ve ortak input adımı worker 1 korunur. CI source→verify→deploy kapısı bütün 6 verify işinin başarısını gerektirir. Kurulum komutu `npx playwright install chromium webkit` olur. Aşağıdaki 714/723 koşu ve altı proje sayıları önceki teslimlerin tarihsel kayıtlarıdır.
 

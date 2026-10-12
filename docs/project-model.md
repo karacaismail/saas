@@ -2,6 +2,8 @@
 
 ## Güncel çalışma yöntemi
 
+Yeniden kullanım mimarisinin tek kaynağı `data/project/project.json/reusePlan` olup `/reuse/` altında yayımlanır. A–H kararları, kaynak tanımı ile GenUI registry ayrımı ve yalnız üç BLOCKED yakın görev, önceki `currentPlan` ve 994 kayıt korunarak eklenir. Planlar aynı build renderer'ını, JSON/Markdown paket biçimini ve kopyalama akışını kullanır; yeni bir tarayıcı engine'i indirilmez. Gerçek ürün envanteri ve sürüm kanıtı ayrı giriş koşuludur. Ayrıntı ve kalıcı tekrar önleme kuralı `docs/reuse-architecture.md` içindedir.
+
 2026-10-12 TDD yeniden planlaması `data/project/project.json/currentPlan` içinde tek kaynak olarak tutulur ve `/plan/` altında yayımlanır. Yakın10 işin ayrı `/plan/tasks/<id>/` sayfaları, ilk5 ayrıntılı kartı ve kayıpsız JSON/Markdown indirmeleri vardır. Aşağıdaki994 taslak kayıt tarihsel artefakt envanteridir; tek dosya/DocType sınırı tek davranış büyüklüğü kanıtı değildir. Güncel davranış, TDD, geçici sahiplik, erken entegrasyon ve kapanış kuralları yeni uygulama görevlerinin çalışma yöntemini belirler; eski gereksinimler ve kimlikler silinmez.
 
 `projectRevision`, yeni plan dahil bütün metadata'yı kapsar. Aynı plan eski görev paketlerinin `projectContext` alanında da korunur. Yeni plan validator'ı kimlikleri, grup/dependency/source referanslarını, çevrimsiz sırayı, en fazla5 ayrıntılı kartı, kart alanlarını ve bilinmeyen hedefte BLOCKED sınırını denetler. Bu kontroller gerçek worktree yazma kilidi veya ürün TDD/runtime kanıtı değildir. Aktif dosya sahipliği yürütme ortamında ayrıca uygulanmalıdır.

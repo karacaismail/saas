@@ -42,25 +42,36 @@ const atlasHtml = source
   .replace('<!--ATLAS_DATA_ISLAND-->', dataIsland);
 await write('dist/atlas/index.html', atlasHtml);
 await write('dist/index.html', renderProjectHome(project));
-const currentPlan = createCurrentPlanPacket(project);
-await write('dist/plan/index.html', renderCurrentPlanPage(project));
-await write(
-  'dist/plan/current-plan.json',
-  `${JSON.stringify(currentPlan, null, 2)}\n`,
-);
-await write(
-  'dist/plan/current-plan.md',
-  serializeCurrentPlanMarkdown(currentPlan),
-);
-for (const task of project.meta.currentPlan.tasks) {
-  const directory = `dist/plan/tasks/${routeId(task.id)}`;
-  const packet = createCurrentPlanPacket(project, task.id);
+for (const [planKey, slug, stem] of [
+  ['currentPlan', 'plan', 'current-plan'],
+  ['reusePlan', 'reuse', 'reuse-plan'],
+]) {
+  const packet = createCurrentPlanPacket(project, undefined, planKey);
   await write(
-    `${directory}/index.html`,
-    renderCurrentPlanPage(project, task.id),
+    `dist/${slug}/index.html`,
+    renderCurrentPlanPage(project, undefined, planKey),
   );
-  await write(`${directory}/task.json`, `${JSON.stringify(packet, null, 2)}\n`);
-  await write(`${directory}/task.md`, serializeCurrentPlanMarkdown(packet));
+  await write(
+    `dist/${slug}/${stem}.json`,
+    `${JSON.stringify(packet, null, 2)}\n`,
+  );
+  await write(`dist/${slug}/${stem}.md`, serializeCurrentPlanMarkdown(packet));
+  for (const task of project.meta[planKey].tasks) {
+    const directory = `dist/${slug}/tasks/${routeId(task.id)}`;
+    const taskPacket = createCurrentPlanPacket(project, task.id, planKey);
+    await write(
+      `${directory}/index.html`,
+      renderCurrentPlanPage(project, task.id, planKey),
+    );
+    await write(
+      `${directory}/task.json`,
+      `${JSON.stringify(taskPacket, null, 2)}\n`,
+    );
+    await write(
+      `${directory}/task.md`,
+      serializeCurrentPlanMarkdown(taskPacket),
+    );
+  }
 }
 
 // Project templates are build-time code, never a browser dependency. Copy only

@@ -534,7 +534,7 @@ test('task selection exports across filters, rejects partial bundles and keeps s
     new URL('data/project/project.json', homeUrl(baseURL)).href,
   );
   expect(sourceResponse.ok()).toBe(true);
-  const { currentPlan } = await sourceResponse.json();
+  const { currentPlan, reusePlan } = await sourceResponse.json();
   expect(currentPlan.tasks.map((task) => task.id)).toEqual(
     Array.from(
       { length: 10 },
@@ -694,5 +694,106 @@ test('task selection exports across filters, rejects partial bundles and keeps s
     thin: 0,
     font: 'Outfit',
   });
+  await visit(page, baseURL);
+  await page.locator('a[data-reuse-plan]').click();
+  await expect(page).toHaveURL(new URL('reuse/', homeUrl(baseURL)).href);
+  await expect(page.locator('h1')).toHaveText(reusePlan.title);
+  expect(
+    await page.locator('main > section[id] > h2').allTextContents(),
+  ).toEqual(reusePlan.sections.map((section) => section.title));
+  const reusePacket = JSON.parse(
+    await downloadText(page, page.locator('a[href="./reuse-plan.json"]')),
+  );
+  const reuseMarkdown = await downloadText(
+    page,
+    page.locator('a[href="./reuse-plan.md"]'),
+  );
+  expect(reusePacket.plan).toEqual(reusePlan);
+  expect(JSON.parse(reuseMarkdown.match(embeddedPacketPattern)[1])).toEqual(
+    reusePacket,
+  );
+  expect(reusePlan.tasks.map((task) => task.status)).toEqual([
+    'BLOCKED',
+    'BLOCKED',
+    'BLOCKED',
+  ]);
+  for (const [width, height] of [
+    [320, 568],
+    [360, 640],
+    [375, 667],
+    [390, 844],
+    [568, 320],
+    [768, 1024],
+    [1280, 900],
+  ]) {
+    await page.setViewportSize({ width, height });
+    expect(await geometry(page)).toEqual({
+      overflow: false,
+      small: 0,
+      thin: 0,
+      font: 'Outfit',
+    });
+  }
+  await page.setViewportSize({ width: 320, height: 568 });
+  await page.evaluate(() => {
+    document.documentElement.style.fontSize = '200%';
+  });
+  expect(await geometry(page)).toEqual({
+    overflow: false,
+    small: 0,
+    thin: 0,
+    font: 'Outfit',
+  });
+  await page.evaluate(() => {
+    document.documentElement.style.removeProperty('font-size');
+    window.scrollTo(0, 0);
+  });
+  await page.screenshot({ path: testInfo.outputPath('reuse-320.png') });
+  await staticPage.goto(new URL('reuse/', homeUrl(baseURL)).href);
+  await expect(staticPage.locator('[data-plan-task]')).toHaveCount(3);
+  const reuseCards = staticPage.locator('details[data-plan-card]');
+  expect(
+    await reuseCards.evaluateAll((cards) => cards.every((card) => !card.open)),
+  ).toBe(true);
+  await reuseCards.nth(0).locator('summary').focus();
+  await staticPage.keyboard.press('Enter');
+  await reuseCards.nth(1).locator('summary').focus();
+  await staticPage.keyboard.press('Enter');
+  await expect(staticPage.locator('details[data-plan-card][open]')).toHaveCount(
+    1,
+  );
+  await staticPage.locator('[data-plan-task="r-02"] a').click();
+  const reuseTaskMarkdown = await downloadText(
+    staticPage,
+    staticPage.locator('a[href="./task.md"]'),
+  );
+  expect(
+    JSON.parse(reuseTaskMarkdown.match(embeddedPacketPattern)[1]).planId,
+  ).toBe(reusePlan.id);
+  await page.goto(staticPage.url());
+  await expect(page.locator('[data-copy-task]')).toBeEnabled();
+  await page.locator('[data-copy-task]').click();
+  await expect
+    .poll(() => page.evaluate(() => window.__copiedPlan))
+    .toBe(reuseTaskMarkdown);
+  expect(await geometry(staticPage)).toEqual({
+    overflow: false,
+    small: 0,
+    thin: 0,
+    font: 'Outfit',
+  });
+  await page.goto(new URL('reuse/tasks/r-01/', homeUrl(baseURL)).href);
+  await expect(page.locator('h1')).toHaveText(reusePlan.tasks[1].title);
+  await page.screenshot({ path: testInfo.outputPath('reuse-task-320.png') });
+  await page.evaluate(() => {
+    document.documentElement.style.fontSize = '200%';
+  });
+  expect(await geometry(page)).toEqual({
+    overflow: false,
+    small: 0,
+    thin: 0,
+    font: 'Outfit',
+  });
+  await page.screenshot({ path: testInfo.outputPath('reuse-task-200.png') });
   await nojs.close();
 });

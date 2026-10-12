@@ -18,13 +18,51 @@ test('project presentation preserves all twenty canonical source documents and a
   assert.equal(Object.keys(fixture.files).length, 20);
   for (const [path, digest] of Object.entries(fixture.files))
     assert.equal(hash(await readFile(path)), digest, path);
+  // Preserve the published 92369b4 task registry while adding the reuse record.
+  for (const [name, digest] of Object.entries({
+    backend: 'fca514ada6244a845d53357ce1cd54642c770b2df6052337195c9dbeb5f54297',
+    frontend:
+      'feb946bec8f92c708bfe9b2dda209b0831417abb35927382571879600cf08b55',
+    adapters:
+      'c452c441c90fcafc9523ca5e2ee05d49b207c3a135b298eedb14910fb5875942',
+    platform:
+      'c0ce0c3a503bef4b72c5c19a17540f9d1db2108ae5e351c46c24df3fec884cb6',
+    operations:
+      '7772df96f206f1053eead889a4a349818feaf65524299a56169283a00bbc3818',
+    traceability:
+      '408b23776cf43059c09f2439c03be50e8553d029604fd002a4dc43a58a7b0d66',
+  }))
+    assert.equal(
+      hash(await readFile(`data/project/${name}.json`)),
+      digest,
+      name,
+    );
   const project = await load();
+  assert.ok(
+    project.meta.reusePlan,
+    'Reusable product-family architecture must be published',
+  );
+  const { reusePlan, ...previousMeta } = project.meta;
+  assert.equal(
+    hash(JSON.stringify(previousMeta)),
+    '0aff5b8fac3c8dff9906f9bacc7e7fee0e17ebde579a0423439981d07b4c55b8',
+    'Previous project metadata and TDD plan remain unchanged',
+  );
+  assert.equal(reusePlan.sections.length, 8);
+  assert.deepEqual(
+    reusePlan.tasks.map((task) => task.id),
+    ['r-00', 'r-01', 'r-02'],
+  );
   assert.equal(project.atlas.review.expectedItems, 387);
   assert.equal(project.atlas.review.decisions.length, 109);
   const { renderProjectHome } = await import('../assets/project-templates.js');
   assert.ok(
     renderProjectHome(project).includes('href="./plan/"'),
     'The latest TDD replanning must be reachable from the published workspace',
+  );
+  assert.ok(
+    renderProjectHome(project).includes('href="./reuse/"'),
+    'Reuse architecture must be reachable from the workspace',
   );
   assert.equal(project.meta.currentPlan.tasks.length, 10);
   assert.equal(
@@ -40,6 +78,9 @@ test('project presentation preserves all twenty canonical source documents and a
   const changedPlan = structuredClone(project);
   changedPlan.meta.currentPlan.summary += ' changed';
   assert.notEqual(projectRevision(changedPlan), project.revision);
+  const changedReuse = structuredClone(project);
+  changedReuse.meta.reusePlan.summary += ' changed';
+  assert.notEqual(projectRevision(changedReuse), project.revision);
 });
 
 test('every requirement and component family has bounded task ownership and a truthful execution baseline', async () => {
@@ -110,6 +151,26 @@ test('project validation rejects overlapping writers, dependency cycles, escapin
     (q) => {
       q.meta.currentPlan.tasks[2].dependsOn.push('missing-plan-task');
     },
+    (q) => {
+      q.meta.reusePlan.tasks[0].status = 'READY';
+    },
+    (q) => {
+      q.meta.reusePlan.tasks[2].card.doctypeCount = 2;
+    },
+    (q) => {
+      q.meta.reusePlan.tasks[1].sourceTaskIds.push('unknown-source');
+    },
+    (q) => {
+      q.meta.reusePlan.tasks[0].dependsOn.push('r-02');
+    },
+    (q) => {
+      q.meta.reusePlan.sections[1].entries[0].fields[0].value =
+        '<script>bad()</script>';
+    },
+    (q) => {
+      q.meta.reusePlan.sections[1].entries[0].fields[0].url =
+        'http://example.test';
+    },
   ]) {
     const invalid = structuredClone(p);
     mutate(invalid);
@@ -164,17 +225,32 @@ test('task JSON and Markdown carry the full source requirement and dependency co
     renderCurrentPlanPage,
     serializeCurrentPlanMarkdown,
   } = await import('../assets/project-templates.js');
-  for (const taskId of [
-    undefined,
-    ...p.meta.currentPlan.tasks.map((task) => task.id),
-  ]) {
-    const packet = createCurrentPlanPacket(p, taskId);
-    const md = serializeCurrentPlanMarkdown(packet);
-    const embedded = md.match(
-      /<!-- saas-current-plan:start -->\n````json\n([\s\S]*?)\n````\n<!-- saas-current-plan:end -->/,
-    );
-    assert.ok(embedded, taskId);
-    assert.deepEqual(JSON.parse(embedded[1]), packet);
-    assert.ok(renderCurrentPlanPage(p, taskId).includes('data-current-plan'));
-  }
+  for (const planKey of ['currentPlan', 'reusePlan'])
+    for (const taskId of [
+      undefined,
+      ...p.meta[planKey].tasks.map((task) => task.id),
+    ]) {
+      const packet = createCurrentPlanPacket(p, taskId, planKey);
+      const md = serializeCurrentPlanMarkdown(packet);
+      const embedded = md.match(
+        /<!-- saas-current-plan:start -->\n````json\n([\s\S]*?)\n````\n<!-- saas-current-plan:end -->/,
+      );
+      assert.ok(embedded, taskId);
+      assert.deepEqual(JSON.parse(embedded[1]), packet);
+      assert.ok(
+        renderCurrentPlanPage(p, taskId, planKey).includes('data-current-plan'),
+      );
+      if (planKey === 'reusePlan') {
+        assert.deepEqual(
+          taskId ? packet.rules : packet.plan.sections,
+          p.meta.reusePlan.sections,
+        );
+        if (!taskId)
+          for (const entry of p.meta.reusePlan.sections.flatMap(
+            (section) => section.entries ?? [],
+          )) {
+            assert.ok(md.includes(entry.title));
+          }
+      }
+    }
 });

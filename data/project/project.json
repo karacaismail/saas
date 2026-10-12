@@ -943,5 +943,509 @@
         "DONE için kısa dalın trunk merge commit’i ve gerekli gerçek entegrasyon kanıtı şart; MERGE_READY veya dokümantasyon yayını ürün tamamlanması değildir."
       ]
     }
+  },
+  "reusePlan": {
+    "id": "reuse-architecture-2026-10-12",
+    "updatedAt": "2026-10-12",
+    "title": "Tanım ve ortak kodla yeniden kullanım mimarisi",
+    "summary": "Yeni uygulama, kaynak ve görünüm tanımları ile gerçek iş kuralları ekler; aynı form, liste, detay ve veri erişimi mekanizmalarını kopyalamaz. İlk iki kullanımda küçük ortak yeteneği çıkar, üçüncü kullanımda sınırını kanıtla.",
+    "notice": "Ek mimari planıdır; currentPlan ve 994 taslak görev değişmez. Bu repo statik dokümantasyondur: hedef ürün kodu, kurulu Frappe uygulamaları, sürümleri ve gerçek DocType eşlemeleri bilinmiyor. Üç yakın iş BLOCKED; çalışan ResourceDefinition API’si, ortak form motoru veya üç tüketici kabulü teslim edilmedi.",
+    "ui": {
+      "nav": "Yeniden kullanım mimarisi",
+      "roadmapTitle": "Üç odaklı yeniden kullanım grubu",
+      "mappingTitle": "Tarihsel görevlerle ilişki",
+      "tasksTitle": "Sıradaki üç mikro görev",
+      "cardsTitle": "Üç sınırlı görev kartı",
+      "auditTitle": "Uyumluluk ve kanıt denetimi",
+      "downloadJson": "Planı JSON indir",
+      "downloadMarkdown": "Planı Markdown indir",
+      "taskLink": "Görev kartını incele",
+      "backToPlan": "Yeniden kullanım planına dön",
+      "statusLabel": "Görev durumu",
+      "dependencyLabel": "Bağımlılıklar",
+      "targetLabel": "Hedef",
+      "typeLabel": "İş türü",
+      "groupLabel": "Üst grup",
+      "firstTaskLabel": "İlk görev",
+      "oldTaskLabel": "Tarihsel görev"
+    },
+    "cardLabels": {
+      "purpose": "Amaç",
+      "type": "İş türü",
+      "group": "Üst grup",
+      "dependencies": "Bağımlılıklar",
+      "target": "Hedef repo ve yollar",
+      "doctypeCount": "Değişen DocType sayısı",
+      "scope": "Tek davranış kapsamı",
+      "excludes": "Kapsam dışı",
+      "acceptance": "Kabul ölçütleri",
+      "risk": "Risk ve test katmanı",
+      "red": "RED planı",
+      "green": "GREEN planı",
+      "refactor": "Sınırlı REFACTOR",
+      "affected": "Üretim, test ve fixture sahipliği",
+      "verification": "Doğrulama komutu ve durumu",
+      "merge": "Birleşme kanıtı",
+      "compatibility": "Uyumluluk ve sözleşme",
+      "evidence": "Kanıt",
+      "stop": "Durma ve devir koşulu"
+    },
+    "sections": [
+      {
+        "id": "reuse-a",
+        "title": "A — Erişilebilir envanter ve bilinmeyenler",
+        "paragraphs": [
+          "Mevcut data/project/project.json ve katman JSON’ları ürün planıdır. assets/project-templates.js statik sayfa/JSON/Markdown, project-app.js seçim/kopyalama, project.css görünüm sağlar; bu dokümantasyon mekanizmaları yeniden kullanılır, React/Frappe ürünü değildir.",
+          "Ürün reposu, kurulu apps/sürümler, etkin DocType/controller/hooks ve ortak ürün kodu bilinmiyor. R-00, T-00 baseline’ını kullanır; dosya adından çalışan yetenek çıkarmaz, başka repo/servis taramaz."
+        ],
+        "items": [
+          "387 gereksinim,109 karar,63 katalog,33 birim,248 küme,994 görev ve20 kanonik kaynak korunur.",
+          "Envanter: yetenek, kaynak/paket, sürüm, sözleşme, iki kullanım, yetki ve kanıt/bilinmiyor. Kullanıcı değişiklikleri korunur."
+        ]
+      },
+      {
+        "id": "reuse-b",
+        "title": "B — Yeniden kullanım matrisi ve kanıt düzeyi",
+        "paragraphs": [
+          "A: Frappe veya doğrulanmış kurulu uygulamayı kullan. B: mevcut ortak kodu kullan. C: yalnız tanım/yapılandırma ekle. D: küçük adapter ile uyarla. E: kanıtlanan ortak eksiği bir kez geliştir. F: farklı iş davranışını kendi modülünde tut. Ürün envanteri tamamlanmadan B/E kararı kesinleştirilmez.",
+          "Frappe çekirdeği ile ERPNext, Frappe CRM ve HRMS ayrı uygulamalardır; kurulu oldukları bilinmiyor. Desk ekranları bağımsız headless arayüzde hazır sayılmaz. Resmî belge yeteneğin referansıdır; hedef kurulumda çalışma kanıtı değildir."
+        ],
+        "items": [
+          "“Yeniden yazmak daha temiz” gerekçe değildir. Uygun mevcut kod aşamalı kullanılır; ortak testler uygulama başına kopyalanmaz."
+        ],
+        "entries": [
+          {
+            "id": "reuse-native",
+            "title": "A — Model ve standart kayıt yetenekleri",
+            "fields": [
+              {
+                "label": "Yetenek",
+                "value": "DocType/Document, CRUD, yaşam döngüsü, yetki, workflow, dosya; atama/bildirim/zamanlama sürüm kapısında."
+              },
+              {
+                "label": "Kanıt ve karar",
+                "value": "Genel resmî referans var; hedef kurulum bilinmiyor. İkinci ORM/CRUD/izin motoru kurma."
+              },
+              {
+                "label": "Document API",
+                "value": "Etkin metadata ve kayıt yaşam döngüsü; hedef sürüm doğrulanacak.",
+                "url": "https://docs.frappe.io/framework/user/en/api/document"
+              },
+              {
+                "label": "REST API",
+                "value": "Standart kayıt ve izinli yöntemler; uzaktan API yolu sürümde doğrulanacak.",
+                "url": "https://docs.frappe.io/framework/user/en/api/rest"
+              },
+              {
+                "label": "Hooks",
+                "value": "Desteklenen genişletme hedef sürümde seçilir; v16+ hook’u eski sürüme dayatma.",
+                "url": "https://docs.frappe.io/framework/user/en/python-api/hooks"
+              }
+            ]
+          },
+          {
+            "id": "reuse-existing",
+            "title": "B — Ürünün ortak frontend kodu",
+            "fields": [
+              {
+                "label": "Yetenek",
+                "value": "Alan/form, tablo/mobil liste, detay, filtre/sıralama/sayfalama, ilişki, durumlar, Query/Router/shell."
+              },
+              {
+                "label": "Kanıt ve karar",
+                "value": "Katalog/eski görev kapsamdır; çalışan kod kanıtı yok. R-00 bulursa ortak paketi tüket."
+              }
+            ]
+          },
+          {
+            "id": "reuse-config",
+            "title": "C — Kaynak ve sunum tanımları",
+            "fields": [
+              {
+                "label": "Yetenek",
+                "value": "Kaynak, alan/görünüm ve onaylı eylem tanımı."
+              },
+              {
+                "label": "Kanıt ve karar",
+                "value": "ResourceDefinition v1 öneridir; mevcut registry bilinmiyor. Config yeterliyse motor/boş child yazma."
+              }
+            ]
+          },
+          {
+            "id": "reuse-adapter",
+            "title": "D — Sınırda küçük uyarlama",
+            "fields": [
+              {
+                "label": "Yetenek",
+                "value": "Etkin Frappe şemasının izinli projection’ı ve provider uyarlaması."
+              },
+              {
+                "label": "Kanıt ve karar",
+                "value": "permissioned-metadata/ui-provider-metadata plan bağlamıdır. Genel endpoint veya tam servis bu üç işte yok."
+              }
+            ]
+          },
+          {
+            "id": "reuse-gap",
+            "title": "E — Kanıtlanan ortak eksik",
+            "fields": [
+              {
+                "label": "Yetenek",
+                "value": "Yokluğu kanıtlanırsa tek controlled TextField; form/liste/detay daha sonra ayrı görevler."
+              },
+              {
+                "label": "Kanıt ve karar",
+                "value": "İki gerçek kullanım gerekir. Mevcut alan varsa B/C/D seç; yeni engine yazma."
+              }
+            ]
+          },
+          {
+            "id": "reuse-domain",
+            "title": "F — İş alanına özgü eylem",
+            "fields": [
+              {
+                "label": "Yetenek",
+                "value": "Aday dönüştürme, işten ayrılış, denetim sonuçlandırma."
+              },
+              {
+                "label": "Kanıt ve karar",
+                "value": "Kavramsal örnekler; kurulu app’i doğrula. Eylem kendi sunucu modülündedir, genel status yazımı değildir."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "reuse-c",
+        "title": "C — En küçük ortak mimari",
+        "paragraphs": [
+          "Tanımlar → sürümlü sözleşme → ortak çalışma mekanizması → modüle özgü eylem sırası korunur. Frontend’de izinli field renderer, ortak form/liste/detay, veri adapterı ve TanStack Query/Router bağları ile ortak shell kullanılır; sunum bileşeni doğrudan Frappe çağırmaz. Çekirdekte CRM/HRMS/İBYS koşulları büyümez.",
+          "Backend mevcut Frappe Document/controller, izin ve yaşam döngüsünü kullanır; güvenli schema projection, tek işli ortak fonksiyon veya gerekli desteklenen hook ile genişler. Core başka iş modülünü import etmez; modüller core’u kullanır. Başkasının çekirdeğini değiştirme, ikinci ORM ve her DocType için app/sınıf/CRUD servisi kurma.",
+          "Dağıtım hedefi aynı ürün reposunda ortak paketler ve uygun ortak Frappe app içindeki sınırları belirli modüllerdir. Ayrı ürün repolarına geçilirse sürümlü paket tüketimi ayrıca kontrol edilir; kaynak kopyalama, bağımsız fork veya microservice zorunluluğu doğmaz."
+        ],
+        "items": [
+          "Ant Design/Pro, Ant Design X/X Cards, TanStack Router/Query, Keycloak headless hedefi, Tauri 2 ve WXT/MV3 korunur. AG Grid/TanStack Table seçimi OPEN; ikisi birlikte eklenmez. Capacitor kullanılmaz. HarmonyOS gerçek sürüm/ortam deneyi bekler.",
+          "Outfit, en az 1rem/400, 320 CSS px ve yeteneklere uyarlama ortaktır. Master → child → tek page sırası davranışa göre uygulanır; yalnız config yeterliyse boş child yaratılmaz."
+        ]
+      },
+      {
+        "id": "reuse-d",
+        "title": "D — Aynı sözleşmeyle üç kavramsal kaynak",
+        "paragraphs": [
+          "ResourceDefinition v1 taslaktır, API değildir: kaynak kimliği/sahip modül/gerçek eşleme; contract/source/presentation sürümleri; read/write allowlist; form/liste/detay; arama/filtre/sıralama; standart/özel eylem; ilişki; offline; izinli renderer ve sunucu capability referansı taşır.",
+          "Alanlar semantik örnektir. Gerçek fieldname/type/DocType R-00’da doğrulanır; sourceVersion etkin şemaya, presentationVersion ayrı sunuma aittir."
+        ],
+        "items": [],
+        "entries": [
+          {
+            "id": "reuse-crm-lead",
+            "title": "CRM satış adayı — crm.lead",
+            "fields": [
+              {
+                "label": "Sahip ve kaynak",
+                "value": "CRM; Frappe CRM/ERPNext/özel app eşlemesi bilinmiyor. Lead adı varsayılmaz."
+              },
+              {
+                "label": "Alan/görünüm taslağı",
+                "value": [
+                  "İzinli ad/aşama/sorumlu; gerçek fieldname ve read/write ayrımı doğrulanacak.",
+                  "Ortak form, mobil liste/tablo ve detay; özel engine yok."
+                ]
+              },
+              {
+                "label": "Eylem/politika",
+                "value": "Aday dönüştürme yetkili sunucuda; ilişki araması ve yerel taslak/çatışma politikası kaynak bazında."
+              }
+            ]
+          },
+          {
+            "id": "reuse-hrms-personnel",
+            "title": "HRMS personel — hrms.personnel",
+            "fields": [
+              {
+                "label": "Sahip ve kaynak",
+                "value": "HRMS; kurulu app ve personel DocType eşlemesi bilinmiyor."
+              },
+              {
+                "label": "Alan/görünüm taslağı",
+                "value": [
+                  "İzinli ad/birim/görev; hassas alan otomatik aktarılmaz.",
+                  "Aynı form/liste/detay, farklı alan/ilişki/sunum tanımları."
+                ]
+              },
+              {
+                "label": "Eylem/politika",
+                "value": "İşe giriş/ayrılış yetkili modülde; ortak offline engine hassas veriyi cihazda saklama izni değildir."
+              }
+            ]
+          },
+          {
+            "id": "reuse-ibys-inspection",
+            "title": "İBYS denetimi — ibys.inspection",
+            "fields": [
+              {
+                "label": "Sahip ve kaynak",
+                "value": "İBYS; gerçek denetim DocType ve child ilişkileri bilinmiyor."
+              },
+              {
+                "label": "Alan/görünüm taslağı",
+                "value": [
+                  "İzinli ad/tarih/durum; checklist child ise parent üzerinden kaydedilir.",
+                  "İlan edilmiş yeteneklerde aynı form/liste/detay ve yeni tanım."
+                ]
+              },
+              {
+                "label": "Eylem/politika",
+                "value": "Sonuçlandırma sunucu invariantını korur. Yeni genel yetenek ayrı bounded iştir, config’e gizlenmez."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "reuse-e",
+        "title": "E — Yeni veri kümesi ekleme tarifi",
+        "paragraphs": [
+          "1. İzinli ürün baseline’ından gerçek kaynak, sahip modül, kurulu app ve sürümü bul; A–F kararını kaydet. 2. Etkin DocType şemasını Custom Field ve Property Setter etkileriyle doğrula; ham repo JSON’unu çalışan şema sayma. Sunucu Python fonksiyonu kendiliğinden uzaktan API değildir.",
+          "3. Önce mevcut izinli metadata yolunu yeniden kullan; yoksa ayrı onaylı adapter ihtiyacını planla. Yalnız allowlist alan/özelliklerini ResourceDefinition’a yansıt, bilinmeyen field type’ta açık uyumsuzluk üret. sourceVersion ile presentationVersion’ı ayrı sürümle; cache yenileme ve eski tüketici uyumluluğunu tanımla.",
+          "4. Kaynak/görünüm/eylem tanımlarını ortak mekanizmaya bağla. Gerçekten yeni iş davranışı kendi modülünde kalır; form/liste/detay/veri erişimi kodunu kopyalama. Tanımlar keyfî kod çalıştırmaz; renderer/action yalnız onaylı kimliklerle çözülür."
+        ],
+        "items": [
+          "İstemcinin keyfî DocType adıyla her kaynağa eriştiği genel endpoint kurulmaz; izinli kaynak eşlemesi ve standart Frappe yollarının sunucu yetkisi birlikte korunur.",
+          "Sunucu her istek ve standart Frappe yolu için tenant, kayıt ve alan yetkisini uygular; kaynak registry’de gizlemek veya UI alanını saklamak yetki değildir. Keycloak kimliği sunucu kaynak izninin yerine geçmez.",
+          "Query/veri/metadata cache kimliği tenant + kullanıcı/yetki bağlamı + kaynak + sürüm içerir. Kimlik/tenant değişiminde önceki cache, istek sonucu ve yerel görünüm temizlenir.",
+          "Kısmi güncellemede gönderilmeyen mevcut alan korunur; null/boş/silme ayrı anlamdır. Readonly, hesaplanan ve gizli alan yazı payload’ına eklenmez. Child kayıt parent bağlamıyla kaydedilir; atomik transaction bölünmez.",
+          "İlişki araması, dosya okuma/yazma, bulk ve export aynı yetki sınırını taşır. Yerel saklama, izinli offline eylem ve çatışma çözümü kaynak bazındadır; hassas veriye otomatik yerel kopya yok."
+        ]
+      },
+      {
+        "id": "reuse-f",
+        "title": "F — Üçüncü tüketici kabul kapısı",
+        "paragraphs": [
+          "Önce iki gerçek kaynak aynı sürümlü ortak mekanizmaları kullansın. Sonra İBYS örneğini, önceden desteklendiği ilan edilmiş yetenekler içinde, ortak form/liste/detay/veri erişimi uygulama dosyalarını değiştirmeden ekle. Ortak dosyaların önce/sonra hash’leri ve eklenen tanım/modül/test yolları kanıttır.",
+          "Yeni DocType gerekiyorsa her değişiklik en fazla bir DocType büyüklüğünde ayrı görevdir. Yeni genel yetenek ortaya çıkarsa kapsam açıkça genişletilir ve ayrı ortak yetenek işi yapılır; üçüncü tüketicinin config-only kabulü o sırada sağlanmış sayılmaz."
+        ],
+        "items": [
+          "Ortak contract fixture’ı frontend kontrollü yanıtı ve backend gerçek yanıtını aynı sözleşmeyle doğrular. Gerçek izinli entegrasyon ayrıca gerekir; mock testi yeterli değildir.",
+          "Okuma/yazma, tenant/kullanıcı değişimi, alan yetkisi, ilişki/dosya, bulk/export, gönderilmeyen alan koruması ve child-parent invariantları riskle seçilmiş ortak/per-resource kontrollerle doğrulanır.",
+          "Bu kapsamlı form/liste/detay ve üç tüketici deneyi R-00–R-02’nin çıktısı değildir; sonraki kabul kapısıdır. Yeni form/table/detail/CRUD engine’i, kaynak kopyası veya core’a iş uygulaması koşulu kabul edilmez."
+        ]
+      },
+      {
+        "id": "reuse-g",
+        "title": "G — Aşamalı geçiş ve sıradaki üç iş",
+        "paragraphs": [
+          "R-00 gerçek envanter → R-01 tek güvenli ResourceDefinition v1 projection sözleşmesi → R-02 iki config ile ilk saf TextField. Hazır alan uygun çıkarsa kullan/uyarla.",
+          "T-00 baseline ve T-01 headless Keycloak PoC’si önceki planda kalır; kopyalanmaz. Ürün bağlamı/komutları yok, üç iş BLOCKED; yerel dependsOn yalnız r kimlikleridir."
+        ],
+        "items": [
+          "Kısa trunk, geçici üretim/test/fixture lease’i; uygulamada aynı işte RED/GREEN/REFACTOR, keşfe yapay RED yok.",
+          "Bu üç iş tam form/liste/detay veya üç tüketici kabulü değildir."
+        ]
+      },
+      {
+        "id": "reuse-h",
+        "title": "H — Koddan önce tekrar önleme kuralı",
+        "paragraphs": [
+          "Her yeni işten önce Frappe/kurulu app, ortak paket, config, küçük adapter, ortak eksik veya domain davranışı A–F kararı kanıtla seçilir. Katalog yetenek/sorumluluk/kaynak-paket/sürüm/sözleşme/iki kullanım/kabul bilgisini tek yerde tutar; bu plan kanonik referanstır.",
+          "Ürün core’u domain import etmez. Tanım işi tanımda, ortak mekanizma ortak pakette, özel eylem sahip modülde kalır. Paket düzeltmesi sürümlü bağımlılık ve kontrollü upgrade/uyumluluk/rollback ile tüketicilere ulaşır; üretilen türlerin kaynağı bellidir ve elle ayrışan kopyaya dönüşmez."
+        ],
+        "items": [
+          "En fazla bir değişen DocType, parent/child ayrımı ve atomik iş işlemi korunur. Master-child-page config ile sağlanıyorsa gereksiz child dosyası yok.",
+          "Aynı kök neden için 3, görevde toplam 5 sonuçsuz düzeltmede dur; beklenen ilk RED sayılmaz. Geçen değişmemiş testi tekrarlama, test/fixture/hash/timeout/retry zayıflatma.",
+          "Firefox’un zorunlu kapsamdan çıkarılması yalnız bu GitHub Pages dokümantasyon reposuna aittir; gelecekteki SaaS tarayıcı desteği kararı değildir. Ürün TDD’si ve gerçek entegrasyon kabulü korunur."
+        ]
+      }
+    ],
+    "roadmap": [
+      {
+        "id": "reuse-inventory",
+        "title": "1 — Gerçek envanter ve A–F kararı",
+        "deliverable": "T-00 ürün baseline’ı üzerinde gerçek kaynak ve tekrar kanıtı; mevcut kod/config/adapter önceliği.",
+        "gate": "İzinli ürün kodu ve sürüm kanıtı yoksa ortak kod varlığı veya READY iddiası yok."
+      },
+      {
+        "id": "reuse-contract",
+        "title": "2 — İzinli kaynak sözleşmesi",
+        "deliverable": "ResourceDefinition v1, tek safe projection invariantı ve ortak fixture; source/presentation sürümleri ayrıdır.",
+        "gate": "Server yetkisi ve güvenli alan sınırı kabul edilmeden frontend sözleşmesi yayımlanmış API sayılmaz."
+      },
+      {
+        "id": "reuse-field",
+        "title": "3 — İlk ortak alan; sonraki tüketici kapısı",
+        "deliverable": "İki config ile aynı kontrollü TextField davranışı. Form/liste/detay ve üçüncü tüketici ayrı sonraki teslimdir.",
+        "gate": "Gerçek kodda yeniden kullanım, ilgili RED/GREEN ve merge kanıtı gerekir; config örnekleri uygulama kanıtı değildir."
+      }
+    ],
+    "mapping": {
+      "note": "Bu eşleştirmeler mevcut kapsamla bağ kurar; eski görevler değişmez ve tamamlandı sayılmaz. Katalog/görev kimliği çalışan ürün kodu kanıtı değildir. T-00/T-01 önceki plandaki ön koşullardır.",
+      "rows": [
+        {
+          "oldTaskId": "permissioned-metadata--implementation",
+          "action": "Daralt",
+          "result": "R-01 tek izinli projection sözleşmesidir; tam servis değildir."
+        },
+        {
+          "oldTaskId": "ui-provider-metadata--implementation",
+          "action": "Koru",
+          "result": "Client aynı izinli ve sürümlü projection’ı tüketir."
+        },
+        {
+          "oldTaskId": "ui-family-17--implementation",
+          "action": "Daralt",
+          "result": "R-02 tek TextField/iki config; mevcut alan R-00’da doğrulanır."
+        },
+        {
+          "oldTaskId": "ui-family-16--implementation",
+          "action": "Koru",
+          "result": "Tam RecordForm daha sonra; R-02 form motorunu bitirmez."
+        },
+        {
+          "oldTaskId": "ui-family-09--implementation-post-mvp",
+          "action": "Koru",
+          "result": "Tablo/list korunur; grid seçimi OPEN."
+        },
+        {
+          "oldTaskId": "ui-family-15--implementation",
+          "action": "Koru",
+          "result": "Detay ve üçüncü tüketici sonraki kapıdır."
+        },
+        {
+          "oldTaskId": "ui-family-01--implementation-mvp",
+          "action": "Koru",
+          "result": "Ortak shell/Router tanımla tüketilir; yeni motor kurulmaz."
+        },
+        {
+          "oldTaskId": "ui-provider-registry--implementation",
+          "action": "Ayır",
+          "result": "GenUI registry, ResourceDefinition kaynak registry’si değildir."
+        }
+      ]
+    },
+    "tasks": [
+      {
+        "id": "r-00",
+        "title": "Gerçek yeniden kullanım envanterini çıkar",
+        "type": "Sonlu keşif",
+        "groupId": "reuse-inventory",
+        "dependsOn": [],
+        "status": "BLOCKED",
+        "blocker": "T-00 ürün reposu/commit’i ve izinli kaynakları henüz bilinmiyor.",
+        "target": "T-00 baseline’ında sonlu yeniden kullanım kataloğu",
+        "sourceTaskIds": [],
+        "summary": "Tek izinli ürün baseline’ında ortak alan/form/liste/detay/veri erişimi kaynaklarını kanıtla; A–F kararını ver. T-00’ı tekrarlama veya yeni ürün kurma.",
+        "card": {
+          "purpose": "Var olan davranışı yeniden yazmadan gerçek tekrar ve boşluğu bul.",
+          "type": "Sonlu kaynak keşfi; yapay TDD yok.",
+          "group": "reuse-inventory",
+          "dependencies": "T-00 baseline gerekir; T-01 gerçek yetkili akış ön koşuludur, bu kart kimlik PoC’sini tekrarlamaz.",
+          "target": "T-00 ürün baseline’ındaki katalog; gerçek repo/yol bilinmiyor.",
+          "doctypeCount": 0,
+          "scope": "Tek ürün baseline’ında kaynak/paket/sürüm/sözleşme/örnek kullanım kanıtıyla A–F envanteri.",
+          "excludes": "Başka repo/servis taraması, yeni bootstrap, kurulum, ortak engine yazımı ve production değişikliği.",
+          "acceptance": [
+            "Kurulu app/sürüm, etkin DocType ve ortak kod kanıtı veya bilinmiyor kaydı bulunur.",
+            "İki somut kullanım ve A–F kararıyla ilk alan seçilir; T-00 envanteri kopyalanmaz."
+          ],
+          "risk": "P1 yanlış mevcut-yetenek iddiası; sonlu kaynak/sürüm incelemesi.",
+          "red": "Uygulanmaz: sonlu keşfe sahte başarısız test üretilmez.",
+          "green": "Kaynak kanıtlı envanter araştırma çıktısıdır; ürün GREEN değildir.",
+          "refactor": "Yalnız katalog tekrarını temizle; ürün kodu değiştirme.",
+          "affected": "Yalnız katalog kaydı lease’i; gerçek yol T-00’da belirlenir, ürün/test/fixture yazımı yok.",
+          "verification": "T-00’da gerçek ürün komutu/ortamı bulunacak; bilinmiyor, çalıştırılmadı, BLOCKED.",
+          "merge": "Kısa trunk dalı, aktif üretim/test/fixture lease’i, gerçek merge commit’i ve kabul kanıtı olmadan DONE yok.",
+          "compatibility": "Mevcut kullanıcı kodu korunur; çalışan TextField varsa B/C/D seçilir, E varsayılmaz.",
+          "evidence": "Bu statik repoda ürün kodu/kurulu apps görülmedi; envanter yapılmış sayılmaz.",
+          "stop": "Aynı kök neden için 3, görevde toplam 5 sonuçsuz düzeltmede dur; beklenen RED sayılmaz. Test/fixture/timeout/retry gevşetme."
+        }
+      },
+      {
+        "id": "r-01",
+        "title": "ResourceDefinition v1 izinli projection sözleşmesini sınırla",
+        "type": "Sözleşme ve fixture",
+        "groupId": "reuse-contract",
+        "dependsOn": ["r-00"],
+        "status": "BLOCKED",
+        "blocker": "R-00 gerçek schema/provider ve T-00 ürün komutları yok; güvenli kimlik akışı T-01 kapısını bekler.",
+        "target": "Tek kaynak için ResourceDefinition v1 sözleşmesi",
+        "sourceTaskIds": [
+          "permissioned-metadata--implementation",
+          "ui-provider-metadata--implementation"
+        ],
+        "summary": "Tek davranış: bir kaynağın etkin şemasından yalnız izinli alan/özelliklerin yayınlanacağı v1 projection sınırını ortak fixture ile tanımla; API veya metadata engine’i kurma.",
+        "card": {
+          "purpose": "Ham metadata ve yetkisiz alanın istemci sözleşmesine sızmasını önle.",
+          "type": "Tek güvenli projection sözleşmesi ve ortak fixture.",
+          "group": "reuse-contract",
+          "dependencies": "R-00 envanteri; T-00 sürüm/runner; gerçek yetkili entegrasyon için T-01 kimlik PoC’si.",
+          "target": "Mantıksal v1 contract/fixture; gerçek repo/yol bilinmiyor.",
+          "doctypeCount": 0,
+          "scope": "Tek kaynakta yalnız onaylı alan/özelliklerin v1 sözleşmeye kabul edilmesi invariantı.",
+          "excludes": "Yeni endpoint, bütün metadata servisi, ikinci ORM, DocType değişikliği veya identity yeniden tasarımı.",
+          "acceptance": [
+            "İzinli alan/özellik fixture’ı kabul, fazladan/gizli alan fixture’ı ret sınırını taşır.",
+            "sourceVersion/presentationVersion ayrıdır; bilinmeyen alan türü açık uyumsuzluk verir."
+          ],
+          "risk": "P0 alan sızıntısı; contract fixture ve gerçek yetkili projection ayrı kanıtlardır.",
+          "red": "Planlanan RED: izin dışı alanı kabul eden fixture kontrolü başarısız olur; henüz çalıştırılmadı.",
+          "green": "Yalnız envanterdeki mevcut sözleşmeyi sınırlı uyarlayarak onaylı projection/fixture’ı geçir.",
+          "refactor": "Tekrarlı field tanımını kaldır; yeni registry/validation framework kurma.",
+          "affected": "Tek sözleşme, ilgili test ve fixture lease’i birlikte atanır; kesin yollar T-00’da bulunur.",
+          "verification": "T-00’da gerçek ürün komutu/ortamı bulunacak; bilinmiyor, çalıştırılmadı, BLOCKED.",
+          "merge": "Kısa trunk dalı, aktif üretim/test/fixture lease’i, gerçek merge commit’i ve kabul kanıtı olmadan DONE yok.",
+          "compatibility": "Etkin Custom Field/Property Setter ve sunucu izni korunur; Python metadata fonksiyonu uzaktan API sayılmaz.",
+          "evidence": "ResourceDefinition öneridir; gerçek server response veya kurulu metadata API kanıtı yok.",
+          "stop": "Aynı kök neden için 3, görevde toplam 5 sonuçsuz düzeltmede dur; beklenen RED sayılmaz. Test/fixture/timeout/retry gevşetme."
+        }
+      },
+      {
+        "id": "r-02",
+        "title": "İki tanımla tek ortak TextField davranışını kullan",
+        "type": "Saf alan davranışı",
+        "groupId": "reuse-field",
+        "dependsOn": ["r-01"],
+        "status": "BLOCKED",
+        "blocker": "R-00 mevcut alan kodu, R-01 v1 fixture’ı ve T-00 ürün yolları/komutları yok.",
+        "target": "Tek controlled TextField master davranışı",
+        "sourceTaskIds": [
+          "ui-family-17--implementation",
+          "ui-family-16--implementation"
+        ],
+        "summary": "Tek davranış: tanımdan gelen metin değerini göster ve değişimi controlled sözleşmeyle bildir. İki farklı config aynı kodu kullanır; mevcut alan uygunsa yalnız yapılandır/uyarla.",
+        "card": {
+          "purpose": "İki kaynak için aynı metin alanı davranışını kopyalamadan tüket.",
+          "type": "Tek saf frontend alan davranışı; controlled değer/değişim.",
+          "group": "reuse-field",
+          "dependencies": "R-01 fixture; T-00 ürün/runner; gerçek auth için T-01 gerekir, alan bu akışı kurmaz.",
+          "target": "Mevcut ortak alan veya küçük adapter; gerçek yol R-00’da bulunur.",
+          "doctypeCount": 0,
+          "scope": "İki kaynak config’i aynı metin değeri/değişim master’ını kullanır; domain koşulu yok.",
+          "excludes": "Form/list/detail engine’i, Query/Router/shell kurulumu, doğrulama motoru, Frappe isteği ve tam tüketici kabulü.",
+          "acceptance": [
+            "İki config aynı uygulama dosyasıyla farklı label/değer kullanır; değer ve değişim sözleşmesi korunur.",
+            "Boş/Unicode değer ve accessible label 320px/1rem davranışı ilgili ortak fixture ile doğrulanır."
+          ],
+          "risk": "P1 kopya alan/yanlış değer; saf component davranış testi.",
+          "red": "Planlanan RED: config değişiminde değer/olay eşleşmesini kaybeden ortak alan kontrolü başarısız olur; çalıştırılmadı.",
+          "green": "Var olan alanı B/C/D ile kullan; eksik kanıtlandıysa yalnız bu controlled davranışı bir kez geliştir.",
+          "refactor": "Domain dallarını config’e taşı; boş child, yeni hook ailesi veya form framework ekleme.",
+          "affected": "Tek ortak alan üretim/test/fixture lease’i birlikte; iki config tanımı ayrı, kesin yollar bilinmiyor.",
+          "verification": "T-00’da gerçek ürün komutu/ortamı bulunacak; bilinmiyor, çalıştırılmadı, BLOCKED.",
+          "merge": "Kısa trunk dalı, aktif üretim/test/fixture lease’i, gerçek merge commit’i ve kabul kanıtı olmadan DONE yok.",
+          "compatibility": "Ant Design ve onaylı renderer kullanılır; doğrudan Frappe çağrısı yok. T-02 bağlantı sözleşmesi bu alanın yerine geçmez.",
+          "evidence": "TextField mevcut diye doğrulanmadı; iki config örneği çalışan form/liste/detay kanıtı değildir.",
+          "stop": "Aynı kök neden için 3, görevde toplam 5 sonuçsuz düzeltmede dur; beklenen RED sayılmaz. Test/fixture/timeout/retry gevşetme."
+        }
+      }
+    ],
+    "audit": {
+      "title": "Ek planın gerçeklik ve uyumluluk denetimi",
+      "items": [
+        "Önceki metadata/currentPlan,20 kaynak ve994 görev değişmez; üç yakın iş BLOCKED.",
+        "Ürün repo/commit, apps/sürümler ve DocType/komutlar bilinmiyor; gerçek ürün/entegrasyon testi çalışmadı.",
+        "Yarın gerekli gerçek model, kaynak/sunum/izin tanımı ve farklı domain eylemi eklenir; ortak form, liste, detay, query, router, shell ve CRUD kodu yazılmaz.",
+        "Üç tüketici ve P0 yetki/veri/native/offline kabulü sonraki kapıdır; bu üç iş onları teslim etmez."
+      ]
+    }
   }
 }

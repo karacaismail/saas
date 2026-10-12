@@ -102,7 +102,7 @@ export function projectRevision(project) {
     .digest('hex');
 }
 
-function validateCurrentPlan(plan, legacyTasks) {
+function validateCurrentPlan(plan, legacyTasks, reuse = false) {
   record(plan, 'current plan');
   id(plan.id, 'current plan ID');
   string(plan.updatedAt, 'current plan date');
@@ -124,9 +124,47 @@ function validateCurrentPlan(plan, legacyTasks) {
     string(section.title, 'current plan section title');
     strings(section.paragraphs, 'current plan paragraphs');
     strings(section.items, 'current plan rules');
+    if (section.entries !== undefined) {
+      array(section.entries, 'planning section records', true);
+      unique(
+        section.entries.map((entry) => entry.id),
+        'planning record IDs',
+      );
+      for (const entry of section.entries) {
+        id(entry.id, 'planning record ID');
+        string(entry.title, 'planning record title');
+        array(entry.fields, 'planning record fields', true);
+        for (const field of entry.fields) {
+          string(field.label, 'planning field label');
+          if (field.url !== undefined) {
+            string(field.value, 'planning evidence title');
+            string(field.url, 'planning evidence URL');
+            try {
+              if (new URL(field.url).protocol !== 'https:')
+                fail('planning evidence protocol');
+            } catch {
+              fail('planning evidence URL');
+            }
+          }
+          if (Array.isArray(field.value))
+            strings(field.value, 'planning field values', true);
+          else string(field.value, 'planning field value');
+        }
+      }
+    }
   }
+  if (
+    reuse &&
+    plan.sections.map((section) => section.id).join('|') !==
+      'reuse-a|reuse-b|reuse-c|reuse-d|reuse-e|reuse-f|reuse-g|reuse-h'
+  )
+    fail('reuse architecture section coverage');
   array(plan.roadmap, 'current roadmap', true);
-  if (plan.roadmap.length < 6 || plan.roadmap.length > 8)
+  if (
+    reuse
+      ? plan.roadmap.length !== 3
+      : plan.roadmap.length < 6 || plan.roadmap.length > 8
+  )
     fail('bounded current roadmap');
   const groups = new Set(plan.roadmap.map((group) => group.id));
   unique(
@@ -140,8 +178,10 @@ function validateCurrentPlan(plan, legacyTasks) {
   }
   array(plan.tasks, 'current plan tasks', true);
   if (
-    plan.tasks.length > 12 ||
-    plan.tasks.filter((task) => task.card).length > 5
+    (reuse ? plan.tasks.length !== 3 : plan.tasks.length > 12) ||
+    (reuse
+      ? plan.tasks.filter((task) => task.card).length !== 3
+      : plan.tasks.filter((task) => task.card).length > 5)
   )
     fail('rolling-wave bounds');
   const tasks = new Map(plan.tasks.map((task) => [task.id, task]));
@@ -521,6 +561,7 @@ export function validateProject(project) {
         fail('catalog task reference');
   }
   validateCurrentPlan(meta.currentPlan, taskMap);
+  validateCurrentPlan(meta.reusePlan, taskMap, true);
   return project;
 }
 

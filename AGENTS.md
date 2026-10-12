@@ -2,8 +2,14 @@
 
 ## Güncel zorunlu tarayıcı kapsamı — 2026-10-12
 
-- Kullanıcının açık “Firefox’a gerek yok” kararıyla Firefox bu projenin zorunlu test ve yayın kapsamından çıkarılmıştır. Bu, açık ürün kapsamı daralmasıdır; kalan testlerde başarısızlığı gizleme, assertion zayıflatma veya kontrol atlama yetkisi değildir.
+- Kullanıcının açık “Firefox’a gerek yok” kararıyla Firefox bu projenin zorunlu test ve yayın kapsamından çıkarılmıştır. Bu karar yalnız bu GitHub Pages dokümantasyon reposuna aittir; gelecekteki SaaS ürününün tarayıcı desteğini veya TDD kapsamını değiştirmez. Bu, dokümantasyon sitesinin tarayıcı kapsamı kararıdır; kalan testlerde başarısızlığı gizleme, assertion zayıflatma veya kontrol atlama yetkisi değildir.
 - Aktif matris Chromium/WebKit × 3 shard = 6 verify işi ve üç mevcut dokunma/hibrit projesiyle toplam 5 Playwright projesidir. Üst sınırlar Node 79, temel motor başına 240 ve toplam 240 × 2 + 3 = 483 koşudur; hedef değildir. Timeout 45s, expect 6s, retry 0, repeatEach 1, trace retain-on-failure; varsayılan worker 3 ve ortak input adımı worker 1 korunur. CI source→verify→deploy kapısı bütün 6 verify işinin başarısını gerektirir. Önceki teslim sayıları yalnız tarihsel bağlamdır.
+
+## Yeniden kullanım kararı — 2026-10-12
+
+- Kanonik ek mimari `data/project/project.json/reusePlan`, kaynak/karar özeti `docs/reuse-architecture.md` içindedir. Koddan önce A–F kararı ver: doğrulanmış Frappe/kurulu app, mevcut ortak kod, config, küçük adapter, kanıtlanan ortak eksik veya domain davranışı. Kaynak/paket, sürüm, sözleşme ve örnek kullanım kanıtını tek katalogda tut; bilinmeyeni mevcut sayma.
+- Ortak form/liste/detay/veri erişimi kopyalanmaz; ortak paket tüketilir. Core domain import etmez; domain eylemi kendi modülünde, schema sunucuda, sunum ayrı tanımda kalır. İzinli projection ve sunucu tenant/kayıt/alan yetkisi korunur. İkinci ORM veya DocType başına app kurma; mevcut kod ve kullanıcı değişiklikleri korunur.
+- Küçük master → config/child → tek page; config yeterliyse boş child yaratma. Aktif üretim/test/fixture lease’i, aynı görevde TDD, en fazla bir DocType ve atomik işlem sınırı korunur. R-00–R-02 üç BLOCKED mikro iştir; üç tüketicide tam form/liste/detay kabulü değildir. Paket upgrade/uyumluluk/rollback ve gerçek entegrasyon kanıtı olmadan yeniden kullanım tamamlandı sayılmaz.
 
 ## Güncel TDD planı ve filtre görünümü — 2026-10-12
 
