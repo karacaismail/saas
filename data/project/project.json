@@ -949,9 +949,9 @@
     "updatedAt": "2026-10-12",
     "title": "Tanım ve ortak kodla yeniden kullanım mimarisi",
     "summary": "Yeni uygulama, kaynak ve görünüm tanımları ile gerçek iş kuralları ekler; aynı form, liste, detay ve veri erişimi mekanizmalarını kopyalamaz. İlk iki kullanımda küçük ortak yeteneği çıkar, üçüncü kullanımda sınırını kanıtla.",
-    "notice": "Ek mimari planıdır; currentPlan ve 994 taslak görev değişmez. Bu repo statik dokümantasyondur: hedef ürün kodu, kurulu Frappe uygulamaları, sürümleri ve gerçek DocType eşlemeleri bilinmiyor. Üç yakın iş BLOCKED; çalışan ResourceDefinition API’si, ortak form motoru veya üç tüketici kabulü teslim edilmedi.",
+    "notice": "Ek mimari planıdır; currentPlan ve 994 taslak görev değişmez. Bu repo statik dokümantasyondur: hedef ürün kodu, kurulu Frappe uygulamaları, sürümleri ve gerçek DocType eşlemeleri bilinmiyor. Üç yakın iş BLOCKED; çalışan ResourceDefinition API’si, ortak form motoru veya üç tüketici kabulü teslim edilmedi. 2026-10-12 verimlilik eki mevcut bölümlerdedir: kaynak bulguları A,14 aday B, reçeteler E, güncel yürütme sırası G, çelişki/koruma H. Önceki TDD baseline’ı korunur; güncel öncelik için G’deki eşleme geçerlidir.",
     "ui": {
-      "nav": "Yeniden kullanım mimarisi",
+      "nav": "Yeniden kullanım mimarisi ve verimlilik",
       "roadmapTitle": "Üç odaklı yeniden kullanım grubu",
       "mappingTitle": "Tarihsel görevlerle ilişki",
       "tasksTitle": "Sıradaki üç mikro görev",
@@ -996,11 +996,93 @@
         "title": "A — Erişilebilir envanter ve bilinmeyenler",
         "paragraphs": [
           "Mevcut data/project/project.json ve katman JSON’ları ürün planıdır. assets/project-templates.js statik sayfa/JSON/Markdown, project-app.js seçim/kopyalama, project.css görünüm sağlar; bu dokümantasyon mekanizmaları yeniden kullanılır, React/Frappe ürünü değildir.",
-          "Ürün reposu, kurulu apps/sürümler, etkin DocType/controller/hooks ve ortak ürün kodu bilinmiyor. R-00, T-00 baseline’ını kullanır; dosya adından çalışan yetenek çıkarmaz, başka repo/servis taramaz."
+          "Ürün reposu, kurulu apps/sürümler, etkin DocType/controller/hooks ve ortak ürün kodu bilinmiyor. R-00, T-00 baseline’ını kullanır; dosya adından çalışan yetenek çıkarmaz, başka repo/servis taramaz.",
+          "2026-10-12 verimlilik güncellemesi: yeni bir plan veya görev listesi açılmaz. Aşağıdaki kod bulguları yalnız bu statik dokümantasyon deposuna aittir. Frappe, Ant Design, Keycloak ve Tauri ürün uygulaması burada doğrulanmadı; başka ürün depoları veya veritabanları incelenmedi. Önceki yayın d23fc3b kanıtı yeni ürün runtime kanıtı değildir."
         ],
         "items": [
           "387 gereksinim,109 karar,63 katalog,33 birim,248 küme,994 görev ve20 kanonik kaynak korunur.",
           "Envanter: yetenek, kaynak/paket, sürüm, sözleşme, iki kullanım, yetki ve kanıt/bilinmiyor. Kullanıcı değişiklikleri korunur."
+        ],
+        "entries": [
+          {
+            "id": "efficiency-navigation",
+            "title": "Verimlilik ekine hızlı erişim",
+            "fields": [
+              {
+                "label": "Değerlendirme",
+                "value": "14 verimlilik adayı",
+                "url": "https://karacaismail.github.io/saas/reuse/#efficiency-a"
+              },
+              {
+                "label": "Reçeteler",
+                "value": "Girdi, çıktı, dosya ve doğrulama sınırları",
+                "url": "https://karacaismail.github.io/saas/reuse/#recipe-source"
+              },
+              {
+                "label": "Sıra",
+                "value": "Mevcut kimliklerle güncel yaklaşık on iş",
+                "url": "https://karacaismail.github.io/saas/reuse/#efficiency-order"
+              },
+              {
+                "label": "Kararlar",
+                "value": "Çelişki, geçiş ve engel kayıtları",
+                "url": "https://karacaismail.github.io/saas/reuse/#efficiency-conflicts"
+              }
+            ]
+          },
+          {
+            "id": "efficiency-inventory",
+            "title": "Kodla doğrulanan durum ve dar inceleme sınırı",
+            "fields": [
+              {
+                "label": "Çalışan dokümantasyon",
+                "value": [
+                  "Önceki d23fc3b yayını: CI38196326149 ve canlı dosya eşitliği doğrulanmıştı. Bu turun kontrol sonuçları docs/verification.md içinde ayrıca kaydedilir.",
+                  "HTML/CSS/ESM gösterimi, JSON/Markdown paketleri ve clipboard/fallback mevcuttur. package.json yalnız geliştirme araçlarını içerir."
+                ]
+              },
+              {
+                "label": "Kodda görülen tekrar adayları",
+                "value": [
+                  "scripts/build.mjs:15 — loadProject sonrası ikinci validateProject; loadProject kendi doğrulamasını scripts/project-model.mjs:591 içinde yapar. Çalışma maliyeti ölçülmedi.",
+                  ".github/workflows/pages.yml:29–43 — altı hermetik işte build ve Chromium/WebKit kurulumu. Ortak check yalnız source işinde bir kez; tekrar eden build güvenceyi de sağlar.",
+                  "assets/project-templates.js:52–75 ile assets/project-app.js:46–91 — statik/no-JS ve dinamik satır sunumları benzer. Ayrı yürütme yüzeyleri oldukları için körlemesine birleştirilmez."
+                ]
+              },
+              {
+                "label": "Mevcut güvence",
+                "value": [
+                  "tests/project.test.js:13–49 —20 kaynak ve altı görev dosyası için hash koruması; önceki currentPlan metadata hash’i de sabittir.",
+                  "scripts/verify-build.mjs:312–352 aynı üreticiyle çıktı eşitliği denetler; bu deterministik üretim kontrolü tek başına davranış doğruluğu değildir. Gerçek indirme ve bağımsız veri koruması birlikte gerekir."
+                ]
+              },
+              {
+                "label": "Planlanan veya bilinmeyen",
+                "value": [
+                  "Hedef ürün repo/commit, kurulu Frappe apps/sürümleri, gerçek DocType, tenant/yetki ve offline test ortamı bilinmiyor. Dosya adı çalışma kanıtı değildir.",
+                  "Node manifesti >=22, .nvmrc ve gözlenen Node24.21.0; lockfile Playwright1.64.0, axe4.13.0, Prettier3.9.10. Bu sürümler ürün stack sürümleri değildir."
+                ]
+              }
+            ]
+          },
+          {
+            "id": "efficiency-terms",
+            "title": "Bu güncellemede kullanılan kavramlar",
+            "fields": [
+              {
+                "label": "Kısa sözlük",
+                "value": [
+                  "Baseline: repo, commit, sürüm, komut ve veri başlangıcının dondurulmuş kaydı.",
+                  "Reçete: girdi, çıktı, dosya sınırı ve doğrulaması belli kısa geliştirme yolu.",
+                  "Projection: istemciye yalnız izin verilen alan ve özelliklerin yansıtılması.",
+                  "Skill: tek tekrar eden ajan işini paketleyen Codex becerisi. Yerelde Codex CLI0.153.4 gözlendi; oturum ve sistem rehberi SKILL.md düzenini tanımlar. Hedef repo Skill’i oluşturulmadı veya denenmedi.",
+                  "Lease: yalnız aktif görev süresince verilen dosya, test ve fixture yazma sahipliği.",
+                  "Fixture: gerçek müşteri verisi içermeyen kontrollü test girdisi.",
+                  "Artifact: belirli kaynak sürümünden üretilen doğrulanabilir çıktı. Cache: uygun koşullarda yeniden kullanılabilen önbellek."
+                ]
+              }
+            ]
+          }
         ]
       },
       {
@@ -1112,6 +1194,482 @@
                 "value": "Kavramsal örnekler; kurulu app’i doğrula. Eylem kendi sunucu modülündedir, genel status yazımı değildir."
               }
             ]
+          },
+          {
+            "id": "efficiency-a",
+            "title": "A — Karar ve bağlamı yeniden kullan",
+            "fields": [
+              {
+                "label": "Mevcut karşılık",
+                "value": "currentPlan, reusePlan; createTaskPacket bağlamı ve sourceDigest mevcut."
+              },
+              {
+                "label": "Somut tekrar veya kanıt sınırı",
+                "value": "Aynı kararın bağımsız belgelerde yeniden yazılması ve her packet’a tam meta kopyası büyüme adayıdır."
+              },
+              {
+                "label": "En küçük iyileştirme",
+                "value": "T-00 kaydını R-00’da referansla; kısa sözlük ve tek kaynak kullan. Packet’ı bu tur kırpma."
+              },
+              {
+                "label": "Yakın tüketiciler",
+                "value": "T-00, R-00, R-01, R-02."
+              },
+              {
+                "label": "Kurulum, bakım ve risk",
+                "value": "Yeni araç yok. Tam bağlam sözleşmesini küçültmek ayrı uyumluluk işi gerektirir."
+              },
+              {
+                "label": "Öncelik ve doğrulama",
+                "value": "P0: kaynak/ref eşitliği; build boyutu ölçülür."
+              },
+              {
+                "label": "Kaynak",
+                "value": "assets/project-templates.js — createTaskPacket, createCurrentPlanPacket; scripts/project-model.mjs — projectRevision."
+              }
+            ]
+          },
+          {
+            "id": "efficiency-b",
+            "title": "B — Onaylı geliştirme reçeteleri",
+            "fields": [
+              {
+                "label": "Mevcut karşılık",
+                "value": "reuse-e veri kaynağı tarifi ve üç R kartı mevcut."
+              },
+              {
+                "label": "Somut tekrar veya kanıt sınırı",
+                "value": "Aynı dosya/komut/karar keşfinin her yeni kaynaktaki tekrarı ürün reposunda henüz ölçülmedi."
+              },
+              {
+                "label": "En küçük iyileştirme",
+                "value": "Aşağıdaki beş kısa reçeteyi gerçek T-00 yollarıyla doldur; yeni generator veya engine kurma."
+              },
+              {
+                "label": "Yakın tüketiciler",
+                "value": "R-01 ve R-02; ardından mevcut T-05/T-07/T-08."
+              },
+              {
+                "label": "Kurulum, bakım ve risk",
+                "value": "Belge bakım yükü düşük; tarif çalışan ürün kanıtı değildir."
+              },
+              {
+                "label": "Öncelik ve doğrulama",
+                "value": "P0: girdi/çıktı/sınır/doğrulama eksiksizliği."
+              },
+              {
+                "label": "Kaynak",
+                "value": "data/project/project.json — reusePlan.sections/reuse-e ve üç mevcut görev kartı."
+              }
+            ]
+          },
+          {
+            "id": "efficiency-c",
+            "title": "C — Tek iş yapan Skills",
+            "fields": [
+              {
+                "label": "Mevcut karşılık",
+                "value": "Codex CLI0.153.4 gözlendi; yerel sistem rehberi name/description içeren SKILL.md tanımlar."
+              },
+              {
+                "label": "Somut tekrar veya kanıt sınırı",
+                "value": "Aynı elle doğrulanmış ürün iş akışının tekrar sayısı henüz bilinmiyor."
+              },
+              {
+                "label": "En küçük iyileştirme",
+                "value": "R-00 tekrar kanıtını kaydetsin. Ancak gerçek tekrar varsa mevcut kaynak ekleme reçetesini paketleyen tek Skill için sonraki sınırlı görev öner; şimdi Skill üretme."
+              },
+              {
+                "label": "Yakın tüketiciler",
+                "value": "R-00; ileride ilk iki kaynak tüketicisi."
+              },
+              {
+                "label": "Kurulum, bakım ve risk",
+                "value": "Format/runtime ve girdi yolları hedef ortamda doğrulanır; geniş Skill koleksiyonu bakım yükü getirir."
+              },
+              {
+                "label": "Öncelik ve doğrulama",
+                "value": "P2 koşullu: tetikleme, sınır ve beklenen çıktı denenmeden hazır sayılmaz."
+              },
+              {
+                "label": "Kaynak",
+                "value": "Yerel sistem skill-creator/SKILL.md; mevcut oturumun skills kataloğu."
+              }
+            ]
+          },
+          {
+            "id": "efficiency-d",
+            "title": "D — Tek kaynaktan mekanik çıktı",
+            "fields": [
+              {
+                "label": "Mevcut karşılık",
+                "value": "scripts/build.mjs iki planı aynı renderer ile üretir; update-roadmap --check ve verify-build mevcut."
+              },
+              {
+                "label": "Somut tekrar veya kanıt sınırı",
+                "value": "Elle kopyalanan HTML/Markdown ayrı gerçeklik oluşturur; bu depoda kanonik JSON bunu önler."
+              },
+              {
+                "label": "En küçük iyileştirme",
+                "value": "Mevcut üreticiyi kullan. Ürün tür/bağlantı üretimi ancak gerçek şema ve tüketici bilindiğinde ayrı küçük ihtiyaçtır."
+              },
+              {
+                "label": "Yakın tüketiciler",
+                "value": "Bu yayın, R-01 ve sonraki kaynak tanımı."
+              },
+              {
+                "label": "Kurulum, bakım ve risk",
+                "value": "Kaynak/üretilmiş ayrımı korunur; aynı üreticiyle eşitlik bağımsız doğruluk kanıtının yerini almaz."
+              },
+              {
+                "label": "Öncelik ve doğrulama",
+                "value": "P0: tekrar üretimde aynı girdi/çıktı, immutable koruma ve gerçek indirme."
+              },
+              {
+                "label": "Kaynak",
+                "value": "scripts/build.mjs — plan döngüsü; scripts/verify-build.mjs; tests/project.test.js."
+              }
+            ]
+          },
+          {
+            "id": "efficiency-e",
+            "title": "E — Ortak senaryo ve test girdileri",
+            "fields": [
+              {
+                "label": "Mevcut karşılık",
+                "value": "tests/project.test.js load/fixture/hash ve clone edilmiş hatalı varyasyonları kullanır."
+              },
+              {
+                "label": "Somut tekrar veya kanıt sınırı",
+                "value": "Her görev için aynı mekanizma testini çoğaltmak; ürün fixture tekrarı henüz doğrulanmadı."
+              },
+              {
+                "label": "En küçük iyileştirme",
+                "value": "Mevcut fixture usulünü kullan; ürün için önce kurulu Frappe test araçlarını bul. Tüketiciye özgü yetki ve iş anlamını ayrı tut."
+              },
+              {
+                "label": "Yakın tüketiciler",
+                "value": "R-01 projection ve R-02 iki config."
+              },
+              {
+                "label": "Kurulum, bakım ve risk",
+                "value": "Paylaşılan mutable test verisi izolasyonu bozabilir; gerçek müşteri verisi kullanılmaz."
+              },
+              {
+                "label": "Öncelik ve doğrulama",
+                "value": "P0: izinli/yetkisiz, tenant ayrımı, boş/sınır/hatalı ve ilgili offline/yeniden gönderim kapsamı riskle seçilir."
+              },
+              {
+                "label": "Kaynak",
+                "value": "tests/project.test.js — load, hash ve validation varyasyonları."
+              }
+            ]
+          },
+          {
+            "id": "efficiency-f",
+            "title": "F — Tekrarlanabilir geliştirme ortamı",
+            "fields": [
+              {
+                "label": "Mevcut karşılık",
+                "value": "package.json, package-lock.json, .nvmrc ve scripts/server.mjs mevcut."
+              },
+              {
+                "label": "Somut tekrar veya kanıt sınırı",
+                "value": "CI her hermetik verify işinde bağımlılık/build/browser hazırlığı yapıyor; ürün ortamı bilinmiyor."
+              },
+              {
+                "label": "En küçük iyileştirme",
+                "value": "T-00 mevcut sürüm ve kısa komutları kaydetsin; izole ürün veri/port/sağlık kontrolü tanımlansın. Sürüm yükseltme veya yeni container başlatma yok."
+              },
+              {
+                "label": "Yakın tüketiciler",
+                "value": "T-00, bütün sonraki ürün görevleri."
+              },
+              {
+                "label": "Kurulum, bakım ve risk",
+                "value": "Bu Mac Colima; çalışan servisler korunur. Sunucu Docker Engine kararı ayrıdır. Secret içermeyen örnek config yeterliyse yeni araç ekleme."
+              },
+              {
+                "label": "Öncelik ve doğrulama",
+                "value": "P0 baseline; Pages hazırlık optimizasyonu ölçüm sonrası P1 adayı."
+              },
+              {
+                "label": "Kaynak",
+                "value": "package.json; .nvmrc; .github/workflows/pages.yml — source ve verify."
+              }
+            ]
+          },
+          {
+            "id": "efficiency-g",
+            "title": "G — Etkiye göre doğrulama ve güvenli cache",
+            "fields": [
+              {
+                "label": "Mevcut karşılık",
+                "value": "docs/test-policy.md ve check-test-policy.mjs; CI source check bir kez çalışır."
+              },
+              {
+                "label": "Somut tekrar veya kanıt sınırı",
+                "value": "Geçen değişmemiş testleri yerelde tekrar çalıştırma ve her tüketicide ortak test kopyalama önlenir."
+              },
+              {
+                "label": "En küçük iyileştirme",
+                "value": "Değişen davranış + ilgili tüketiciler; tek final check/build; mevcut CI kapıları korunur. Yeni cache aracı kurma."
+              },
+              {
+                "label": "Yakın tüketiciler",
+                "value": "R-01, R-02 ve gerçek T-08 entegrasyonu."
+              },
+              {
+                "label": "Kurulum, bakım ve risk",
+                "value": "Kaynak, ortam, lockfile, sözleşme veya veri başlangıcı değişirse eski başarı taşınmaz. Mutation/entegrasyon testi körlemesine cache edilmez."
+              },
+              {
+                "label": "Öncelik ve doğrulama",
+                "value": "P0: yeni test/matris yok; Firefox dışlama yalnız Pages."
+              },
+              {
+                "label": "Kaynak",
+                "value": "docs/test-policy.md; scripts/check-test-policy.mjs; .github/workflows/pages.yml."
+              }
+            ]
+          },
+          {
+            "id": "efficiency-h",
+            "title": "H — Ortak iş eylemi kataloğu",
+            "fields": [
+              {
+                "label": "Mevcut karşılık",
+                "value": "GenUI component/action registry planı ve izinli API sınırı mevcut; çalışan ürün eylemi doğrulanmadı."
+              },
+              {
+                "label": "Somut tekrar veya kanıt sınırı",
+                "value": "Aynı işin ekran/toplu işlem/GenUI/sync kanalında farklı yazılması ürün için risk; burada gözlenmiş runtime tekrarı değil."
+              },
+              {
+                "label": "En küçük iyileştirme",
+                "value": "Gerçek eylem bulununca mevcut server davranışına tek referans; girdi/sonuç/yetki/offline/tekrar gönderim politikası kaydı."
+              },
+              {
+                "label": "Yakın tüketiciler",
+                "value": "İlk gerçek kaynak eylemi; T-08 yalnız okuma referans akışıdır."
+              },
+              {
+                "label": "Kurulum, bakım ve risk",
+                "value": "İkinci genel workflow engine’i veya bütün eylemleri peşin tasarlama yok."
+              },
+              {
+                "label": "Öncelik ve doğrulama",
+                "value": "P1 tüketici kanıtıyla; sunucu yetki ve idempotency kabulü ayrıca gerekir."
+              },
+              {
+                "label": "Kaynak",
+                "value": "reusePlan/reuse-c; mevcut api-boundary ve genui-runtime mimari birimleri."
+              }
+            ]
+          },
+          {
+            "id": "efficiency-i",
+            "title": "I — Mekanizma ile iş politikasını ayır",
+            "fields": [
+              {
+                "label": "Mevcut karşılık",
+                "value": "Ortak fetch/copy mekanizması; reuse-c kaynak bazlı offline ve domain eylem ayrımı mevcut."
+              },
+              {
+                "label": "Somut tekrar veya kanıt sınırı",
+                "value": "CRM/HRMS/İBYS adına göre core içinde dallanma ürün için kaçınılacak risk; gözlenmiş ürün kodu değil."
+              },
+              {
+                "label": "En küçük iyileştirme",
+                "value": "Retry/hata/dosya/bildirim mekanizmasını paylaş; yetki, conflict ve offline uygunluk kararlarını kaynak/eylemde tut."
+              },
+              {
+                "label": "Yakın tüketiciler",
+                "value": "R-01, R-02; sonraki offline kaynakları."
+              },
+              {
+                "label": "Kurulum, bakım ve risk",
+                "value": "Gerçek iş anlamı farklı kod zorla ortaklaştırılmaz; her policy için yeni framework gerekmez."
+              },
+              {
+                "label": "Öncelik ve doğrulama",
+                "value": "P0: ortak core domain import etmez, sunucu yeniden doğrular."
+              },
+              {
+                "label": "Kaynak",
+                "value": "assets/project-app.js — fetchDocuments/markdownPacket; reusePlan/reuse-c."
+              }
+            ]
+          },
+          {
+            "id": "efficiency-j",
+            "title": "J — Mimari sınır kontrolleri",
+            "fields": [
+              {
+                "label": "Mevcut karşılık",
+                "value": "validateProject ownership/ref/DAG/path ve test-policy guard mevcut; bunlar ürün import denetleyicisi değildir."
+              },
+              {
+                "label": "Somut tekrar veya kanıt sınırı",
+                "value": "Elle tekrar edilen sahiplik kontrolü; ürün import ihlali sayısı bilinmiyor."
+              },
+              {
+                "label": "En küçük iyileştirme",
+                "value": "Önce mevcut ürün linter/build imkanını bul; yalnız yeni ihlali engelleyen dar kontrol ihtiyacını kanıtla."
+              },
+              {
+                "label": "Yakın tüketiciler",
+                "value": "T-00, R-00; değişen ortak sözleşmenin gerçek tüketicileri."
+              },
+              {
+                "label": "Kurulum, bakım ve risk",
+                "value": "Bu tur guard veya import framework yazılmaz; bütün eski borcu tek görevde temizleme yok."
+              },
+              {
+                "label": "Öncelik ve doğrulama",
+                "value": "P1 gerçek ihlal/tüketiciyle; mevcut statik guard’lar korunur."
+              },
+              {
+                "label": "Kaynak",
+                "value": "scripts/project-model.mjs — validateProject; tests/project.test.js."
+              }
+            ]
+          },
+          {
+            "id": "efficiency-k",
+            "title": "K — Aşamalı geçiş ve kaldırma",
+            "fields": [
+              {
+                "label": "Mevcut karşılık",
+                "value": "994 taslak ile currentPlan/reusePlan eşleştirmesi mevcut; hiçbir görev silinmez."
+              },
+              {
+                "label": "Somut tekrar veya kanıt sınırı",
+                "value": "Toplu taşıma ve eski kararları silme yeniden çalışma yaratır."
+              },
+              {
+                "label": "En küçük iyileştirme",
+                "value": "Tek tüketiciye uyumlu adapter → doğrulama → ayrı tüketiciler; geçici kod için açık kaldırma koşulu."
+              },
+              {
+                "label": "Yakın tüketiciler",
+                "value": "R-02 ve sonraki tek page; T-07/T-08."
+              },
+              {
+                "label": "Kurulum, bakım ve risk",
+                "value": "Data dönüşümü gerekiyorsa ayrı kimlik/değer/ilişki/yedek/kurtarma görevi; kod rollback’i veri rollback’i değildir."
+              },
+              {
+                "label": "Öncelik ve doğrulama",
+                "value": "P0: eski/yeni görev ID ve çıktı eşlemesi; merge kanıtı."
+              },
+              {
+                "label": "Kaynak",
+                "value": "reusePlan.mapping; docs/project-model.md — paralel çalışma."
+              }
+            ]
+          },
+          {
+            "id": "efficiency-l",
+            "title": "L — Bağımlılık ve soyutlama bütçesi",
+            "fields": [
+              {
+                "label": "Mevcut karşılık",
+                "value": "Küçük statik runtime ve build allowlist/bütçe denetimi mevcut."
+              },
+              {
+                "label": "Somut tekrar veya kanıt sınırı",
+                "value": "Sırf benzer HTML için yeni katman, genel CRUD motoru veya ikinci ORM somut ihtiyaç göstermiyor."
+              },
+              {
+                "label": "En küçük iyileştirme",
+                "value": "Yeni paket/katman için kalkacak tekrar, iki yakın tüketici, mevcut çözümün açığı, geçiş/bakım/platform yükünü kaydet."
+              },
+              {
+                "label": "Yakın tüketiciler",
+                "value": "R-00 kararı; R-01/R-02 sınırlı çıktı."
+              },
+              {
+                "label": "Kurulum, bakım ve risk",
+                "value": "Paket/lockfile değişmez; güvenlik güncellemesi ihtiyacı hız uğruna reddedilmez, ayrı değerlendirilir."
+              },
+              {
+                "label": "Öncelik ve doğrulama",
+                "value": "P0: yeni soyutlama varsayılan değildir; ölçülmeyen kazanç yüzdesi yok."
+              },
+              {
+                "label": "Kaynak",
+                "value": "scripts/verify-build.mjs — bütçeler; package.json; reusePlan/reuse-b."
+              }
+            ]
+          },
+          {
+            "id": "efficiency-m",
+            "title": "M — Kontrollü paralellik",
+            "fields": [
+              {
+                "label": "Mevcut karşılık",
+                "value": "Görev sahiplik/DAG modeli ve ortak integration hattı mevcut."
+              },
+              {
+                "label": "Somut tekrar veya kanıt sınırı",
+                "value": "Aynı dosya/port/test veritabanında eşzamanlı yazma riski; aktif kilit bu statik modelde kurulmuş değil."
+              },
+              {
+                "label": "En küçük iyileştirme",
+                "value": "Bir ajan bir mikro görev; üretim/test/fixture aktif lease’i, ayrı worktree/port/veri alanı gerektiği yerde; bağımlılık sırasıyla merge."
+              },
+              {
+                "label": "Yakın tüketiciler",
+                "value": "T-00, R-01, R-02 ve T-01 bağımsız araştırma kolu."
+              },
+              {
+                "label": "Kurulum, bakım ve risk",
+                "value": "Yüzlerce planlı görev yüzlerce süreç açma talimatı değildir; yararsız paralellik ekleme."
+              },
+              {
+                "label": "Öncelik ve doğrulama",
+                "value": "P0: base commit, sahiplik, digest ve merge kabulü."
+              },
+              {
+                "label": "Kaynak",
+                "value": "scripts/project-model.mjs — validateProject; docs/project-model.md."
+              }
+            ]
+          },
+          {
+            "id": "efficiency-n",
+            "title": "N — Küçük verimlilik ölçümleri",
+            "fields": [
+              {
+                "label": "Mevcut karşılık",
+                "value": "Build byte/gzip, kontrol raporları ve commit’e bağlı CI süreleri elde edilebilir."
+              },
+              {
+                "label": "Somut tekrar veya kanıt sınırı",
+                "value": "Süre/yüzde kazancı ölçülmedi; mevcut sonuçlar ürün hızı ölçümü değildir."
+              },
+              {
+                "label": "En küçük iyileştirme",
+                "value": "R-00 ilk örnekte özel kod/görev, ortak dosya değişimi, hazırlık/test bekleme, yeniden açılma nedeni ve gerçek merge sayısını kaydetsin."
+              },
+              {
+                "label": "Yakın tüketiciler",
+                "value": "R-00 ve ilk iki config/kaynak."
+              },
+              {
+                "label": "Kurulum, bakım ve risk",
+                "value": "Yeni telemetri servisi veya dashboard yok; küçük mevcut kanıt kaydı yeterli."
+              },
+              {
+                "label": "Öncelik ve doğrulama",
+                "value": "P1: önce baseline; yalnız aynı ölçüm koşullarında karşılaştır."
+              },
+              {
+                "label": "Kaynak",
+                "value": "scripts/verify-build.mjs — boyut raporu; mevcut artifacts ve GitHub Actions job sonuçları."
+              }
+            ]
           }
         ]
       },
@@ -1126,6 +1684,29 @@
         "items": [
           "Ant Design/Pro, Ant Design X/X Cards, TanStack Router/Query, Keycloak headless hedefi, Tauri 2 ve WXT/MV3 korunur. AG Grid/TanStack Table seçimi OPEN; ikisi birlikte eklenmez. Capacitor kullanılmaz. HarmonyOS gerçek sürüm/ortam deneyi bekler.",
           "Outfit, en az 1rem/400, 320 CSS px ve yeteneklere uyarlama ortaktır. Master → child → tek page sırası davranışa göre uygulanır; yalnız config yeterliyse boş child yaratılmaz."
+        ],
+        "entries": [
+          {
+            "id": "efficiency-economics",
+            "title": "Ortaklaştırma kararı ve özellikle yapmayacaklarımız",
+            "fields": [
+              {
+                "label": "Karar şartı",
+                "value": [
+                  "Gerçek aynı bilgi/davranış tekrarı + yakın tüketiciler + en küçük ortak sınır + geçiş maliyeti + doğrulama birlikte gösterilir. Görünüş benzerliği yeterli değildir.",
+                  "Küçük yerel kod yerel kalabilir. İlk ortak yapı gerçek kullanımdan çıkar; config veya küçük adapter yeterliyse yeni uygulama yazılmaz."
+                ]
+              },
+              {
+                "label": "Kapsam dışı",
+                "value": [
+                  "Yeni ORM/CRUD/workflow motoru, microservices geçişi, geniş Skill koleksiyonu, bütün UI/core yeniden yazımı, paket yükseltme ve yeni test veritabanı kurulumu yok.",
+                  "Ölçülmemiş CI cache/build optimizasyonu, kaynak doğrulamasını kaldırma, gerçek entegrasyonu cache’e dayanarak atlama ve 994 görevi yeniden üretme yok.",
+                  "Frappe çekirdeği veya bize ait olmayan app doğrudan değiştirilmez. Yalnız hedef sürümün desteklediği custom app/resmî genişletme değerlendirilir."
+                ]
+              }
+            ]
+          }
         ]
       },
       {
@@ -1216,6 +1797,118 @@
           "Query/veri/metadata cache kimliği tenant + kullanıcı/yetki bağlamı + kaynak + sürüm içerir. Kimlik/tenant değişiminde önceki cache, istek sonucu ve yerel görünüm temizlenir.",
           "Kısmi güncellemede gönderilmeyen mevcut alan korunur; null/boş/silme ayrı anlamdır. Readonly, hesaplanan ve gizli alan yazı payload’ına eklenmez. Child kayıt parent bağlamıyla kaydedilir; atomik transaction bölünmez.",
           "İlişki araması, dosya okuma/yazma, bulk ve export aynı yetki sınırını taşır. Yerel saklama, izinli offline eylem ve çatışma çözümü kaynak bazındadır; hassas veriye otomatik yerel kopya yok."
+        ],
+        "entries": [
+          {
+            "id": "recipe-source",
+            "title": "Reçete — yeni veri kaynağı",
+            "fields": [
+              {
+                "label": "Girdi",
+                "value": "T-00 baseline, R-00 A–F kararı, gerçek kaynak/DocType eşlemesi ve izinli v1 fixture."
+              },
+              {
+                "label": "Çıktı",
+                "value": "Kaynağın ayrı veri/sunum tanımı ve mevcut ortak mekanizmayı kullanan tek ilk tüketici."
+              },
+              {
+                "label": "Dosya sınırı",
+                "value": "Domain tanımı/modülü; ortak kod yalnız kanıtlanan eksik davranışın ayrı lease’inde. Kesin yollar T-00/R-00’da bulunur."
+              },
+              {
+                "label": "Doğrulama",
+                "value": "İzinli alan, değer/ilişki ve mevcut tüketici uyumu; yeni üçüncü engine yok."
+              }
+            ]
+          },
+          {
+            "id": "recipe-action",
+            "title": "Reçete — sunucu eylemi",
+            "fields": [
+              {
+                "label": "Girdi",
+                "value": "Mevcut Frappe eylemi veya kanıtlanan boşluk; girdi/sonuç/yetki/offline/idempotency politikası."
+              },
+              {
+                "label": "Çıktı",
+                "value": "Bir mevcut davranışa güvenli referans veya tek eksik iş davranışı."
+              },
+              {
+                "label": "Dosya sınırı",
+                "value": "Sahip custom app modülü ve ilgili test/fixture; hooks/registry integration sahibindedir."
+              },
+              {
+                "label": "Doğrulama",
+                "value": "Sunucuda kayıt/alan/tenant yetkisi; tekrar gönderim, hata ve transaction kabulü riskine göre. Python fonksiyonu kendiliğinden uzak API değildir."
+              }
+            ]
+          },
+          {
+            "id": "recipe-screen",
+            "title": "Reçete — ortak ekranı kaynağa bağlama",
+            "fields": [
+              {
+                "label": "Girdi",
+                "value": "Onaylı sözleşme/fixture ve mevcut master; gerekliyse child/config."
+              },
+              {
+                "label": "Çıktı",
+                "value": "Bir page’in sınırlı davranışı; form/liste/detay motoru kopyası yok."
+              },
+              {
+                "label": "Dosya sınırı",
+                "value": "Tek page slotu veya kaynak config’i. Boş child dosyası oluşturulmaz; veri adapter’dan gelir."
+              },
+              {
+                "label": "Doğrulama",
+                "value": "320px, değer/olay, gerçek ilgili yetki ve erken T-08 entegrasyonu; ortak mekanizma testi tüketicide kopyalanmaz."
+              }
+            ]
+          },
+          {
+            "id": "recipe-frappe",
+            "title": "Reçete — izinli Frappe genişletmesi",
+            "fields": [
+              {
+                "label": "Girdi",
+                "value": "Kurulu sürüm/app, etkin metadata ve hazır yetenek kanıtı; neden config’in yetmediği."
+              },
+              {
+                "label": "Çıktı",
+                "value": "Desteklenen custom app/resmî genişletmeyle tek davranış."
+              },
+              {
+                "label": "Dosya sınırı",
+                "value": "En fazla bir DocType tanımı; birden çok mevcut kaydın atomik işlemi yapay bölünmez. Shared hook dosyası integration hattındadır."
+              },
+              {
+                "label": "Doğrulama",
+                "value": "Hedef sürüm sözleşmesi, sunucu izinleri ve eski davranış; bilinmeyen genişletme API’si hazır sayılmaz."
+              }
+            ]
+          },
+          {
+            "id": "recipe-contract",
+            "title": "Reçete — uyumlu şema/sözleşme geçişi",
+            "fields": [
+              {
+                "label": "Girdi",
+                "value": "Eski/yeni alan, değer, kimlik ve ilişki eşlemesi; tüketici listesi ve sürüm kararı."
+              },
+              {
+                "label": "Çıktı",
+                "value": "Önce tek tüketicinin uyumlu geçişi; diğerleri ayrı sınırlı görevlerde."
+              },
+              {
+                "label": "Dosya sınırı",
+                "value": "Tek sözleşme/DocType davranışı ve ilgili fixture. Veri dönüşümü gerekiyorsa ayrı onaylı görev; bu tur migration yok."
+              },
+              {
+                "label": "Doğrulama",
+                "value": "Eksik/null/boş anlamı, tenant/yetki, kayıpsız değer/ilişki, yedek/geri yükleme ve başarısızlıkta kurtarma. Sadece kayıt sayısı veya kod rollback’i yeterli değil."
+              }
+            ]
+          }
         ]
       },
       {
@@ -1241,6 +1934,143 @@
         "items": [
           "Kısa trunk, geçici üretim/test/fixture lease’i; uygulamada aynı işte RED/GREEN/REFACTOR, keşfe yapay RED yok.",
           "Bu üç iş tam form/liste/detay veya üç tüketici kabulü değildir."
+        ],
+        "entries": [
+          {
+            "id": "efficiency-order",
+            "title": "Eski sıra → güncel yaklaşık on görev",
+            "fields": [
+              {
+                "label": "T-00",
+                "value": [
+                  "Önceki sıra: T:1. Yeni sıra: 0 — giriş kapısı.",
+                  "Neden: Gerçek ürün baseline’ı bütün ürün işlerinin zorunlu girdisi; tekrar bootstrap yapılmaz.",
+                  "Açtığı işler: R-00, T-01, T-02, T-09.",
+                  "Yeniden kullanım: Mevcut repo/commit, sürüm, runner, izolasyon ve komut kaydı.",
+                  "En küçük sonuç, engel ve doğrulama: Tek dondurulmuş kayıt; repo/yol bilinmediği için BLOCKED."
+                ]
+              },
+              {
+                "label": "R-00",
+                "value": [
+                  "Önceki sıra: R:1, T’den ayrı. Yeni sıra: 1 — ilk yakın iş.",
+                  "Neden: T-00 çıktısını tekrar üretmeden somut ortak yetenek ve reçete boşluğunu bul. Salt okunur kaynak incelemesi T-01’i beklemez.",
+                  "Açtığı işler: R-01 ve R-02; gerekli tek Skill adayının koşullu kararı.",
+                  "Yeniden kullanım: T-00 baseline ve mevcut Frappe/ortak paket kanıtı.",
+                  "En küçük sonuç, engel ve doğrulama: Sonlu A–F envanteri +14 verimlilik adayının kaynak/öncelik kararı; hedef repo yoksa BLOCKED."
+                ]
+              },
+              {
+                "label": "R-01",
+                "value": [
+                  "Önceki sıra: R:2, T’den ayrı. Yeni sıra: 2 — ikinci yakın iş.",
+                  "Neden: Yalnız izinli projection sözleşmesi; T-02 ile farklı davranıştır, birleştirilmez. Saf fixture işi auth runtime beklemez.",
+                  "Açtığı işler: R-02; ileride tek gerçek kaynak adapter’ı.",
+                  "Yeniden kullanım: R-00’daki mevcut metadata/contract ve ortak fixture usulü.",
+                  "En küçük sonuç, engel ve doğrulama: Tek güvenli v1 kabul/ret sınırı; gerçek endpoint veya tenant yetkisi kanıtı değildir. R-00/runner yoksa BLOCKED."
+                ]
+              },
+              {
+                "label": "R-02",
+                "value": [
+                  "Önceki sıra: R:3, T’den ayrı. Yeni sıra: 3 — üçüncü yakın iş.",
+                  "Neden: İlk ortak yapı iki gerçek config kullanımından çıkar; bütün form/liste altyapısı beklenmez.",
+                  "Açtığı işler: Sonraki tek kaynak config/page bağlantısı.",
+                  "Yeniden kullanım: Mevcut controlled TextField veya küçük adapter; R-01 fixture.",
+                  "En küçük sonuç, engel ve doğrulama: Tek değer/değişim davranışı, iki config. Gerçek yollar ve test komutu yoksa BLOCKED."
+                ]
+              },
+              {
+                "label": "T-01",
+                "value": [
+                  "Önceki sıra: T:2. Yeni sıra: 4 — bağımsız kimlik kolu.",
+                  "Neden: Sıra numarası bağımlılık eklemez: T-00’dan sonra R işleriyle paralel sonlu PoC. Yalnız yetkili ağ akışını engeller.",
+                  "Açtığı işler: Yetkili T-05 ve gerçek T-08 kabulü.",
+                  "Yeniden kullanım: Mevcut Keycloak kurulum/protokolü ve bağımsız kimlik UI hedefi.",
+                  "En küçük sonuç, engel ve doğrulama: Tek güvenli web girişinin uygulanabilirlik kanıtı; sahte RED yok. Hedef sürüm/ortam bilinmiyor."
+                ]
+              },
+              {
+                "label": "T-02",
+                "value": [
+                  "Önceki sıra: T:3. Yeni sıra: 5 — bağlantı referans akışı.",
+                  "Neden: T-00 sonrası bağımsız sözleşme kolu; R-02’nin tamamlanması zorunlu değil. Gereksiz ortak altyapı önkoşulu eklenmez.",
+                  "Açtığı işler: T-03, T-04, T-05.",
+                  "Yeniden kullanım: Mevcut bağlantı davranışı ve T-00 contract/fixture usulü.",
+                  "En küçük sonuç, engel ve doğrulama: ConnectionObservation v1 tek gözlem sözleşmesi; R-01 ile aynı contract değildir. Gerçek baseline yoksa BLOCKED."
+                ]
+              },
+              {
+                "label": "T-03",
+                "value": [
+                  "Önceki sıra: T:4. Yeni sıra: 6 — saf master.",
+                  "Neden: T-02 sözleşmesi sonrası kontrollü etiket; tek davranış korunur.",
+                  "Açtığı işler: T-06.",
+                  "Yeniden kullanım: Mevcut Ant Design erişilebilir gösterimi ve ortak fixture.",
+                  "En küçük sonuç, engel ve doğrulama: Tek master; 320px/klavye ve durum kabulü. T-02/runner yoksa BLOCKED."
+                ]
+              },
+              {
+                "label": "T-04",
+                "value": [
+                  "Önceki sıra: T:5. Yeni sıra: 7 — bağımsız browser portu.",
+                  "Neden: T-02 sonrası T-03 ile paralel olabilir; browser online ipucu Frappe erişimi değildir.",
+                  "Açtığı işler: T-06.",
+                  "Yeniden kullanım: Mevcut browser sinyali/adapter sınırı.",
+                  "En küçük sonuç, engel ve doğrulama: Tek generation/gözlem davranışı; T-02 ve gerçek test ortamı gerekir."
+                ]
+              },
+              {
+                "label": "T-05",
+                "value": [
+                  "Önceki sıra: T:6. Yeni sıra: 8 — tek gerçek backend portu.",
+                  "Neden: T-02 ve yetkili runtime için T-01 kanıtı gerekir; yeni ping/ORM kurma. Eski görevdeki T-02 bağımlılığı korunur, auth kabul kapısı görünür ek açıklamadır.",
+                  "Açtığı işler: T-06 ve gerçek T-08.",
+                  "Yeniden kullanım: Mevcut izinli HTTP okuma akışı ve sunucu politikası.",
+                  "En küçük sonuç, engel ve doğrulama: Özgün istek sonucunun tek gözlemi; gerçek endpoint/tenant yetkisi bilinmiyor, BLOCKED."
+                ]
+              },
+              {
+                "label": "T-06",
+                "value": [
+                  "Önceki sıra: T:7. Yeni sıra: 9 — child/config bileşimi.",
+                  "Neden: T-03/T-04/T-05 sonrası; config yeterliyse gereksiz child yok.",
+                  "Açtığı işler: T-07 → T-08.",
+                  "Yeniden kullanım: Hazır master ve iki port; aynı sözleşme sürümü.",
+                  "En küçük sonuç, engel ve doğrulama: Tek geçerli gözlemin gösterimi. Bağımlılıklar ve gerçek runner doğrulanmadan BLOCKED."
+                ]
+              }
+            ]
+          },
+          {
+            "id": "efficiency-flow",
+            "title": "Erken gerçek entegrasyon ve bağımsız kapılar",
+            "fields": [
+              {
+                "label": "Aktif sıra kararı",
+                "value": [
+                  "Bu kayıt mevcut T/R kimliklerine yürütme önceliği verir; üçüncü task registry değildir. İlk üç ayrıntılı aktif kart R-00/R-01/R-02’dir. currentPlan’ın ilk beş eski kartı ve994 taslak kayıt tarihsel bağlam olarak silinmez.",
+                  "T-00 giriş koşulu karşılanmadan ürün uygulaması başlatılmaz. T-01 ve T-02 bağımsız kollar olarak T-00 sonrasında başlayabilir; gösterim sırası yapay seri bağımlılık değildir."
+                ]
+              },
+              {
+                "label": "Çalışan referans akış seçimi",
+                "value": "Bağlantı gözlemi ve izinli tek Frappe okuması seçili referans akışıdır; üründe şu an çalıştığı kanıtlanmadı. T-02 sözleşme → T-03/T-04/T-05 gerekli davranışlar → T-06 → T-07 tek page → T-08 gerçek frontend/Frappe kabulü. Bunlar ayrı mikro görevlerdir; yeni genel altyapı T-08’in önüne sınırsız kapı olmaz."
+              },
+              {
+                "label": "On görev sonrasındaki kısa referanslar",
+                "value": [
+                  "T-07 eski T:8 → T-06 sonrası tek mevcut page slotu; R-02 aynı page’e zorla taşınmaz, farklı davranışlar korunur.",
+                  "T-08 eski T:9 → T-07 ve güvenli T-01 kabulü sonrası gerçek okuma; bağımsız/sentetik fixture başarıları bunun yerine geçmez.",
+                  "T-09 eski T:10 → yalnız T-00’a bağlı ayrı sonlu HarmonyOS kanıt kolu. Doğrulanmamış platform desteği o platform işini engeller; web/Tauri/R görevlerini engellemez."
+                ]
+              },
+              {
+                "label": "Birleşme ve durma",
+                "value": "Aktif üretim/test/fixture lease’i ve gerçek merge kanıtı gerekir. Aynı kök neden için3 ve görev toplamında5 sonuçsuz gerekçeli düzeltmede dur; beklenen ilk RED hariçtir. Uygulama görevinde RED/GREEN/REFACTOR ayrılmaz; bu belge turuna yapay RED eklenmez."
+              }
+            ]
+          }
         ]
       },
       {
@@ -1254,6 +2084,63 @@
           "En fazla bir değişen DocType, parent/child ayrımı ve atomik iş işlemi korunur. Master-child-page config ile sağlanıyorsa gereksiz child dosyası yok.",
           "Aynı kök neden için 3, görevde toplam 5 sonuçsuz düzeltmede dur; beklenen ilk RED sayılmaz. Geçen değişmemiş testi tekrarlama, test/fixture/hash/timeout/retry zayıflatma.",
           "Firefox’un zorunlu kapsamdan çıkarılması yalnız bu GitHub Pages dokümantasyon reposuna aittir; gelecekteki SaaS tarayıcı desteği kararı değildir. Ürün TDD’si ve gerçek entegrasyon kabulü korunur."
+        ],
+        "entries": [
+          {
+            "id": "efficiency-conflicts",
+            "title": "Çelişki ve uyumlu geçiş kayıtları",
+            "fields": [
+              {
+                "label": "Çözülen — kaynak incelemesi ve auth kapısı",
+                "value": "Kaynaklar: R-00/R-01 kart bağımlılık açıklamaları ve T-01. Salt okunur envanter/saf fixture ile yetkili runtime ayrılır: T-00 sonrası R-00 kaynak okuyabilir; T-01 yalnız kimlik gerektiren çalıştırmayı engeller. Doğrulama: gerçek runtime öncesinde T-01 kanıtı; risk: UI gizleme sunucu izni sayılamaz."
+              },
+              {
+                "label": "Çözülen — ayrıntı seviyesi ve tarihçe",
+                "value": "Kaynaklar: currentPlan ilk5 kartı, reusePlan3 kartı ve994 draft. Aktif ayrıntı yalnız R-00/R-01/R-02; eski kart/kimlik/sıra silinmez. Doğrulama: immutable eski metadata ve görev byte’ları; risk: tarihsel kart hazır iş gibi yorumlanmamalı."
+              },
+              {
+                "label": "Geçiş gerektiren — tekrarlanan sunum ve CI hazırlığı",
+                "value": "Kaynaklar: iki HTML yürütme yüzeyi ve altı hermetik CI işi. Ortak mekanizmayı ve no-JS/izolasyonu koru; ölçüm ve gerçek tüketici olmadan toplu refactor/cache yok. Doğrulama: byte/bütçe ve aynı koşullarda süre; risk: daha az kod ilk yüklemeyi veya güvenilirliği bozabilir."
+              },
+              {
+                "label": "Engelli — ürün ve güvenlik kanıtı",
+                "value": "Kaynaklar: T-00/T-01/T-08. Ürün repo/sürüm/endpoint/tenant koşulları bilinmiyor; statik Pages başarısı bunları kapatmaz. Yalnız bağımlı ürün işleri BLOCKED; bu dokümantasyon yayını bağımsız tamamlanabilir."
+              },
+              {
+                "label": "Engelli — grid ve HarmonyOS",
+                "value": "Kaynaklar: kesin stack kararları ve T-09. AG Grid/TanStack Table seçimi açık, yeniden seçim uydurulmaz. Tauri2/Ant Design/X/Keycloak/WXT korunur, Capacitor seçilmez. HarmonyOS hedefi tamamlanmış destek değildir; yalnız kendi platform kapısı ayrı doğrulanır."
+              },
+              {
+                "label": "Çözülen — Pages testi ve ürün TDD",
+                "value": "Kaynaklar: docs/test-policy.md ve kullanıcı Firefox kararı. Mevcut Pages matrisini genişletme; ürün kabul/yetki testini bu sınırlamaya dayanarak kaldırma. Bu tur yalnız plan içeriği, yeni test uygulaması yok; gerçek yeni davranış için sonraki mikro görev TDD yapar."
+              }
+            ]
+          },
+          {
+            "id": "efficiency-preservation",
+            "title": "Veri, davranış ve verimlilik ölçümünün sınırı",
+            "fields": [
+              {
+                "label": "Korunacaklar",
+                "value": [
+                  "20 kanonik kaynak, altı görev registry’si, currentPlan ve eski reusePlan alanları silinmez. Yeni değerlendirmeler mevcut bölümlere eklenir; üç R kartına yalnız açıklayıcı kabul ekleri yapılır.",
+                  "Kayıt kimliği, ilişkiler, Türkçe/Unicode, boş/null anlamı, sıralama ve tekrarlar kendiliğinden normalize edilmez. Önceden kullanıcı değişikliği varsa ayrı korunur; bu tur başlangıç ağacı temizdi."
+                ]
+              },
+              {
+                "label": "Küçük ölçüm kaydı",
+                "value": "Kaynak başına özel kod/görev, ortak dosya değişimi, test/ortam bekleme, yeniden açılma nedeni ve ana dala birleşmiş davranış. Kazanç yüzdesi veya süre hedefi uydurulmaz; başlangıç ürün ölçümü R-00’da bulunacak."
+              },
+              {
+                "label": "Bu turda yapılmayanlar",
+                "value": "Üretim/test kodu, paket/lockfile, kurulum/yükseltme, migration/seed/temizlik, müşteri ortamı, geçmiş silme ve sonraki uygulama görevini başlatma yok."
+              },
+              {
+                "label": "Sonuç",
+                "value": "Bir sonraki uygulamada baseline/karar/komut keşfini ve ortak alan/veri erişimini baştan yazmayacağız. İlk küçük iş, T-00 mevcut kaydını yeniden kullanarak R-00’ın tek baseline’da kanıtlı envanter ve reçete kararını çıkarmasıdır."
+              }
+            ]
+          }
         ]
       }
     ],
@@ -1338,14 +2225,16 @@
           "purpose": "Var olan davranışı yeniden yazmadan gerçek tekrar ve boşluğu bul.",
           "type": "Sonlu kaynak keşfi; yapay TDD yok.",
           "group": "reuse-inventory",
-          "dependencies": "T-00 baseline gerekir; T-01 gerçek yetkili akış ön koşuludur, bu kart kimlik PoC’sini tekrarlamaz.",
+          "dependencies": "T-00 baseline gerekir; T-01 gerçek yetkili akış ön koşuludur, bu kart kimlik PoC’sini tekrarlamaz. Salt okunur kaynak envanteri T-00 sonrasında T-01’i beklemez; yalnız yetkili runtime çalıştırması T-01 kapısına bağlıdır.",
           "target": "T-00 ürün baseline’ındaki katalog; gerçek repo/yol bilinmiyor.",
           "doctypeCount": 0,
           "scope": "Tek ürün baseline’ında kaynak/paket/sürüm/sözleşme/örnek kullanım kanıtıyla A–F envanteri.",
           "excludes": "Başka repo/servis taraması, yeni bootstrap, kurulum, ortak engine yazımı ve production değişikliği.",
           "acceptance": [
             "Kurulu app/sürüm, etkin DocType ve ortak kod kanıtı veya bilinmiyor kaydı bulunur.",
-            "İki somut kullanım ve A–F kararıyla ilk alan seçilir; T-00 envanteri kopyalanmaz."
+            "İki somut kullanım ve A–F kararıyla ilk alan seçilir; T-00 envanteri kopyalanmaz.",
+            "A–N adayları için mevcut kaynak, gerçek tekrar/bilinmiyor, yakın tüketici, en küçük sonuç, bakım/öncelik ve doğrulama kaydı vardır; T-00 komut/ortam envanteri kopyalanmaz.",
+            "Somut tekrar yoksa yeni Skill/katman/generator önerisi ertelenir; ilk iki config için ilgili reçete ve ortak kaynak bağlantısı seçilir."
           ],
           "risk": "P1 yanlış mevcut-yetenek iddiası; sonlu kaynak/sürüm incelemesi.",
           "red": "Uygulanmaz: sonlu keşfe sahte başarısız test üretilmez.",
@@ -1377,14 +2266,15 @@
           "purpose": "Ham metadata ve yetkisiz alanın istemci sözleşmesine sızmasını önle.",
           "type": "Tek güvenli projection sözleşmesi ve ortak fixture.",
           "group": "reuse-contract",
-          "dependencies": "R-00 envanteri; T-00 sürüm/runner; gerçek yetkili entegrasyon için T-01 kimlik PoC’si.",
+          "dependencies": "R-00 envanteri; T-00 sürüm/runner; gerçek yetkili entegrasyon için T-01 kimlik PoC’si. Saf fixture/sözleşme incelemesi auth runtime beklemez; gerçek güvenli projection ayrıca T-01 ve sunucu kabulünü gerektirir.",
           "target": "Mantıksal v1 contract/fixture; gerçek repo/yol bilinmiyor.",
           "doctypeCount": 0,
           "scope": "Tek kaynakta yalnız onaylı alan/özelliklerin v1 sözleşmeye kabul edilmesi invariantı.",
           "excludes": "Yeni endpoint, bütün metadata servisi, ikinci ORM, DocType değişikliği veya identity yeniden tasarımı.",
           "acceptance": [
             "İzinli alan/özellik fixture’ı kabul, fazladan/gizli alan fixture’ı ret sınırını taşır.",
-            "sourceVersion/presentationVersion ayrıdır; bilinmeyen alan türü açık uyumsuzluk verir."
+            "sourceVersion/presentationVersion ayrıdır; bilinmeyen alan türü açık uyumsuzluk verir.",
+            "Mevcut reçetenin girdi/çıktı/dosya/doğrulama sınırı kullanılır; aynı mekanizma testi her kaynak için kopyalanmaz, tüketiciye özgü yetki kabulü ayrı korunur."
           ],
           "risk": "P0 alan sızıntısı; contract fixture ve gerçek yetkili projection ayrı kanıtlardır.",
           "red": "Planlanan RED: izin dışı alanı kabul eden fixture kontrolü başarısız olur; henüz çalıştırılmadı.",
@@ -1423,7 +2313,8 @@
           "excludes": "Form/list/detail engine’i, Query/Router/shell kurulumu, doğrulama motoru, Frappe isteği ve tam tüketici kabulü.",
           "acceptance": [
             "İki config aynı uygulama dosyasıyla farklı label/değer kullanır; değer ve değişim sözleşmesi korunur.",
-            "Boş/Unicode değer ve accessible label 320px/1rem davranışı ilgili ortak fixture ile doğrulanır."
+            "Boş/Unicode değer ve accessible label 320px/1rem davranışı ilgili ortak fixture ile doğrulanır.",
+            "Kaynak ekleme reçetesi ve mevcut fixture usulü kullanılır; yeni genel motor, paket veya her config için kopya davranış testi üretilmez."
           ],
           "risk": "P1 kopya alan/yanlış değer; saf component davranış testi.",
           "red": "Planlanan RED: config değişiminde değer/olay eşleşmesini kaybeden ortak alan kontrolü başarısız olur; çalıştırılmadı.",

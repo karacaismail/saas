@@ -13,3 +13,11 @@ Resmî referanslar 2026-10-12 tarihinde incelendi; genel belgeler hedef kurulum 
 - [Hooks](https://docs.frappe.io/framework/user/en/python-api/hooks): genişletme hedef sürüme göre seçilir; v16+ desteği bilinmeyen/eski sürüme dayatılmaz.
 
 Güvenli projection, tenant/kullanıcı/yetki cache ayrımı, kısmi güncellemede gönderilmeyen alanı koruma, parent-child invariantı ve kaynak bazlı offline politikası kabul kapılarıdır. UI’da gizlemek sunucu yetkisi değildir. Gerçek ürün komutları henüz bilinmiyor; dokümantasyon kontrolleri ürün entegrasyonu veya üç tüketici kanıtı yerine geçmez. Firefox kapsamı daralması yalnız bu Pages reposuna aittir.
+
+## Geliştirme verimliliği ve güncel sıra
+
+Kullanıcının sonraki verimlilik eki, mevcut `reusePlan` bölümlerine işlenir; üçüncü bir plan veya paralel görev listesi oluşturulmaz. A–N adaylarının değerlendirmesi, kanıtlar, çelişki kayıtları ve sıralama gerekçeleri aynı kanonik JSON’da tutulur. Önceki `currentPlan` ve 994 tarihsel kayıt korunur. Yaklaşık on kısa sıralama referansı mevcut görev kimliklerine bağlanır; yeni görev kopyaları değildir. Etkin ayrıntılı sıra yalnız R-00, R-01 ve R-02 kartlarıdır; eski kartlar geçmiş bağlam olarak kalır.
+
+R-00, T-00 baseline’ını yeniden kullanır. Salt okunur kaynak envanteri T-01’i beklemez; bu ayrım eksik ürün kaynağı ve sürüm giriş koşullarını kaldırmaz. T-01 kimlik doğrulamalı çalışma zamanı akışlarını, T-09 yalnız ilgili platform işlerini engeller. Sözleşme, gerekli backend davranışı ve ortak arayüz bağlantısından oluşan küçük referans akışın T-08 gerçek entegrasyon kanıtı, bütün ortak altyapının tamamlanmasına bağlanmaz. Her uygulama mikro görevi kendi TDD döngüsünü, dar sahiplik sınırını ve birleşme kanıtını korur.
+
+Bu teslim planlama belgelerini günceller; ürün uygulaması, yeni Skill, ortam kurulumu veya test matrisi büyümesi içermez. Ortaklaştırma yalnız somut tekrar, yakın tüketici ve en küçük uyumlu geçiş kanıtıyla önerilir; ölçülmemiş zaman veya verim kazancı ileri sürülmez.
