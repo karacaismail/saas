@@ -75,7 +75,9 @@
   --p-gap-6: 2rem;
   --p-gap-7: 3rem;
   --p-gutter: clamp(1rem, 3vw, 3rem);
-  --p-radius: 0.6rem;
+  --p-radius: 0.2rem;
+  --p-tab-radius: 0;
+  --p-tab-indicator: 3px;
   --p-pill-radius: 999rem;
   --p-transition: 140ms ease;
   --p-shadow: 0 0.5rem 2rem #1c272615;
@@ -341,22 +343,23 @@ fieldset:disabled {
   align-items: center;
   min-height: var(--p-hit);
   padding: var(--p-gap-2) var(--p-gap-3);
-  border-radius: var(--p-radius);
-  background: var(--p-surface);
+  border-bottom: var(--p-tab-indicator) solid transparent;
+  border-radius: var(--p-tab-radius);
+  background: transparent;
   cursor: pointer;
 }
 .p-radio-options input:checked + span {
-  background: var(--p-selected);
   color: var(--p-blue);
-  box-shadow: inset 0 -3px var(--p-blue);
+  border-bottom-color: var(--p-blue);
   font-weight: var(--p-medium);
 }
 .p-radio-options input:focus-visible {
   outline: 0;
 }
-.p-radio-options input:focus-visible + span {
-  outline: var(--p-focus-size) solid var(--p-focus);
-  outline-offset: var(--p-focus-offset);
+.p-radio-options input:focus-visible + span,
+.p-radio-options input[data-keyboard-focus]:focus + span {
+  border-bottom-color: var(--p-focus);
+  border-bottom-style: dashed;
 }
 .p-stage-strip {
   margin-block: var(--p-gap-6);

@@ -1,5 +1,13 @@
 # Paralel geliştirme proje modeli
 
+## Güncel çalışma yöntemi
+
+2026-10-12 TDD yeniden planlaması `data/project/project.json/currentPlan` içinde tek kaynak olarak tutulur ve `/plan/` altında yayımlanır. Yakın10 işin ayrı `/plan/tasks/<id>/` sayfaları, ilk5 ayrıntılı kartı ve kayıpsız JSON/Markdown indirmeleri vardır. Aşağıdaki994 taslak kayıt tarihsel artefakt envanteridir; tek dosya/DocType sınırı tek davranış büyüklüğü kanıtı değildir. Güncel davranış, TDD, geçici sahiplik, erken entegrasyon ve kapanış kuralları yeni uygulama görevlerinin çalışma yöntemini belirler; eski gereksinimler ve kimlikler silinmez.
+
+`projectRevision`, yeni plan dahil bütün metadata'yı kapsar. Aynı plan eski görev paketlerinin `projectContext` alanında da korunur. Yeni plan validator'ı kimlikleri, grup/dependency/source referanslarını, çevrimsiz sırayı, en fazla5 ayrıntılı kartı, kart alanlarını ve bilinmeyen hedefte BLOCKED sınırını denetler. Bu kontroller gerçek worktree yazma kilidi veya ürün TDD/runtime kanıtı değildir. Aktif dosya sahipliği yürütme ortamında ayrıca uygulanmalıdır.
+
+Yakın görevlerin kopyalama eylemi mevcut ortak clipboard ve seçilebilir metin fallback'ini kullanır; görev/plan kimliği ve yayın digestleri uyuşmadan başarı bildirilmez. Filtreler sabit yükseklikte alt gösterge taşır: seçim düz, gerçek klavye hedefi kesikli; pointer/focusout geçici klavye işaretini temizler. Yuvarlak arka plan, iç gölge veya ikinci dış odak kutusu yoktur.
+
 Bu ek model, özellik atlasını silmeden Frappe kayıtları, headless frontend ve işletim artefaktları üzerinden bağımsız görev paketlerine dönüştürür. Atlasın 20 kanonik JSON dosyası ve 387 maddesi byte düzeyinde korunur. Eski 33 mimari birim ve 63 bileşen kataloğu girdisi yeni modele referansla bağlanır.
 
 248 mikro küme ve 994 görev vardır; bu sayılar bir hedef, tamamlanma veya geliştirmeye hazır olma göstergesi değildir. 90 backend, 72 frontend, 38 adaptör, 16 platform ve 32 işletim kümesi bulunur. Görevler, farklı aşamalarda aynı artefakta eklenecek dosya kapsamlarını ayırdığı için küme başına sabit sayı yoktur. Sözleşme, şema, uygulama ve entegrasyon görevleri gerektiği yerde ayrıdır; her madde için otomatik test görevi üretilmez.

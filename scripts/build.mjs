@@ -3,10 +3,13 @@ import { dirname } from 'node:path';
 import { loadProject, validateProject } from './project-model.mjs';
 import {
   createTaskPacket,
+  createCurrentPlanPacket,
+  renderCurrentPlanPage,
   renderClusterPage,
   renderProjectHome,
   renderTaskPage,
   serializeTaskMarkdown,
+  serializeCurrentPlanMarkdown,
 } from '../assets/project-templates.js';
 
 const project = validateProject(await loadProject());
@@ -39,6 +42,26 @@ const atlasHtml = source
   .replace('<!--ATLAS_DATA_ISLAND-->', dataIsland);
 await write('dist/atlas/index.html', atlasHtml);
 await write('dist/index.html', renderProjectHome(project));
+const currentPlan = createCurrentPlanPacket(project);
+await write('dist/plan/index.html', renderCurrentPlanPage(project));
+await write(
+  'dist/plan/current-plan.json',
+  `${JSON.stringify(currentPlan, null, 2)}\n`,
+);
+await write(
+  'dist/plan/current-plan.md',
+  serializeCurrentPlanMarkdown(currentPlan),
+);
+for (const task of project.meta.currentPlan.tasks) {
+  const directory = `dist/plan/tasks/${routeId(task.id)}`;
+  const packet = createCurrentPlanPacket(project, task.id);
+  await write(
+    `${directory}/index.html`,
+    renderCurrentPlanPage(project, task.id),
+  );
+  await write(`${directory}/task.json`, `${JSON.stringify(packet, null, 2)}\n`);
+  await write(`${directory}/task.md`, serializeCurrentPlanMarkdown(packet));
+}
 
 // Project templates are build-time code, never a browser dependency. Copy only
 // the explicit shared legacy assets and the new workspace CSS/runtime.

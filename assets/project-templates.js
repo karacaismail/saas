@@ -45,6 +45,10 @@ const artifactKind = (project, kind) =>
     }[kind],
   );
 
+function taskCopyFallback(project) {
+  return `<section class="p-copy-fallback" id="project-copy-fallback" hidden><label for="project-copy-text">${label(project, 'copyFallbackLabel')}</label><p>${label(project, 'copyFallbackHint')}</p><textarea id="project-copy-text" readonly></textarea><button type="button" data-close-fallback>${label(project, 'closeFallback')}</button></section>`;
+}
+
 function taskCheck(project, task, prefix) {
   const detail = prefix === 'detail';
   return `<label class="p-task-select${detail ? ' p-task-select-detail' : ''}" for="${prefix}-${escape(task.id)}"><input type="checkbox" id="${prefix}-${escape(task.id)}" data-task-select="${escape(task.id)}" disabled /><span class="p-sr-only">${escape(format(text(project, 'selectTask'), { title: task.title }))}</span>${detail ? `<span>${label(project, 'selectTaskShort')}</span>` : ''}</label>`;
@@ -121,7 +125,7 @@ function shell(
   project,
   title,
   body,
-  { base = './', route = 'home', taskId, clusterId } = {},
+  { base = './', route = 'home', taskId, clusterId, planTaskId } = {},
 ) {
   const indexTasks =
     route === 'home'
@@ -137,6 +141,9 @@ function shell(
     base,
     route,
     ...(taskId ? { taskId } : {}),
+    ...(planTaskId
+      ? { planTaskId, currentPlanId: project.meta.currentPlan.id }
+      : {}),
     taskIndex: indexTasks.map((task) => {
       const cluster = byId(project.clusters, task.clusterId);
       return {
@@ -156,7 +163,7 @@ function shell(
   };
   return `<!doctype html>
 <html lang="tr"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" /><meta name="color-scheme" content="light" /><meta name="description" content="${label(project, 'description')}" /><meta name="theme-color" content="#fffdf7" /><title>${escape(title)} · ${label(project, 'siteTitle')}</title><link rel="icon" type="image/svg+xml" href="${base}assets/favicon.svg" /><link rel="stylesheet" href="${base}assets/project.css" /></head>
-<body class="p-body" data-project-route="${route}"><a class="p-skip" href="#main">${label(project, 'skip')}</a><div class="p-shell"><aside class="p-sidebar"><a class="p-brand" href="${base}"><span class="p-brand-mark" aria-hidden="true"></span>${label(project, 'brand')}</a><p class="p-sidebar-label">${label(project, 'workspace')}</p><nav class="p-nav" aria-label="${label(project, 'workspace')}"><a href="${base}"${route === 'home' ? ' aria-current="page"' : ''}>${label(project, 'navWorkspace')}</a><a href="${base}#tasks">${label(project, 'navTasks')}</a><a href="${base}#cluster-results" data-project-nav="clusters">${label(project, 'navClusters')}</a><a href="${base}#gates">${label(project, 'navGates')}</a><a href="${base}atlas/#development-plan">${label(project, 'navArchitecture')}</a><a href="${base}atlas/">${label(project, 'navAtlas')}</a></nav><p class="p-sidebar-note">${label(project, 'workspaceNote')}</p></aside><main class="p-main" id="main">${body}<footer class="p-footer"><p>${label(project, 'footer')}</p><a href="${base}atlas/">${label(project, 'navAtlas')}</a></footer></main></div><p class="p-status" id="project-status" role="status" aria-live="polite"></p><noscript><p class="p-noscript">${label(project, 'jsRequired')}</p></noscript><script id="project-runtime" type="application/json">${jsonScript(runtime)}</script><script type="module" src="${base}assets/project-app.js"></script></body></html>\n`;
+<body class="p-body" data-project-route="${route}"><a class="p-skip" href="#main">${label(project, 'skip')}</a><div class="p-shell"><aside class="p-sidebar"><a class="p-brand" href="${base}"><span class="p-brand-mark" aria-hidden="true"></span>${label(project, 'brand')}</a><p class="p-sidebar-label">${label(project, 'workspace')}</p><nav class="p-nav" aria-label="${label(project, 'workspace')}"><a href="${base}"${route === 'home' ? ' aria-current="page"' : ''}>${label(project, 'navWorkspace')}</a>${project.meta.currentPlan ? `<a href="${base}plan/" data-current-plan${route === 'plan' || route === 'plan-task' ? ' aria-current="page"' : ''}>${escape(project.meta.currentPlan.ui.nav)}</a>` : ''}<a href="${base}#tasks">${label(project, 'navTasks')}</a><a href="${base}#cluster-results" data-project-nav="clusters">${label(project, 'navClusters')}</a><a href="${base}#gates">${label(project, 'navGates')}</a><a href="${base}atlas/#development-plan">${label(project, 'navArchitecture')}</a><a href="${base}atlas/">${label(project, 'navAtlas')}</a></nav><p class="p-sidebar-note">${label(project, 'workspaceNote')}</p></aside><main class="p-main" id="main">${body}<footer class="p-footer"><p>${label(project, 'footer')}</p><a href="${base}atlas/">${label(project, 'navAtlas')}</a></footer></main></div><p class="p-status" id="project-status" role="status" aria-live="polite"></p><noscript><p class="p-noscript">${label(project, 'jsRequired')}</p></noscript><script id="project-runtime" type="application/json">${jsonScript(runtime)}</script><script type="module" src="${base}assets/project-app.js"></script></body></html>\n`;
 }
 
 function clusterCard(project, cluster, base) {
@@ -179,7 +186,7 @@ export function renderProjectHome(project) {
     )
     .join(
       '',
-    )}</dl><p class="p-workspace-note">${label(project, 'draftNote')}</p>${stages(project)}${gates(project)}<section class="p-workspace" id="tasks" aria-labelledby="tasks-title"><div class="p-controls"><div class="p-search"><label for="project-search">${label(project, 'searchLabel')}</label><input id="project-search" type="search" autocomplete="off" placeholder="${label(project, 'searchPlaceholder')}" disabled /></div><div class="p-filter-row">${radioGroup(project, 'layerFilter', 'project-layer', [{ id: 'all', title: ui.allLayers }, ...project.meta.layers])}<button type="button" data-reset-filters disabled>${label(project, 'resetFilters')}</button></div><div class="p-filter-row">${radioGroup(
+    )}</dl><p class="p-workspace-note">${label(project, 'draftNote')}</p>${project.meta.currentPlan ? `<section class="p-detail-section p-plan-entry"><h2><a href="./plan/" data-current-plan>${escape(project.meta.currentPlan.ui.nav)}</a></h2><p>${escape(project.meta.currentPlan.summary)}</p><p>${escape(project.meta.currentPlan.notice)}</p></section>` : ''}${stages(project)}${gates(project)}<section class="p-workspace" id="tasks" aria-labelledby="tasks-title"><div class="p-controls"><div class="p-search"><label for="project-search">${label(project, 'searchLabel')}</label><input id="project-search" type="search" autocomplete="off" placeholder="${label(project, 'searchPlaceholder')}" disabled /></div><div class="p-filter-row">${radioGroup(project, 'layerFilter', 'project-layer', [{ id: 'all', title: ui.allLayers }, ...project.meta.layers])}<button type="button" data-reset-filters disabled>${label(project, 'resetFilters')}</button></div><div class="p-filter-row">${radioGroup(
     project,
     'viewLabel',
     'project-view',
@@ -301,6 +308,137 @@ const markdown = (value) =>
 const markdownList = (values) =>
   values.map((value) => `- ${markdown(value)}`).join('\n');
 
+/** The current plan is an additive planning record, not the draft task registry. */
+export function createCurrentPlanPacket(project, taskId) {
+  const plan = project.meta.currentPlan;
+  if (!plan) throw new TypeError('Missing current development plan');
+  return structuredClone({
+    version: 1,
+    sourceDigest: project.meta.sourceDigest,
+    projectRevision: project.revision,
+    ...(taskId
+      ? {
+          planId: plan.id,
+          task: byId(plan.tasks, taskId),
+          rules: plan.sections,
+          cardLabels: plan.cardLabels,
+        }
+      : { plan }),
+  });
+}
+
+function planFields(project, task) {
+  const plan = project.meta.currentPlan;
+  return task.card
+    ? `<dl class="p-definition-list">${Object.entries(task.card)
+        .map(
+          ([key, value]) =>
+            `<div><dt>${escape(plan.cardLabels[key])}</dt><dd>${Array.isArray(value) ? list(value) : escape(value)}</dd></div>`,
+        )
+        .join('')}</dl>`
+    : `<p>${escape(task.blocker)}</p>`;
+}
+
+export function renderCurrentPlanPage(project, taskId) {
+  const plan = project.meta.currentPlan;
+  const ui = plan.ui;
+  const task = taskId ? byId(plan.tasks, taskId) : null;
+  const base = task ? '../../../' : '../';
+  const download = task ? 'task' : 'current-plan';
+  const title = task?.title ?? plan.title;
+  const header = `<header class="p-header"><p class="p-kicker">${escape(task?.id.toUpperCase() ?? plan.updatedAt)}</p><h1>${escape(title)}</h1><p class="p-lead">${escape(task?.summary ?? plan.summary)}</p><p class="p-workspace-note">${escape(task?.blocker ?? plan.notice)}</p><div class="p-action-bar">${task ? `<button class="p-primary" type="button" data-copy-task disabled>${label(project, 'copyTask')}</button>` : ''}<a class="p-button" href="./${download}.json" download>${escape(ui.downloadJson)}</a><a class="p-button" href="./${download}.md" download>${escape(ui.downloadMarkdown)}</a></div></header>${task ? taskCopyFallback(project) : ''}`;
+  let body;
+  if (task) {
+    const group = byId(plan.roadmap, task.groupId);
+    body = `<a href="../../">${escape(ui.backToPlan)}</a>${header}<section class="p-detail-section"><dl class="p-definition-list"><div><dt>${escape(ui.statusLabel)}</dt><dd>${escape(task.status)}</dd></div><div><dt>${escape(ui.groupLabel)}</dt><dd>${escape(group.title)}</dd></div><div><dt>${escape(ui.targetLabel)}</dt><dd>${escape(task.target)}</dd></div><div><dt>${escape(ui.dependencyLabel)}</dt><dd>${task.dependsOn.length ? `<ul>${task.dependsOn.map((id) => `<li><a href="../${encodeURIComponent(id)}/">${escape(id.toUpperCase())}</a></li>`).join('')}</ul>` : escape(text(project, 'emptyList'))}</dd></div></dl></section><section class="p-detail-section">${planFields(project, task)}</section>${task.sourceTaskIds.length ? `<section class="p-detail-section"><h2>${escape(ui.oldTaskLabel)}</h2><ul>${task.sourceTaskIds.map((id) => `<li><a href="${taskUrl(base, id)}">${escape(id)}</a></li>`).join('')}</ul></section>` : ''}`;
+  } else {
+    body = `${header}${plan.sections
+      .map(
+        (section) =>
+          `<section class="p-detail-section" id="${escape(section.id)}"><h2>${escape(section.title)}</h2>${section.paragraphs.map((value) => `<p>${escape(value)}</p>`).join('')}${list(section.items)}</section>`,
+      )
+      .join(
+        '',
+      )}<section class="p-detail-section"><h2>${escape(ui.roadmapTitle)}</h2><ol>${plan.roadmap.map((group) => `<li><h3>${escape(group.title)}</h3><p>${escape(group.deliverable)}</p><p>${escape(group.gate)}</p></li>`).join('')}</ol></section><section class="p-detail-section"><h2>${escape(ui.mappingTitle)}</h2><p>${escape(plan.mapping.note)}</p><ul>${plan.mapping.rows.map((row) => `<li><h3>${escape(row.oldTaskId)}</h3><p>${escape(row.action)} · ${escape(row.result)}</p></li>`).join('')}</ul></section><section class="p-detail-section"><h2>${escape(ui.tasksTitle)}</h2><ol>${plan.tasks.map((entry) => `<li data-plan-task="${escape(entry.id)}"><h3><a href="./tasks/${encodeURIComponent(entry.id)}/">${escape(entry.id.toUpperCase())} · ${escape(entry.title)}</a></h3><p>${escape(entry.summary)}</p><p>${escape(ui.typeLabel)}: ${escape(entry.type)} · ${escape(ui.statusLabel)}: ${escape(entry.status)}</p><p>${escape(ui.targetLabel)}: ${escape(entry.target)}</p><p>${escape(ui.dependencyLabel)}: ${escape(entry.dependsOn.map((id) => id.toUpperCase()).join(', ') || text(project, 'emptyList'))}</p></li>`).join('')}</ol></section><section class="p-detail-section"><h2>${escape(ui.cardsTitle)}</h2>${plan.tasks
+      .filter((entry) => entry.card)
+      .map(
+        (entry) =>
+          `<details class="p-detail-section" name="current-plan-card" data-plan-card="${escape(entry.id)}"><summary><span>${escape(entry.id.toUpperCase())} · ${escape(entry.title)}</span><span class="p-chevron" aria-hidden="true"></span></summary>${planFields(project, entry)}</details>`,
+      )
+      .join(
+        '',
+      )}</section><section class="p-detail-section"><h2>${escape(plan.audit.title)}</h2>${list(plan.audit.items)}</section>`;
+  }
+  return shell(project, title, body, {
+    base,
+    route: task ? 'plan-task' : 'plan',
+    ...(task ? { planTaskId: task.id } : {}),
+  });
+}
+
+/** Human-readable Markdown plus the exact packet for lossless interchange. */
+export function serializeCurrentPlanMarkdown(packet) {
+  const plan = packet.plan;
+  const lines = [];
+  const section = (title, values, level = 2) => {
+    lines.push(`${'#'.repeat(level)} ${markdown(title)}`, '');
+    for (const value of values) lines.push(markdown(value), '');
+  };
+  if (plan) {
+    section(plan.title, [plan.summary, plan.notice], 1);
+    for (const entry of plan.sections)
+      section(entry.title, [...entry.paragraphs, ...entry.items]);
+    section(plan.ui.roadmapTitle, []);
+    for (const group of plan.roadmap)
+      section(group.title, [group.deliverable, group.gate], 3);
+    section(plan.ui.mappingTitle, [plan.mapping.note]);
+    for (const row of plan.mapping.rows)
+      section(row.oldTaskId, [row.action, row.result], 3);
+    section(plan.ui.tasksTitle, []);
+    for (const task of plan.tasks) {
+      section(
+        `${task.id.toUpperCase()} · ${task.title}`,
+        [
+          task.summary,
+          task.status,
+          task.blocker,
+          task.target,
+          task.dependsOn.join(', '),
+        ],
+        3,
+      );
+      if (task.card)
+        for (const [key, value] of Object.entries(task.card))
+          section(
+            plan.cardLabels[key],
+            Array.isArray(value) ? value : [String(value)],
+            4,
+          );
+    }
+    section(plan.audit.title, plan.audit.items);
+  } else {
+    section(
+      `${packet.task.id.toUpperCase()} · ${packet.task.title}`,
+      [packet.task.summary, packet.task.status, packet.task.blocker],
+      1,
+    );
+    for (const [key, value] of Object.entries(packet.task.card ?? {}))
+      section(
+        packet.cardLabels[key],
+        Array.isArray(value) ? value : [String(value)],
+      );
+  }
+  lines.push(
+    '<!-- saas-current-plan:start -->',
+    '````json',
+    JSON.stringify(packet, null, 2),
+    '````',
+    '<!-- saas-current-plan:end -->',
+    '',
+  );
+  return lines.join('\n');
+}
+
 /** Markdown contains every packet field, then the complete legacy requirements. */
 export function serializeTaskMarkdown(packet) {
   const copy = packet.labels;
@@ -383,7 +521,7 @@ export function renderTaskPage(
     implementation: 'dependencyImplementation',
     integration: 'dependencyIntegration',
   };
-  const body = `${breadcrumb(project, task.title, cluster)}<header class="p-header"><p class="p-kicker">${escape(task.id)} · ${label(project, 'taskTitle')}</p><h1>${escape(task.title)}</h1><p class="p-lead">${escape(task.summary)}</p><div class="p-header-tags">${pill(stageTitle(project, task.stageId), 'stage')}${pill(layerTitle(project, cluster.layer), cluster.layer)}${pill(text(project, 'draft'), 'draft')}<a class="p-cluster-link" href="${clusterUrl('../../', cluster.id)}">${escape(cluster.title)}</a></div></header><div class="p-action-bar"><button class="p-primary" type="button" data-copy-task disabled>${label(project, 'copyTask')}</button><a class="p-button" href="./task.json" download="${escape(task.id)}.json">${label(project, 'downloadJson')}</a><a class="p-button" href="./task.md" download="${escape(task.id)}.md">${label(project, 'downloadMarkdown')}</a>${taskCheck(project, task, 'detail')}</div><section class="p-copy-fallback" id="project-copy-fallback" hidden><label for="project-copy-text">${label(project, 'copyFallbackLabel')}</label><p>${label(project, 'copyFallbackHint')}</p><textarea id="project-copy-text" readonly></textarea><button type="button" data-close-fallback>${label(project, 'closeFallback')}</button></section><div class="p-detail-grid"><div><section class="p-detail-section"><h2>${label(project, 'taskPurpose')}</h2><p>${escape(task.summary)}</p><dl class="p-definition-list"><div><dt>${label(project, 'artifactLabel')}</dt><dd>${escape(cluster.artifact.name)}</dd></div><div><dt>${label(project, 'ownerLabel')}</dt><dd>${escape(task.ownerRole)}</dd></div></dl></section>${detailSection(project, 'ownedFiles', task.owns, 'p-file-list')}${detailSection(project, 'readFiles', task.reads, 'p-file-list')}${detailSection(project, 'forbiddenFiles', task.forbiddenWrites, 'p-file-list')}${detailSection(project, 'acceptance', task.acceptance)}<section class="p-detail-section"><h2>${label(project, 'dependencies')}</h2>${
+  const body = `${breadcrumb(project, task.title, cluster)}<header class="p-header"><p class="p-kicker">${escape(task.id)} · ${label(project, 'taskTitle')}</p><h1>${escape(task.title)}</h1><p class="p-lead">${escape(task.summary)}</p><div class="p-header-tags">${pill(stageTitle(project, task.stageId), 'stage')}${pill(layerTitle(project, cluster.layer), cluster.layer)}${pill(text(project, 'draft'), 'draft')}<a class="p-cluster-link" href="${clusterUrl('../../', cluster.id)}">${escape(cluster.title)}</a></div></header><div class="p-action-bar"><button class="p-primary" type="button" data-copy-task disabled>${label(project, 'copyTask')}</button><a class="p-button" href="./task.json" download="${escape(task.id)}.json">${label(project, 'downloadJson')}</a><a class="p-button" href="./task.md" download="${escape(task.id)}.md">${label(project, 'downloadMarkdown')}</a>${taskCheck(project, task, 'detail')}</div>${taskCopyFallback(project)}<div class="p-detail-grid"><div><section class="p-detail-section"><h2>${label(project, 'taskPurpose')}</h2><p>${escape(task.summary)}</p><dl class="p-definition-list"><div><dt>${label(project, 'artifactLabel')}</dt><dd>${escape(cluster.artifact.name)}</dd></div><div><dt>${label(project, 'ownerLabel')}</dt><dd>${escape(task.ownerRole)}</dd></div></dl></section>${detailSection(project, 'ownedFiles', task.owns, 'p-file-list')}${detailSection(project, 'readFiles', task.reads, 'p-file-list')}${detailSection(project, 'forbiddenFiles', task.forbiddenWrites, 'p-file-list')}${detailSection(project, 'acceptance', task.acceptance)}<section class="p-detail-section"><h2>${label(project, 'dependencies')}</h2>${
     task.dependsOn.length
       ? `<ul class="p-dependency-list">${task.dependsOn
           .map((dependency) => {

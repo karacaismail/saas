@@ -489,5 +489,459 @@
       "title": "Git worktree",
       "url": "https://git-scm.com/docs/git-worktree"
     }
-  ]
+  ],
+  "currentPlan": {
+    "id": "tdd-replanning-2026-10-12",
+    "updatedAt": "2026-10-12",
+    "title": "Davranış odaklı TDD ve paralel geliştirme planı",
+    "summary": "Kapsamı küçük davranış görevlerine dönüştür; sözleşmeyle paralel ilerle, erken gerçek entegrasyon yap ve trunk’a birleşme kanıtıyla bitir. PoC → MVP → post_mvp → scale → enterprise → maturity aşamaları korunur.",
+    "notice": "Bu yayın statik dokümantasyon güncellemesidir. 387 gereksinim, 109 karar, 63 katalog girdisi, 33 mimari birim, 248 küme ve994 taslak görev korunur. Hedef SaaS deposu, commit’i, sürümleri, sayfa / dosya yolları ve ürün komutları henüz bilinmiyor. Aşağıdaki10 iş BLOCKED;994 görevin tam davranış dönüşümü yapılmış veya ürün kodu geliştirilmiş değildir.",
+    "ui": {
+      "nav": "Güncel TDD planı",
+      "roadmapTitle": "D — Sekiz üst geliştirme grubu",
+      "mappingTitle": "E — Eski görevlerin dönüşüm örnekleri",
+      "tasksTitle": "F — Yakın10 davranış görevi",
+      "cardsTitle": "G — İlk5 görevin kartları",
+      "auditTitle": "H — Plan ve teslim denetimi",
+      "downloadJson": "Planı JSON indir",
+      "downloadMarkdown": "Planı Markdown indir",
+      "taskLink": "Görev kartını incele",
+      "backToPlan": "Güncel plana dön",
+      "statusLabel": "Görev durumu",
+      "dependencyLabel": "Bağımlılıklar",
+      "targetLabel": "Hedef",
+      "typeLabel": "İş türü",
+      "groupLabel": "Üst grup",
+      "firstTaskLabel": "İlk görev",
+      "oldTaskLabel": "Tarihsel görev"
+    },
+    "sections": [
+      {
+        "id": "a-assessment",
+        "title": "A — Mevcut durum ve sınırlar",
+        "paragraphs": [
+          "Mevcut depo HTML / CSS / JavaScript ile yayımlanan kapsam dokümantasyonudur; React / TypeScript / Frappe ürün uygulaması burada bulunmaz. Ürün baseline’ı bilinmeden dokümantasyon commit’i ürün başlangıcı sayılmaz.",
+          "Eski994 görev çoğunlukla artefakt veya dosya sınırında ayrılmıştır. Bazı tek dosya görevleri birden çok davranış taşır; üretim / test / fixture yazma sahipliği ve RED / GREEN / REFACTOR kanıtı görevlerde açık değildir. Kalıcı benzersiz owns listesi, aynı dosyanın gelecekte sıralı geliştirilmesini tek başına modellemez."
+        ],
+        "items": [
+          "Eski kimlikler ve bütün kaynak içerik tarihsel olarak korunur; eski görevler sessizce yeniden etiketlenmez veya tamamlandı yapılmaz.",
+          "Bu tur yalnız yeni çalışma yöntemi, 8 dönüşüm örneği, 10 yakın iş ve ilk5 kart tanımlanır. Kalan994 görevin tam semantik dönüşümü ayrı, izlenebilir bir iş olarak bekler.",
+          "Canlı Pages yayını planın yayımlandığını kanıtlar; Frappe, Keycloak, Tauri, offline veya HarmonyOS ürün kabulünü kanıtlamaz."
+        ]
+      },
+      {
+        "id": "b-decisions",
+        "title": "B — Korunan teknoloji ve mimari kararları",
+        "paragraphs": [
+          "Bulutta Frappe backend ve bağımsız headless React frontend kullanılır. UI ailesi Ant Design / Pro, Ant Design X ve X Cards; TanStack Router / Query seçilmiştir. AG Grid / TanStack Table tercihi PoC kapısında açık kalır.",
+          "Login / auth Keycloak’tadır; kullanıcıya ait tamamen bağımsız headless giriş UI hedefi güvenli, desteklenen protokolle doğrulanmalıdır. PKCE / OIDC etiketi bu uygulanabilirliği tek başına kanıtlamaz. ROPC / Direct Grant, parola proxy’si veya belgelenmemiş login otomasyonu kestirme çözüm değildir."
+        ],
+        "items": [
+          "Mobil ve masaüstü kesin seçim Tauri 2; web Vite / PWA; eklenti WXT / Manifest V3. Capacitor güncel uygulama planında kullanılmaz; tarihsel kaynak metni korunur.",
+          "HarmonyOS yeni hedef olarak sonlu feasibility kapısına alınır. Android APK çalışması native HarmonyOS kanıtı değildir; sürüm ve gerçek ortam bilinmeden destek sözü verilmez.",
+          "Modüler monolit ve düşük bağımlılık korunur. Native User / Role / File / Workflow / Report yeniden yazılmaz; yayımlanmış sözleşmelerle bağlanır.",
+          "Bu Mac’te Colima kullanılır. Outfit, en az1rem / 400 metin ve320 CSS px başlangıcı yeni ürün arayüzü için kabul koşuludur. Mevcut servis, hesap veya altyapı değişikliği bu planın otomatik yetkisi değildir."
+        ]
+      },
+      {
+        "id": "c-method",
+        "title": "C — Davranış görevi, TDD ve birleşme çerçevesi",
+        "paragraphs": [
+          "İş birimi tek ana, gözlenebilir davranıştır. Uygulama görevi üretim kodu, ilgili test ve gerekli fixture yollarını birlikte sahiplenir; RED → GREEN → sınırlı REFACTOR aynı görev içinde yürür. Sonlu araştırma / ortam keşfi kartlarına yapay RED uygulanmaz.",
+          "Her görev en fazla bir DocType tanımını değiştirir; parent ve child ayrı artefaktlardır. Var olan birden fazla kaydın atomik iş işlemi görevleri küçültmek uğruna parçalanmaz. DocType şema değişikliği sayısı, transaction içindeki kayıt sayısı değildir. Küçük master / child / page bileşimi korunur; bir göreve bütün master, router veya durum motoru yüklenmez.",
+          "Sürümlü contract ve ortak fixture frontend / backend’in bağımsız başlamasını sağlar. Mock sonucu ürün entegrasyon kanıtı değildir; ilk mevcut izinli gerçek frontend–Frappe okuma akışı erken doğrulanır."
+        ],
+        "items": [
+          "Risk P0 / P1 / P2 olarak gerekçelendirilir; en ucuz güvenilir doğrulama katmanı seçilir. P0 yetki, veri kaybı ve kritik invariant kontrolü atlanmaz. Yeni test sayısı hedef değildir.",
+          "Tek ajan / tek görev; kısa trunk dalları ve küçük PR’lar. Dosya sahipliği geçici aktif lease’tir: üretim / test / fixture yolları, sahibi, baseline ve devir koşulu bellidir. Aynı anda çakışan aktif yazma yoktur; merge sonrası sıradaki görev güncel trunk ve contract üzerinden sahipliği devralır.",
+          "hooks / modules / patches / routes / menu / registry / paket manifesti / lockfile gibi ortak dosyalar tek integration owner hattındadır. owns yazma yetkisidir; okunan fragment hedefi yazma izni değildir. Ayrık sahiplik sıfır merge conflict veya sıfır semantik çakışma garantisi vermez.",
+          "READY: baseline, komutlar, contract, bağımlılıklar ve lease hazır. IN_PROGRESS: lease etkin. BLOCKED: somut önkoşul eksik. MERGE_READY: hedefli kabul ve inceleme geçti, henüz trunk’a birleşmedi. DONE: trunk merge commit’i ve ilgili entegrasyon kanıtı kayıtlı.",
+          "Test durumu PASS / FAIL / NOT_RUN / BLOCKED olarak ayrı kaydedilir. Planlanan kontrol PASS değildir; beklenen RED kasıtlı FAIL kanıtıdır.",
+          "Aynı kök nedenle3 veya görev başına toplam5 sonuçsuz düzeltme döngüsünde dur: neden, denenen dar düzeltmeler ve gerekli karar kaydedilerek ilgili görev BLOCKED olur. Beklenen RED ve yeni bilgi üreten başarılı ilerleme bu sayaçlara dahil değildir. Süre / retry / assertion gevşeterek geçirme yapılmaz.",
+          "Kimlik feasibility başarısızlığı yalnız kimlik teslimini; HarmonyOS sonucu yalnız o platform teslimini bloke eder. Bağımsız işler gereksiz yere global olarak durdurulmaz."
+        ]
+      }
+    ],
+    "roadmap": [
+      {
+        "id": "foundation",
+        "title": "1 — Temel, kimlik ve native Frappe",
+        "deliverable": "Gerçek ürün baseline’ı, hedef sürümler / komutlar, native kayıt sınırları, izinli API ve güvenli bağımsız Keycloak giriş feasibility’si.",
+        "gate": "Repo / commit / çalıştırma kanıtı ve P0 kimlik / yetki riskleri açık olmadan ilgili uygulama görevi READY olmaz."
+      },
+      {
+        "id": "interface",
+        "title": "2 — Master, child ve page UX",
+        "deliverable": "Tek davranışlı controlled master; küçük veri / adaptör child; tek mevcut page kompozisyonu. İlk örnek bağlantı durumunun gerçek okuma akışından gösterimidir.",
+        "gate": "320px / 1rem erişilebilir görünüm, sözleşme fixture’ı ve gerçek frontend–Frappe entegrasyon ayrımı doğrulanır."
+      },
+      {
+        "id": "persistence",
+        "title": "3 — Yerel kalıcılık",
+        "deliverable": "SQLite / IndexedDB portları, yerel iş kaydı+outbox atomikliği, kota / anahtar ve yeniden başlatmada kalıcılık; her davranış ayrı küçük görev.",
+        "gate": "Başarı yalnız kalıcı commit sonrasında; veri kaybı P0 kabulü ve hedef platform restore kanıtı olmadan tamamlanmaz."
+      },
+      {
+        "id": "sync",
+        "title": "4 — Senkronizasyon ve uzlaştırma",
+        "deliverable": "Commit sonrası ack, idempotency, generation / sürüm, imleç, silme kaydı ve işlem türüne göre çakışma çözümü.",
+        "gate": "Bağlantı göstergesi offline çalışma sayılmaz; kesinti / tekrar / sırasız sonuçta kayıt kaybı veya mükerrer etki olmaması gerçek akışla kanıtlanır."
+      },
+      {
+        "id": "modules",
+        "title": "5 — Modüler iş yetenekleri ve entegrasyonlar",
+        "deliverable": "Mevcut387 gereksinimin DocType / operation davranışlarına izlenebilir dönüşümü; REST, webhook, GraphQL, SOAP, WebSocket, XML, JSON / CSV / XLSX, MCP araç erişimi ve ayrı AI Mapping alan dönüşümü sözleşmeleri.",
+        "gate": "Tek owner ve sunucu invariantları korunur; parent / child ayrı tutulurken atomik transaction bölünmez. Sekiz entegrasyon modeli kapsamdan düşmez."
+      },
+      {
+        "id": "genui",
+        "title": "6 — GenUI ve ajan yetenekleri",
+        "deliverable": "Ant Design X / X Cards üzerinde onaylı component / capability registry, policy / validation, izinli araçlar, kaynak ve insan kararları.",
+        "gate": "Üretilmiş niyet doğrudan yetkisiz mutation’a dönüşmez; gerçek araç olayı ve deterministik UI kabulü gerekir."
+      },
+      {
+        "id": "platform",
+        "title": "7 — Platform paketleri",
+        "deliverable": "Vite / PWA web, Tauri 2 mobil / masaüstü, WXT / MV3 eklenti; ayrı imza, izin, yaşam döngüsü ve dağıtım davranışları. HarmonyOS ayrıca feasibility sonucuna bağlıdır.",
+        "gate": "Web emülasyonu native kabul sayılmaz; mobil mağaza paketi desktop updater veya doğrulanmış OTA sayılmaz. HarmonyOS için gerçek sürüm / ortam kanıtı gerekir."
+      },
+      {
+        "id": "operations",
+        "title": "8 — Ölçek, enterprise ve işletim",
+        "deliverable": "Riskle orantılı CI, güvenlik, gözlem, yedek / restore, imzalama, yayın / rollback ve sözleşmeye bağlı enterprise özellikleri.",
+        "gate": "Hüseyin Cengiz teknik yayın / rollback sonucunu doğrular; GoDaddy gerekirse Asistan Hüseyin uygular. Olgunluk yalnız işletim kanıtıyla güncellenir."
+      }
+    ],
+    "mapping": {
+      "note": "Bu8 satır gerçek eski görev kimliklerine dönüşüm örneğidir;994 görevin tamamı dönüştürülmüş değildir. Eski kimlikler / içerik korunur. Yeni davranış kimlikleri old→new referansıyla eklenir;387 gereksinim, 63 katalog girdisi ve33 mimari birim kapsamı kaybedilmez.",
+      "rows": [
+        {
+          "oldTaskId": "ui-family-06--implementation",
+          "action": "Böl",
+          "result": "Bağlantı gözlemi dilimi T-02–T-08’e ayrılır. Toast, kaydetme ve diğer StateFeedback davranışları bu10 işte tamamlandı sayılmaz; sonraki ayrı dönüşümleri bekler."
+        },
+        {
+          "oldTaskId": "ui-family-40--implementation-mvp",
+          "action": "Ertele",
+          "result": "Bağlantı göstergesini kalıcı offline çalışma veya conflict çözümüyle birleştirme. Yerel kuyruk, soğuk açılış ve uzlaştırma persistence / sync grubunda ayrı davranışlara dönüşecek."
+        },
+        {
+          "oldTaskId": "keycloak-login--implementation",
+          "action": "Böl",
+          "result": "T-01 yalnız bir web giriş akışının güvenli kendi headless UI feasibility’sidir. Diğer login / MFA / oturum işleri ayrı kalır; temanın çalışması hedefin tamamlandığı anlamına gelmez."
+        },
+        {
+          "oldTaskId": "record-integrity--implementation",
+          "action": "Böl",
+          "result": "Optimistic locking, mükerrer birleştirme, toplu sonuç ve kurtarma tek dosya büyüklüğüyle aynı görev sayılmaz. Her invariant ayrı davranış ve test / fixture sahipliğiyle planlanacak; mevcut atomik işlem bölünmeyecek."
+        },
+        {
+          "oldTaskId": "permissioned-metadata--implementation",
+          "action": "Koru",
+          "result": "İzinli ve sürümlü metadata sınırı korunur. Gerçek baseline’dan sonra tek metadata okuma davranışı ve P0 alan / yetki kabulü üzerinden ayrıştırılacak; bu tur uygulanmadı."
+        },
+        {
+          "oldTaskId": "ui-family-01--implementation-mvp",
+          "action": "Böl",
+          "result": "Master / child / page ayrı sınırlar olacak. T-07 yalnız mevcut bir page’e hazır ConnectionStatus child slotunu bağlar; yeni application shell veya router kurmaz."
+        },
+        {
+          "oldTaskId": "client-local-outbox--implementation",
+          "action": "Böl",
+          "result": "Yerel port ve kalıcılık davranışları ayrı görevlerle ele alınacak; iş kaydı+outbox aynı transaction olarak korunacak. Bağlantı bildirimi bu P0 kaydetme kabulünün yerine geçmez."
+        },
+        {
+          "oldTaskId": "client-rule-parity--implementation",
+          "action": "Ertele",
+          "result": "Önce T-00 gerçek iş kuralı ve komutları bulur; sonra tek istemci invariantı / sunucu yeniden doğrulama eşliği planlanır. Python kurallarının paketlemeyle cihaza taşındığı varsayılmaz."
+        }
+      ]
+    },
+    "tasks": [
+      {
+        "id": "t-00",
+        "title": "Gerçek ürün baseline’ını belirle",
+        "type": "Sonlu keşif",
+        "groupId": "foundation",
+        "dependsOn": [],
+        "status": "BLOCKED",
+        "blocker": "Hedef SaaS deposu ve erişilebilir başlangıç commit’i belirtilmedi.",
+        "target": "Ürün başlangıç kaydı",
+        "sourceTaskIds": [],
+        "summary": "Tek hedef ürün deposunda mevcut frontend–Frappe akışını, sürümleri, komutları ve ilgili üretim / test / fixture yollarını sonlu envanterle belirle; ürün veya yeni framework kurma.",
+        "card": {
+          "purpose": "Uygulama kartlarını hayali repo, komut veya dosya yollarından kurtarmak.",
+          "type": "Sonlu baseline / ortam keşfi; araştırma TDD istisnası.",
+          "group": "foundation — Temel, kimlik ve native Frappe",
+          "dependencies": "Hedef SaaS repo referansı ve izinli erişim; şu anda eksik.",
+          "target": "Ürün başlangıç kaydı",
+          "doctypeCount": 0,
+          "scope": "Tek ürün reposu ve tek mevcut izinli frontend→Frappe salt okuma akışının baseline envanteri.",
+          "excludes": "Makine genelinde sınırsız tarama, yeni ürün / bootstrap / framework kurulumu, production değişikliği, sahte RED.",
+          "acceptance": [
+            "Repo adresi, kesin commit, manifest / lock / runtime sürümleri ve bilinmeyenler kaydedilir.",
+            "Mevcut test / build / dev komutları ve yan etkileri gerçek dosyalardan bulunur; bench / Vitest varsayılmaz.",
+            "İlk gerçek page / okuma akışı ile ilgili üretim / test / fixture sahiplik yolları ve ortak integration dosyaları belirlenir.",
+            "Repo bulunamazsa araştırma engeli açık kalır; sonraki ürün kartları READY olmaz."
+          ],
+          "risk": "P1 plan doğruluğu; yalnız sonlu kaynak / env incelemesi. Uygulama testi gibi sunulmaz.",
+          "red": "Uygulanmaz: araştırmaya kasıtlı başarısız ürün testi uydurulmaz.",
+          "green": "Geçerli baseline ve gerçek komutların kanıtı araştırma çıktısıdır; uygulama GREEN değildir.",
+          "refactor": "Uygulanmaz; yalnız envanter çıktısının tekrarsız, açık düzenlenmesi.",
+          "affected": "Henüz bilinmiyor: ürün koduna yazma sahipliği verilmez. Baseline raporu ve sonradan atanacak üretim / test / fixture yolları ayrı kaydedilir.",
+          "verification": "Planlanan yöntem: belirtilen tek repoda manifest / lock / runner / page / API kanıtını okumak. Ürün komutu ve ortamı bilinmiyor; BLOCKED.",
+          "merge": "Keşif raporu ilgili hedefte incelenip kaydedilir; ürün kodu tamamlandı denmez. Kısa trunk dalı, geçici aktif üretim / test / fixture lease’i ve inceleme; DONE yalnız gerçek trunk merge commit’i ve ilgili kabul kanıtıyla. Henüz PR veya ürün merge kanıtı yok.",
+          "compatibility": "Mevcut teknoloji, Git guard, Colima ve çalışan servisler korunur. Dokümantasyon commit’i ürün baseline’ı olmaz.",
+          "evidence": "Henüz hedef ürün kanıtı yok. Bu kart planlandı; repo keşfi veya ürün testi yapıldığı iddia edilmez.",
+          "stop": "Tek repo ve tek akışla sınırlı envanter. Eksik erişim / repo varsa tekrar taramak yerine BLOCKED nedeni kaydedilir; yapay RED ve sonsuz kurulum döngüsü yok."
+        }
+      },
+      {
+        "id": "t-01",
+        "title": "Tek web girişinde kendi headless Keycloak UI feasibility’si",
+        "type": "Sonlu güvenlik deneyi",
+        "groupId": "foundation",
+        "dependsOn": ["t-00"],
+        "status": "BLOCKED",
+        "blocker": "T-00 ürün baseline’ı, hedef Keycloak sürümü ve izinli deney ortamı bilinmiyor.",
+        "target": "Tek web giriş akışı",
+        "sourceTaskIds": ["keycloak-login--implementation"],
+        "summary": "Yalnız bir web giriş akışında kendi bağımsız UI’nin seçilen Keycloak sürümünün desteklediği güvenli OIDC / PKCE yöntemiyle uygulanabilirliğini araştır. ROPC / Direct Grant, parola proxy’si veya belgelenmemiş login otomasyonu yok; tema eşdeğer sayılmaz.",
+        "card": {
+          "purpose": "Tamamen bağımsız login UI hedefinin güvenli ve desteklenen yolla mümkün olup olmadığını kanıtlamak.",
+          "type": "Tek akışlı, sonlu feasibility; araştırma TDD istisnası.",
+          "group": "foundation — Temel, kimlik ve native Frappe",
+          "dependencies": "Yalnız T-00; HarmonyOS veya bağlantı göstergesi zincirini beklemez.",
+          "target": "Tek web giriş akışı",
+          "doctypeCount": 0,
+          "scope": "Tek web istemcisi ve tek giriş / callback akışı; desteklenen kendi UI yolu için karar kanıtı.",
+          "excludes": "Production kurulumu, bütün auth ailesi, MFA / SCIM / SSO yayılımı, ROPC / Direct Grant, parola proxy’si, belgelenmemiş endpoint / session otomasyonu; Keycloakify temasını kendi headless UI saymak.",
+          "acceptance": [
+            "Hedef release’in resmî protokol desteği ve kendi UI sınırı kanıtlanır; PKCE / OIDC adı tek başına yeterli değildir.",
+            "Bir izinli deney akışında state / nonce / issuer / audience / callback ve token saklama sınırı incelenir; secret veya parola sohbet / Git’e yazılmaz.",
+            "Uygulanabilir, uygulanamaz veya bilinmiyor sonucu ve gerekçesi kaydedilir; eksik kanıt hazır entegrasyon sayılmaz.",
+            "Başarısız veya belirsiz sonuç yalnız ilgili kimlik teslimini BLOCKED bırakır; bağımsız program işleri global durmaz."
+          ],
+          "risk": "P0 kimlik / token güvenliği; en ucuz güvenilir katman hedef sürüm resmî sözleşmesi ve tek kontrollü deneydir. P0 karar atlanmaz.",
+          "red": "Uygulanmaz: feasibility için yapay RED üretilmez; gerçek protokol / güvenlik gözlemi ayrı kaydedilir.",
+          "green": "Desteklenen güvenli kendi UI akışına ilişkin kanıt araştırmanın olumlu sonucudur; uygulama GREEN veya production kabulü değildir.",
+          "refactor": "Uygulanmaz; deney ürüne genişletilmez. Gerekirse sonraki tek davranış uygulama kartı açılır.",
+          "affected": "Ürün / deney repo ve geçici dosya yolları T-00’da belirlenir; mevcut login / global config üzerinde şimdi yazma lease’i yok.",
+          "verification": "Ürün doğrulama komutları bilinmiyor; T-00’da mevcut runner ve gerçek komut keşfedilmeden çalıştırılmayacak. Planlandı; çalıştırılmadı, durum BLOCKED. Planlanan yöntem: hedef sürümün resmî sözleşmesi ve tek izinli web akışı; production kurulumu yok.",
+          "merge": "Feasibility karar kaydı incelenir; çalışan kimlik teslimi ayrı kart ve gerçek kabul gerektirir. Kısa trunk dalı, geçici aktif üretim / test / fixture lease’i ve inceleme; DONE yalnız gerçek trunk merge commit’i ve ilgili kabul kanıtıyla. Henüz PR veya ürün merge kanıtı yok.",
+          "compatibility": "Kendi UI hedefi korunur; tema, ROPC veya parola proxy’siyle hedef sessizce değiştirilmez. Bulut Frappe / Keycloak yetki ayrımı korunur.",
+          "evidence": "Hedef sürüm ve deney ortamı bilinmiyor; deneme yapılmadı. Olumlu / olumsuz sonuç yok; BLOCKED.",
+          "stop": "Tek sürüm, tek istemci, tek web akışı ve sonlu destek sorusu. Destek yoksa veya güvenlik yolu kanıtlanamazsa kimlik teslimi BLOCKED; kestirme çözüm veya sınırsız deney yok."
+        }
+      },
+      {
+        "id": "t-02",
+        "title": "ConnectionObservation v1 tek gözlem sözleşmesi",
+        "type": "Contract uygulaması",
+        "groupId": "interface",
+        "dependsOn": ["t-00"],
+        "status": "BLOCKED",
+        "blocker": "T-00 ürün komutları, contract runner’ı ve üretim / test / fixture yolları bilinmiyor.",
+        "target": "ConnectionObservation v1",
+        "sourceTaskIds": ["ui-family-06--contract"],
+        "summary": "Tek bağlantı gözlemi sözleşmesi ve fixture tanımla: offline / unknown / reachable / unreachable. Browser online yalnız unknown üretir;401 / 403 HTTP cevabı erişim gözlemidir. Generation dışı eski cevap daha yeni offline durumunu ezemez.",
+        "card": {
+          "purpose": "Browser ipucunu sunucu erişimi veya iş başarısı gibi göstermeyen tek gözlem sözleşmesi oluşturmak.",
+          "type": "Tek contract / fixture davranışı; RED / GREEN / REFACTOR aynı görevde.",
+          "group": "interface — Master, child ve page UX",
+          "dependencies": "T-00; T-01 kimlik feasibility’sinin tamamlanmasını beklemeden onaylı fixture ile planlanabilir, gerçek uygulama için baseline gerekir.",
+          "target": "ConnectionObservation v1",
+          "doctypeCount": 0,
+          "scope": "Tek ConnectionObservation v1 girdisi / çıktısı: kaynak, generation ve dört durumun anlamı. Bu görev state engine veya API istemcisi kurmaz.",
+          "excludes": "Yeni endpoint / probe, otomatik retry, auth başarısı, mutation sonucu, gerçek offline kalıcılık, bütün bildirim sistemi.",
+          "acceptance": [
+            "offline tarayıcı sinyalidir; online / mount tek başına unknown kalır. reachable güncel generation’daki gerçek HTTP cevabıdır;401 / 403 network down değildir.",
+            "unreachable yalnız mevcut isteğin tanımlı, güncel transport failure / timeout gözlemidir; HTTP hata status’u veya bilinçli iptal bu sınıfa otomatik konmaz. CORS / ortam belirsizliği internet yok diye yorumlanmaz.",
+            "Eski generation gözlemi daha yeni offline veya yeniden bağlanma bağlamını değiştiremez; olay sırası fixture’da açıktır.",
+            "Contract sürümü ve örnek fixture aynı lease altında tanımlanır; frontend / backend bu örneklerle bağımsız ilerleyebilir."
+          ],
+          "risk": "P1 doğru durum gösterimi; en ucuz güvenilir katman mevcut contract doğrulayıcısı ve küçük deterministik fixture kontrolü. Yetki / iş başarısı hakkında iddia yok.",
+          "red": "Planlanan RED: browser online’ı reachable kabul eden, 401’i unreachable sayan veya eski generation cevabını geçerli kabul eden fixture beklenen sözleşme kontrolünü başarısız kılar. Henüz çalıştırılmadı.",
+          "green": "Yalnız ConnectionObservation v1 sözleşmesini ve gerekli fixture kurallarını ekle; aynı hedefli kontrol doğru örnekleri kabul edip yanlış örnekleri reddetsin.",
+          "refactor": "Aynı fixture kabulü korunurken alan adları / tekrar düzenlenebilir; state engine, yeni protokol veya genel validation framework’ü eklenmez.",
+          "affected": "Tek contract üretim tanımı, ilgili test ve örnek fixture yolları T-00’da kesinleşir; üçü için geçici aktif lease birlikte atanır. Gerçek yollar henüz bilinmiyor.",
+          "verification": "Ürün doğrulama komutları bilinmiyor; T-00’da mevcut runner ve gerçek komut keşfedilmeden çalıştırılmayacak. Planlandı; çalıştırılmadı, durum BLOCKED. Planlanan katman: contract / fixture doğrulaması; gerçek ağ veya ürün entegrasyon kabulü değildir.",
+          "merge": "Kısa trunk dalı, geçici aktif üretim / test / fixture lease’i ve inceleme; DONE yalnız gerçek trunk merge commit’i ve ilgili kabul kanıtıyla. Henüz PR veya ürün merge kanıtı yok.",
+          "compatibility": "Mevcut izinli request / response akışı değiştirilmez. Sürüm1 ve generation semantiği tüketicilere açık taşınır; önceki atlas içeriği korunur.",
+          "evidence": "RED / GREEN / REFACTOR komut / çıktı kanıtı henüz yok; planlanan örnekler PASS sayılmaz.",
+          "stop": "Aynı kök nedenle3 veya görev başına toplam5 sonuçsuz düzeltme döngüsünde dur, somut nedeni ve gereken kararı kaydet. Beklenen RED sayılmaz; timeout / retry / assertion gevşetme yok."
+        }
+      },
+      {
+        "id": "t-03",
+        "title": "ConnectionStatusMaster controlled erişilebilir etiket",
+        "type": "UI uygulaması",
+        "groupId": "interface",
+        "dependsOn": ["t-02"],
+        "status": "BLOCKED",
+        "blocker": "T-02 contract / fixture onayı ve T-00 gerçek component / test yolları eksik.",
+        "target": "ConnectionStatusMaster",
+        "sourceTaskIds": ["ui-family-06--implementation"],
+        "summary": "Yalnız verilen bağlantı durumunu metin ve erişilebilir duyuru olarak gösteren küçük controlled master oluştur; API, subscription veya state engine ekleme.",
+        "card": {
+          "purpose": "Tek bağlantı durumunu renk dışı metinle, okunabilir ve erişilebilir biçimde göstermek.",
+          "type": "Tek controlled component davranışı; RED / GREEN / REFACTOR aynı görevde.",
+          "group": "interface — Master, child ve page UX",
+          "dependencies": "T-02’nin sürümlü contract / fixture’ı; backend uygulaması bitmek zorunda değildir.",
+          "target": "ConnectionStatusMaster",
+          "doctypeCount": 0,
+          "scope": "Verilen tek durum girdisini doğru etikete ve ölçülü erişilebilir duyuruya dönüştür; master veri kaynağına karar vermez.",
+          "excludes": "Ağ isteği, port aboneliği, otomatik retry, mutation, global state motoru, yeni page / router veya bütün tasarım sistemi.",
+          "acceptance": [
+            "Dört contract girdisi doğru metinle gösterilir; reachable login veya iş kaydı başarısı diye sunulmaz.",
+            "Outfit, en az1rem / 400, 320 CSS px reflow ve renk dışı durum bilgisi korunur.",
+            "Durum değişimi erişilebilir duyurulur; odak çalınmaz, gereksiz tekrarlı duyuru yapılmaz. Component hiçbir API veya browser bağlantı çağrısı yapmaz."
+          ],
+          "risk": "P1 durum UX ve erişilebilirlik; component seviyesinde deterministik çıktı kontrolü, yalnız gerekli320px tarayıcı / erişilebilirlik kabulü.",
+          "red": "Planlanan RED: unknown girdisinde erişildi metni gösterilmesi veya gerekli erişilebilir durum metninin bulunmaması hedefli component kontrolünü başarısız kılar; henüz çalıştırılmadı.",
+          "green": "Yalnız controlled master’ın girdi→etiket / duyuru eşlemesini ekle; aynı fixture ve gerekli dar görünüm kabulünü geçir.",
+          "refactor": "Tekrarlanan etiket / token kullanımını mevcut Ant Design sistemine bağla; child, ağ servisi veya state machine ekleme.",
+          "affected": "Tek component üretim dosyası, ilgili component testi ve gerekirse fixture yolu T-00’da sabitlenir; aktif lease çakışmaz. Kesin yollar bilinmiyor.",
+          "verification": "Ürün doğrulama komutları bilinmiyor; T-00’da mevcut runner ve gerçek komut keşfedilmeden çalıştırılmayacak. Planlandı; çalıştırılmadı, durum BLOCKED. Planlanan yöntem: component girdisi / çıktısı ve gerekli320px gerçek render; yeni tam test matrisi üretilmez.",
+          "merge": "Kısa trunk dalı, geçici aktif üretim / test / fixture lease’i ve inceleme; DONE yalnız gerçek trunk merge commit’i ve ilgili kabul kanıtıyla. Henüz PR veya ürün merge kanıtı yok.",
+          "compatibility": "Ant Design / Pro tasarım sistemi ve ConnectionObservation v1 semantiği korunur. Master API / state sahibi olmaz; browser online’ı reachable’a dönüştürmez.",
+          "evidence": "Component, görsel, erişilebilirlik veya RED / GREEN kanıtı yok; hedefler planlandı, uygulama BLOCKED.",
+          "stop": "Aynı kök nedenle3 veya görev başına toplam5 sonuçsuz düzeltme döngüsünde dur, somut nedeni ve gereken kararı kaydet. Beklenen RED sayılmaz; timeout / retry / assertion gevşetme yok."
+        }
+      },
+      {
+        "id": "t-04",
+        "title": "BrowserLinkPort browser sinyali ve generation",
+        "type": "Port uygulaması",
+        "groupId": "interface",
+        "dependsOn": ["t-02"],
+        "status": "BLOCKED",
+        "blocker": "T-02 contract / fixture onayı ve T-00 port / test yaşam döngüsü yolları eksik.",
+        "target": "BrowserLinkPort",
+        "sourceTaskIds": [
+          "ui-family-06--contract",
+          "ui-family-40--implementation"
+        ],
+        "summary": "Browser online / offline sinyalini generation ile sözleşmeli gözleme uyarla; online unknown olsun. Mount / unmount abonelik temizliği korunur; API, probe, mutation veya retry yok.",
+        "card": {
+          "purpose": "Tek browser bağlantı sinyalini sunucu erişimi iddiası üretmeden contract gözlemine çevirmek.",
+          "type": "Tek port / lifecycle davranışı; RED / GREEN / REFACTOR aynı görevde.",
+          "group": "interface — Master, child ve page UX",
+          "dependencies": "T-02 ConnectionObservation v1 ve ilgili lifecycle fixture’ı.",
+          "target": "BrowserLinkPort",
+          "doctypeCount": 0,
+          "scope": "Mount’ta browser ipucunu al, online / offline olayını generation bağlamıyla yayınla ve unmount’ta aboneliği kaldır.",
+          "excludes": "Frappe isteği, yeni endpoint / probe, network / mutation retry, global queue, offline veritabanı, master render veya page kurulumu.",
+          "acceptance": [
+            "Offline sinyali offline, online sinyali unknown üretir; sunucu reachable bilgisi browser sinyalinden çıkarılmaz.",
+            "Generation değişimi eski gözlemleri ayırır; mount / unmount döngüsünde listener sızıntısı veya çift yayın olmaz.",
+            "Unmount sonrası callback / duyuru yoktur. Hiçbir API veya mutation çağrısı tetiklenmez."
+          ],
+          "risk": "P1 yanlış durum ve subscription sızıntısı; en ucuz güvenilir katman deterministik browser event / lifecycle kontrolüdür.",
+          "red": "Planlanan RED: online olayının reachable üretmesi veya unmount sonrası callback gelmesi hedefli port kontrolünü başarısız kılar; henüz çalıştırılmadı.",
+          "green": "Yalnız browser sinyal adaptörü, generation ve cleanup ekle; aynı olay / lifecycle fixture’ını geçir, ağ çağrısı ekleme.",
+          "refactor": "Listener kurulum / temizliğini sadeleştir; genel bağlantı engine’i, yeni hook ailesi veya retry katmanı kurma.",
+          "affected": "Tek port üretim dosyası, ilgili lifecycle testi ve olay fixture yolları T-00’da kesinleşir; üretim / test / fixture lease’i birlikte atanır. Kesin yollar bilinmiyor.",
+          "verification": "Ürün doğrulama komutları bilinmiyor; T-00’da mevcut runner ve gerçek komut keşfedilmeden çalıştırılmayacak. Planlandı; çalıştırılmadı, durum BLOCKED. Planlanan yöntem: sahte browser olaylarıyla lifecycle / generation kontrolü; gerçek sunucu erişim kanıtı değildir.",
+          "merge": "Kısa trunk dalı, geçici aktif üretim / test / fixture lease’i ve inceleme; DONE yalnız gerçek trunk merge commit’i ve ilgili kabul kanıtıyla. Henüz PR veya ürün merge kanıtı yok.",
+          "compatibility": "Browser online / offline yalnız ipucudur. ConnectionObservation v1 ve platform bağımsız master korunur; API davranışına yan etki eklenmez.",
+          "evidence": "Olay / lifecycle RED / GREEN veya gerçek tarayıcı ürünü kanıtı yok; uygulama BLOCKED.",
+          "stop": "Aynı kök nedenle3 veya görev başına toplam5 sonuçsuz düzeltme döngüsünde dur, somut nedeni ve gereken kararı kaydet. Beklenen RED sayılmaz; timeout / retry / assertion gevşetme yok."
+        }
+      },
+      {
+        "id": "t-05",
+        "title": "FrappeContactPort özgün HTTP akışını gözlemle",
+        "type": "Port uygulaması",
+        "groupId": "interface",
+        "dependsOn": ["t-02"],
+        "status": "BLOCKED",
+        "blocker": "T-00 mevcut izinli Frappe okuma akışı ve T-02 contract onayı eksik.",
+        "target": "FrappeContactPort",
+        "sourceTaskIds": ["ui-family-06--contract"],
+        "summary": "Tek mevcut izinli salt okuma isteğinin generation bağlamlı HTTP / transport gözlemini üret.401 / 403 gerçek HTTP cevabıdır. Özgün response / body / error tüketiciye değişmeden gider; body tüketme, hata yutma, yeni endpoint / probe veya auto-retry yok."
+      },
+      {
+        "id": "t-06",
+        "title": "ConnectionStatus child geçerli gözlemi hesaplayıp göster",
+        "type": "UI uygulaması",
+        "groupId": "interface",
+        "dependsOn": ["t-03", "t-04", "t-05"],
+        "status": "BLOCKED",
+        "blocker": "T-03 master ve T-04 / T-05 port sözleşmeleri ile gerçek fixture / lease hazır değil.",
+        "target": "ConnectionStatus",
+        "sourceTaskIds": ["ui-family-06--implementation"],
+        "summary": "Tek saf generation-aware hesaplamayla geçerli gözlemleri master girdisine dönüştür: offline→online unknown; yalnız güncel gerçek HTTP cevabı reachable, tanımlı transport failure unreachable. Eski cevap offline’ı ezemez. Child yalnız hesaplar / render eder; abonelik, ağ, retry veya mutation eklemez."
+      },
+      {
+        "id": "t-07",
+        "title": "Tek mevcut page’e hazır child slotunu bağla",
+        "type": "Page bileşimi",
+        "groupId": "interface",
+        "dependsOn": ["t-06"],
+        "status": "BLOCKED",
+        "blocker": "T-00’da gerçek page ve mevcut gözlem bağlama noktası belirlenmedi; T-06 hazır değil.",
+        "target": "T-00’da adı belirlenecek tek mevcut sayfanın durum alanı",
+        "sourceTaskIds": ["ui-family-01--implementation-mvp"],
+        "summary": "T-00’da adı sabitlenen tek mevcut page’in gözlem bağlamına hazır ConnectionStatus child slotunu ekle. Yeni master, router, global store veya API akışı kurma; mevcut page’in üretim / test / fixture yollarını geçici lease ile sahiplen."
+      },
+      {
+        "id": "t-08",
+        "title": "Tek gerçek frontend–Frappe okuma akışını kabul et",
+        "type": "Gerçek entegrasyon kabulü",
+        "groupId": "interface",
+        "dependsOn": ["t-07"],
+        "status": "BLOCKED",
+        "blocker": "Gerçek izinli ürün ortamı, mevcut Frappe okuma akışı ve T-07 bağlantısı yok.",
+        "target": "Tek gerçek frontend–Frappe izinli okuma akışı",
+        "sourceTaskIds": ["ui-family-06--integration"],
+        "summary": "Tek mevcut izinli okuma akışında bağlantı kesilmesi, geri dönüşte unknown ve gerçek cevapla reachable ile401 / 403 network ayrımını doğrula; stale cevap ve özgün response / error korunmasını gözle. Mock / fixture veya dokümantasyon testi ürün kabulü değildir; otomatik tekrar / mutation ekleme."
+      },
+      {
+        "id": "t-09",
+        "title": "Tek HarmonyOS sürümünde gerçek ortam feasibility’si",
+        "type": "Sonlu platform deneyi",
+        "groupId": "platform",
+        "dependsOn": ["t-00"],
+        "status": "BLOCKED",
+        "blocker": "Hedef HarmonyOS sürümü, gerçek cihaz / runtime ve izinli deney ortamı bilinmiyor.",
+        "target": "Tek HarmonyOS sürümü ve gerçek çalışma ortamı",
+        "sourceTaskIds": [],
+        "summary": "T-00’dan sonra diğer zincirlerden bağımsız olarak tek HarmonyOS sürümü ve gerçek ortamda sonlu paket / runtime feasibility’si değerlendir. Android APK çalışmasını native HarmonyOS desteği sayma; uygulanabilir / uygulanamaz / bilinmiyor kanıtını yaz. Yapay RED, production dağıtımı veya kanıtsız destek sözü yok."
+      }
+    ],
+    "cardLabels": {
+      "purpose": "Amaç",
+      "type": "İş türü",
+      "group": "Üst grup",
+      "dependencies": "Bağımlılıklar",
+      "target": "Hedef repo ve yollar",
+      "doctypeCount": "Değişen DocType sayısı",
+      "scope": "Tek davranış kapsamı",
+      "excludes": "Kapsam dışı",
+      "acceptance": "Kabul ölçütleri",
+      "risk": "Risk ve test katmanı",
+      "red": "RED planı",
+      "green": "GREEN planı",
+      "refactor": "Sınırlı REFACTOR",
+      "affected": "Üretim, test ve fixture sahipliği",
+      "verification": "Doğrulama komutu ve durumu",
+      "merge": "Birleşme kanıtı",
+      "compatibility": "Uyumluluk ve sözleşme",
+      "evidence": "Kanıt",
+      "stop": "Durma ve devir koşulu"
+    },
+    "audit": {
+      "title": "H — Eksiksizlik ve gerçeklik denetimi",
+      "items": [
+        "387 gereksinim / 109 karar / 63 katalog / 33 birim ve eski248 küme / 994 görev korunacak; yeni davranış referansları tarihsel kimlikleri silmeyecek. Tam dönüşüm yapılmadı.",
+        "Her uygulama kartında tek ana davranış, ana artefakt sınırı, üretim / test / fixture lease’i, risk, RED / GREEN / REFACTOR, doğrulama ve merge kanıtı bulunacak. Araştırma kartları sonlu soruyla değerlendirilecek.",
+        "Hedef repo / commit / sürümler / komutlar ve gerçek page yolları şu anda bilinmiyor;10 iş BLOCKED, ürün testleri çalıştırılmadı. Varsayılan bench / Vitest komutu uydurulmayacak.",
+        "Dokümantasyonun mevcut Node / Playwright kontrolleri planı ve Pages’i doğrular; ürünün Frappe / Keycloak / Tauri / offline / HarmonyOS çalışmasını kanıtlamaz.",
+        "T-01 ve T-09, T-00’dan sonra birbirinden ve bağlantı göstergesi zincirinden bağımsız erken araştırılabilir. Tek dalın engeli bütün programın engeli yapılmayacak.",
+        "P0 kontroller atlanmayacak; en ucuz güvenilir katman kullanılacak. Aynı geçen test yeni hata / değişiklik / kanıt boşluğu olmadan tekrarlanmayacak; üç / beş sonuçsuz döngü sınırı beklendiği gibi başarısız RED’i saymayacak.",
+        "DONE için kısa dalın trunk merge commit’i ve gerekli gerçek entegrasyon kanıtı şart; MERGE_READY veya dokümantasyon yayını ürün tamamlanması değildir."
+      ]
+    }
+  }
 }

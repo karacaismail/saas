@@ -218,6 +218,45 @@ if (configNode) {
   selectedOnly?.addEventListener('change', filter);
   for (const radio of document.querySelectorAll('input[name^="project-"]'))
     radio.addEventListener('change', filter);
+  // WebKit can omit :focus-visible after native radio arrow navigation. Keep
+  // the single indicator on the actual keyboard target; pointer input clears it.
+  const filterRadio = (node) =>
+    node instanceof Element &&
+    node.matches('.p-radio-options input[type="radio"]');
+  let radioKeyboardNavigation = false;
+  document.addEventListener('keydown', (event) => {
+    if (
+      ![
+        'Tab',
+        'ArrowLeft',
+        'ArrowRight',
+        'ArrowUp',
+        'ArrowDown',
+        'Home',
+        'End',
+        ' ',
+      ].includes(event.key)
+    )
+      return;
+    radioKeyboardNavigation = true;
+    if (filterRadio(event.target)) event.target.dataset.keyboardFocus = '';
+  });
+  document.addEventListener('focusin', (event) => {
+    if (radioKeyboardNavigation && filterRadio(event.target))
+      event.target.dataset.keyboardFocus = '';
+  });
+  document.addEventListener('focusout', (event) => {
+    if (filterRadio(event.target))
+      event.target.removeAttribute('data-keyboard-focus');
+  });
+  document.addEventListener('keyup', () => {
+    radioKeyboardNavigation = false;
+  });
+  document.addEventListener('pointerdown', () => {
+    radioKeyboardNavigation = false;
+    for (const radio of document.querySelectorAll('[data-keyboard-focus]'))
+      radio.removeAttribute('data-keyboard-focus');
+  });
   document.addEventListener('keydown', (event) => {
     const region = event.target.closest(
       '.p-table-scroll,.p-task-title,.p-header h1,.p-artifact-name,.p-main h2,.p-main h3,.p-main p,.p-main dd,.p-breadcrumb [aria-current],.p-detail-section li:not(:has(*))',
@@ -342,10 +381,15 @@ if (configNode) {
   };
   const markdownPacket = (document, id) => {
     const marker = document.match(
-      /<!-- saas-task-packet:start -->\n````json\n([\s\S]*?)\n````\n<!-- saas-task-packet:end -->/,
+      config.planTaskId
+        ? /<!-- saas-current-plan:start -->\n````json\n([\s\S]*?)\n````\n<!-- saas-current-plan:end -->/
+        : /<!-- saas-task-packet:start -->\n````json\n([\s\S]*?)\n````\n<!-- saas-task-packet:end -->/,
     );
     if (!marker) throw new TypeError('Missing task packet');
-    return validatePacket(JSON.parse(marker[1]), id);
+    const packet = validatePacket(JSON.parse(marker[1]), id);
+    if (config.planTaskId && packet.planId !== config.currentPlanId)
+      throw new TypeError('Wrong current plan');
+    return packet;
   };
   for (const button of document.querySelectorAll('[data-export]'))
     button.addEventListener('click', async () => {
@@ -394,7 +438,7 @@ if (configNode) {
     let content;
     try {
       const fetched = await fetchText('./task.md');
-      markdownPacket(fetched, config.taskId);
+      markdownPacket(fetched, config.planTaskId ?? config.taskId);
       content = fetched;
       await navigator.clipboard.writeText(content);
       fallback.hidden = true;

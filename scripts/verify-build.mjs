@@ -4,8 +4,11 @@ import { gzipSync } from 'node:zlib';
 import { loadProject, validateProject } from './project-model.mjs';
 import {
   createTaskPacket,
+  createCurrentPlanPacket,
+  renderCurrentPlanPage,
   renderProjectHome,
   serializeTaskMarkdown,
+  serializeCurrentPlanMarkdown,
 } from '../assets/project-templates.js';
 
 const project = validateProject(await loadProject());
@@ -133,6 +136,14 @@ const expected = [
   'dist/.nojekyll',
   'dist/index.html',
   'dist/atlas/index.html',
+  'dist/plan/index.html',
+  'dist/plan/current-plan.json',
+  'dist/plan/current-plan.md',
+  ...project.meta.currentPlan.tasks.flatMap((task) =>
+    ['index.html', 'task.json', 'task.md'].map(
+      (name) => `dist/plan/tasks/${routeId(task.id)}/${name}`,
+    ),
+  ),
   ...assetPaths.map((path) => `dist/${path}`),
   ...[...contentPaths, ...projectPaths].map((path) => `dist/${path}`),
   ...clusterRoutes.map((path) => `dist/${path}`),
@@ -290,6 +301,30 @@ async function verifyProjectPage(path, route, taskId) {
   routeSizes.push({ path, route, ...size });
 }
 await verifyProjectPage('index.html', 'home');
+for (const taskId of [
+  undefined,
+  ...project.meta.currentPlan.tasks.map((task) => task.id),
+]) {
+  const directory = taskId ? `plan/tasks/${routeId(taskId)}` : 'plan';
+  const packet = createCurrentPlanPacket(project, taskId);
+  const stem = taskId ? 'task' : 'current-plan';
+  assert.deepEqual(
+    JSON.parse(await readFile(`dist/${directory}/${stem}.json`, 'utf8')),
+    packet,
+  );
+  assert.equal(
+    await readFile(`dist/${directory}/${stem}.md`, 'utf8'),
+    serializeCurrentPlanMarkdown(packet),
+  );
+  assert.equal(
+    await readFile(`dist/${directory}/index.html`, 'utf8'),
+    renderCurrentPlanPage(project, taskId),
+  );
+  await verifyProjectPage(
+    `${directory}/index.html`,
+    taskId ? 'plan-task' : 'plan',
+  );
+}
 for (const path of clusterRoutes) await verifyProjectPage(path, 'cluster');
 for (const [index, task] of project.tasks.entries()) {
   const packet = createTaskPacket(project, task.id);

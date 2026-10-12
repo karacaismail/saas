@@ -96,7 +96,73 @@ test('project workspace has mobile-first stages, filters, bounded views and real
   page.on('request', (request) => requests.push(request.url()));
   await page.setViewportSize({ width: 320, height: 568 });
   await visit(page, baseURL);
-  await page.locator('.p-header-action a').click();
+  const stageRadio = page.locator('[name="project-stage"][value="all"]');
+  await stageRadio.click();
+  expect(
+    await stageRadio.evaluate((radio) => {
+      const style = getComputedStyle(radio.nextElementSibling);
+      return {
+        focusVisible:
+          radio.matches(':focus-visible') ||
+          radio.hasAttribute('data-keyboard-focus'),
+        outline: style.outlineStyle,
+        shadow: style.boxShadow,
+        radius: style.borderRadius,
+        background: style.backgroundColor,
+        bottom: style.borderBottomStyle,
+        width: parseFloat(style.borderBottomWidth),
+        color: style.borderBottomColor,
+      };
+    }),
+  ).toEqual({
+    focusVisible: false,
+    outline: 'none',
+    shadow: 'none',
+    radius: '0px',
+    background: 'rgba(0, 0, 0, 0)',
+    bottom: 'solid',
+    width: 3,
+    color: 'rgb(0, 66, 199)',
+  });
+  await stageRadio.focus();
+  await page.keyboard.press('Alt+Tab');
+  await page.keyboard.press('Alt+Shift+Tab');
+  await expect(stageRadio).toBeFocused();
+  await page.keyboard.press('ArrowRight');
+  const keyboardRadio = page.locator('[name="project-stage"]:checked');
+  await expect(keyboardRadio).toHaveValue('poc');
+  await expect(keyboardRadio).toBeFocused();
+  expect(
+    await keyboardRadio.evaluate((radio) => {
+      const style = getComputedStyle(radio.nextElementSibling);
+      const group = getComputedStyle(radio.closest('fieldset'));
+      return {
+        focusVisible:
+          radio.matches(':focus-visible') ||
+          radio.hasAttribute('data-keyboard-focus'),
+        outline: style.outlineStyle,
+        shadow: style.boxShadow,
+        radius: style.borderRadius,
+        bottom: style.borderBottomStyle,
+        width: parseFloat(style.borderBottomWidth),
+        color: style.borderBottomColor,
+        groupOutline: group.outlineStyle,
+        groupShadow: group.boxShadow,
+      };
+    }),
+  ).toEqual({
+    focusVisible: true,
+    outline: 'none',
+    shadow: 'none',
+    radius: '0px',
+    bottom: 'dashed',
+    width: 3,
+    color: 'rgb(0, 66, 199)',
+    groupOutline: 'none',
+    groupShadow: 'none',
+  });
+  await stageRadio.click();
+  await page.locator('.p-header-action a[href="#tasks"]').click();
   await expect(page.locator('#project-search')).toBeInViewport();
   const first = page
     .locator('[data-project-view="list"] [data-task-row]:visible')
@@ -387,7 +453,7 @@ test('task selection exports across filters, rejects partial bundles and keeps s
   page,
   baseURL,
   browser,
-}) => {
+}, testInfo) => {
   await visit(page, baseURL);
   const checks = page.locator(
     '[data-project-view="list"] [data-task-select]:visible',
@@ -457,6 +523,171 @@ test('task selection exports across filters, rejects partial bundles and keeps s
   expect(packet.task.id).toBe(ids[0]);
   await staticPage.goto(homeUrl(baseURL));
   await expect(staticPage.locator('[data-cluster-card]').first()).toBeVisible();
+  expect(await geometry(staticPage)).toEqual({
+    overflow: false,
+    small: 0,
+    thin: 0,
+    font: 'Outfit',
+  });
+
+  const sourceResponse = await page.request.get(
+    new URL('data/project/project.json', homeUrl(baseURL)).href,
+  );
+  expect(sourceResponse.ok()).toBe(true);
+  const { currentPlan } = await sourceResponse.json();
+  expect(currentPlan.tasks.map((task) => task.id)).toEqual(
+    Array.from(
+      { length: 10 },
+      (_, index) => 't-' + String(index).padStart(2, '0'),
+    ),
+  );
+  await page.setViewportSize({ width: 320, height: 568 });
+  await visit(page, baseURL);
+  const planLink = page.locator('a[data-current-plan]').first();
+  await expect(planLink).toBeVisible();
+  await planLink.click();
+  await expect(page).toHaveURL(new URL('plan/', homeUrl(baseURL)).href);
+  await expect(page.locator('body')).toHaveAttribute(
+    'data-project-route',
+    'plan',
+  );
+  await expect(page.locator('h1')).toHaveText(currentPlan.title);
+  const planEntries = page.locator('[data-plan-task]');
+  await expect(planEntries).toHaveCount(10);
+  const taskLinks = await planEntries.evaluateAll((entries) =>
+    entries.map(
+      (entry) =>
+        (entry.matches('a') ? entry : entry.querySelector('a[href]'))?.href,
+    ),
+  );
+  expect(taskLinks).toEqual(
+    currentPlan.tasks.map(
+      (task) => new URL('plan/tasks/' + task.id + '/', homeUrl(baseURL)).href,
+    ),
+  );
+  const cards = page.locator('details[data-plan-card]');
+  await expect(cards).toHaveCount(5);
+  expect(
+    await cards.evaluateAll((details) =>
+      details.every(
+        (detail) =>
+          detail.getAttribute('name') === 'current-plan-card' && !detail.open,
+      ),
+    ),
+  ).toBe(true);
+  const planPacket = JSON.parse(
+    await downloadText(page, page.locator('a[href="./current-plan.json"]')),
+  );
+  const planMarkdown = await downloadText(
+    page,
+    page.locator('a[href="./current-plan.md"]'),
+  );
+  expect(planPacket.version).toBe(1);
+  expect(planPacket.plan).toEqual(currentPlan);
+  const embeddedPacketPattern =
+    /<!-- saas-current-plan:start -->\s*[\x60]{3,}json\s*\n([\s\S]*?)\n[\x60]{3,}\s*<!-- saas-current-plan:end -->/;
+  const embeddedPlan = planMarkdown.match(embeddedPacketPattern);
+  expect(embeddedPlan).not.toBeNull();
+  expect(JSON.parse(embeddedPlan[1])).toEqual(planPacket);
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.screenshot({
+    path: testInfo.outputPath('current-plan-320.png'),
+  });
+  for (const [width, height] of [
+    [320, 568],
+    [360, 640],
+    [375, 667],
+    [390, 844],
+    [568, 320],
+    [768, 1024],
+    [1280, 900],
+  ]) {
+    await page.setViewportSize({ width, height });
+    expect(await geometry(page)).toEqual({
+      overflow: false,
+      small: 0,
+      thin: 0,
+      font: 'Outfit',
+    });
+  }
+  await expect(
+    staticPage.locator('a[data-current-plan]').first(),
+  ).toBeVisible();
+  await staticPage.locator('a[data-current-plan]').first().click();
+  await expect(staticPage.locator('body')).toHaveAttribute(
+    'data-project-route',
+    'plan',
+  );
+  await expect(staticPage.locator('h1')).toHaveText(currentPlan.title);
+  const nativeCards = staticPage.locator('details[data-plan-card]');
+  await expect(nativeCards.locator('summary')).toHaveCount(5);
+  await nativeCards.nth(0).locator('summary').focus();
+  await staticPage.keyboard.press('Enter');
+  await expect(nativeCards.nth(0)).toHaveAttribute('open', '');
+  await nativeCards.nth(1).locator('summary').focus();
+  await staticPage.keyboard.press('Enter');
+  await expect(staticPage.locator('details[data-plan-card][open]')).toHaveCount(
+    1,
+  );
+  await expect(nativeCards.nth(0)).not.toHaveAttribute('open');
+  expect(await geometry(staticPage)).toEqual({
+    overflow: false,
+    small: 0,
+    thin: 0,
+    font: 'Outfit',
+  });
+  await staticPage.goto(taskLinks[0]);
+  await expect(staticPage.locator('body')).toHaveAttribute(
+    'data-project-route',
+    'plan-task',
+  );
+  await expect(staticPage.locator('h1')).toHaveText(currentPlan.tasks[0].title);
+  for (const label of Object.values(currentPlan.cardLabels))
+    await expect(staticPage.locator('main')).toContainText(label);
+  const planTaskPacket = JSON.parse(
+    await downloadText(staticPage, staticPage.locator('a[href="./task.json"]')),
+  );
+  const taskMarkdown = await downloadText(
+    staticPage,
+    staticPage.locator('a[href="./task.md"]'),
+  );
+  expect(planTaskPacket.version).toBe(1);
+  expect(planTaskPacket.planId).toBe(currentPlan.id);
+  expect(planTaskPacket.task).toEqual(currentPlan.tasks[0]);
+  expect(planTaskPacket.rules).toEqual(currentPlan.sections);
+  expect(planTaskPacket.sourceDigest).toBe(planPacket.sourceDigest);
+  expect(planTaskPacket.projectRevision).toBe(planPacket.projectRevision);
+  const embeddedTask = taskMarkdown.match(embeddedPacketPattern);
+  expect(embeddedTask).not.toBeNull();
+  expect(JSON.parse(embeddedTask[1])).toEqual(planTaskPacket);
+  await expect(staticPage.locator('[data-copy-task]')).toBeDisabled();
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: {
+        writeText: async (value) => {
+          window.__copiedPlan = value;
+        },
+      },
+    });
+  });
+  await page.goto(taskLinks[0]);
+  await expect(page.locator('[data-copy-task]')).toBeEnabled();
+  await page.locator('[data-copy-task]').click();
+  await expect
+    .poll(() => page.evaluate(() => window.__copiedPlan))
+    .toBe(taskMarkdown);
+  await page.evaluate(() => {
+    navigator.clipboard.writeText = async () => {
+      throw new Error('denied');
+    };
+  });
+  await page.locator('[data-copy-task]').click();
+  await expect(page.locator('#project-copy-text')).toHaveValue(taskMarkdown);
+  await expect(page.locator('#project-copy-text')).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#project-copy-fallback')).toBeHidden();
+  await expect(page.locator('[data-copy-task]')).toBeFocused();
   expect(await geometry(staticPage)).toEqual({
     overflow: false,
     small: 0,

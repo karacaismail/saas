@@ -21,12 +21,25 @@ test('project presentation preserves all twenty canonical source documents and a
   const project = await load();
   assert.equal(project.atlas.review.expectedItems, 387);
   assert.equal(project.atlas.review.decisions.length, 109);
+  const { renderProjectHome } = await import('../assets/project-templates.js');
+  assert.ok(
+    renderProjectHome(project).includes('href="./plan/"'),
+    'The latest TDD replanning must be reachable from the published workspace',
+  );
+  assert.equal(project.meta.currentPlan.tasks.length, 10);
+  assert.equal(
+    project.meta.currentPlan.tasks.filter((task) => task.card).length,
+    5,
+  );
   const { projectRevision } = await import('../scripts/project-model.mjs');
   assert.equal(project.revision, projectRevision(project));
   const modified = structuredClone(project);
   modified.clusters[0].tasks[0].summary += ' changed';
   assert.equal(modified.meta.sourceDigest, project.meta.sourceDigest);
   assert.notEqual(projectRevision(modified), project.revision);
+  const changedPlan = structuredClone(project);
+  changedPlan.meta.currentPlan.summary += ' changed';
+  assert.notEqual(projectRevision(changedPlan), project.revision);
 });
 
 test('every requirement and component family has bounded task ownership and a truthful execution baseline', async () => {
@@ -88,6 +101,15 @@ test('project validation rejects overlapping writers, dependency cycles, escapin
     (q) => {
       q.traceability.items[0].primaryTaskId = 'missing-task';
     },
+    (q) => {
+      q.meta.currentPlan.tasks[0].status = 'READY';
+    },
+    (q) => {
+      q.meta.currentPlan.tasks[2].card.doctypeCount = 2;
+    },
+    (q) => {
+      q.meta.currentPlan.tasks[2].dependsOn.push('missing-plan-task');
+    },
   ]) {
     const invalid = structuredClone(p);
     mutate(invalid);
@@ -136,5 +158,23 @@ test('task JSON and Markdown carry the full source requirement and dependency co
     assert.ok(html.includes('../../assets/project-app.js'));
     assert.ok(!html.includes('src="../../assets/app.js"'));
     assert.ok(html.includes('task.json') && html.includes('task.md'));
+  }
+  const {
+    createCurrentPlanPacket,
+    renderCurrentPlanPage,
+    serializeCurrentPlanMarkdown,
+  } = await import('../assets/project-templates.js');
+  for (const taskId of [
+    undefined,
+    ...p.meta.currentPlan.tasks.map((task) => task.id),
+  ]) {
+    const packet = createCurrentPlanPacket(p, taskId);
+    const md = serializeCurrentPlanMarkdown(packet);
+    const embedded = md.match(
+      /<!-- saas-current-plan:start -->\n````json\n([\s\S]*?)\n````\n<!-- saas-current-plan:end -->/,
+    );
+    assert.ok(embedded, taskId);
+    assert.deepEqual(JSON.parse(embedded[1]), packet);
+    assert.ok(renderCurrentPlanPage(p, taskId).includes('data-current-plan'));
   }
 });

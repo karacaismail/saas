@@ -102,6 +102,110 @@ export function projectRevision(project) {
     .digest('hex');
 }
 
+function validateCurrentPlan(plan, legacyTasks) {
+  record(plan, 'current plan');
+  id(plan.id, 'current plan ID');
+  string(plan.updatedAt, 'current plan date');
+  for (const key of ['title', 'summary', 'notice'])
+    string(plan[key], `current plan ${key}`);
+  for (const key of ['ui', 'cardLabels']) {
+    record(plan[key], `current plan ${key}`);
+    Object.values(plan[key]).forEach((value) =>
+      string(value, `current plan ${key} copy`),
+    );
+  }
+  array(plan.sections, 'current plan sections', true);
+  unique(
+    plan.sections.map((section) => section.id),
+    'current plan section IDs',
+  );
+  for (const section of plan.sections) {
+    id(section.id, 'current plan section ID');
+    string(section.title, 'current plan section title');
+    strings(section.paragraphs, 'current plan paragraphs');
+    strings(section.items, 'current plan rules');
+  }
+  array(plan.roadmap, 'current roadmap', true);
+  if (plan.roadmap.length < 6 || plan.roadmap.length > 8)
+    fail('bounded current roadmap');
+  const groups = new Set(plan.roadmap.map((group) => group.id));
+  unique(
+    plan.roadmap.map((group) => group.id),
+    'current roadmap IDs',
+  );
+  for (const group of plan.roadmap) {
+    id(group.id, 'current roadmap ID');
+    for (const key of ['title', 'deliverable', 'gate'])
+      string(group[key], `current roadmap ${key}`);
+  }
+  array(plan.tasks, 'current plan tasks', true);
+  if (
+    plan.tasks.length > 12 ||
+    plan.tasks.filter((task) => task.card).length > 5
+  )
+    fail('rolling-wave bounds');
+  const tasks = new Map(plan.tasks.map((task) => [task.id, task]));
+  unique(
+    plan.tasks.map((task) => task.id),
+    'current task IDs',
+  );
+  for (const task of plan.tasks) {
+    id(task.id, 'current task ID');
+    if (legacyTasks.has(task.id) || !groups.has(task.groupId))
+      fail('current task group/identity');
+    if (task.status !== 'BLOCKED') fail('unfrozen current task baseline');
+    for (const key of ['title', 'type', 'target', 'summary', 'blocker'])
+      string(task[key], `current task ${key}`);
+    strings(task.dependsOn, 'current task dependencies');
+    if (
+      task.dependsOn.some(
+        (dependency) => !tasks.has(dependency) || dependency === task.id,
+      )
+    )
+      fail('current task dependency');
+    strings(task.sourceTaskIds, 'current task sources');
+    if (task.sourceTaskIds.some((source) => !legacyTasks.has(source)))
+      fail('current task source reference');
+    if (task.card) {
+      record(task.card, 'current task card');
+      if (
+        Object.keys(task.card).sort().join('|') !==
+        Object.keys(plan.cardLabels).sort().join('|')
+      )
+        fail('current task card fields');
+      if (![0, 1].includes(task.card.doctypeCount))
+        fail('current task DocType bound');
+      if (!/^P[012](?:\s|$)/.test(task.card.risk)) fail('current task risk');
+      for (const [key, value] of Object.entries(task.card)) {
+        if (key === 'doctypeCount') continue;
+        if (key === 'acceptance')
+          strings(value, 'current task acceptance', true);
+        else string(value, `current task card ${key}`);
+      }
+    }
+  }
+  const visited = new Set();
+  const active = new Set();
+  const visit = (taskId) => {
+    if (active.has(taskId)) fail('current task dependency cycle');
+    if (visited.has(taskId)) return;
+    active.add(taskId);
+    tasks.get(taskId).dependsOn.forEach(visit);
+    active.delete(taskId);
+    visited.add(taskId);
+  };
+  tasks.forEach((task) => visit(task.id));
+  record(plan.mapping, 'current plan mapping');
+  string(plan.mapping.note, 'current plan mapping note');
+  array(plan.mapping.rows, 'current plan mapping rows', true);
+  for (const row of plan.mapping.rows)
+    for (const key of ['oldTaskId', 'action', 'result'])
+      string(row[key], `current plan mapping ${key}`);
+  record(plan.audit, 'current plan audit');
+  string(plan.audit.title, 'current plan audit title');
+  strings(plan.audit.items, 'current plan audit checks', true);
+}
+
 export function validateProject(project) {
   record(project, 'root');
   const { meta, clusters, tasks, traceability, atlas } = project;
@@ -416,6 +520,7 @@ export function validateProject(project) {
       if (!taskMap.get(taskId)?.catalogEntryIds.includes(entry.catalogEntryId))
         fail('catalog task reference');
   }
+  validateCurrentPlan(meta.currentPlan, taskMap);
   return project;
 }
 
