@@ -949,7 +949,7 @@
     "updatedAt": "2026-10-14",
     "title": "Güncel master plan — Frappe headless sağlayıcı ve yeniden kullanım",
     "summary": "Güncel yetkili plan: GenUI kullanıcının backend’den bağımsız projesidir; SaaS, seçili sağlayıcı Frappe için yalnız sağlayıcı/host sözleşmesinin kabulünü planlar. Yeni uygulamalar tanım ve gerçek iş kuralı ekler; form, liste, detay ve veri erişimi mekanizmalarını kopyalamaz.",
-    "notice": "2026-10-14 itibarıyla bu kayıt güncel master karardır; currentPlan, 994 taslak görev, /plan/ ve /atlas/ tarihsel bağlamdır ve çelişkide bu kayıt geçerlidir. Bu repo statik dokümantasyondur: ürün repo/commit’i, kurulu Frappe app/sürümleri ve DocType’lar bilinmiyor; runtime doğrulanmadı. headlessReadiness’taki 52 kontrol not_run; R-00, R-01 ve R-02 dar ve BLOCKED kalır. Bölümler: A master karar, B kaynaklar ve görev eşlemesi, C sağlayıcı–GenUI sınırı, D CardDefinition boşluğu, E sağlayıcı reçetesi, F pilot, G şelale sırası, H çelişki çözümleri. 2026-10-12 verimlilik eki aynı bölümlerde korunur.",
+    "notice": "2026-10-14 itibarıyla bu kayıt güncel master karardır; currentPlan, 994 taslak görev, /plan/ ve /atlas/ tarihsel bağlamdır ve çelişkide bu kayıt geçerlidir. Bu repo statik dokümantasyondur: ürün repo/commit’i, kurulu Frappe app/sürümleri ve DocType’lar bilinmiyor; runtime doğrulanmadı. headlessReadiness’taki 52 kontrol not_run; R-00, R-01 ve R-02 dar ve BLOCKED kalır. Bölümler: A master karar, B kaynaklar ve görev eşlemesi, C sağlayıcı–GenUI sınırı, D CardDefinition boşluğu, E sağlayıcı reçetesi, F pilot, G şelale sırası, H çelişki çözümleri. 2026-10-12 verimlilik eki aynı bölümlerde korunur. 2026-10-14 tarihli ortak teslim bütçesi, tarihsel currentPlan, /plan/ ve /atlas/ döngü sınırlarının yerine geçer; ayrıntısı reuse-h’dedir.",
     "ui": {
       "nav": "Güncel master plan — Frappe headless sağlayıcı ve yeniden kullanım",
       "roadmapTitle": "Üç odaklı yeniden kullanım grubu",
@@ -2296,7 +2296,7 @@
         ],
         "items": [
           "En fazla bir değişen DocType, parent/child ayrımı ve atomik iş işlemi korunur. Master-child-page config ile sağlanıyorsa gereksiz child dosyası yok.",
-          "Aynı kök neden için 3, görevde toplam 5 sonuçsuz düzeltmede dur; beklenen ilk RED sayılmaz. Geçen değişmemiş testi tekrarlama, test/fixture/hash/timeout/retry zayıflatma.",
+          "Güncel insan kararı tarihsel 3/5 döngü sınırının yerine geçer. Küçük davranış değişikliğinde tüm ajanlar için ortak tavan: en fazla bir yeni/değişen test dosyası, üç yeni senaryo, beş dakika odaklı yerel test ve iki düzeltme döngüsü. Bunlar hedef değil tavandır. Bölme, yeniden adlandırma, yeni ajan veya sohbet bütçeyi sıfırlamaz ya da çoğaltmaz; bütçe yalnız açık insan talimatıyla büyür. Anlamlı davranışta gerçek ve gerekli RED → uygulama → aynı GREEN izlenir; beklenen ilk RED döngü sayılmaz, salt metin/keşif için yapay RED üretilmez. İlgili kontroller geçince teslim et; somut değişiklik veya kusur yoksa geçen kontrolü tekrarlama. Tavanda ek doğrulamayı durdur, eksik kanıtı ve somut riski raporla, bağımsız yetkili işe devam et; doğrulanmamış işi DONE sayma. Zorunlu CI/sürüm kapıları, assertion ve güvenlik kontrolleri korunur; test/fixture/hash/timeout/retry zayıflatılmaz. Ajan sayısını doldurmak için test, rapor, inceleme, altyapı veya tekrar üretilmez.",
           "Firefox’un zorunlu kapsamdan çıkarılması yalnız bu GitHub Pages dokümantasyon reposuna aittir; gelecekteki SaaS tarayıcı desteği kararı değildir. Ürün TDD’si ve gerçek entegrasyon kabulü korunur."
         ],
         "entries": [
@@ -2489,7 +2489,7 @@
           "merge": "Kısa trunk dalı, aktif üretim/test/fixture lease’i, gerçek merge commit’i ve kabul kanıtı olmadan DONE yok.",
           "compatibility": "Mevcut kullanıcı kodu korunur; çalışan TextField varsa B/C/D seçilir, E varsayılmaz.",
           "evidence": "Bu statik repoda ürün kodu/kurulu apps görülmedi; envanter yapılmış sayılmaz.",
-          "stop": "Aynı kök neden için 3, görevde toplam 5 sonuçsuz düzeltmede dur; beklenen RED sayılmaz. Test/fixture/timeout/retry gevşetme."
+          "stop": "reuse-h’deki ortak insan teslim bütçesi geçerlidir: tüm ajanlar birlikte en fazla 2 düzeltme döngüsü; beklenen gerçek RED sayılmaz. Tavanda dur, eksik kanıtı ve riski raporla, doğrulanmamış işi DONE sayma. Keşif için yapay RED üretilmez. Test/fixture/timeout/retry gevşetme."
         }
       },
       {
@@ -2529,7 +2529,7 @@
           "merge": "Kısa trunk dalı, aktif üretim/test/fixture lease’i, gerçek merge commit’i ve kabul kanıtı olmadan DONE yok.",
           "compatibility": "Etkin Custom Field/Property Setter ve sunucu izni korunur; Python metadata fonksiyonu uzaktan API sayılmaz.",
           "evidence": "ResourceDefinition öneridir; gerçek server response veya kurulu metadata API kanıtı yok.",
-          "stop": "Aynı kök neden için 3, görevde toplam 5 sonuçsuz düzeltmede dur; beklenen RED sayılmaz. Test/fixture/timeout/retry gevşetme."
+          "stop": "reuse-h’deki ortak insan teslim bütçesi geçerlidir: tüm ajanlar birlikte en fazla 2 düzeltme döngüsü; beklenen gerçek RED sayılmaz. Tavanda dur, eksik kanıtı ve riski raporla, doğrulanmamış işi DONE sayma. Keşif için yapay RED üretilmez. Test/fixture/timeout/retry gevşetme."
         }
       },
       {
@@ -2569,7 +2569,7 @@
           "merge": "Kısa trunk dalı, aktif üretim/test/fixture lease’i, gerçek merge commit’i ve kabul kanıtı olmadan DONE yok.",
           "compatibility": "Ant Design ve onaylı renderer kullanılır; doğrudan Frappe çağrısı yok. T-02 bağlantı sözleşmesi bu alanın yerine geçmez.",
           "evidence": "TextField mevcut diye doğrulanmadı; iki config örneği çalışan form/liste/detay kanıtı değildir.",
-          "stop": "Aynı kök neden için 3, görevde toplam 5 sonuçsuz düzeltmede dur; beklenen RED sayılmaz. Test/fixture/timeout/retry gevşetme."
+          "stop": "reuse-h’deki ortak insan teslim bütçesi geçerlidir: tüm ajanlar birlikte en fazla 2 düzeltme döngüsü; beklenen gerçek RED sayılmaz. Tavanda dur, eksik kanıtı ve riski raporla, doğrulanmamış işi DONE sayma. Keşif için yapay RED üretilmez. Test/fixture/timeout/retry gevşetme."
         }
       }
     ],

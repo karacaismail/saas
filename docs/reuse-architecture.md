@@ -22,6 +22,8 @@ R-00, T-00 baseline’ını yeniden kullanır. Salt okunur kaynak envanteri T-01
 
 Bu teslim planlama belgelerini günceller; ürün uygulaması, yeni Skill, ortam kurulumu veya test matrisi büyümesi içermez. Ortaklaştırma yalnız somut tekrar, yakın tüketici ve en küçük uyumlu geçiş kanıtıyla önerilir; ölçülmemiş zaman veya verim kazancı ileri sürülmez.
 
+Güncel insan kararıyla küçük davranış değişikliğinde tüm ajanlar için ortak tavanlar en fazla bir yeni/değişen test dosyası, üç yeni senaryo, beş dakika odaklı yerel test ve iki düzeltme döngüsüdür; bunlar hedef değil tavandır. Bölme, yeniden adlandırma, yeni ajan veya sohbet bütçeyi sıfırlamaz ya da çoğaltmaz; bütçe yalnız açık insan talimatıyla büyür. Bu bütçe currentPlan, /plan/ ve /atlas/ kayıtlarındaki tarihsel 3/5 döngü sınırlarının yerine geçer; o kayıtlar değiştirilmeden tarihsel bağlam olarak kalır. Ürün/runtime bilinmezliği, 52 kontrolün not_run durumu ve R-00, R-01, R-02’nin BLOCKED durumu değişmez.
+
 ## GenUI sahipliği ve Frappe headless sağlayıcı hazırlığı — 2026-10-14
 
 Kullanıcının 2026-10-14 kararı bağlayıcıdır: GenUI Frappe, FastAPI, PHP veya başka bir backend'den bağımsızdır ve kullanıcı tarafından geliştirilir. Bu SaaS deposu GenUI geliştirmez; rolü, seçili tek sağlayıcı olan Frappe için sağlayıcı/host sözleşmesinin kabulünü planlamaktır. Kanonik içerik `reusePlan.headlessReadiness` içindedir; bu belge onun özetidir, kontrol listesini kopyalamaz. Üçüncü görev registry'si yoktur.
