@@ -1,5 +1,20 @@
 # SaaS Atlas çalışma kuralları
 
+## Zorunlu teslim ve doğrulama sınırı — 2026-10-14
+
+Amaç istenen davranışı teslim etmektir. Test, inceleme veya orkestrasyon bağımsız ve sürekli büyüyen bir projeye dönüşemez. Bu güncel kullanıcı sınırı, önceki geniş yerel doğrulama önerilerine göre önceliklidir; mevcut zorunlu CI/yayın kapıları korunur.
+
+1. İş başlamadan teslim edilecek davranışı, dokunulacak dosyaları ve gerekli doğrulamayı en fazla dört satırda belirt. Yetkilendirilmiş rutin iş için tekrar onay isteme.
+2. Küçük davranış değişikliğinde varsayılan üst sınır bir yeni/değiştirilen test dosyası, en fazla üç yeni test senaryosu, toplam beş dakika odaklı yerel test çalıştırması ve en fazla iki düzeltme döngüsüdür. Bunlar hedef değildir.
+3. Anlamlı davranış değişikliğinde gerekli başarısız kontrol → uygulama → aynı kontrolün geçmesi sırasını izle. TDD görünümü için yapay başarısızlık üretme; salt yönerge değişikliğine davranış testi uydurma.
+4. İlgili kontroller geçince uygulama veya teslim aşamasına geç. Yeni değişiklik veya somut yeni hata olmadan başarılı kontrolleri tekrarlama; test matrisini, fixture'ları veya incelemeyi genişletme.
+5. “Daha güvenli olur”, “inceleyici önerdi” veya “tam hazır olsun” kapsam artırma yetkisi değildir. Bütçeyi yalnız kullanıcı açıkça artırabilir.
+6. Bütçe tüm ajanlar arasında ortaktır. Alt ajan, yeni sohbet, görev bölme veya yeniden adlandırma bütçeyi sıfırlamaz ve çoğaltmaz; önceki tüketimi koru.
+7. Bütçe dolunca ek doğrulamayı durdur. Eksik doğrulamayı ve somut riski bildir; yetkili bağımsız işleri sürdür. Çalışmayan kontrolü geçmiş gösterme.
+8. Bütçe gerekçesiyle mevcut zorunlu CI/yayın kapılarını veya başarısız kontrolü atlama; assertion ve güvenlik korumalarını zayıflatma. Doğrulanmamış teslimi DONE yapma. Dokümantasyon kontrolü ürün runtime kabulü değildir.
+9. Ajan sayısını doldurmak için yeni test, rapor, inceleme, altyapı veya tekrar görevleri üretme.
+10. Sınırı aşmayı gerektiren somut engeli bildir. Kendi kendine istisna, yeni süreç veya yeni kalite kapısı açma.
+
 ## Güncel tipografi kararı — 2026-10-14
 
 - Okunabilir metinlerin alt sınırı 14 CSS px'tir. Önceki 1rem zorunluluğu ve 14 CSS px altına inen tarihsel pasif pill istisnası kaldırılmıştır. Outfit, kullanıcı kök boyutu, zoom, mevcut daha büyük metinler ve başlık hiyerarşisi korunur. Dar alana sığdırmak için metin küçültülmez. Bu karar önceki tarihli tipografi ifadelerine göre önceliklidir; talimat güncellemesi tek başına runtime veya tarayıcı kanıtı değildir.
