@@ -328,6 +328,18 @@ function validateHeadlessReadiness(readiness, baseline, clusterMap, taskMap) {
     prose(override.title, 'headless override title');
     prose(override.instruction, 'headless override instruction');
   }
+  // External GenUI overrides follow canonical cluster units, not copied lists.
+  const genuiClusterIds = [...clusterMap.values()]
+    .filter((cluster) => cluster.unitId === 'genui-runtime')
+    .map((cluster) => cluster.id)
+    .sort();
+  if (
+    readiness.overrides
+      .map((entry) => entry.clusterId)
+      .sort()
+      .join('|') !== genuiClusterIds.join('|')
+  )
+    fail('headless override coverage');
   const statuses = unfrozen
     ? ['unknown', 'not_run']
     : ['unknown', 'not_run', 'pass', 'fail', 'blocked'];

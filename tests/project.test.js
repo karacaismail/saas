@@ -180,6 +180,18 @@ test('project validation rejects overlapping writers, dependency cycles, escapin
   const { validateProject } = await import('../scripts/project-model.mjs');
   const p = await load();
   assert.ok(p.meta.reusePlan.headlessReadiness);
+  // Required GenUI overrides follow canonical cluster units, not copied lists.
+  const genuiClusterIds = p.clusters
+    .filter((cluster) => cluster.unitId === 'genui-runtime')
+    .map((cluster) => cluster.id)
+    .sort();
+  assert.deepEqual(genuiClusterIds, ['ui-family-39', 'ui-provider-registry']);
+  const nonGenuiClusterId = p.clusters.find(
+    (cluster) => cluster.unitId !== 'genui-runtime',
+  ).id;
+  const reordered = structuredClone(p);
+  reordered.meta.reusePlan.headlessReadiness.overrides.reverse();
+  assert.doesNotThrow(() => validateProject(reordered));
   for (const mutate of [
     (q) => q.tasks[1].owns.push(q.tasks[0].owns[0]),
     (q) =>
@@ -241,6 +253,24 @@ test('project validation rejects overlapping writers, dependency cycles, escapin
     (q) => {
       q.meta.reusePlan.headlessReadiness.overrides[0].clusterId =
         'unknown-genui-cluster';
+    },
+    ...genuiClusterIds.map((clusterId) => (q) => {
+      const readiness = q.meta.reusePlan.headlessReadiness;
+      readiness.overrides = readiness.overrides.filter(
+        (entry) => entry.clusterId !== clusterId,
+      );
+    }),
+    (q) => {
+      q.meta.reusePlan.headlessReadiness.overrides[0].clusterId =
+        nonGenuiClusterId;
+    },
+    (q) => {
+      const { overrides } = q.meta.reusePlan.headlessReadiness;
+      overrides.push({ ...overrides[0], clusterId: nonGenuiClusterId });
+    },
+    (q) => {
+      const { overrides } = q.meta.reusePlan.headlessReadiness;
+      overrides[1].clusterId = overrides[0].clusterId;
     },
   ]) {
     const invalid = structuredClone(p);
