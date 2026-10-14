@@ -151,6 +151,17 @@ test('every requirement and component family has bounded task ownership and a tr
   }
   const readiness = p.meta.reusePlan.headlessReadiness;
   assert.ok(readiness);
+  const { renderLegacyScopeNotice } =
+    await import('../assets/project-templates.js');
+  assert.equal(
+    typeof renderLegacyScopeNotice,
+    'function',
+    'Direct historical atlas visitors need the current master decision',
+  );
+  const legacyNotice = renderLegacyScopeNotice(p);
+  assert.ok(legacyNotice.includes('data-current-scope'));
+  assert.ok(legacyNotice.includes('../reuse/'));
+  assert.ok(legacyNotice.includes(readiness.notice));
   const checkIds = new Set();
   for (const area of readiness.areas) {
     assert.ok(p.meta.gates.some((gate) => gate.id === area.gateId));

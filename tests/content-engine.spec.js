@@ -349,6 +349,13 @@ for (const changed of [false, true]) {
     await expect(page.locator('#search')).toBeDisabled();
     const context = page.locator('#context-details');
     await context.locator(':scope > summary').click();
+    const masterNotice = context.locator('[data-current-scope]');
+    await expect(masterNotice).toHaveCount(1);
+    const masterText = await masterNotice.textContent();
+    await expect(masterNotice.locator('h2 a')).toHaveAttribute(
+      'href',
+      '../reuse/',
+    );
     const group = page.locator('.group').first();
     const summary = group.locator(':scope > summary');
     await summary.click();
@@ -384,6 +391,12 @@ for (const changed of [false, true]) {
     expect(after.searchEnabled).toBe(true);
     expect(after.contextOpen).toBe('');
     expect(after.groupOpen).toBe('');
+    await expect(
+      page.locator('#context-details [data-current-scope]'),
+    ).toHaveCount(1);
+    expect(
+      await page.locator('#context-details [data-current-scope]').textContent(),
+    ).toBe(masterText);
     await expect(page.locator(`#${groupId} > summary`)).toBeFocused();
     expect(after.openGroups).toBe(1);
     if (changed) expect(after.title).toBe(replacement);
