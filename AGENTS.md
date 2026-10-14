@@ -1,5 +1,9 @@
 # SaaS Atlas çalışma kuralları
 
+## Güncel tipografi kararı — 2026-10-14
+
+- Okunabilir metinlerin alt sınırı 14 CSS px'tir. Önceki 1rem zorunluluğu ve 14 CSS px altına inen tarihsel pasif pill istisnası kaldırılmıştır. Outfit, kullanıcı kök boyutu, zoom, mevcut daha büyük metinler ve başlık hiyerarşisi korunur. Dar alana sığdırmak için metin küçültülmez. Bu karar önceki tarihli tipografi ifadelerine göre önceliklidir; talimat güncellemesi tek başına runtime veya tarayıcı kanıtı değildir.
+
 ## Güncel zorunlu tarayıcı kapsamı — 2026-10-12
 
 - Kullanıcının açık “Firefox’a gerek yok” kararıyla Firefox bu projenin zorunlu test ve yayın kapsamından çıkarılmıştır. Bu karar yalnız bu GitHub Pages dokümantasyon reposuna aittir; gelecekteki SaaS ürününün tarayıcı desteğini veya TDD kapsamını değiştirmez. Bu, dokümantasyon sitesinin tarayıcı kapsamı kararıdır; kalan testlerde başarısızlığı gizleme, assertion zayıflatma veya kontrol atlama yetkisi değildir.
