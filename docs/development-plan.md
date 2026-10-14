@@ -2,6 +2,8 @@
 
 Kanonik plan ve görünen bütün yeni metinler [data/development-plan.json](../data/development-plan.json) içindedir. Eski 387 madde, 49 başlık, 12 küme, scope/assessment, ilişkiler, sıralar ve 109 karar değişmez. Yeni ek katman her mevcut itemId için tek unitId, stageId, delivery ve somut gerekçe içerir. Aşama veya atama tamamlanma kanıtı değildir; çalışan SaaS uygulaması geliştirildiği iddia edilmez.
 
+**2026-10-14 güncel GenUI kararı.** JSON'daki `genui-runtime` birimi, onun post_mvp/conditional ataması ve aşağıdaki “koşullu Ant X/X Cards runtime” ile “GenUI runtime koşulludur” ifadeleri tarihsel kayıt olarak korunur. Kullanıcının güncel kararıyla GenUI backend'den bağımsızdır ve kullanıcı tarafından geliştirilir; bu plan GenUI uygulamasını kapsamaz. SaaS tarafında yalnız seçili Frappe sağlayıcı/host sözleşmesinin kabulü kalır ve kanonik kaynağı `data/project/project.json/reusePlan.headlessReadiness`'tır. Erken sağlayıcı PoC'si sonraki GenUI özelliklerini beklemez; bu JSON ve atamaları değiştirilmez. Ayrıntı [yeniden kullanım mimarisi](reuse-architecture.md).
+
 ## App, Module ve paket modeli
 
 Bulutta tek özel `saas_platform` Frappe App; aynı kod control-plane ve tenant site’larında kullanılır. Hizmete özgü domain gerçekten seçildiğinde `saas_product` ayrı extension App olarak platformun yayımlanmış API’sine bağlanabilir. PoC örnek DocType’ı geçici test dilimidir; evrensel ürün özelliği olmaz.
