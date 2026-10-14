@@ -83,6 +83,45 @@ const canonicalItems = (atlas) =>
       })),
     ),
   );
+const isoDate = /^\d{4}-\d{2}-\d{2}$/;
+const prose = (value, label) => {
+  string(value, label);
+  if (!/\p{L}/u.test(value)) fail(label);
+};
+const sameKeys = (value, keys, label) => {
+  if (Object.keys(value).sort().join('|') !== [...keys].sort().join('|'))
+    fail(label);
+};
+const httpsUrl = (value, label) => {
+  let url;
+  try {
+    url = new URL(value);
+  } catch {
+    fail(label);
+  }
+  if (url.protocol !== 'https:' || url.username || url.password) fail(label);
+};
+const readinessScope = {
+  genuiOwner: 'user',
+  genuiBackend: 'independent',
+  saasRole: 'planning',
+  provider: 'frappe',
+};
+const readinessUi = [
+  'scopeTitle',
+  'historicalPlan',
+  'checksTitle',
+  'acceptanceLabel',
+  'verificationLabel',
+  'statusLabel',
+  'mappingLabel',
+  'sourceTasksLabel',
+  'pilotTitle',
+  'sourcesTitle',
+  'overridesTitle',
+  'gateLabel',
+  'externalOwnerLabel',
+];
 const digestFiles = (files) => {
   const hash = createHash('sha256');
   for (const file of files)
@@ -244,6 +283,112 @@ function validateCurrentPlan(plan, legacyTasks, reuse = false) {
   record(plan.audit, 'current plan audit');
   string(plan.audit.title, 'current plan audit title');
   strings(plan.audit.items, 'current plan audit checks', true);
+}
+
+// Planning-only provider acceptance; an unfrozen product baseline proves nothing.
+function validateHeadlessReadiness(readiness, baseline, clusterMap, taskMap) {
+  record(readiness, 'headless readiness');
+  if (readiness.version !== 1) fail('headless readiness version');
+  id(readiness.id, 'headless readiness ID');
+  if (
+    typeof readiness.updatedAt !== 'string' ||
+    !isoDate.test(readiness.updatedAt)
+  )
+    fail('headless readiness date');
+  for (const key of ['title', 'summary', 'notice'])
+    prose(readiness[key], `headless readiness ${key}`);
+  record(readiness.scope, 'headless readiness scope');
+  sameKeys(readiness.scope, Object.keys(readinessScope), 'headless scope');
+  for (const [key, value] of Object.entries(readinessScope))
+    if (readiness.scope[key] !== value) fail('headless readiness scope');
+  const unfrozen =
+    baseline.state === 'draft' ||
+    baseline.targetRepository === null ||
+    baseline.baseCommit === null;
+  if (readiness.runtimeStatus !== 'not_verified')
+    fail('unverified headless runtime');
+  record(readiness.ui, 'headless readiness copy');
+  sameKeys(readiness.ui, readinessUi, 'headless readiness copy keys');
+  readinessUi.forEach((key) => prose(readiness.ui[key], 'headless copy'));
+  array(readiness.overrides, 'headless overrides', true);
+  unique(
+    readiness.overrides.map((entry) => entry.clusterId),
+    'headless override clusters',
+  );
+  for (const override of readiness.overrides) {
+    record(override, 'headless override');
+    sameKeys(
+      override,
+      ['clusterId', 'owner', 'title', 'instruction'],
+      'headless override keys',
+    );
+    if (!clusterMap.has(override.clusterId))
+      fail('headless override cluster reference');
+    if (override.owner !== 'user_genui') fail('headless override owner');
+    prose(override.title, 'headless override title');
+    prose(override.instruction, 'headless override instruction');
+  }
+  const statuses = unfrozen
+    ? ['unknown', 'not_run']
+    : ['unknown', 'not_run', 'pass', 'fail', 'blocked'];
+  const readinessIds = new Set();
+  const claim = (value, label) => {
+    id(value, label);
+    if (readinessIds.has(value)) fail(`duplicate ${label}`);
+    readinessIds.add(value);
+  };
+  array(readiness.areas, 'headless areas', true);
+  for (const area of readiness.areas) {
+    record(area, 'headless area');
+    claim(area.id, 'headless area ID');
+    prose(area.title, 'headless area title');
+    if (!gateIds.includes(area.gateId)) fail('headless area gate');
+    array(area.checks, 'headless checks', true);
+    for (const check of area.checks) {
+      record(check, 'headless check');
+      claim(check.id, 'headless check ID');
+      for (const key of ['title', 'acceptance', 'verification'])
+        prose(check[key], `headless check ${key}`);
+      strings(check.sourceTaskIds, 'headless check sources');
+      if (check.sourceTaskIds.some((source) => !taskMap.has(source)))
+        fail('headless check source reference');
+      if (!['direct', 'partial', 'gap'].includes(check.mapping))
+        fail('headless check mapping');
+      // Only a genuine gap may stand without an existing task to map onto.
+      if (check.mapping !== 'gap' && check.sourceTaskIds.length === 0)
+        fail('headless mapping without source task');
+      if (!statuses.includes(check.status)) fail('headless check status');
+      array(check.evidence, 'headless check evidence');
+      if (unfrozen && check.evidence.length)
+        fail('headless evidence before frozen baseline');
+      strings(check.evidence, 'headless check evidence');
+      if (check.status === 'pass' && check.evidence.length === 0)
+        fail('headless pass without evidence');
+    }
+  }
+  record(readiness.pilot, 'headless pilot');
+  prose(readiness.pilot.title, 'headless pilot title');
+  for (const key of ['sequence', 'acceptance']) {
+    strings(readiness.pilot[key], `headless pilot ${key}`, true);
+    readiness.pilot[key].forEach((value) =>
+      prose(value, `headless pilot ${key}`),
+    );
+  }
+  array(readiness.sources, 'headless sources', true);
+  unique(
+    readiness.sources.map((source) => source.url),
+    'headless sources',
+  );
+  for (const source of readiness.sources) {
+    record(source, 'headless source');
+    prose(source.title, 'headless source title');
+    httpsUrl(source.url, 'headless source URL');
+    if (
+      typeof source.reviewedAt !== 'string' ||
+      !isoDate.test(source.reviewedAt)
+    )
+      fail('headless source review date');
+  }
 }
 
 export function validateProject(project) {
@@ -562,6 +707,12 @@ export function validateProject(project) {
   }
   validateCurrentPlan(meta.currentPlan, taskMap);
   validateCurrentPlan(meta.reusePlan, taskMap, true);
+  validateHeadlessReadiness(
+    meta.reusePlan.headlessReadiness,
+    meta.baseline,
+    clusterMap,
+    taskMap,
+  );
   return project;
 }
 

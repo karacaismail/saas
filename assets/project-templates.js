@@ -32,6 +32,13 @@ const stageTitle = (project, id) => byId(project.meta.stages, id).title;
 const layerTitle = (project, id) => byId(project.meta.layers, id).title;
 const pill = (value, tone = 'neutral') =>
   `<span class="p-pill" data-tone="${escape(tone)}">${escape(value)}</span>`;
+// The reuse plan is the current master; its readiness copy labels history.
+const headless = (project) => project.meta.reusePlan?.headlessReadiness;
+const executionScope = (project, clusterId) =>
+  headless(project)?.overrides.find((entry) => entry.clusterId === clusterId);
+const field = (term, value) =>
+  `<div><dt>${escape(term)}</dt><dd>${value}</dd></div>`;
+const code = (value) => `<span class="p-code">${escape(value)}</span>`;
 const artifactKind = (project, kind) =>
   text(
     project,
@@ -170,12 +177,24 @@ function shell(
   };
   return `<!doctype html>
 <html lang="tr"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" /><meta name="color-scheme" content="light" /><meta name="description" content="${label(project, 'description')}" /><meta name="theme-color" content="#fffdf7" /><title>${escape(title)} · ${label(project, 'siteTitle')}</title><link rel="icon" type="image/svg+xml" href="${base}assets/favicon.svg" /><link rel="stylesheet" href="${base}assets/project.css" /></head>
-<body class="p-body" data-project-route="${route}"><a class="p-skip" href="#main">${label(project, 'skip')}</a><div class="p-shell"><aside class="p-sidebar"><a class="p-brand" href="${base}"><span class="p-brand-mark" aria-hidden="true"></span>${label(project, 'brand')}</a><p class="p-sidebar-label">${label(project, 'workspace')}</p><nav class="p-nav" aria-label="${label(project, 'workspace')}"><a href="${base}"${route === 'home' ? ' aria-current="page"' : ''}>${label(project, 'navWorkspace')}</a>${project.meta.currentPlan ? `<a href="${base}plan/" data-current-plan${route === 'plan' || route === 'plan-task' ? ' aria-current="page"' : ''}>${escape(project.meta.currentPlan.ui.nav)}</a>` : ''}<a href="${base}#tasks">${label(project, 'navTasks')}</a><a href="${base}#cluster-results" data-project-nav="clusters">${label(project, 'navClusters')}</a><a href="${base}#gates">${label(project, 'navGates')}</a><a href="${base}atlas/#development-plan">${label(project, 'navArchitecture')}</a><a href="${base}atlas/">${label(project, 'navAtlas')}</a></nav><p class="p-sidebar-note">${label(project, 'workspaceNote')}</p></aside><main class="p-main" id="main">${body}<footer class="p-footer"><p>${label(project, 'footer')}</p><a href="${base}atlas/">${label(project, 'navAtlas')}</a></footer></main></div><p class="p-status" id="project-status" role="status" aria-live="polite"></p><noscript><p class="p-noscript">${label(project, 'jsRequired')}</p></noscript><script id="project-runtime" type="application/json">${jsonScript(runtime)}</script><script type="module" src="${base}assets/project-app.js"></script></body></html>\n`;
+<body class="p-body" data-project-route="${route}"><a class="p-skip" href="#main">${label(project, 'skip')}</a><div class="p-shell"><aside class="p-sidebar"><a class="p-brand" href="${base}"><span class="p-brand-mark" aria-hidden="true"></span>${label(project, 'brand')}</a><p class="p-sidebar-label">${label(project, 'workspace')}</p><nav class="p-nav" aria-label="${label(project, 'workspace')}"><a href="${base}"${route === 'home' ? ' aria-current="page"' : ''}>${label(project, 'navWorkspace')}</a>${project.meta.reusePlan ? `<a href="${base}reuse/" data-reuse-plan${route === 'reuse' || route === 'reuse-task' ? ' aria-current="page"' : ''}>${escape(project.meta.reusePlan.ui.nav)}</a>` : ''}${project.meta.currentPlan ? `<a href="${base}plan/" data-current-plan${route === 'plan' || route === 'plan-task' ? ' aria-current="page"' : ''}>${escape(headless(project)?.ui.historicalPlan ?? project.meta.currentPlan.ui.nav)}</a>` : ''}<a href="${base}#tasks">${label(project, 'navTasks')}</a><a href="${base}#cluster-results" data-project-nav="clusters">${label(project, 'navClusters')}</a><a href="${base}#gates">${label(project, 'navGates')}</a><a href="${base}atlas/#development-plan">${label(project, 'navArchitecture')}</a><a href="${base}atlas/">${label(project, 'navAtlas')}</a></nav><p class="p-sidebar-note">${label(project, 'workspaceNote')}</p></aside><main class="p-main" id="main">${body}<footer class="p-footer"><p>${label(project, 'footer')}</p><a href="${base}atlas/">${label(project, 'navAtlas')}</a></footer></main></div><p class="p-status" id="project-status" role="status" aria-live="polite"></p><noscript><p class="p-noscript">${label(project, 'jsRequired')}</p></noscript><script id="project-runtime" type="application/json">${jsonScript(runtime)}</script><script type="module" src="${base}assets/project-app.js"></script></body></html>\n`;
 }
 
 function clusterCard(project, cluster, base) {
   const tasks = project.tasks.filter((task) => task.clusterId === cluster.id);
   return `<li class="p-cluster-card" data-cluster-card="${escape(cluster.id)}" data-task-ids="${escape(tasks.map((task) => task.id).join(' '))}"><div class="p-cluster-top"><span class="p-task-id">${escape(cluster.id)}</span>${pill(layerTitle(project, cluster.layer), cluster.layer)}</div><h3><a href="${clusterUrl(base, cluster.id)}">${escape(cluster.title)}</a></h3><p>${escape(cluster.summary)}</p><dl class="p-cluster-facts"><div><dt>${label(project, 'artifactLabel')}</dt><dd>${escape(cluster.artifact.name)}</dd></div><div><dt>${label(project, 'taskCount')}</dt><dd>${tasks.length}</dd></div></dl><p class="p-artifact-limit">${label(project, 'artifactLimit')}</p></li>`;
+}
+
+// Navigation owns the single data-reuse-plan anchor; the current master precedes history.
+function planEntry(project) {
+  const { currentPlan, reusePlan } = project.meta;
+  if (!currentPlan) return '';
+  const readiness = headless(project);
+  const current = reusePlan
+    ? `<h2><a href="./reuse/">${escape(reusePlan.ui.nav)}</a></h2><p>${escape(reusePlan.summary)}</p>${readiness ? `<h3>${escape(readiness.title)}</h3><p>${escape(readiness.summary)}</p><p class="p-workspace-note">${escape(readiness.notice)}</p>` : ''}`
+    : '';
+  const level = reusePlan ? 'h3' : 'h2';
+  return `<section class="p-detail-section p-plan-entry">${current}<${level}>${readiness ? `${escape(readiness.ui.historicalPlan)} · ` : ''}<a href="./plan/" data-current-plan>${escape(currentPlan.ui.nav)}</a></${level}><p>${escape(currentPlan.summary)}</p><p>${escape(currentPlan.notice)}</p></section>`;
 }
 
 /** Render the project workspace without shipping the old atlas or its engine. */
@@ -193,7 +212,7 @@ export function renderProjectHome(project) {
     )
     .join(
       '',
-    )}</dl><p class="p-workspace-note">${label(project, 'draftNote')}</p>${project.meta.currentPlan ? `<section class="p-detail-section p-plan-entry"><h2><a href="./plan/" data-current-plan>${escape(project.meta.currentPlan.ui.nav)}</a></h2><p>${escape(project.meta.currentPlan.summary)}</p><p>${escape(project.meta.currentPlan.notice)}</p>${project.meta.reusePlan ? `<p><a href="./reuse/" data-reuse-plan>${escape(project.meta.reusePlan.ui.nav)}</a></p>` : ''}</section>` : ''}${stages(project)}${gates(project)}<section class="p-workspace" id="tasks" aria-labelledby="tasks-title"><div class="p-controls"><div class="p-search"><label for="project-search">${label(project, 'searchLabel')}</label><input id="project-search" type="search" autocomplete="off" placeholder="${label(project, 'searchPlaceholder')}" disabled /></div><div class="p-filter-row">${radioGroup(project, 'layerFilter', 'project-layer', [{ id: 'all', title: ui.allLayers }, ...project.meta.layers])}<button type="button" data-reset-filters disabled>${label(project, 'resetFilters')}</button></div><div class="p-filter-row">${radioGroup(
+    )}</dl><p class="p-workspace-note">${label(project, 'draftNote')}</p>${planEntry(project)}${stages(project)}${gates(project)}<section class="p-workspace" id="tasks" aria-labelledby="tasks-title"><div class="p-controls"><div class="p-search"><label for="project-search">${label(project, 'searchLabel')}</label><input id="project-search" type="search" autocomplete="off" placeholder="${label(project, 'searchPlaceholder')}" disabled /></div><div class="p-filter-row">${radioGroup(project, 'layerFilter', 'project-layer', [{ id: 'all', title: ui.allLayers }, ...project.meta.layers])}<button type="button" data-reset-filters disabled>${label(project, 'resetFilters')}</button></div><div class="p-filter-row">${radioGroup(
     project,
     'viewLabel',
     'project-view',
@@ -220,6 +239,29 @@ function breadcrumb(project, current, cluster) {
   return `<nav class="p-breadcrumb" aria-label="${label(project, 'workspace')}"><ol><li><a href="../../">${label(project, 'navWorkspace')}</a></li>${cluster ? `<li><a href="${clusterUrl('../../', cluster.id)}">${escape(cluster.title)}</a></li>` : ''}<li aria-current="page">${escape(current)}</li></ol></nav>`;
 }
 
+/** Escaped current-master notice injected into the built atlas context disclosure. */
+export function renderLegacyScopeNotice(project) {
+  const readiness = headless(project);
+  if (!readiness) return '';
+  const overrides = readiness.overrides.map(
+    (entry) => `<p>${escape(entry.title)} · ${escape(entry.instruction)}</p>`,
+  );
+  return `<div class="review-body" data-current-scope="${escape(readiness.id)}"><h2><a href="../reuse/">${escape(readiness.title)}</a></h2><p>${escape(readiness.notice)}</p>${overrides.join('')}</div>`;
+}
+
+// Legacy owned paths stay visible as history, never as current write authority.
+function ownedSection(project, key, values, scope) {
+  if (!scope) return detailSection(project, key, values, 'p-file-list');
+  return `<section class="p-detail-section" data-historical-owns="${escape(key)}"><h2>${escape(headless(project).ui.historicalPlan)} · ${label(project, key)}</h2><p class="p-workspace-note">${escape(scope.instruction)}</p>${values.length ? list(values, 'p-file-list') : `<p>${label(project, 'emptyList')}</p>`}</section>`;
+}
+
+// Current external ownership is shown before the unchanged historical record.
+function executionScopeSection(project, clusterId, base) {
+  const scope = executionScope(project, clusterId);
+  if (!scope) return '';
+  return `<section class="p-detail-section" data-execution-scope="${escape(scope.clusterId)}"><h2>${escape(scope.title)}</h2><p class="p-workspace-note">${escape(scope.instruction)}</p><dl class="p-definition-list">${field(headless(project).ui.externalOwnerLabel, code(scope.owner))}</dl><p><a href="${base}reuse/">${escape(project.meta.reusePlan.ui.nav)}</a></p></section>`;
+}
+
 /** Every micro-cluster represents one bounded artifact, never a feature module. */
 export function renderClusterPage(project, clusterId) {
   const cluster = byId(project.clusters, clusterId);
@@ -227,7 +269,7 @@ export function renderClusterPage(project, clusterId) {
   return shell(
     project,
     cluster.title,
-    `${breadcrumb(project, cluster.title)}<header class="p-header"><p class="p-kicker">${escape(cluster.id)} · ${label(project, 'clusterTitle')}</p><h1>${escape(cluster.title)}</h1><p class="p-lead">${escape(cluster.summary)}</p><div class="p-header-tags">${pill(layerTitle(project, cluster.layer), cluster.layer)}${pill(artifactKind(project, cluster.artifact.kind), cluster.layer)}${pill(text(project, cluster.artifact.status === 'native_reuse' ? 'nativeReuse' : 'proposed'), 'draft')}</div></header><section class="p-artifact-boundary"><h2>${label(project, 'artifactLabel')}</h2><p class="p-artifact-name">${escape(cluster.artifact.name)}</p><p>${label(project, 'artifactLimit')}</p></section>${selection(project)}<section id="tasks" aria-labelledby="cluster-tasks-title"><div class="p-results-header"><h2 id="cluster-tasks-title">${label(project, 'navTasks')}</h2><p>${tasks.length} ${label(project, 'taskCount')}</p></div><ol class="p-task-list" data-project-list-rows>${tasks.map((task) => taskRow(project, task, '../../')).join('')}</ol></section>`,
+    `${breadcrumb(project, cluster.title)}<header class="p-header"><p class="p-kicker">${escape(cluster.id)} · ${label(project, 'clusterTitle')}</p><h1>${escape(cluster.title)}</h1><p class="p-lead">${escape(cluster.summary)}</p><div class="p-header-tags">${pill(layerTitle(project, cluster.layer), cluster.layer)}${pill(artifactKind(project, cluster.artifact.kind), cluster.layer)}${pill(text(project, cluster.artifact.status === 'native_reuse' ? 'nativeReuse' : 'proposed'), 'draft')}</div></header>${executionScopeSection(project, clusterId, '../../')}<section class="p-artifact-boundary"><h2>${label(project, 'artifactLabel')}</h2><p class="p-artifact-name">${escape(cluster.artifact.name)}</p><p>${label(project, 'artifactLimit')}</p></section>${selection(project)}<section id="tasks" aria-labelledby="cluster-tasks-title"><div class="p-results-header"><h2 id="cluster-tasks-title">${label(project, 'navTasks')}</h2><p>${tasks.length} ${label(project, 'taskCount')}</p></div><ol class="p-task-list" data-project-list-rows>${tasks.map((task) => taskRow(project, task, '../../')).join('')}</ol></section>`,
     { base: '../../', route: 'cluster', clusterId },
   );
 }
@@ -286,10 +328,12 @@ export function createTaskPacket(project, taskId) {
   };
   include(task);
   configureExportMessages(project.atlas.messages.export);
+  const scope = executionScope(project, cluster.id);
   return structuredClone({
     version: 1,
     task,
     cluster,
+    ...(scope ? { executionScope: scope } : {}),
     sourceDigest: project.meta.sourceDigest,
     projectRevision: project.revision,
     requirements: buildSelection(project.atlas, task.requirementIds),
@@ -329,6 +373,17 @@ export function createCurrentPlanPacket(
 ) {
   const plan = planningRecord(project, planKey);
   if (!plan) throw new TypeError('Missing current development plan');
+  const readiness = headless(project);
+  // Every brief except the full master record carries the current decision.
+  const master =
+    readiness && (taskId || planKey !== 'reusePlan')
+      ? {
+          currentMaster: {
+            planId: project.meta.reusePlan.id,
+            headlessReadiness: readiness,
+          },
+        }
+      : {};
   return structuredClone({
     version: 1,
     sourceDigest: project.meta.sourceDigest,
@@ -341,6 +396,7 @@ export function createCurrentPlanPacket(
           cardLabels: plan.cardLabels,
         }
       : { plan }),
+    ...master,
   });
 }
 
@@ -364,6 +420,47 @@ function planningSections(plan) {
     .join('');
 }
 
+// Every acceptance check stays visible in the DOM, including honest mapping gaps.
+function readinessCheck(project, copy, check, base) {
+  const sources = check.sourceTaskIds.length
+    ? `<ul>${check.sourceTaskIds.map((id) => `<li><a href="${taskUrl(base, id)}">${escape(id)}</a></li>`).join('')}</ul>`
+    : label(project, 'emptyList');
+  const evidence = check.evidence.length ? list(check.evidence) : '';
+  return `<article class="p-detail-section" data-headless-check="${escape(check.id)}" data-mapping="${escape(check.mapping)}"><h4>${escape(check.title)}</h4><dl class="p-definition-list">${field(copy.acceptanceLabel, escape(check.acceptance))}${field(copy.verificationLabel, escape(check.verification))}${field(copy.statusLabel, code(check.status))}${field(copy.mappingLabel, code(check.mapping))}${field(copy.sourceTasksLabel, sources)}</dl>${evidence}</article>`;
+}
+
+function readinessArea(project, copy, area, base) {
+  const gate = byId(project.meta.gates, area.gateId);
+  const link = `<a href="${base}#gate-${escape(gate.id)}">${escape(gate.id)} · ${escape(gate.title)}</a>`;
+  const checks = area.checks.map((check) =>
+    readinessCheck(project, copy, check, base),
+  );
+  return `<details class="p-detail-section" data-headless-area="${escape(area.id)}"><summary><span>${escape(area.title)}</span><span class="p-chevron" aria-hidden="true"></span></summary><dl class="p-definition-list">${field(copy.gateLabel, link)}</dl>${checks.join('')}</details>`;
+}
+
+// No id on the outer section: main > section[id] stays the A–H rule set.
+function readinessSection(project, readiness, base) {
+  const copy = readiness.ui;
+  const scope = Object.entries(readiness.scope).map(
+    ([key, value]) => `<div><dt>${code(key)}</dt><dd>${code(value)}</dd></div>`,
+  );
+  const overrides = readiness.overrides.map(
+    (entry) =>
+      `<li><h4>${escape(entry.title)}</h4><p>${escape(entry.instruction)}</p><dl class="p-definition-list">${field(copy.externalOwnerLabel, code(entry.owner))}</dl><a href="${clusterUrl(base, entry.clusterId)}">${escape(byId(project.clusters, entry.clusterId).title)}</a></li>`,
+  );
+  const areas = readiness.areas.map((area) =>
+    readinessArea(project, copy, area, base),
+  );
+  const steps = readiness.pilot.sequence.map(
+    (step) => `<li>${escape(step)}</li>`,
+  );
+  const sources = readiness.sources.map(
+    (source) =>
+      `<li><a href="${escape(source.url)}" rel="noopener noreferrer">${escape(source.title)}</a> · ${escape(source.reviewedAt)}</li>`,
+  );
+  return `<section class="p-detail-section" data-headless-readiness aria-labelledby="headless-readiness-title"><h2 id="headless-readiness-title">${escape(readiness.title)}</h2><p>${escape(readiness.summary)}</p><p class="p-workspace-note">${escape(readiness.notice)}</p><h3>${escape(copy.scopeTitle)}</h3><dl class="p-definition-list">${field(copy.statusLabel, code(readiness.runtimeStatus))}${scope.join('')}</dl><h3>${escape(copy.overridesTitle)}</h3><ul>${overrides.join('')}</ul><h3>${escape(copy.checksTitle)}</h3>${areas.join('')}<h3>${escape(copy.pilotTitle)}</h3><p>${escape(readiness.pilot.title)}</p><ol>${steps.join('')}</ol><h4>${escape(copy.acceptanceLabel)}</h4>${list(readiness.pilot.acceptance)}<h3>${escape(copy.sourcesTitle)}</h3><ul class="p-evidence-list">${sources.join('')}</ul></section>`;
+}
+
 export function renderCurrentPlanPage(
   project,
   taskId,
@@ -380,13 +477,22 @@ export function renderCurrentPlanPage(
       ? 'reuse-plan'
       : 'current-plan';
   const title = task?.title ?? plan.title;
-  const header = `<header class="p-header"><p class="p-kicker">${escape(task?.id.toUpperCase() ?? plan.updatedAt)}</p><h1>${escape(title)}</h1><p class="p-lead">${escape(task?.summary ?? plan.summary)}</p><p class="p-workspace-note">${escape(task?.blocker ?? plan.notice)}</p><div class="p-action-bar">${task ? `<button class="p-primary" type="button" data-copy-task disabled>${label(project, 'copyTask')}</button>` : ''}<a class="p-button" href="./${download}.json" download>${escape(ui.downloadJson)}</a><a class="p-button" href="./${download}.md" download>${escape(ui.downloadMarkdown)}</a></div></header>${task ? taskCopyFallback(project) : ''}`;
+  const readiness = headless(project);
+  // Historical plan routes stay intact but point to the superseding master.
+  const masterNote = !readiness
+    ? ''
+    : planKey === 'currentPlan'
+      ? `<p class="p-workspace-note">${escape(readiness.ui.historicalPlan)} · ${escape(readiness.notice)} <a href="${base}reuse/">${escape(project.meta.reusePlan.ui.nav)}</a></p>`
+      : task
+        ? `<p class="p-workspace-note">${escape(readiness.notice)}</p>`
+        : '';
+  const header = `<header class="p-header"><p class="p-kicker">${escape(task?.id.toUpperCase() ?? plan.updatedAt)}</p><h1>${escape(title)}</h1><p class="p-lead">${escape(task?.summary ?? plan.summary)}</p><p class="p-workspace-note">${escape(task?.blocker ?? plan.notice)}</p>${masterNote}<div class="p-action-bar">${task ? `<button class="p-primary" type="button" data-copy-task disabled>${label(project, 'copyTask')}</button>` : ''}<a class="p-button" href="./${download}.json" download>${escape(ui.downloadJson)}</a><a class="p-button" href="./${download}.md" download>${escape(ui.downloadMarkdown)}</a></div></header>${task ? taskCopyFallback(project) : ''}`;
   let body;
   if (task) {
     const group = byId(plan.roadmap, task.groupId);
     body = `<a href="../../">${escape(ui.backToPlan)}</a>${header}<section class="p-detail-section"><dl class="p-definition-list"><div><dt>${escape(ui.statusLabel)}</dt><dd>${escape(task.status)}</dd></div><div><dt>${escape(ui.groupLabel)}</dt><dd>${escape(group.title)}</dd></div><div><dt>${escape(ui.targetLabel)}</dt><dd>${escape(task.target)}</dd></div><div><dt>${escape(ui.dependencyLabel)}</dt><dd>${task.dependsOn.length ? `<ul>${task.dependsOn.map((id) => `<li><a href="../${encodeURIComponent(id)}/">${escape(id.toUpperCase())}</a></li>`).join('')}</ul>` : escape(text(project, 'emptyList'))}</dd></div></dl></section><section class="p-detail-section">${planFields(plan, task)}</section>${task.sourceTaskIds.length ? `<section class="p-detail-section"><h2>${escape(ui.oldTaskLabel)}</h2><ul>${task.sourceTaskIds.map((id) => `<li><a href="${taskUrl(base, id)}">${escape(id)}</a></li>`).join('')}</ul></section>` : ''}`;
   } else {
-    body = `${header}${planningSections(plan)}<section class="p-detail-section"><h2>${escape(ui.roadmapTitle)}</h2><ol>${plan.roadmap.map((group) => `<li><h3>${escape(group.title)}</h3><p>${escape(group.deliverable)}</p><p>${escape(group.gate)}</p></li>`).join('')}</ol></section><section class="p-detail-section"><h2>${escape(ui.mappingTitle)}</h2><p>${escape(plan.mapping.note)}</p><ul>${plan.mapping.rows.map((row) => `<li><h3>${escape(row.oldTaskId)}</h3><p>${escape(row.action)} · ${escape(row.result)}</p></li>`).join('')}</ul></section><section class="p-detail-section"><h2>${escape(ui.tasksTitle)}</h2><ol>${plan.tasks.map((entry) => `<li data-plan-task="${escape(entry.id)}"><h3><a href="./tasks/${encodeURIComponent(entry.id)}/">${escape(entry.id.toUpperCase())} · ${escape(entry.title)}</a></h3><p>${escape(entry.summary)}</p><p>${escape(ui.typeLabel)}: ${escape(entry.type)} · ${escape(ui.statusLabel)}: ${escape(entry.status)}</p><p>${escape(ui.targetLabel)}: ${escape(entry.target)}</p><p>${escape(ui.dependencyLabel)}: ${escape(entry.dependsOn.map((id) => id.toUpperCase()).join(', ') || text(project, 'emptyList'))}</p></li>`).join('')}</ol></section><section class="p-detail-section"><h2>${escape(ui.cardsTitle)}</h2>${plan.tasks
+    body = `${header}${planKey === 'reusePlan' && readiness ? readinessSection(project, readiness, base) : ''}${planningSections(plan)}<section class="p-detail-section"><h2>${escape(ui.roadmapTitle)}</h2><ol>${plan.roadmap.map((group) => `<li><h3>${escape(group.title)}</h3><p>${escape(group.deliverable)}</p><p>${escape(group.gate)}</p></li>`).join('')}</ol></section><section class="p-detail-section"><h2>${escape(ui.mappingTitle)}</h2><p>${escape(plan.mapping.note)}</p><ul>${plan.mapping.rows.map((row) => `<li><h3>${escape(row.oldTaskId)}</h3><p>${escape(row.action)} · ${escape(row.result)}</p></li>`).join('')}</ul></section><section class="p-detail-section"><h2>${escape(ui.tasksTitle)}</h2><ol>${plan.tasks.map((entry) => `<li data-plan-task="${escape(entry.id)}"><h3><a href="./tasks/${encodeURIComponent(entry.id)}/">${escape(entry.id.toUpperCase())} · ${escape(entry.title)}</a></h3><p>${escape(entry.summary)}</p><p>${escape(ui.typeLabel)}: ${escape(entry.type)} · ${escape(ui.statusLabel)}: ${escape(entry.status)}</p><p>${escape(ui.targetLabel)}: ${escape(entry.target)}</p><p>${escape(ui.dependencyLabel)}: ${escape(entry.dependsOn.map((id) => id.toUpperCase()).join(', ') || text(project, 'emptyList'))}</p></li>`).join('')}</ol></section><section class="p-detail-section"><h2>${escape(ui.cardsTitle)}</h2>${plan.tasks
       .filter((entry) => entry.card)
       .map(
         (entry) =>
@@ -404,9 +510,68 @@ export function renderCurrentPlanPage(
   });
 }
 
+// Human-readable master decision; the embedded packet keeps it lossless.
+function readinessMarkdown(readiness, section) {
+  const copy = readiness.ui;
+  section(readiness.title, [
+    readiness.summary,
+    readiness.notice,
+    `${copy.statusLabel}: ${readiness.runtimeStatus}`,
+  ]);
+  section(
+    copy.scopeTitle,
+    Object.entries(readiness.scope).map(([key, value]) => `${key}: ${value}`),
+    3,
+  );
+  section(copy.overridesTitle, [], 3);
+  for (const entry of readiness.overrides)
+    section(
+      entry.title,
+      [
+        entry.instruction,
+        `${copy.externalOwnerLabel}: ${entry.owner}`,
+        entry.clusterId,
+      ],
+      4,
+    );
+  section(copy.checksTitle, [], 3);
+  for (const area of readiness.areas) {
+    section(area.title, [`${copy.gateLabel}: ${area.gateId}`], 4);
+    for (const check of area.checks)
+      section(
+        `${check.id} · ${check.title}`,
+        [
+          `${copy.acceptanceLabel}: ${check.acceptance}`,
+          `${copy.verificationLabel}: ${check.verification}`,
+          `${copy.statusLabel}: ${check.status}`,
+          `${copy.mappingLabel}: ${check.mapping}`,
+          ...(check.sourceTaskIds.length
+            ? [`${copy.sourceTasksLabel}: ${check.sourceTaskIds.join(', ')}`]
+            : []),
+          ...check.evidence,
+        ],
+        5,
+      );
+  }
+  section(
+    copy.pilotTitle,
+    [readiness.pilot.title, ...readiness.pilot.sequence],
+    3,
+  );
+  section(copy.acceptanceLabel, readiness.pilot.acceptance, 4);
+  section(
+    copy.sourcesTitle,
+    readiness.sources.map(
+      (source) => `${source.title} · ${source.url} · ${source.reviewedAt}`,
+    ),
+    3,
+  );
+}
+
 /** Human-readable Markdown plus the exact packet for lossless interchange. */
 export function serializeCurrentPlanMarkdown(packet) {
   const plan = packet.plan;
+  const master = packet.currentMaster?.headlessReadiness;
   const lines = [];
   const section = (title, values, level = 2) => {
     lines.push(`${'#'.repeat(level)} ${markdown(title)}`, '');
@@ -414,6 +579,13 @@ export function serializeCurrentPlanMarkdown(packet) {
   };
   if (plan) {
     section(plan.title, [plan.summary, plan.notice], 1);
+    // The current master precedes a historical plan; the reuse plan owns it.
+    if (plan.headlessReadiness)
+      readinessMarkdown(plan.headlessReadiness, section);
+    if (master) {
+      readinessMarkdown(master, section);
+      section(master.ui.historicalPlan, []);
+    }
     for (const entry of plan.sections) {
       section(entry.title, [...entry.paragraphs, ...entry.items]);
       for (const record of entry.entries ?? []) {
@@ -468,6 +640,7 @@ export function serializeCurrentPlanMarkdown(packet) {
         packet.cardLabels[key],
         Array.isArray(value) ? value : [String(value)],
       );
+    if (master) readinessMarkdown(master, section);
   }
   lines.push(
     '<!-- saas-current-plan:start -->',
@@ -497,13 +670,35 @@ export function serializeTaskMarkdown(packet) {
     markdown(task.summary),
     '',
   ];
+  const scope = packet.executionScope;
+  const scopeCopy =
+    scope && packet.projectContext.reusePlan.headlessReadiness.ui;
+  if (scope)
+    lines.push(
+      `## ${markdown(scope.title)}`,
+      '',
+      markdown(scope.instruction),
+      '',
+      `${markdown(scopeCopy.externalOwnerLabel)}: ${markdown(scope.owner)}`,
+      '',
+    );
+  // Legacy owned paths are history under the current external scope.
   for (const [key, values] of [
     ['ownedFiles', task.owns],
     ['readFiles', task.reads],
     ['forbiddenFiles', task.forbiddenWrites],
     ['acceptance', task.acceptance],
   ])
-    lines.push(`## ${markdown(copy[key])}`, '', markdownList(values), '');
+    if (scope && key === 'ownedFiles')
+      lines.push(
+        `## ${markdown(scopeCopy.historicalPlan)} · ${markdown(copy[key])}`,
+        '',
+        markdown(scope.instruction),
+        '',
+        markdownList(values),
+        '',
+      );
+    else lines.push(`## ${markdown(copy[key])}`, '', markdownList(values), '');
   lines.push(
     `## ${markdown(copy.dependencies)}`,
     '',
@@ -557,12 +752,16 @@ export function renderTaskPage(
 ) {
   const task = byId(project.tasks, taskId);
   const cluster = byId(project.clusters, task.clusterId);
+  const scope = executionScope(project, cluster.id);
+  const ownerTerm = scope
+    ? `${escape(headless(project).ui.historicalPlan)} · ${label(project, 'ownerLabel')}`
+    : label(project, 'ownerLabel');
   const dependencyType = {
     contract: 'dependencyContract',
     implementation: 'dependencyImplementation',
     integration: 'dependencyIntegration',
   };
-  const body = `${breadcrumb(project, task.title, cluster)}<header class="p-header"><p class="p-kicker">${escape(task.id)} · ${label(project, 'taskTitle')}</p><h1>${escape(task.title)}</h1><p class="p-lead">${escape(task.summary)}</p><div class="p-header-tags">${pill(stageTitle(project, task.stageId), 'stage')}${pill(layerTitle(project, cluster.layer), cluster.layer)}${pill(text(project, 'draft'), 'draft')}<a class="p-cluster-link" href="${clusterUrl('../../', cluster.id)}">${escape(cluster.title)}</a></div></header><div class="p-action-bar"><button class="p-primary" type="button" data-copy-task disabled>${label(project, 'copyTask')}</button><a class="p-button" href="./task.json" download="${escape(task.id)}.json">${label(project, 'downloadJson')}</a><a class="p-button" href="./task.md" download="${escape(task.id)}.md">${label(project, 'downloadMarkdown')}</a>${taskCheck(project, task, 'detail')}</div>${taskCopyFallback(project)}<div class="p-detail-grid"><div><section class="p-detail-section"><h2>${label(project, 'taskPurpose')}</h2><p>${escape(task.summary)}</p><dl class="p-definition-list"><div><dt>${label(project, 'artifactLabel')}</dt><dd>${escape(cluster.artifact.name)}</dd></div><div><dt>${label(project, 'ownerLabel')}</dt><dd>${escape(task.ownerRole)}</dd></div></dl></section>${detailSection(project, 'ownedFiles', task.owns, 'p-file-list')}${detailSection(project, 'readFiles', task.reads, 'p-file-list')}${detailSection(project, 'forbiddenFiles', task.forbiddenWrites, 'p-file-list')}${detailSection(project, 'acceptance', task.acceptance)}<section class="p-detail-section"><h2>${label(project, 'dependencies')}</h2>${
+  const body = `${breadcrumb(project, task.title, cluster)}<header class="p-header"><p class="p-kicker">${escape(task.id)} · ${label(project, 'taskTitle')}</p><h1>${escape(task.title)}</h1><p class="p-lead">${escape(task.summary)}</p><div class="p-header-tags">${pill(stageTitle(project, task.stageId), 'stage')}${pill(layerTitle(project, cluster.layer), cluster.layer)}${pill(text(project, 'draft'), 'draft')}<a class="p-cluster-link" href="${clusterUrl('../../', cluster.id)}">${escape(cluster.title)}</a></div></header><div class="p-action-bar"><button class="p-primary" type="button" data-copy-task disabled>${label(project, 'copyTask')}</button><a class="p-button" href="./task.json" download="${escape(task.id)}.json">${label(project, 'downloadJson')}</a><a class="p-button" href="./task.md" download="${escape(task.id)}.md">${label(project, 'downloadMarkdown')}</a>${taskCheck(project, task, 'detail')}</div>${taskCopyFallback(project)}${executionScopeSection(project, cluster.id, '../../')}<div class="p-detail-grid"><div><section class="p-detail-section"><h2>${label(project, 'taskPurpose')}</h2><p>${escape(task.summary)}</p><dl class="p-definition-list"><div><dt>${label(project, 'artifactLabel')}</dt><dd>${escape(cluster.artifact.name)}</dd></div><div><dt>${ownerTerm}</dt><dd>${escape(task.ownerRole)}</dd></div></dl></section>${ownedSection(project, 'ownedFiles', task.owns, scope)}${detailSection(project, 'readFiles', task.reads, 'p-file-list')}${detailSection(project, 'forbiddenFiles', task.forbiddenWrites, 'p-file-list')}${detailSection(project, 'acceptance', task.acceptance)}<section class="p-detail-section"><h2>${label(project, 'dependencies')}</h2>${
     task.dependsOn.length
       ? `<ul class="p-dependency-list">${task.dependsOn
           .map((dependency) => {
@@ -571,7 +770,7 @@ export function renderTaskPage(
           })
           .join('')}</ul>`
       : `<p>${label(project, 'emptyList')}</p>`
-  }<h3>${label(project, 'contractReferences')}</h3><ul>${task.contractRefs.map((contract) => `<li>${contractLink(project, contract)}</li>`).join('')}</ul></section><section class="p-detail-section"><h2>${label(project, 'sourceRequirements')}</h2><ul class="p-source-list">${requirementCards(project, packet)}</ul></section>${packet.contextRequirements.selectedCount ? `<section class="p-detail-section"><h2>${label(project, 'requirementContext')}</h2><ul class="p-source-list">${requirementCards(project, { requirements: packet.contextRequirements })}</ul></section>` : ''}${packet.catalogContext.length ? `<section class="p-detail-section"><h2>${label(project, 'catalogContext')}</h2>${catalogCards(project, packet.catalogContext)}</section>` : ''}</div><aside class="p-task-aside" aria-label="${label(project, 'integrationTitle')}"><section class="p-detail-section"><h2>${label(project, 'integrationTitle')}</h2><p>${label(project, 'conflictNote')}</p><dl class="p-definition-list"><div><dt>${label(project, 'branchLabel')}</dt><dd class="p-code">task/${escape(task.id)}</dd></div><div><dt>${label(project, 'worktreeLabel')}</dt><dd class="p-code">worktrees/${escape(task.id)}</dd></div><div><dt>${label(project, 'baseCommitLabel')}</dt><dd>${escape(task.integration.baseCommit ?? text(project, 'baseCommitUnknown'))}</dd></div><div><dt>${label(project, 'ownerLaneLabel')}</dt><dd>${escape(task.integration.ownerLane)}</dd></div></dl><p>${label(project, 'draftNote')}</p></section>${detailSection(project, 'fragmentPaths', task.integration.fragmentPaths, 'p-file-list')}<section class="p-detail-section"><h2>${label(project, 'gatesTitle')}</h2><a href="../../#gate-${escape(task.gateId)}">${escape(task.gateId)} · ${escape(byId(project.meta.gates, task.gateId).title)}</a><p>${escape(byId(project.meta.gates, task.gateId).summary)}</p></section><details class="p-detail-section"><summary>${label(project, 'sharedFileOwners')}</summary><ul>${project.meta.sharedFileOwners.map((owner) => `<li><span class="p-code">${escape(owner.path)}</span><p>${escape(owner.reason)}</p><span>${escape(owner.ownerLane)}</span></li>`).join('')}</ul></details><details class="p-detail-section"><summary>${label(project, 'sourceDigestLabel')}</summary><p class="p-code">${escape(packet.sourceDigest)}</p></details></aside></div>`;
+  }<h3>${label(project, 'contractReferences')}</h3><ul>${task.contractRefs.map((contract) => `<li>${contractLink(project, contract)}</li>`).join('')}</ul></section><section class="p-detail-section"><h2>${label(project, 'sourceRequirements')}</h2><ul class="p-source-list">${requirementCards(project, packet)}</ul></section>${packet.contextRequirements.selectedCount ? `<section class="p-detail-section"><h2>${label(project, 'requirementContext')}</h2><ul class="p-source-list">${requirementCards(project, { requirements: packet.contextRequirements })}</ul></section>` : ''}${packet.catalogContext.length ? `<section class="p-detail-section"><h2>${label(project, 'catalogContext')}</h2>${catalogCards(project, packet.catalogContext)}</section>` : ''}</div><aside class="p-task-aside" aria-label="${label(project, 'integrationTitle')}"><section class="p-detail-section"><h2>${label(project, 'integrationTitle')}</h2><p>${label(project, 'conflictNote')}</p><dl class="p-definition-list"><div><dt>${label(project, 'branchLabel')}</dt><dd class="p-code">task/${escape(task.id)}</dd></div><div><dt>${label(project, 'worktreeLabel')}</dt><dd class="p-code">worktrees/${escape(task.id)}</dd></div><div><dt>${label(project, 'baseCommitLabel')}</dt><dd>${escape(task.integration.baseCommit ?? text(project, 'baseCommitUnknown'))}</dd></div><div><dt>${label(project, 'ownerLaneLabel')}</dt><dd>${escape(task.integration.ownerLane)}</dd></div></dl><p>${label(project, 'draftNote')}</p></section>${ownedSection(project, 'fragmentPaths', task.integration.fragmentPaths, scope)}<section class="p-detail-section"><h2>${label(project, 'gatesTitle')}</h2><a href="../../#gate-${escape(task.gateId)}">${escape(task.gateId)} · ${escape(byId(project.meta.gates, task.gateId).title)}</a><p>${escape(byId(project.meta.gates, task.gateId).summary)}</p></section><details class="p-detail-section"><summary>${label(project, 'sharedFileOwners')}</summary><ul>${project.meta.sharedFileOwners.map((owner) => `<li><span class="p-code">${escape(owner.path)}</span><p>${escape(owner.reason)}</p><span>${escape(owner.ownerLane)}</span></li>`).join('')}</ul></details><details class="p-detail-section"><summary>${label(project, 'sourceDigestLabel')}</summary><p class="p-code">${escape(packet.sourceDigest)}</p></details></aside></div>`;
   return shell(project, task.title, body, {
     base: '../../',
     route: 'task',

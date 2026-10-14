@@ -5,6 +5,7 @@ import { loadProject, validateProject } from './project-model.mjs';
 import {
   createTaskPacket,
   createCurrentPlanPacket,
+  renderLegacyScopeNotice,
   renderCurrentPlanPage,
   renderProjectHome,
   serializeTaskMarkdown,
@@ -47,6 +48,37 @@ assert.equal(
 assert.ok(
   !output.includes('="./assets/'),
   'Atlas asset URLs must resolve from /atlas/.',
+);
+// The built atlas carries the current master inside its technical context,
+// after the summary and before historical roadmap content; the source does not.
+const escapeHtml = (value) =>
+  String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;');
+const readiness = project.meta.reusePlan.headlessReadiness;
+const atlasNotice = renderLegacyScopeNotice(project);
+const contextAt = output.indexOf(
+  '<details class="context-disclosure" id="context-details">',
+);
+const noticeAt = output.indexOf(atlasNotice);
+assert.ok(
+  atlasNotice.includes(`data-current-scope="${escapeHtml(readiness.id)}"`) &&
+    atlasNotice.includes('<a href="../reuse/">') &&
+    atlasNotice.includes(`<p>${escapeHtml(readiness.notice)}</p>`) &&
+    readiness.overrides.every((entry) =>
+      atlasNotice.includes(escapeHtml(entry.instruction)),
+    ),
+  'Atlas master notice must carry the current scope, notice and link.',
+);
+assert.ok(
+  contextAt >= 0 &&
+    noticeAt > output.indexOf('</summary>', contextAt) &&
+    noticeAt < output.indexOf('id="roadmap"', contextAt) &&
+    output.indexOf(atlasNotice, noticeAt + 1) < 0 &&
+    !source.includes('data-current-scope'),
+  'Atlas master notice must open the technical context exactly once.',
 );
 
 const files = [];

@@ -61,8 +61,8 @@
   --p-operations-bg: #e0eeee;
   --p-operations-ink: #265b62;
   --p-focus: var(--p-blue);
+  --p-focus-on-accent: var(--p-paper);
   --p-focus-size: 3px;
-  --p-focus-offset: 3px;
   --p-hit: 2.75rem;
   --p-check: 1.5rem;
   --p-rail: 15rem;
@@ -79,7 +79,9 @@
   --p-tab-radius: 0;
   --p-tab-indicator: 3px;
   --p-pill-radius: 999rem;
-  --p-transition: 140ms ease;
+  --p-motion-duration: 140ms;
+  --p-motion-easing: cubic-bezier(0.65, 0, 0.35, 1);
+  --p-transition: var(--p-motion-duration) var(--p-motion-easing);
   --p-shadow: 0 0.5rem 2rem #1c272615;
 }
 *,
@@ -176,6 +178,7 @@ fieldset:disabled {
   opacity: 0.6;
 }
 .p-primary {
+  --p-focus: var(--p-focus-on-accent);
   background: var(--p-blue);
   color: var(--p-paper);
 }
@@ -183,8 +186,16 @@ fieldset:disabled {
   background: var(--p-frontend-ink);
 }
 :focus-visible {
-  outline: var(--p-focus-size) solid var(--p-focus);
-  outline-offset: var(--p-focus-offset);
+  outline: none;
+  box-shadow: inset 0 calc(-1 * var(--p-focus-size)) 0 var(--p-focus);
+}
+@supports selector(:has(*)) {
+  input[type='checkbox']:focus-visible {
+    box-shadow: none;
+  }
+  label:has(> input[type='checkbox']:focus-visible) {
+    box-shadow: inset 0 calc(-1 * var(--p-focus-size)) 0 var(--p-focus);
+  }
 }
 .p-sr-only {
   position: absolute;
@@ -354,7 +365,8 @@ fieldset:disabled {
   font-weight: var(--p-medium);
 }
 .p-radio-options input:focus-visible {
-  outline: 0;
+  outline: none;
+  box-shadow: none;
 }
 .p-radio-options input:focus-visible + span,
 .p-radio-options input[data-keyboard-focus]:focus + span {
@@ -511,6 +523,7 @@ input[type='checkbox'] {
   gap: var(--p-gap-2);
 }
 .p-selection-actions [data-export] {
+  --p-focus: var(--p-focus-on-accent);
   background: var(--p-blue);
   color: var(--p-paper);
 }

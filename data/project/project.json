@@ -946,12 +946,12 @@
   },
   "reusePlan": {
     "id": "reuse-architecture-2026-10-12",
-    "updatedAt": "2026-10-12",
-    "title": "Tanım ve ortak kodla yeniden kullanım mimarisi",
-    "summary": "Yeni uygulama, kaynak ve görünüm tanımları ile gerçek iş kuralları ekler; aynı form, liste, detay ve veri erişimi mekanizmalarını kopyalamaz. İlk iki kullanımda küçük ortak yeteneği çıkar, üçüncü kullanımda sınırını kanıtla.",
-    "notice": "Ek mimari planıdır; currentPlan ve 994 taslak görev değişmez. Bu repo statik dokümantasyondur: hedef ürün kodu, kurulu Frappe uygulamaları, sürümleri ve gerçek DocType eşlemeleri bilinmiyor. Üç yakın iş BLOCKED; çalışan ResourceDefinition API’si, ortak form motoru veya üç tüketici kabulü teslim edilmedi. 2026-10-12 verimlilik eki mevcut bölümlerdedir: kaynak bulguları A,14 aday B, reçeteler E, güncel yürütme sırası G, çelişki/koruma H. Önceki TDD baseline’ı korunur; güncel öncelik için G’deki eşleme geçerlidir.",
+    "updatedAt": "2026-10-14",
+    "title": "Güncel master plan — Frappe headless sağlayıcı ve yeniden kullanım",
+    "summary": "Güncel yetkili plan: GenUI kullanıcının backend’den bağımsız projesidir; SaaS, seçili sağlayıcı Frappe için yalnız sağlayıcı/host sözleşmesinin kabulünü planlar. Yeni uygulamalar tanım ve gerçek iş kuralı ekler; form, liste, detay ve veri erişimi mekanizmalarını kopyalamaz.",
+    "notice": "2026-10-14 itibarıyla bu kayıt güncel master karardır; currentPlan, 994 taslak görev, /plan/ ve /atlas/ tarihsel bağlamdır ve çelişkide bu kayıt geçerlidir. Bu repo statik dokümantasyondur: ürün repo/commit’i, kurulu Frappe app/sürümleri ve DocType’lar bilinmiyor; runtime doğrulanmadı. headlessReadiness’taki 52 kontrol not_run; R-00, R-01 ve R-02 dar ve BLOCKED kalır. Bölümler: A master karar, B kaynaklar ve görev eşlemesi, C sağlayıcı–GenUI sınırı, D CardDefinition boşluğu, E sağlayıcı reçetesi, F pilot, G şelale sırası, H çelişki çözümleri. 2026-10-12 verimlilik eki aynı bölümlerde korunur.",
     "ui": {
-      "nav": "Yeniden kullanım mimarisi ve verimlilik",
+      "nav": "Güncel master plan — Frappe headless sağlayıcı ve yeniden kullanım",
       "roadmapTitle": "Üç odaklı yeniden kullanım grubu",
       "mappingTitle": "Tarihsel görevlerle ilişki",
       "tasksTitle": "Sıradaki üç mikro görev",
@@ -1080,6 +1080,31 @@
                   "Fixture: gerçek müşteri verisi içermeyen kontrollü test girdisi.",
                   "Artifact: belirli kaynak sürümünden üretilen doğrulanabilir çıktı. Cache: uygun koşullarda yeniden kullanılabilen önbellek."
                 ]
+              }
+            ]
+          },
+          {
+            "id": "master-decision",
+            "title": "Güncel master karar — 2026-10-14",
+            "fields": [
+              {
+                "label": "Sahiplik",
+                "value": [
+                  "GenUI; Frappe, FastAPI, PHP veya başka bir backend’den bağımsızdır ve kullanıcı tarafından geliştirilir. Bu depo ve görevleri GenUI motoru, renderer veya model gateway yazmaz.",
+                  "SaaS’ın rolü planlamadır; seçili tek sağlayıcı Frappe’dir. SaaS tarafında yalnız Frappe sağlayıcı/host sözleşmesinin kabulü planlanır; Frappe ürün kodu, kurulum veya servis değişikliği bu turda yoktur."
+                ]
+              },
+              {
+                "label": "Kanonik kaynak",
+                "value": "reusePlan.headlessReadiness: 13 alan × 4 dar kabul kontrolü, iki kapsam geçersiz kılması, pilot sırası ve resmî kaynaklar. Üçüncü görev registry’si açılmaz; currentPlan, 994 taslak ve R-00–R-02 kimlikleri korunur."
+              },
+              {
+                "label": "Durum",
+                "value": "runtimeStatus not_verified. Ürün baseline’ı dondurulmadığı için bütün kontroller not_run ve kanıtları boştur. Plan yayını runtime kanıtı değildir; yüzde ilerleme gösterilmez."
+              },
+              {
+                "label": "Okuma önceliği",
+                "value": "Çelişkide önce bu master karar ve headlessReadiness, sonra reusePlan A–H, en son tarihsel currentPlan, /plan/ ve /atlas/ bağlamı okunur. Tarihsel kayıtlar silinmez."
               }
             ]
           }
@@ -1670,6 +1695,81 @@
                 "value": "scripts/verify-build.mjs — boyut raporu; mevcut artifacts ve GitHub Actions job sonuçları."
               }
             ]
+          },
+          {
+            "id": "master-sources",
+            "title": "Sürüme duyarlı resmî kaynaklar — 2026-10-14",
+            "fields": [
+              {
+                "label": "Sınır",
+                "value": "Genel resmî referanslardır; hedef kurulum kanıtı değildir. Hedef Frappe ve Keycloak sürümleri T-00/T-01’de belirlenir; gelecek sürümlerin davranışı bilinmiyor."
+              },
+              {
+                "label": "Frappe REST API",
+                "value": "Kullanılabilir REST sürümü T-00’da doğrulanır; v2 garanti değildir.",
+                "url": "https://docs.frappe.io/framework/user/en/api/rest"
+              },
+              {
+                "label": "Frappe Document API",
+                "value": "Etkin metadata ve kayıt yaşam döngüsü; izinli yazma yolunda native controller ve iş kuralları korunur.",
+                "url": "https://docs.frappe.io/framework/user/en/api/document"
+              },
+              {
+                "label": "Frappe Database API",
+                "value": "get_list izinleri uygular, get_all izin filtrelemesini atlar; sağlayıcı okuması izin uygulayan yolu seçer.",
+                "url": "https://docs.frappe.io/framework/user/en/api/database"
+              },
+              {
+                "label": "Frappe hooks",
+                "value": "Genişletme noktası hedef sürüme göre seçilir; yeni sürüm hook’u eski sürüme dayatılmaz.",
+                "url": "https://docs.frappe.io/framework/user/en/python-api/hooks"
+              },
+              {
+                "label": "Frappe whitelisted methods",
+                "value": "Whitelist yöntemi HTTP’ye açar; belge iznini kendiliğinden uygulamaz.",
+                "url": "https://docs.frappe.io/framework-git/server-side/whitelisted-methods"
+              },
+              {
+                "label": "Keycloak OIDC katmanları",
+                "value": "Cookie/CSRF ile bearer/origin/audience seçimi hedefe özgü sözleşmedir; OIDC/PKCE tamamen özel giriş arayüzünün uygulanabilirlik kanıtı değildir.",
+                "url": "https://www.keycloak.org/securing-apps/oidc-layers"
+              },
+              {
+                "label": "A2UI veri akışı",
+                "value": "Harici GenUI protokolü için bağlamdır; sağlayıcı transport’u ile GenUI mesajı ayrı katmandır.",
+                "url": "https://a2ui.org/concepts/data-flow/"
+              }
+            ]
+          },
+          {
+            "id": "master-source-mapping",
+            "title": "Kontrollerin mevcut görev eşlemesi",
+            "fields": [
+              {
+                "label": "Kural",
+                "value": "Kontroller yalnız mevcut 994 taslak görev kimliğine bağlanır. direct eşleme yoktur; partial bağlantı ilgili sözleşme görevini tamamlanmış saymaz. Karşılık yoksa gap yazılır, görev uydurulmaz."
+              },
+              {
+                "label": "Kimlik ve transport",
+                "value": "identity → auth-channel-bridge--contract, kernel-envelope--contract; transport → api-response--contract, sse-api--contract, kernel-envelope--contract."
+              },
+              {
+                "label": "Metadata ve sorgu",
+                "value": "baseline, metadata, queries ve headless → permissioned-metadata--contract; metadata ve headless ayrıca ui-provider-metadata--contract; queries ayrıca rest-api--contract."
+              },
+              {
+                "label": "Katalog, doğrulama, eylem ve tutarlılık",
+                "value": "registries → capability-definition--contract, event-dispatch--contract, ui-provider-registry--contract; validation → native-doctype-schema--contract, record-integrity--contract, event-dispatch--contract; actions → event-dispatch--contract, job-state--contract; consistency → record-integrity--contract, audit-envelope--contract."
+              },
+              {
+                "label": "Tüketici ve kanıt",
+                "value": "consumer → ui-family-39--contract, ui-provider-data--contract; evidence → ui-family-39--contract, permissioned-metadata--contract. GenUI kümelerinde yalnız sağlayıcı/host sözleşmesi tarafı eşlenir."
+              },
+              {
+                "label": "Boşluk",
+                "value": "definitions alanının dört kontrolü gap’tir: tanım persistence’ı için eşlenebilecek mevcut görev yoktur; kurulu DocType envanteri çıkarılmadığından kurulu DocType durumu bilinmiyor."
+              }
+            ]
           }
         ]
       },
@@ -1704,6 +1804,31 @@
                   "Ölçülmemiş CI cache/build optimizasyonu, kaynak doğrulamasını kaldırma, gerçek entegrasyonu cache’e dayanarak atlama ve 994 görevi yeniden üretme yok.",
                   "Frappe çekirdeği veya bize ait olmayan app doğrudan değiştirilmez. Yalnız hedef sürümün desteklediği custom app/resmî genişletme değerlendirilir."
                 ]
+              }
+            ]
+          },
+          {
+            "id": "master-boundaries",
+            "title": "Frappe sağlayıcısı ile kullanıcı GenUI’si arasındaki sınır",
+            "fields": [
+              {
+                "label": "SaaS — Frappe sağlayıcısı",
+                "value": [
+                  "İzinli metadata projection, kaynak registry’si, sunucu query/action kataloğu, sunucu doğrulaması, eylem receipt’i, idempotency, audit, tipli hata ve sözleşme sürümü.",
+                  "Harici istemci HTTP kullanır; Desk frappe.call/frm sağlayıcı ön koşulu değildir. Yetki her istekte sunucuda native Frappe izni ve controller kuralıyla uygulanır."
+                ]
+              },
+              {
+                "label": "Kullanıcı — GenUI projesi",
+                "value": "Renderer, component/capability kataloğu, model gateway, host uygulaması, geç yanıtı yok sayma ve uyumsuzluk gösterimi; teknoloji seçimi dahil. Bu depo bunlar için kod veya uygulama talimatı yazmaz."
+              },
+              {
+                "label": "Ortak sınır",
+                "value": "Sürümlü tipli HTTP/JSON sözleşme ve tek adapter sınırı; paket digest’i önerilen artefakt politikasıdır, metadata veya katalog digest’i değildir. Kaynak registry’si ve sunucu query/action kataloğu sağlayıcının ayrı kayıtlarıdır, GenUI kataloğu kullanıcınındır. Katalogda bulunmak yetki değildir; whitelist veya UI gizleme de yetki sayılmaz."
+              },
+              {
+                "label": "Erken PoC ve sonraki özellikler",
+                "value": "Erken sağlayıcı PoC’si gerçek oturum, izinli metadata/sorgu, kaydedilmiş tanım ve tek sunucu eyleminin sözleşme kanıtıdır. Model gateway, katalog genişlemesi ve gelişmiş GenUI yüzeyleri kullanıcının yol haritasıdır; PoC’nin ön koşulu değildir."
               }
             ]
           }
@@ -1778,6 +1903,28 @@
               {
                 "label": "Eylem/politika",
                 "value": "Sonuçlandırma sunucu invariantını korur. Yeni genel yetenek ayrı bounded iştir, config’e gizlenmez."
+              }
+            ]
+          },
+          {
+            "id": "master-definition-gap",
+            "title": "CardDefinition persistence boşluğu",
+            "fields": [
+              {
+                "label": "Bugünkü durum",
+                "value": "Kaydedilmiş kart tanımının (CardDefinition) Frappe’de nerede saklanacağı eşlenmemiştir: mevcut görev yok, kurulu DocType bilinmiyor. Kayıtlı görünüm veya liste ayarı CardDefinition sayılmaz; Atlas’taki tarayıcı tanım deposu Frappe persistence’ı değildir."
+              },
+              {
+                "label": "Sonraki tek görev",
+                "value": "T-00 sonrası tek sınırlı sağlayıcı görevi: önce kurulu bir yeteneğin yeterliliği kanıtla incelenir; yetmezse en fazla bir DocType ile persistence sahibi, şema sürümü, boyut sınırı ve sahip ya da açık paylaşım/rol/kapsam izni tek sözleşme ve fixture’da tanımlanır. Yeni app reçete edilmez; görev bu turda açılmaz."
+              },
+              {
+                "label": "Saklama sınırı",
+                "value": "Tanım yalnız yapı, kayıtlı sorgu binding’i, şema/katalog sürümü ve revizyon taşır. Canlı kayıt verisi, secret/token ve tamamlanmamış model taslağı saklanmaz."
+              },
+              {
+                "label": "ResourceDefinition ile ilişki",
+                "value": "ResourceDefinition kaynak/projection tanımıdır; CardDefinition tüketicinin kaydettiği görünüm tanımıdır. Biri diğerinin yerine geçmez."
               }
             ]
           }
@@ -1908,6 +2055,28 @@
                 "value": "Eksik/null/boş anlamı, tenant/yetki, kayıpsız değer/ilişki, yedek/geri yükleme ve başarısızlıkta kurtarma. Sadece kayıt sayısı veya kod rollback’i yeterli değil."
               }
             ]
+          },
+          {
+            "id": "recipe-provider-check",
+            "title": "Reçete — tek sağlayıcı kabul kontrolü",
+            "fields": [
+              {
+                "label": "Girdi",
+                "value": "T-00 baseline, pilot DocType, iki izin kapsamı ve headlessReadiness’taki ilgili kontrol."
+              },
+              {
+                "label": "Çıktı",
+                "value": "Tek sağlayıcı davranışının sürümlü HTTP/JSON sözleşmesi, fixture’ı ve gerçek sunucu kanıtı; GenUI veya model kodu yok."
+              },
+              {
+                "label": "Dosya sınırı",
+                "value": "Sahip custom app modülü ve ilgili test/fixture; en fazla bir DocType. Kesin yollar T-00’da bulunur."
+              },
+              {
+                "label": "Doğrulama",
+                "value": "Yetkili ve yetkisiz gerçek istek, tipli hata ve sürüm; mevcut ürün runner’ı kullanılır, yeni test paketi kurulmaz. Kanıt kaydedilene kadar not_run."
+              }
+            ]
           }
         ]
       },
@@ -1922,6 +2091,26 @@
           "Ortak contract fixture’ı frontend kontrollü yanıtı ve backend gerçek yanıtını aynı sözleşmeyle doğrular. Gerçek izinli entegrasyon ayrıca gerekir; mock testi yeterli değildir.",
           "Okuma/yazma, tenant/kullanıcı değişimi, alan yetkisi, ilişki/dosya, bulk/export, gönderilmeyen alan koruması ve child-parent invariantları riskle seçilmiş ortak/per-resource kontrollerle doğrulanır.",
           "Bu kapsamlı form/liste/detay ve üç tüketici deneyi R-00–R-02’nin çıktısı değildir; sonraki kabul kapısıdır. Yeni form/table/detail/CRUD engine’i, kaynak kopyası veya core’a iş uygulaması koşulu kabul edilmez."
+        ],
+        "entries": [
+          {
+            "id": "master-pilot-gate",
+            "title": "İlk pilot ve seçili yüzde 100 headless tanımı",
+            "fields": [
+              {
+                "label": "Pilot",
+                "value": "Tek yetkili Frappe kaynağıyla kart tanımını kaydet, model çağırmadan yeniden aç ve güncel izinli veriyi getir; iki yetki kapsamıyla negatif sorgu ve tanım izni ayrıca sınanır. Adımlar headlessReadiness.pilot içindedir."
+              },
+              {
+                "label": "Seçili yüzde 100 headless",
+                "value": "Yalnız seçili, sürümlü sözleşme ve akışların Desk, frm veya client asset olmadan gerçek izin/sözleşme kanıtıyla geçmesidir. Kapsam, seçili app/DocType envanterinde CRUD, gerektiğinde submit/cancel/amend, child transaction, workflow, rapor, dosya/ek, özel indirme/yükleme ve realtime için supported/unsupported/not_run sınıflandırmasıyla, mevcut 387 gereksinim kimliğine bağlanır. Tek kart pilotu veya 52 kontrolün geçmesi evrensel Frappe uyumluluğu, kurulu hazırlık veya yüzdelik ilerleme değildir."
+              },
+              {
+                "label": "Kanıt sınırı",
+                "value": "Bu deponun check, CI ve Pages başarısı yalnız statik plan yayınını kanıtlar. Runtime kabulü commit, app ve siteye bağlı ayrı kanıt ister; Atlas fixture köprüsü ve tarayıcı deposu bunun yerine geçmez."
+              }
+            ]
+          }
         ]
       },
       {
@@ -2070,6 +2259,31 @@
                 "value": "Aktif üretim/test/fixture lease’i ve gerçek merge kanıtı gerekir. Aynı kök neden için3 ve görev toplamında5 sonuçsuz gerekçeli düzeltmede dur; beklenen ilk RED hariçtir. Uygulama görevinde RED/GREEN/REFACTOR ayrılmaz; bu belge turuna yapay RED eklenmez."
               }
             ]
+          },
+          {
+            "id": "master-waterfall",
+            "title": "Sağlayıcı şelale sırası ve dar BLOCKED işler",
+            "fields": [
+              {
+                "label": "Sıra",
+                "value": [
+                  "0 — T-00 baseline: repo/commit, bench ve sitede kurulu app/sürüm, kullanılabilir REST sürümü, seçili yetenek envanteri, pilot DocType, iki izin kapsamı ve gerçek komutlar.",
+                  "1 — T-00 sonrası paralel: sağlayıcı sözleşmeleri (metadata projection, kayıtlı sorgu, hata/sürüm) ve T-01 kimlik/oturum kanalı.",
+                  "2 — İlk gerçek izinli sorgu; T-08 frontend–Frappe okuma kabulüyle aynı kanıt hattı.",
+                  "3 — Kaydedilmiş tanım ve modelsiz yeniden açış; persistence boşluğunu kapatan tek sınırlı görevden sonra.",
+                  "4 — Harici, kullanıcı sahipli GenUI’nin yayımlanmış sağlayıcı sözleşmesini tüketmesi.",
+                  "5 — Tek gerçek sunucu eylemi: önizleme/onay, güncel yetki, kapsamlı idempotency anahtarı ve kabulde oluşan receipt; istemci iptali rollback sayılmaz."
+                ]
+              },
+              {
+                "label": "Bağımlılık kuralı",
+                "value": "Gösterim sırası yapay seri bağımlılık değildir; bir kolun engeli yalnız ona bağlı adımları durdurur. Baseline bilinmezliği runtime’ı engeller, bu planın yayınını engellemez."
+              },
+              {
+                "label": "R-00, R-01, R-02",
+                "value": "Kimlik, sayı ve BLOCKED durumu değişmez; dar kalırlar: R-00 envanter, R-01 tek projection sözleşmesi, R-02 tek controlled TextField. Sağlayıcı kontrolleri bu işlere eklenmez; R-00’ın bulduğu kurulu yetenek persistence incelemesine yalnız girdi olur."
+              }
+            ]
           }
         ]
       },
@@ -2138,6 +2352,36 @@
               {
                 "label": "Sonuç",
                 "value": "Bir sonraki uygulamada baseline/karar/komut keşfini ve ortak alan/veri erişimini baştan yazmayacağız. İlk küçük iş, T-00 mevcut kaydını yeniden kullanarak R-00’ın tek baseline’da kanıtlı envanter ve reçete kararını çıkarmasıdır."
+              }
+            ]
+          },
+          {
+            "id": "master-conflicts",
+            "title": "Güncel karar ile tarihsel kayıtlar arasındaki çözümler",
+            "fields": [
+              {
+                "label": "Geçersiz kılınan — GenUI yazma kapsamı",
+                "value": "Kaynaklar: genui-runtime biriminin post_mvp/conditional ataması, ui-family-39 ve ui-provider-registry kümelerindeki frontend/packages/genui owns ve yazma talimatları. Bu iki kümenin görevlerinde güncel kapsam headlessReadiness.overrides’tır: sahip harici kullanıcı GenUI’sidir, SaaS’ta yalnız sağlayıcı/host sözleşmesi kabulü kalır. Tarihsel kayıt silinmez; GenUI uygulama izni verilmez."
+              },
+              {
+                "label": "Çözülen — GenUI teknolojisi",
+                "value": "Ant Design X/X Cards ve onaylı registry kararları ürün frontend’inin tarihsel bağlamıdır. Harici GenUI’nin iç teknolojisi kullanıcı kararıdır; sağlayıcı sözleşmesi tüketici teknolojisinden bağımsızdır."
+              },
+              {
+                "label": "Çözülen — üç ayrı katalog",
+                "value": "Kaynak registry’si ve sunucu query/action kataloğu sağlayıcıya ait ayrı kayıtlardır; GenUI component/capability kataloğu harici kullanıcıya aittir. Üçü birleştirilmez. efficiency-h eylem kataloğu ile ResourceDefinition ayrımı bu kurala göre okunur."
+              },
+              {
+                "label": "Çözülen — tarihsel sayfalar",
+                "value": "/plan/ ve /atlas/ metinleri değiştirilmez; çelişkide güncel master not geçerlidir. Pilot sırası currentPlan’daki T-00, T-01 ve T-08 kimliklerini aynen kullanır."
+              },
+              {
+                "label": "Engelli — runtime",
+                "value": "Ürün repo/commit, kurulu app ve DocType bilinmiyor; 52 kontrol not_run. Kontroller test, görev veya uygulama talimatı değildir; bağımsız taslaklar incelenip düzeltilmiştir, kaynak bulgusu sayılmaz."
+              },
+              {
+                "label": "Taşınmayan istisnalar",
+                "value": "Bu Pages reposunun Firefox kapsamı, test sayı sınırları ve pasif pill boyutu ürüne veya GenUI’ye taşınmaz."
               }
             ]
           }
@@ -2335,7 +2579,855 @@
         "Önceki metadata/currentPlan,20 kaynak ve994 görev değişmez; üç yakın iş BLOCKED.",
         "Ürün repo/commit, apps/sürümler ve DocType/komutlar bilinmiyor; gerçek ürün/entegrasyon testi çalışmadı.",
         "Yarın gerekli gerçek model, kaynak/sunum/izin tanımı ve farklı domain eylemi eklenir; ortak form, liste, detay, query, router, shell ve CRUD kodu yazılmaz.",
-        "Üç tüketici ve P0 yetki/veri/native/offline kabulü sonraki kapıdır; bu üç iş onları teslim etmez."
+        "Üç tüketici ve P0 yetki/veri/native/offline kabulü sonraki kapıdır; bu üç iş onları teslim etmez.",
+        "headlessReadiness runtime’ı not_verified, 52 kontrolü not_run ve kanıtı boştur; GenUI kullanıcı sahiplidir, bu depo GenUI, model veya Frappe ürün kodu yazmaz."
+      ]
+    },
+    "headlessReadiness": {
+      "version": 1,
+      "id": "frappe-headless-genui",
+      "updatedAt": "2026-10-14",
+      "title": "Frappe headless sağlayıcı hazırlığı — harici GenUI tüketicisi için",
+      "summary": "SaaS’ın rolü planlamadır; seçili sağlayıcı Frappe’dir. GenUI kullanıcının backend’den bağımsız projesidir. 13 alan × 4 dar kabul kontrolü, Frappe’nin harici bir tüketiciye sürümlü tipli HTTP/JSON, sunucu izni ve sözleşme kanıtı sunup sunmadığını ölçecek; kontroller test, görev veya uygulama talimatı değildir. Okumalar kimlik, site, DocType, satır, alan ve projection izniyle sınırlanır; yazmalar ayrıca controller invariantlarını korur. Whitelist veya arayüzde gizleme hiçbir kontrolde yetki sayılmaz. Seçili app/DocType envanteri CRUD ve gerektiğinde submit/cancel/amend yaşam döngüsü, child transaction, workflow, rapor, dosya/ek, özel indirme/yükleme ve realtime ihtiyaçlarını sağlayıcı ucu ve kabul bağlantısıyla supported/unsupported/not_run olarak sınıflandırır; mevcut 387 gereksinim kimliği kullanılır, yeni registry açılmaz.",
+      "notice": "Runtime doğrulanmadı: ürün repo/commit’i, kurulu Frappe app/sürümleri ve DocType’lar bilinmiyor; bütün kontroller not_run ve kanıtları boş. Yüzde ilerleme gösterilmez. Seçili yüzde 100 headless yalnız seçili sürümlü sözleşme ve akışların Desk, frm ve client asset olmadan gerçek izin/sözleşme kanıtıyla geçmesidir; tek kart pilotu veya 52 kontrolün geçmesi evrensel Frappe uyumluluğu ya da kurulu hazırlık değildir. currentPlan, /plan/ ve /atlas/ tarihsel bağlamdır; çelişkide reusePlan ve bu kayıt geçerlidir.",
+      "runtimeStatus": "not_verified",
+      "scope": {
+        "genuiOwner": "user",
+        "genuiBackend": "independent",
+        "saasRole": "planning",
+        "provider": "frappe"
+      },
+      "ui": {
+        "scopeTitle": "Kapsam ve sahiplik",
+        "historicalPlan": "Tarihsel plan — güncel karar için master plana git",
+        "checksTitle": "Kabul kontrolleri",
+        "acceptanceLabel": "Kabul ölçütü",
+        "verificationLabel": "Gelecekteki doğrulama",
+        "statusLabel": "Çalışma durumu",
+        "mappingLabel": "Görev eşlemesi",
+        "sourceTasksLabel": "Mevcut kaynak görevler",
+        "pilotTitle": "İlk pilot sırası",
+        "sourcesTitle": "Resmî kaynaklar — genel referans, hedef kurulum kanıtı değil",
+        "overridesTitle": "Güncel kapsam geçersiz kılmaları",
+        "gateLabel": "Teslim kapısı",
+        "externalOwnerLabel": "Harici sahip: kullanıcının GenUI projesi"
+      },
+      "overrides": [
+        {
+          "clusterId": "ui-family-39",
+          "owner": "user_genui",
+          "title": "GenUI — harici, kullanıcı sahipli tüketici; SaaS yalnız sağlayıcı sözleşmesi",
+          "instruction": "Bu kümenin görevlerinde frontend/packages/genui yolları, tarihsel owns ve yazma talimatları ile genui-runtime biriminin post_mvp/conditional ataması aktif kapsam değildir; yerini bu kayıt alır. GenUI motoru, renderer, model gateway ve bileşenleri backend’den bağımsız olarak kullanıcı geliştirir; SaaS görevi bunlara kod yazmaz. SaaS tarafında yalnız Frappe sağlayıcı/host sözleşmesinin kabulü kalır: sürümlü tipli HTTP/JSON, sunucu izni, hata ve sürüm. Kabul headlessReadiness consumer, definitions ve evidence alanlarındadır; hepsi not_run."
+        },
+        {
+          "clusterId": "ui-provider-registry",
+          "owner": "user_genui",
+          "title": "Component & Action Registry — GenUI kataloğu harici; sunucu kataloğu sağlayıcıda",
+          "instruction": "Bu kümenin görevlerinde frontend/packages/genui yolları, tarihsel owns ve yazma talimatları ile genui-runtime birim ataması aktif kapsam değildir; yerini bu kayıt alır. GenUI component/capability kataloğu kullanıcının harici GenUI projesine aittir. SaaS yalnız Frappe sunucu query/action kataloğunun kimlik, sürüm, parametre şeması ve izin sözleşmesini kabul eder; kaynak registry’si, sunucu kataloğu ve GenUI kataloğu birbirinin yerine geçmez. Kabul headlessReadiness registries alanındadır; hepsi not_run."
+        }
+      ],
+      "areas": [
+        {
+          "id": "baseline",
+          "title": "Hedef baseline ve etkin yetenek",
+          "gateId": "G0",
+          "checks": [
+            {
+              "id": "hg-baseline-01",
+              "title": "Repo/commit ve manifest–lock–runtime ayrımı",
+              "acceptance": "Baseline kaydı ürün repo URL’sini ve tam commit SHA’sını tutar; beyan edilen (manifest), kilitlenen (lock), bench’te checkout edilmiş ve hedef sitede gerçekten kurulu app/sürümler ayrı alanlardadır. Doğrulanmayan değer unknown kalır. Atlas’taki yerel GenUI SDK, fixture sorgu köprüsü ve tarayıcı tanım deposu Frappe entegrasyonu sayılmaz.",
+              "verification": "T-00’da salt okunur: commit SHA, mevcut manifest/lock dosyaları, bench checkout sürümleri ve hedef sitenin kurulu app listesi karşılaştırılır; kullanılacak komutlar seçilen ortamda keşfedilip kaydedilir. Uyuşmayan veya erişilemeyen değer unknown ya da not_run yazılır. Yeni kurulum yok.",
+              "sourceTaskIds": ["permissioned-metadata--contract"],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            },
+            {
+              "id": "hg-baseline-02",
+              "title": "Kurulu app’ler ve etkin DocType metadata’sı",
+              "acceptance": "Hedef sitede kurulu Frappe app’leri sürümleriyle ve seçili DocType’ların etkin metadata’sı (Custom Field ve Property Setter etkileri dahil) yetkili bir inceleme kullanıcısıyla kaydedilir. Seçili yetenekler (CRUD, gerektiğinde submit/cancel/amend, child transaction, workflow, rapor, dosya/ek, özel indirme/yükleme, realtime) supported/unsupported/not_run olarak sınıflandırılır. Ham repo JSON’u etkin şema, Desk ekranı headless hazırlık sayılmaz.",
+              "verification": "T-00’da salt okunur: sitenin app listesi ve get_meta karşılığı etkin metadata repo dosyalarıyla karşılaştırılır; her seçili yetenek sağlayıcı ucu, ilgili mevcut gereksinim kimliği ve kabul bağlantısıyla envantere yazılır.",
+              "sourceTaskIds": ["permissioned-metadata--contract"],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            },
+            {
+              "id": "hg-baseline-03",
+              "title": "İlk gerçek DocType, kullanıcılar ve iki izin kapsamı",
+              "acceptance": "Pilot için tek gerçek DocType, test kullanıcıları ve iki izin kapsamı adlarıyla kayıtlıdır; gerçek müşteri verisi kullanılmaz. Beklenen matris yazılıdır: kapsam içindeki okuyucu için okuma geçer, yazma reddedilir; kapsam dışındaki kullanıcı için okuma ve yazma reddedilir. Bu seçim sorgu, tanım ve eylem kontrollerinin ortak girdisidir.",
+              "verification": "T-00’da DocType’ın sitede bulunduğu ve beklenen okuma/yazma matrisinin native izin raporuyla tutarlı olduğu, mevcut yetkili izole dev/test kapsamında doğrulanır.",
+              "sourceTaskIds": ["permissioned-metadata--contract"],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            },
+            {
+              "id": "hg-baseline-04",
+              "title": "Gerçek dev/test/build komutları ve yan etkileri",
+              "acceptance": "Sabitlenmiş commit için dev, test, lint ve build komutları çalışma dizini, bench/site ön koşulu ve yan etkisiyle (migrate, DB yazımı, fixture, asset build, ağ çağrısı) kayıtlıdır. Yan etkili komut yalnız mevcut yetkili izole dev/test kapsamında, kayıtlı sıfırlama yöntemiyle çalışır; yeni site kurmak zorunlu değildir.",
+              "verification": "T-00’da CI workflow, paket scriptleri, hooks ve bench yapılandırması salt okunur incelenir; yan etkili komutun etkisi ve sıfırlaması izole kapsamda kanıtla kaydedilir, koşmayan adım not_run kalır.",
+              "sourceTaskIds": ["permissioned-metadata--contract"],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            }
+          ]
+        },
+        {
+          "id": "identity",
+          "title": "Kimlik ve HTTP güvenliği",
+          "gateId": "G1",
+          "checks": [
+            {
+              "id": "hg-identity-01",
+              "title": "Keycloak kimliğinden Frappe kullanıcı ve site eşlemesi",
+              "acceptance": "Doğrulanmış Keycloak kimliği kararlı issuer ve subject ile tek etkin Frappe User’a ve izinli siteye eşlenir; değişebilen e-posta veya kullanıcı adı tek eşleme anahtarı değildir. Eşlenmemiş, devre dışı veya başka siteye ait kimlik reddedilir; kayıt yetkisi Keycloak rolünden değil Frappe izinlerinden gelir.",
+              "verification": "T-01 sonrası mevcut ürün runner’ıyla eşlenmiş, eşlenmemiş, devre dışı ve başka siteye ait kimlikle aynı uç çağrılır; durum kodu, çözülen User/site ve native izin sonucu kaydedilir.",
+              "sourceTaskIds": [
+                "auth-channel-bridge--contract",
+                "kernel-envelope--contract"
+              ],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            },
+            {
+              "id": "hg-identity-02",
+              "title": "Cookie ve CSRF ile bearer token kanal sınırı",
+              "acceptance": "Seçilen kanal hedefe özgü sözleşmede yazılıdır. CSRF gerektiren cookie oturumunda eksik veya geçersiz token taşıyan mutasyon etkisiz reddedilir. Aynı istekte bearer ve cookie birlikte gelirse istek reddedilir ya da sözleşmedeki açık öncelik uygulanır; sessiz geri düşüş yoktur. Durum kodu ve hata zarfı hedef sürümde seçilip doğrulanır, varsayılmaz.",
+              "verification": "T-00/T-01 sonrası gerçek HTTP ile CSRF’siz ve hatalı CSRF’li mutasyon, yalnız bearer, bearer+cookie karışık ve yetkisiz bearer isteği gönderilir; kayıt durumu, gözlenen kod ve hata gövdesi kaydedilir.",
+              "sourceTaskIds": [
+                "auth-channel-bridge--contract",
+                "kernel-envelope--contract"
+              ],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            },
+            {
+              "id": "hg-identity-03",
+              "title": "Issuer, audience, süre, logout ve yetki iptali",
+              "acceptance": "OIDC token’ı yalnız beklenen issuer, audience ve geçerlilik süresiyle kabul edilir; Frappe oturum geçerliliği ayrı değerlendirilir. Logout, rol kaldırma ve kullanıcıyı devre dışı bırakma için iptal, introspection, cache temizleme ve azami gecikme hedefte kararlaştırılıp sözleşmeye yazılır; kanıt olmadan ilk istekte anında iptal vaat edilmez, kararlaştırılan süre aşılmaz.",
+              "verification": "T-01 sonrası yanlış issuer, yanlış audience ve süresi dolmuş token ile; logout, rol kaldırma ve devre dışı bırakma sonrası aynı kaynağa istek gönderilir; durum kodu, hata ve reddin başladığı süre kaydedilir.",
+              "sourceTaskIds": [
+                "auth-channel-bridge--contract",
+                "kernel-envelope--contract"
+              ],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            },
+            {
+              "id": "hg-identity-04",
+              "title": "CORS origin ve secret’ların trusted host sahipliği",
+              "acceptance": "İzinli origin listesi ve bütün secret’lar yalnız güvenilir sunucu yapılandırmasındadır; plan, GenUI istemcisi ve build çıktısı secret içermez. Listede olmayan origin kimlikli istekte CORS izni almaz; origin izni kayıt yetkisi sayılmaz.",
+              "verification": "İzinli ve izinsiz origin’den kimlikli preflight ve istek yanıt başlıkları karşılaştırılır; istemci çıktısı mevcut araçla secret için taranır. Secret değeri kanıta yazılmaz.",
+              "sourceTaskIds": ["auth-channel-bridge--contract"],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            }
+          ]
+        },
+        {
+          "id": "metadata",
+          "title": "İzinli metadata ve projection",
+          "gateId": "G1",
+          "checks": [
+            {
+              "id": "hg-metadata-01",
+              "title": "Custom Field ve Property Setter sonrası etkin şema",
+              "acceptance": "Metadata projection’ı ham DocType JSON’unu değil, Custom Field ve Property Setter uygulanmış etkin şemayı (alan, tip, zorunluluk, salt okunurluk, gizlilik) yansıtır ve isteyen kullanıcının izinleriyle süzülür.",
+              "verification": "Pilot DocType’ta Custom Field ve Property Setter öncesi ve sonrası projection iki rolle alınır; frappe.get_meta çıktısı ve native izin sonucu referans alınır.",
+              "sourceTaskIds": [
+                "permissioned-metadata--contract",
+                "ui-provider-metadata--contract"
+              ],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            },
+            {
+              "id": "hg-metadata-02",
+              "title": "İzinli alan allowlist’i ve gizli alanın reddi",
+              "acceptance": "Projection yalnız rolün DocType ve permlevel düzeyinde okuma izni olan alanları içerir. İzinsiz veya gizli alan istendiğinde alan adı ya da değeri yanıtta veya hata gövdesinde sızmaz.",
+              "verification": "İki rolle projection istenir; dönen alan kümesi permlevel tablosuyla karşılaştırılır, gizli alan talebinin yanıt ve hata gövdesinde iz bırakmadığı kontrol edilir.",
+              "sourceTaskIds": [
+                "permissioned-metadata--contract",
+                "ui-provider-metadata--contract"
+              ],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            },
+            {
+              "id": "hg-metadata-03",
+              "title": "Link, Dynamic Link ve child-table hedef izinleri",
+              "acceptance": "Child-table satırları bağımsız bir ACL’ye değil, parent belgenin izin bağlamına bağlıdır. Link ve Dynamic Link hedefinin değeri, etiketi ve araması hedef DocType’ın kendi izin politikasıyla ayrıca süzülür; istemci süzmesine bırakılmaz. Child satırı yazımı parent kaydıyla ve onun controller doğrulamasıyla yapılır.",
+              "verification": "Farklı rollerle projection, Link araması ve parent üzerinden child-table okuma/yazma istenir; izinsiz hedefte reddin döndüğü ve hedef verinin sızmadığı kaydedilir.",
+              "sourceTaskIds": [
+                "permissioned-metadata--contract",
+                "ui-provider-metadata--contract"
+              ],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            },
+            {
+              "id": "hg-metadata-04",
+              "title": "Source, presentation ve katalog sürümlerinin ayrımı",
+              "acceptance": "Üç kimlik ayrıdır: etkin kaynak metadata’sının sürümü/digest’i, sağlayıcının presentation sürümü ve harici GenUI katalog sürümü. Her biri kendi nedeniyle bağımsız değişebilir ve birbirinin yerine kullanılmaz; uyumlu, eşgüdümlü değişiklik yine mümkündür. Desteklenmeyen sürüm açık tipli hatayla reddedilir.",
+              "verification": "Pilot DocType’ta yalnız meta değişikliği ve yalnız sunum değişikliği ayrı denenir; hangi kimliğin değiştiği kaydedilir, uyumsuz sürümlü istek reddedilir.",
+              "sourceTaskIds": [
+                "permissioned-metadata--contract",
+                "ui-provider-metadata--contract"
+              ],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            }
+          ]
+        },
+        {
+          "id": "registries",
+          "title": "Registry sorumluluk sınırları",
+          "gateId": "G1",
+          "checks": [
+            {
+              "id": "hg-registries-01",
+              "title": "Kaynak registry’si: veri ve projection sahipliği",
+              "acceptance": "Sağlayıcıya ait kaynak registry’si hangi Frappe kaynağının hangi izinli projection ve sürümle sunulduğunu belirler; sunucu query/action kataloğu da sağlayıcıya aittir ama ayrı kayıttır. Harici GenUI component/capability registry’si kullanıcıya aittir; üçü birleştirilmez. Projection alanları allowlist, dönüştürme veya redaksiyonla türetir; kaynak alanlarla birebir eşitlik beklenmez.",
+              "verification": "Registry kaydı etkin şemayla karşılaştırılır: projection yalnız izinli alanlardan türer, kayıtsız kaynak istenince reddedilir, projection üzerinden yazma denemesi kabul edilmez.",
+              "sourceTaskIds": [
+                "capability-definition--contract",
+                "event-dispatch--contract",
+                "ui-provider-registry--contract"
+              ],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            },
+            {
+              "id": "hg-registries-02",
+              "title": "Sunucu query/action katalog kimliği ve parametre şeması",
+              "acceptance": "Her sunucu query/action kaydında kararlı katalog kimliği, sürüm ve tipli parametre/sonuç şeması vardır. Bilinmeyen kimlik veya şemaya uymayan parametre tipli hatayla reddedilir; geçerli query native okuma izninden, action ayrıca controller invariantından geçer.",
+              "verification": "Katalog yanıtında kimlik, sürüm ve şema alanları doğrulanır; bilinmeyen kimlik, geçersiz parametre ve yetkisiz kullanıcı çağrılarının sunucuda reddedildiği gözlenir.",
+              "sourceTaskIds": [
+                "capability-definition--contract",
+                "event-dispatch--contract"
+              ],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            },
+            {
+              "id": "hg-registries-03",
+              "title": "GenUI component kataloğunun harici tüketici sınırı",
+              "acceptance": "GenUI component/capability kataloğu kullanıcının harici projesindedir ve sağlayıcıyı yalnız yayımlanmış sürümlü HTTP/JSON sözleşmeyle kullanır. Katalogda bir capability’nin bulunması yetki değildir; her çağrıda Frappe izni sunucuda uygulanır, yazma eyleminde ayrıca controller kuralı korunur.",
+              "verification": "Katalogdaki bir capability yetkisiz kullanıcıyla HTTP üzerinden çağrılır ve sunucu reddi beklenir; yanıt yayımlanmış sözleşme şemasıyla karşılaştırılır. GenUI kodu bu depoda incelenmez veya yazılmaz.",
+              "sourceTaskIds": [
+                "capability-definition--contract",
+                "event-dispatch--contract",
+                "ui-provider-registry--contract"
+              ],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            },
+            {
+              "id": "hg-registries-04",
+              "title": "Bilinmeyen kimlik ve uyumsuz katalog sürümü reddi",
+              "acceptance": "Bilinmeyen query, action veya event kimliği ya da desteklenmeyen katalog sürümü taşıyan istek sunucuda tipli hatayla reddedilir, hiçbir domain/iş kaydını değiştirmez veya iş etkisi üretmez ve varsayılan bir sorgu veya eyleme düşmez. hg-consistency-04 gereği redakte ret/güvenlik audit denemesi kaydedilebilir.",
+              "verification": "Geçerli, bilinmeyen ve uyumsuz sürümlü kimliklerle istek gönderilir; hata kodu ve şeması ile redakte ret/güvenlik audit denemesi dışında ilgili domain/iş kayıtlarının değişmediği kaydedilir.",
+              "sourceTaskIds": [
+                "capability-definition--contract",
+                "ui-provider-registry--contract",
+                "event-dispatch--contract"
+              ],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            }
+          ]
+        },
+        {
+          "id": "queries",
+          "title": "Yetkili kayıtlı sorgu",
+          "gateId": "G3",
+          "checks": [
+            {
+              "id": "hg-queries-01",
+              "title": "Tek gerçek DocType kaydı okuması",
+              "acceptance": "Pilot DocType’tan tek kayıt okuma kimlik, site, DocType, satır ve alan izniyle sınırlanır; yazma yaşam döngüsü doğrulaması okumada beklenmez. Yetkili kullanıcı tipli yanıtta yalnız izinli alanları alır; yetkisiz kullanıcı kaydın varlığını sızdırmayan bir hata alır.",
+              "verification": "Aynı kayıt yetkili ve yetkisiz iki kullanıcıyla aynı uçtan okunur; durum, şema, alan kümesi ve varlık sızıntısı kaydedilir. T-08 okuma kabulüyle aynı kanıt hattıdır.",
+              "sourceTaskIds": [
+                "rest-api--contract",
+                "permissioned-metadata--contract"
+              ],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            },
+            {
+              "id": "hg-queries-02",
+              "title": "Bilinmeyen parametre ve serbest SQL/ifade reddi",
+              "acceptance": "Kayıtlı sorgu yalnız sözleşmedeki tipli parametreleri kabul eder. Bilinmeyen parametre ya da URL veya gövdede serbest SQL, alan veya filtre ifadesi taşıyan istek çalıştırılmadan tipli 4xx hatayla reddedilir.",
+              "verification": "Kayıtlı sorguya bilinmeyen parametre ve SQL/ifade parçası içeren istekler gönderilir; tipli 4xx döndüğü ve sorgunun çalışmadığı sunucu kaydıyla doğrulanır.",
+              "sourceTaskIds": [
+                "rest-api--contract",
+                "permissioned-metadata--contract"
+              ],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            },
+            {
+              "id": "hg-queries-03",
+              "title": "Sayfalama, filtre, sıralama ve facet’te veri sızıntısı yok",
+              "acceptance": "Toplam sayı, sayfa imleci, filtre, sıralama ve facet sayıları yalnız native izinler (rol, User Permission, permission query koşulları) uygulandıktan sonra görülebilen kayıt ve alanlardan üretilir; hiçbir yanıt parçasından yetkisiz veri çıkarılamaz.",
+              "verification": "Farklı yetkili iki kullanıcı aynı liste ucunu çağırır; toplam, sayfalar, izinsiz alanla filtre/sıralama denemesi ve facet sayıları her kullanıcının görebildiği kümeyle karşılaştırılır.",
+              "sourceTaskIds": [
+                "rest-api--contract",
+                "permissioned-metadata--contract"
+              ],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            },
+            {
+              "id": "hg-queries-04",
+              "title": "Standart REST ve whitelist method yollarında aynı izin",
+              "acceptance": "Standart REST yolu ile whitelist method aynı etkin izin sınırını uygular; hiçbiri izinli kümenin dışına çıkmaz. Method daha dar projection sunabilir; yanıt baytları ve durum kodu birebir aynı olmak zorunda değildir. Whitelist tek başına belge izni uygulamaz: method izin uygulayan okuma (get_list veya belge izni) kullanır; get_all ya da ignore_permissions ancak ayrı ve açık yetki kontrolüyle kabul edilir.",
+              "verification": "Aynı rol ve kayıt matrisiyle iki yol çağrılır; method sonucunun REST ile izinli kümenin alt kümesi olduğu kaydedilir ve method kodundaki izin kontrolü incelenir.",
+              "sourceTaskIds": [
+                "rest-api--contract",
+                "permissioned-metadata--contract"
+              ],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            }
+          ]
+        },
+        {
+          "id": "definitions",
+          "title": "Kalıcı GenUI artifact tanımı",
+          "gateId": "G3",
+          "checks": [
+            {
+              "id": "hg-definitions-01",
+              "title": "Tanım persistence’ı için eksik sınırlı sözleşme",
+              "acceptance": "CardDefinition’ın Frappe’de nerede ve hangi sahiplikle saklanacağı bugün eşlenmemiştir. T-00 sonrası tek sınırlı sağlayıcı görevi persistence sahibini, şema sürümünü, boyut sınırını ve tenant/sahip izin sınırını yazar. Kurulu DocType veya kayıtlı görünüm varsayılmaz; en fazla bir DocType değişir.",
+              "verification": "T-00 envanterinde bir kurulu yeteneğin tanımı karşılayıp karşılamadığı kanıtla incelenir; karşılamıyorsa sınırlı görev tek sözleşme ve fixture ile açılır. Bu turda görev açılmaz.",
+              "sourceTaskIds": [],
+              "mapping": "gap",
+              "status": "not_run",
+              "evidence": []
+            },
+            {
+              "id": "hg-definitions-02",
+              "title": "Tanım okuma/yazma, paylaşım ve sahip izinleri",
+              "acceptance": "Seçilen persistence’ta tanımın okunması, yazılması, paylaşılması ve silinmesi sunucuda native izinlerle zorlanır. Sahip ya da açık paylaşım, rol veya kapsam izni olan kullanıcı izni ölçüsünde okur veya yazar; bunların hiçbiri olmayan kullanıcı tanımı okuyamaz, değiştiremez, paylaşamaz.",
+              "verification": "Persistence seçildikten sonra sahip, paylaşılan okuyucu, paylaşılan yazar ve yetkisiz kullanıcıyla okuma, yazma ve paylaşım çağrılarının sonucu kaydedilir.",
+              "sourceTaskIds": [],
+              "mapping": "gap",
+              "status": "not_run",
+              "evidence": []
+            },
+            {
+              "id": "hg-definitions-03",
+              "title": "Saklama sınırı: yapı, binding ve şema/katalog sürümü",
+              "acceptance": "Tanım yalnız yapıyı, kayıtlı sorgu kimliğine binding’i, şema/katalog sürümünü ve revizyonu saklar. Canlı kayıt verisi, secret/token veya tamamlanmamış model taslağı içeren yük sunucu doğrulamasında reddedilir.",
+              "verification": "Canlı veri, secret ve taslak alanı içeren yükün reddedildiği; geçerli tanımın yanıtında yalnız izinli saklama alanlarının döndüğü kaydedilir.",
+              "sourceTaskIds": [],
+              "mapping": "gap",
+              "status": "not_run",
+              "evidence": []
+            },
+            {
+              "id": "hg-definitions-04",
+              "title": "Yeniden açışta modelsiz güncel yetkili sorgu",
+              "acceptance": "Kaydedilmiş tanım yeniden açılınca model çağrılmaz; binding’deki kayıtlı sorgu sunucuda o anki kullanıcının izinleriyle çalışır ve güncel veriyi döndürür. Saklanmış veri anlık görüntüsü kullanılmaz.",
+              "verification": "Tanım kaydedildikten sonra kaynak kayıt ve kullanıcı izni değiştirilir, model erişimi kapalıyken tanım açılır; güncel veri, yetkisiz kaydın yokluğu ve model çağrısının olmadığı ağ/log kanıtıyla kaydedilir.",
+              "sourceTaskIds": [],
+              "mapping": "gap",
+              "status": "not_run",
+              "evidence": []
+            }
+          ]
+        },
+        {
+          "id": "validation",
+          "title": "Sunucu doğrulaması ve domain invariantı",
+          "gateId": "G3",
+          "checks": [
+            {
+              "id": "hg-validation-01",
+              "title": "Harici JSON sözleşmesi için ortak kabul/ret corpus’u",
+              "acceptance": "Harici HTTP/JSON sözleşmesi için tek, sürümlü kabul/ret örnek kümesi vardır. Eksik alan, yanlış tip, yetkisiz kayıt ve invariant ihlali içeren örnekler sunucuda tipli hatayla reddedilir; domain/iş kaydı, iş etkisi veya domain olayı oluşmaz. hg-consistency-04 gereği redakte ret/güvenlik audit denemesi kaydedilebilir.",
+              "verification": "Aynı corpus mevcut runner’la sunucu doğrulama yoluna verilir; kabul/ret sonucu ve redakte ret/güvenlik audit denemesi dışında DB ya da kuyrukta domain/iş yan etkisi olmadığı kaydedilir. Corpus her tüketici için kopyalanmaz.",
+              "sourceTaskIds": [
+                "native-doctype-schema--contract",
+                "record-integrity--contract",
+                "event-dispatch--contract"
+              ],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            },
+            {
+              "id": "hg-validation-02",
+              "title": "Graph derinlik, boyut, döngü ve bilinmeyen property sınırı",
+              "acceptance": "İç içe JSON yükü kaydedilmeden önce sunucuda derinlik, düğüm sayısı ve bayt boyutu sınırlarıyla, kimlik referanslarının oluşturduğu JSON referans grafiğindeki döngüler ve şemada olmayan property için denetlenir; aşan yük kayıt yazılmadan tipli hatayla reddedilir.",
+              "verification": "Derinlik, düğüm ve bayt sınırının hemen altı ve üstü, döngülü bir referans grafiği ve bilinmeyen property örneği doğrudan API’ye gönderilir; kaydın oluşmadığı ve tipli hata döndüğü doğrulanır.",
+              "sourceTaskIds": [
+                "native-doctype-schema--contract",
+                "record-integrity--contract"
+              ],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            },
+            {
+              "id": "hg-validation-03",
+              "title": "Native controller iş invariantının korunması",
+              "acceptance": "Kritik iş invariantı ilgili DocType controller’ında (validate ve gerekiyorsa submit kancaları) uygulanır; desteklenen bütün yazma girişleri (Desk, REST, whitelist method, import) invariantı korur. Ham DB veya bypass yazımları kendiliğinden desteklenen eşdeğer sayılmaz. İhlalde kayıt yazılmaz; Client Script doğrulaması tek başına yeterli değildir.",
+              "verification": "İnvariantı bozan kayıt native belge insert/save yolundan ve HTTP adapter’ından denenir; native yolda native istisna ve değişmeyen DB durumu, HTTP yolunda tipli hata ve değişmeyen DB durumu kaydedilir.",
+              "sourceTaskIds": [
+                "native-doctype-schema--contract",
+                "record-integrity--contract",
+                "event-dispatch--contract"
+              ],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            },
+            {
+              "id": "hg-validation-04",
+              "title": "Kısmi güncelleme: eksik alan, açık null ve parent–child transaction",
+              "acceptance": "Gönderilmeyen alan mevcut değerini korur; açık null yalnız yazma izni olan, zorunlu olmayan alanı temizler. Parent ve child satırları tek transaction’da doğrulanır; herhangi bir hata bütün değişikliği geri alır.",
+              "verification": "Eksik alanlı, açık null’lı ve geçersiz child satırlı üç istek gönderilir; parent/child DB durumu, geri alma ve hata şeması kontrol edilir.",
+              "sourceTaskIds": [
+                "native-doctype-schema--contract",
+                "record-integrity--contract",
+                "event-dispatch--contract"
+              ],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            }
+          ]
+        },
+        {
+          "id": "actions",
+          "title": "Sunucu eylem sonucu",
+          "gateId": "G3",
+          "checks": [
+            {
+              "id": "hg-actions-01",
+              "title": "İşlem yaşam döngüsü ile commit kanıtının ayrımı",
+              "acceptance": "İşlem yaşam döngüsü (pending, running, success, error, conflict) ile transaction commit kanıtı ayrı eksenlerdir. Commit kanıtı yalnız izin ve controller doğrulamaları geçip transaction commit edildikten sonra verilir; sürüm çakışması ve yetki hatası success sayılmaz.",
+              "verification": "Pilot eylem için yetkili, yetkisiz, eşzamanlı revizyon çakışması ve controller hatası senaryoları çalıştırılır; dönen yaşam döngüsü durumu ve commit kanıtı DB ve iş kaydıyla ayrı ayrı karşılaştırılır.",
+              "sourceTaskIds": [
+                "event-dispatch--contract",
+                "job-state--contract"
+              ],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            },
+            {
+              "id": "hg-actions-02",
+              "title": "Kuyruğa alınan iş tamamlandı sayılmaz",
+              "acceptance": "Arka plan işini kuyruğa alan eylem queued durumunu, iş kimliğini ve receipt/correlation alanlarını döndürebilir; queued ve running kalıcı saklanabilir. Kuyruğa alma başarısı iş başarısı değildir: iş terminal başarı kaydına ulaşmadan sağlayıcı tamamlandı bildirmez. failed ve zaman aşımı başarı sayılmaz; iş durumunu yalnız yetkili kullanıcı okur.",
+              "verification": "Gerçek kuyruklu eylem çağrılır; yanıt, iş bitmeden belge durumu, yetkisiz durum okuma ve başarısız işin failed kalması kaydedilir.",
+              "sourceTaskIds": [
+                "event-dispatch--contract",
+                "job-state--contract"
+              ],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            },
+            {
+              "id": "hg-actions-03",
+              "title": "İşlem kabulüne bağlı sorgulanabilir receipt",
+              "acceptance": "Receipt, işlem kabul edildiğinde oluşur ve kabulü ile iş etkisini işlem kimliğine bağlar; timeout veya iptalden sonra üretilmez. pending ve running durumları ilerleyebilir; son durum tipli HTTP/JSON ile sorgulanır. Tekrarlanan durum okuması iş etkisi üretmez; erişimi native izin belirler. İstemci iptali rollback kanıtı değildir.",
+              "verification": "Uzun bir eylem başlatılır, istemci timeout’a düşer ve iptal ister; receipt yetkili ve yetkisiz kullanıcıyla tekrar tekrar okunur, durum geçişleri, gerçek iş etkisi ve yan etki olmaması kaydedilir.",
+              "sourceTaskIds": [
+                "event-dispatch--contract",
+                "job-state--contract"
+              ],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            },
+            {
+              "id": "hg-actions-04",
+              "title": "Kritik yazmada önizleme, onay ve güncel sunucu yetkisi",
+              "acceptance": "Kritik yazma önce kalıcı değişiklik yapmayan sunucu önizlemesi üretir; onay önizleme sürümüne bağlanır. Uygulama anında izin, kayıt kapsamı ve controller kuralı yeniden doğrulanır; biri değişmişse yazma yapılmaz.",
+              "verification": "Önizleme sonrası kullanıcının rolü kaldırılır veya kayıt değiştirilir, ardından onaylı istek gönderilir; kaydın değişmediği ve tipli ret döndüğü kaydedilir.",
+              "sourceTaskIds": [
+                "event-dispatch--contract",
+                "job-state--contract"
+              ],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            }
+          ]
+        },
+        {
+          "id": "consistency",
+          "title": "Revision, idempotency ve audit",
+          "gateId": "G3",
+          "checks": [
+            {
+              "id": "hg-consistency-01",
+              "title": "Bayat revizyonda çakışma reddi",
+              "acceptance": "Bayat revizyonla gelen güncellemenin çakışma olarak reddedilmesi sözleşme invariantıdır; kayıt değişmez ve tipli çakışma yanıtı döner. Bunu sağlayan native mekanizma veya istisna sınıfı, hedef sürüm ve yazma yolu bilinince kaydedilir, önceden garanti edilmez. Desteklenen yazma girişleri invariantı korur; ham DB yazımı desteklenen eşdeğer sayılmaz.",
+              "verification": "Aynı kayıt iki oturumda okunur; ilki kaydeder, ikincisi eski revizyonla dener; çakışma yanıtı, gözlenen native mekanizma ve değişmeyen kayıt kaydedilir.",
+              "sourceTaskIds": [
+                "record-integrity--contract",
+                "audit-envelope--contract"
+              ],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            },
+            {
+              "id": "hg-consistency-02",
+              "title": "Kapsamlı idempotency anahtarı ve saklanan payload hash’i",
+              "acceptance": "Idempotency arama anahtarı tenant, actor ve operation ID’dir; kanonik payload hash’i bu anahtarla saklanan ve karşılaştırılan değerdir. Aynı anahtar ve aynı hash ile tekrar ilk sonucu döner; aynı anahtar farklı payload ile gelirse yan etki üretmeden çakışma hatası alır. Farklı tenant veya actor birbirinin receipt’ini göremez; küresel ID benzersizliği gerekmez.",
+              "verification": "Aynı anahtarla aynı ve farklı payload, ayrıca aynı operation ID ile başka tenant ve actor istekleri gönderilir; revizyon sayısı, receipt görünürlüğü ve çakışma yanıtı karşılaştırılır. İleride yetkilendirilecek gerçek izole ürün test çalıştırıcısında ayrıca aynı anahtar ve aynı payload ile iki eşzamanlı istek ve aynı anahtar farklı payload yarışı gönderilir; aynı payload’da iki yanıtın aynı ilk sonucu taşıdığı, farklı payload’da kaybeden isteğin yan etkisiz çakışma aldığı ve her iki durumda tek receipt ile tek domain etkisi oluştuğu receipt ve domain kaydından doğrulanır.",
+              "sourceTaskIds": [
+                "record-integrity--contract",
+                "audit-envelope--contract"
+              ],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            },
+            {
+              "id": "hg-consistency-03",
+              "title": "Restart, tekrar ve belirsiz timeout sonrası tek etki",
+              "acceptance": "Aynı idempotency anahtarıyla yinelenen, timeout’a düşen veya worker kesintisi sonrası tekrar gönderilen istek tek iş etkisi üretir. Yetkili tekrar özgün receipt ve payload’ı bulup ilk sonucu döndürür; başarılı bir işlemin eski beklenen revizyonu yeni mutasyon gibi yeniden uygulanmaz. Güncel kimlik ve receipt okuma izni yine uygulanır.",
+              "verification": "Mevcut yetkili izole test kapsamında, yalnız oradaki test worker’ı veya mevcut hata enjeksiyonu kullanılarak yanıt zaman aşımına zorlanır ve aynı istek tekrar gönderilir; revizyonun bir kez arttığı DB’den doğrulanır. Çalışan kullanıcı servisleri yeniden başlatılmaz.",
+              "sourceTaskIds": [
+                "record-integrity--contract",
+                "audit-envelope--contract"
+              ],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            },
+            {
+              "id": "hg-consistency-04",
+              "title": "Gerçek actor, correlation ve sonuç içeren redakte audit",
+              "acceptance": "Her yazma denemesinin audit kaydı istemci beyanını değil oturumdaki gerçek kullanıcıyı, correlation kimliğini ve sonucu (kabul/red) taşır; hassas alanlar redakte edilir. Tekrar istek ikinci iş etkisi veya olay kimliği üretmez; tekrar deneme ve güvenlik günlükleri ayrı tutulabilir ve bastırılmaz.",
+              "verification": "Sahte actor başlığı eklenmiş aynı istek yetkili ve yetkisiz rolle tekrarlanır; audit kaydında actor, correlation, sonuç, redaksiyon, tek iş etkisi/olay kimliği ve ayrı deneme günlükleri kontrol edilir.",
+              "sourceTaskIds": [
+                "record-integrity--contract",
+                "audit-envelope--contract"
+              ],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            }
+          ]
+        },
+        {
+          "id": "transport",
+          "title": "Hata, sürüm, stream ve iptal",
+          "gateId": "G1",
+          "checks": [
+            {
+              "id": "hg-transport-01",
+              "title": "Tipli hata zarfında kimlik, yetki, doğrulama, çakışma ve transport ayrımı",
+              "acceptance": "Sağlayıcının ürettiği hata yanıtları sürümlü tipli JSON zarfındadır ve kimlik doğrulama, yetki, doğrulama, çakışma ve transport hatalarını ayrı sınıflar. Her controller reddi yetki hatası değildir; kopan bağlantıda HTTP/JSON yanıt hiç olmayabilir. Seçilen sürüm için normalleştirme sağlayıcı adapter’ında tanımlanır; durum kodları gözlenip yazılır, varsayılmaz.",
+              "verification": "Kimliksiz, yetkisiz, geçersiz, çakışan ve yetkili istekler gönderilir, bir bağlantı kasıtlı kesilir; durum kodu, zarf sınıfı ve sürüm alanı ya da yanıtın yokluğu kaydedilir.",
+              "sourceTaskIds": [
+                "api-response--contract",
+                "sse-api--contract",
+                "kernel-envelope--contract"
+              ],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            },
+            {
+              "id": "hg-transport-02",
+              "title": "Desteklenmeyen sürüm ve N/N-1 tüketici uyumu",
+              "acceptance": "Desteklenmeyen sözleşme sürümüyle gelen istek desteklenen sürümleri bildiren tipli hatayla reddedilir ve yan etki üretmez; N ve N-1 tüketici aynı yanıtı kırılmadan çözer. İzin kontrolü sürümden bağımsızdır.",
+              "verification": "Sözleşme fixture’larıyla N, N-1 ve desteklenmeyen sürüm isteği gönderilir; hata zarfı ve DB yan etkisinin olmadığı kaydedilir.",
+              "sourceTaskIds": [
+                "api-response--contract",
+                "sse-api--contract",
+                "kernel-envelope--contract"
+              ],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            },
+            {
+              "id": "hg-transport-03",
+              "title": "Abort ve geç yanıtta istek kapsamı izolasyonu",
+              "acceptance": "Sağlayıcı her yanıt ve olayda requestId ile tenant/kullanıcı kapsamını taşır. İstemci abort’u yalnız istemcinin tüketimini durdurur, rollback kanıtı değildir: sunucu mutasyonunun sonucu receipt ile uzlaştırılır, sunucu tarafı iptal yalnız belgeli güvenli noktalarda yapılır. Salt okunur stream iş verisini değiştirmez. Geç yanıtı yok sayma kararı harici GenUI tüketicisinindir.",
+              "verification": "Ardışık iki istek başlatılıp ilki istemcide abort edilir; geç yanıtın kapsam alanları ve mutasyon için receipt’teki gerçek sonuç kaydedilir.",
+              "sourceTaskIds": [
+                "sse-api--contract",
+                "api-response--contract",
+                "kernel-envelope--contract"
+              ],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            },
+            {
+              "id": "hg-transport-04",
+              "title": "SSE transport katmanı ile GenUI protokolünün ayrımı",
+              "acceptance": "SSE frame kimliği/cursor, Last-Event-ID ile yeniden bağlanma, iptal ve sürüm/hata kodları yalnız transport zarfındadır; GenUI mesaj yükü değiştirilmeden taşınır. Yeniden bağlanmada yalnız izni yeniden doğrulanan kayıtların frame’leri gönderilir. Frappe’nin Socket.IO realtime’ı SSE sözleşmesi sayılmaz.",
+              "verification": "Kopma sonrası Last-Event-ID ile devam, iptal, sürüm uyuşmazlığı ve izni kaldırılmış kullanıcının yeniden bağlanması denenir; GenUI yükünde transport alanı olmadığı şemayla kontrol edilir.",
+              "sourceTaskIds": [
+                "sse-api--contract",
+                "kernel-envelope--contract",
+                "api-response--contract"
+              ],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            }
+          ]
+        },
+        {
+          "id": "consumer",
+          "title": "Harici GenUI tüketici sınırı",
+          "gateId": "G4",
+          "checks": [
+            {
+              "id": "hg-consumer-01",
+              "title": "Kullanıcı sahipli, backend’den bağımsız GenUI sınırı",
+              "acceptance": "GenUI kullanıcının ayrı, backend’den bağımsız projesidir ve Frappe verisini yalnız sürümlü tipli HTTP/JSON sözleşmeyle tüketir. Bu SaaS deposu GenUI motoru, renderer veya model kodu yazmaz; renderer Python’a ya da Frappe’ye bağlanmaz.",
+              "verification": "Yetkili ve yetkisiz kullanıcıyla aynı sağlayıcı ucu çağrılır; yanıtın yayımlanmış şemaya uyduğu ve yetkisiz çağrının sunucuda reddedildiği kaydedilir. GenUI kaynağının incelenmesi kullanıcının kendi kabulüdür.",
+              "sourceTaskIds": [
+                "ui-family-39--contract",
+                "ui-provider-data--contract"
+              ],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            },
+            {
+              "id": "hg-consumer-02",
+              "title": "Docs iç importu olmadan sürüm ve digest’li sözleşme paketi",
+              "acceptance": "Sözleşme paketi için semver ve bütünlük digest’i önerilen artefakt politikasıdır; tüketici bu dokümantasyon deposunun iç modüllerini import etmez. Paket digest’i metadata veya katalog digest’inden ayrıdır; her backend yanıtının paket hash’iyle eşleşmesi beklenmez. Uyumsuz paketi reddetme kararı harici tüketicinin kabulüdür.",
+              "verification": "Yayımlanan paket manifestindeki sürüm ve digest yalnız paket artefaktıyla karşılaştırılır; bozuk digest ve bilinmeyen major sürüm örnekleri sağlayıcı sözleşme fixture’larında bulunur.",
+              "sourceTaskIds": [
+                "ui-family-39--contract",
+                "ui-provider-data--contract"
+              ],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            },
+            {
+              "id": "hg-consumer-03",
+              "title": "Tek Frappe adapter ve host sorumluluğu",
+              "acceptance": "Frappe erişimi tek adapter sınırında toplanır; adapter’ın uyduğu sağlayıcı/host sözleşmesi SaaS’ındır, host uygulaması ve renderer kullanıcının GenUI projesindedir. Renderer’dan Frappe’ye ikinci doğrudan erişim yolu sözleşme dışıdır.",
+              "verification": "Adapter sözleşmesine karşı yetkili ve yetkisiz okuma ve mutasyon istekleri gönderilir; sunucu reddi ve sözleşme dışı ikinci uç bulunmadığı kaydedilir.",
+              "sourceTaskIds": [
+                "ui-provider-data--contract",
+                "ui-family-39--contract"
+              ],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            },
+            {
+              "id": "hg-consumer-04",
+              "title": "Model gateway yalnız kayıtlı kimlik ve tipli parametre önerir",
+              "acceptance": "Model, sağlayıcının yayımladığı kayıtlı recipe/query/action kimliğini ve o kaydın şemasına uyan sınırlı, tipli parametreleri önerebilir; host ve sağlayıcı bunları doğrular. Serbest SQL, URL, DocType, kimlik bilgisi, audience yetkisi veya keyfî filtre grameri üretemez. Kayıt sunucuda native izinle çalışır. Model kurulumu, barındırma ve gateway kodu kapsam dışıdır.",
+              "verification": "Katalog dışı kimlik, ham sorgu, şema dışı veya sınır dışı parametre içeren isteğin reddedildiği; şemaya uyan tipli parametreli geçerli kaydın yetkili kullanıcıda çalıştığı, yetkisizde reddedildiği veya süzüldüğü kaydedilir.",
+              "sourceTaskIds": ["ui-provider-data--contract"],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            }
+          ]
+        },
+        {
+          "id": "headless",
+          "title": "Desk’ten bağımsız kabul",
+          "gateId": "G5",
+          "checks": [
+            {
+              "id": "hg-headless-01",
+              "title": "Desk globalleri ve Client Script olmadan HTTP akışı",
+              "acceptance": "Desk yüklenmeden; frappe.call, frm, cur_frm, frappe.ui veya Client Script olmadan kimliği doğrulanmış HTTP istemcisi pilot DocType kaydını okur, oluşturur ve günceller. Client Script’teki zorunlu doğrulama sunucu controller’ında da bulunur.",
+              "verification": "Desk asset’i yüklenmeden iki rolle REST istekleri gönderilir; tipli yanıt, yetkisiz red ve Client Script doğrulamasının sunucuda da uygulandığı kaydedilir.",
+              "sourceTaskIds": [
+                "permissioned-metadata--contract",
+                "ui-provider-metadata--contract"
+              ],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            },
+            {
+              "id": "hg-headless-02",
+              "title": "Native app Desk ekranı headless hazırlık sayılmaz",
+              "acceptance": "ERPNext, CRM veya HRMS gibi bir app’in Desk ekranının çalışması headless hazırlık kanıtı değildir. Kapsam envanterinde supported işaretli her akış (CRUD, gerektiğinde submit/cancel/amend, child, workflow, rapor, dosya, realtime) Desk olmadan HTTP/JSON ile çalışır; unsupported veya not_run akış hazır sayılmaz. Tek kart pilotu evrensel destek değildir.",
+              "verification": "Desk oturumu ve asset’i kullanılmadan envanterdeki supported akışlar iki rolle sağlayıcı uçlarından çağrılır; okuma izni, yazmada controller doğrulaması ve sözleşme eşleşmesi kabul bağlantısıyla kaydedilir.",
+              "sourceTaskIds": [
+                "permissioned-metadata--contract",
+                "ui-provider-metadata--contract"
+              ],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            },
+            {
+              "id": "hg-headless-03",
+              "title": "Desteklenmeyen alan ve script için açık uyumsuzluk",
+              "acceptance": "Sözleşmede karşılığı olmayan alan türü veya Desk Client Script davranışı sessizce atlanmaz; projection bunları neden koduyla açık unsupported listesinde bildirir ve script kodu taşımaz. Liste yalnız kullanıcının görmeye yetkili olduğu alanları adlandırır; gizli alan veya script adı sızmaz. Uyumsuzluğun görünür gösterimi harici GenUI’nin kabulüdür.",
+              "verification": "Desteklenmeyen alan ve Client Script içeren DocType’ın projection’ı iki rolle istenir; unsupported girdileri ve gizli ad sızmaması kontrol edilir, arayüz atlanarak gönderilen kaydın izin ve controller doğrulamasından geçtiği kaydedilir.",
+              "sourceTaskIds": [
+                "permissioned-metadata--contract",
+                "ui-provider-metadata--contract"
+              ],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            },
+            {
+              "id": "hg-headless-04",
+              "title": "İzin iptali ve kullanıcı/tenant değişiminde sızıntı yok",
+              "acceptance": "Kullanıcı veya tenant değişiminden sonraki istekte önceki kapsamın önbelleği veya yanıtı yeniden kullanılmaz, önceki kimliğe ait metadata veya kayıt dönmez; sunucu yeniden yetkilendirir. Rol veya izin iptalinde hg-identity-03 ile sözleşmeye yazılan iptal politikası ve azami gecikme uygulanır; anında iptal vaat edilmez, bu süre aşıldıktan sonra önceki izne ait metadata veya kayıt dönmez. Yanıt, tüketicinin önbellek anahtarına girecek tenant, kullanıcı ve izin sürümü kapsamını taşır.",
+              "verification": "İki tenant ve iki kullanıcıyla yanıtlar alınır; rol iptal edilip kullanıcı ve tenant değiştirilir, aynı uçlar yeniden çağrılır; kullanıcı ve tenant değişiminden sonra önceki kapsama ait veri bulunmadığı, rol iptalinden sonra ise reddin başladığı süre ve sözleşmedeki azami gecikmenin aşılmadığı kaydedilir.",
+              "sourceTaskIds": [
+                "permissioned-metadata--contract",
+                "ui-provider-metadata--contract"
+              ],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            }
+          ]
+        },
+        {
+          "id": "evidence",
+          "title": "Pilot ve yayın kanıtı",
+          "gateId": "G5",
+          "checks": [
+            {
+              "id": "hg-evidence-01",
+              "title": "Pilot: yetkili veriyle tanımı kaydet ve yeniden aç",
+              "acceptance": "Yetkili kullanıcı pilot DocType’a dayanan kart tanımını sağlayıcı sözleşmesiyle kaydeder ve yeniden açınca aynı tanımı görür; yetkisiz kullanıcı sunucu reddiyle engellenir. definitions alanındaki persistence boşluğu kapanmadan bu kontrol çalıştırılamaz.",
+              "verification": "Pilot tenant’ta iki rolle kaydetme ve yeniden açma akışı yürütülür; HTTP yanıtları, sunucu reddi ve tanım eşitliği kaydedilir. Atlas fixture köprüsü ve tarayıcı deposu yerine geçmez.",
+              "sourceTaskIds": [
+                "ui-family-39--contract",
+                "permissioned-metadata--contract"
+              ],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            },
+            {
+              "id": "hg-evidence-02",
+              "title": "İki yetki kapsamında negatif sorgu ve tanım izni",
+              "acceptance": "Farklı kapsamdaki iki pilot kullanıcıdan biri kapsamı dışındaki kayıt veya tanım için istek yaptığında yanıt reddedilir ya da boş döner; kapsam içindeki istek başarılıdır.",
+              "verification": "İki kullanıcı aynı kayıt ve tanım uçlarını çağırır; sonuçlar kullanıcı bazında karşılaştırılıp kaydedilir.",
+              "sourceTaskIds": [
+                "ui-family-39--contract",
+                "permissioned-metadata--contract"
+              ],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            },
+            {
+              "id": "hg-evidence-03",
+              "title": "Check, CI ve Pages sonucu ürün runtime kabulü değildir",
+              "acceptance": "Bu /saas deposunun check, CI ve Pages başarısı yalnız statik plan yayınını kanıtlar. Runtime kabulü repo/commit, kurulu app ve site kimliğine bağlı ayrı kanıt ister; ürün deposunun bu bağlamlara bağlı gerçek runtime CI sonucu kanıt sayılabilir. Kanıt yoksa kontrol not_run kalır.",
+              "verification": "Her runtime kanıt kaydında commit, site ve kullanıcı kapsamının bulunduğu incelenir; bu deponun Pages veya CI çıktısı kanıt kabul edilmez.",
+              "sourceTaskIds": [
+                "permissioned-metadata--contract",
+                "ui-family-39--contract"
+              ],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            },
+            {
+              "id": "hg-evidence-04",
+              "title": "Seçili yüzde 100 headless yalnız gerçek kanıtla",
+              "acceptance": "Seçili headless kapsam yalnız seçili sürümlü sözleşmenin bütün maddeleri Desk, frm ve client asset olmadan gerçek izin ve sözleşme kanıtı taşıdığında tamam sayılır. Kanıt; etkin metadata digest’i veya sourceVersion, app commit’i, Custom Field durumu ve siteye bağlanır; uydurulmuş bir native DocType sürüm alanı kullanılmaz. Kanıtsız madde not_run kalır; evrensel Frappe uyumluluğu iddia edilmez.",
+              "verification": "Yayın kararında her sözleşme maddesi için kanıt kaydı, metadata digest’i/sourceVersion, app commit’i, site ve sunucu reddi eşleştirilir; eksik madde not_run işaretlenir, yüzde gösterilmez.",
+              "sourceTaskIds": [
+                "ui-family-39--contract",
+                "permissioned-metadata--contract"
+              ],
+              "mapping": "partial",
+              "status": "not_run",
+              "evidence": []
+            }
+          ]
+        }
+      ],
+      "pilot": {
+        "title": "İlk pilot: kaydet, modelsiz yeniden aç, güncel izinli veriyi getir",
+        "sequence": [
+          "T-00 baseline: ürün repo/commit, bench ve sitede kurulu app/sürümler, kullanılabilir REST sürümü, seçili yetenek envanteri, pilot DocType, iki izin kapsamı ve gerçek komutlar mevcut yetkili izole ortamda dondurulur; bu kayıt olmadan sonraki adımlar BLOCKED kalır.",
+          "T-00 sonrası paralel kollar: sağlayıcı sözleşmeleri (metadata projection, kayıtlı sorgu, tipli hata ve sürüm) ile T-01 kimlik/oturum kanalı; biri diğerini beklemez.",
+          "İlk gerçek izinli sorgu: pilot DocType’ta kayıtlı sorgu iki yetki kapsamıyla gerçek sunucuda çalışır; T-08 frontend–Frappe okuma kabulüyle aynı kanıt hattıdır.",
+          "Kaydedilmiş tanım: persistence boşluğunu kapatan tek sınırlı sağlayıcı görevinden sonra tanım kaydedilir ve model çağrılmadan yeniden açılınca güncel izinli veri gelir.",
+          "Harici GenUI sözleşmesi: kullanıcı sahipli GenUI yalnız yayımlanmış sürümlü HTTP/JSON sözleşmeyi tüketir; SaaS renderer, model veya GenUI kodu yazmaz.",
+          "Gerçek sunucu eylemi: tek eylem önizleme/onay, güncel sunucu yetkisi, tenant/actor/operation kapsamlı idempotency ve kabulde oluşan sorgulanabilir receipt ile çalışır; istemci iptali rollback sayılmaz, sonuç receipt ile uzlaştırılır."
+        ],
+        "acceptance": [
+          "Her adımın kanıtı repo/commit, site ve kullanıcı kapsamına bağlıdır; Atlas fixture köprüsü, tarayıcı deposu veya Pages/CI sonucu yerine geçmez.",
+          "Yetkisiz kapsam sorgu, tanım ve eylemde sunucuda reddedilir; whitelist veya arayüzde gizleme yetki sayılmaz.",
+          "Yeniden açışta model çağrısı yoktur; veri saklanmış anlık görüntü değil, o anki izinle süzülmüş güncel sonuçtur.",
+          "Bu depo pilotu çalıştırmaz; model veya GenUI kodu yazmaz. Ölçülene kadar bütün adımlar not_run kalır."
+        ]
+      },
+      "sources": [
+        {
+          "title": "Frappe REST API",
+          "url": "https://docs.frappe.io/framework/user/en/api/rest",
+          "reviewedAt": "2026-10-14"
+        },
+        {
+          "title": "Frappe Document API",
+          "url": "https://docs.frappe.io/framework/user/en/api/document",
+          "reviewedAt": "2026-10-14"
+        },
+        {
+          "title": "Frappe Database API",
+          "url": "https://docs.frappe.io/framework/user/en/api/database",
+          "reviewedAt": "2026-10-14"
+        },
+        {
+          "title": "Frappe hooks",
+          "url": "https://docs.frappe.io/framework/user/en/python-api/hooks",
+          "reviewedAt": "2026-10-14"
+        },
+        {
+          "title": "Frappe whitelisted methods",
+          "url": "https://docs.frappe.io/framework-git/server-side/whitelisted-methods",
+          "reviewedAt": "2026-10-14"
+        },
+        {
+          "title": "Keycloak OIDC katmanları",
+          "url": "https://www.keycloak.org/securing-apps/oidc-layers",
+          "reviewedAt": "2026-10-14"
+        },
+        {
+          "title": "A2UI veri akışı",
+          "url": "https://a2ui.org/concepts/data-flow/",
+          "reviewedAt": "2026-10-14"
+        }
       ]
     }
   }

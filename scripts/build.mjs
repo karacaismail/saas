@@ -4,6 +4,7 @@ import { loadProject, validateProject } from './project-model.mjs';
 import {
   createTaskPacket,
   createCurrentPlanPacket,
+  renderLegacyScopeNotice,
   renderCurrentPlanPage,
   renderClusterPage,
   renderProjectHome,
@@ -35,11 +36,32 @@ const dataIsland =
   dataMatch[1] +
   JSON.stringify(JSON.parse(dataMatch[2])).replaceAll('<', '\\u003c') +
   dataMatch[3];
-const atlasHtml = source
+const atlasShell = source
   .replace(dataPattern, '<!--ATLAS_DATA_ISLAND-->')
   .replace(/[\t ]*\n[\t ]*/g, ' ')
-  .replaceAll('="./assets/', '="../assets/')
-  .replace('<!--ATLAS_DATA_ISLAND-->', dataIsland);
+  .replaceAll('="./assets/', '="../assets/');
+// Direct /atlas/ visitors see the current master before historical ownership.
+// Only the built copy changes; the source snapshot and data island stay intact.
+const contextMarker =
+  '<details class="context-disclosure" id="context-details">';
+const contextAt = atlasShell.indexOf(contextMarker);
+const summaryEnd =
+  atlasShell.indexOf('</summary>', contextAt) + '</summary>'.length;
+const roadmapAt = atlasShell.indexOf('id="roadmap"', contextAt);
+if (
+  contextAt < 0 ||
+  atlasShell.indexOf(contextMarker, contextAt + 1) >= 0 ||
+  summaryEnd < contextAt + contextMarker.length ||
+  roadmapAt < summaryEnd
+)
+  throw new Error('Atlas teknik bağlam alanı bulunamadı.');
+const atlasNotice = renderLegacyScopeNotice(project);
+if (!atlasNotice) throw new Error('Güncel ana karar notu bulunamadı.');
+const atlasHtml = (
+  atlasShell.slice(0, summaryEnd) +
+  atlasNotice +
+  atlasShell.slice(summaryEnd)
+).replace('<!--ATLAS_DATA_ISLAND-->', dataIsland);
 await write('dist/atlas/index.html', atlasHtml);
 await write('dist/index.html', renderProjectHome(project));
 for (const [planKey, slug, stem] of [

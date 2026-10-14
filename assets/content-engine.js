@@ -1002,6 +1002,19 @@ function mountContent(html) {
     behavior: 'instant',
   };
   const parsed = new DOMParser().parseFromString(html, 'text/html');
+  // The build injects the current scope notice; regenerated HTML lacks it.
+  const scopeNotice = document.querySelector(
+    '#context-details > [data-current-scope]',
+  );
+  const parsedContext = parsed.getElementById('context-details');
+  if (
+    scopeNotice &&
+    parsedContext &&
+    !parsedContext.querySelector(':scope > [data-current-scope]')
+  )
+    parsedContext
+      .querySelector(':scope > summary')
+      ?.after(parsed.importNode(scopeNotice, true));
   document.body.replaceChildren(...parsed.body.childNodes);
   document.title = parsed.title;
   document.querySelector('meta[name="description"]').content =

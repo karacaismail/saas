@@ -424,7 +424,7 @@ test('single task page preserves source context, downloads JSON Markdown and pro
   ).toEqual({
     visible: true,
     outline: 'none',
-    indicator: 'rgb(0, 66, 199) 0px -3px 0px 0px inset',
+    indicator: 'rgb(255, 253, 247) 0px -3px 0px 0px inset',
   });
   expect(await geometry(page)).toEqual({
     overflow: false,
@@ -466,6 +466,21 @@ test('task selection exports across filters, rejects partial bundles and keeps s
     await checks.nth(0).getAttribute('data-task-select'),
     await checks.nth(1).getAttribute('data-task-select'),
   ];
+  await checks.nth(0).focus();
+  await page.keyboard.press('Space');
+  await expect(checks.nth(0)).toBeChecked();
+  await expect(checks.nth(0)).toBeFocused();
+  expect(
+    await checks.nth(0).evaluate((input) => ({
+      outline: getComputedStyle(input).outlineStyle,
+      inputIndicator: getComputedStyle(input).boxShadow,
+      labelIndicator: getComputedStyle(input.parentElement).boxShadow,
+    })),
+  ).toEqual({
+    outline: 'none',
+    inputIndicator: 'none',
+    labelIndicator: 'rgb(0, 66, 199) 0px -3px 0px 0px inset',
+  });
   await checks.nth(0).check();
   await checks.nth(1).check();
   await page.locator('#project-search').fill('no-such-task-88442');
