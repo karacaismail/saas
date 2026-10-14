@@ -1062,6 +1062,33 @@
                   "Hedef ürün repo/commit, kurulu Frappe apps/sürümleri, gerçek DocType, tenant/yetki ve offline test ortamı bilinmiyor. Dosya adı çalışma kanıtı değildir.",
                   "Node manifesti >=22, .nvmrc ve gözlenen Node24.21.0; lockfile Playwright1.64.0, axe4.13.0, Prettier3.9.10. Bu sürümler ürün stack sürümleri değildir."
                 ]
+              },
+              {
+                "label": "Kullanıcının verdiği hedef — 2026-10-14",
+                "value": "https://egitim.metaframer.net/ herkese açık GET isteğine 200 yanıt verdi; başlık Frappe Suite, Server başlığı Frappe Cloud ve asset yolu /assets/suite/frontend/. Oturum açılmadı veya veri değiştirilmedi. Bu gözlem kurulu app, repo ya da commit kanıtı değildir.",
+                "url": "https://egitim.metaframer.net/"
+              },
+              {
+                "label": "Eğitim test panosu — tarihsel kaynak",
+                "value": "metafrappe/metaframer-test-panosu kaynak HEAD’i adcd5426c2b09cc4d32c0c55730117fd250556d2 olarak okundu. Pano egitim-test.metaframer.net için 17 ayrı uygulama etiketi tanımlar; kullanıcının verdiği egitim.metaframer.net ile eşdeğerlik kanıtı yoktur. bench-0022, Frappe v16 ve genel 56 uygulama sayısı hardcoded tarihsel beyanlardır. Seçili eğitim listesinde Suite yoktur; Frappe Drive etiketi Suite kurulumu veya göç kanıtı sayılmaz. Tarayıcıda tutulan işaretler kurulum denetimi değildir.",
+                "url": "https://github.com/metafrappe/metaframer-test-panosu/blob/adcd5426c2b09cc4d32c0c55730117fd250556d2/index.html"
+              },
+              {
+                "label": "Suite — kaynak adayı, deployment eşlemesi değil",
+                "value": "metafrappe/suite, frappe/suite fork’udur; okunan kaynak HEAD’i 15414cd53b62abc6c2d7e8297494eed5225a37fd. hooks.py ve frontend/index.html içindeki Frappe Suite başlığı ve asset namespace’i hedef sayfayla tutarlıdır; bu, fork’un veya bu commit’in sitede kurulu olduğunu kanıtlamaz. Kaynak frontend Vue’dur; seçili React/Ant Design/TanStack ürün kararı değiştirilmez.",
+                "url": "https://github.com/metafrappe/suite/tree/15414cd53b62abc6c2d7e8297494eed5225a37fd"
+              },
+              {
+                "label": "Admin — sınırlı yeniden kullanım adayı",
+                "value": "metafrappe/metaframer-admin kaynak HEAD’i 4e1d42054a2de55d379166c7d5a751405f4907be. README hedefi erp-test.metaframer.net’tir; egitim.metaframer.net deployment eşlemesi yoktur. server/frappe.ts içinde Item sorgu/yazma ve hata eşleme kaynakları vardır; genel metadata/projection veya GenUI sağlayıcısı tamamlanmış sayılmaz. Mevcut giriş Frappe kullanıcı/parolasını aracı servisten geçirir ve CSRF için /desk HTML’ini okur. Bu auth akışı seçili Keycloak ve Desk bağımsızlığı hedefinin karşılığı değildir; yeni auth reçetesi olarak alınmaz. Express aracı servisi, mevcut kaynak bulgusudur; başka backend’e geçiş kararı değildir. Manifest Node >=24 beyan eder. Aynı kaynak commit’inin package-lock.json çözümü React 19.3.0, React Router 7.18.4, Express 5.2.1, Vite 8.3.0 ve Playwright 1.63.0 içerir; kurulu runtime bilinmiyor. Ant Design/TanStack/Keycloak kararları bu adayın bağımlılıklarıyla değiştirilmez. Adayın package.json komutları dev: tsx watch server/index.ts; build: tsc --noEmit && vite build; test: tsx --test tests/*.test.ts. Bunlar okunmuş kaynak komutlarıdır; ürün ortamında çalıştırılmadı. setup:catalog, seed:demo veya test:live çalıştırılmadı.",
+                "url": "https://github.com/metafrappe/metaframer-admin/tree/4e1d42054a2de55d379166c7d5a751405f4907be"
+              },
+              {
+                "label": "T-00’da eksik kalan deployment kanıtı",
+                "value": [
+                  "Tek eksik eşleme hedef hostname → gerçek site/bench → kurulu app origin/commit/sürüm ve servis edilen build kaydıdır. Teknik kanıt devri Hüseyin Cengiz’e aittir; mevcut yetkili kayıtlardan salt okunur envanter gerekir. Bu kayıt server, hesap veya servis değişikliği yetkisi vermez.",
+                  "Hedefte etkin DocType/Custom Field/Property Setter, iki izin kapsamı, gerçek runtime ve yan etkileri bilinen izole dev/test/build komutları ayrıca doğrulanmalıdır. Ürün baseline’ı null kalır; R-00/R-01/R-02 BLOCKED, 52 kontrol not_run ve evidence boş kalır. GitHub HEAD veya eski pano, kurulmuş ürün baseline’ı yapılmaz."
+                ]
               }
             ]
           },

@@ -49,3 +49,11 @@ Genel resmî referanslar 2026-10-14 tarihinde incelendi; hedef kurulum kanıtı 
 
 - Frappe: [REST API](https://docs.frappe.io/framework/user/en/api/rest), [Document API](https://docs.frappe.io/framework/user/en/api/document), [Database API](https://docs.frappe.io/framework/user/en/api/database), [Hooks](https://docs.frappe.io/framework/user/en/python-api/hooks), [Whitelisted methods](https://docs.frappe.io/framework-git/server-side/whitelisted-methods)
 - Kimlik ve veri akışı: [Keycloak OIDC katmanları](https://www.keycloak.org/securing-apps/oidc-layers), [A2UI veri akışı](https://a2ui.org/concepts/data-flow/)
+
+## Hedef ve public kaynak keşfi — 2026-10-14
+
+Kullanıcının verdiği hedef `https://egitim.metaframer.net/` olarak kaydedildi. Herkese açık GET yanıtı Frappe Suite başlığı ve Suite asset yolları gösterdi; oturum açılmadı, veri değiştirilmedi. İki GitHub hesabındaki public repo metadata’sından seçilen kaynakların sabit HEAD’leri, mevcut `reusePlan` A bölümündeki `efficiency-inventory` kaydına işlendi; yeni registry veya görev açılmadı.
+
+Kaynaklar aynı deployment değildir: test panosu `egitim-test.metaframer.net` için 17 uygulama etiketi tanımlar; genel 56 sayısı bu siteye ait kurulu app sayısı değildir. Admin kodunun belgelenen hedefi `erp-test.metaframer.net`tir. Suite fork’unun başlık/asset uyumu da hedefte o fork/commit’in kurulu olduğunu kanıtlamaz. Aday admin’in parola aktarımı ve `/desk` HTML’inden CSRF alma akışı Keycloak ve Desk bağımsızlığı hedefini karşılamış sayılmaz; seçili Frappe/React/Ant Design/TanStack mimarisi değiştirilmez.
+
+Kaynak manifesti, lock çözümü ve kurulu runtime ayrı tutuldu. Gerçek hostname–site/bench–kurulu app origin/commit/sürüm eşlemesi ve build kaydı eksiktir; teknik kanıt devri Hüseyin Cengiz’e aittir. Ürün baseline’ı dondurulmadı; R-00/R-01/R-02 ve 52 kabul kontrolünün durumu değişmedi. Bu sonlu keşif için ürün testi, kurulum, seed, login veya sunucu müdahalesi yapılmadı.
