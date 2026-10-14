@@ -535,6 +535,13 @@ test('task selection exports across filters, rejects partial bundles and keeps s
   );
   expect(sourceResponse.ok()).toBe(true);
   const { currentPlan, reusePlan } = await sourceResponse.json();
+  const headless = reusePlan.headlessReadiness;
+  expect(headless?.scope).toEqual({
+    genuiOwner: 'user',
+    genuiBackend: 'independent',
+    saasRole: 'planning',
+    provider: 'frappe',
+  });
   expect(currentPlan.tasks.map((task) => task.id)).toEqual(
     Array.from(
       { length: 10 },
@@ -698,6 +705,12 @@ test('task selection exports across filters, rejects partial bundles and keeps s
   await page.locator('a[data-reuse-plan]').click();
   await expect(page).toHaveURL(new URL('reuse/', homeUrl(baseURL)).href);
   await expect(page.locator('h1')).toHaveText(reusePlan.title);
+  await expect(page.locator('[data-headless-readiness]')).toContainText(
+    headless.notice,
+  );
+  await expect(page.locator('[data-headless-check]')).toHaveCount(
+    headless.areas.reduce((count, area) => count + area.checks.length, 0),
+  );
   expect(
     await page.locator('main > section[id] > h2').allTextContents(),
   ).toEqual(reusePlan.sections.map((section) => section.title));
@@ -709,6 +722,7 @@ test('task selection exports across filters, rejects partial bundles and keeps s
     page.locator('a[href="./reuse-plan.md"]'),
   );
   expect(reusePacket.plan).toEqual(reusePlan);
+  expect(reusePacket.plan.headlessReadiness).toEqual(headless);
   expect(JSON.parse(reuseMarkdown.match(embeddedPacketPattern)[1])).toEqual(
     reusePacket,
   );

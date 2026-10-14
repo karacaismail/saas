@@ -55,6 +55,27 @@ test('project presentation preserves all twenty canonical source documents and a
   );
   assert.equal(project.atlas.review.expectedItems, 387);
   assert.equal(project.atlas.review.decisions.length, 109);
+  const readiness = reusePlan.headlessReadiness;
+  assert.ok(readiness, 'Frappe provider readiness must be canonical');
+  assert.deepEqual(readiness.scope, {
+    genuiOwner: 'user',
+    genuiBackend: 'independent',
+    saasRole: 'planning',
+    provider: 'frappe',
+  });
+  assert.equal(readiness.runtimeStatus, 'not_verified');
+  assert.ok(
+    readiness.areas.some(
+      (area) =>
+        area.id === 'definitions' &&
+        area.checks.some((check) => check.mapping === 'gap'),
+    ),
+    'Missing Frappe definition persistence must remain an explicit gap',
+  );
+  assert.deepEqual(
+    readiness.overrides.map((entry) => entry.clusterId),
+    ['ui-family-39', 'ui-provider-registry'],
+  );
   const { renderProjectHome } = await import('../assets/project-templates.js');
   assert.ok(
     renderProjectHome(project).includes('href="./plan/"'),
@@ -63,6 +84,11 @@ test('project presentation preserves all twenty canonical source documents and a
   assert.ok(
     renderProjectHome(project).includes('href="./reuse/"'),
     'Reuse architecture must be reachable from the workspace',
+  );
+  const home = renderProjectHome(project);
+  assert.ok(
+    home.indexOf('data-reuse-plan') < home.indexOf('data-current-plan'),
+    'The current master decision must precede the historical plan',
   );
   assert.equal(project.meta.currentPlan.tasks.length, 10);
   assert.equal(
@@ -123,11 +149,26 @@ test('every requirement and component family has bounded task ownership and a tr
     assert.ok(task.owns.length > 0, task.id);
     assert.ok(task.acceptance.length > 0, task.id);
   }
+  const readiness = p.meta.reusePlan.headlessReadiness;
+  assert.ok(readiness);
+  const checkIds = new Set();
+  for (const area of readiness.areas) {
+    assert.ok(p.meta.gates.some((gate) => gate.id === area.gateId));
+    for (const check of area.checks) {
+      assert.ok(!checkIds.has(check.id), check.id);
+      checkIds.add(check.id);
+      assert.equal(check.status, 'not_run');
+      assert.deepEqual(check.evidence, []);
+      for (const reference of check.sourceTaskIds)
+        assert.ok(tasks.has(reference), reference);
+    }
+  }
 });
 
 test('project validation rejects overlapping writers, dependency cycles, escaping paths and oversized clusters', async () => {
   const { validateProject } = await import('../scripts/project-model.mjs');
   const p = await load();
+  assert.ok(p.meta.reusePlan.headlessReadiness);
   for (const mutate of [
     (q) => q.tasks[1].owns.push(q.tasks[0].owns[0]),
     (q) =>
@@ -171,6 +212,25 @@ test('project validation rejects overlapping writers, dependency cycles, escapin
       q.meta.reusePlan.sections[1].entries[0].fields[0].url =
         'http://example.test';
     },
+    (q) => {
+      q.meta.reusePlan.headlessReadiness.scope.genuiOwner = 'saas';
+    },
+    (q) => {
+      q.meta.reusePlan.headlessReadiness.areas[0].checks[0].sourceTaskIds = [
+        'missing-provider-task',
+      ];
+    },
+    (q) => {
+      const areas = q.meta.reusePlan.headlessReadiness.areas;
+      areas[1].checks[0].id = areas[0].checks[0].id;
+    },
+    (q) => {
+      q.meta.reusePlan.headlessReadiness.areas[0].checks[0].status = 'pass';
+    },
+    (q) => {
+      q.meta.reusePlan.headlessReadiness.overrides[0].clusterId =
+        'unknown-genui-cluster';
+    },
   ]) {
     const invalid = structuredClone(p);
     mutate(invalid);
@@ -180,6 +240,8 @@ test('project validation rejects overlapping writers, dependency cycles, escapin
 
 test('task JSON and Markdown carry the full source requirement and dependency context', async () => {
   const p = await load();
+  const readiness = p.meta.reusePlan.headlessReadiness;
+  assert.ok(readiness);
   const { createTaskPacket, serializeTaskMarkdown, renderTaskPage } =
     await import('../assets/project-templates.js');
   for (const layer of [
@@ -246,6 +308,17 @@ test('task JSON and Markdown carry the full source requirement and dependency co
           p.meta.reusePlan.sections,
         );
         if (!taskId)
+          for (const area of readiness.areas)
+            for (const check of area.checks) {
+              assert.ok(md.includes(check.title), check.id);
+              assert.ok(
+                renderCurrentPlanPage(p, undefined, planKey).includes(
+                  `data-headless-check="${check.id}"`,
+                ),
+                check.id,
+              );
+            }
+        if (!taskId)
           for (const entry of p.meta.reusePlan.sections.flatMap(
             (section) => section.entries ?? [],
           )) {
@@ -253,4 +326,15 @@ test('task JSON and Markdown carry the full source requirement and dependency co
           }
       }
     }
+  for (const override of readiness.overrides) {
+    const task = p.tasks.find(
+      (entry) => entry.clusterId === override.clusterId,
+    );
+    const packet = createTaskPacket(p, task.id);
+    assert.deepEqual(packet.executionScope, override);
+    assert.ok(serializeTaskMarkdown(packet).includes(override.instruction));
+    assert.ok(
+      renderTaskPage(p, task.id, packet).includes('data-execution-scope'),
+    );
+  }
 });
