@@ -322,7 +322,7 @@ test('HTML-shaped JSON strings are displayed as text without creating executable
 for (const changed of [false, true]) {
   test(`delayed ${changed ? 'changed' : 'identical'} JSON preserves disclosures and keyboard focus opened before hydration`, async ({
     page,
-  }) => {
+  }, testInfo) => {
     const replacement = 'Gecikmeli JSON yanıtından gelen güncel özellik metni.';
     let releaseHydration;
     const interactionReady = new Promise((resolve) => {
@@ -400,6 +400,34 @@ for (const changed of [false, true]) {
     await expect(page.locator(`#${groupId} > summary`)).toBeFocused();
     expect(after.openGroups).toBe(1);
     if (changed) expect(after.title).toBe(replacement);
+    const masterLink = page.locator(
+      '#context-details [data-current-scope] h2 a',
+    );
+    await masterLink.focus();
+    await expect(masterLink).toBeFocused();
+    expect(
+      await masterLink.evaluate((link) => {
+        const style = getComputedStyle(link);
+        return {
+          visible: link.matches(':focus-visible'),
+          outline: style.outlineStyle,
+          shadow: style.boxShadow,
+          decoration: style.textDecorationLine,
+          decorationStyle: style.textDecorationStyle,
+          thickness: style.textDecorationThickness,
+        };
+      }),
+    ).toEqual({
+      visible: true,
+      outline: 'none',
+      shadow: 'none',
+      decoration: 'underline',
+      decorationStyle: 'dashed',
+      thickness: '3px',
+    });
+    await page.screenshot({
+      path: testInfo.outputPath('atlas-current-scope-focus.png'),
+    });
   });
 }
 
