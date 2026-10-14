@@ -419,9 +419,13 @@ test('single task page preserves source context, downloads JSON Markdown and pro
     await page.locator('[data-copy-task]').evaluate((button) => ({
       visible: button.matches(':focus-visible'),
       outline: getComputedStyle(button).outlineStyle,
-      width: parseFloat(getComputedStyle(button).outlineWidth),
+      indicator: getComputedStyle(button).boxShadow,
     })),
-  ).toEqual({ visible: true, outline: 'solid', width: 3 });
+  ).toEqual({
+    visible: true,
+    outline: 'none',
+    indicator: 'rgb(0, 66, 199) 0px -3px 0px 0px inset',
+  });
   expect(await geometry(page)).toEqual({
     overflow: false,
     small: 0,
@@ -731,6 +735,44 @@ test('task selection exports across filters, rejects partial bundles and keeps s
     'BLOCKED',
     'BLOCKED',
   ]);
+  const longestArea = [...headless.areas].sort(
+    (a, b) => JSON.stringify(b.checks).length - JSON.stringify(a.checks).length,
+  )[0];
+  const area = page.locator(`[data-headless-area="${longestArea.id}"]`);
+  const areaSummary = area.locator(':scope > summary');
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await areaSummary.focus();
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Shift+Tab');
+  await expect(areaSummary).toBeFocused();
+  const areaStyle = () =>
+    areaSummary.evaluate((summary) => {
+      const style = getComputedStyle(summary);
+      const chevron = getComputedStyle(summary.querySelector('.p-chevron'));
+      return {
+        focused: summary.matches(':focus-visible'),
+        outline: style.outlineStyle,
+        indicator: style.boxShadow,
+        duration: chevron.transitionDuration,
+        easing: chevron.transitionTimingFunction,
+      };
+    });
+  const expectedAreaStyle = {
+    focused: true,
+    outline: 'none',
+    indicator: 'rgb(0, 66, 199) 0px -3px 0px 0px inset',
+    duration: '0.14s',
+    easing: 'cubic-bezier(0.65, 0, 0.35, 1)',
+  };
+  expect(await areaStyle()).toEqual(expectedAreaStyle);
+  await page.keyboard.press('Enter');
+  await expect(area).toHaveAttribute('open', '');
+  expect(await areaStyle()).toEqual(expectedAreaStyle);
+  await page.keyboard.press('Enter');
+  await expect(area).not.toHaveAttribute('open');
+  expect(await areaStyle()).toEqual(expectedAreaStyle);
+  await page.keyboard.press('Enter');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
   for (const [width, height] of [
     [320, 568],
     [360, 640],
@@ -747,6 +789,7 @@ test('task selection exports across filters, rejects partial bundles and keeps s
       thin: 0,
       font: 'Outfit',
     });
+    await expect(area).toHaveAttribute('open', '');
   }
   await page.setViewportSize({ width: 320, height: 568 });
   await page.evaluate(() => {
@@ -758,11 +801,19 @@ test('task selection exports across filters, rejects partial bundles and keeps s
     thin: 0,
     font: 'Outfit',
   });
+  await areaSummary.scrollIntoViewIfNeeded();
+  await page.screenshot({
+    path: testInfo.outputPath('readiness-open-200.png'),
+  });
   await page.evaluate(() => {
     document.documentElement.style.removeProperty('font-size');
     window.scrollTo(0, 0);
   });
   await page.screenshot({ path: testInfo.outputPath('reuse-320.png') });
+  await areaSummary.scrollIntoViewIfNeeded();
+  await page.screenshot({
+    path: testInfo.outputPath('readiness-open-320.png'),
+  });
   await staticPage.goto(new URL('reuse/', homeUrl(baseURL)).href);
   await expect(staticPage.locator('[data-plan-task]')).toHaveCount(3);
   const reuseCards = staticPage.locator('details[data-plan-card]');
