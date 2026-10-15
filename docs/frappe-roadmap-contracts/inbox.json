@@ -69,7 +69,7 @@
     "tdd": {
       "status": "not_run",
       "oneScenario": "Ayni (consumer, event_id) icin, her biri ayri DB baglantisiyla frappe.init/connect yapan 10 thread esanli claim cagirir. Handler bir sayac kaydi yazar. Beklenen sonuc: tek Inbox satiri, tek handler etkisi, 10 yanitta ayni response, 9 yanitta duplicate=true.",
-      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: Ayni (consumer, event_id) icin, her biri ayri DB baglantisiyla frappe.init/connect yapan 10 thread esanli claim cagirir. Handler bir sayac kaydi yazar. Beklenen sonuc: tek Inbox satiri, tek handler etkisi, 10 yanitta ayni response, 9 yanitta duplicate=true. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
       "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Uygulamadan sonra ayni test ayni komutla calistirilir: bench --site suite.localhost run-tests --module saas_platform.platform_system.doctype.inbox.test_inbox. Native olarak zaten calisan davranis RED uretmek icin kullanilmaz."
     },
     "rollback": "Yalniz yerelde inbox.py ve planli test dosyasinin degisikligi geri alinir. Musteri kaydi silinmez. Production yetkisi yoktur. Uzak dagitim Huseyin Cengiz'in teknik bagimliligidir."
@@ -89,21 +89,7 @@
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,
-    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
-    "installedApps": ["frappe", "suite"],
-    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
-    "currentTargets": {
-      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
-      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
-    },
-    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
-    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
-    "constraints": [
-      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
-      "no service restart, cron/automation activation, production or customer-data changes",
-      "permissioned metadata only; raw get_meta is not an allowed projection",
-      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
-      "same single genuine RED/GREEN when actual implementation begins; no test wave"
-    ]
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
   }
 }

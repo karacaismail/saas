@@ -87,7 +87,7 @@
     "tdd": {
       "status": "not_run",
       "oneScenario": "Yerel test sitesinde mevcut bir Cron Scheduled Job Type icin System Manager get_schedule_status cagirir; yanit version=native-schedule.status.v1, frequency=Cron, next_execution == doc.get_next_execution() ve scheduler.inactive bool icerir; ayni cagri System Manager rolu olmayan test kullanicisiyla PermissionError verir. Test scheduler baslatmaz, enqueue etmez.",
-      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: Yerel test sitesinde mevcut bir Cron Scheduled Job Type icin System Manager get_schedule_status cagirir; yanit version=native-schedule.status.v1, frequency=Cron, next_execution == doc.get_next_execution() ve scheduler.inactive bool icerir; ayni cagri System Manager rolu olmayan test kullanicisiyla PermissionError verir. Test scheduler baslatmaz, enqueue etmez. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
       "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Ayni test, ayni komutla uygulama sonrasi gecer. Komut repo betiklerinden bulunur; burada calistirilmadi."
     },
     "rollback": "Sahip olunan adapter fonksiyonunu geri al. Veri veya sema degisikligi yok. Production izni yok."
@@ -111,21 +111,7 @@
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,
-    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
-    "installedApps": ["frappe", "suite"],
-    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
-    "currentTargets": {
-      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
-      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
-    },
-    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
-    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
-    "constraints": [
-      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
-      "no service restart, cron/automation activation, production or customer-data changes",
-      "permissioned metadata only; raw get_meta is not an allowed projection",
-      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
-      "same single genuine RED/GREEN when actual implementation begins; no test wave"
-    ]
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
   }
 }

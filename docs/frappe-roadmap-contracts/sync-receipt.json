@@ -71,7 +71,7 @@
     "tdd": {
       "status": "not_run",
       "oneScenario": "Ayni kullanici ayni mutation_id+content_hash ile t08 kaydina iki kez update push eder. Ikinci yanit status=replayed ve ayni receipt doner, hedefin modified degeri ilk yanittakiyle ayni kalir ve kullanici+mutation_id icin tam bir SyncReceipt bulunur.",
-      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: Ayni kullanici ayni mutation_id+content_hash ile t08 kaydina iki kez update push eder. Ikinci yanit status=replayed ve ayni receipt doner, hedefin modified degeri ilk yanittakiyle ayni kalir ve kullanici+mutation_id icin tam bir SyncReceipt bulunur. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
       "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Uygulamadan sonra ayni test ayni komutla calisir (yerel bench run-tests, yalniz bu modul); komut ve sonuc kaydedilir."
     },
     "rollback": "Yalniz sync_receipt.py degisikligi yerelde geri alinir; test kayitlari test transaction'inda kalir. Uretim degisikligi, servis yeniden baslatma veya musteri kaydi silme yetkisi yoktur."
@@ -93,21 +93,7 @@
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,
-    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
-    "installedApps": ["frappe", "suite"],
-    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
-    "currentTargets": {
-      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
-      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
-    },
-    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
-    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
-    "constraints": [
-      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
-      "no service restart, cron/automation activation, production or customer-data changes",
-      "permissioned metadata only; raw get_meta is not an allowed projection",
-      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
-      "same single genuine RED/GREEN when actual implementation begins; no test wave"
-    ]
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
   }
 }
