@@ -75,7 +75,7 @@
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "capability_key='doctype:NoSuchDocTypeX:read' olan bir CapabilityDefinition insert edildiğinde frappe.ValidationError beklenir ve kayıt oluşmamalıdır.",
+      "oneScenario": "capability_key='doctype:NoSuchDocTypeX:read' olan bir CapabilityDefinition insert edildiğinde frappe.ValidationError beklenir ve kayıt oluşmamalıdır. Aynı senaryoda CapabilityDefinition create izni olmayan, kimliği doğrulanmış kullanıcının geçerli anahtarlı native insert'i validate ve yazımdan önce frappe.PermissionError ile reddedilir. Her iki retten sonra CapabilityDefinition kayıt sayısı ve mevcut kayıtların kalıcı değerleri değişmemelidir.",
       "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
       "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Aynı test, implementasyondan sonra yerel sitede aynı bench run-tests --module komutuyla geçmelidir. Test yalnızca gerçek implementasyonla birlikte yazılır."
     },
@@ -98,6 +98,7 @@
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,
     "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "permissionPolicyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/explicitPermissionFlags",
     "specificPrerequisitesRef": "#/development/admission"
   }
 }

@@ -76,7 +76,7 @@
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "Pilot kaydında write yetkisi olan, Administrator olmayan admin-scope kullanıcı haritada olmayan operation ile enforce çağırır. Beklenen sonuç: native izin hatası oluşur, kaydın modified ve alan değeri değişmez.",
+      "oneScenario": "Pilot kaydında write yetkisi olan, Administrator olmayan admin-scope kullanıcı haritada olmayan operation ile enforce çağırır. Beklenen sonuç: native izin hatası oluşur. Aynı senaryoda write izni olmayan, kimliği doğrulanmış reader-scope kullanıcı pilot_record.update ile enforce çağırır; native check_permission hatası Document.save veya başka bir yan etkiden önce oluşur. Her iki retten sonra kaydın modified ve kalıcı alan değeri değişmez.",
       "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
       "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Aynı test ve aynı komut (bench run-tests ile bu modül, yalnız yerel pilot sitede), adaptör uygulandıktan sonra geçer."
     },
@@ -103,6 +103,7 @@
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,
     "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "permissionPolicyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/explicitPermissionFlags",
     "specificPrerequisitesRef": "#/development/admission"
   }
 }

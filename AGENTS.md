@@ -33,6 +33,8 @@ Amaç istenen davranışı teslim etmektir. Test, inceleme veya orkestrasyon ba�
 
 ## GenUI sahipliği ve Frappe headless sağlayıcı planı — 2026-10-14
 
+- Rol/izin üreten veya güncelleyen her pakette `docs/frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/explicitPermissionFlags` zorunludur (`access-3`, `security-1`). Üretilen DocPerm/Custom DocPerm satırında 13 izin bayrağının tamamı açıkça 0/1 atanır; eksik bayrak native varsayılanına bırakılamaz. Tenant/Keycloak/modül hakları ve fixture dahil; ilgili paketin kendi tek RED/GREEN kabulü yetkisiz yazmayı ve yan etkisiz reddi kapsar. Ayrı test dalgası veya yeni görev açılmaz.
+
 - Kullanıcının 2026-10-14 kesin kararı: GenUI Frappe, FastAPI, PHP veya başka bir backend'den bağımsızdır ve kullanıcı tarafından geliştirilir. Bu repo ve worker'ları GenUI motoru, renderer, model gateway, Frappe ürün kodu, kurulum veya servis değişikliği üretmez. SaaS'ın rolü planlamadır; seçili sağlayıcı yalnız Frappe'dir.
 - Güncel kanonik kaynak `data/project/project.json/reusePlan.headlessReadiness`'tır. Üçüncü görev registry'si açılmaz. 20 atlas JSON byte'ı, altı eski görev/izlenebilirlik dosyası, fixture/hashler, `currentPlan` ve R-00–R-02 kimlik/sayı/BLOCKED durumu korunur; sourceDigest değişmez, projectRevision veriyle değişir.
 - Tarihsel `genui-runtime` birimi post_mvp/conditional ataması ile `ui-family-39` ve `ui-provider-registry` kümelerinin `frontend/packages/genui` sahipliği bu kümelerin görevleri için aktif kapsam değildir. `overrides` bunları harici, kullanıcı sahipli GenUI'nin tüketici/host adapter kabulü olarak okur; GenUI uygulama izni değildir. Tarihsel kayıt ve `/plan/`, `/atlas/` bağlamı silinmez; çelişkide güncel talimat geçerlidir.

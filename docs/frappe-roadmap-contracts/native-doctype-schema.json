@@ -74,7 +74,7 @@
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "saas_app_a ve saas_app_b aynı (yerel pilot kontrollü DocType, saas_ext_code) çiftini bildirir; ön kontrol iki uygulamayı listeleyen hata verir ve bu dt/fieldname için Custom Field oluşmaz.",
+      "oneScenario": "saas_app_a ve saas_app_b aynı (yerel pilot kontrollü DocType, saas_ext_code) çiftini bildirir; ön kontrol iki uygulamayı listeleyen hata verir ve bu dt/fieldname için Custom Field oluşmaz. Aynı senaryoda System Manager rolü olmayan, kimliği doğrulanmış kullanıcının aynı dt/fieldname için native Custom Field insert'i yan etkiden önce native izin hatasıyla reddedilir; Custom Field oluşmaz ve mevcut kalıcı değerler değişmez.",
       "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
       "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Aynı komut: bench --site suite.localhost run-tests --module saas_platform.adapters.records_taxonomy.test_doc_type_poc; çakışma mantığından sonra geçer. Test rollback ile çalışır, müşteri kaydı yazmaz."
     },
@@ -101,6 +101,7 @@
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,
     "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "permissionPolicyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/explicitPermissionFlags",
     "specificPrerequisitesRef": "#/development/admission"
   }
 }

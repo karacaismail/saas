@@ -69,7 +69,7 @@
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "Yerel test sitesinde Administrator aynı idempotency_key ile register fonksiyonunu iki kez çağırır. İki çağrı da aynı name değerini döndürür, ikinci çağrıda replayed=true olur ve o anahtar için kayıt sayısı 1 kalır.",
+      "oneScenario": "Yerel test sitesinde Administrator aynı idempotency_key ile register fonksiyonunu iki kez çağırır. İki çağrı da aynı name değerini döndürür, ikinci çağrıda replayed=true olur ve o anahtar için kayıt sayısı 1 kalır. Aynı senaryoda Tenant Registry create izni olmayan, kimliği doğrulanmış kullanıcı yeni bir idempotency_key ile register çağırır; PermissionError native Document.insert ve başka bir yan etkiden önce oluşur, o anahtar için kayıt oluşmaz ve mevcut kaydın alanları ile modified değişmez.",
       "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
       "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Aynı test aynı komutla geçer: bench --site <yerel test sitesi> run-tests, hedef test_tenant_registry modülü. Komut ve site Frappe17-dev üzerinde doğrulanacak."
     },
@@ -94,6 +94,7 @@
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,
     "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "permissionPolicyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/explicitPermissionFlags",
     "specificPrerequisitesRef": "#/development/admission"
   }
 }

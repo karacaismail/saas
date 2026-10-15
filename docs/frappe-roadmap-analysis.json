@@ -52663,7 +52663,9 @@
           "keycloak-login--implementation",
           "keycloak-login--implementation-mvp"
         ],
-        "reason": "Keycloak identity decision"
+        "reason": "Keycloak identity decision",
+        "permissionPolicyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/explicitPermissionFlags",
+        "permissionAcceptance": "Rol/izin üretimi varsa paketin kendi tek RED/GREEN kabulünde yetkisiz yazma reddi ve değişmeyen kayıt doğrulanır; karar durumu değişmez, yeni test dalgası yok."
       },
       {
         "canonicalUnitId": "page-record-list",
@@ -52675,31 +52677,41 @@
         "canonicalUnitId": "keycloak-session",
         "requirementIds": ["identity-4"],
         "canonicalTaskIds": ["keycloak-session--implementation"],
-        "reason": "Keycloak identity decision"
+        "reason": "Keycloak identity decision",
+        "permissionPolicyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/explicitPermissionFlags",
+        "permissionAcceptance": "Rol/izin üretimi varsa paketin kendi tek RED/GREEN kabulünde yetkisiz yazma reddi ve değişmeyen kayıt doğrulanır; karar durumu değişmez, yeni test dalgası yok."
       },
       {
         "canonicalUnitId": "device-grant",
         "requirementIds": ["identity-9"],
         "canonicalTaskIds": ["device-grant--implementation"],
-        "reason": "Keycloak identity decision"
+        "reason": "Keycloak identity decision",
+        "permissionPolicyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/explicitPermissionFlags",
+        "permissionAcceptance": "Rol/izin üretimi varsa paketin kendi tek RED/GREEN kabulünde yetkisiz yazma reddi ve değişmeyen kayıt doğrulanır; karar durumu değişmez, yeni test dalgası yok."
       },
       {
         "canonicalUnitId": "auth-channel-bridge",
         "requirementIds": ["channels-3"],
         "canonicalTaskIds": ["auth-channel-bridge--implementation"],
-        "reason": "Keycloak identity decision"
+        "reason": "Keycloak identity decision",
+        "permissionPolicyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/explicitPermissionFlags",
+        "permissionAcceptance": "Rol/izin üretimi varsa paketin kendi tek RED/GREEN kabulünde yetkisiz yazma reddi ve değişmeyen kayıt doğrulanır; karar durumu değişmez, yeni test dalgası yok."
       },
       {
         "canonicalUnitId": "delegation-policy",
         "requirementIds": ["access-6"],
         "canonicalTaskIds": ["delegation-policy--implementation"],
-        "reason": "Keycloak identity decision"
+        "reason": "Keycloak identity decision",
+        "permissionPolicyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/explicitPermissionFlags",
+        "permissionAcceptance": "Rol/izin üretimi varsa paketin kendi tek RED/GREEN kabulünde yetkisiz yazma reddi ve değişmeyen kayıt doğrulanır; karar durumu değişmez, yeni test dalgası yok."
       },
       {
         "canonicalUnitId": "service-credential",
         "requirementIds": ["access-7"],
         "canonicalTaskIds": ["service-credential--implementation"],
-        "reason": "Keycloak identity decision"
+        "reason": "Keycloak identity decision",
+        "permissionPolicyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/explicitPermissionFlags",
+        "permissionAcceptance": "Rol/izin üretimi varsa paketin kendi tek RED/GREEN kabulünde yetkisiz yazma reddi ve değişmeyen kayıt doğrulanır; karar durumu değişmez, yeni test dalgası yok."
       }
     ],
     "notInstalledRequirementsInWholeAssessment": 29,
@@ -55619,7 +55631,104 @@
       ],
       "realRedPolicy": "Tek gerçek davranış assertion’ı: sözleşmenin development.tdd.oneScenario davranışı eksik üretim nedeniyle başarısız olur. Test toplama/import/kurulum/site/fixture hatası RED değildir. RED almak için boş uygulama veya çalışan native davranışı bozan değişiklik üretilmez. Native davranış zaten geçerse reuse kanıtı kaydedilir; yeni kod/test üretilmez.",
       "oneScenarioPerAdmittedBehavior": true,
-      "noNewTestWaveOrMatrix": true
+      "noNewTestWaveOrMatrix": true,
+      "explicitPermissionFlags": {
+        "requirementIds": ["access-3", "security-1"],
+        "canonicalTaskIds": [
+          "native-user-policy--implementation",
+          "security-baseline--implementation"
+        ],
+        "appliesTo": "Bütün rol/izin üreten veya güncelleyen paketler; tenant/üyelik, Keycloak rol eşlemesi, modül hakları, DocType şeması, migration ve test fixture dahil. Karar bekleyen paketler de uygulamaya alındığında bu kurala tabidir.",
+        "flags": [
+          "read",
+          "write",
+          "create",
+          "delete",
+          "submit",
+          "cancel",
+          "amend",
+          "report",
+          "export",
+          "import",
+          "share",
+          "print",
+          "email"
+        ],
+        "producedRowRequirement": "Her üretilen Role/DocPerm/Custom DocPerm eşlemesinin rol × DocType × permlevel izin satırında listedeki 13 bayrak açıkça 0 veya 1 olur. Varsayılan 0; yalnız onaylı rol matrisindeki haklar 1. Native metadata varsayılanına, eksik property veya truthy/falsy dönüşümüne dayanılmaz. Role kaydı tek başına DocPerm bayraklarını taşımaz; zorunluluk üretilen izin satırındadır.",
+        "existingRows": "Yeni satır kadar güncellenen satır da tam izin matrisiyle yazılır; native save ve cache invalidation korunur. Custom DocPerm ve kullanıcının diğer rollerinden gelebilen etkin izinler hesaba katılır; ilgisiz rol veya müşterinin izinleri topluca değiştirilmez.",
+        "acceptance": "İlgili paketin kendi mevcut tek RED/GREEN senaryosunda, yetkisiz oturumun sunucudaki yazma yolu reddedilir ve kalıcı kayıt/modified değeri değişmez. UI eylemini gizlemek veya yalnız izin sözlüğünü karşılaştırmak yeterli değildir. Yeni test dosyası, senaryo dalgası veya tarayıcı matrisi açılmaz; uygulama başlamayan paket not_run kalır.",
+        "sourceEvidence": {
+          "repository": "frappe",
+          "commit": "adf1fd0c2d6215ad4cac9976251198b2a35fbda6",
+          "path": "frappe/frappe/core/doctype/docperm/docperm.json",
+          "fieldLines": {
+            "read": 82,
+            "write": 93,
+            "create": 104,
+            "delete": 115,
+            "submit": 126,
+            "cancel": 137,
+            "amend": 148,
+            "report": 163,
+            "export": 171,
+            "import": 177,
+            "share": 187,
+            "print": 193,
+            "email": 199
+          },
+          "observedDefaults": {
+            "read": 1,
+            "write": 1,
+            "create": 1,
+            "delete": 1,
+            "submit": 0,
+            "cancel": 0,
+            "amend": 0,
+            "report": 1,
+            "export": 1,
+            "import": 0,
+            "share": 1,
+            "print": 1,
+            "email": 1
+          }
+        },
+        "runtimeAcceptance": "not_run; yerel fixture kanıtı tüm iş birikiminin kabulü değildir.",
+        "localFixtureProof": {
+          "status": "DONE_LOCAL_FIXTURE_ONLY",
+          "repository": "/Users/w6x/Developer/genui-saas-panel",
+          "testFirstCommit": "6ef8adb",
+          "implementationCommit": "29f3581",
+          "red": {
+            "log": "/Users/w6x/Developer/saas-handoff-2026-10-14/execution-headless/explicit-permissions-20261015T102625Z/red-existing-permission.log",
+            "exitCode": 1,
+            "observed": "Native reader delete permission true; expected false. Existing HTTP write denial and unchanged values still passed."
+          },
+          "green": {
+            "log": "/Users/w6x/Developer/saas-handoff-2026-10-14/execution-headless/explicit-permissions-20261015T102625Z/green-existing-ten.log",
+            "exitCode": 0,
+            "passed": 10,
+            "seconds": 48.8
+          },
+          "testFilesBefore": 1,
+          "testFilesAfter": 1,
+          "testScenariosBefore": 10,
+          "testScenariosAfter": 10,
+          "newScenarios": 0,
+          "changedExistingScenarioReason": "Concrete native permission defect: omitted delete flag grants delete to the read-only fixture role. Strengthened the existing two-scope scenario; no new test wave.",
+          "workflowIds": [
+            "saas-explicit-permissions-contracts-20261015T102603Z",
+            "saas-explicit-permissions-fixture-20261015T102708Z",
+            "saas-explicit-permissions-review-20261015T102905Z"
+          ],
+          "standardsReview": "No actionable findings; source-only review before GREEN finished. Main agent owns runtime proof.",
+          "limits": [
+            "Exact local synthetic DocType and three fixture-owned role/permlevel rows only.",
+            "No production services/customer data; no restart.",
+            "Custom DocPerm overrides not implemented by local fixture repair.",
+            "This does not complete permission acceptance for all backlog packages."
+          ]
+        }
+      }
     }
   }
 }

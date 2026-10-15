@@ -65,7 +65,7 @@
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "Kurum A altindaki bir subenin ust dugumu kurum B'ye ait bir dugume ayarlanip save edildiginde frappe.ValidationError beklenir ve veritabanindaki ust dugum degismemis olmalidir.",
+      "oneScenario": "Kurum A altindaki bir subenin ust dugumu kurum B'ye ait bir dugume ayarlanip save edildiginde frappe.ValidationError beklenir; ayni senaryoda Organization Unit write izni olmayan, kimligi dogrulanmis kullanicinin ayni kayda native save denemesi yan etkiden once frappe.PermissionError ile reddedilir. Her iki retten sonra veritabanindaki ust dugum ve modified degismemis olmalidir.",
       "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
       "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Ayni test ayni native bench run-tests komutu ve ayni site ile validate mantigi eklendikten sonra gecer. Native olarak zaten calisan davranis icin RED uretilmez."
     },
@@ -88,6 +88,7 @@
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,
     "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "permissionPolicyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/explicitPermissionFlags",
     "specificPrerequisitesRef": "#/development/admission"
   }
 }

@@ -67,7 +67,7 @@
     ],
     "admission": "T-00 hedef baz ve R-00 yeniden kullanim eslemesi gerekir; R-01 izinli tuketici icin gecerlidir. suite.localhost'taki Suite commit'i kaydedilmeli (su an unknown). Override govdesi ve parametre adlari okunmadan test yazilmaz. Yerel kanit uzak urun tabani degildir; Keycloak not_run.",
     "steps": [
-      "YAML matrisi yazilir: varlik, tehdit, kontrol ve sorumlu. Backend kontrolleri: has_permission ve alan okuma filtresi, update flags atma, SSRF validate_request_address, oturum kapatma. Hüseyin Cengiz kontrolleri: server script common_site_config kapisi, realtime origin kontrolu.",
+      "YAML matrisi yazilir: varlik, tehdit, kontrol ve sorumlu. Backend kontrolleri: has_permission ve alan okuma filtresi, update flags atma, SSRF validate_request_address, oturum kapatma. Hüseyin Cengiz kontrolleri: server script common_site_config kapisi, realtime origin kontrolu. Mevcut access-3 kontrolüyle birlikte, rol/DocPerm/Custom DocPerm üretiminde 13 bayrağın açık 0/1 matrisi ve native varsayılanların izin açma riski ortak explicitPermissionFlags politikasına bağlanır; ayrı doğrulama dalgası açılmaz.",
       "Karar maddeleri eklenir: Suite update_password override, test_helpers wildcard oneki, baslik katmani, Keycloak iptal eslemesi.",
       "Tek kritik dogrulama kosulu bu senaryodur; matristeki durumu not_run olarak yazilir.",
       "RED gorulurse duzeltme Suite override sahibine devredilir; bu gorev suite dosyasi yazmaz."
@@ -100,6 +100,7 @@
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,
     "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
-    "specificPrerequisitesRef": "#/development/admission"
+    "specificPrerequisitesRef": "#/development/admission",
+    "permissionPolicyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/explicitPermissionFlags"
   }
 }

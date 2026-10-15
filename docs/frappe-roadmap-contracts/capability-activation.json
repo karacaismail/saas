@@ -76,7 +76,7 @@
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "suite.localhost'ta Suite mail modülüne ait mevcut bir DocType için Capability Activation askıda iken, o DocType'ta native write hakkı olan test kullanıcısı için frappe.has_permission ile write False, read True dönmeli.",
+      "oneScenario": "suite.localhost'ta Suite mail modülüne ait mevcut bir DocType için Capability Activation askıda iken, o DocType'ta native write hakkı olan test kullanıcısı için frappe.has_permission ile write False, read True dönmeli. Aynı senaryoda bu kimliği doğrulanmış ancak askı nedeniyle yetkisiz kullanıcının aynı kayıt üzerindeki native Document.save denemesi yan etkiden önce frappe.PermissionError ile reddedilmeli; kaydın kalıcı alan değerleri ve modified değişmemeli.",
       "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
       "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Hook ve hooks.py kaydından sonra aynı test aynı komutla geçer (bench run-tests --module ile; komut projede doğrulanacak)."
     },
@@ -99,6 +99,7 @@
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,
     "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "permissionPolicyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/explicitPermissionFlags",
     "specificPrerequisitesRef": "#/development/admission"
   }
 }

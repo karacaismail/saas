@@ -71,7 +71,7 @@
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "Okuyucu A kapsamına atanmış; GET /api/v2/document/<pilot_doctype> yanıtı B kapsamındaki kaydı içermez, A kapsamındakini içerir.",
+      "oneScenario": "Okuyucu A kapsamına atanmış; GET /api/v2/document/<pilot_doctype> yanıtı B kapsamındaki kaydı içermez, A kapsamındakini içerir. Aynı senaryoda write izni olmayan, kimliği doğrulanmış okuyucunun B kapsamındaki kayda native yazma isteği yan etkiden önce reddedilir; kaydın kalıcı alan değerleri ve modified değişmez.",
       "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
       "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Aynı test ve aynı komut adaptör ve hook kaydı sonrası geçer. Tek komut entegrasyon sırasında proje test betiğinden belirlenir."
     },
@@ -94,6 +94,7 @@
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,
     "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "permissionPolicyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/explicitPermissionFlags",
     "specificPrerequisitesRef": "#/development/admission"
   }
 }

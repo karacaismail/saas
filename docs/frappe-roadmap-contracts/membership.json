@@ -62,7 +62,7 @@
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "Invited Membership icin B kullanicisinin Active kaydetmesi PermissionError, ardindan A'nin kabulu Active ve accepted_at dolu, ardindan Invited'a geri cekme ValidationError.",
+      "oneScenario": "Invited Membership icin kimligi dogrulanmis ama yetkisiz B kullanicisinin native Active kaydetmesi yan etkiden once PermissionError; veritabaninda status Invited, accepted_at bos ve modified degismemis kalir. Ardindan A'nin kabulu Active ve accepted_at dolu, ardindan Invited'a geri cekme ValidationError.",
       "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
       "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Ayni test ayni komutla: bench --site suite.localhost run-tests --module saas_platform.tenant_control.doctype.membership.test_membership (uygulama kurulumu dogrulanacak)."
     },
@@ -85,6 +85,7 @@
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,
     "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "permissionPolicyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/explicitPermissionFlags",
     "specificPrerequisitesRef": "#/development/admission"
   }
 }
