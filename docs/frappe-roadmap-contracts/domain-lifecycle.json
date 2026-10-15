@@ -1,0 +1,115 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "domain-lifecycle",
+  "canonicalTaskIds": ["domain-lifecycle--implementation"],
+  "requirementIds": ["deployment-3", "deployment-5", "deployment-8"],
+  "stage": "mvp",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "Domain baglama oncesi uretim on kontrolu: gevsek bench/site bayraklari varken baglama reddedilir",
+    "trigger": "Operator, hedef site ve host icin domain_lifecycle_mvp.yml icindeki preflight adimini salt okunur olarak calistirir; bu adim bench/nginx/DNS degisikliginden once gelir.",
+    "expected": "common_site_config ve hedef site_config icinde developer_mode=0, allow_tests=0 ve default_site tanimsizsa decision=allow doner. Yalniz anahtar adlari ve kod listesi doner, config degerleri donmez.",
+    "denied": "developer_mode veya allow_tests acik ya da default_site tanimliysa decision=deny doner ve reasons [developer_mode_enabled|allow_tests_enabled|default_site_set] icerir. Sonraki baglama adimlari calismaz."
+  },
+  "reuse": {
+    "mechanism": "Native config anahtarlari (developer_mode, allow_tests, default_site) yeniden kullanilir; Frappe koduna dokunulmaz. Native yukleyicinin v17 fonksiyon imzasi excerpt'te gorunmedigi icin unknown; dogrulanana kadar JSON dosyalari stdlib ile salt okunur okunur. CustomField/DocType/hook eklenmez, cunku davranis site verisi degil bench seviyesi kapisidir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/config.py",
+        "line": 52,
+        "quote": "if common_config.developer_mode:"
+      },
+      {
+        "path": "frappe/frappe/config.py",
+        "line": 57,
+        "quote": "error_msg += \"\\n\".join(f\"* {site}\" for site in all_sites)"
+      },
+      {
+        "path": "frappe/frappe/commands/site.py",
+        "line": 893,
+        "quote": "update_site_config(\"default_site\", site, validate=False, site_config_path=conifg)"
+      },
+      {
+        "path": "frappe/frappe/integrations/doctype/connected_app/connected_app.py",
+        "line": 17,
+        "quote": "if any((os.getenv(\"CI\"), frappe.conf.developer_mode, frappe.conf.allow_tests)):"
+      },
+      {
+        "path": "frappe/frappe/integrations/doctype/connected_app/connected_app.py",
+        "line": 19,
+        "quote": "os.environ[\"OAUTHLIB_INSECURE_TRANSPORT\"] = \"1\""
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/domain-lifecycle.json",
+    "plannedProduction": [
+      "operations/domain-lifecycle/domain_lifecycle_mvp.yml",
+      "operations/domain-lifecycle/domain_preflight.py (planli; owns listesinde yok, Codex atamasi gerekir)"
+    ],
+    "plannedTestFile": "operations/domain-lifecycle/tests/test_domain_preflight.py",
+    "sharedIntegrationFiles": [
+      "integration/fragments/domain-lifecycle--integration.json"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "sites_path: string (mevcut dizin), site: string (1-253 karakter, sites_path altinda bir dizin), host: string (1-253 karakter, DNS etiket bicimi). Ag cagrisi, secret veya env degeri girdi olarak alinmaz.",
+    "output": "version=domain-preflight.v1, decision allow|deny, reasons string[] (sabit kodlar), checkedKeys string[]. Config degerleri, site listesi ve secret ciktida yer almaz.",
+    "authorization": "Frappe kullanici oturumu kullanilmaz. Calistirma yetkisi bench dosya okuma yetkisi olan operatordedir; teknik sorumlu Huseyin Cengiz. Yetki yalniz okumadir: config yazilmaz, servis yeniden baslatilmaz.",
+    "persistence": "Hicbir kalici yazim, Document.save, DDL veya kuyruk/zamanlama yok; tamamen salt okunur.",
+    "failure": "Dosya yoksa veya JSON gecersizse decision=deny ve reasons=[config_unreadable] doner; ayrinti olarak yalniz dosya rolu (common|site) verilir. Site dizini yoksa reasons=[site_not_found] doner; native IncorrectSitePath mesaji site listesi icerebildigi icin aktarilmaz. Tuketici deny durumunda baglama adimini durdurur."
+  },
+  "development": {
+    "dependencies": [
+      "domain-lifecycle--contract",
+      "local pilot: Frappe17-dev suite.localhost (frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6)"
+    ],
+    "admission": "T-00 hedef baseline ve R-00 reuse eslemesi gerekir. Codex, planli kontrol dosyasi ve test dosyasi icin sahiplik atamalidir. Uzak urun baseline'i, Suite HEAD ve test calistirma komutu unknown. Yerel kanit uzak baseline yerine gecmez.",
+    "steps": [
+      "domain_lifecycle_mvp.yml icine bench/nginx/DNS adimlarindan once preflight adimini ekle.",
+      "domain_preflight.py: iki JSON dosyasini oku, uc anahtari degerlendir, sabit kodlarla yanit dondur.",
+      "Uretim kabulunde preflight allow sonucu zorunlu olsun. Uygulama: Huseyin Cengiz."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Gecici bir sites dizini kurulur: common_site_config {developer_mode:1, default_site:'a.localhost'}, site_config {}. Preflight decision=deny ve reasons=[default_site_set, developer_mode_enabled] dondurmeli; cikti 'a.localhost' degerini icermemeli.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: Gecici bir sites dizini kurulur: common_site_config {developer_mode:1, default_site:'a.localhost'}, site_config {}. Preflight decision=deny ve reasons=[default_site_set, developer_mode_enabled] dondurmeli; cikti 'a.localhost' degerini icermemeli. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Uygulamadan sonra ayni test ayni komutla gecmeli. Native IncorrectSitePath davranisi zaten calistigi icin RED olarak kullanilmaz."
+    },
+    "rollback": "Planli kontrol dosyasini ve yml'deki preflight adimini geri al. Bu calisma uretim yetkisi vermez; config veya servis degisikligi yapilmaz."
+  },
+  "remainingGaps": [
+    "deployment-3: Bilinmeyen hostta default_site kullanimi dogrulanmadi; get_site_name govdesi excerpt'te yok, durum unknown. Host->site->tenant eslemesi, CORS ve cerez kapsami tanimsiz. Coklu domain Keycloak redirect listesi karar bekliyor ve kapsam disi.",
+    "deployment-5: Frappe siteleri icin sahiplik dogrulama (DNS TXT/HTTP-01) kaynakta yok. Sertifika uretme, yenileme ve yenileme hatasi alarmi yok; yalniz SFU certbot var ve alarm uretmiyor. Mail dogrulamasi uzak Suite Cloud'a bagimli.",
+    "deployment-8: Siralı kaldirma runbook'u ve rol/onay matrisi yok. encrypt_backup zorunlulugu ile site_config'in yedege kopyalanmasi cozulmedi. drop-site davranisi unknown. Saklama suresi secilmedi.",
+    "DNS kayit degerlerini Huseyin Cengiz hazirlar, GoDaddy'de Asistan Huseyin uygular, sunucu sonucunu Huseyin Cengiz dogrular. Bu adimlar bu sozlesmede calistirilmaz."
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "deployment-3": "mvp",
+    "deployment-5": "mvp",
+    "deployment-8": "mvp"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

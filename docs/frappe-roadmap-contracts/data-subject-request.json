@@ -1,0 +1,110 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "data-subject-request",
+  "canonicalTaskIds": ["data-subject-request--implementation"],
+  "requirementIds": ["governance-4"],
+  "stage": "mvp",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "Erisim talebi icin izin filtreli JSON disa aktarim (yalniz frappe+suite, File haric)",
+    "trigger": "Oturumdaki kullanici, kendi olusturdugu request_type=access olan DataSubjectRequest kaydinda controller'daki whitelisted build_access_export metodunu cagirir.",
+    "expected": "Kapsam listesindeki her kurulu DocType icin ilgili kisiye bagli kayitlar kullanicinin kendi oturumuyla okunur; her kayit doc.check_permission(\"read\") ve doc.apply_fieldlevel_read_permissions() gectikten sonra as_dict olarak pakete girer.",
+    "denied": "Okuma izni olmayan kayitlar pakete girmez (sayisi da donmez); permlevel ile kisitli alanlar yer almaz; baskasinin DSR kaydi icin cagri PermissionError verir; ignore_permissions kullanilmaz; File/Drive verisi bu davranista disa aktarilmaz."
+  },
+  "reuse": {
+    "mechanism": "Native: v2 read_doc ile ayni izin sirasi controller icinde yeniden kullanilir; yeni izin motoru, ORM, kuyruk veya event motoru yok. Suite'te File izni Drive'a devredildigi icin File kapsam disi. Kapsam listesi data-subject-request--contract sozlesmesinden okunur; hooks.py degismez. v17-dev cekirdek Personal Data Download Request dogrulanirsa once o kullanilir, bu adaptor daraltilir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/api/v2.py",
+        "line": 86,
+        "quote": "doc.check_permission(\"read\")"
+      },
+      {
+        "path": "frappe/frappe/api/v2.py",
+        "line": 87,
+        "quote": "doc.apply_fieldlevel_read_permissions()"
+      },
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 117,
+        "quote": "ignore_file_permissions = True"
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/data-subject-request.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/audit_governance/doctype/data_subject_request/data_subject_request.py"
+    ],
+    "plannedTestFile": "backend/saas_platform/saas_platform/audit_governance/doctype/data_subject_request/test_data_subject_request.py",
+    "sharedIntegrationFiles": [
+      "integration/fragments/data-subject-request--integration.json"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "name: str (mevcut DataSubjectRequest). request_type='access' zorunlu; alan adi ve secenekleri data-subject-request--schema ile kesinlesir (su an unknown). Kapsam: contracts/data-subject-request.v1.json icinde {doctype, subject_link_field} listesi. DocType basina onerilen ust sinir 500 kayit (sozlesmede onaylanmali); asimda truncated=true.",
+    "output": "{contract_version:'data-subject-request.v1', request:name, generated_for:session user, sections:[{doctype, records:[izin filtreli as_dict], truncated:bool, skipped_reason:null|'doctype_not_installed'}]}. Yanit yalniz cagirana doner; dosya olarak saklanmaz.",
+    "authorization": "Native cookie/CSRF oturumu (Keycloak not_run, kapsam disi). DSR kaydinda check_permission('read') ve owner == oturum kullanicisi; aksi PermissionError. Kayit duzeyi: her hedef kayitta check_permission('read'); alan duzeyi: apply_fieldlevel_read_permissions. Site siniri yalniz yerel kanit icindir; tenant modeli tenant-registry--contract'a baglidir.",
+    "persistence": "Salt okuma: hedef kayitlara yazilmaz, DDL yok, paket File/Drive'a yazilmaz, Document.save cagrilmaz. DSR durum gecisi ve denetim kaydi bu davranisin parcasi degildir.",
+    "failure": "frappe.DoesNotExistError: DSR yok. frappe.PermissionError: DSR okunamiyor veya sahibi degil. frappe.ValidationError: request_type access degil veya kapsam sozlesmesi eksik. Kurulu olmayan DocType (ERPNext/HRMS) hata degil, skipped_reason olur. Tuketici hatayi mevcut AntD uyari bileseniyle gosterir, otomatik yeniden deneme yapmaz."
+  },
+  "development": {
+    "dependencies": [
+      "data-subject-request--contract",
+      "data-subject-request--schema",
+      "kernel-envelope--contract",
+      "tenant-registry--contract",
+      "native-user-policy--contract",
+      "localPilot t08: frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6, native admin/reader kapsamlari"
+    ],
+    "admission": "T-00 baseline ve R-00/R-01 eslemesi; DSR DocType JSON'u (schema gorevi) ve kapsam listesi (contract gorevi) mevcut olmali. v17-dev cekirdek DSR kaynagi once salt okumayla dogrulanmali. Izinli liste sorgusu API adi v17-dev'de dogrulanmadi (unknown). Suite HEAD ve uzak urun baseline unknown; yerel Frappe17-dev/suite.localhost kaniti uzak baseline degildir.",
+    "steps": [
+      "v17-dev'de Personal Data Download Request kaynagini salt okumayla dogrula; native karsilik yeterliyse onu cagir.",
+      "Controller'a whitelisted build_access_export ekle: DSR izin+sahiplik kontrolu, kapsam dongusu, permission_query_conditions uygulayan native liste sorgusu, her kayitta get_doc + check_permission + apply_fieldlevel_read_permissions.",
+      "Codex entegrasyon fragmentini gunceller; ortak dosyalara bu gorev yazmaz."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Yerel pilot sitede FrappeTestCase geri alimiyla iki test kullanicisi A ve B; kapsamdaki bir DocType'ta A'ya ve B'ye bagli birer test kaydi ve permlevel 1 bir alan. A oturumuyla A'nin access DSR'inda build_access_export: paket A kaydini permlevel 1 alani olmadan icerir, B kaydini icermez.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: Yerel pilot sitede FrappeTestCase geri alimiyla iki test kullanicisi A ve B; kapsamdaki bir DocType'ta A'ya ve B'ye bagli birer test kaydi ve permlevel 1 bir alan. A oturumuyla A'nin access DSR'inda build_access_export: paket A kaydini permlevel 1 alani olmadan icerir, B kaydini icermez. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Ayni test, proje script/CI'dan kesfedilecek ayni bench run-tests komutuyla, uygulamadan sonra gecer."
+    },
+    "rollback": "Yalniz data_subject_request.py icindeki metot ve planli test dosyasi yerelde geri alinir; veri yazilmadigi icin veri geri alma gerekmez; production izni yok."
+  },
+  "remainingGaps": [
+    "v17-dev cekirdek Personal Data Download/Deletion Request kaynagi dogrulanmadi (yalniz v15 URL var).",
+    "Duzeltme, silme ve tasinabilirlik formati bu davranista yok; ayni gorevde sonraki dar adimlardir.",
+    "Kimlik dogrulama adimi (Keycloak oturumu vs e-posta dogrulamasi) karar bekliyor; Keycloak kapsam disi.",
+    "Drive File izin modeli ve Sheet/Writer/Mail verisinin disa aktarma kapsami listelenmedi.",
+    "ERPNext/HRMS kurulu degil; kapsam yalniz frappe+suite, kurulum yapilmaz.",
+    "Denetim kaydi ve DSR durum akisi kernel-envelope/native-user-policy sozlesmelerine bagli.",
+    "Tuketici UI eklenirse mevcut AntD, Outfit 14px, 320-first, cevreleyen odak halkasi yok ve simetrik pozitif Cubic hareket korunur; bu adimda UI yok.",
+    "Uzak dagitim gereksinimleri dependency olarak Huseyin Cengiz'e aittir; bu sozlesme hicbir sey etkinlestirmez."
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "governance-4": "mvp"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

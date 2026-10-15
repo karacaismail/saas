@@ -1,0 +1,112 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "dependency-resilience",
+  "canonicalTaskIds": ["dependency-resilience--implementation"],
+  "requirementIds": ["performance-5"],
+  "stage": "mvp",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "Sheets AI Anthropic cagrisi icin acik timeout ve site anahtarli devre kesici",
+    "trigger": "generate_actions icinde client.messages.create art arda esik sayisi kadar APIConnectionError (timeout dahil) veya 5xx APIStatusError ile basarisiz olur.",
+    "expected": "Istemci acik connect/read timeout ile kurulur; esik asilinca devre acilir ve acik kalma suresi boyunca sonraki cagrilar messages.create cagrilmadan sabit mesajli frappe.throw ile reddedilir; sure bitince tek deneme (yari acik) yapilir, basarida sayac sifirlanir, hatada devre yeniden acilir.",
+    "denied": "AuthenticationError, RateLimitError ve 4xx hatalari sayaca eklenmez; hata govdesi, API anahtari veya istem icerigi mesaja ya da cache anahtarina yazilmaz; Automation Flow breaker'i ve baska moduller degismez."
+  },
+  "reuse": {
+    "mechanism": "Native once: mevcut try/except hata eslemesi ve frappe.throw korunur; durum automation_engine'deki site anahtarli frappe.cache.incr sayac deseniyle frappe.cache'te tutulur. Yeni DocType, ORM, kuyruk veya breaker kutuphanesi yok; kaynakta bagimlilik breaker'i bulunmadigi icin yalniz client.py icinde kucuk ozel yardimcilar (en kucuk adapter) eklenir.",
+    "evidence": [
+      {
+        "path": "suite/suite/sheets/ai/client.py",
+        "line": 88,
+        "quote": "client = anthropic.Anthropic(api_key=api_key)"
+      },
+      {
+        "path": "suite/suite/sheets/ai/client.py",
+        "line": 92,
+        "quote": "resp = client.messages.create("
+      },
+      {
+        "path": "suite/suite/sheets/ai/client.py",
+        "line": 108,
+        "quote": "except anthropic.APIConnectionError:"
+      },
+      {
+        "path": "frappe/frappe/automation_engine/runner.py",
+        "line": 596,
+        "quote": "def _failure_key(rule_name) -> str:"
+      },
+      {
+        "path": "frappe/frappe/automation_engine/runner.py",
+        "line": 602,
+        "quote": "if frappe.cache.incr(_failure_key(rule.name)) >= threshold:"
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/dependency-resilience.json",
+    "plannedProduction": ["suite/suite/sheets/ai/client.py"],
+    "plannedTestFile": "suite/suite/sheets/ai/test_client.py",
+    "sharedIntegrationFiles": [
+      "integration/fragments/dependency-resilience--integration.json"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "generate_actions(prompt: str, context: dict, api_key: str, model: str) imzasi degismez. Opsiyonel frappe.conf anahtarlari (oneri): ai_anthropic_timeout_connect sn, ai_anthropic_timeout_read sn, ai_anthropic_breaker_threshold int>=1, ai_anthropic_breaker_open_seconds int>=1. Onerilen varsayilanlar 5/60/5/60; kesinlesmesi Codex entegrasyonuna aittir.",
+    "output": "Basarida mevcut ham actions listesi aynen doner; sema ve surum degismez. Devre acikken sabit mesaj: 'The AI service is temporarily unavailable. Try again shortly.' Yanitta durum, sayac veya hata govdesi yer almaz.",
+    "authorization": "Yetki degismez: generate_actions'i cagiran whitelisted giris noktasinin mevcut site/kullanici/kayit kontrolleri gecerlidir (giris noktasi kaynagi saglanmadi, bilinmiyor). Breaker kapsami site + bagimliliktir; kiraci modeli secilmez. Yetkisiz istek once mevcut kontrolde reddedilir.",
+    "persistence": "DB yazimi, Document.save, hook veya DDL yok. Yalniz frappe.cache: sayac anahtari ai_breaker::{site}::anthropic (incr) ve TTL'li acik-devre anahtari. TTL'li set API'sinin kurulu Frappe imzasi dogrulanmali (bilinmiyor). Redis erisilemezse breaker fail-open olur; cagri timeout ile sinirli devam eder.",
+    "failure": "Mevcut esleme korunur: APIConnectionError -> 'Could not reach the AI service...', APIStatusError -> 'The AI request failed (HTTP n).' Devre acik -> frappe.throw (varsayilan frappe.ValidationError) sabit mesaj; tuketici mevcut AI hata bildirimiyle gosterir, otomatik yeniden denemez. SDK timeout istisnasinin APIConnectionError alt sinifi oldugu kurulu surumde dogrulanmali."
+  },
+  "development": {
+    "dependencies": [
+      "dependency-resilience--contract",
+      "local pilot: frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6, suiteSourceHead unknown"
+    ],
+    "admission": "dependency-resilience--contract kabulu, T-00 hedef baseline ve R-00 reuse eslemesi; kurulu anthropic surumu (pyproject >=0.40) ve Anthropic(timeout=...) destegi yerelde okunmali. Yerel suite.localhost kaniti uzak urun baseline'i degildir; Suite HEAD bilinmiyor.",
+    "steps": [
+      "client.py: anthropic.Anthropic(api_key=api_key, timeout=...) ile acik connect/read timeout ver.",
+      "client.py: runner.py _failure_key desenine gore _breaker_key/_is_open/_record_failure/_reset yardimcilarini ekle; messages.create oncesi acik devre kontrolu, sonrasi basari/hata kaydi.",
+      "Mevcut except sirasi ve mesajlari korunur; sayac yalniz baglanti/timeout ve 5xx hatalarinda artar."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "anthropic.Anthropic mock'lanir, messages.create her cagrida APIConnectionError firlatir; generate_actions esik+1 kez cagrilir. Beklenti: esik+1'inci cagri 'temporarily unavailable' mesajiyla reddedilir, messages.create toplam esik kadar cagrilmistir ve Anthropic(...) timeout argumani almistir.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: anthropic.Anthropic mock'lanir, messages.create her cagrida APIConnectionError firlatir; generate_actions esik+1 kez cagrilir. Beklenti: esik+1'inci cagri 'temporarily unavailable' mesajiyla reddedilir, messages.create toplam esik kadar cagrilmistir ve Anthropic(...) timeout argumani almistir. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Ayni test ve ayni komut (bench --site suite.localhost run-tests --module suite.sheets.ai.test_client) uygulamadan sonra gecer; test cache anahtarlarini baslangicta ve sonda temizler."
+    },
+    "rollback": "client.py ve test degisikligi yerelde geri alinir, yerel cache anahtarlari silinir. Production, site_config veya servis degisikligi yok."
+  },
+  "remainingGaps": [
+    "Gorevin owns alani yalniz operations/dependency-resilience/dependency_resilience_mvp.yml; client.py ve test dosyasi yazimi Codex entegrasyon onayi gerektirir.",
+    "Yari acik deneme coklu worker'da atomik degil; es zamanli birden fazla deneme olabilir.",
+    "JMAP ve make_request (timeout=None) cagri noktalari, bagimlilik envanteri ve merkezi timeout butcesi kapsam disi; ayni sarmalayiciyla sonraki genisletme.",
+    "Bagimlilik basina es zamanli baglanti siniri politikasi ve headless provider dayaniklilik yuzeyi yok.",
+    "Production timeout/esik degerleri ve site_config dagitimi Huseyin Cengiz teknik bagimliligi; plan urun GREEN'i degildir.",
+    "Test dosyasinin varligi ve suite test duzeni bilinmiyor; varsa tek test ayni dosyaya eklenir."
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "performance-5": "mvp"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

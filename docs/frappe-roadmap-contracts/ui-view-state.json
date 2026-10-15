@@ -1,0 +1,115 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "ui-view-state",
+  "canonicalTaskIds": ["ui-view-state--implementation"],
+  "requirementIds": ["views-5"],
+  "stage": "mvp",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "Bir tüketicide kimlik kaybı algılanınca aynı QueryClient'taki diğer tüketicilerin önceki kimliğe ait verisi de düşer (yalnız eksik doğrulanırsa)",
+    "trigger": "RecordWorkspace isteği unauthenticated, forbidden, csrf veya identity_mismatch alır ve dropPrivateState çalışır. Bu anda aynı QueryClient'ta SchemaWorkspace'in önceki site/kullanıcıyla yüklenmiş metadata sorgusu bulunur.",
+    "expected": "Kimlik kaybından sonra QueryClient'ta önceki site/kullanıcıya ait hiçbir tüketici verisi (records ve şema metadata önekleri) kalmaz ve ekranda gösterilmez. Yeni kimlikle yalnız açık yeniden yükleme yapılır.",
+    "denied": "Önceki kimliğin metadata veya kayıt verisi yedek olarak gösterilmez. 401/403 yanıtı önbelleğe yazılmaz."
+  },
+  "reuse": {
+    "mechanism": "reuse_existing. views-5'in tüketici içi kısmı yerel pilotta zaten uygulanmış ve geçmiştir (recordCommit 6ea301c, 8/8): recordKey site, user, doctype ve name içerir; okuma isteğine AbortSignal iletilir; kaydetmeden önce cancelQueries çalışır; zarf kimliği uyuşmazsa identity_mismatch atılır; lifecycle sürümü geç kaydetmeyi düşürür; kimlik kaybında records öneki silinir. SchemaWorkspace metadata taslak yarışı da kapatılmıştır (kaynağı bu girdide yok). Bunlar için yeni kod, yeni sorgu anahtarı çekirdeği veya RED yazılmaz. Tek açık konu tüketiciler arası temizliktir: dropPrivateState yalnız RECORDS_KEY önekini siliyor. Eksik doğrulanırsa en küçük düzeltme, kimlik kaybında mevcut QueryClient.removeQueries ile diğer tüketicinin önekini de silmektir. Bunun için yeni çekirdek veya depo kurulmaz. frappe/ui yalnız referanstır: önbelleği doctype ile anahtarlar ve oturum boyunca tutar.",
+    "evidence": [
+      {
+        "path": "src/features/records/RecordWorkspace.tsx",
+        "line": 74,
+        "quote": "return ['records', 'record', session.site, session.user, target.doctype, target.name] as const;",
+        "repository": "genui-saas-panel@6ea301c"
+      },
+      {
+        "path": "src/features/records/RecordWorkspace.tsx",
+        "line": 108,
+        "quote": "throw new FrappeError(200, 'identity_mismatch');",
+        "repository": "genui-saas-panel@6ea301c"
+      },
+      {
+        "path": "src/features/records/RecordWorkspace.tsx",
+        "line": 159,
+        "quote": "queryClient.removeQueries({ queryKey: RECORDS_KEY });",
+        "repository": "genui-saas-panel@6ea301c"
+      },
+      {
+        "path": "frappe/ui/src/composables/useDoctypeMeta.ts",
+        "line": 47,
+        "quote": "/** Memoised per doctype: fetched once per session, shared by every caller. */"
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/ui-view-state.json",
+    "plannedProduction": [],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "src/features/records/RecordWorkspace.tsx",
+      "SchemaWorkspace kaynağı (yolu bu girdide yok)",
+      "frontend/packages/ui/src/components/ui-view-state/index.tsx"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "Girdi değişmez: native oturum (cookie/CSRF) ve Session{site,user}; mevcut AUTH_LOSS kodları. Yeni parametre, URL alanı veya depo eklenmez.",
+    "output": "Kimlik kaybından sonra QueryClient'ta önceki kimliğe ait sorgu kalmaz. Alanlar Frappe izinli zarfla sınırlıdır. Sözleşme sürümü contract-ui-view-state v1.",
+    "authorization": "Yetki kararı sunucudadır: native site sınırı, kullanıcı rolleri, kayıt ve alan izinleri. Önbellek anahtarı yetki vermez. Yerel kanıtta site sınırı kullanılır, global tenant modeli seçilmez. Keycloak kapsam dışıdır.",
+    "persistence": "Sunucuya yazım ve DDL yoktur. Document.save ve hook'lar değişmez. Önbellek yalnız bellekte tutulur, localStorage veya sessionStorage kullanılmaz.",
+    "failure": "AUTH_LOSS kodlarında tüm özel önekler silinir ve mevcut RECORD_MESSAGES uyarısı gösterilir. AbortError sessizce düşürülür. Diğer hatalar yalnız kendi tüketicisinde gösterilir."
+  },
+  "development": {
+    "dependencies": [
+      "ui-view-state--contract",
+      "kernel-envelope--contract",
+      "api-middleware--contract",
+      "client-rule-parity--contract",
+      "ui-provider-query--implementation-mvp",
+      "yerel pilot recordCommit 6ea301c (8/8)"
+    ],
+    "admission": "Önce SchemaWorkspace kaynağında metadata sorgu anahtarı ve kimlik kaybı temizliği okunur. Bu veri zaten temizleniyorsa (ör. clearSession veya ortak önekle) davranış reuse_existing olarak kapanır ve kod yazılmaz. Sahiplik uyumsuzluğu vardır: görevin owns yolu frontend/packages/ui/... altındadır, yerel pilot ise src/features/... düzenindedir. Düzeltme sahip olunmayan dosyalara dokunacağı için kararı entegrasyon sahibi Codex verir. Suite HEAD ve uzak baz çizgisi bilinmiyor.",
+    "steps": [
+      "SchemaWorkspace sorgu anahtarını ve kimlik kaybı yolunu oku.",
+      "Eksik doğrulanırsa tek testi yaz ve RED gör.",
+      "Kimlik kaybı temizliğine mevcut removeQueries ile şema önekini ekle; yeni çekirdek kurma."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Şema ve kayıt tüketicileri aynı QueryClient ile site S ve kullanıcı A için yüklenir. Kayıt okuması identity_mismatch döner. Bundan sonra şema öneki altında A verisi kalmamalı ve şema ekranı A metadata'sını göstermemelidir.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: Şema ve kayıt tüketicileri aynı QueryClient ile site S ve kullanıcı A için yüklenir. Kayıt okuması identity_mismatch döner. Bundan sonra şema öneki altında A verisi kalmamalı ve şema ekranı A metadata'sını göstermemelidir. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Düzeltmeden sonra aynı test aynı komutla (vitest run) geçer ve mevcut 8/8 kayıt kapısı yeniden geçer."
+    },
+    "rollback": "Yalnız yerel düzeltme ve test geri alınır. Production, servis veya veri değişikliği yetkisi yoktur."
+  },
+  "remainingGaps": [
+    "Meta revizyonu (getdoctype cached_timestamp) sorgu anahtarında yok.",
+    "readTarget yalnız ilk yüklemede okunur ve URL replace ile yazılır. Bağlı kalan rotada geri/ileri gezinme kabulü kanıtlanmadı.",
+    "Global tenant modeli kullanıcı kararı bekliyor.",
+    "Uzak ortama dağıtım gerekirse teknik sahibi Hüseyin Cengiz'dir; şu an böyle bir eylem yok.",
+    "UI değişikliği planlanmadı. Korunacak kurallar: Outfit en az 14px, 320 öncelikli, çevreleyen odak halkası yok, simetrik pozitif Cubic hareket, mevcut AntD. Tarayıcı doğrulaması not_run."
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "views-5": "mvp"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

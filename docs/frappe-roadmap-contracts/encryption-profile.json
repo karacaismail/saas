@@ -1,0 +1,122 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "encryption-profile",
+  "canonicalTaskIds": ["encryption-profile--implementation"],
+  "requirementIds": ["security-6"],
+  "stage": "mvp",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "Password tipli alan değeri native Fernet ile __Auth tablosunda şifreli saklanır ve yalnız sunucu tarafında çözülür",
+    "trigger": "Yerel pilotta (suite.localhost) Password tipli alanı olan bir kayıt native Document.save ile kaydedilir.",
+    "expected": "__Auth içinde (doctype, name, fieldname) için encrypted=1 satırı oluşur veya güncellenir; saklanan değer düz metne eşit değildir; get_decrypted_password aynı düz metni döndürür.",
+    "denied": "Geçersiz veya değişmiş encryption_key ile çözme InvalidToken sonrası frappe.throw ile reddedilir, düz metin dönmez; raise_exception=False ise None döner."
+  },
+  "reuse": {
+    "mechanism": "reuse_existing: native frappe/utils/password.py (set_encrypted_password, get_decrypted_password, Fernet encrypt/decrypt, site_config encryption_key). Kripto kodu, adaptör, kopya ORM veya DDL yok. permlevel okuma süzmesi yetkilendirmedir, şifreleme değildir; yerel T08 ile kanıtlıdır ve burada tekrar pilotlanmaz.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/utils/password.py",
+        "line": 4,
+        "quote": "from cryptography.fernet import Fernet, InvalidToken"
+      },
+      {
+        "path": "frappe/frappe/utils/password.py",
+        "line": 13,
+        "quote": "Auth = Table(\"__Auth\")"
+      },
+      {
+        "path": "frappe/frappe/utils/password.py",
+        "line": 31,
+        "quote": "& (Auth.encrypted == 1)"
+      },
+      {
+        "path": "frappe/frappe/utils/password.py",
+        "line": 62,
+        "quote": "query = query.insert(doctype, name, fieldname, encrypt(pwd), 1).on_duplicate_key_update("
+      },
+      {
+        "path": "frappe/frappe/utils/password.py",
+        "line": 225,
+        "quote": "return cstr(cipher_suite.encrypt(encode(txt)))"
+      },
+      {
+        "path": "frappe/frappe/utils/password.py",
+        "line": 234,
+        "quote": "except InvalidToken:"
+      },
+      {
+        "path": "frappe/frappe/utils/password.py",
+        "line": 251,
+        "quote": "if \"encryption_key\" not in frappe.local.conf:"
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/encryption-profile.json",
+    "plannedProduction": [
+      "operations/encryption-profile/encryption_profile_mvp.yml"
+    ],
+    "plannedTestFile": "backend/saas_platform/saas_platform/tests/test_encryption_profile_secret_storage.py",
+    "sharedIntegrationFiles": [],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "Native Document.save; Password alanı string. Uzunluk sınırı native: DataError -> 'Most probably your password is too long.' (password.py:79). Pilot doctype ve alan adı yerel metadatadan seçilir; şu an bilinmiyor.",
+    "output": "Sunucu tarafı get_decrypted_password(doctype, name, fieldname) düz metin döndürür. API/rapor yanıtında Password alanının nasıl göründüğü sağlanan kaynakta yok; bilinmiyor. Sürüm: yerel Frappe HEAD adf1fd0c; uzak taban ve Suite HEAD bilinmiyor.",
+    "authorization": "Yazma native site ve kayıt write izniyle. get_decrypted_password (satır 23-48) izin kontrolü yapmaz; yalnız güvenilir sunucu kodu çağırır, whitelisted uç noktadan istemciye açılmaz. Alan görünürlüğü T08 permlevel yetkilendirmesine bırakılır.",
+    "persistence": "set_encrypted_password mariadb dalında encrypted=1 ile upsert yapar; istek transaction'ına katıldığı varsayılır, doğrulanmadı. __Auth native create_auth_table ile oluşur; DDL garantisi yok. Document.save -> set_encrypted_password bağlantısı sağlanan kaynakta görülmedi; tek test bunu doğrular.",
+    "failure": "Geçersiz anahtar formatı: 'Encryption key is in invalid format!'; değişmiş anahtar: InvalidToken -> 'Encryption key is invalid! Please check site_config.json'; kayıt yok: 'Password not found ...'. Mevcut React19/AntD6/TanStack tüketicisi native hata mesajını mevcut AntD yüzeyinde gösterir, düz metni yansıtmaz (Outfit 14px, 320-first, çevreleyen odak halkası yok, simetrik pozitif Cubic hareket)."
+  },
+  "development": {
+    "dependencies": [
+      "encryption-profile--contract",
+      "local pilot t08: permlevel read_doc yetkilendirme kanıtı (yalnız referans, tekrar yok)"
+    ],
+    "admission": "T-00 hedef tabanı ve R-00 yeniden kullanım eşlemesi. Yerel sitede encryption_key varlığı değeri yazdırılmadan doğrulanmalı; yoksa get_encryption_key site_config dosyasına anahtar yazar, bu nedenle test koşmaz ve durulur. Password alanlı pilot doctype bilinmiyor. Yerel kanıt uzak ürün tabanı değildir.",
+    "steps": [
+      "reuse_existing: password.py Fernet saklama yolu olduğu gibi kullanılır; kod yazılmaz.",
+      "Yerel metadatada mevcut Password alanlı doctype seçilir; yoksa yalnız yerel pilot doctype'a native Custom Field (fieldtype Password) eklenir.",
+      "operations/encryption-profile/encryption_profile_mvp.yml içinde profil belgelenir: kapsam uygulama düzeyi secret alanı, anahtar konumu site_config (değer yok), açık dağıtım boşlukları ve sahipleri.",
+      "Tek test yazılıp çalıştırılır; native geçerse reuse_existing kabul kanıtı olarak kaydedilir."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Test kendi kaydını Password alanıyla Document.save ile kaydeder; __Auth encrypted=1 satırı vardır, saklanan değer düz metne eşit değildir, get_decrypted_password aynı değeri döner. Test kendi kaydını transaction rollback ile geri alır.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: Test kendi kaydını Password alanıyla Document.save ile kaydeder; __Auth encrypted=1 satırı vardır, saklanan değer düz metne eşit değildir, get_decrypted_password aynı değeri döner. Test kendi kaydını transaction rollback ile geri alır. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Aynı test aynı komutla geçer. Test komutu yerel pilotta doğrulanmadı; bilinmiyor."
+    },
+    "rollback": "Yalnız yerel pilot Custom Field (eklendiyse), yml ve test dosyası geri alınır; müşteri kaydı silinmez, encryption_key değiştirilmez, production izni yok."
+  },
+  "remainingGaps": [
+    "Yanıt yolu görünürlüğü yetkilendirmedir: read_doc T08 ile kanıtlı; get_list, get_value (client.py:134 doctype düzeyi), rapor ve expand_links ayrı kabul ister; ikinci permlevel pilotu yapılmaz.",
+    "Hassas alan sınıflandırma listesi tanımsız; deneysel masking hariç.",
+    "encryption_key site_config içinde: yedek ve geri yüklemede taşınması, rotasyonu ve erişimi kararsız; teknik devir Hüseyin Cengiz.",
+    "MariaDB at-rest, yedek şifreleme ve S3/Drive dosyaları (suite/pyproject.toml:15 boto3) için seçim yok; teknik devir Hüseyin Cengiz.",
+    "TLS sonlandırma ve iç trafik (realtime->web loopback, recorder/SFU) kararı yok; teknik devir Hüseyin Cengiz, DNS gerekirse Asistan Hüseyin."
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "security-6": "mvp"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

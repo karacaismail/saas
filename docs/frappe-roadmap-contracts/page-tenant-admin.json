@@ -1,0 +1,110 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "page-tenant-admin",
+  "canonicalTaskIds": ["page-tenant-admin--implementation"],
+  "requirementIds": ["shell-2"],
+  "stage": "mvp",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "Etkin write iznine göre yönetici güncelleme eylemini gösterme veya gizleme ve gizli eylemin API reddi",
+    "trigger": "TenantAdminPage yüklenir veya oturum kullanıcısı değişir. Sayfa, yerel pilot DocType için oturum kullanıcısının etkin izinlerini okur.",
+    "expected": "Müşteri yöneticisi rolünde (yerel pilotta admin kapsamı) write=1 ise kayıt güncelleme eylemi görünür ve native kayıt yolu başarılı olur. Son kullanıcı rolünde (yerel pilotta reader kapsamı) yalnız read yüzeyi görünür.",
+    "denied": "Reader kullanıcı arayüzde gizlenen güncellemeyi doğrudan native REST ile denediğinde Frappe, Document.save izin kontrolünde PermissionError (HTTP 403) döndürür. Kayıt değişmez. Arayüz, kullanıcıya bu işlem için yetkisi olmadığını belirten bir mesaj gösterir."
+  },
+  "reuse": {
+    "mechanism": "Yetki zorlaması tamamen native kalır: DocPerm/Custom DocPerm, get_valid_perms, has_permission hook zinciri ve Document.save. Etkin izni okuyan whitelisted bir native method, sağlanan kanıtta yok ve unknown sayılır. Bu nedenle tek gerekli adapter, yalnız frappe.session.user için get_valid_perms(doctype) sonucundan read/write/create/delete bayraklarını döndüren salt okunur bir whitelisted fonksiyondur. user/roles parametresi almaz ve ignore_permissions içermez. Suite Vue SPA'sı React kabuğu olarak yeniden kullanılmaz.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/permissions.py",
+        "line": 496,
+        "quote": "hooks = frappe.get_hooks(\"has_permission\")"
+      },
+      {
+        "path": "frappe/frappe/permissions.py",
+        "line": 512,
+        "quote": "def get_valid_perms(doctype=None, user=None, roles=None):"
+      },
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 44,
+        "quote": "Vue Router takes over client-side"
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/page-tenant-admin.json",
+    "plannedProduction": [
+      "frontend/packages/ui/src/pages/page-tenant-admin/index.tsx"
+    ],
+    "plannedTestFile": "frontend/packages/ui/src/pages/page-tenant-admin/index.e2e.spec.ts (yalnız planlı; e2e dizin düzeni unknown, entegrasyon sahibi kesinleştirir)",
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/api (etkin izin okuma adapter'ı; tam yol api-middleware--contract ile entegrasyon sahibince belirlenir)",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/packages/ui/src/index.ts",
+      "frontend/packages/ui/src/navigation.ts"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "Adapter girdisi: doctype:string. Zorunludur, yalnız mevcut DocType adı kabul edilir ve 140 karakteri aşamaz. Kullanıcı her zaman oturumdan alınır. Güncelleme girdisi: native PUT /api/resource/{doctype}/{name}, gövdede yalnız pilot Data alanı; cookie ve X-Frappe-CSRF-Token zorunludur.",
+    "output": "Adapter çıktısı: {version:1, doctype, user, perms:{read, write, create, delete: boolean}}. Kayıt verisi veya başka kullanıcı bilgisi dönmez. Güncellemenin native yanıtı, yalnız okuma iznine tabi alanlarla dönen dokümandır.",
+    "authorization": "Yetki kapsamı native site sınırı içinde kalır; rol kapsamı DocPerm ile, kayıt kapsamı has_permission hook zinciriyle belirlenir. Hook'lar yalnız reddedebilir. UI gizleme yalnız sunumdur, yetki kaynağı değildir. Guest kullanıcı adapter'a erişemez.",
+    "persistence": "Adapter yalnız okuma yapar. Güncelleme yalnız native Document.save transaction'ı ile yapılır. Yeni DocType, alan, hook veya DDL yoktur; hooks.py değişmez.",
+    "failure": "Reddedilen güncellemede frappe.PermissionError döner (HTTP 403) ve consumer bunu salt okunur durum olarak gösterir. Adapter okuması 401/403 verirse yönetici yüzeyi gösterilmez (fail-closed). Ağ ve 5xx hatalarında yeniden dene seçeneği sunulur; eylemler gizli kalır."
+  },
+  "development": {
+    "dependencies": [
+      "page-tenant-admin--contract",
+      "kernel-envelope--contract",
+      "api-middleware--contract",
+      "client-rule-parity--contract",
+      "yerel pilot t08: mevcut tek Data kaydının native admin/reader kapsamlarıyla okunup güncellenmesi"
+    ],
+    "admission": "T-00 hedef tabanı ve R-00/R-01 eşlemesi gereklidir. Yerel kanıt Frappe17-dev/suite.localhost, frappe adf1fd0c üzerindedir. Suite source HEAD ve uzak ürün tabanı unknown; yerel kanıt uzak taban yerine geçmez.",
+    "steps": [
+      "Entegrasyon sahibi, salt okunur etkin izin adapter'ını get_valid_perms üzerine ekler.",
+      "index.tsx'te TanStack Query anahtarı ['effective-perms', sessionUser, doctype] ile izinler okunur. Oturum kullanıcısı değişince bu anahtar invalidate edilir.",
+      "Güncelleme eylemi yalnız write=true ise mevcut AntD bileşenleriyle render edilir. Metin en az 14px ve Outfit'tir; düzen 320px önceliklidir; çevreleyen odak halkası yoktur; hareketler simetrik pozitif Cubic eğrisini kullanır.",
+      "403 yanıtı, salt okunur durum mesajına eşlenir."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Aynı yerel hesap admin kapsamında güncelleme eylemini görür. Rol reader yapılıp sayfa yeniden yüklendiğinde eylem DOM'da bulunmaz. Aynı kullanıcı native PUT çağrısı yaptığında 403 PermissionError alır ve kayıt değişmez.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: Aynı yerel hesap admin kapsamında güncelleme eylemini görür. Rol reader yapılıp sayfa yeniden yüklendiğinde eylem DOM'da bulunmaz. Aynı kullanıcı native PUT çağrısı yaptığında 403 PermissionError alır ve kayıt değişmez. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Uygulamadan sonra aynı test aynı komutla çalıştırılır ve tüm assertion'lar geçer."
+    },
+    "rollback": "Yalnız index.tsx ve adapter yerelde geri alınır. Pilot rol ataması eski haline getirilir. Production değişikliği ve yetkisi yoktur."
+  },
+  "remainingGaps": [
+    "Müşteri yöneticisi ve son kullanıcı rol adları ile tam DocType/ptype matrisi karara bağlı. Burada yalnız pilot DocType × admin/reader matrisi var; tenant global modeli seçilmedi.",
+    "Rol değişimi yalnız sayfa yeniden yüklenince yansır. Canlı itme veya oturum içi rol değişimi tanımsız.",
+    "Suite Vue/frappe-ui kabuğunun React kabuğuyla ilişkisi (ayrı mı, yan yana mı) karara bağlanmadı.",
+    "Etkin izni döndüren whitelisted bir native method kanıtlanmadı. Adapter'ın yolu entegrasyon sahibine bırakıldı.",
+    "Keycloak not_run. Uzak deploy, Hüseyin Cengiz'in teknik bağımlılığıdır."
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "shell-2": "mvp"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

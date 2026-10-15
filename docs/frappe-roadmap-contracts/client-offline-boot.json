@@ -1,0 +1,115 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "client-offline-boot",
+  "canonicalTaskIds": ["client-offline-boot--implementation"],
+  "requirementIds": ["channels-16"],
+  "stage": "mvp",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "Ağ yokken soğuk açılışta yerel hazırlık manifestine göre açılış kararı",
+    "trigger": "Uygulama ağ kapalıyken yeniden başlatılır; istemci, etkin site ve son çevrimiçi kullanıcı için yerel hazırlık manifestini okur.",
+    "expected": "Manifest aynı site+kullanıcı anahtarına sahipse ve expiresAt geçmemişse karar 'ready' olur ve yalnız manifestte listelenen DocType/kayıt/dosya anahtarları açılır; listede olmayan veri 'missing' olarak sınırlandırılır. expiresAt geçmişse karar 'expired' olur, veri açılmaz ve bekleyen yerel kayıtlar silinmeden korunur.",
+    "denied": "Manifest yoksa, okunamıyorsa veya site/kullanıcı anahtarı eşleşmiyorsa karar 'needs_online_login' olur; başka kullanıcı veya tenant manifesti asla açılmaz, çevrimdışı ilk giriş vaat edilmez."
+  },
+  "reuse": {
+    "mechanism": "Hazırlık sırasında veri yalnız native okuma yolundan alınır (check_permission + apply_fieldlevel_read_permissions); ham get_meta izin özeti sayılmaz. Suite offlineCopy yalnız desen referansıdır (Service Worker kontrol yoksa açık hata döndürme, shell/API ısıtma). Yeni sunucu API, DocType veya ORM kopyası yok; tek küçük istemci adaptörü sahip olunan dosyadadır çünkü genel çalışma alanı açılış kararı kaynakta yok.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 84,
+        "quote": "doc.apply_fieldlevel_read_permissions()"
+      },
+      {
+        "path": "frappe/frappe/api/v2.py",
+        "line": 245,
+        "quote": "def get_meta(doctype: str):"
+      },
+      {
+        "path": "suite/frontend/src/apps/slides/stores/offlineCopy.js",
+        "line": 177,
+        "quote": "return { ok: false, uncontrolled: true, registered }"
+      },
+      {
+        "path": "suite/frontend/src/apps/slides/stores/offlineCopy.js",
+        "line": 180,
+        "quote": "await warmShellAndApi(id, loadOptions, signal)"
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/client-offline-boot.json",
+    "plannedProduction": [
+      "frontend/packages/platform/src/client-offline-boot/client_offline_boot_mvp.tsx"
+    ],
+    "plannedTestFile": "frontend/packages/platform/src/client-offline-boot/client_offline_boot_mvp.test.tsx",
+    "sharedIntegrationFiles": [
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/packages/ui/src/index.ts",
+      "frontend/package.json",
+      "integration/fragments/client-offline-boot--integration.json"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "resolveOfflineBoot({ siteKey: string, userKey: string|null, now: epoch ms, readManifest: () => Promise<Manifest|null> }). Manifest: { version: 1, siteKey, userKey, preparedAt, expiresAt (device-grant sözleşmesinden gelir; süre değeri burada seçilmez), entries: [{ kind: 'doc'|'file', doctype?, name?, key }] }. Anahtarlar opak dizedir; secret/token içermez.",
+    "output": "{ version: 1, decision: 'ready'|'expired'|'needs_online_login', entries?: Manifest.entries (yalnız 'ready'), reason: 'no_manifest'|'unreadable'|'identity_mismatch'|'expired'|null }. Alan düzeyi kısıt, hazırlıkta native yanıttan zaten çıkarılmış içerik olarak saklanır; istemci izin hesaplamaz.",
+    "authorization": "Yetkinin kaynağı Frappe sitesidir: hazırlık native cookie/CSRF oturumuyla read_doc yoluyla yapılır, PermissionError alan kayıt manifeste girmez. Çevrimdışı karar yeni yetki üretmez; yalnız daha önce sunucunun verdiği kapsamı daraltır. Site veya kullanıcı uyuşmazlığı reddedilir.",
+    "persistence": "Sunucuda kalıcılık, DDL veya hook yok. Manifest ve önbellek yalnız cihazda; depolama adaptörü enjekte edilir. Tauri güvenli saklama ve tarayıcı kalıcılık garantisi yok (persist yalnız istektir).",
+    "failure": "readManifest hatası veya şema version uyuşmazlığı 'needs_online_login'/'unreadable' döner, istisna yukarı taşınmaz. Mevcut AntD bileşenleriyle anlaşılır mesaj gösterilir (Outfit, en az 14px, 320 öncelikli, çevreleyen odak halkası yok, simetrik pozitif Cubic hareket). Hazırlıkta QuotaExceededError bu davranışın kapsamı dışındadır."
+  },
+  "development": {
+    "dependencies": [
+      "client-offline-boot--contract",
+      "kernel-envelope--contract",
+      "sync-receipt--contract",
+      "device-grant--contract",
+      "local pilot: frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6, nativeAuth cookie/CSRF"
+    ],
+    "admission": "T-00 hedef taban ve R-00 yeniden kullanım eşlemesi; izinli veri tüketimi R-01 üzerinden. Yerel Frappe17-dev/suite.localhost kanıtı uzak ürün tabanı değildir; Suite HEAD ve uzak taban bilinmiyor. device-grant expiresAt alanı sözleşmede sabitlenmeden uygulama başlamaz.",
+    "steps": [
+      "Sahip olunan dosyaya saf resolveOfflineBoot fonksiyonunu ve Manifest v1 tipini ekle.",
+      "Aynı dosyada karar sonucunu mevcut AntD Result/Alert ile gösteren küçük bileşen ekle; rota bağlantısı entegrasyon sahibine bırakılır.",
+      "Hazırlık manifesti üretimi yalnız native read_doc yanıtlarından entries doldurur; ham get_meta kullanılmaz."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Geçerli süreli manifest kullanıcı A için hazırken kullanıcı B (aynı site) ile ağsız açılış: karar 'needs_online_login', reason 'identity_mismatch', entries döndürülmez.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: Geçerli süreli manifest kullanıcı A için hazırken kullanıcı B (aynı site) ile ağsız açılış: karar 'needs_online_login', reason 'identity_mismatch', entries döndürülmez. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Aynı test aynı komutla uygulamadan sonra geçer; native zaten çalışan davranış üzerinde RED üretilmez."
+    },
+    "rollback": "Sahip olunan tek üretim dosyası ve planlı test dosyası yerelde geri alınır; üretim, servis veya kayıt değişikliği yetkisi yoktur."
+  },
+  "remainingGaps": [
+    "Yerel yetki süresi ve iptal kuralı device-grant sözleşmesine bağlı; süre değeri seçilmedi.",
+    "Keycloak çevrimdışı oturum ve Tauri keychain/Stronghold kararı bekliyor; bu sözleşme dışında.",
+    "Yeniden bağlanınca önce yetki doğrulama sonra outbox gönderimi sırası ve yetki kaybında bekleyen kayıtların akıbeti sync-receipt sözleşmesine bağlı.",
+    "Hazırlanacak DocType/dosya kapsamı ve boyut bütçesi tanımsız.",
+    "Service Worker/paketli uygulama kabuğunun ağsız yüklenmesi ve gerçek cihaz yeniden başlatma kanıtı not_run.",
+    "Dağıtım veya uzak ortam gereksinimi doğarsa teknik sahip Hüseyin Cengiz'dir; otomasyon/zamanlama etkinleştirilmez."
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "channels-16": "mvp"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

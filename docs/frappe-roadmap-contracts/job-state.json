@@ -1,0 +1,117 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "job-state",
+  "canonicalTaskIds": ["job-state--implementation"],
+  "requirementIds": ["jobs-2", "jobs-3", "jobs-4", "jobs-5"],
+  "stage": "mvp",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "Aynı site içinde aynı job_type+idempotency_key ile ikinci yürütme iş etkisini tekrar uygulamaz",
+    "trigger": "Worker yeniden denemesi ya da elle yeniden çalıştırma, job_state.py içindeki run_once(job_type, idempotency_key, effect) yardımcısını aynı yerel site bağlamında ikinci kez çağırır.",
+    "expected": "İlk çağrı JobState kaydını ve effect yazımını aynı DB transaction'ında yapar, status=applied döner. İkinci çağrı effect'i çağırmaz; mevcut JobState adını status=skipped_duplicate ile döner.",
+    "denied": "Boş ya da 140 karakteri aşan anahtar veya bilinmeyen job_type, effect çalışmadan frappe.throw ile reddedilir. Başka sitenin kaydı görülmez ve tekilleştirmede sayılmaz."
+  },
+  "reuse": {
+    "mechanism": "Native: JobState DocType, Document.insert ve worker DB transaction'ı. Mevcut job_id/is_job_enqueued kuyruk tekilleştirmesi korunur, fakat iş etkisi için yeterli sayılmaz. Yeni kuyruk, kilit servisi, event motoru veya ORM kopyası açılmaz; job_state.py içinde yalnız tek yardımcı eklenir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/utils/background_jobs.py",
+        "line": 257,
+        "quote": "job_id=job_id,"
+      },
+      {
+        "path": "frappe/frappe/core/doctype/scheduled_job_type/scheduled_job_type.py",
+        "line": 109,
+        "quote": "return is_job_enqueued(self.rq_job_id)"
+      },
+      {
+        "path": "frappe/frappe/utils/background_jobs.py",
+        "line": 39,
+        "quote": "RQ_RESULTS_TTL = 10 * 60"
+      },
+      {
+        "path": "frappe/frappe/core/doctype/rq_job/rq_job.py",
+        "line": 32,
+        "quote": "frappe.only_for(\"System Manager\")"
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/job-state.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/platform_system/doctype/job_state/job_state.py"
+    ],
+    "plannedTestFile": "backend/saas_platform/saas_platform/platform_system/doctype/job_state/test_job_state.py",
+    "sharedIntegrationFiles": [
+      "integration/fragments/job-state--integration.json",
+      "backend/saas_platform/saas_platform/hooks.py",
+      "backend/saas_platform/saas_platform/platform_system/doctype/job_state/job_state.json"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "job_type: Data, en fazla 140 karakter, kayıtlı iş sınıfı. idempotency_key: Data, 1-140 karakter, iş girdisinden deterministik türetilir; kişisel veri ve secret içermez. effect: aynı transaction'da yalnız DB'ye yazan çağrılabilir. Site parametre olarak alınmaz, çağrının site bağlamından gelir.",
+    "output": "{contractVersion:'job-state.v1', status:'applied'|'skipped_duplicate', job_state:<name>}. ui-family-32 yalnız JobState okuma izniyle name/job_type/status/modified alanlarını görür. idempotency_key ve hata ayrıntısının alan düzeyinde gizlenmesi (permlevel) job-state--schema'ya bağlıdır ve unknown.",
+    "authorization": "Yerel kanıt için sınır native site'tır; ürünün kiracı modeli burada seçilmez. JobState yazımı native DocType izinleriyle yapılır; ignore_permissions yalnız native-user-policy--contract açıkça izin verirse kullanılır. Zorla durdurma mevcut System Manager kısıtında kalır, yeni iptal yetkisi açılmaz. Yetkisiz okuma native izin hatasıyla reddedilir; hata sınıfının adı yerelde doğrulanacak (unknown).",
+    "persistence": "Önce mevcut kayıt okunur; yoksa JobState insert ve effect aynı transaction'da yapılır. Commit/rollback, worker'ın iş sonu davranışına bırakılır; execute_job ayrıntısı excerpt'te yok (unknown). Tekillik, job_state.json'da job_type+idempotency_key benzersizliğine dayanır. Bu alan job-state--schema'nın sahipliğindedir ve varlığı doğrulanmadı; DDL garantisi yoktur. Worker çökerse commit edilmemiş claim geri alınır, kilit kalıcı kalmaz. Bu yalnız DB etkileri için geçerlidir.",
+    "failure": "Yarış durumunda benzersizlik ihlali yakalanır, effect çağrılmaz ve skipped_duplicate döner. Native duplicate hata sınıfı ve savepoint API'si unknown. Effect istisnasında rollback yapılır ve JobState yazılmaz; iş, RQ failed registry'de failure TTL süresince kalır. Consumer failed durumunu gösterir, otomatik tekrar tetiklemez. Geçersiz kuyruk native 'Queue should be one of' hatasıyla reddedilir."
+  },
+  "development": {
+    "dependencies": [
+      "job-state--contract",
+      "job-state--schema",
+      "kernel-envelope--contract",
+      "native-user-policy--contract",
+      "localPilot schemaCommit f926e9b, recordCommit 6ea301c, frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6"
+    ],
+    "admission": "T-00 hedef taban ve R-00 eşlemesi gerekir. job_state.json'da job_type, idempotency_key, status alanları ve site içi benzersizlik doğrulanmalı (şu an unknown). Kanıt yalnız yerel Frappe17-dev/suite.localhost'tan gelir; uzak ürün tabanı ve Suite HEAD unknown.",
+    "steps": [
+      "job_state.json alanlarını oku; benzersizlik yoksa job-state--schema sahibine bildir, şemayı kendin değiştirme.",
+      "job_state.py içinde run_once'ı yaz: girdiyi doğrula, mevcut kaydı oku, yoksa insert ile effect'i çalıştır, duplicate durumunda mevcut adı döndür.",
+      "frappe.enqueue job_id değerini aynı anahtardan türet; zamanlayıcı/cron etkinleştirme.",
+      "Tüketici sözleşmesini yalnız integration fragmentine öner; hooks.py entegrasyonu Codex'tedir."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Yerel test sitesinde aynı job_type+idempotency_key ile run_once sırayla iki kez çağrılır. Beklenen: effect sayacı 1, JobState kayıt sayısı 1, ikinci dönüş skipped_duplicate.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: Yerel test sitesinde aynı job_type+idempotency_key ile run_once sırayla iki kez çağrılır. Beklenen: effect sayacı 1, JobState kayıt sayısı 1, ikinci dönüş skipped_duplicate. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Aynı komut değişmeden geçmeli: bench --site <yerel test sitesi> run-tests --module saas_platform.platform_system.doctype.job_state.test_job_state"
+    },
+    "rollback": "Yalnız job_state.py ve planlanan test dosyası yerelde geri alınır. Şema, hook ve üretim değişikliği yoktur; üretim izni yoktur."
+  },
+  "remainingGaps": [
+    "jobs-2: Kiracı başına eşzamanlılık sayacı ve iş sınıfı-kuyruk/timeout/at_front tablosu yazılmadı; MAX_QUEUED_JOBS kuyruk genelindedir. Short kuyruğa ayrılmış worker bir dağıtım bağımlılığıdır; sahibi Hüseyin Cengiz, etkinleştirilmedi.",
+    "jobs-3: with_scheduler=False iken Retry interval ile backoff'un çalışıp çalışmadığı unknown. Hata sınıfı/max deneme tablosu yok; 7 gün ve 1000 kayıt sınırı incelenebilirlikle çelişebilir. Saklama süresi seçilmedi.",
+    "jobs-4: cancel_requested ile kooperatif iptal, checkpoint/devam, ilerleme yayını (realtime yardımcısı unknown) ve kiracı yöneticisi izin modeli açık. ui-family-32 mevcut AntD UI'da Outfit, en az 14px, 320-first, çevreleyen odak halkası olmadan ve simetrik pozitif Cubic hareketle tüketmeli.",
+    "jobs-5: İki worker'ın eşzamanlı yarışı, dış etkiler (outbox/inbox) ve lease TTL bu senaryoda kanıtlanmaz. enqueue_after_commit tek etki garantisi değildir.",
+    "Gereksinimlerin teslimi not_proven durumunda; bu plan ürün GREEN'i değildir."
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "jobs-2": "mvp",
+    "jobs-3": "mvp",
+    "jobs-4": "mvp",
+    "jobs-5": "mvp"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

@@ -1,0 +1,104 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "cache-policy",
+  "canonicalTaskIds": ["cache-policy--implementation"],
+  "requirementIds": ["performance-1", "performance-2", "performance-3"],
+  "stage": "mvp",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "Rate Limit kaydı Document.save ile güncellenince rate_limits önbellek girdisi tazelenir",
+    "trigger": "Mevcut Rate Limit kaydının limit alanı Document.save ile değiştirilir, ardından aynı site ve method_path için get_rate_limits çağrılır.",
+    "expected": "get_rate_limits kaydedilen yeni limiti döndürür; rate_limits hash girdisi bayat değer taşımaz. Tazelik kuralı TTL değil, olay tabanlı geçersizleştirmedir (hdel).",
+    "denied": "Rate Limit yazma yetkisi olmayan kullanıcının save çağrısı native frappe.PermissionError ile reddedilir, önbellek değişmez. Aynı IP hem allowed hem blocked ise validate frappe.throw ile kaydı reddeder."
+  },
+  "reuse": {
+    "mechanism": "Native/source reuse: suite Rate Limit içindeki frappe.cache.hget generator ve clear_cache içindeki hdel deseni tek veri sınıfı için politika referansıdır. Yeni cache katmanı, adapter veya hook yazılmaz; sahip olunan YAML yalnız bu veri sınıfının anahtar, tazelik ve geçersizleştirme beyanını taşır. clear_cache metodunun save akışında çağrıldığı verilen excerptte görülmüyor; doğrulanmadı.",
+    "evidence": [
+      {
+        "path": "suite/suite/suite_core/doctype/rate_limit/rate_limit.py",
+        "line": 145,
+        "quote": "return frappe.cache.hget(\"rate_limits\", method_path, generator)"
+      },
+      {
+        "path": "suite/suite/suite_core/doctype/rate_limit/rate_limit.py",
+        "line": 80,
+        "quote": "frappe.cache.hdel(\"rate_limits\", self.method_path)"
+      },
+      {
+        "path": "frappe/frappe/rate_limiter.py",
+        "line": 180,
+        "quote": "frappe.cache.setex(cache_key, seconds, 0)"
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/cache-policy.json",
+    "plannedProduction": ["operations/cache-policy/cache_policy_mvp.yml"],
+    "plannedTestFile": "backend/saas_platform/saas_platform/tests/test_cache_policy_rate_limit.py",
+    "sharedIntegrationFiles": [
+      "integration/fragments/cache-policy--integration.json"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "method_path: str (Rate Limit kaydındaki dotted path, boş olamaz); güncellenen alan limit: int > 0; seconds: int > 0 (create_rate_limit varsayılanı 86400). Yeni alan veya DocType yok.",
+    "output": "get_rate_limits(method_path) -> list; öğeler methods (ALL veya liste), ip_based: bool, allowed_ips/blocked_ips: list ve kayıttaki limit/seconds. Sürüm alanı yok; tazelik ölçütü son kaydedilmiş değerdir. Whitelisted HTTP API olduğu kanıtlanmadı; sunucu içi tüketim varsayılır.",
+    "authorization": "Native site sınırı frappe.cache bağlamıyla; make_key site önekini nasıl uyguladığı doğrulanmadı. Kayıt yazma native DocType izinleriyle; create_rate_limit ignore_permissions=True kullandığından fixture yetki kanıtı sayılmaz. Alan düzeyi kısıt yok.",
+    "persistence": "Document.save native istek transaction'ı içinde, geçersizleştirme hdel ile. hdel'in commit öncesi/sonrası çalışması ve rollback'te önbellek tutarlılığı doğrulanmadı. DDL, patch, şema değişikliği yok.",
+    "failure": "Yetkisiz yazma: frappe.PermissionError. Çakışan IP: frappe.throw ValidationError. Sınır aşımı: frappe.RateLimitExceededError tüketicide tekrar-deneme mesajıyla gösterilir. HTTP kodları bu kaynakta doğrulanmadı. Redis bağlantı hatası altyapı hatasıdır."
+  },
+  "development": {
+    "dependencies": [
+      "cache-policy--contract",
+      "local pilot: frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6, suite.localhost; suiteSourceHead unknown"
+    ],
+    "admission": "cache-policy--contract tamamlanmış, T-00/R-00 kabul edilmiş olmalı. Suite'in suite.localhost'ta kurulu olduğu ve saas_platform test modülünün çalıştığı yerelde doğrulanmalı; planlı test yolu canonical owns listesinde değil, Codex entegrasyon onayı gerekir. Yerel kanıt uzak ürün baseline'ı değildir.",
+    "steps": [
+      "Planlı tek testi yaz, yerel suite.localhost'ta çalıştır, sonucu kaydet.",
+      "Test bayat değer nedeniyle başarısızsa kök neden save akışında clear_cache çağrısının eksikliğidir; düzeltme suite kaynağında olduğundan sahiplik dışıdır, entegrasyon sahibine aktarılır.",
+      "cache_policy_mvp.yml içine yalnız rate_limits sınıfını yaz: anahtar rate_limits/method_path, TTL yok (olay tabanlı), geçersizleştirme Rate Limit save, sahip Backend önbellek.",
+      "Zamanlayıcı, cron, servis yeniden başlatma veya Redis topoloji değişikliği yapılmaz."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Test transaction'ında Rate Limit (limit=5) oluştur, get_rate_limits ile önbelleği doldur, get_doc + limit=7 + save ile güncelle, get_rate_limits'in 7 döndürdüğünü assert et.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: Test transaction'ında Rate Limit (limit=5) oluştur, get_rate_limits ile önbelleği doldur, get_doc + limit=7 + save ile güncelle, get_rate_limits'in 7 döndürdüğünü assert et. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Aynı test, aynı bench --site suite.localhost run-tests --module komutu ve aynı siteyle, onaylı düzeltmeden sonra geçmelidir."
+    },
+    "rollback": "Yerelde YAML girdisi ve planlı test geri alınır; test verisi test transaction'ıyla geri döner. Müşteri kaydı silinmez, production yetkisi yoktur."
+  },
+  "remainingGaps": [
+    "performance-1: kritik yol listesi, sayısal p95/hata/kaynak bütçesi, temsilî yük profili ve ölçüm kaynağı (frappe.monitor ya da dış APM) kararı yok; query_report.py:20 ve :175 yalnız kaynak sinyalidir. Görev eşlemesi cache-policy ile karışık; yeni görev açılmadı, düzeltme mevcut kayıtta entegrasyon sahibine aittir.",
+    "performance-2: hit/miss metrik kaynağı (Redis INFO veya uygulama sayacı) ve diğer veri sınıflarının TTL kuralları tanımsız. Redis cache/queue ayrımı ve HA topolojisi Hüseyin Cengiz'e teknik bağımlılıktır.",
+    "performance-3: tenant modeli kararı kapsam dışı; site içi tenant anahtar öneki tanımlanmadı. make_key'in iki sitede veri karıştırmadığı doğrulanmadı. suite hooks.py:229 clear_user_group_cache deseni yalnız domain invalidation referansıdır.",
+    "UI değişikliği yok; ileride gerekirse Outfit 14px, 320-first, çevreleyen odak halkası yok, simetrik pozitif Cubic hareket ve mevcut AntD korunur.",
+    "Planlı test dosyası canonical owns listesinde değil; entegrasyon onayı gerekir."
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "performance-1": "mvp",
+    "performance-2": "mvp",
+    "performance-3": "mvp"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

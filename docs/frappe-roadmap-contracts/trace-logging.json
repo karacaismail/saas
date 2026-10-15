@@ -1,0 +1,115 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "trace-logging",
+  "canonicalTaskIds": ["trace-logging--implementation"],
+  "requirementIds": ["observability-3", "observability-5", "observability-6"],
+  "stage": "mvp",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "API isteğinin request_id değeri, o istekten kuyruğa atılan RQ işinin yapılandırılmış log satırına aynen taşınır; satırda yalnız izinli alanlar bulunur",
+    "trigger": "Oturum açmış kullanıcı /api/method/<method> çağırır; metot native kuyruk API'siyle bir RQ işi kuyruğa atar ve worker bu işi çalıştırır.",
+    "expected": "API log satırı ile iş log satırı aynı request_id, site ve user değerini taşır. Yanıtta X-Request-ID başlığı geri döner. Satırlarda yalnız event, request_id, site, user, method/job ve outcome alanları bulunur.",
+    "denied": "İş kwargs değeri, istek gövdesi, Authorization/Cookie başlığı ve hata mesajı metni log satırına yazılmaz. Geçersiz X-Request-ID değeri reddedilmez; yok sayılır ve sunucu yeni bir kimlik üretir. Native izin reddi (403) değişmez; yalnız outcome=denied yazılır."
+  },
+  "reuse": {
+    "mechanism": "Native frappe.logger(allow_site=True) ve mail EventLogger ctx deseni yeniden kullanılır. log_admin_action'daki payload yazmama kuralı izin listesine dönüştürülür. Bağlamı istekten işe taşımak için yalnızca en küçük adaptör eklenir; v17-dev hook noktası doğrulanmadan yazılmaz. Yeni DocType, ORM veya olay motoru yoktur.",
+    "evidence": [
+      {
+        "path": "suite/suite/mail/utils/logger.py",
+        "line": 48,
+        "quote": "self.logger_name, allow_site=True, max_size=max_size, file_count=file_count"
+      },
+      {
+        "path": "suite/suite/mail/utils/logger.py",
+        "line": 19,
+        "quote": "Binds a context dict (shared by reference, so callers can keep mutating it)"
+      },
+      {
+        "path": "suite/suite/mail/utils/logger.py",
+        "line": 161,
+        "quote": "payload, which can hold passwords and message contents."
+      },
+      {
+        "path": "suite/suite/mail/utils/logger.py",
+        "line": 165,
+        "quote": "fields = {\"user\": frappe.session.user, \"action\": action}"
+      },
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 152,
+        "quote": "Rule(\"/method/<path:method>\", endpoint=handle_rpc_call),"
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/trace-logging.json",
+    "plannedProduction": [
+      "operations/trace-logging/trace_logging_mvp.yml",
+      "backend/saas_platform/saas_platform/observability/request_context.py"
+    ],
+    "plannedTestFile": "backend/saas_platform/saas_platform/observability/test_request_context.py",
+    "sharedIntegrationFiles": ["backend/saas_platform/saas_platform/hooks.py"],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "İsteğe bağlı X-Request-ID başlığı: ^[A-Za-z0-9-]{8,64}$. Eşleşmezse veya yoksa uuid4 hex üretilir. Başka girdi alanı yoktur.",
+    "output": "Yanıtta X-Request-ID başlığı döner. Log satırı sürümü log_schema=1'dir; alanlar event, request_id, site, user, method|job ve outcome(ok|error|denied) ile sınırlıdır. Hata durumunda yalnız istisna sınıf adı yazılır.",
+    "authorization": "Metot için native site, oturum ve whitelist izinleri değişmez. Loglar site log dizinine yazılır; okuma erişimi bench/dosya sistemi düzeyindedir. Logları okumak için yeni bir API açılmaz.",
+    "persistence": "Veritabanına yazılmaz, DDL ve DocType yoktur. Log yazımı DB işlemine katılmaz. request_id iş kuyruğa atılırken işe ayrılmış meta alanında taşınır, worker başlarken bağlama geri yüklenir ve iş bitince temizlenir.",
+    "failure": "Log yazma hatası log_admin_action'daki gibi yutulur; istek veya iş başarısız olmaz. İstek dışında (scheduler veya konsol) kuyruğa atılan işte request_id null olur ve origin=job yazılır. Tüketici yalnız X-Request-ID başlığını kullanır; başlık yoksa korelasyonu yok sayar."
+  },
+  "development": {
+    "dependencies": [
+      "trace-logging--contract",
+      "localPilot frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6"
+    ],
+    "admission": "T-00 hedef temel çizgisi ve R-00 yeniden kullanım eşlemesi tamamlanmış olmalı. v17-dev'de istek öncesi/sonrası ve iş öncesi hook noktaları ile native iş yürütme fonksiyonunun adı kaynaktan doğrulanmalı; bunlar şu an bilinmiyor. suiteSourceHead bilinmiyor; uzak ürün temel çizgisi bilinmiyor. Kanıt yalnız yerel suite.localhost içindir.",
+    "steps": [
+      "trace_logging_mvp.yml dosyasına izinli alan listesi ve log_schema=1 yazılır.",
+      "request_context.py: request_id doğrulama/üretme, frappe.logger(allow_site=True) üstüne izin listesine göre filtreleyen bir kayıt fonksiyonu, kuyruğa atmada request_id ekleme ve worker başında geri yükleme.",
+      "Hook kayıtları hooks.py'ye yalnızca Codex entegrasyonu tarafından eklenir."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Test kullanıcısı X-Request-ID=req-abc12345 ile bir test metodunu çağırır. Metot kwargs içinde password alanı olan bir iş kuyruğa atar. İş native yürütme yoluyla çalıştırılır (now=True kullanılmaz). Site log satırlarında aynı request_id, site ve user ile iki satır bulunmalı; hiçbir satırda password değeri veya kwargs anahtarı bulunmamalıdır.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: Test kullanıcısı X-Request-ID=req-abc12345 ile bir test metodunu çağırır. Metot kwargs içinde password alanı olan bir iş kuyruğa atar. İş native yürütme yoluyla çalıştırılır (now=True kullanılmaz). Site log satırlarında aynı request_id, site ve user ile iki satır bulunmalı; hiçbir satırda password değeri veya kwargs anahtarı bulunmamalıdır. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Uygulamadan sonra aynı test aynı komutla, yerel bench run-tests üzerinden yalnız bu test modülü için çalıştırılır ve geçer. Native olarak zaten çalışan davranış için RED üretilmez."
+    },
+    "rollback": "request_context.py, yml ve hook satırları yerelde geri alınır. Log dosyaları silinmez. Production yetkisi yoktur."
+  },
+  "remainingGaps": [
+    "Sentry: self-host veya SaaS, DSN secret deposu ve veri yerleşimi kararı yok. Bu bir kurulum bağımlılığıdır; sahibi Hüseyin Cengiz'dir.",
+    "Merkezi log manager hedefi, saklama süresi ve erişim yetkisi seçilmedi.",
+    "W3C traceparent/OTel span'leri ve Frappe web, worker, sfu ve collab için RED metrik envanteri yok. Recorder'daki prom-client ve /ready deseni yalnız referanstır.",
+    "Bağımsız uptime probe'unun yeri ve sıklığı belirsiz; kurulum ve kabul Hüseyin Cengiz'e aittir. Cron veya zamanlama etkinleştirilmez.",
+    "Node sfu/recorder logger'larına request_id taşınmıyor; ham error.message alanları ayrıca kısıtlanmalı.",
+    "Serbest metindeki PII için kara liste, Keycloak sub eşlemesi (karar bekliyor) ve tenant kimliği kararı yok; burada site adı yalnız yerel kanıt sınırıdır."
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "observability-3": "mvp",
+    "observability-5": "mvp",
+    "observability-6": "mvp"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

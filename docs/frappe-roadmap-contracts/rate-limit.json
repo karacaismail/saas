@@ -1,0 +1,127 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "rate-limit",
+  "canonicalTaskIds": ["rate-limit--implementation"],
+  "requirementIds": ["security-4", "security-8"],
+  "stage": "mvp",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "Suite Rate Limit kaydinda user_based=1 iken sayac oturum kullanicisina gore ayrilir",
+    "trigger": "Etkin Rate Limit kaydinin (ip_based=0, user_based=1, key_ bos, ignore_in_developer_mode=0) method_path ucuna iki farkli dogrulanmis kullanici ayni pencerede istek atar.",
+    "expected": "Limiti asan kullanici A RateLimitExceededError alir; ayni pencerede kullanici B'nin ilk istegi normal yanit doner.",
+    "denied": "A'nin limit+1. istegi reddedilir; key_ bos oldugu icin istemcinin form_dict degeri yeni sayac acamaz. Guest davranisi bu sozlesmede kabul edilmez."
+  },
+  "reuse": {
+    "mechanism": "Native frappe rate_limit dekoratorunun user_based parametresi yeniden kullanilir. Suite dynamic_rate_limit bu parametreyi gecirmedigi icin en kucuk adaptor: Rate Limit DocType'a user_based Check alani, get_rate_limits secimine eklenmesi ve rate_limit cagrisina gecirilmesi. CustomField secilmedi; okuyan sorgu Suite kodunda acik sutun sectiginden sema ve tuketici ayni sahipte kalir. security-4 global limiter yalniz site_config rate_limit yapilandirmasidir, kod degisikligi yok.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/rate_limiter.py",
+        "line": 111,
+        "quote": "user_based: bool = False,"
+      },
+      {
+        "path": "suite/suite/utils/rate_limiter.py",
+        "line": 62,
+        "quote": "ip_based=rl[\"ip_based\"],"
+      },
+      {
+        "path": "suite/suite/utils/rate_limiter.py",
+        "line": 37,
+        "quote": "if rl[\"ignore_in_developer_mode\"] and frappe.conf.developer_mode:"
+      },
+      {
+        "path": "frappe/frappe/rate_limiter.py",
+        "line": 186,
+        "quote": "frappe.RateLimitExceededError,"
+      },
+      {
+        "path": "frappe/frappe/rate_limiter.py",
+        "line": 89,
+        "quote": "headers[\"Retry-After\"] = self.reset"
+      },
+      {
+        "path": "suite/suite/suite_core/doctype/rate_limit/rate_limit.py",
+        "line": 105,
+        "quote": "doc.insert(ignore_permissions=True)"
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/rate-limit.json",
+    "plannedProduction": [
+      "suite/suite/suite_core/doctype/rate_limit/rate_limit.json",
+      "suite/suite/suite_core/doctype/rate_limit/rate_limit.py",
+      "suite/suite/utils/rate_limiter.py",
+      "operations/rate-limit/rate_limit_mvp.yml"
+    ],
+    "plannedTestFile": "suite/suite/suite_core/doctype/rate_limit/test_rate_limit.py",
+    "sharedIntegrationFiles": [
+      "integration/fragments/rate-limit--integration.json"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "Rate Limit kaydi: method_path str, methods, limit int>0, seconds int>0, ip_based 0, user_based Check varsayilan 0, key_ bos, ignore_in_developer_mode 0. Istek: cookie/CSRF ile dogrulanmis kullanici.",
+    "output": "Izinli istekte ucun mevcut yaniti degismez; asimda RateLimitExceededError mesaji. Yeni yanit alani veya surum yok; user_based=0 mevcut davranisi korur.",
+    "authorization": "Kayit yalniz DocType'in native rol izinleriyle Desk'ten olusturulur (rol izinleri kaynakta saglanmadi, dogrulanmali). create_rate_limit ignore_permissions kullandigindan yalniz ic kurulum yardimcisi kalir, whitelist edilmez, headless API'ye acilmaz. Sayac site onekli cache anahtariyla site sinirinda kalir.",
+    "persistence": "Kayit Document.insert/save native transaction ile; yeni sutun yalniz bench migrate ile DocType JSON'dan olusur, ek DDL garantisi yok. Sayac Redis cache'te, veritabanina yazilmaz. get_rate_limits onbelleginin kayit degisince gecersizlesmesi dogrulanmali.",
+    "failure": "Asim: RateLimitExceededError; dekorator yolunda HTTP kodu ve Retry-After kaynakta gorulmedi. Tuketici (React19/AntD6/TanStack) hatayi otomatik yeniden denemeden mevcut AntD hata yuzeyinde gosterir; Outfit 14px, 320-first, cevreleyen odak halkasiz gosterge, simetrik pozitif Cubic hareket korunur. Redis baglanti hatasi limit asimi sayilmaz."
+  },
+  "development": {
+    "dependencies": [
+      "rate-limit--contract",
+      "local pilot: Frappe17-dev suite.localhost frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6, nativeAuth cookie/CSRF"
+    ],
+    "admission": "T-00 hedef baseline ve R-00 reuse eslemesi gerekir. frappe/frappe/rate_limiter.py 130-176 satirlarinda user_based anahtarinin oturum kullanicisiyla kuruldugu yerelde okunmali; dogrulanamazsa uygulama baslamaz. Suite HEAD bilinmiyor; Suite kaynagina yazma sahipligini entegrasyon sahibi Codex atar. Yerel kanit uzak urun baseline'i degildir.",
+    "steps": [
+      "Rate Limit DocType'a user_based Check alani (varsayilan 0) ekle.",
+      "get_rate_limits secimine user_based ekle ve bool'a cevir.",
+      "dynamic_rate_limit icinde rate_limit cagrisina user_based degerini gecir.",
+      "operations/rate-limit/rate_limit_mvp.yml icinde global site_config rate_limit {limit, window} ve Rate Limit kayit sablonunu degersiz yer tutucuyla belgele; esikler Huseyin Cengiz karari."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Yerel sitede test amacli whitelisted metot icin limit=2, seconds=60, ip_based=0, user_based=1, ignore_in_developer_mode=0 kaydi; kullanici A 3 HTTP cagrisi yapar ve 3.de RateLimitExceededError alir; ardindan kullanici B'nin 1. cagrisi basarili olur. Test kendi kaydini temizler.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: Yerel sitede test amacli whitelisted metot icin limit=2, seconds=60, ip_based=0, user_based=1, ignore_in_developer_mode=0 kaydi; kullanici A 3 HTTP cagrisi yapar ve 3.de RateLimitExceededError alir; ardindan kullanici B'nin 1. cagrisi basarili olur. Test kendi kaydini temizler. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Ayni test ayni bench run-tests komutuyla (modul yolu yerelde dogrulanacak) gecer; user_based=0 kaydi mevcut davranisi korur."
+    },
+    "rollback": "Uc Suite dosyasini yerelde geri al ve yerel bench migrate calistir; kalan sutun varsayilan 0 ile zararsizdir. Production izni yok; deploy/rollback Huseyin Cengiz sahipliginde bagimliliktir."
+  },
+  "remainingGaps": [
+    "Is tenanti ile Frappe sitesi ayrimi tanimsiz; site ici tenant anahtari tenant global model kararina bagli, kapsam disi.",
+    "Istemci kimligi dogrulanmis OAuth client_id veya Keycloak azp claim'inden turetilmeli; Keycloak karari bekliyor, not_run.",
+    "429 ve Retry-After yalniz global limiter icin kaynakla eslesiyor; dekorator ve Suite yolunda dogrulanmadi.",
+    "Global limiter kullanici basina degil site basina toplam sure sayacidir; esik ve pencere degerleri tanimsiz (Huseyin Cengiz).",
+    "key_ kullanan kayitlarda deger istemci kontrollu form_dict'ten okunur ve atlatilabilir.",
+    "allowed/blocked IP eslesmesi startswith, CIDR degil; request_ip icin guvenilen proxy basligi gorunmuyor.",
+    "Hangi uclarin Rate Limit kaydi alacagi tanimsiz.",
+    "Guest isteklerinde user_based davranisi dogrulanmadi.",
+    "Kotuye kullanim sinyallerinin (429 sayisi, lockout, auth failure) toplanacagi yer ve Cloudflare/edge is bolumu tanimsiz; edge degisikligi Huseyin Cengiz teknik, gerekirse GoDaddy DNS Asistan Huseyin."
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "security-4": "mvp",
+    "security-8": "mvp"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

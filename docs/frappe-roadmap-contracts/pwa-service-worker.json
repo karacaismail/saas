@@ -1,0 +1,113 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "pwa-service-worker",
+  "canonicalTaskIds": ["pwa-service-worker--implementation"],
+  "requirementIds": ["channels-11"],
+  "stage": "mvp",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "Oturum kapsamı (site+kullanıcı) değişince önceki kapsamın izinli veri önbelleğini temizleme",
+    "trigger": "Çıkış veya mevcut istemcinin oturum kimliğinin (site, kullanıcı) önceki kayıtlı kapsamdan farklı gelmesi.",
+    "expected": "Aktif kapsama ait olmayan tüm 'saas-pwa-data:' önekli Cache Storage girdileri silinir; uygulama kabuğu önbelleği ('saas-pwa-shell:') korunur; silme tamamlanmadan yeni kapsamın verisi render edilmez.",
+    "denied": "Silme başarısız olursa eski kapsamın verisi okunmaz ve gösterilmez; mevcut AntD Alert ile görünür önbellek hatası gösterilir, veri ekranı yalnız çevrimiçi native API yanıtıyla açılır."
+  },
+  "reuse": {
+    "mechanism": "Yeni bağımlılık yok: tarayıcının kendi Cache Storage API'si (caches.keys/caches.delete) ve mevcut cookie/CSRF native oturumu. Workbox/Vite PWA eklentisi seçilmedi (frontend/package.json yasak yazım). Suite offlineCopy kontrolsüz sayfayı reddetme ve kota hatasını raporlama için yalnız desen referansıdır; Vue/frappe-ui koduna bağlı olduğu için kopyalanmaz.",
+    "evidence": [
+      {
+        "path": "suite/frontend/src/apps/slides/stores/offlineCopy.js",
+        "line": 175,
+        "quote": "if (!(await waitForController())) {"
+      },
+      {
+        "path": "suite/frontend/src/apps/slides/stores/offlineCopy.js",
+        "line": 189,
+        "quote": "navigator.storage?.persist?.().catch(() => {})"
+      },
+      {
+        "path": "suite/frontend/src/apps/slides/stores/offlineCopy.test.ts",
+        "line": 217,
+        "quote": "it('stops at the first quota error and reports it', async () => {"
+      },
+      {
+        "path": "suite/frontend/src/apps/slides/stores/offlineCopy.js",
+        "line": 2,
+        "quote": "import { frappeRequest } from 'frappe-ui'"
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/pwa-service-worker.json",
+    "plannedProduction": [
+      "frontend/packages/platform/src/pwa-service-worker/pwa_service_worker_mvp.tsx"
+    ],
+    "plannedTestFile": "frontend/packages/platform/src/pwa-service-worker/pwa_service_worker_mvp.test.tsx",
+    "sharedIntegrationFiles": [
+      "frontend/package.json",
+      "package-lock.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/packages/ui/src/index.ts"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "activeScope: {site: string (host, <=253), user: string (native oturum kullanıcısı)} veya null (çıkış). Kapsam anahtarı ham kullanıcı adı değil, site+kullanıcıdan türetilen opak SHA-256 hex (crypto.subtle) olur.",
+    "output": "PurgeResult v1: {ok: boolean, removed: number, failed: string[] (yalnız önbellek adı), scopeKey: string|null}. Kişisel alan veya yanıt gövdesi içermez.",
+    "authorization": "Yetki kararı istemcide verilmez; veri yalnız native site oturumu (cookie/CSRF) ve native DocType/kayıt/alan izinleriyle döner. Bu davranış yalnız eski kapsamın yerel kopyasını erişilemez kılar; native 403/401 yanıtı önbelleğe yazılmaz.",
+    "persistence": "Sunucuda transaction, hook, DocType veya DDL yok. Yerelde yalnız Cache Storage silme; son aktif scopeKey localStorage 'saas-pwa-scope' anahtarında tutulur ve tüm silmeler bittikten sonra güncellenir.",
+    "failure": "caches tanımsız (güvenli olmayan bağlam): ok=false, failed=['unsupported'], veri önbelleği kullanılmaz. caches.delete reddi veya false: ok=false, ilgili ad failed'a eklenir, scopeKey güncellenmez, AntD Alert (role=alert) gösterilir; yeni kapsam verisi yalnız çevrimiçi istekle yüklenir."
+  },
+  "development": {
+    "dependencies": [
+      "pwa-service-worker--contract",
+      "ui-family-01--contract",
+      "client-rule-parity--contract",
+      "local pilot: Frappe17-dev/suite.localhost, nativeAuth cookie/CSRF, frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6"
+    ],
+    "admission": "T-00 hedef baseline ve R-00 yeniden kullanım eşlemesi; izinli veri tüketicileri için R-01. Oturum kimliğinin mevcut React19/TanStack tüketicisinde hangi native çağrıdan okunduğu bilinmiyor; uygulama öncesi doğrulanmalı. Yerel kanıt uzak ürün baseline'ı değildir; Suite HEAD bilinmiyor.",
+    "steps": [
+      "Sahip olunan dosyada önbellek adı sözleşmesini (saas-pwa-shell:<build>, saas-pwa-data:<scopeKey>) ve purgeForeignScopes(activeScope) fonksiyonunu tanımla.",
+      "Oturum kimliği değişimi ve çıkışta fonksiyonu çağıran küçük React kancası ile hata durumunu mevcut AntD Alert ile göster (Outfit, en az 14px, 320 öncelikli, çevreleyen odak halkası yok, simetrik pozitif Cubic hareket).",
+      "Uygulamaya bağlama (routes/index export) entegrasyon sahibine fragman olarak bırakılır."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Kapsam A veri önbelleği ve kabuk önbelleği doluyken aktif kapsam B'ye geçilince A veri önbelleği silinir, kabuk kalır, sonuç ok=true/removed=1 döner.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: Kapsam A veri önbelleği ve kabuk önbelleği doluyken aktif kapsam B'ye geçilince A veri önbelleği silinir, kabuk kalır, sonuç ok=true/removed=1 döner. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Aynı test ve aynı komut uygulama sonrası geçer; native çalışan davranış için RED üretilmez."
+    },
+    "rollback": "Yalnız sahip olunan dosya ve planlı test dosyasının yerel geri alınması; production izni veya servis değişikliği yok."
+  },
+  "remainingGaps": [
+    "PWA/Workbox aracı ve Vite eklentisi ile sürümleri seçilmedi; frontend/package.json entegrasyon sahibinde.",
+    "Ağ yokken kabuk ve izinli veri açılışı, Service Worker kaydı ve güncellemede bekleyen işlemin korunması bu davranışa dahil değil.",
+    "Depolama kotası ve tarayıcı silmesi için kullanıcı davranışı yazılmadı.",
+    "Ayrı origin CORS ve Keycloak bearer modeli karar bekliyor; yalnız native cookie/CSRF yerel pilotta.",
+    "Web derleme, imza, yayın, HTTPS ve rollback sahibi Hüseyin Cengiz; uzak ortam doğrulaması yapılmadı."
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "channels-11": "mvp"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

@@ -1,0 +1,109 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "outbox",
+  "canonicalTaskIds": ["outbox--implementation", "outbox--implementation-mvp"],
+  "requirementIds": ["events-4", "events-6"],
+  "stage": "poc",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "Pilot kaydın güncellemesi Outbox satırıyla aynı transactionda yazılır; kuyruk kapalıyken satır Pending kalır, kuyruk açılınca tek iş etkisi oluşur",
+    "trigger": "Yerel pilotta (t08) mevcut tek Data kaydının native Document.save ile güncellenmesi. Pilot DocType adı yerel pilot kanıtından teyit edilecek.",
+    "expected": "Save ve Outbox insert aynı istek transactionında commit olur. enqueue başarısızsa satır Pending kalır. Kuyruk geri geldiğinde dispatch_pending iki kez çağrılsa da tüketici etkisi bir kez oluşur ve satır Delivered olur.",
+    "denied": "İş kaydı rollback olursa Outbox satırı oluşmaz. Outbox insert hatası iş kaydını da geri alır. Okuma yetkisi olmayan kullanıcı Outbox satırını REST ile okuyamaz ya da yazamaz."
+  },
+  "reuse": {
+    "mechanism": "Native: iş kaydı için Document.save ve doc_events on_update; Outbox satırı için aynı transactionda Document.insert; teslim için yalnız taşıyıcı olarak frappe.enqueue; tekil sahiplik için get_doc for_update satır kilidi. Yeni ORM, olay motoru ya da tablo DDL'i yok. Şema outbox--schema görevine aittir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 56,
+        "quote": "doc = frappe.get_doc(doctype, name, for_update=True)"
+      },
+      {
+        "path": "frappe/frappe/api/v2.py",
+        "line": 293,
+        "quote": "job = frappe.enqueue("
+      },
+      {
+        "path": "suite/suite/calendar/doctype/calendar_event/invitations.py",
+        "line": 137,
+        "quote": "log_error(\"Calendar\", title=_(\"Failed to send event {0} email to {1}\").format(kind, email))"
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/outbox.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/platform_system/doctype/outbox/outbox.py"
+    ],
+    "plannedTestFile": "backend/saas_platform/saas_platform/platform_system/doctype/outbox/test_outbox.py",
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "backend/saas_platform/saas_platform/platform_system/doctype/outbox/outbox.json",
+      "integration/fragments/outbox--integration.json"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "record_outbox(doc, event_type: str <=140, payload: dict). Payload yalnız reference_doctype, reference_name, modified ve kernel-envelope v1 alanlarını taşır; alan değeri kopyalanmaz. dispatch_pending(limit: int, 1-50, varsayılan 20).",
+    "output": "Outbox alanları: event_type, reference_doctype, reference_name, status (Pending|Dispatched|Delivered), attempts (Int), last_error_code (Data, ham log yok), envelope_version=1. dispatch_pending sayıları döndürür: {claimed, delivered, skipped}.",
+    "authorization": "İş kaydı yetkisini native save denetler. Outbox insert, sunucu hookundan ignore_permissions bayrağıyla yapılır. Outbox DocType'ı yalnız System Manager okuyabilir. Whitelist ya da REST yazma yolu yoktur; yetkisiz okuma frappe.PermissionError döndürür. Kapsam yerel native site sınırıdır; tenant modeli kapsam dışıdır.",
+    "persistence": "on_update hookunda insert yapılır ve request sonu native commit ile birlikte yazılır; ara frappe.db.commit yasaktır. dispatch_pending her satırı get_doc(for_update=True) ile kilitler; yalnız Pending satırı Dispatched yapar, tüketici Delivered yapar. Tekrar çağrıda Delivered satır atlanır. DDL garantisi verilmez; şema native migrate ile outbox--schema görevinden gelir.",
+    "failure": "Insert ya da doğrulama hatasında frappe.ValidationError ile tüm request rollback olur ve istemci native hata mesajını gösterir. enqueue bağlantı hatasında satır Pending kalır, last_error_code=queue_unavailable yazılır ve save başarısı bozulmaz. Bağlantı hatasının tam istisna tipi v17-dev'de doğrulanmadı."
+  },
+  "development": {
+    "dependencies": [
+      "outbox--contract",
+      "outbox--schema",
+      "kernel-envelope--contract",
+      "native-user-policy--contract",
+      "local pilot t08 (frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6)"
+    ],
+    "admission": "T-00 ve R-00 hazır olmalı, Outbox şeması yerel suite.localhost üzerinde migrate edilmiş olmalı. saas_platform uygulamasının bu sitede kurulu olduğu doğrulanmadı. Yerel kanıt uzak ürün tabanı değildir; Suite HEAD bilinmiyor.",
+    "steps": [
+      "outbox.py: record_outbox ve dispatch_pending eklenir, tüketici Delivered geçişini kilit altında yapar.",
+      "Codex hooks.py'ye pilot DocType için on_update -> record_outbox bağlar (paylaşılan entegrasyon dosyası).",
+      "Scheduler'a ekleme yapılmaz; dispatch_pending yalnız test ve manuel çağrıyla çalışır."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Pilot kayıt frappe.enqueue hata verecek şekilde patch edilerek save edilir ve commit olur; Outbox satırı Pending kalır. Patch kaldırılır, dispatch_pending iki kez çağrılır; tüketici mock'u bir kez çağrılmış olmalı ve satır Delivered olmalıdır.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: Pilot kayıt frappe.enqueue hata verecek şekilde patch edilerek save edilir ve commit olur; Outbox satırı Pending kalır. Patch kaldırılır, dispatch_pending iki kez çağrılır; tüketici mock'u bir kez çağrılmış olmalı ve satır Delivered olmalıdır. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Aynı komut: bench --site suite.localhost run-tests --module saas_platform.platform_system.doctype.outbox.test_outbox (yerel, çalıştırılmadı)."
+    },
+    "rollback": "outbox.py değişikliği ve hooks.py bağı yerelde geri alınır; Outbox satırı silinmez, production yetkisi yoktur."
+  },
+  "remainingGaps": [
+    "events-6 (outbox--implementation-mvp, services/outbox_mvp.py) kapsam dışı: maksimum deneme, backoff, poison eşiği, aggregate bazlı sıra kapsamı, yetkili ve audit edilen replay, inceleme kuyruğunun DocType mı Error Log mu olacağı tanımsız. Inbox/idempotency (events-5) bağımlılığının görev kimliği bu girdide yok.",
+    "after_commit uyandırma API'si Frappe v17-dev'de doğrulanmadı; PoC yalnız scanner yoluna dayanır.",
+    "Çoklu worker altında for_update dışında SKIP LOCKED davranışı doğrulanmadı.",
+    "ui-provider-offline destek eşlemesi istemci offline kuyruğunu karıştırıyor; kanonik görev durumu burada değiştirilmedi.",
+    "Scheduler etkinleştirme ve worker/Redis dağıtımı ileride gerekecek; teknik sahibi Hüseyin Cengiz, şu an etkin değil."
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "events-4": "poc",
+    "events-6": "mvp"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

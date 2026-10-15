@@ -1,0 +1,109 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "inbox",
+  "canonicalTaskIds": ["inbox--implementation"],
+  "requirementIds": ["events-5"],
+  "stage": "poc",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "Tuketici tekillestirme: (consumer, event_id) icin tek Inbox kaydi ve tek is etkisi, tekrarda saklanan yanit",
+    "trigger": "Sunucu tarafi bir tuketici, kernel-envelope olayini isler ve inbox.py icindeki claim fonksiyonunu ayni (consumer, event_id) ile cagirir. Cagri esanli 10 kez gelebilir.",
+    "expected": "Kayit adi consumer ve event_id'den deterministik olarak turetilir. Ilk cagri Document.insert ile kaydi yazar ve is etkisini AYNI transaction icinde calistirir. Saklanan response ile commit eder. Diger cagrilar native birincil anahtar cakismasinda savepoint'e geri doner. Is etkisini calistirmadan ilk kaydin response degerini ve duplicate=true bilgisini dondurur.",
+    "denied": "frappe.db.exists ile on kontrol tek basina tekillik saymaz. Ilk transaction geri alinirsa kayit da yazilmamis olur; sonraki cagri isi yeniden dener. Bos consumer veya event_id ValidationError ile reddedilir."
+  },
+  "reuse": {
+    "mechanism": "Native secim: Inbox DocType, Document.insert ve birincil anahtar tekilligi kullanilir. Yeni ORM, kuyruk veya olay motoru kurulmaz. Asagidaki kaynak desenleri yaris durumuna dayanikli olmadigi icin yeniden kullanilmaz; yalnizca gerekce olarak anilir. Job deduplicate yalniz kuyruk icinde gecerlidir. check-then-insert yarisa aciktir. Istemci tarafi claim kalici degildir.",
+    "evidence": [
+      {
+        "path": "suite/suite/writer/doctype/writer_document/writer_document.py",
+        "line": 127,
+        "quote": "deduplicate=True,"
+      },
+      {
+        "path": "suite/suite/mail/events.py",
+        "line": 20,
+        "quote": "if not frappe.db.exists(\"User Settings\", {\"user\": doc.name}):"
+      },
+      {
+        "path": "suite/frontend/src/apps/meet/utils/sfu/__tests__/ParticipantConnectionEvents.test.ts",
+        "line": 428,
+        "quote": "it(\"claims duplicate producer events before awaiting E2EE\", async () => {"
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/inbox.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/platform_system/doctype/inbox/inbox.py"
+    ],
+    "plannedTestFile": "backend/saas_platform/saas_platform/platform_system/doctype/inbox/test_inbox.py (planli; aktif kira degil, atamayi entegrasyon sahibi yapar)",
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/platform_system/doctype/inbox/inbox.json",
+      "contracts/inbox.v1.json",
+      "contracts/kernel-envelope.v1.json",
+      "integration/fragments/inbox--integration.json"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "claim(consumer: str <=140, event_id: str <=140, handler: callable) -> dict. Iki alan da zorunludur ve bosluklari kirpilir. Kayit adi sha256(consumer + NUL + event_id) hex degerinin ilk 40 karakteridir. event_id'nin uretimi kernel-envelope.v1 sozlesmesine aittir.",
+    "output": "{name, consumer, event_id, duplicate: bool, response: JSON}. response, handler'in ilk basarili donusudur ve Inbox kaydinda saklanir. Sozlesme surumu inbox.v1'dir. Alan adlari inbox--schema ile dogrulanacak.",
+    "authorization": "claim whitelist edilmez ve REST'e acilmaz. Yalniz sunucu tarafi tuketici kodu cagirir. Inbox kaydina okuma, native DocPerm (native-user-policy.v1) ile sinirlidir. Yetkisiz REST okumasi frappe.PermissionError (403) alir. Kanit yalniz yerel site sinirinda (suite.localhost) uretilir.",
+    "persistence": "Native transaction kullanilir. Islem sirasi: savepoint, Inbox insert, handler, response alaninin db_set ile yazilmasi. Commit cagiranin request veya job transaction'ina aittir. claim kendisi commit etmez. Yeni DDL garantisi verilmez. Tekillik birincil anahtardan gelir ve composite unique index gerekmez.",
+    "failure": "Birincil anahtar cakismasi native DuplicateEntryError olarak beklenir; bu davranis Frappe17-dev'de dogrulanacak (kanitta yok). Bu durumda savepoint geri alinir, mevcut kayit okunur ve duplicate=true dondurulur. Handler hata verirse savepoint geri alinir ve hata tuketiciye yukselir; Inbox kaydi kalmaz. Kilit beklemesi zaman asimina ugrarsa (QueryTimeoutError) tuketici yeniden dener."
+  },
+  "development": {
+    "dependencies": [
+      "inbox--contract",
+      "inbox--schema",
+      "kernel-envelope--contract",
+      "native-user-policy--contract",
+      "local pilot: Frappe17-dev adf1fd0c2d6215ad4cac9976251198b2a35fbda6, suite.localhost, cookie/CSRF auth"
+    ],
+    "admission": "T-00 hedef baseline ve R-00 reuse eslemesi tamamlanmis olmali. inbox.json, consumer/event_id/response alanlariyla birlikte merge edilmis olmali. Uzak urun baseline'i ve Suite HEAD bilinmiyor. Yerel kanit uzak kabul sayilmaz. DuplicateEntryError sinifinin ve savepoint API'sinin Frappe17-dev'deki varligi kabul oncesinde dogrulanmali.",
+    "steps": [
+      "inbox.py: autoname deterministik hash olarak uygulanir. validate, consumer ve event_id alanlarini zorunlu tutar.",
+      "inbox.py: claim fonksiyonu savepoint + insert + handler + db_set akisiyla eklenir. Cakismada mevcut response okunur.",
+      "Kuyruk, cron veya hook eklenmez. hooks.py yasakli dosyalar arasindadir."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Ayni (consumer, event_id) icin, her biri ayri DB baglantisiyla frappe.init/connect yapan 10 thread esanli claim cagirir. Handler bir sayac kaydi yazar. Beklenen sonuc: tek Inbox satiri, tek handler etkisi, 10 yanitta ayni response, 9 yanitta duplicate=true.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: Ayni (consumer, event_id) icin, her biri ayri DB baglantisiyla frappe.init/connect yapan 10 thread esanli claim cagirir. Handler bir sayac kaydi yazar. Beklenen sonuc: tek Inbox satiri, tek handler etkisi, 10 yanitta ayni response, 9 yanitta duplicate=true. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Uygulamadan sonra ayni test ayni komutla calistirilir: bench --site suite.localhost run-tests --module saas_platform.platform_system.doctype.inbox.test_inbox. Native olarak zaten calisan davranis RED uretmek icin kullanilmaz."
+    },
+    "rollback": "Yalniz yerelde inbox.py ve planli test dosyasinin degisikligi geri alinir. Musteri kaydi silinmez. Production yetkisi yoktur. Uzak dagitim Huseyin Cengiz'in teknik bagimliligidir."
+  },
+  "remainingGaps": [
+    "Senkron HTTP Idempotency-Key bu davranisin kapsami disindadir. Ayri bir madde olarak ele alinmali; yeni gorev uretilmedi.",
+    "Inbox kaydinin saklama suresi ve temizligi secilmedi. Zamanlanmis is etkinlestirilmez.",
+    "ui-provider-offline istemci kuyrugu sunucu inbox'indan ayridir. Bu sozlesme yalniz sunucu tarafini kapsar.",
+    "Basarisiz handler sonrasi tekrar deneme politikasi ve event_id turetimi kernel-envelope.v1'e bagli.",
+    "Tenant global modeli ve Keycloak kapsam disi. Esanli 10 islem kaniti calistirilmadi."
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "events-5": "poc"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

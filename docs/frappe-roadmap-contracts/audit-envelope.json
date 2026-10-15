@@ -1,0 +1,125 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "audit-envelope",
+  "canonicalTaskIds": ["audit-envelope--implementation"],
+  "requirementIds": ["audit-1", "audit-2", "audit-3", "audit-4", "audit-5"],
+  "stage": "mvp",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "AuditEnvelope kaydi eklendikten sonra Document.save ile guncellenemez (append-only)",
+    "trigger": "Var olan bir AuditEnvelope belgesi uzerinde herhangi bir alan degistirilip Document.save cagrilmasi (REST v1 update_doc dahil, cunku o yol doc.save() kullanir).",
+    "expected": "Yeni kayit Document.insert ile native DocPerm cercevesinde olusur; ref Version, gerekce ve kaynak alanlari bir kez yazilir ve sonradan degismez.",
+    "denied": "is_new olmayan belgede validate asamasinda frappe.throw ile islem durur, transaction geri alinir; Administrator dahil controller yolundan gecen hicbir kullanici kaydi degistiremez."
+  },
+  "reuse": {
+    "mechanism": "Native Version eski/yeni deger ve aktor izinin kaynagi olarak kalir; ikinci degisiklik gecmisi kurulmaz. Zarf yalniz Version'a referans veren ek kayittir. REST v1 istemciden gelen flags alanini sildigi icin gerekce/kaynak Version.updater_reference uzerinden istemciden tasinamaz; bu nedenle sahip olunan controller'da en kucuk koruma eklenir. Administrator izin kontrolunu atladigi icin koruma izin katmanina degil controller validate'ine konur.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 61,
+        "quote": "doc.save()"
+      },
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 57,
+        "quote": "if \"flags\" in data:"
+      },
+      {
+        "path": "frappe/frappe/core/doctype/version/version.py",
+        "line": 143,
+        "quote": "updater_reference = new.flags.updater_reference"
+      },
+      {
+        "path": "frappe/frappe/core/doctype/version/version.py",
+        "line": 43,
+        "quote": "if impersonator := frappe.session.data.get(\"impersonated_by\"):"
+      },
+      {
+        "path": "frappe/frappe/permissions.py",
+        "line": 109,
+        "quote": "if user == \"Administrator\":"
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/audit-envelope.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/audit_governance/doctype/audit_envelope/audit_envelope.py"
+    ],
+    "plannedTestFile": "backend/saas_platform/saas_platform/audit_governance/doctype/audit_envelope/test_audit_envelope.py",
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/audit_governance/doctype/audit_envelope/audit_envelope.json",
+      "backend/saas_platform/saas_platform/hooks.py",
+      "integration/fragments/audit-envelope--integration.json"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "Insert: ref Version (Link, zorunlu), gerekce (metin, bos olamaz), kaynak (ui|api|job|import). Alan adlari ve uzunluk siniri audit-envelope--schema sozlesmesine baglidir; su an bilinmiyor. Tenant alani tenant-registry--contract kararina kadar bos birakilir.",
+    "output": "Native REST okuma yolu: check_permission(read) ve apply_fieldlevel_read_permissions sonrasi alanlar; contract-audit-envelope v1.",
+    "authorization": "Yerel site sinirinda native DocPerm (create/read; write ve delete rolleri schema sozlesmesinde). Controller korumasi izinden bagimsiz calisir; Administrator bypass'i controller'i atlamaz.",
+    "persistence": "Native Document.insert/save transaction'i; red durumunda istek transaction'i geri alinir. Yeni tablo veya DDL garantisi bu sozlesmede yok; DocType kurulumu schema gorevine aittir.",
+    "failure": "Guncellemede frappe.throw ile ValidationError ailesinden hata; kesin sinif ve HTTP durum kodu yerel v17'de dogrulanacak (bilinmiyor). Tuketici 2xx olmayan yaniti exc_type ile okuyup kaydi yeniden yuklemeli, tekrar denememeli."
+  },
+  "development": {
+    "dependencies": [
+      "audit-envelope--contract",
+      "audit-envelope--schema",
+      "kernel-envelope--contract",
+      "tenant-registry--contract",
+      "native-user-policy--contract",
+      "local pilot: Frappe adf1fd0c on suite.localhost (t08 native admin/reader scopes)"
+    ],
+    "admission": "AuditEnvelope DocType'i schema gorevi ile yerel siteye kurulmus olmali; T-00 ve R-00 tamam olmali. Uzak urun baseline'i ve Suite HEAD bilinmiyor; yerel kanit uzak baseline degildir.",
+    "steps": [
+      "audit_envelope.py controller'ina validate ekle: is_new degilse frappe.throw.",
+      "Insert'te ref Version varligini native Link dogrulamasina birak; ek kopya yazma.",
+      "hooks.py'a dokunma; entegrasyon Codex'te."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Izinli kullanici bir AuditEnvelope ekler, gerekceyi degistirip save cagirir; islem hata ile reddedilmeli ve veritabanindaki gerekce degismemeli.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: Izinli kullanici bir AuditEnvelope ekler, gerekceyi degistirip save cagirir; islem hata ile reddedilmeli ve veritabanindaki gerekce degismemeli. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Ayni test, ayni bench run-tests komutu ile controller korumasi eklendikten sonra gecer."
+    },
+    "rollback": "Yalniz audit_envelope.py icindeki validate degisikligini yerelde geri al; production yetkisi yok."
+  },
+  "remainingGaps": [
+    "frappe.db.set_value ve dogrudan SQL controller'i atlar; Administrator bunlarla kaydi degistirebilir. Yonetici korumasi WORM kopya ister; hedef ve kurulum Huseyin Cengiz bagimliligi, karar bekliyor.",
+    "Silme (on_trash) korumasi ve saklama suresi bu davranista yok; saklama suresi karari verilmedi.",
+    "Yazma yolu envanteri (Writer set_value, v2 bulk delete enqueue, Suite op-log truncate) zarfa baglanmadi.",
+    "Tenant modeli, gerekce zorunlulugu kapsami ve korelasyon kimligi diger sozlesmelere bagli.",
+    "Keycloak admin event korelasyonu karar bekliyor ve kapsam disinda; destek erisimi baslat/bitir talimati yok.",
+    "Data Masking'in yerel v17 durumu ve export/Query Report maskeleme dogrulanmadi.",
+    "Activity Log, Access Log ve Audit Trail icin v17 surum eslemesi yok."
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "audit-1": "mvp",
+    "audit-2": "mvp",
+    "audit-3": "mvp",
+    "audit-4": "mvp",
+    "audit-5": "mvp"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

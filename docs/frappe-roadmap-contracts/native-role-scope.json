@@ -1,0 +1,113 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "native-role-scope",
+  "canonicalTaskIds": ["native-role-scope--implementation"],
+  "requirementIds": ["access-2"],
+  "stage": "poc",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "Kapsam dışı kayıt /api/v2 liste yanıtında görünmez",
+    "trigger": "Okuyucu rolündeki kullanıcı, oturum çerezi ve CSRF ile GET /api/v2/document/<pilot_doctype> çağırır.",
+    "expected": "Yanıt yalnız kullanıcıya native User Permission ile atanmış kapsam değerine bağlı kayıtları içerir. has_next_page bu filtrelenmiş küme üzerinden hesaplanır.",
+    "denied": "Başka kapsam değerine bağlı kayıt, filters veya order_by ile zorlansa bile listede yer almaz. Liste yolu 403 döndürmez, filtreler."
+  },
+  "reuse": {
+    "mechanism": "Önce native: kapsam alanı CustomField (Link) olarak eklenir, User Permission kaydı ve ignore_permissions=False ile çalışan qb.get_query sorgusu kullanılır. Native yol kapsam dışı kaydı dışlamazsa role_poc.py içinde Suite desenindeki permission_query_conditions + has_permission çifti en küçük adaptör olarak yazılır. Controller get_list yeni bir sorgu motoru olarak kullanılmaz.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/api/v2.py",
+        "line": 164,
+        "quote": "ignore_permissions=False,"
+      },
+      {
+        "path": "frappe/frappe/api/v2.py",
+        "line": 169,
+        "quote": "if hasattr(controller, \"get_list\"):"
+      },
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 122,
+        "quote": "permission_query_conditions = {"
+      },
+      {
+        "path": "suite/suite/sheets/permissions.py",
+        "line": 49,
+        "quote": "f\"{table_prefix}.sheet IN (\""
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/native-role-scope.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/adapters/authorization/role_poc.py (yalnız native yol yetersizse)"
+    ],
+    "plannedTestFile": "backend/saas_platform/saas_platform/adapters/authorization/test_role_poc.py",
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "integration/fragments/native-role-scope--integration.json"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "Yol parametresi doctype: string. Sorgu: fields JSON dizi, filters JSON nesne, start int>=0 (varsayılan 0), limit int (varsayılan 20). Native doğrulamaya göre group_by string olmalıdır.",
+    "output": "data: izinli kayıtların istenen alanları; has_next_page: bool. Sürüm: contract-native-role-scope v1. Alan düzeyi (permlevel>0) filtrenin liste yolunda uygulanıp uygulanmadığı bilinmiyor ve bu davranışın kapsamında değil.",
+    "authorization": "Native site oturumu ve kullanıcı rolü. Kayıt kapsamı User Permission ya da adaptör sorgu koşuluyla sağlanır. Ayrıcalıklı kullanıcı muafiyeti Suite desenindeki gibi açık bir kontrolle yapılır. Kapsam atanmamış okuyucu boş liste alır. Bu davranış istemci tarafındaki useDocPermissions sonucuna dayanmaz.",
+    "persistence": "Salt okuma; yazma ya da transaction yok. Test verisi native insert ile oluşturulur ve test transaction'ı geri alınarak temizlenir. CustomField eklemek şema değişikliği gerektirebilir; DDL için garanti verilmez.",
+    "failure": "Geçersiz group_by native FrappeValueError üretir. Adaptör hatası native frappe.throw ile 'Error in ...' hatasına dönüşür ve 5xx olarak ele alınır. İstemci (TanStack) 403 yanıtında yeniden denemez ve erişim reddi durumu gösterir. Boş liste hata sayılmaz."
+  },
+  "development": {
+    "dependencies": [
+      "native-role-scope--contract",
+      "kernel-envelope--contract",
+      "tenant-registry--contract",
+      "local pilot t08: existing one Data record read/update with native admin/reader scopes"
+    ],
+    "admission": "tenant-registry--contract, kapsam DocType'ını ve Link alan adını belirlemeden başlanmaz; bu ad şu an bilinmiyor. T-00/R-00/R-01 gerekir. Kanıt yalnız yerel Frappe17-dev/suite.localhost içindir (frappeHead adf1fd0c). Uzak ürün tabanı ve Suite HEAD bilinmiyor.",
+    "steps": [
+      "Pilot DocType'a kapsam Link alanı CustomField olarak eklenir; ad tenant-registry kararından alınır.",
+      "Test fixture'ı okuyucuya native User Permission ile tek bir kapsam değeri atar ve iki farklı kapsamda birer kayıt oluşturur.",
+      "Test önce adaptör olmadan çalıştırılır. Native filtre geçerse adaptör yazılmaz ve sonuç native_verified olarak raporlanır.",
+      "Yalnız gerçek RED varsa role_poc.py'de get_permission_query_conditions(user) ve has_permission(doc, ptype, user) frappe.db.escape ile yazılır. hooks.py kaydı Codex entegrasyon fragment'i ile yapılır."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Okuyucu A kapsamına atanmış; GET /api/v2/document/<pilot_doctype> yanıtı B kapsamındaki kaydı içermez, A kapsamındakini içerir.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: Okuyucu A kapsamına atanmış; GET /api/v2/document/<pilot_doctype> yanıtı B kapsamındaki kaydı içermez, A kapsamındakini içerir. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Aynı test ve aynı komut adaptör ve hook kaydı sonrası geçer. Tek komut entegrasyon sırasında proje test betiğinden belirlenir."
+    },
+    "rollback": "role_poc.py ve hook kaydı yerelde geri alınır, CustomField yerel siteden kaldırılır. Production yetkisi yok, servis yeniden başlatılmaz."
+  },
+  "remainingGaps": [
+    "Tenant modeli (site başına tenant mı, site içi kurum mu) ve kapsam DocType'ı tenant-registry--contract kararına bağlı ve bilinmiyor.",
+    "Tek kayıt okuması (read_doc: check_permission + apply_fieldlevel_read_permissions) ve gizli alan kabulü bu davranışa dahil değil.",
+    "İlişki seçeneği araması (search_widget) için izin davranışı kaynakta görülmedi ve doğrulama hedefi yok.",
+    "v1 expand / attach_expanded_links yolunda kayıt ve alan filtresi doğrulanmadı.",
+    "useDocPermissions yüklenene kadar write döndürüyor (fail-open). Headless istemci bunu yalnız sunum için kullanmalı, yetki kararına dayanak yapmamalı.",
+    "Bu sözleşme UI değiştirmez. Gelecekteki UI işleri Outfit, 14px alt sınır, 320 öncelikli tasarım, çevreleyen odak halkası yasağı, simetrik Cubic hareket kuralı ve mevcut AntD ile yapılır."
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "access-2": "poc"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

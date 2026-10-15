@@ -1,0 +1,129 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "connection",
+  "canonicalTaskIds": [
+    "connection--implementation",
+    "connection--implementation-mvp"
+  ],
+  "requirementIds": ["integration-1", "integration-7"],
+  "stage": "poc",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "Connection.run_command('read_document'): sunucu izin listesindeki tek sabit Frappe hedefine tek onayli salt okuma",
+    "trigger": "POST /api/resource/Connection/<name>/ ile run_method=run_command (native execute_doc_method); girdi yalniz command, doctype, docname, idempotency_key.",
+    "expected": "Istek yalniz kaydin destination_id degerinin kod sabitindeki tam kokune gider: GET <sabit kok>/api/resource/<izinli doctype>/<kodlanmis docname>. Yonlendirme izlenmez; cagiranin cookie/CSRF/basliklari iletilmez; Authorization yalniz bu kaydin Password alanindan cozulur; ortak zarf doner, sir ve hedef URL zarfta/hatada/logda yok.",
+    "denied": "Connection write izni yoksa frappe.PermissionError (403), sir cozulmez, HTTP yok. base_url/url/method/args/headers/cookie anahtari: invalid_input; listede olmayan destination_id/doctype/command: not_allowed; ikisinde de HTTP yok."
+  },
+  "reuse": {
+    "mechanism": "Native: whitelisted doc metodu execute_doc_method ile cagrilir; uzakta native read_doc kendi read ve alan izinlerini uygular; sir mevcut Connection Password alani + get_decrypted_password (yeni registry/app veya sir mekanizmasi yok); HTTP icin mevcut requests bagimliligi. Hedef/islem/doctype izin listeleri connection.py kod sabiti; URL kullanici veya kayit alanindan gelmez. En kucuk adaptor.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 155,
+        "quote": "Rule(\"/resource/<doctype>/<path:name>/\", methods=[\"GET\"], endpoint=read_doc),"
+      },
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 83,
+        "quote": "doc.check_permission(\"read\")"
+      },
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 158,
+        "quote": "Rule(\"/resource/<doctype>/<path:name>/\", methods=[\"POST\", \"QUERY\"], endpoint=execute_doc_method),"
+      },
+      {
+        "path": "frappe/frappe/utils/oauth.py",
+        "line": 147,
+        "quote": "\"client_secret\": get_decrypted_password(\"Social Login Key\", provider, \"client_secret\"),"
+      },
+      {
+        "path": "frappe/pyproject.toml",
+        "line": 68,
+        "quote": "\"requests~=2.34.2\","
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/connection.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/integration_hub/doctype/connection/connection.py"
+    ],
+    "plannedTestFile": "backend/saas_platform/saas_platform/integration_hub/doctype/connection/test_connection.py",
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/integration_hub/doctype/connection/connection.json",
+      "contracts/connection.v1.json",
+      "integration/fragments/connection--integration.json"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "command: yalniz 'read_document'; doctype: APPROVED_DOCTYPES sabitinde (PoC: yerel pilot t08 DocType'i, adi bilinmiyor, entegrasyonda yerel kanittan sabitlenir); docname: str 1-140, '/', '\\\\', '..', '?', '#', '%' ve kontrol karakteri yok, safe='' ile yuzde kodlanir; idempotency_key: str 8-64, yalniz yanki. Fazla anahtar invalid_input. Kayit alanlari (connection--schema, varligi bilinmiyor): destination_id Select (sabitten), api_key Data, api_secret Password; base_url alani yok.",
+    "output": "contract_version 1, connection, destination_id, command, idempotency_key, ok, http_status|null, data: uzak JSON 'data' nesnesi|null (uzak izinle filtreli, en fazla 256 KB), error_code: null|invalid_input|not_allowed|credential_missing|timeout|auth_failed|not_found|redirect_blocked|response_too_large|remote_error|invalid_response, retryable. Sir ve hedef URL donmez.",
+    "authorization": "Native site siniri; doc.check_permission('write') dogrulama ve sir cozumunden once. Sir kapsami tek kayit. Uzakta servis kullanicisinin native read/alan izni gecerli; cagiran kullanici kimligi aktarilmaz. Tenant modeli secilmez.",
+    "persistence": "Salt okunur: for_update yok, yazma/commit yok, dis cagri DB kilidi tutmaz; DDL garantisi yok.",
+    "failure": "DESTINATIONS tek giris: local_frappe_dev = sabit loopback 127.0.0.1:<yerel bench portu, bilinmiyor> + Host 'suite.localhost'; baska loopback/ozel/dis adres eslesmez. requests.Session(trust_env=False), allow_redirects=False, sabit timeout, stream ile 256 KB sinir. Bos sir: credential_missing. 3xx: redirect_blocked. 401/403: auth_failed. 404: not_found. 5xx: remote_error, retryable=true; diger 4xx: remote_error. Timeout/baglanti: timeout, retryable=true. JSON degil: invalid_response. IP/DNS/ozel ag filtresi varsayilmaz; tek koruma tam sabit kok eslesmesi. Tuketici ok=false'u is hatasi, 403'u istek hatasi sayar."
+  },
+  "development": {
+    "dependencies": [
+      "connection--contract",
+      "connection--schema",
+      "kernel-envelope--contract",
+      "tenant-registry--contract",
+      "native-user-policy--contract",
+      "api-middleware--contract",
+      "local pilot frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6 / suite.localhost (t08 native admin/reader kapsamlari)"
+    ],
+    "admission": "connection--schema alanlari yerel sitede olmali (bilinmiyor); t08 DocType adi ve yerel bench portu yerel kanitla sabitlenmeli; servis kullanicisi anahtari operator tarafindan yerelde girilir, deger yazilmaz. Yerel kanit uzak tabani kanitlamaz; uzak taban ve Suite HEAD bilinmiyor.",
+    "steps": [
+      "connection.py: DESTINATIONS (tek giris), APPROVED_OPERATIONS {'read_document': 'GET'}, APPROVED_DOCTYPES sabitleri; validate destination_id'yi sabitle sinirlar",
+      "@frappe.whitelist() run_command: write izni, kati anahtar dogrulama, URL yalniz sabitten, get_decrypted_password('Connection', self.name, 'api_secret', raise_exception=False)",
+      "Tek GET: yalniz Authorization 'token <key>:<secret>', Accept, Host basliklari; yonlendirme kapali, proxy env yok sayilir",
+      "Hata siniflama; log ve mesajlarda sir/URL yok"
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "local_frappe_dev hedefli Connection'da Session.get mock'lanir (dis I/O yok): izinli istekte URL tam sabit kok + /api/resource/<doctype>/<kodlanmis ad>, allow_redirects=False, Cookie/CSRF basligi yok, Authorization yalniz bu kaydin sirri, zarfta sir/URL yok; ayni testte base_url ekli istek invalid_input, listede olmayan doctype not_allowed doner, reader PermissionError alir; bu uc durumda mock cagrilmaz.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: local_frappe_dev hedefli Connection'da Session.get mock'lanir (dis I/O yok): izinli istekte URL tam sabit kok + /api/resource/<doctype>/<kodlanmis ad>, allow_redirects=False, Cookie/CSRF basligi yok, Authorization yalniz bu kaydin sirri, zarfta sir/URL yok; ayni testte base_url ekli istek invalid_input, listede olmayan doctype not_allowed doner, reader PermissionError alir; bu uc durumda mock cagrilmaz. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Ayni test, ayni bench run-tests --module ...connection.test_connection komutu (bicim yerelde dogrulanmadi) uygulamadan sonra gecer; native Password maskelemesi icin RED uretilmez."
+    },
+    "rollback": "connection.py ve test dosyasini yerelde geri al; veri/sema degismez. Production izni yok."
+  },
+  "remainingGaps": [
+    "integration-1 'ayni komut iki adaptorde' kabulu karsilanmadi; ikinci adaptor yolu kaynakla dogrulanmadi, v2 Python fonksiyonlari import edilmez (v2.py:8).",
+    "Dis hedef politikasi bilinmiyor: yalniz dis mutasyon (POST/PUT/DELETE/call_method) engelli ve bu sozlesmede yok. Dis salt okuma kokunu yalniz entegrasyon sahibi kod sabitine ekleyebilir; IP/DNS/cikis kurali teknik sahip Huseyin Cengiz'e bagli, PoC'de kanitlanmaz.",
+    "local_frappe_dev'i yalniz yerel gelistirme sitesinde etkinlestiren bayrak kaynakla dogrulanmadi.",
+    "Kullanici bazli uzak yetki (Keycloak) karar bekliyor, kapsam disi.",
+    "integration-7 (connection_mvp.py): cakisma kurali, modified surum kontrolu, dis kimlik-name eslemesi, saglik durum makinesi ve token yenilenemezse 'durduruldu' secilmedi; bu zarfin error_code/retryable alanlarina baglanacak.",
+    "Idempotency tekillestirme ve tenacity backoff yok.",
+    "Tenant sir modeli tenant-registry--contract kararina bagli.",
+    "Dosya adaptorleri kapsam disi: suite/suite/hooks.py:117 Drive izin siniri.",
+    "Yonetim ekrani (ui-family-36) kapsam disi; mevcut AntD6, Outfit 14px, 320-first, cevreleyen odak halkasi yok, simetrik pozitif Cubic hareket korunur."
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "integration-1": "poc",
+    "integration-7": "mvp"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

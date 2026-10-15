@@ -1,0 +1,113 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "api-response",
+  "canonicalTaskIds": ["api-response--implementation"],
+  "requirementIds": ["integration-4", "integration-6", "integration-8"],
+  "stage": "mvp",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "Yerel frappe.PermissionError, ic bilgi sizdirmayan 403 urun hata govdesine eslenir",
+    "trigger": "Yetkisiz yerel kullanici frappe.client.get_single_value cagirir; yerel kod frappe.PermissionError firlatir ve istisna adaptordeki to_error_envelope(exc) fonksiyonuna verilir",
+    "expected": "Fonksiyon (403, govde) dondurur. Govde: {apiVersion:'saas-api-error.v1', error:{code:'permission_denied', message:<cevrilmis genel ileti>}}. Govdede exc, exc_type, traceback, _server_messages anahtarlari ve yigin izi metni bulunmaz",
+    "denied": "Eslenmemis istisna sinifi 403 olarak etiketlenmez; bu davranis kapsaminda istisna degistirilmeden yeniden firlatilir, boylece yerel Frappe isleyicisi devrede kalir"
+  },
+  "reuse": {
+    "mechanism": "Izin karari yerelde kalir (frappe.has_permission ve frappe.PermissionError). Yeni yetki, CRUD veya olay motoru eklenmez. Ozel ek yalniz sahip olunan dosyadaki saf eslemedir; HTTP kodu atama deseni yerel frappe.response.http_status_code ile aynidir",
+    "evidence": [
+      {
+        "path": "frappe/frappe/client.py",
+        "line": 177,
+        "quote": "frappe.throw(_(\"No permission for {0}\").format(_(doctype)), frappe.PermissionError)"
+      },
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 73,
+        "quote": "frappe.response.http_status_code = 202"
+      },
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 340,
+        "quote": "after_request = \"suite.drive.api.product.after_request\""
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/api-response.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/adapters/api_boundary/api_response_mvp.py"
+    ],
+    "plannedTestFile": "backend/saas_platform/saas_platform/adapters/api_boundary/test_api_response_mvp.py",
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "integration/fragments/api-response--integration.json"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "exc: BaseException. Bu davranista yalniz frappe.PermissionError ornegi eslenir. Ag girdisi yoktur",
+    "output": "tuple[int, dict]: status=403, govde {apiVersion:'saas-api-error.v1', error:{code:'permission_denied', message:str}}. message sabit ve cevrilebilir genel ileti olur; DocType adi, kayit adi, alan degeri ve secret icermez",
+    "authorization": "Yetki karari yerel site/kullanici/rol kapsamindadir (yerel pilot: suite.localhost, cookie/CSRF oturumu). Adaptor yetki vermez ve kaldirmaz; sadece reddi bicimlendirir",
+    "persistence": "Yazma, DDL, hook veya kuyruk yok. Saf fonksiyondur; yerel istek islemi kendi geri alma davranisini korur",
+    "failure": "PermissionError disindaki siniflar degistirilmeden yeniden firlatilir. Tuketici (mevcut React19/AntD6/TanStack istemcisi) yalniz error.code okur; 403 icin mevcut AntD bileseniyle yetki iletisi gosterir (Outfit, 14px, 320 oncelikli, cevreleyen odak halkasi yok, simetrik pozitif Cubic hareket)"
+  },
+  "development": {
+    "dependencies": [
+      "api-response--contract",
+      "kernel-envelope--contract",
+      "device-grant--contract",
+      "native-user-policy--contract",
+      "capability-definition--contract",
+      "native-doctype-schema--contract",
+      "localPilot frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6; nativeAuth cookie/CSRF"
+    ],
+    "admission": "T-00 hedef taban ve R-00 yeniden kullanim eslemesi gerekir. Yerel kanit Frappe 17.0.0.dev0 suite.localhost uzerindedir; uzak urun tabani ve Suite HEAD bilinmiyor. Gecis, kernel-envelope.v1 sozlesmesiyle alan adi uyumunun teyidine baglidir",
+    "steps": [
+      "api_response_mvp.py icine to_error_envelope(exc) saf fonksiyonunu ve PermissionError->403 tek satirlik esleme tablosunu ekle",
+      "Govdeye yalniz izinli alanlari koy; exc ve traceback alanlarini kurucu dahil etmesin",
+      "hooks.py veya HTTP isleyicisine baglama yapma; baglama entegrasyon sahibine (Codex) parca olarak birakilir"
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Rolsuz yerel test kullanicisiyla frappe.client.get_single_value cagrisi gercek frappe.PermissionError uretir. Bu istisna to_error_envelope'a verildiginde sonuc 403 ve error.code='permission_denied' olur; govdenin serilestirilmis halinde 'Traceback', 'exc' ve DocType adi bulunmaz",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: Rolsuz yerel test kullanicisiyla frappe.client.get_single_value cagrisi gercek frappe.PermissionError uretir. Bu istisna to_error_envelope'a verildiginde sonuc 403 ve error.code='permission_denied' olur; govdenin serilestirilmis halinde 'Traceback', 'exc' ve DocType adi bulunmaz Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Ayni komut uygulamadan sonra gecer: bench --site suite.localhost run-tests --module saas_platform.adapters.api_boundary.test_api_response_mvp (komutun yerel kullanilabilirligi dogrulanmadi)"
+    },
+    "rollback": "Yalniz api_response_mvp.py icindeki fonksiyon ve planlanan test dosyasi yerelde geri alinir. Production ve servis degisikligi yetkisi yoktur"
+  },
+  "remainingGaps": [
+    "integration-4: SPA rotalari icin 301/303/404/410 uretecek katman (Frappe website_redirects/route rules ya da ters vekil) secilmedi; mevcut 307 yonlendirmelerin 303 kuraliyla iliskisi acik degil",
+    "integration-4: bakim 503 kaynagi ve Retry-After basligi belirsiz. Proxy/edge karari ve uygulamasi icin teknik sahip Huseyin Cengiz; DNS gerekirse sahip Asistan Huseyin. Bu sozlesme hicbirini etkinlestirmez",
+    "integration-6: urun API surumu ile Frappe /api/v1-/api/v2 eslemesi, Deprecation/Sunset kurali ve destek suresi tanimsiz. v2 ic uygulamasinin degisebilecegi kaynakta yaziyor; v16 ile v17-dev farki dogrulanmadi",
+    "integration-8: ValidationError(422), cakisma(409), hiz siniri(429), 500 eslemeleri ve correlationId kaynagi tanimsiz; Frappe 17-dev sinif adlari verilen kanitta yok, bilinmiyor",
+    "integration-8: 401 ile 403 ayrimi Keycloak kararina bagli ve kapsam disi; yerelde misafir oturumunun hangi istisnayi urettigi bilinmiyor",
+    "Eslemeyi HTTP yanitina baglamak hooks.py gerektirir (forbiddenWrites); entegrasyon sahibine aittir. Suite after_request hook'unun hata yanitlarina etkisi bilinmiyor",
+    "SFU socket deseni ham error.message dondurdugu icin model alinmaz"
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "integration-4": "mvp",
+    "integration-6": "mvp",
+    "integration-8": "mvp"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

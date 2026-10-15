@@ -1,0 +1,109 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "security-incident",
+  "canonicalTaskIds": ["security-incident--implementation"],
+  "requirementIds": ["security-9"],
+  "stage": "mvp",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "Rate Limit blocked_ips girisi gerekce ve geri alma adimi olmadan kaydedilemez",
+    "trigger": "Yetkili kullanici mevcut bir Rate Limit kaydinda blocked_ips alanina IP oneki yazip Document.save cagirir (native desk formu veya mevcut REST).",
+    "expected": "blocked_ips doluysa security_block_reason ve security_rollback_step dolu olmadan kayit reddedilir. Ikisi doluysa kayit saklanir, kaydeden kullanici modified_by ile onaylayan olarak izlenir ve engel mevcut validate akisinda RateLimitExceededError ile uygulanir.",
+    "denied": "Gerekce veya geri alma alani bos blocked_ips kaydi; Rate Limit yazma izni olmayan kullanici; ayni IP'nin hem allowed hem blocked olmasi (mevcut kontrol)."
+  },
+  "reuse": {
+    "mechanism": "Native once: mevcut Rate Limit DocType, blocked_ips ve Document.save. Config: iki CustomField (Small Text, mandatory_depends_on eval:doc.blocked_ips). Adapter yalniz mandatory_depends_on sunucu tarafinda zorlanmiyorsa: Rate Limit validate doc_event (suite hooks.py doc_events deseniyle ayni). Yeni DocType, ORM veya olay motoru yok.",
+    "evidence": [
+      {
+        "path": "suite/suite/utils/rate_limiter.py",
+        "line": 52,
+        "quote": "\"Access denied: Your IP address ({0}) is blocked due to explicit IP restrictions.\""
+      },
+      {
+        "path": "suite/suite/suite_core/doctype/rate_limit/rate_limit.py",
+        "line": 80,
+        "quote": "frappe.cache.hdel(\"rate_limits\", self.method_path)"
+      },
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 261,
+        "quote": "\"suite.mail.events.clear_sessions_on_disable\","
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/security-incident.json",
+    "plannedProduction": [
+      "operations/security-incident/security_incident_mvp.yml"
+    ],
+    "plannedTestFile": "backend/saas_platform/saas_platform/tests/test_security_incident_block_reason.py",
+    "sharedIntegrationFiles": [
+      "integration/fragments/security-incident--integration.json",
+      "backend/saas_platform/saas_platform/hooks.py (yalniz adapter gerekirse; Codex entegrasyonu)"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "Rate Limit.blocked_ips: Small Text, satir basina bir IP oneki. security_block_reason: Small Text, bos olamaz; kisisel veri, secret veya ham saglayici logu icermez. security_rollback_step: Small Text, bos olamaz; hangi onekin hangi Rate Limit kaydindan kaldirilacagini yazar. Minimum uzunluk zorlanmaz (gap).",
+    "output": "Rate Limit belgesi native alanlariyla ve iki CustomField ile; okuma native DocType izniyle. Sozlesme surumu contract-security-incident v1. Version kaydi yalniz track_changes aciksa olusur (bilinmiyor).",
+    "authorization": "Native site siniri; yerel kanit suite.localhost. Rate Limit rol izinleri alintida yok, bilinmiyor; beklenen System Manager. Izinsiz yazma frappe.PermissionError. Alanlar permlevel 0, belgeyle ayni kapsam. ignore_mandatory ile kaydeden kod yollari kapsam disi (gap).",
+    "persistence": "Tek istek transaction'inda Document.save; dogrulama hatasinda rollback, blocked_ips degismez. clear_cache metodu rate_limits cache girdisini siler; cagri noktasi alintida yok. CustomField kolonu icin DDL garantisi verilmez, yerel sitede dogrulanir.",
+    "failure": "Eksik alan: frappe.MandatoryError (ValidationError ailesi); mevcut desk/AntD formu alan hatasini gosterir, girilen deger korunur. Engellenen istek: frappe.RateLimitExceededError mevcut mesajla. UI degisikligi yok; ileride Outfit 14px, 320-first, cevreleyen odak halkasi yok, simetrik pozitif Cubic hareket korunur."
+  },
+  "development": {
+    "dependencies": [
+      "security-incident--contract",
+      "localPilot r02: same controlled field two configs",
+      "localPilot t08: native admin/reader scopes"
+    ],
+    "admission": "T-00 hedef taban, R-00 yeniden kullanim eslemesi ve R-01 izinli tuketici on kosuldur. Yerel Frappe17-dev frappeHead adf1fd0c; suiteSourceHead unknown. Rate Limit DocType'in yerel sitede kurulu oldugu, izinleri ve mandatory_depends_on sunucu zorlamasi salt okumayla dogrulanmali. Yerel kanit uzak urun tabani degildir.",
+    "steps": [
+      "Yerel sitede Rate Limit izinlerini, track_changes ve mandatory_depends_on sunucu zorlamasini salt okumayla dogrula.",
+      "Tek testi yaz ve gercek RED gozle.",
+      "security_incident_mvp.yml icinde iki CustomField tanimini yaz; Codex fixture olarak entegre eder.",
+      "Sunucu zorlamasi yoksa yalniz Rate Limit validate doc_event adapter'i ekle (entegrasyon sahipligi).",
+      "Ayni testi GREEN olarak calistir."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Test kendi olusturdugu Rate Limit kaydina blocked_ips=203.0.113. yazar; gerekce ve geri alma bosken save frappe.MandatoryError vermeli; ikisi doldurulunca save basarili ve alanlar geri okunur. Musteri kaydi silinmez.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: Test kendi olusturdugu Rate Limit kaydina blocked_ips=203.0.113. yazar; gerekce ve geri alma bosken save frappe.MandatoryError vermeli; ikisi doldurulunca save basarili ve alanlar geri okunur. Musteri kaydi silinmez. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Ayni komut: bench --site suite.localhost run-tests --module saas_platform.tests.test_security_incident_block_reason; fixture/adapter sonrasi gecer."
+    },
+    "rollback": "Yerel sitede iki Custom Field kaydini ve fixture/adapter girdisini geri al; test IP onekini blocked_ips'ten cikar. Kolon temizligi garanti degil. Uretim degisikligi yetkisi yok; dagitim Huseyin Cengiz bagimliligidir."
+  },
+  "remainingGaps": [
+    "Guvenlik olayi vaka modeli (onem, sorumlu, durum, kanit baglantisi) tanimsiz; Activity/Access/Error Log kaynagi alintida yok.",
+    "Dort goz onayi yok; onaylayan = kaydeden yetkili kullanici.",
+    "User enabled=0 ve clear_sessions_on_disable yolunda gerekce/geri alma yok.",
+    "Keycloak oturum iptali karar bekliyor, kapsam disi; edge WAF icin vendor secilmez, dagitim Huseyin Cengiz bagimliligi.",
+    "Engel method bazli; site geneli IP engeli yok.",
+    "WebDAV lockout ve SFU authEvents sinyalleri vakaya baglanmiyor.",
+    "Rate Limit izinleri, track_changes, clear_cache cagri noktasi ve uzak urun tabani bilinmiyor."
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "security-9": "mvp"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

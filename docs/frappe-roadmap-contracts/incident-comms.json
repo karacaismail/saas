@@ -1,0 +1,124 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "incident-comms",
+  "canonicalTaskIds": ["incident-comms--implementation"],
+  "requirementIds": ["service-2", "service-3"],
+  "stage": "mvp",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "Service Incident Resolved durumuna gecince resolved_at sunucuda damgalanir; cozulmus kaydin durum ve zaman alanlari sonra degistirilemez",
+    "trigger": "Yazma izinli kullanici native REST veya Desk ile status=Resolved kaydeder (Document.save), sonra ayni kaydi yeniden kaydetmeye calisir.",
+    "expected": "Ilk Resolved kaydinda resolved_at bossa sunucu zamaniyla doldurulur, istemci degeri dikkate alinmaz, started_at korunur, track_changes ile Version farki olusur. Sonraki kayitta status, started_at ve resolved_at ayni kalir.",
+    "denied": "Resolved kayitta bu uc alandan birini degistiren save frappe.ValidationError ile reddedilir ve transaction geri alinir; izinsiz kullanici frappe.PermissionError alir. ignore_permissions kullanilmaz."
+  },
+  "reuse": {
+    "mechanism": "Once native: DocType metadata, native REST insert/save, Document.save validate kancasi ve track_changes Version. Yeni CRUD/ORM/olay motoru yok. En kucuk ek: Service Incident DocType tanimi ve validate icinde tek gecis kurali. Sunucu damgasi ve geri acma reddi icin native karsilik kanitlanmadi. Notification yalniz sonraki adim icin zemin; maintenance_mode yalniz gozlenen durum.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 50,
+        "quote": "return frappe.new_doc(doctype, **data).insert()"
+      },
+      {
+        "path": "frappe/frappe/model/document.py",
+        "line": 2043,
+        "quote": "not getattr(self.meta, \"track_changes\", False)"
+      },
+      {
+        "path": "frappe/frappe/core/doctype/version/version.json",
+        "line": 71,
+        "quote": "\"delete\": 1,"
+      },
+      {
+        "path": "frappe/frappe/email/doctype/notification/notification.py",
+        "line": 401,
+        "quote": "self.send_notification_by_channel(doc, context)"
+      },
+      {
+        "path": "frappe/frappe/utils/scheduler.py",
+        "line": 181,
+        "quote": "if frappe.local.conf.maintenance_mode:"
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/incident-comms.json",
+    "plannedProduction": [
+      "operations/incident-comms/incident_comms_mvp.yml",
+      "backend/saas_platform/saas_platform/incident_comms/doctype/service_incident/service_incident.json",
+      "backend/saas_platform/saas_platform/incident_comms/doctype/service_incident/service_incident.py"
+    ],
+    "plannedTestFile": "backend/saas_platform/saas_platform/incident_comms/doctype/service_incident/test_service_incident.py",
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/modules.txt",
+      "backend/saas_platform/saas_platform/hooks.py",
+      "integration/fragments/incident-comms--integration.json"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "Native resource insert/save: title Data zorunlu, en fazla 140; status Select Investigating|Identified|Monitoring|Resolved; started_at Datetime zorunlu; resolved_at Datetime read_only, istemci degeri dikkate alinmaz; audience Select Internal|Affected Tenants|Public (bu davranista yalniz saklanir); track_changes=1. Tanimsiz alanlarda native davranis yerel pilotta gozlenecek.",
+    "output": "Native doc: name, title, status, started_at, resolved_at, audience, modified. Surum native modified alanidir. Native read izniyle okunur; Version kaydini System Manager okur.",
+    "authorization": "Native site siniri (yerel suite.localhost). DocType izinleri: yazici rol create/read/write, okuyucu rol yalniz read, delete hicbir role verilmez. Rol adlari integration karari. Izinsiz yazma frappe.PermissionError. Tenant/record/field duzeyinde ek kural yok.",
+    "persistence": "Tek Document.save istek transaction'i. validate'teki ret tum yazimi geri alir; Version save_version ile ayni akista eklenir. Tablo yerel migrate ile olusur; DDL davranisi garanti edilmez, production migrate yok.",
+    "failure": "Kural ihlali frappe.ValidationError, izin ihlali frappe.PermissionError; HTTP kodlari yerel pilotta gozlenecek. Eszamanli duzenleme native modified kontrolune birakilir, davranisi unknown. Mevcut React/AntD tuketicisi hatayi forma bagli gosterir, girdiyi korur, otomatik yeniden deneme yapmaz."
+  },
+  "development": {
+    "dependencies": [
+      "incident-comms--contract",
+      "T-00",
+      "R-00",
+      "R-01",
+      "yerel pilot: frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6, t08 native admin/reader kapsamlari"
+    ],
+    "admission": "incident-comms--contract tamamlanmali; T-00 hedef taban ve R-00 yeniden kullanim eslemesi hazir olmali. saas_platform app'inin yerel sitede kurulu olup olmadigi ve modules.txt girisi unknown; ikisi de integration tarafinda dogrulanmali. Suite HEAD ve uzak urun tabani unknown; yerel kanit uzak taban degildir.",
+    "steps": [
+      "1. DocType JSON: alanlar, track_changes=1, iki rol izni, delete yok; controller kurali yok.",
+      "2. Planli tek testi yaz ve calistir; assertion RED ciktisini kaydet.",
+      "3. service_incident.py validate: onceki status Resolved ise korunan alan farkini ValidationError ile reddet; Resolved'a geciste resolved_at bossa sunucu zamaniyla doldur (yardimci fonksiyon adi yerel kaynakta dogrulanacak).",
+      "4. Ayni testi ayni komutla GREEN calistir; komutu ve sonucu operations yml'e kanit olarak isle."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Yazici kullanici Investigating durumunda kayit olusturur ve status=Resolved ile save eder: resolved_at dolu olmali ve istemci degerinden bagimsiz olmali. Ardindan status=Monitoring ile ve degistirilmis resolved_at ile save frappe.ValidationError atmali; veritabanindaki deger ayni kalmali.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: Yazici kullanici Investigating durumunda kayit olusturur ve status=Resolved ile save eder: resolved_at dolu olmali ve istemci degerinden bagimsiz olmali. Ardindan status=Monitoring ile ve degistirilmis resolved_at ile save frappe.ValidationError atmali; veritabanindaki deger ayni kalmali. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Ayni test ayni komutla (bench --site suite.localhost run-tests --doctype 'Service Incident'; komut yerel pilotta dogrulanacak) adim 3'ten sonra gecer."
+    },
+    "rollback": "Yalniz planli DocType, controller ve test dosyalari yerelde geri alinir; yerel gelistirme sitesinde yalniz test kayitlari tasiyan DocType kaldirilir. Musteri kaydi silinmez, production izni yok; uzak dagitim Huseyin Cengiz bagimliligidir."
+  },
+  "remainingGaps": [
+    "service-2: tenant-site eslemesi karari yok; etkilenen tenant hesaplanamaz.",
+    "service-2: bilesen-tenant bagimlilik modeli ve veri sahibi yok.",
+    "service-2: bakim penceresi alanlari (zaman dilimi, baslangic/bitis, duyuru oncesi sure) yok. maintenance_mode/pause_scheduler yalniz gozlenen durumdur; otomatik tetikleme ya da zamanlama yok.",
+    "service-3: yalniz ekleme yapilan Incident Update yok; Version'i Administrator silebildigi icin degismez gecmis sayilmaz.",
+    "service-3: kitleye gore Notification Email/System Notification baglamasi, kamu yayin onay rolu, postmortem baglanti/sahip/sablon ve headless salt okunur uc nokta yok; GenUI kapsam disi.",
+    "Planli saas_platform modul yolu ve rol adlari integration karari; canonical gorev yalniz operations yml dosyasini sahiplenir, planli sahiplik aktif kiralama degildir.",
+    "Bu davranista UI yok. Ileride mevcut AntD tuketicisi Outfit, en az 14px metin, 320-first, cevreleyen odak halkasi olmamasi ve simetrik pozitif Cubic hareket kurallarini korur."
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "service-2": "mvp",
+    "service-3": "mvp"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

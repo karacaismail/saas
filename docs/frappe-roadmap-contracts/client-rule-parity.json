@@ -1,0 +1,121 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "client-rule-parity",
+  "canonicalTaskIds": ["client-rule-parity--implementation"],
+  "requirementIds": ["integrity-8", "channels-10"],
+  "stage": "poc",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "Istemci kural cekirdegi desteklenmeyen kural surumunu ag cagrisi yapmadan reddeder; desteklenen surumde sonuc gecicidir ve yalniz native Document.save yaniti kesinlestirir",
+    "trigger": "Ortak istemci cekirdegine ruleVersion alanli surumlu test vektoru veya kullanici islemi verilir.",
+    "expected": "ruleVersion desteklenen listede degilse {status:'rejected', code:'unsupported_rule_version', ruleVersion} doner ve hicbir HTTP istegi gonderilmez. Desteklenen surumde istemci sonucu {status:'provisional'} olarak isaretlenir; kesin sonuc native v1 kaynak guncelleme yolunun (update_doc -> Document.save) yanitidir.",
+    "denied": "Istemci sonucu sunucu dogrulamasini veya has_permission denetimini atlatamaz; db.set_value gibi Document dogrulamasini atlayan yazim kabul yolu degildir."
+  },
+  "reuse": {
+    "mechanism": "Native once: sunucu tarafinda yeni endpoint, hook veya DocType yok; mevcut v1 /api/resource rotalari, Document.save icindeki workflow dogrulamasi ve has_permission kullanilir. Yalniz istemci tarafinda sahip olunan tek dosyada en kucuk saf TypeScript surum kapisi eklenir, cunku ortak istemci kural cekirdegi kaynakta yok. v2 get_meta yalniz sunum metadata'si icin aday; ic uygulamasi degisebilir oldugu icin bu davranista kullanilmaz.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 153,
+        "quote": "Rule(\"/resource/<doctype>\", methods=[\"GET\", \"QUERY\"], endpoint=document_list),"
+      },
+      {
+        "path": "frappe/frappe/model/document.py",
+        "line": 31,
+        "quote": "from frappe.model.workflow import set_workflow_state_on_action, validate_workflow"
+      },
+      {
+        "path": "frappe/frappe/permissions.py",
+        "line": 82,
+        "quote": "def has_permission("
+      },
+      {
+        "path": "frappe/frappe/client.py",
+        "line": 202,
+        "quote": "forbidden = set(frappe.model.default_fields + frappe.model.child_table_fields)"
+      },
+      {
+        "path": "frappe/frappe/api/v2.py",
+        "line": 8,
+        "quote": "internal implementation can change without treating it as \"breaking change\"."
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/client-rule-parity.json",
+    "plannedProduction": [
+      "frontend/packages/platform/src/client-rule-parity/client_rule_parity_poc.tsx"
+    ],
+    "plannedTestFile": "frontend/packages/platform/src/client-rule-parity/client_rule_parity_poc.test.tsx (yalniz plan; test calistiricisi ve konum kurali dogrulanmadi)",
+    "sharedIntegrationFiles": [
+      "integration/fragments/client-rule-parity--integration.json",
+      "frontend/package.json",
+      "frontend/packages/ui/src/index.ts"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "Vektor v1: {vectorFormat:'client-rule-parity.vector.v1', ruleVersion:string, doctype:string, name:string, op:'update', values:Record<string,string>, expected:{status, code?}}. PoC'de yalniz Data alani; para/Currency/Float ve tarih vektorleri bu davranisin disinda.",
+    "output": "{status:'rejected'|'provisional'|'accepted'|'denied', code?, ruleVersion, serverDoc?}. serverDoc yalniz native yanitta donen ve kullanicinin okuma iznindeki alanlardir; istemci alan eklemez.",
+    "authorization": "Native site oturumu (cookie/CSRF). Kayit ve alan izinleri yalniz Frappe has_permission ile belirlenir; istemci izin hesaplamaz. Yerel pilotta T-08 admin/reader kapsamlari kullanilir.",
+    "persistence": "Yalniz native Document.save islemi; istemci tarafinda kalici yazim yok, DDL yok, yeni sema garantisi yok.",
+    "failure": "Surum reddi istemcide, ag oncesi. Sunucu reddinde (izin hatasi, dogrulama hatasi, 'Cannot edit standard fields') durum 'denied' olur, gerekce saklanir ve islem kaybolmaz. Native HTTP durum kodlari ve istisna gorunumu bu girdide kanitlanmadi; yerel pilotta olculecek."
+  },
+  "development": {
+    "dependencies": [
+      "client-rule-parity--contract",
+      "kernel-envelope--contract",
+      "sync-receipt--contract",
+      "device-grant--contract",
+      "yerel pilot t08: mevcut tek Data kaydi native admin/reader kapsamiyla okuma/guncelleme"
+    ],
+    "admission": "T-00 hedef temeli ve R-00 yeniden kullanim eslemesi gerekli. Yerel Frappe 17-dev (frappeHead adf1fd0c) ve suite.localhost yalniz yerel kanittir; uzak urun temeli ve Suite HEAD bilinmiyor. T-08 pilot DocType adi bu girdide yok.",
+    "steps": [
+      "Sahip olunan tsx dosyasinda desteklenen surum listesi ve saf degerlendirme fonksiyonunu tanimla.",
+      "Desteklenmeyen surumde ag cagrisini engelle; desteklenende sonucu provisional isaretle.",
+      "Kesinlestirmeyi mevcut TanStack tuketicisi uzerinden native v1 PUT /api/resource/<doctype>/<name> ile yap; yeni sunucu kodu ekleme.",
+      "UI gerekiyorsa mevcut AntD bilesenleri, Outfit 14px alt sinir, 320 oncelik, cevreleyen odak halkasi yok, simetrik pozitif Cubic hareket korunur."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "ruleVersion '2' iceren v1 vektoru verildiginde cekirdek {status:'rejected', code:'unsupported_rule_version'} doner ve fetch hic cagrilmaz.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: ruleVersion '2' iceren v1 vektoru verildiginde cekirdek {status:'rejected', code:'unsupported_rule_version'} doner ve fetch hic cagrilmaz. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Ayni test ve ayni komut uygulamadan sonra gecer; komut proje betiklerinden bulunur, uydurulmaz."
+    },
+    "rollback": "Yalniz sahip olunan tsx ve planlanan test dosyasinin yerel geri alinmasi; sunucu, veri veya production degisikligi yok."
+  },
+  "remainingGaps": [
+    "Postgres DEC2FLOAT ondalik degerleri float'a ceviriyor (frappe/frappe/database/postgres/database.py:43); para/yuvarlama esligi vektorleri kapsam disi ve acik risk.",
+    "Kapsamdaki DocType/hesaplama listesi yok; ERPNext yerelde kurulu olmadigi icin para/stok kurallari dogrulanamaz, kurulum yapilmaz.",
+    "Suite writer_document.py:32 db.set_value ve :36 'except COLLISION_ERRORS:' kalibi 'dogrulama atlanmaz' kabuluyle celisir; bu davranista kabul yolu sayilmaz, duzeltme kapsam disi.",
+    "v1/v2 nihai API secimi ve v2 get_meta eslemesi yapilmadi.",
+    "Sunucuda gecersizlesmis islemin uzlastirma akisi sync-receipt sozlesmesine bagli; burada yalniz 'denied' saklama tanimli.",
+    "Mobil/masaustu/eklenti hedeflerinde ayni vektorun kosulmasi ve platform izinleri dogrulanmadi; kaynak listesinde Capacitor yerine Tauri 2 duzeltmesi data/clusters dosyalarina yazilamadigi icin entegrasyon sahibine birakildi."
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "integrity-8": "poc",
+    "channels-10": "poc"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

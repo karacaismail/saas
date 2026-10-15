@@ -1,0 +1,144 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "ui-family-06",
+  "canonicalTaskIds": ["ui-family-06--implementation"],
+  "requirementIds": [
+    "views-6",
+    "views-8",
+    "views-11",
+    "views-12",
+    "views-13",
+    "views-14",
+    "views-16"
+  ],
+  "stage": "mvp",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "Frappe v2 hata mesajı erişilebilir toast ile duyurulur ve toast kapandıktan sonra kalıcı hata panelinde kalır",
+    "trigger": "Headless React istemcisi Frappe v2 yanıtında messages[] veya hata yanıtı (ValidationError/PermissionError) alır.",
+    "expected": "indicator eşlemesi Desk ile aynıdır (green=success, red=error, orange/yellow=warning, blue/yok=info). error AntD bildiriminde role=alert, diğerleri role=status alır. Mesaj HTML olarak değil düz metin olarak gösterilir. error öğesi kullanıcı toast'ı kapattığında silinmez; kalıcı hata panelinde aynı metin ve sınıf (validation/permission/unknown) ile kalır.",
+    "denied": "401 bağlantı arızası veya toast olarak gösterilmez, oturum durumuna yönlendirilir. Mutasyon otomatik yeniden gönderilmez. Sunucu HTML'i innerHTML ile render edilmez. Panel localStorage/IndexedDB'ye yazmaz."
+  },
+  "reuse": {
+    "mechanism": "Native: sunucu tarafı frappe.toast/msgprint ve v2 messages[] yanıtı aynen kullanılır; backend değişikliği yok. Indicator eşlemesi Desk show_alert type_map'inden, role ayrımı Desk toast.js'den kopyalanmadan kural olarak alınır. Gözlenen tek boşluk React/AntD tüketicisidir; en küçük adapter ui-family-06 component dosyasıdır.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/utils/messages.py",
+        "line": 121,
+        "quote": "def toast(message: str, indicator: Literal[\"blue\", \"green\", \"orange\", \"red\", \"yellow\"] | None = None):"
+      },
+      {
+        "path": "frappe/frappe/utils/response.py",
+        "line": 218,
+        "quote": "response[\"messages\"] = frappe.local.message_log"
+      },
+      {
+        "path": "frappe/frappe/public/js/frappe/request.js",
+        "line": 508,
+        "quote": "return !(message.alert || message.toast);"
+      },
+      {
+        "path": "frappe/frappe/public/js/frappe/ui/components/toast.js",
+        "line": 45,
+        "quote": "$el.attr(\"role\", type === \"error\" ? \"alert\" : \"status\");"
+      },
+      {
+        "path": "frappe/frappe/public/js/frappe/ui/messages.js",
+        "line": 430,
+        "quote": "frappe.show_alert = frappe.toast = function (message, seconds = 7, actions = {}) {"
+      },
+      {
+        "path": "suite/suite/headless_provider/api.py",
+        "line": 405,
+        "quote": "frappe.throw(message, frappe.ValidationError)"
+      },
+      {
+        "path": "frappe/frappe/permissions.py",
+        "line": 153,
+        "quote": "msg = _(\"User {0} does not have access to this document\").format(frappe.bold(user))"
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/ui-family-06.json",
+    "plannedProduction": [
+      "frontend/packages/ui/src/components/ui-family-06/index.tsx"
+    ],
+    "plannedTestFile": "frontend/packages/ui/src/components/ui-family-06/index.test.tsx (yalnız planlı; aktif lease değil)",
+    "sharedIntegrationFiles": [
+      "frontend/packages/ui/src/index.ts",
+      "frontend/package.json",
+      "integration/fragments/ui-family-06--integration.json"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "{status:number; body:{messages?:Array<{message:string; title?:string; indicator?:'blue'|'green'|'orange'|'red'|'yellow'; alert?:0|1|boolean; raise_exception?:unknown}>; exc_type?:string}}. messages[] en fazla 20 öğe işlenir, metin 1000 karakterde kesilir. exc_type ve HTTP kodunun v17-dev hata gövdesindeki gerçek şekli bilinmiyor; yerel fixture ile doğrulanır.",
+    "output": "FeedbackItem {version:'ui-family-06.feedback.v1'; id:string (istemci üretimi, secret/URL/kullanıcı adı içermez); level:'success'|'info'|'warning'|'error'; role:'alert'|'status'; text:string (düz metin, etiketler soyulmuş); title?:string; errorClass?:'validation'|'permission'|'unknown'; persist:boolean (error için true)}.",
+    "authorization": "Yalnız mevcut native site oturumunun (cookie/CSRF) kendi yanıtı gösterilir; ek veri çekilmez. 403 PermissionError izin sınıfı ve sonraki adım ile error olarak gösterilir, bağlantı arızası sayılmaz. 401 oturum durumuna devredilir.",
+    "persistence": "Sunucu yazımı ve DDL yok. Panel durumu yalnız React bellek durumudur; sayfa yenilenince temizlenir.",
+    "failure": "messages[] ayrıştırılamazsa ham gövde gösterilmez; 'unknown' sınıflı genel error öğesi üretilir. AntD notification role desteği kurulu sürümde yoksa duyuru panelin kendi role=alert/status bölgesiyle taşınır. Otomatik retry yok."
+  },
+  "development": {
+    "dependencies": [
+      "ui-family-06--contract",
+      "kernel-envelope--contract",
+      "api-middleware--contract",
+      "client-rule-parity--contract"
+    ],
+    "admission": "T-00 hedef baz ve R-00 yeniden kullanım eşlemesi gerekir. Yerel pilot: Frappe17-dev adf1fd0c, suite.localhost, mevcut React19/AntD6/TanStack tüketicisi. AntD sürümü lockfile'da, test runner komutu frontend scriptlerinden doğrulanmalı; bilinmiyor. Remote baseline ve Suite HEAD bilinmiyor; yerel kanıt remote kabul değildir.",
+    "steps": [
+      "suite.localhost'ta headless_provider _invalid çağrısının v2 hata gövdesini kişisel veri içermeyen fixture olarak kaydet.",
+      "index.tsx içinde saf mapFrappeFeedback(input) eşlemesini yaz.",
+      "Mevcut AntD notification API'si ve merkezi tema tokenları ile bildirimi bağla: Outfit, min 14 CSS px, cubic-bezier(.65,0,.35,1) iki yönlü pozitif süre, reduced-motion, çevreleyen odak halkası yok, 320 px öncelikli.",
+      "Kalıcı hata panelini AntD bileşeniyle ekle; kapatma panel öğesini silmez, kullanıcı ayrıca temizler."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "ValidationError v2 fixture'ı (frappe.bold içeren metin dahil) işlenince bildirim role=alert ve düz metinle görünür; toast kapatıldıktan sonra kalıcı panelde aynı düz metin ve errorClass=validation kalır.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: ValidationError v2 fixture'ı (frappe.bold içeren metin dahil) işlenince bildirim role=alert ve düz metinle görünür; toast kapatıldıktan sonra kalıcı panelde aynı düz metin ve errorClass=validation kalır. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Aynı test aynı komutla uygulama sonrası geçer. Native sunucu davranışı (messages[] üretimi) RED üretmek için kullanılmaz."
+    },
+    "rollback": "Yalnız yerel index.tsx ve planlı test dosyası geri alınır. Production, servis veya veri değişikliği yetkisi yok."
+  },
+  "remainingGaps": [
+    "views-8: yavaş ağ, 0 kayıt, 500 ve bağlantı kesintisi ekran durumu eşlemesi yok; v1 silmenin 202 dönmesi istisnası eşlenmedi.",
+    "views-11: online/offline/unreachable/reconnecting ConnectionState ve lastSuccessAt yok; frappe.ping yoklaması ve socket sinyali ayrı karar; ui-family-40 sınırı açık.",
+    "views-12: commit/ack kanıtı ve yanıt-sürüm (modified) eşleştirmesi tanımsız; yerel taslak deposu platform kararına bağlı.",
+    "views-13: kalıcı işlem kimliği yok; name_set yalnız insert için aday, diğer mutasyonlar 'bilinmiyor' kalır.",
+    "views-14: tazelik eşikleri ve kritik eylemde sunucu çakışma hatası doğrulanmadı.",
+    "views-16: alan referansı (fieldname), kota hatası kaynağı ve güvenli hata kimliği kaynağı bilinmiyor; destek raporu URL/log içermemeli.",
+    "Ekran okuyucu duyurusu, Chromium/Firefox/WebKit ve gerçek cihaz kabulü not_run."
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "views-6": "mvp",
+    "views-8": "mvp",
+    "views-11": "mvp",
+    "views-12": "mvp",
+    "views-13": "mvp",
+    "views-14": "mvp",
+    "views-16": "mvp"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

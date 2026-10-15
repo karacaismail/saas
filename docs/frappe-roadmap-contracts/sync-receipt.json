@@ -1,0 +1,113 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "sync-receipt",
+  "canonicalTaskIds": ["sync-receipt--implementation"],
+  "requirementIds": ["integrity-7"],
+  "stage": "mvp",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "Idempotent update push: ayni kullanici+cihaz+mutation_id ve ayni icerik ozeti ikinci kez gelirse hedef belge yeniden kaydedilmez, kayitli SyncReceipt sonucu doner",
+    "trigger": "Oturumlu kullanici mevcut bir belge icin mutation_id, device_id, content_hash ve alan degerleriyle push istegi gonderir; ayni istek yanit kaybi sonrasi yeniden gonderilir.",
+    "expected": "Ilk istekte hedef belge Document.save ile guncellenir ve SyncReceipt ayni request transaction'inda yazilir (status=applied). Ayni anahtar ve ayni ozetle gelen ikinci istekte save cagrilmaz, hedefin modified degeri degismez, ayni receipt status=replayed ile doner.",
+    "denied": "Ayni anahtar farkli content_hash ile gelirse istek reddedilir ve hicbir yazim yapilmaz. Hedefte native write yetkisi yoksa receipt olusmaz. Baska kullanicinin receipt'i okunamaz ve yeniden oynatilamaz."
+  },
+  "reuse": {
+    "mechanism": "Native once: hedef yazimi icin v1 update_doc ile ayni desen kullanilir (get_doc for_update + Document.save). Receipt, sync-receipt--schema ile gelen SyncReceipt DocType'inin native insert islemiyle yazilir. Tekillestirme, kullanici+cihaz+mutation_id'den turetilen deterministik belge adinin native birincil anahtar benzersizligine dayanir. Yalniz sahip olunan sync_receipt.py icinde tek whitelisted fonksiyon gibi en kucuk adapter eklenir. Yeni CRUD, ORM veya olay motoru yazilmaz.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 56,
+        "quote": "doc = frappe.get_doc(doctype, name, for_update=True)"
+      },
+      {
+        "path": "frappe/frappe/model/document.py",
+        "line": 23,
+        "quote": "from frappe.database.utils import commit_after_response"
+      },
+      {
+        "path": "frappe/frappe/database/postgres/database.py",
+        "line": 297,
+        "quote": "conn.set_isolation_level(ISOLATION_LEVEL_REPEATABLE_READ)"
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/sync-receipt.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/platform_system/doctype/sync_receipt/sync_receipt.py"
+    ],
+    "plannedTestFile": "backend/saas_platform/saas_platform/platform_system/doctype/sync_receipt/test_sync_receipt.py",
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "backend/saas_platform/saas_platform/platform_system/doctype/sync_receipt/sync_receipt.json",
+      "integration/fragments/sync-receipt--integration.json"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "mutation_id: string, 1-140 karakter, zorunlu. device_id: string, 1-140 karakter, zorunlu; sunucu dogrulamasi ayri bir bosluktur. content_hash: 64 karakter kucuk harf sha256 hex, zorunlu; kanonik govdenin hesap kurali contracts/sync-receipt.v1.json'a baglanir. target_doctype: string, target_name: string, zorunlu. values: duz alan sozlugu; 'flags' ve 'doctype' anahtarlari v1 desenindeki gibi atilir. Bu davranista yalniz operation=update desteklenir.",
+    "output": "{contract_version:1, receipt:string, status:'applied'|'replayed', result:{doctype, name, modified}}. Hedef alanlar dondurulmez; istemci gerekirse native read ile alan duzeyi okuma yetkisi uygulanmis veriyi okur.",
+    "authorization": "Native oturum kullanilir (cookie/CSRF; Keycloak not_run). Hedefin yazma yetkisi Document.save'in native izin kontroluyle denetlenir. Receipt adi frappe.session.user'i icerir ve owner=session.user olur; okuma ve yeniden oynatma yalniz sahibine aciktir. Tenant siniri yerel kanit icin native site'tir.",
+    "persistence": "Hedef save ve receipt insert ayni request transaction'indadir; istisna olursa ikisi birlikte geri alinir. Yeni DDL garantisi yoktur; tablo yalniz SyncReceipt DocType migrate'iyle olusur. Commit ile yanit arasindaki siralama v17 icin dogrulanmamistir (commit_after_response).",
+    "failure": "Ozet uyusmazligi controller'da frappe.ValidationError olarak, yazma reddi native PermissionError olarak doner. Eszamanli ayni ad insert'i native tekrar-kayit hatasi verir; sinif adi ve HTTP kodlari kaynakta dogrulanmadi. Istemci, 2xx ve receipt alani olmadan islemi aktarilmis saymaz. Ag veya yanit kaybinda ayni zarfi yeniden gonderir; uyusmazlik ve izin hatasinda kuyruk ogesini kullanici uzlastirmasina alir."
+  },
+  "development": {
+    "dependencies": [
+      "sync-receipt--contract",
+      "sync-receipt--schema",
+      "kernel-envelope--contract",
+      "api-middleware--contract",
+      "native-doctype-schema--contract",
+      "outbox--contract",
+      "audit-envelope--contract",
+      "local pilot t08: mevcut tek Data kaydi native admin/reader ile read/update (recordCommit 6ea301c, frappeHead adf1fd0c)"
+    ],
+    "admission": "T-00 hedef taban cizgisi ve R-00 yeniden kullanim eslemesi gerekir; izinli veri tuketicisi oldugu icin R-01 de gerekir. SyncReceipt DocType'i yerel Frappe17-dev/suite.localhost'ta migrate edilmis olmalidir. Suite HEAD ve uzak urun taban cizgisi bilinmiyor; yerel kanit uzak kabul degildir.",
+    "steps": [
+      "sync_receipt.py: deterministik ad (user+device_id+mutation_id ozeti) ile mevcut receipt'i oku; content_hash esitse status=replayed don, degilse ValidationError ver.",
+      "Receipt yoksa hedefi get_doc for_update ile al, values'u update edip save cagir, ayni transaction'da receipt'i hash, target ve modified ile insert et.",
+      "Rota ve whitelist kaydi entegrasyon sahibine (Codex) fragment olarak devredilir; hooks.py'ye dokunulmaz."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Ayni kullanici ayni mutation_id+content_hash ile t08 kaydina iki kez update push eder. Ikinci yanit status=replayed ve ayni receipt doner, hedefin modified degeri ilk yanittakiyle ayni kalir ve kullanici+mutation_id icin tam bir SyncReceipt bulunur.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: Ayni kullanici ayni mutation_id+content_hash ile t08 kaydina iki kez update push eder. Ikinci yanit status=replayed ve ayni receipt doner, hedefin modified degeri ilk yanittakiyle ayni kalir ve kullanici+mutation_id icin tam bir SyncReceipt bulunur. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Uygulamadan sonra ayni test ayni komutla calisir (yerel bench run-tests, yalniz bu modul); komut ve sonuc kaydedilir."
+    },
+    "rollback": "Yalniz sync_receipt.py degisikligi yerelde geri alinir; test kayitlari test transaction'inda kalir. Uretim degisikligi, servis yeniden baslatma veya musteri kaydi silme yetkisi yoktur."
+  },
+  "remainingGaps": [
+    "Pull cursor: v2 listeleme start/limit offset kullaniyor; modified+name kararli imleci ve eszamanli yazimda atlama/tekrar davranisi tanimsiz.",
+    "Tombstone: v1 delete_doc yalniz 202 'ok' donuyor; silme kaydinin DocType'i ve saklama suresi kullanici karari bekliyor.",
+    "Commit sonrasi ack: commit_after_response nedeniyle yanitin commit'ten once gidip gitmedigi v17 icin dogrulanmadi; dogrulanana kadar istemci yeniden gondermeden once receipt sorgusu kullanmali.",
+    "Hedef API surumu (v1/v2) ve DB arka ucu (MariaDB/Postgres/SQLite) secilmedi; izolasyon ve retry davranisi buna bagli.",
+    "Keycloak cihaz kimligini User/tenant kapsamina baglama karari Keycloak kararlarina bagli, kapsam disi.",
+    "Dedupe saklama penceresi, yedekten geri donen islem, create/delete operasyonlari, outbox ve audit baglantisi sonraki dilimlere kaldi.",
+    "Uzak dagitim bagimliligi: sunucu, deploy ve rollback Huseyin Cengiz'e aittir; cron/zamanlama etkinlestirilmez."
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "integrity-7": "mvp"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

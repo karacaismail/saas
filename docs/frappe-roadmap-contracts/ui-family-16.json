@@ -1,0 +1,146 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "ui-family-16",
+  "canonicalTaskIds": ["ui-family-16--implementation"],
+  "requirementIds": ["forms-1", "forms-2", "forms-6"],
+  "stage": "mvp",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "Mevcut kayıt formunda izinli headless-metadata.v1 Data alanları için depends_on/mandatory_depends_on yalnız tavsiye niteliğinde görünürlük ve zorunlu işareti olarak gösterilir",
+    "trigger": "Kullanıcı mevcut kaydı suite.headless_provider.records.read_record ile açar ve izinli bir Data alanını değiştirir.",
+    "expected": "Koşul güvenli alt kümedeyse yerelde eval/Function kullanılmadan yorumlanır: yalın alan adı, eval:doc.<alan>, eval:doc.<alan>=='<metin>' veya !=. Koşul yalnız aynı yanıttaki izinli Data alanlarına başvurmalıdır. Sonuçta alan gizlenir ya da gösterilir; mandatory_depends_on doğruysa 'zorunlu' işareti görünür. Gizleme değeri silmez, kayıt yükünü değiştirmez. Yük yalnız writableFields içindeki değişmiş alanlardır. Nihai karar save_record ve native Document.save'dedir.",
+    "denied": "Ham v2 get_meta kullanılmaz; izinli projeksiyon değildir. Alt küme dışı ya da projeksiyon dışı alana başvuran ifade çalıştırılmaz; alan görünür kalır, zorunlu işareti çıkmaz. İstemci işareti kaydı engellemez veya yetki vermez. Alan/özellik oluşturulmaz; make_property_setter çağrılmaz."
+  },
+  "reuse": {
+    "mechanism": "Mevcut headless-metadata.v1 sağlayıcısı (api._snapshot izinli projeksiyonu) ve records modülü yeniden kullanılır. Yeni endpoint, DocType, form motoru veya RecordForm kopyası yok. Mevcut kayıt tüketicisine küçük, saf bir koşul yorumlayıcısı eklenir. Projeksiyonun depends_on/mandatory_depends_on taşıdığı sağlanan kaynakta görünmüyor (unknown). Taşımıyorsa uzantı ui-provider-metadata--implementation-mvp bağımlılığıdır; API uydurulmaz.",
+    "evidence": [
+      {
+        "path": "frappe_provider/headless_provider/records.py",
+        "line": 4,
+        "quote": "Metadata is the permissioned ``api._snapshot`` projection",
+        "repository": "genui-saas-panel@6ea301c"
+      },
+      {
+        "path": "frappe_provider/headless_provider/records.py",
+        "line": 83,
+        "quote": "snapshot = api._snapshot(cleaned, user)",
+        "repository": "genui-saas-panel@6ea301c"
+      },
+      {
+        "path": "frappe_provider/headless_provider/records.py",
+        "line": 105,
+        "quote": "for df in snapshot.permitted",
+        "repository": "genui-saas-panel@6ea301c"
+      },
+      {
+        "path": "frappe_provider/headless_provider/records.py",
+        "line": 106,
+        "quote": "if df.fieldtype in RECORD_FIELD_TYPES",
+        "repository": "genui-saas-panel@6ea301c"
+      },
+      {
+        "path": "frappe_provider/headless_provider/records.py",
+        "line": 130,
+        "quote": "doc.apply_fieldlevel_read_permissions()",
+        "repository": "genui-saas-panel@6ea301c"
+      },
+      {
+        "path": "frappe_provider/headless_provider/records.py",
+        "line": 63,
+        "quote": "doc.save()",
+        "repository": "genui-saas-panel@6ea301c"
+      },
+      {
+        "path": "frappe/frappe/custom/doctype/customize_form_field/customize_form_field.py",
+        "line": 28,
+        "quote": "depends_on: DF.Code | None"
+      },
+      {
+        "path": "frappe/frappe/custom/doctype/customize_form_field/customize_form_field.py",
+        "line": 98,
+        "quote": "mandatory_depends_on: DF.Code | None"
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/ui-family-16.json",
+    "plannedProduction": [
+      "frontend/packages/ui/src/components/ui-family-16/index.tsx"
+    ],
+    "plannedTestFile": "frontend/packages/ui/src/components/ui-family-16/index.test.tsx",
+    "sharedIntegrationFiles": [
+      "frontend/packages/ui/src/index.ts",
+      "frontend/packages/ui/src/registry.ts",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "integration/fragments/ui-family-16--integration.json"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "read_record(doctype, name: str ≤140). save_record(doctype, name, base_modified: str ≤64, values: {fieldname: string}); alan sayısı ≤ api.MAX_FIELDS, değeri unknown. Koşul metni yalnız metadata alanında varsa okunur; 200 karakteri aşan koşul desteklenmez.",
+    "output": "Yanıt değişmez: {metadata, record{name, modified, values}, canWrite, writableFields}, headless-metadata.v1. İstemci görünüm modeli alan başına {visible, advisoryRequired, conditionStatus: evaluated|unsupported|none} üretir; bu model sunucuya gönderilmez.",
+    "authorization": "Native cookie/CSRF oturumu kullanılır; Keycloak not_run. Sunucu denetimleri: _require_user, has_permission('read'), get_permitted_fieldnames(write), maskeleme ve apply_fieldlevel_read_permissions. Koşul yalnız izinli Data alanlarına bakar. Projeksiyon dışı alan adı içeren koşul metninin dışarı verilmemesi metadata uzantısının sorumluluğudur (unknown).",
+    "persistence": "Yeni kalıcılık eklenmez. save_record native for_update kilidi, modified karşılaştırması ve Document.save ile çalışır; transaction HTTP katmanındadır. DDL, Custom Field veya Property Setter yok.",
+    "failure": "Kaydetme yolu değişmez. api._forbidden: Yetki yok mesajı. TimestampMismatchError: kayıt değişti, yeniden yükleyin. Native zorunlu alan veya doğrulama hatası: alan adı çözülürse alana, çözülmezse forma bağlanır. Tüm durumlarda girilen veri korunur, otomatik yeniden gönderim yapılmaz. HTTP durum kodu eşlemesi unknown."
+  },
+  "development": {
+    "dependencies": [
+      "ui-family-16--contract",
+      "kernel-envelope--contract",
+      "api-middleware--contract",
+      "client-rule-parity--contract",
+      "ui-family-19--contract",
+      "ui-family-07--contract",
+      "ui-family-06--contract",
+      "ui-provider-metadata--implementation-mvp",
+      "local pilot f926e9b",
+      "local pilot 6ea301c"
+    ],
+    "admission": "T-00, R-00, R-01 gereklidir. Ön koşul: 6ea301c read_record yanıtının metadata alanlarında depends_on/mandatory_depends_on bulunduğu yerelde gözlenmeli; yoksa uygulama başlamaz ve uzantı beklenir. Mevcut kayıt tüketicisinin yolu, canonical index.tsx ile eşlemesi ve test komutu (vitest run) yerelde doğrulanmalıdır (unknown). Kanıt yalnız Frappe17-dev/suite.localhost içindir; uzak baseline ve Suite HEAD unknown.",
+    "steps": [
+      "Mevcut tüketiciye saf evaluateCondition(expr, values, permittedFieldnames) eklenir; eval veya new Function kullanılmaz.",
+      "Görünürlük ve tavsiye zorunlu işareti mevcut AntD Form.Item ve tokenlarla gösterilir: Outfit, en az 14px, 320 px öncelikli, çevreleyen odak halkası yok, simetrik pozitif cubic-bezier(.65,0,.35,1)."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "6ea301c yanıt şeklindeki fikstürde reason alanının depends_on ve mandatory_depends_on değeri eval:doc.status_text=='Red'; note alanının depends_on değeri eval:frappe.user.has_role('X'). status_text boşken reason gizlidir; note görünür, zorunlu işareti yoktur. status_text 'Red' yapılınca reason görünür ve zorunlu işareti çıkar. globalThis.Function çağrılmaz.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: 6ea301c yanıt şeklindeki fikstürde reason alanının depends_on ve mandatory_depends_on değeri eval:doc.status_text=='Red'; note alanının depends_on değeri eval:frappe.user.has_role('X'). status_text boşken reason gizlidir; note görünür, zorunlu işareti yoktur. status_text 'Red' yapılınca reason görünür ve zorunlu işareti çıkar. globalThis.Function çağrılmaz. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Uygulamadan sonra aynı test aynı vitest komutuyla geçer."
+    },
+    "rollback": "Yalnız tüketici değişikliği ve planlanan test yerelde geri alınır. Production, izin, servis veya veri değişikliği yapılmaz."
+  },
+  "remainingGaps": [
+    "Düzeltme: önceki öneri ham v2 get_meta'yı kaynak alıyordu. Bu yol izinli projeksiyon değildir (only_for All) ve kaldırıldı.",
+    "forms-1: Şemada 11 tip var, records modülü yalnız Data okuyup güncelliyor. Diğer tipler, yeni kayıt, Customize Form/Custom Field, custom DocType ve DocType Layout yolları ile Web Form açık. make_property_setter ignore_permissions kullandığı için dışarı açılmamalı.",
+    "forms-2: Koşulların metadata projeksiyonundaki yeri, v17'de mandatory_depends_on'un sunucuda uygulanması ve çapraz alan kuralları doğrulanmadı. Destekleyici görev: ui-family-17--implementation-mvp.",
+    "forms-6: Taslak saklama yeri, şifreleme, hassas alanların dışlanması, Tauri2/WXT eşdeğerliği, logout'ta temizleme, saklama süresi ve kapsam-MVP tutarsızlığı açık."
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "forms-1": "mvp",
+    "forms-2": "mvp",
+    "forms-6": "mvp"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

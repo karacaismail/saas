@@ -1,0 +1,128 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "transfer-run",
+  "canonicalTaskIds": ["transfer-run--implementation"],
+  "requirementIds": [
+    "transfer-1",
+    "transfer-2",
+    "transfer-3",
+    "transfer-4",
+    "transfer-5",
+    "transfer-6",
+    "transfer-7"
+  ],
+  "stage": "mvp",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "Transfer Run kaydından yerel Data Import önizlemesi; onaydan önce yazım yok",
+    "trigger": "Yetkili kullanıcı, yerel Data Import kaydına bağlı bir Transfer Run için yerel execute_doc_method ucu (POST /api/resource/Transfer Run/<name>/) üzerinden whitelisted get_import_preview metodunu çağırır.",
+    "expected": "Metot bağlı Data Import üzerinde yerel get_preview_from_template sonucunu değiştirmeden döndürür (en fazla MAX_ROWS_IN_PREVIEW=10 satır, kolon ve uyarılar). reference_doctype tablosuna kayıt yazılmaz, Data Import status Pending kalır, start_import ve kuyruk çağrılmaz.",
+    "denied": "Transfer Run veya Data Import okuma izni ya da reference_doctype import izni yoksa yerel frappe.PermissionError döner; BLOCKED_DOCTYPES veya allow_import=0 ise yerel ValidationError döner. Hiçbir önizleme verisi dönmez."
+  },
+  "reuse": {
+    "mechanism": "En küçük adaptör: yalnız transfer_run.py içinde tek doc metodu. Data Import kaydı yerel /api/resource/Data Import ile oluşur; önizleme, eşleme, log ve importer kopyalanmaz. Adaptörün gerekçesi: kanonik görev tek yetkili çalışma kaydı ister, Transfer Run ile Data Import arasında yerel bağ yoktur. get_preview_from_template gövdesinde izin kontrolü görünmediği için (185-196) adaptör önce yerel validate_doctype() çağırır.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/core/doctype/data_import/data_import.py",
+        "line": 185,
+        "quote": "def get_preview_from_template(self, import_file: str | None = None, google_sheets_url: str | None = None):"
+      },
+      {
+        "path": "frappe/frappe/core/doctype/data_import/data_import.py",
+        "line": 166,
+        "quote": "if not frappe.has_permission(self.reference_doctype, \"import\"):"
+      },
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 158,
+        "quote": "Rule(\"/resource/<doctype>/<path:name>/\", methods=[\"POST\", \"QUERY\"], endpoint=execute_doc_method),"
+      },
+      {
+        "path": "frappe/frappe/core/doctype/data_import/importer.py",
+        "line": 27,
+        "quote": "MAX_ROWS_IN_PREVIEW = 10"
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/transfer-run.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/integration_hub/doctype/transfer_run/transfer_run.py"
+    ],
+    "plannedTestFile": "backend/saas_platform/saas_platform/integration_hub/doctype/transfer_run/test_transfer_run.py",
+    "sharedIntegrationFiles": [
+      "integration/fragments/transfer-run--integration.json",
+      "backend/saas_platform/saas_platform/hooks.py"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "Yol parametresi: Transfer Run adı (string). Gövde yok; dosya Data Import.import_file üzerinde (.csv/.xls/.xlsx). Transfer Run içindeki Data Import Link alanının adı transfer-run--schema'ya bağlı ve unknown. execute_doc_method'un metot adı parametresi yerel kaynakta doğrulanmadı.",
+    "output": "Yerel get_preview_from_template yanıtı aynen döner; ek olarak transfer_run, data_import ve contractRef contract-transfer-run v1. Önizlemede permlevel ve maskeleme süzmesi doğrulanmadı (unknown).",
+    "authorization": "Yerel cookie/CSRF oturumu; sınır yalnız yerel site (suite.localhost, yalnız yerel kanıt). Sıra: self.check_permission(read), Data Import check_permission(read), yerel validate_doctype() (import izni, allow_import, BLOCKED_DOCTYPES). Ret durumunda veri sızmaz. Tenant ve kota bu davranışın kapsamı dışında.",
+    "persistence": "Önizleme salt okunurdur; Transfer Run ve Data Import save edilmez, commit edilecek yazım üretilmez. Data Import oluşturma ayrı istekte yerel Document.insert ile yapılır. DDL garantisi yok; şema transfer-run--schema'nın sorumluluğundadır.",
+    "failure": "PermissionError 403: consumer yetki mesajı gösterir, yeniden denemez. ValidationError: yerel mesaj gösterilir. Bağlı Data Import yoksa DoesNotExistError 404. Dosya yoksa yerel yanıt None olur ve consumer boş önizleme durumu gösterir. Ham dosya içeriği loglanmaz."
+  },
+  "development": {
+    "dependencies": [
+      "transfer-run--contract",
+      "transfer-run--schema",
+      "native-user-policy--contract",
+      "api-middleware--contract",
+      "kernel-envelope--contract",
+      "yerel pilot: Frappe adf1fd0c2d6215ad4cac9976251198b2a35fbda6, suite.localhost"
+    ],
+    "admission": "transfer_run.json içinde Data Import Link alanı bulunmalı (şu an unknown). T-00, R-00 ve R-01 kabul edilmiş olmalı. Suite HEAD ve uzak ürün tabanı unknown; yerel kanıt uzak baseline yerine geçmez. Kuyruk ve scheduler gerekmez, etkinleştirilmez.",
+    "steps": [
+      "transfer_run.py'ye @frappe.whitelist() get_import_preview ekle: izin kontrolleri, ardından validate_doctype ve get_preview_from_template; save/start/commit yok.",
+      "Uç eşlemesini v17 adf1fd0'a sabitle.",
+      "Consumer önizlemesi (ui-family-30, entegrasyon sahibi) mevcut AntD tablosuyla; Outfit, en az 14px, 320 öncelikli, çevreleyen odak halkası yok, simetrik pozitif Cubic hareket."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "allow_import=1 bir test DocType'ı ve import izinli kullanıcıyla 3 satırlık CSV'li Data Import ve bağlı Transfer Run oluştur; get_import_preview 3 satırlık önizleme döndürmeli, reference_doctype kayıt sayısı değişmemeli, Data Import status Pending kalmalı.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: allow_import=1 bir test DocType'ı ve import izinli kullanıcıyla 3 satırlık CSV'li Data Import ve bağlı Transfer Run oluştur; get_import_preview 3 satırlık önizleme döndürmeli, reference_doctype kayıt sayısı değişmemeli, Data Import status Pending kalmalı. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Aynı test aynı komutla geçer: bench --site suite.localhost run-tests --module saas_platform.integration_hub.doctype.transfer_run.test_transfer_run (komutu entegrasyon sahibi doğrular)."
+    },
+    "rollback": "Metot ve test yerelde geri alınır; patch/migration yok. Production izni yok; deploy gereksinimi Hüseyin Cengiz bağımlılığıdır."
+  },
+  "remainingGaps": [
+    "transfer-1/7: tek exporter seçimi (data_import/exporter veya data_export/exporter), headless ikili yanıt ve dosya adı sözleşmesi, JSON dosya şeması ve okuyucusu yok; upload_file ucu yerel kaynakta doğrulanmadı.",
+    "transfer-2: template_options sürümlemesi, field-mapping-rule sınırı ve onayda gösterilecek satır sayısı tanımsız.",
+    "transfer-3: iş anahtarı tekilleştirmesi, hata dosyası biçimi ve MyISAM Data Import Log'un transaction dışı kalması.",
+    "transfer-4: Cancelled durumu yok; send_stop_job_command kullanım noktası unknown; headless ilerleme (polling ya da abonelik), devam semantiği ve timeout sınırları tanımsız.",
+    "transfer-5: tenant sınırı ve atomik kota rezervasyonu (tenant-registry), in_import ile atlanan kuralların envanteri, import_provider için izin zorunluluğu.",
+    "transfer-6: maskeleme unknown, süreli link mekanizması yok, sunucu taraflı export izin kontrolü excerpt'te görünmüyor."
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "transfer-1": "mvp",
+    "transfer-2": "mvp",
+    "transfer-3": "mvp",
+    "transfer-4": "mvp",
+    "transfer-5": "mvp",
+    "transfer-6": "mvp",
+    "transfer-7": "mvp"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

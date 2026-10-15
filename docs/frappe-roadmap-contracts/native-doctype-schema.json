@@ -1,0 +1,120 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "native-doctype-schema",
+  "canonicalTaskIds": [
+    "native-doctype-schema--implementation",
+    "native-doctype-schema--implementation-mvp"
+  ],
+  "requirementIds": ["model-1", "model-2", "model-4", "model-6", "model-7"],
+  "stage": "poc",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "Kurulum/migration öncesi salt okunur Custom Field sahiplik çakışma ön kontrolü (model-7)",
+    "trigger": "Sahip adaptördeki ön kontrol, kurulu uygulamaların bildirdiği (app, dt, fieldname) uzantı listesiyle native create_custom_fields çağrısından önce çalışır.",
+    "expected": "Aynı (dt, fieldname) birden fazla uygulama tarafından bildirilmişse tüm çakışmalar tek hatada listelenir, native kurulum adımı başlamaz ve Custom Field yazılmaz. Çakışma yoksa ok=true döner, native yaşam döngüsü değişmeden sürer.",
+    "denied": "Çakışmada sessiz atlama veya son yazan kazanır; Property Setter module veya owner alanını sahiplik kanıtı sayma; ön kontrolü whitelist/headless uç olarak açma."
+  },
+  "reuse": {
+    "mechanism": "Native Custom Field ve create_custom_fields korunur. Native yol aynı dt/fieldname varsa sessizce atladığı ve Property Setter eskisini sildiği için çakışmada durma davranışı yoktur; config ile karşılanamaz. Tek ekleme sahip adaptör dosyasında saf, salt okunur ön kontrol fonksiyonudur. İkinci alan/ORM motoru, sahiplik tablosu veya yeni DocType kurulmaz.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/custom/doctype/custom_field/custom_field.py",
+        "line": 314,
+        "quote": "if not frappe.db.get_value(\"Custom Field\", {\"dt\": doctype, \"fieldname\": df.fieldname}):"
+      },
+      {
+        "path": "frappe/frappe/custom/doctype/property_setter/property_setter.py",
+        "line": 46,
+        "quote": "delete_property_setter(self.doc_type, self.property, self.field_name, self.row_name)"
+      },
+      {
+        "path": "frappe/frappe/custom/doctype/property_setter/property_setter.json",
+        "line": 103,
+        "quote": "\"label\": \"Module (for export)\","
+      },
+      {
+        "path": "frappe/frappe/custom/doctype/property_setter/property_setter.py",
+        "line": 87,
+        "quote": "# WARNING: Ignores Permissions"
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/native-doctype-schema.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/adapters/records_taxonomy/doc_type_poc.py"
+    ],
+    "plannedTestFile": "backend/saas_platform/saas_platform/adapters/records_taxonomy/test_doc_type_poc.py",
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "integration/fragments/native-doctype-schema--integration.json"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "declarations: list[{app: str kurulu uygulama adı, dt: str DocType adı, fieldname: str küçük harf snake_case en çok 140}], en çok 500 satır; aynı uygulamanın yinelenen satırı tekilleştirilir; şekil hatası doğrulama hatasıdır.",
+    "output": "{version: native-doctype-schema.preflight.v1, ok: bool, conflicts: [{dt, fieldname, apps: sıralı list[str]}]}; yalnız bildirim verisi döner, kayıt veya kişisel veri içermez.",
+    "authorization": "Whitelist edilmez, HTTP üzerinden çağrılamaz; Suite DENIED_WILDCARD_PATHS /api/ değişmez. Native kurulum/migration bağlamında veya test oturumunda çalışır; istek bağlamında System Manager rolü yoksa native izin hatası. Sınır native site; tenant global modeli seçilmez.",
+    "persistence": "Salt okunur: yazma, commit, DDL veya updatedb yok. Çakışmada create_custom_fields çağrılmadığı için kısmi yazım olmaz. DDL garantisi verilmez; native updatedb davranışı değişmez.",
+    "failure": "Çakışma: frappe.throw ile doğrulama hatası (sınıf adı hedef 17-dev kaynağında doğrulanacak), mesajda dt/fieldname/apps. Kurulum/migration durur; tüketici yalnız kurulum hook'udur, hatayı yutmaz, yeniden denemez."
+  },
+  "development": {
+    "dependencies": [
+      "native-doctype-schema--contract",
+      "kernel-envelope--contract",
+      "tenant-registry--contract",
+      "native-user-policy--contract",
+      "localPilot frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6, schemaCommit f926e9b"
+    ],
+    "admission": "T-00 hedef baz ve R-00 yeniden kullanım eşlemesi gerekli. Frappe 17-dev ve suite.localhost yalnız yerel kanıttır; uzak ürün tabanı ve Suite HEAD bilinmiyor. create_custom_fields gövdesi (update=True) alıntıda yok; uygulama öncesi hedef kaynakta okunmalı.",
+    "steps": [
+      "doc_type_poc.py içine preflight_custom_field_conflicts(declarations) saf fonksiyonunu ekle: (dt, fieldname) grupla, birden fazla uygulama varsa hata üret.",
+      "İstek bağlamında System Manager kontrolü ekle; whitelist ekleme.",
+      "before_install/before_migrate bağlantısını ve bildirim kaynağını hooks.py'ye yazmadan entegrasyon fragmanı olarak Codex'e öner."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "saas_app_a ve saas_app_b aynı (yerel pilot kontrollü DocType, saas_ext_code) çiftini bildirir; ön kontrol iki uygulamayı listeleyen hata verir ve bu dt/fieldname için Custom Field oluşmaz.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: saas_app_a ve saas_app_b aynı (yerel pilot kontrollü DocType, saas_ext_code) çiftini bildirir; ön kontrol iki uygulamayı listeleyen hata verir ve bu dt/fieldname için Custom Field oluşmaz. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Aynı komut: bench --site suite.localhost run-tests --module saas_platform.adapters.records_taxonomy.test_doc_type_poc; çakışma mantığından sonra geçer. Test rollback ile çalışır, müşteri kaydı yazmaz."
+    },
+    "rollback": "Yalnız doc_type_poc.py ve planlı test dosyasının yerel geri alınması; hook bağlanmadıkça native davranış değişmez. Production izni yoktur."
+  },
+  "remainingGaps": [
+    "model-1: standart DocType (Customize Form/Property Setter) ile custom DocType ayrımı, developer_mode kısıtı, şema önizleme/onay, /api/v2 document/get_meta ile Suite /api/ izin listesi sınırı açık. İzinli kayıt okuma/güncelleme yerel pilotta (t08) native çalıştığı için yeni RED üretilmez.",
+    "model-4: silme politikası (restrict veya child cascade), v1 delete_doc child TODO, yinelenen veri varken unique ekleme ve expand_links okuma izni tanımsız. Geçersiz Link/reqd reddi native olduğundan yalnız doğrulama kanıtı gerekir.",
+    "model-7 kalan: bildirimde olmayan elle oluşturulmuş Custom Field ile çakışma, Property Setter (dt, field, property) son yazan kazanır, is_system_generated yükseltme koruması, Suite fixtures/custom_fields görülmedi.",
+    "model-2 (MVP): fieldtype UI/API eşlemesi, kırıcı değişiklik sınıfları, izin atlayan make_property_setter ve ignore_validate yolunun headless yüzeye açılmaması, core DocType sınırı, meta cache geçersizleştirme.",
+    "model-6 (MVP): hesaplanan alan formülü ve validate içinde yeniden hesaplama; import ve job yolunun aynı zincirden geçmesi unknown.",
+    "Uzak ürün tabanı, Suite HEAD ve Keycloak not_run. Dağıtım gerekirse teknik sahip Hüseyin Cengiz; zamanlama veya otomasyon etkinleştirilmez."
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "model-1": "poc",
+    "model-2": "mvp",
+    "model-4": "poc",
+    "model-6": "mvp",
+    "model-7": "poc"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

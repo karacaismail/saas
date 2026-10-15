@@ -1,0 +1,119 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "ui-family-17",
+  "canonicalTaskIds": ["ui-family-17--implementation-mvp"],
+  "requirementIds": ["locale-4"],
+  "stage": "mvp",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "SemanticField Date: kullanıcı date_format ile gösterim, kabloda yalnız ISO YYYY-MM-DD",
+    "trigger": "Kullanıcı mevcut AntD DatePicker tabanlı SemanticField Date editöründe tarihi kendi Language/System date_format biçiminde (ör. dd.mm.yyyy) okur veya yazar ve kaydı kaydeder.",
+    "expected": "Kablodan gelen 2026-10-15 değeri 15.10.2026 olarak gösterilir. Kullanıcının yazdığı 03.02.2026 değeri onChange ile 2026-02-03 olarak çıkar ve Document.save sonrası okuma aynı değeri döndürür. Gün ve ay asla yer değiştirmez.",
+    "denied": "Kullanıcı biçiminde yazılmış metin sunucuya gönderilmez; sunucunun biçim tahmini (dateutils.parse_date sıralı deneme) kullanılmaz. Desteklenmeyen biçim belirteci sessizce tahmin edilmez; editör hata durumuna geçer."
+  },
+  "reuse": {
+    "mechanism": "native-first: date_format değeri Frappe locale.get_locale_value zincirinden (Language kaydı, yoksa sistem varsayılanı) gelir ve Language değişince kullanıcı varsayılanına yayılır; kayıt yolu yerel pilot T-08'de doğrulanan native okuma/güncelleme ve Document.save. Yeni backend kodu, DocType, hook veya CustomField yok. Tek ek: owned mvp.tsx içinde saf belirteç eşlemesi (dd->DD, mm->MM, yyyy->YYYY). Suite datetime.ts yeniden yazılmaz, yalnız ayrı kablo biçimi/gösterim ayrımı için referans desendir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/locale.py",
+        "line": 51,
+        "quote": "return value or frappe.db.get_default(key)"
+      },
+      {
+        "path": "frappe/frappe/core/doctype/language/language.py",
+        "line": 68,
+        "quote": "for key in (\"date_format\", \"time_format\", \"number_format\", \"first_day_of_the_week\"):"
+      },
+      {
+        "path": "frappe/frappe/utils/dateutils.py",
+        "line": 58,
+        "quote": "check_formats = [None, *sorted(list(dateformats), reverse=not get_user_date_format().startswith(\"dd\"))]"
+      },
+      {
+        "path": "suite/frontend/src/apps/mail/utils/datetime.ts",
+        "line": 47,
+        "quote": "* The site's zone — what plain Frappe DB datetime fields (e.g. the exchange doctypes) are"
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/ui-family-17.json",
+    "plannedProduction": [
+      "frontend/packages/ui/src/components/ui-family-17/mvp.tsx"
+    ],
+    "plannedTestFile": "frontend/packages/ui/src/components/ui-family-17/mvp.test.tsx (yalnız planlı; test runner adı ve konumu mevcut paket script'inden doğrulanmalı, bilinmiyor)",
+    "sharedIntegrationFiles": [
+      "frontend/packages/ui/src/index.ts",
+      "frontend/packages/ui/src/registry.ts",
+      "frontend/package.json",
+      "integration/fragments/ui-family-17--integration-mvp.json"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "props: value: string|null (yalnız /^\\d{4}-\\d{2}-\\d{2}$/ ya da null), dateFormat: string (Frappe tarzı dd/mm/yyyy belirteçleri ve - / . ayraçları), readOnly: boolean (izin sonucundan), onChange(value: string|null). Boş değer null kalır; boş string üretilmez.",
+    "output": "onChange yalnız ISO YYYY-MM-DD veya null üretir. Gösterilen metin dateFormat eşlemesiyle üretilir. Alan yanıtı yalnız native izinli alanları içerir; ek sürüm alanı kernel-envelope--contract kararına bağlıdır, burada tanımlanmaz.",
+    "authorization": "Native site oturumu (cookie/CSRF), DocType rol izni ve alan permlevel. Okuma izni yoksa alan yanıtta gelmez ve editör render edilmez. Yazma izni yoksa readOnly=true. Sunucu native PermissionError (HTTP 403) döndürürse değer geri alınır ve izin hatası gösterilir.",
+    "persistence": "Mevcut native kayıt güncelleme yolu ve Document.save transaction'ı; validate hook'ları native çalışır. DDL, patch ve yeni alan yok; şema değişikliği garantisi verilmez.",
+    "failure": "Desteklenmeyen dateFormat belirteci: editör AntD Form.Item hata durumuna geçer, kayıt düğmesi gönderim yapmaz. Sunucu ValidationError (HTTP 417): mesaj alan altında gösterilir, kullanıcı girdisi korunur. Ağ veya CSRF hatası: girdi korunur, yeniden deneme sunulur. Hata metni 14 CSS px ve üzeridir."
+  },
+  "development": {
+    "dependencies": [
+      "ui-family-17--contract",
+      "ui-family-17--implementation",
+      "kernel-envelope--contract",
+      "api-middleware--contract",
+      "client-rule-parity--contract",
+      "native-doctype-schema--contract",
+      "ui-family-16--contract",
+      "yerel pilot T-08: mevcut tek Data kaydının native admin/reader kapsamıyla okunması/güncellenmesi"
+    ],
+    "admission": "T-00 hedef baz çizgisi, R-00 reuse eşlemesi ve izinli veri tüketicisi için R-01 gerekli. dateFormat değerinin React tüketicisine hangi native uç noktadan geleceği bilinmiyor; api-middleware--contract'a bağlı. Yerel Frappe17-dev/suite.localhost kanıtı yalnız yerel kanıttır; uzak ürün baz çizgisi ve Suite HEAD bilinmiyor.",
+    "steps": [
+      "mvp.tsx içinde saf toDayjsFormat(dateFormat) eşlemesi; bilinmeyen belirteç hata döndürür.",
+      "Mevcut AntD6 DatePicker'a format=eşlenen biçim verilir; değer dayjs ile ISO'dan okunup ISO'ya yazılır; yeni bağımlılık eklenmez.",
+      "Mevcut semantik tokenlar kullanılır: Outfit, en az 14 CSS px, çevreleyen odak halkası yok (çevrelemeyen tek gösterge), simetrik pozitif cubic-bezier(.65,0,.35,1) hareket, açılan panel AntD (native OS menüsü değil), 320 CSS px öncelikli.",
+      "Export ve registry kaydı yalnız integration sahibi tarafından ortak dosyalara işlenir."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "dateFormat='dd.mm.yyyy', value='2026-10-15' ile render: girişte '15.10.2026' görünür; kullanıcı '03.02.2026' yazıp onaylar; onChange tam olarak '2026-02-03' ile çağrılır.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: dateFormat='dd.mm.yyyy', value='2026-10-15' ile render: girişte '15.10.2026' görünür; kullanıcı '03.02.2026' yazıp onaylar; onChange tam olarak '2026-02-03' ile çağrılır. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Aynı test aynı komutla eşleme ve ISO çıkışı uygulandıktan sonra geçer; ardından paketin mevcut lint/typecheck komutları çalıştırılır. Komut adları paket script'lerinden doğrulanmalıdır."
+    },
+    "rollback": "Yalnız mvp.tsx ve planlı test dosyası yerelde geri alınır; native kayıtlar, şema ve servisler etkilenmez. Production yetkisi yoktur."
+  },
+  "remainingGaps": [
+    "Datetime kablo biçimi (naive sistem saat dilimi ya da UTC/ISO) ve dönüşümün istemcide mi sunucuda mı yapılacağı ürün kararıdır; bu sözleşme Date ile sınırlıdır.",
+    "Saat dilimi önceliği (tarayıcı, User.time_zone, sistem) seçilmedi; Suite'teki tarayıcı öncelikli sıra ürün kararı yerine geçmez.",
+    "number_format'tan Intl'e ve time_format'tan AntD'ye eşleme, first_day_of_the_week değerinin DatePicker hafta başlangıcına aktarılması tanımlanmadı.",
+    "Para birimi hassasiyeti, adres ve telefon şeması için alıntılı kaynak yok. ERPNext kurulu olmadığından ülke adres şablonları yerel yetenek sayılmaz.",
+    "dateFormat'ı React'e taşıyan native uç nokta bilinmiyor. Uzak baz çizgisi, Suite HEAD ve Keycloak kapsam dışı ya da not_run.",
+    "Tarayıcılar arası görsel ve klavye regresyonu planlandı ama çalıştırılmadı."
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "locale-4": "mvp"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

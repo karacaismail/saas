@@ -1,0 +1,107 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "organization-unit",
+  "canonicalTaskIds": ["organization-unit--implementation"],
+  "requirementIds": ["tenant-2"],
+  "stage": "mvp",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "Sube tasima kurum sinirini asamaz",
+    "trigger": "Yazma yetkili kullanici mevcut bir Organization Unit kaydinin ust dugum Link alanini native belge guncelleme yoluyla (yerel pilot T-08'de dogrulanan native kayit guncelleme yolu) degistirir ve Document.save calisir.",
+    "expected": "Yeni ust dugum ayni kok kuruma aitse kayit native transaction icinde kaydedilir; yanit native belge govdesidir ve guncel ust dugum ile modified surumunu tasir.",
+    "denied": "Yeni ust dugum farkli bir kok kuruma aitse controller validate adiminda frappe.ValidationError firlatilir; kayit degismez, kismi yazim olmaz."
+  },
+  "reuse": {
+    "mechanism": "Native DocType controller validate (Document.save) + native DocPerm write. Yeni API, ORM, olay motoru veya ignore_permissions yardimcisi yok. hooks.py gerektirmedigi icin sahip olunan tek dosyada (organization_unit.py) uygulanabilen en dar davranis secildi. Okuma izolasyonu icin native has_permission/permission_query_conditions ilkelleri sonraki adim olarak ayrildi.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/permissions.py",
+        "line": 82,
+        "quote": "def has_permission("
+      },
+      {
+        "path": "suite/suite/sheets/permissions.py",
+        "line": 22,
+        "quote": "_PRIVILEGED_ROLES = frozenset({\"Administrator\", \"System Manager\"})"
+      },
+      {
+        "path": "suite/suite/drive/api/permissions.py",
+        "line": 85,
+        "quote": "for user, access_type in ((\"Guest\", \"public\"), (GENERAL_USER, \"site\")):"
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/organization-unit.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/tenant_control/doctype/organization_unit/organization_unit.py"
+    ],
+    "plannedTestFile": "backend/saas_platform/saas_platform/tenant_control/doctype/organization_unit/test_organization_unit.py",
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "backend/saas_platform/saas_platform/tenant_control/doctype/organization_unit/organization_unit.json",
+      "contracts/organization-unit.v1.json"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "Belge adi (string, zorunlu) ve ust dugum Link alani (string veya bos; bos yalnizca kok kurum icin gecerli). Alan adlari organization-unit--schema ve contract-organization-unit v1 tarafindan belirlenir; bu sozlesmede bilinmiyor ve uydurulmuyor.",
+    "output": "Basarida native belge govdesi; alanlar native DocPerm/permlevel ile filtrelenir, surum native modified degeridir. Ret durumunda native hata govdesi; diger kurumun dugum bilgisi mesajda ifsa edilmez.",
+    "authorization": "Yalniz native site siniri ve native DocPerm write. Hedef ust dugumun kurumu, cagiranin yetkisinden bagimsiz olarak validate adiminda karsilastirilir; Administrator da ayni dogrulamaya tabidir. Kullanici bazli kurum okuma izolasyonu bu davranisin kapsami disindadir (remainingGaps).",
+    "persistence": "Native Document.save request transaction; validate icindeki throw tum yazimi geri alir. DDL, migration, patch veya yeni tablo garantisi verilmez.",
+    "failure": "frappe.ValidationError (cevrilebilir Turkce mesaj). Native HTTP eslemesi kanitta yok, bilinmiyor. Tuketici (mevcut React19/AntD6/TanStack) hatayi mevcut AntD form hata alaninda gosterir ve otomatik tekrar denemez; mutation sonrasi sorgu yalnizca basarida gecersiz kilinir. UI Outfit 14px, 320 oncelikli yerlesim, cevreleyen odak halkasi olmadan, simetrik pozitif Cubic hareket ile mevcut bilesenleri kullanir."
+  },
+  "development": {
+    "dependencies": [
+      "organization-unit--contract",
+      "organization-unit--schema",
+      "kernel-envelope--contract"
+    ],
+    "admission": "Organization Unit DocType semasi (ust dugum Link alani ve kok kurum belirleme yolu) yerel Frappe17-dev/suite.localhost uzerinde kurulu olmali; T-00 hedef taban ve R-00 yeniden kullanim eslemesi gecerli olmali. Yerel pilot (frappeHead adf1fd0c, schema f926e9b, record 6ea301c) uzak urun tabani degildir; Suite HEAD ve uzak taban bilinmiyor. Keycloak not_run ve kapsam disi.",
+    "steps": [
+      "organization_unit.py validate icinde ust dugum degistiyse yeni ust dugumun kok kurumunu native get_value ile coz.",
+      "Kok kurum mevcut kaydinkinden farkliysa frappe.throw ile ValidationError firlat; ayniysa native akisa devam et.",
+      "hooks.py, modules.txt, patches.txt ve frontend dosyalarina dokunma."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Kurum A altindaki bir subenin ust dugumu kurum B'ye ait bir dugume ayarlanip save edildiginde frappe.ValidationError beklenir ve veritabanindaki ust dugum degismemis olmalidir.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: Kurum A altindaki bir subenin ust dugumu kurum B'ye ait bir dugume ayarlanip save edildiginde frappe.ValidationError beklenir ve veritabanindaki ust dugum degismemis olmalidir. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Ayni test ayni native bench run-tests komutu ve ayni site ile validate mantigi eklendikten sonra gecer. Native olarak zaten calisan davranis icin RED uretilmez."
+    },
+    "rollback": "organization_unit.py icindeki validate eklemesini yerel olarak geri al; veri veya sema degisikligi yok. Production izni yok; uzak dagitim Huseyin Cengiz sorumlulugundaki ayri bir bagimliliktir."
+  },
+  "remainingGaps": [
+    "Kurum okuma izolasyonu: permission_query_conditions ve has_permission baglantisi integration sahibindeki hooks.py dosyasini gerektirir; Codex entegrasyonu ve ayri bir RED/GREEN olmadan kanitlanmis sayilmaz.",
+    "Administrator ve System Manager bypass'i (Sheets _PRIVILEGED_ROLES) kurum sinirini asabilir; politika karari yok.",
+    "Suite Drive 'site' erisimi tum oturumlu kullanicilara aciktir; kurum siniriyla kisitlama yontemi acik.",
+    "Agac modeli (nested set ya da yalniz Link alani) ve dongu (kendi alt dugumune tasima) kontrolu karara bagli degil.",
+    "Coklu ekip uyeligi DocType'i ve tasima sonrasi izin yeniden hesaplama sozlesmesi yok.",
+    "Frappe Desk Workspace (website/utils.py:142 load_user_default_workspace) ile urun calisma alani terim cakismasi cozulmedi."
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "tenant-2": "mvp"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

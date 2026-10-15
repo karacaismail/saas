@@ -1,0 +1,127 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "email-provider",
+  "canonicalTaskIds": ["email-provider--implementation"],
+  "requirementIds": ["email-3", "email-7"],
+  "stage": "mvp",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "İmzalı sağlayıcı olayının doğrulanıp hard bounce/şikâyetin baskılama kararına çevrilmesi",
+    "trigger": "Adaptör fonksiyonu parse_provider_event(payload: dict, signing_key: str) çağrılır. Bu adımda HTTP uç noktası yoktur.",
+    "expected": "İmza geçerliyse kalıcı hata (hard bounce) ya da şikâyet olayı {version:'email-provider-event.v1', recipient:<küçük harfe çevrilmiş e-posta>, reason:'hard_bounce'|'complaint', action:'suppress'} döner. Teslim veya geçici hata olaylarında None döner.",
+    "denied": "İmza eksik ya da hatalıysa veya alıcı geçerli bir e-posta adresi değilse hiçbir karar üretilmez ve hata fırlatılır."
+  },
+  "reuse": {
+    "mechanism": "email-3: kod yazılmaz. Postfix ve Mailgun, yerel Email Account SMTP/SSL/TLS ayarlarıyla bağlanır. override_email_send kaydedilmez, çünkü bu hook yerel SMTP gönderiminin tamamını devre dışı bırakır ve gönderim motorunun kopyalanmasını gerektirir. email-7: yalnız sahip olunan adaptör dosyasında saf bir doğrulama fonksiyonu yazılır. Unsubscribe örneğindeki gibi frappe.whitelist uç noktası ileride ayrı olarak açılabilir. Email Rule is_spam kaydı gelen kutusu içindir; giden baskılama deposu olarak kullanılmaz.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/email/smtp.py",
+        "line": 74,
+        "quote": "SMTP = smtplib.SMTP_SSL if self.use_ssl else smtplib.SMTP"
+      },
+      {
+        "path": "frappe/frappe/email/doctype/email_queue/email_queue.py",
+        "line": 246,
+        "quote": "if method := get_hook_method(\"override_email_send\"):"
+      },
+      {
+        "path": "frappe/frappe/email/doctype/email_account/email_account.py",
+        "line": 161,
+        "quote": "if self.service == \"Sendgrid\":"
+      },
+      {
+        "path": "frappe/frappe/email/queue.py",
+        "line": 105,
+        "quote": "\"doctype\": \"Email Unsubscribe\","
+      },
+      {
+        "path": "frappe/frappe/email/doctype/email_queue/email_queue.py",
+        "line": 233,
+        "quote": "rcpt_options.append(f\"NOTIFY={dsn_notify_type}\")"
+      },
+      {
+        "path": "frappe/frappe/email/queue.py",
+        "line": 198,
+        "quote": "if email_queue.retry < get_email_retry_limit():"
+      },
+      {
+        "path": "frappe/frappe/email/inbox.py",
+        "line": 123,
+        "quote": "frappe.get_doc({\"doctype\": \"Email Rule\", \"email_id\": sender, \"is_spam\": 1}).insert("
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/email-provider.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/adapters/message_delivery/email_provider_mvp.py"
+    ],
+    "plannedTestFile": "backend/saas_platform/saas_platform/adapters/message_delivery/test_email_provider_mvp.py",
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "integration/fragments/email-provider--integration.json"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "payload: dict olur ve signature{timestamp:str, token:str ≤256, signature:hex str} ile event-data{event:str, severity:str|None, recipient:str} alanlarını içerir. signing_key: str, site_config'ten okunur; kaynakta ve çıktıda yer almaz. Mailgun alan adları ve HMAC algoritması sağlanan kaynakta yoktur; Mailgun Tracking Messages belgesinden doğrulanacaktır. Zaman damgası tazelik penceresi yapılandırmaya bırakılır, değeri burada seçilmez.",
+    "output": "email-provider-event.v1 sürümlü karar ya da None. Yalnız recipient, reason ve action alanları döner. Ham sağlayıcı yükü, token ve imza saklanmaz, loglanmaz ve döndürülmez.",
+    "authorization": "Bu adımda fonksiyon whitelist edilmez ve dışarıya açılmaz. İleride açılacak guest uç noktasında yetki yalnız imza doğrulamasıyla verilir. Site sınırı yerel suite.localhost ile sınırlıdır. ignore_permissions kullanan inbox yardımcıları headless yüzeye açılmaz.",
+    "persistence": "Yok. Saf fonksiyondur; DB yazmaz, commit veya rollback yapmaz, DDL değiştirmez. Baskılama deposu kararı verilene kadar karar kalıcı olarak saklanmaz.",
+    "failure": "İmza geçersizse frappe.AuthenticationError fırlatılır (v17'de bu sınıfın varlığı doğrulanacak; yoksa frappe.ValidationError kullanılır). Payload bozuksa frappe.ValidationError fırlatılır. Gelecekteki uç nokta bu hataları ham ayrıntı vermeden 4xx olarak döner. SMTP gönderim hataları yerel Email Queue akışında kalır."
+  },
+  "development": {
+    "dependencies": [
+      "email-provider--contract",
+      "localPilot frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6 (suite.localhost)"
+    ],
+    "admission": "T-00 hedef baz çizgisi ve R-00 yeniden kullanım eşlemesi gerekir. adapters/message_delivery paketinin import edilebilir olduğu doğrulanmalıdır (__init__ durumu bilinmiyor). Uzak ürün baz çizgisi ve Suite HEAD bilinmiyor. Yerel kanıt uzak ortamı kanıtlamaz.",
+    "steps": [
+      "email-3: yerel pilotta Email Account SMTP ile Postfix/Mailgun bağlantısını yalnız yapılandırma olarak kurmak; kimlik bilgisi Email Account parola alanında kalır, kaynağa veya çıktıya yazılmaz",
+      "email_provider_mvp.py içine parse_provider_event ve sabit zamanlı HMAC karşılaştırmasını eklemek",
+      "Sentetik ve yalnız teste özgü bir anahtarla tek senaryoyu çalıştırmak"
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Doğru imzalı kalıcı hata (failed/permanent) olayı suppress kararına çevrilir. İmzanın bir baytı değiştirilmiş aynı yük ise reddedilir.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: Doğru imzalı kalıcı hata (failed/permanent) olayı suppress kararına çevrilir. İmzanın bir baytı değiştirilmiş aynı yük ise reddedilir. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Aynı komut yeniden çalıştırılır: bench --site suite.localhost run-tests --module saas_platform.adapters.message_delivery.test_email_provider_mvp. Yalnız uygulama eklendikten sonra geçmesi beklenir."
+    },
+    "rollback": "Yerelde yalnız sahip olunan adaptör ve planlanan test dosyası geri alınır. Email Account yapılandırması yerel pilotta devre dışı bırakılır. Bu sözleşme production izni vermez."
+  },
+  "remainingGaps": [
+    "Baskılama deposu kararı verilmedi. Email Unsubscribe referans bazlıdır, global değildir; Email Rule ise gelen kutusu içindir.",
+    "Gönderim öncesi kontrol noktası belirlenmedi. override_email_send tüm gönderimi devraldığı için uygun değil; kuyruk oluşturma aşamasındaki hook noktası kaynakta doğrulanmadı.",
+    "retry_sending_emails yeniden denemelerde baskılamayı dikkate almıyor.",
+    "Guest webhook uç noktası, Mailgun imza biçimi ve tazelik penceresi doğrulanmadı.",
+    "Sağlayıcı hatasının Email Queue error alanına mı Error Log'a mı yazıldığı runtime'da doğrulanmadı.",
+    "Suite Mail (JMAP) ile işlemsel gönderim hattının ayrımı yazılmadı.",
+    "Postfix sunucusu ve dağıtım işleri Hüseyin Cengiz'e, SPF/DKIM DNS kayıtları Asistan Hüseyin'e (GoDaddy) bağımlı; hiçbiri etkinleştirilmedi."
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "email-3": "mvp",
+    "email-7": "mvp"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

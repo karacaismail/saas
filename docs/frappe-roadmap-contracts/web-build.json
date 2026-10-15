@@ -1,0 +1,126 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "web-build",
+  "canonicalTaskIds": ["web-build--implementation"],
+  "requirementIds": ["channels-1"],
+  "stage": "mvp",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "Mevcut referans tuketicinin mevcut Vite uretim derlemesini urun web ciktisi olarak yeniden kullanmak (reuse_existing)",
+    "trigger": "Entegrasyon sahibi referans tuketici kokunde mevcut build betigini (tsc --noEmit -p . && vite build) calistirir.",
+    "expected": "Tip denetimi ve Vite derlemesi basarili biter; olusan statik paket urun web ciktisidir. Yeni gorunum, sayfa, cerceve veya motor eklenmez; kayit okuma/guncelleme T08 headless_provider.records akisinda kalir. UI kimligi mevcut src/theme.ts ve src/interactionTokens.ts uzerinden gelir (Outfit, min 14px, 320 oncelikli, cevreleyen odak halkasi yok, simetrik pozitif Cubic hareket, mevcut AntD).",
+    "denied": "tsc veya vite hatasinda cikti kabul edilmez ve yayin adayi sayilmaz. Statik /saas Pages yayini, uzak deploy ve gelecekteki PWA bu ciktinin yerine gecmez ve bununla karistirilmaz."
+  },
+  "reuse": {
+    "mechanism": "reuse_existing: mevcut package.json build/preview betikleri ve vite devDependency. Onceki onerideki yeni read_doc sayfasi T08 kayit okuma akisini kopyaladigi icin geri cekildi. Adaptor, yeni view, framework veya engine yok.",
+    "evidence": [
+      {
+        "path": "package.json",
+        "line": 14,
+        "quote": "\"build\": \"tsc --noEmit -p . && vite build\",",
+        "repository": "genui-saas-panel@6ea301c"
+      },
+      {
+        "path": "package.json",
+        "line": 15,
+        "quote": "\"start\": \"NODE_ENV=production tsx server/index.ts\",",
+        "repository": "genui-saas-panel@6ea301c"
+      },
+      {
+        "path": "package.json",
+        "line": 56,
+        "quote": "\"vite\": \"^7.3.7\",",
+        "repository": "genui-saas-panel@6ea301c"
+      },
+      {
+        "path": "frappe_provider/headless_provider/records.py",
+        "line": 28,
+        "quote": "def read_record(doctype: str, name: str) -> dict[str, Any]:",
+        "repository": "genui-saas-panel@6ea301c"
+      },
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 44,
+        "quote": "# (www/suite.py -> suite.html); Vue Router takes over client-side. (plan D9)"
+      },
+      {
+        "path": "frappe/frappe/website/page_renderers/base_template_page.py",
+        "line": 22,
+        "quote": "\"<!-- csrf_token -->\", f'<script>frappe.csrf_token = \"{csrf_token}\";</script>'"
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/web-build.json",
+    "plannedProduction": [],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "package.json",
+      "integration/fragments/web-build--integration.json"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "Referans tuketici kaynak agaci ve mevcut build betigi; parametre yok. VITE_ onekli derleme zamani degiskenleri pakete gomulur; secret veya gercek env degeri kullanilmaz. vite.config bu girdide yok; base yolu ve outDir unknown.",
+    "output": "Vite statik paketi (index.html ve hash'li JS/CSS varliklari; dizin vite.config gorulmeden unknown). Veri veya yetki icermez. Ayri artifact surumleme sozlesmesi yok; surum kaynagi derleme girdisidir.",
+    "authorization": "Derleme ciktisi yetki karari vermez. Calisma zamaninda kayit erisimi native site/rol/User Permission/alan duzeyi denetimiyle sunucuda kalir (T08). Native site siniri yalniz yerel kanit icin; yerel pilotta cookie/CSRF, Keycloak not_run ve kapsam disi.",
+    "persistence": "Veritabani yazimi, transaction, hook, kuyruk, zamanlayici veya DDL yok. Derleme yalniz yerel cikti dizinini uretir.",
+    "failure": "tsc tip hatasi veya vite build sifirdan farkli cikis -> cikti reddedilir, onceki kabul edilmis cikti degismez; entegrasyon sahibi hatayi kaydeder, yeniden deneme ile maskelemez. Kurulum/bagimlilik hatasi altyapi hatasidir, urun RED'i degildir."
+  },
+  "development": {
+    "dependencies": [
+      "web-build--contract",
+      "ui-family-01--contract",
+      "client-rule-parity--contract",
+      "localPilot t08 (recordCommit 6ea301c)"
+    ],
+    "admission": "Mevcut Vite build ve secili referans tuketici yerelde dogrulanmis; T-00 ve R-00 kabulu gerekir. Uzak urun taban cizgisi, Suite HEAD, servis bicimi (Frappe website_route_rules ile ayni origin, start betigindeki Node sunucusu veya ayri origin) ve uzak deploy unknown. Yerel kanit uzak baseline degildir.",
+    "steps": [
+      "Urun dosyasi yazilmaz; web_build_mvp.tsx olusturulmaz. Canonical owns kaydinin gereksizligi entegrasyon sahibine not olarak birakilir.",
+      "Entegrasyon sahibi fragmente mevcut build komutunu, cikti dizini dogrulamasini ve UI tokenlarinin mevcut tema dosyalarindan geldigini yazar.",
+      "Fragmentte statik /saas Pages, urun web ciktisi, uzak deploy ve gelecekteki PWA ayri satirlarla etiketlenir."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Mevcut build betigi (npm run build; paket yoneticisi entegrasyonda dogrulanir) referans tuketici kokunde sifir cikis kodu ve index.html iceren cikti uretir; regresyon kapisidir, yeni test dosyasi yok.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: Mevcut build betigi (npm run build; paket yoneticisi entegrasyonda dogrulanir) referans tuketici kokunde sifir cikis kodu ve index.html iceren cikti uretir; regresyon kapisidir, yeni test dosyasi yok. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Ayni komut entegrasyonda yeniden calistirilir; cikis kodu ve cikti listesi kanit olarak kaydedilir. Kosulmadikca not_run."
+    },
+    "rollback": "Yalniz bu sozlesme dosyasi onceki surume doner; urun dosyasi, production, servis veya veri degisikligi yok."
+  },
+  "remainingGaps": [
+    "Urun web ciktisinin servis bicimi ve base yolu karari yok: website_route_rules ile ayni origin, Node start sunucusu veya ayri origin/CORS.",
+    "Ayri originde yazma icin CSRF tasima belirsiz; token yalniz Frappe sayfa render yolunda enjekte ediliyor.",
+    "Uzak deploy, reverse proxy, TLS: Huseyin Cengiz bagimliligi; DNS kaydi: Asistan Huseyin bagimliligi; unknown.",
+    "Statik /saas Pages rehber/dokuman yuzeyidir, urun web ciktisi degildir.",
+    "PWA (manifest, service worker) gelecek kapsam; kaynakta kanit yok.",
+    "Keycloak oturum baglama ve tenant karsiligi karar bekliyor; kapsam disi.",
+    "v2 API eslemesi secilmedi; kayit akisi T08'de kalir.",
+    "Ilk ziyaret, giris, tenant secimi ve yetkili kayit uctan uca kabulu not_run."
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "channels-1": "mvp"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

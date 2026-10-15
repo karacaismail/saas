@@ -1,0 +1,117 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "ci-pipeline",
+  "canonicalTaskIds": ["ci-pipeline--implementation"],
+  "requirementIds": ["releases-1", "releases-2"],
+  "stage": "mvp",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "Başarısız kontrol, artifact işini engeller ve kabul edilen revizyon kaydedilir",
+    "trigger": "Pipeline yalnız elle tetiklenir (workflow_dispatch). Girdi olarak sabit frappe_ref ve suite_ref alır.",
+    "expected": "checks işi sırayla şunları çalıştırır: ruff check, bench run-tests --app suite ve --skip-failing olmadan bench migrate. Hepsi başarılı olursa artifact işi çalışır. artifact işi, frappe_ref ve suite_ref değerlerini job output ve imaj etiketi olarak kaydeder. Push yapılmaz.",
+    "denied": "checks içindeki herhangi bir adım sıfır olmayan kodla çıkarsa artifact işi atlanır ve revizyon kaydı oluşmaz. Pipeline'da --skip-failing kullanılamaz; push veya deploy adımı yoktur."
+  },
+  "reuse": {
+    "mechanism": "Yerel kaynak önce kullanılır, yeni adapter yazılmaz. Upstream Suite iş akışı deseni (bench get-app, en az yetki, sha etiketi) yeniden kullanılır. Frappe patch_handler zaten skip_failing kapalıyken durur. Kontrol listesi Suite içindeki mevcut ruff yapılandırmasıdır. Bu tasarım bir CI barındırıcısı veya vendor seçmez; dosya, mevcut upstream sözdizimini kullanan dormant bir şablondur.",
+    "evidence": [
+      {
+        "path": "suite/.github/workflows/suite-ci.yml",
+        "line": 128,
+        "quote": "          bench get-app suite $GITHUB_WORKSPACE --skip-assets"
+      },
+      {
+        "path": "suite/.github/workflows/meet-sfu-build.yml",
+        "line": 27,
+        "quote": "      packages: write"
+      },
+      {
+        "path": "frappe/frappe/modules/patch_handler.py",
+        "line": 48,
+        "quote": "`bench migrate --skip-failing` logs a failing patch in Patch Log with `skipped`"
+      },
+      {
+        "path": "frappe/frappe/modules/patch_handler.py",
+        "line": 80,
+        "quote": "never_skip = set(frappe.get_hooks(\"never_skip_patches\"))"
+      },
+      {
+        "path": "suite/pyproject.toml",
+        "line": 47,
+        "quote": "[tool.ruff]"
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/ci-pipeline.json",
+    "plannedProduction": ["operations/ci-pipeline/ci_pipeline_mvp.yml"],
+    "plannedTestFile": "operations/ci-pipeline/tests/test_ci_pipeline_mvp_gate.py",
+    "sharedIntegrationFiles": [
+      "integration/fragments/ci-pipeline--integration.json"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "frappe_ref: zorunlu, 40 karakter hex; yerel pilotta adf1fd0c2d6215ad4cac9976251198b2a35fbda6. suite_ref: zorunlu, 40 karakter hex; şu an bilinmiyor, bu yüzden boş değer reddedilir. Dal adı veya latest kabul edilmez. Secret içeren girdi yoktur.",
+    "output": "checks.result (success veya failure). artifact.outputs: frappe_ref, suite_ref, image_tag; image_tag kısa sha'dan üretilir. Sürüm şeması: ci-pipeline.v1.",
+    "authorization": "Pipeline düzeyinde permissions yalnız contents: read olur; packages: write bu davranışta verilmez. Migrate yalnız CI içinde geçici olarak oluşturulan test sitesinde çalışır. Müşteri verisine, production sitesine veya registry'ye erişim yoktur. Secret değeri dosyaya yazılmaz.",
+    "persistence": "Frappe migrate, patch'leri native olarak çalıştırır ve sonucu Patch Log'a yazar. Başarısız patch PatchError ile durur. Geçici test sitesi iş bitince atılır. DDL geri alınabilirliği garanti edilmez; staging kopyası kapsam dışıdır.",
+    "failure": "Şu durumların her biri job failure sayılır: ruff'ın sıfır olmayan çıkışı, run-tests'in sıfır olmayan çıkışı, migrate'te PatchError veya 'STOPPED' çıktısı. Bu durumda artifact işi needs: checks nedeniyle skipped olur. suite_ref eksik veya geçersizse input doğrulama adımı checks çalışmadan başarısız olur. Altyapı hataları (runner, DB servisi, bench init) ayrı adım adıyla raporlanır; kapı sonucu sayılmaz."
+  },
+  "development": {
+    "dependencies": [
+      "ci-pipeline--contract",
+      "yerel pilot frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6"
+    ],
+    "admission": "Ön koşullar: ci-pipeline--contract tamamlanmış olmalı, T-00 ve R-00 eşlemesi bulunmalı. Bilinmeyenler: suite_ref, CI barındırıcısı, dağıtım aracı (frappe_docker veya Press) ve hedef org. Yerel kanıt remote baseline yerine geçmez.",
+    "steps": [
+      "operations/ci-pipeline/ci_pipeline_mvp.yml dosyasını yaz. Yalnız workflow_dispatch tetikleyicisi olsun; schedule veya push tetikleyicisi olmasın.",
+      "Bir validate adımı ekle: frappe_ref ve suite_ref 40 karakter hex olmalı.",
+      "checks işini yaz: ruff check, ardından bench --site <geçici> run-tests --app suite, ardından --skip-failing olmadan bench migrate.",
+      "artifact işini yaz: needs: checks olsun, docker build push:false ile çalışsın ve iki ref'i output ve etiket olarak üretsin.",
+      "Dosyayı .github/workflows altına taşımak ve etkinleştirmek bu görevin kapsamında değildir; bu iş Hüseyin Cengiz'e devredilir."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Test, ci_pipeline_mvp.yml dosyasını ayrıştırır ve şunları doğrular: artifact.needs içinde checks var, hiçbir adımda --skip-failing yok, migrate ve ruff adımları var, permissions yalnız contents: read, schedule tetikleyicisi yok.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: Test, ci_pipeline_mvp.yml dosyasını ayrıştırır ve şunları doğrular: artifact.needs içinde checks var, hiçbir adımda --skip-failing yok, migrate ve ruff adımları var, permissions yalnız contents: read, schedule tetikleyicisi yok. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Uygulamadan sonra aynı test aynı komutla geçer. Bu yapısal bir kanıttır; gerçek CI koşusu ayrıca runtimeAcceptance gerektirir."
+    },
+    "rollback": "Yalnız operations/ci-pipeline/ci_pipeline_mvp.yml ve planlanan test dosyası yerelde geri alınır. Production, registry veya cron üzerinde hiçbir işlem yapılmaz."
+  },
+  "remainingGaps": [
+    "Dağıtım aracı kararı (frappe_docker veya Press) ve CI barındırıcısı seçilmedi; teknik sahibi Hüseyin Cengiz.",
+    "Site imajı, registry yolu ve kısıtlı servis hesabı tanımlanmadı. Hedef org için packages: write yetkisi ve secret kurulumu Hüseyin Cengiz'e aittir.",
+    "Suite commit'i bilinmiyor; suite_ref sağlanana kadar pipeline bilinçli olarak reddeder.",
+    "collab-server için Dockerfile ve build adımı yok; ffmpeg apt bağımlılığının imaja nasıl taşınacağı tanımlı değil.",
+    "Suite hooks içinde never_skip_patches görülmedi; kritik patch listesi bilinmiyor.",
+    "Staging kopyası üzerinde migrate ve dağıtım sonucu izleme yapılmadı. Native Webhook bu iş için ileride kullanılabilir; bu sözleşmede kapsam dışıdır.",
+    "Headless provider tarafında sürüm kimliği uç noktası yok.",
+    "Pipeline'ın çalıştırılması ve etkinleştirilmesi: runtimeAcceptance not_run."
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "releases-1": "mvp",
+    "releases-2": "mvp"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

@@ -1,0 +1,112 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "metrics-export",
+  "canonicalTaskIds": ["metrics-export--implementation"],
+  "requirementIds": ["observability-1", "observability-2", "observability-4"],
+  "stage": "mvp",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "Mevcut recorder /metrics hedefinin ölçüm kesintisi alarm olarak görünür",
+    "trigger": "job=frappe-meet-recorder hedefinin scrape işlemi başarısız olur (servis kapalı, 401 veya ağ hatası) ya da job serisi tamamen kaybolur.",
+    "expected": "Sahip olunan kural dosyasındaki tek kural grubu, up{job=\"frappe-meet-recorder\"} == 0 veya absent(up{job=\"frappe-meet-recorder\"}) koşulu Hüseyin Cengiz'in belirleyeceği 'for' süresi boyunca sürdüğünde RecorderMetricsTargetDown alarmını yalnız job ve instance etiketiyle üretir.",
+    "denied": "Metrics token olmadan /metrics 401 döner; alarm kiracı, kullanıcı veya kayıt verisi taşımaz; kural yüklenmesi veya alarm yönlendirmesi bu sözleşmeyle etkinleştirilmez."
+  },
+  "reuse": {
+    "mechanism": "Native/source yeniden kullanım: recorder-server'daki prom-client Registry ve ayrı metrics token korumalı /metrics ucu ile Grafana'daki up paneli zaten var. Yeni exporter, adapter veya Frappe kodu eklenmez; yalnız sahip olunan Prometheus kural dosyası (config) yazılır.",
+    "evidence": [
+      {
+        "path": "suite/suite/meet/recorder-server/src/app.ts",
+        "line": 6,
+        "quote": "import { Counter, Gauge, Registry } from 'prom-client';"
+      },
+      {
+        "path": "suite/suite/meet/recorder-server/src/app.ts",
+        "line": 169,
+        "quote": "name: 'recorder_starts_total',"
+      },
+      {
+        "path": "suite/suite/meet/recorder-server/src/config.ts",
+        "line": 85,
+        "quote": "const metricsToken = required(env, 'RECORDER_METRICS_TOKEN');"
+      },
+      {
+        "path": "suite/suite/meet/observability/grafana/provisioning/dashboards/json/recorder-overview.json",
+        "line": 16,
+        "quote": "\"title\": \"Recorders Up\","
+      },
+      {
+        "path": "suite/suite/meet/recorder-server/src/app.ts",
+        "line": 196,
+        "quote": "app.get('/health', (_req, res) => res.json({ status: 'ok' }));"
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/metrics-export.json",
+    "plannedProduction": ["operations/metrics-export/metrics_export_mvp.yml"],
+    "plannedTestFile": "operations/metrics-export/metrics_export_mvp.test.yml (yalnız planlı; aktif kiralama değil, entegrasyon sahibi onaylar)",
+    "sharedIntegrationFiles": [
+      "integration/fragments/metrics-export--integration.json"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "Prometheus scrape: GET /metrics, Authorization başlığı metrics token referansı (credentials_file yolu; değer public çıktıya yazılmaz). Kimlik şeması AuthManager.authenticateMetrics içinde; bu şema alıntılanmadığı için bilinmiyor. Kural girdisi: up serisi, etiketler job ve instance; site/tenant etiketi eklenmez.",
+    "output": "Başarılı scrape: 200 ve prom-client exposition (recorder_starts_total, recorder_active_jobs, recorder_capacity). Alarm: RecorderMetricsTargetDown, etiketler job, instance, severity; kural dosyası sürümü v1.",
+    "authorization": "Frappe site/kullanıcı/kayıt/alan izni kapsam dışı; Frappe verisi okunmaz. /metrics yalnız bağımsız metrics token ile; aksi 401 {status:unauthorized}. Kural ve alarm kişisel veri veya secret içermez.",
+    "persistence": "Frappe transaction, Document.save, hook veya DDL yok. Tek statik YAML kural dosyası; Prometheus TSDB saklama süresi seçilmez ve bilinmiyor.",
+    "failure": "Token hatası, servis kapalı veya ağ hatası up=0 üretir ve aynı alarmı tetikler; job kaybı absent kuralıyla görünür. promtool check rules sözdizimi hatası verirse dosya entegrasyona alınmaz. /ready 503 scrape kesintisi sayılmaz, ayrı probe boşluğudur."
+  },
+  "development": {
+    "dependencies": ["metrics-export--contract"],
+    "admission": "T-00 hedef taban ve R-00 yeniden kullanım eşlemesi gerekir. Suite kaynak HEAD bilinmiyor; recorder yerel pilotta (Frappe17-dev/suite.localhost) doğrulanmadı. promtool yerelde mevcut mu bilinmiyor; kurulum bu sözleşmeyle yapılmaz. 'for' süresi ve alarm yönlendirmesi Hüseyin Cengiz kararını bekler. Yerel kanıt uzak ürün tabanı değildir.",
+    "steps": [
+      "Hüseyin Cengiz 'for' süresini ve severity değerini belirler.",
+      "operations/metrics-export/metrics_export_mvp.yml içine tek kural grubu: up==0 ve absent ifadeleri, job=frappe-meet-recorder.",
+      "promtool check rules ile sözdizimi doğrulanır.",
+      "Prometheus'a yükleme ve Alertmanager yönlendirmesi gelecekteki dağıtım bağımlılığı olarak Hüseyin Cengiz'e devredilir; bu iş kapsamında etkinleştirilmez."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "promtool test rules: up{job=frappe-meet-recorder,instance=r1} serisi 1 değerinden 0 değerine düşer ve 'for' süresi geçince RecorderMetricsTargetDown alarmı job ve instance etiketiyle beklenir.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: promtool test rules: up{job=frappe-meet-recorder,instance=r1} serisi 1 değerinden 0 değerine düşer ve 'for' süresi geçince RecorderMetricsTargetDown alarmı job ve instance etiketiyle beklenir. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Aynı promtool test rules komutu kural eklendikten sonra SUCCESS döner; native olarak zaten çalışan /metrics davranışı RED üretmek için kullanılmaz."
+    },
+    "rollback": "Yalnız operations/metrics-export/metrics_export_mvp.yml yerel değişikliği geri alınır; production veya Prometheus yapılandırmasına dokunma izni yoktur."
+  },
+  "remainingGaps": [
+    "observability-1: Frappe web ve RQ worker için metrik kaynağı (Monitor/Recorder veya ayrı exporter) seçilmedi; Frappe 17.0.0.dev0 API eşlemesi yok.",
+    "observability-1: site/tenant etiketinin kardinalite ve kişisel veri sınırı tanımsız.",
+    "observability-1: alarm yönlendirmesi ve sahibi (Hüseyin Cengiz) dağıtım tarafında tanımlanmadı.",
+    "observability-2: host/container exporter, saklama süresi, Hetzner/Debian hedef envanteri, CPU/ağ/disk eşikleri ve DiskGuard minimumFreeBytes ile disk alarmı ilişkisi kararsız.",
+    "observability-4: MariaDB, Redis, RQ worker/scheduler, socketio, SFU, S3, mail için bileşen-metrik-eşik-sahip probe tablosu, kuyruk derinliği ve kiracı etki eşlemesi yok.",
+    "AuthManager metrics kimlik şeması, Prometheus sunucu yapılandırması ve Suite HEAD bilinmiyor."
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "observability-1": "mvp",
+    "observability-2": "mvp",
+    "observability-4": "mvp"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

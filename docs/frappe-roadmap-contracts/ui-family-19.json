@@ -1,0 +1,126 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "ui-family-19",
+  "canonicalTaskIds": ["ui-family-19--implementation-mvp"],
+  "requirementIds": ["forms-5"],
+  "stage": "mvp",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "Mevcut kayit RPC'sinde tek Table alaninin satir projeksiyonu ve parent Document.save ile toplu kaydi (gelecek; kabul bekliyor)",
+    "trigger": "Write yetkili kullanici taslak parent kayitta bir Table alaninin satirlarini ekler/siler/siralar ve Kaydet der; istemci mevcut save_record cagrisina base_modified ile tum satir dizisini gonderir.",
+    "expected": "read_record izinli Table alanini child Data alanlariyla (name, idx, values) dondurur. save_record kilitli parent uzerinde doc.set(tableField, satirlar) ve native doc.save() calistirir: dizi sirasi idx olur, dizide olmayan mevcut satir kalkar, name'siz satir eklenir. Yanit yeniden yuklenen satirlari ve yeni modified'i dondurur.",
+    "denied": "Parent write, Table alani write veya child alan izni yoksa; bilinmeyen alan, bilinmeyen ya da baska parent'a ait satir name'i gelirse ayni api._forbidden yaniti doner, hicbir satir yazilmaz. UI kontrolleri canWrite'a gore devre disi gorunur; karar backend'dedir."
+  },
+  "reuse": {
+    "mechanism": "Duzeltme: T-08 records RPC yalniz mevcut Data alanlarini destekler ve istable DocType'lari disarida birakir; Table/child yazimi, child izni ve kaliciligi T-08 ile kanitlanmadi. Onceki 'adapter gerekmez' iddiasi geri alindi. Secim: ikinci CRUD motoru veya yeni endpoint degil, mevcut read_record/save_record icinde en kucuk ek (tek Table alani yolu); yazma yine native frappe.get_doc(for_update) + Document.save, ignore_permissions yok.",
+    "evidence": [
+      {
+        "path": "frappe_provider/headless_provider/records.py",
+        "line": 22,
+        "quote": "RECORD_FIELD_TYPES = frozenset({\"Data\"})",
+        "repository": "genui-saas-panel@6ea301c"
+      },
+      {
+        "path": "frappe_provider/headless_provider/records.py",
+        "line": 76,
+        "quote": "or cint(meta.istable)",
+        "repository": "genui-saas-panel@6ea301c"
+      },
+      {
+        "path": "frappe_provider/headless_provider/records.py",
+        "line": 63,
+        "quote": "doc.save()",
+        "repository": "genui-saas-panel@6ea301c"
+      },
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 111,
+        "quote": "table_fields = meta.get_table_fields()"
+      },
+      {
+        "path": "frappe/frappe/api/v2.py",
+        "line": 26,
+        "quote": "\"POST\": \"write\","
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/ui-family-19.json",
+    "plannedProduction": [
+      "frappe_provider/headless_provider/records.py (Kiralama 1, parent/backend; bu gorevin owns listesinde degil, entegrasyon sahibi seri atar)",
+      "frontend/packages/ui/src/components/ui-family-19/mvp.tsx (Kiralama 2, child/UI; yalniz Kiralama 1 GREEN sonrasi)"
+    ],
+    "plannedTestFile": "frappe_provider/headless_provider/test_records_table.py (yalniz planli; mevcut test konumu/kosucusu girdide yok, entegrasyon sahibince sabitlenecek)",
+    "sharedIntegrationFiles": [
+      "frappe_provider/headless_provider/api.py (salt okunur bagimlilik)",
+      "frontend/packages/ui/src/index.ts",
+      "integration/fragments/ui-family-19--integration-mvp.json"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "save_record(doctype:str, name:str<=140, base_modified:str<=64, values:object). values en fazla bir Table fieldname -> Array<{name?:str<=140, [childDataField]:str}> icerir; diger anahtarlar mevcut Data kurallarinda. Child alanlar yalniz Data ve string; aksi api._invalid. Satir ust siniri sabiti (MAX_TABLE_ROWS) zorunlu, degeri bilinmiyor. read_record girdisi degismez.",
+    "output": "Mevcut zarfa ek: record.tables{[tableField]: Array<{name, idx, values{dataField: str|null}}>}; yalniz okuma izinli Table alani ve child alanlari, native apply_fieldlevel_read_permissions sonrasi. writableFields Table alanini yalniz parent+child yazma izni varsa icerir. Surum: modified. Zarf eki headless-metadata.v1 tuketicilerini etkiler; surum karari o sozlesme sahibinde, bilinmiyor.",
+    "authorization": "Native site oturumu (cookie/CSRF; Keycloak not_run). Parent: has_permission read/write, docstatus 0, parent meta get_permitted_fieldnames(permission_type='write') Table alanini icermeli. Child alan permlevel izninin parent baglaminda hangi native API ile hesaplandigi kanitlanmadi; kabul engeli. Ret: api._forbidden, kayit/alan/satir varligini sizdirmayan ayni mesaj.",
+    "persistence": "Tek istek; transaction HTTP katmaninda, commit yok. _load_record(for_update=True) satir kilidi; base_modified uyusmazliginda frappe.TimestampMismatchError; sonra doc.set + doc.save() (izin, check_if_latest, validate, hook native). Hata: istek transaction'i geri alinir. DDL, yeni hook, queue yok. Cikarilan child satirin native save'de silinmesi ve idx normalizasyonu dogrulanmadi.",
+    "failure": "api._forbidden: taslak korunur, yetki mesaji. api._invalid: girdi hatasi. frappe.TimestampMismatchError: yeniden yukle istemi, otomatik ustune yazma yok. Native dogrulama hatasi (sinif girdide yok): mesaj, taslak korunur. Ag hatasi: kaydedilmedi durumu. HTTP kodlari api modulu girdide olmadigindan bilinmiyor."
+  },
+  "development": {
+    "dependencies": [
+      "ui-family-19--contract",
+      "ui-family-19--implementation",
+      "kernel-envelope--contract",
+      "api-middleware--contract",
+      "client-rule-parity--contract",
+      "ui-family-16--contract",
+      "ui-provider-metadata--implementation-mvp (destekleyici; records.py sahipligi varsayim, dogrulanmadi)",
+      "yerel pilot T-08 (6ea301c): yalniz genisletilecek Data-only RPC tabani; Table/child kaniti degildir"
+    ],
+    "admission": "Uygulama kabulu YOK. On kosullar: T-00 baseline ve R-00/R-01; Frappe adf1fd0c kaynaginda Document.set/save child ekleme-silme-idx davranisi ve child alan izin API'si literal kanitla sabitlenmeli; yerel pilotta Table alanli test DocType/kayit (kanitlanmadi); MAX_TABLE_ROWS ve zarf surum karari. Kiralamalar seri: Kiralama 1 GREEN olmadan Kiralama 2 acilmaz, ayni anda iki kiralama yok. Suite HEAD ve uzak baseline bilinmiyor; yerel kanit uzak baseline degildir.",
+    "steps": [
+      "Kaynak dogrulama (yazmasiz): native child save ve child izin API'leri.",
+      "Kiralama 1: records.py icinde mevcut _snapshot/_load_record/_writable_fields uzerinden tek Table alani projeksiyonu ve save yolu; RECORD_FIELD_TYPES Data kalir; satir name'leri mevcut parent satirlarina karsi dogrulanir.",
+      "Kiralama 2: mvp.tsx mevcut AntD Table + TanStack mutation ile yerel taslak, Ekle/Sil/Yukari/Asagi (klavyeyle erisilebilir, hover tek yol degil); Outfit, min 14 CSS px, 320 once, tablo kapsayicida yatay kaydirma, cevreleyen odak halkasi yok, interactionTokens simetrik Cubic hareket."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Write yetkili kullanici 3 Table satirli taslak parent kayitta 2. satiri cikarip 3. satiri one alarak save_record cagirir; yanit ve yeniden okunan kayit 2 satir, sira [satir1, satir3], idx [1,2] gosterir, silinen satir kalici degildir.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: Write yetkili kullanici 3 Table satirli taslak parent kayitta 2. satiri cikarip 3. satiri one alarak save_record cagirir; yanit ve yeniden okunan kayit 2 satir, sira [satir1, satir3], idx [1,2] gosterir, silinen satir kalici degildir. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Ayni test ayni komutla Kiralama 1 sonrasi gecer; komut entegrasyon sahibince sabitlenecek, simdi calistirilmadi."
+    },
+    "rollback": "Yalniz records.py eki, planli test ve varsa mvp.tsx yerelde geri alinir. Veri/DDL/servis degisikligi yok, musteri kaydi silinmez, production izni yok."
+  },
+  "remainingGaps": [
+    "Child alan izni ve child satir silme/idx native davranisi kaynakta dogrulanmadi.",
+    "Yetkili iliski aramasi: search_widget izin uygulamasi, v17 uc noktasi ve link_filters gorulmedi.",
+    "Dosya: upload_file sozlesmesi, private varsayilani, boyut/tip siniri ve Attach baglama tanimsiz.",
+    "Table ve Table MultiSelect literal kaniti excerpt disinda; Table MultiSelect kapsam disi.",
+    "forms-2 kosullu zorunlu/capraz alan reddi client-rule-parity--contract kapsaminda.",
+    "Test kosucusu, Suite HEAD, uzak baseline bilinmiyor; tarayici matrisi not_run."
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "forms-5": "mvp"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

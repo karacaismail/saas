@@ -1,0 +1,118 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "ui-family-33",
+  "canonicalTaskIds": ["ui-family-33--implementation"],
+  "requirementIds": ["shell-7"],
+  "stage": "mvp",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "time_zone icin kullanici override'i kaldirilinca System Settings degerine geri donus (yerel site ici kanit)",
+    "trigger": "Oturumdaki kullanici kendi time_zone override'ini kaldirir, ardindan cozumlenmis tercih okunur.",
+    "expected": "Yanit {key:'time_zone', value:System Settings.time_zone, sourceLayer:'site', contractVersion:1} doner; System Settings kaydi ve baska kullanicinin override'i degismez.",
+    "denied": "Guest, baska kullaniciyi hedefleme ve allowlist disi anahtar reddedilir; site_config degerleri yanita ve boot'a hic girmez."
+  },
+  "reuse": {
+    "mechanism": "Once native: site katmani frappe.get_single('System Settings') ile okunur; frappe.conf yalniz sunucu tarafinda kalir. Kullanici katmani icin yeni DocType/ORM kopyasi yok; native kullanici varsayilani mekanizmasi bu kesitte gorulmedi, admission'da dogrulanip yeniden kullanilir. Eksik olan yalniz tek anahtarli cozumleme sirasi ve allowlist oldugundan en kucuk adapter: tek whitelisted okuma/temizleme metodu.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/desk/page/setup_wizard/setup_wizard.py",
+        "line": 146,
+        "quote": "system_settings = frappe.get_single(\"System Settings\")"
+      },
+      {
+        "path": "frappe/frappe/api/v2.py",
+        "line": 32,
+        "quote": "conf = frappe.conf.get(\"bulk_operation_async_threshold\", 20)"
+      },
+      {
+        "path": "suite/suite/sheets/boot.py",
+        "line": 19,
+        "quote": "bootinfo.collab_v2 = bool(frappe.conf.get(\"collab_v2\") or False)"
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/ui-family-33.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/api/settings_preference.py (planlanan adapter; yolu entegrasyon sahibi onaylar)",
+      "frontend/packages/ui/src/components/ui-family-33/index.tsx"
+    ],
+    "plannedTestFile": "backend/saas_platform/saas_platform/tests/test_settings_preference.py",
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/packages/ui/src/index.ts",
+      "frontend/packages/ui/src/registry.ts",
+      "integration/fragments/ui-family-33--integration.json"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "get(key:str) ve clear_override(key:str); allowlist yalniz ['time_zone'], en fazla 64 karakter. user parametresi yok; hedef daima frappe.session.user.",
+    "output": "{key, value:str|null, sourceLayer:'user'|'site'|'unset', contractVersion:1}. site_config/common_site_config degerleri ve baska kullanici verisi donmez.",
+    "authorization": "Native cookie/CSRF oturumu; Guest reddedilir (frappe.PermissionError). Kapsam mevcut site ve oturum kullanicisi. Bu davranista System Settings'e yazma yok; site katmanini kimin yazacagi acik gap.",
+    "persistence": "clear_override native kullanici varsayilani mekanizmasiyla tek istek transaction'inda silinir; Frappe istek sonu commit, hatada rollback. DDL/migration yok ve garanti verilmez.",
+    "failure": "Allowlist disi anahtar: frappe.ValidationError; tuketici alan altinda satir ici hata gosterir, tekrar denemez. Guest/yetkisiz: frappe.PermissionError; tuketici yetki yok durumu gosterir. Override yoksa idempotent, 'site' degeri doner. Ag/sunucu hatasi: TanStack sorgu hata durumu, son gecerli deger korunur. HTTP kodlari yerelde dogrulanacak."
+  },
+  "development": {
+    "dependencies": [
+      "ui-family-33--contract",
+      "kernel-envelope--contract",
+      "api-middleware--contract",
+      "client-rule-parity--contract",
+      "page-profile--contract",
+      "ui-family-17--contract",
+      "ui-family-04--implementation-mvp",
+      "T-00 target baseline",
+      "R-00 reuse mapping",
+      "R-01 permissioned data"
+    ],
+    "admission": "T-00/R-00/R-01 hazir olmali. Yerel Frappe17-dev (frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6) kaynaginda native kullanici varsayilani mekanizmasi ve System Settings time_zone okumasi dogrulanmali; dogrulanamazsa uygulama baslamaz. Suite HEAD ve uzak urun baseline bilinmiyor; suite.localhost yalniz yerel kanittir.",
+    "steps": [
+      "Native kullanici varsayilani mekanizmasini yerel kaynakta dogrula; adapter onu yeniden kullanir.",
+      "Adapter'a tek anahtarli allowlist ve user->site cozumleme sirasi ekle; frappe.conf istemciye cikmaz.",
+      "index.tsx mevcut AntD6/TanStack tuketicisiyle deger, kaynak katmani ve 'Varsayilana don' eylemini gosterir; Outfit, en az 14px, 320-first, cevreleyen odak halkasi yok, simetrik pozitif sureli cubic-bezier(.65,0,.35,1).",
+      "hooks/registry baglantisi fragment olarak entegrasyon sahibine (Codex) devredilir."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "suite.localhost'ta yalniz test fixture kullanicilari: A ve B icin farkli time_zone override'lari yazilir; A clear_override cagirir; get A icin System Settings.time_zone ve sourceLayer 'site' donmeli, B override'i ve System Settings.time_zone degismemeli.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: suite.localhost'ta yalniz test fixture kullanicilari: A ve B icin farkli time_zone override'lari yazilir; A clear_override cagirir; get A icin System Settings.time_zone ve sourceLayer 'site' donmeli, B override'i ve System Settings.time_zone degismemeli. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Ayni test ayni komutla (bench --site suite.localhost run-tests, modul yolu yerelde dogrulanacak) adapter sonrasi gecer. Native calisan System Settings okumasi RED uretmek icin kullanilmaz."
+    },
+    "rollback": "Adapter ve index.tsx degisikligi yerelde geri alinir; sema degismedigi icin migration geri alimi yok. Production izni yok."
+  },
+  "remainingGaps": [
+    "Tenant = site mi, site ici kapsam mi kararsiz; kiraciler arasi izolasyon kaniti bu davranista yok, yalniz site ici kullanici izolasyonu.",
+    "Anahtar katalogu ve katman/izin tablosu (common_site_config, site_config, System Settings, kullanici) yazilmadi; time_zone disi anahtarlar kapsam disi.",
+    "Platform katmani ve boot allowlist sozlesmesi yok; gizli site_config degerleri icin ayri karar gerekir.",
+    "Native kullanici varsayilani kaynagi verilen kesitte gorulmedi; bilinmiyor.",
+    "Katman yazma yetkisi tanimsiz; Keycloak e-posta/kimlik akisi karar bekliyor, haric.",
+    "UI tarayici/viewport matrisi ve bagimsiz QA not_run.",
+    "Uzak deploy gereksinimi bagimlilik: teknik sahip Huseyin Cengiz."
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "shell-7": "mvp"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

@@ -1,0 +1,122 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "event-dispatch",
+  "canonicalTaskIds": ["event-dispatch--implementation"],
+  "requirementIds": ["events-1", "events-2", "events-3", "events-7"],
+  "stage": "poc",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "Site sinirinda olay zarfi dogrulamasi ve correlation_id korunarak native kuyruga aktarim",
+    "trigger": "Sunucu tarafi Python kodu event_dispatch_poc.dispatch(envelope) cagirir (whitelist edilmez, /method ile disariya acilmaz).",
+    "expected": "Zarf gecerliyse frappe.enqueue ile tek abone isi kuyruga alinir; is kwargs icinde ayni event_id ve correlation_id tasinir ve donus {event_id, correlation_id, job_id} olur.",
+    "denied": "schema_version eksik veya desteklenmeyen, site alani eksik veya frappe.local.site ile esit degil, correlation_id eksik ise frappe.ValidationError atilir ve hicbir is kuyruga alinmaz."
+  },
+  "reuse": {
+    "mechanism": "Native frappe.enqueue ve native site siniri yeniden kullanilir; yeni bus, DocType, ORM, Event Streaming veya ayri altyapi kurulmaz. Tek ince adapter yalniz kaynakta gorulmeyen ortak zarf dogrulamasi icin gerekir. Tenant yalniz yerel kanit icin site olarak ele alinir; global tenant modeli secilmez.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/api/v2.py",
+        "line": 293,
+        "quote": "job = frappe.enqueue("
+      },
+      {
+        "path": "suite/frontend/src/apps/sheets/collab/frappe-realtime-init.js",
+        "line": 17,
+        "quote": "// Frappe scopes its socketio rooms by *site* via a socket.io namespace"
+      },
+      {
+        "path": "suite/suite/writer/doctype/writer_document/writer_document.py",
+        "line": 125,
+        "quote": "job_id=f\"doc_comments_{self.name}_{comment_id}\","
+      },
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 224,
+        "quote": "doc_events = {"
+      },
+      {
+        "path": "frappe/frappe/api/v2.py",
+        "line": 8,
+        "quote": "internal implementation can change without treating it as \"breaking change\"."
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/event-dispatch.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/adapters/async_runtime/event_dispatch_poc.py"
+    ],
+    "plannedTestFile": "backend/saas_platform/saas_platform/adapters/async_runtime/test_event_dispatch_poc.py",
+    "sharedIntegrationFiles": [
+      "integration/fragments/event-dispatch--integration.json",
+      "contracts/kernel-envelope.v1.json",
+      "backend/saas_platform/saas_platform/hooks.py"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "envelope dict: event_id str<=64 zorunlu; site str zorunlu; correlation_id str<=140 zorunlu; causation_id str<=140 opsiyonel; schema_version int zorunlu, PoC destek kumesi {1}; event_type str<=140 zorunlu; occurred_at ISO-8601 str zorunlu; payload dict, PoC siniri serilestirilmis 64 KB. Alan adlari kernel-envelope--contract ile celisirse kernel-envelope kazanir.",
+    "output": "{event_id, correlation_id, job_id} ve schema_version=1. Payload icerigi donuste geri yansitilmaz; payload belge referansi tasiyorsa okuma yetkisi native-user-policy--contract ile cozulur.",
+    "authorization": "Native site siniri: zarf.site != frappe.local.site ise reddedilir. Cagiran frappe.session.user Guest ise frappe.PermissionError. Kuyruktaki isin hangi kullanici baglaminda calistigi v17-dev kaynaginda dogrulanmadi; bilinmiyor olarak isaretlidir.",
+    "persistence": "Yeni DocType, DDL veya tablo yoktur. Is yalniz native frappe.enqueue ile kuyruga alinir. Commit sonrasi kuyruklama parametresinin v17-dev kaynaginda varligi bu kanitta dogrulanmadi; kullanimdan once kaynakta teyit edilmelidir. Yeniden baslatmada kayipsizlik bu davranisin garantisi degildir.",
+    "failure": "Gecersiz zarf: frappe.ValidationError, enqueue cagrilmaz, kismi durum kalmaz; tuketici hatayi cagiranin transaction'ina yayar. Guest: frappe.PermissionError. Redis/kuyruk erisim hatasi native istisna olarak yukari tasinir ve yutulmaz."
+  },
+  "development": {
+    "dependencies": [
+      "event-dispatch--contract",
+      "kernel-envelope--contract",
+      "native-user-policy--contract",
+      "local pilot frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6 (suiteSourceHead unknown)"
+    ],
+    "admission": "T-00 hedef baz ve R-00 yeniden kullanim eslemesi ile kernel-envelope--contract alan adlari gereklidir. Yerel Frappe17-dev/suite.localhost kaniti uzak urun bazi degildir; uzak baz ve Suite HEAD bilinmiyor.",
+    "steps": [
+      "kernel-envelope.v1 alan adlarini oku ve zarf dogrulamasini bu adlarla hizala.",
+      "event_dispatch_poc.py icinde dispatch(envelope): alan/limit dogrulamasi, site esitligi, schema_version destek kontrolu.",
+      "Gecerli zarfta frappe.enqueue ile tek abone isini event_id ve correlation_id kwargs ile kuyruga al; hooks.py ve zamanlayiciya dokunma.",
+      "Abone yolu ve hooks kaydi gerekiyorsa yalniz integration fragment uzerinden Codex'e oner."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "suite.localhost uzerinde schema_version eksik zarfla dispatch cagrisi frappe.ValidationError atar ve enqueue hic cagrilmaz; ayni zarf schema_version=1 ile verildiginde enqueue tam bir kez, ayni correlation_id ile cagrilir.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: suite.localhost uzerinde schema_version eksik zarfla dispatch cagrisi frappe.ValidationError atar ve enqueue hic cagrilmaz; ayni zarf schema_version=1 ile verildiginde enqueue tam bir kez, ayni correlation_id ile cagrilir. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Ayni test ayni bench run-tests komutuyla uygulama sonrasinda gecer. Native enqueue davranisi tek basina RED uretmek icin kullanilmaz."
+    },
+    "rollback": "Yalniz planlanan event_dispatch_poc.py ve test dosyasinin yerel geri alinmasi. Uretim, servis yeniden baslatma, cron veya kayit silme yetkisi yoktur."
+  },
+  "remainingGaps": [
+    "events-1: yeniden baslatmada kayipsizlik, abone izolasyonu ve tekrar isleme outbox/inbox/retry (events-4/5/6) olmadan saglanmaz; bus bunlarin uzerinde ince dagitici olacak, abone kaydi sahibi karar bekliyor.",
+    "events-2: command/query/event katalog semasi ve surum ret kodu tanimsiz; katalog UI provider ve GenUI registry'lerinden ayri backend sozlesmesidir, v2.py ic uygulamasi kararli sinir sayilmaz.",
+    "events-3: tenant modeli karar bekliyor (site disi model secilmedi); HTTP isteginden kuyruk isine correlation tasima mekanizmasi ve realtime projeksiyonu dogrulanmadi.",
+    "events-7: modul/dis servis basina kuyruk-timeout atamasi ve senkron komut tazmin kurali yok; Calendar invite ornegi pilot olarak dogrulanmadi.",
+    "Event Streaming modulunun v17.0.0-dev durumu kaynakta dogrulanmadi.",
+    "Uzak dagitimda worker/Redis gereksinimi bagimlilik olarak Huseyin Cengiz'e aittir; hicbir zamanlama etkinlestirilmez."
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "events-1": "poc",
+    "events-2": "poc",
+    "events-3": "poc",
+    "events-7": "poc"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

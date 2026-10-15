@@ -1,0 +1,106 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "email-domain",
+  "canonicalTaskIds": ["email-domain--implementation"],
+  "requirementIds": ["email-6"],
+  "stage": "mvp",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "Test iletisinin Authentication-Results başlığını Email Account gönderen alan adına göre salt okunur değerlendirme",
+    "trigger": "Yetkili kullanıcı, var olan bir Email Account adını ve alıcı tarafta görülen Authentication-Results başlık metnini adaptör fonksiyonuna verir.",
+    "expected": "Fonksiyon spf, dkim ve dmarc için pass/fail/none/unknown değerlerini, gönderen alan adını ve DKIM/SPF alan adlarının gönderen alan adıyla hizalanıp hizalanmadığını sürümlü yanıtla döndürür. Hiçbir kayıt yazılmaz.",
+    "denied": "Email Account okuma yetkisi olmayan kullanıcı PermissionError alır. Yanıtta e-posta adresi, ham başlık veya sağlayıcı günlüğü yer almaz."
+  },
+  "reuse": {
+    "mechanism": "Gönderen, başlık ve DSN ayarları için yerleşik Email Account ve EMail.validate kullanılır, yeni ayar alanı eklenmez. Frappe'nin Authentication-Results ayrıştırdığına dair kaynak kanıtı yok. Bu yüzden tek eklenti, sahip olunan dosyadaki saf bir ayrıştırma fonksiyonudur. Uygulamadan önce Frappe17-dev'de eşdeğer bir yerleşik ayrıştırıcı aranır; bulunursa adaptör yazılmaz, o kullanılır. Suite Mail DMARC rapor rotaları posta kutusu ürününe aittir ve işlemsel gönderen kanıtı sayılmaz.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/email/email_body.py",
+        "line": 291,
+        "quote": "if self.email_account.add_x_original_from:"
+      },
+      {
+        "path": "frappe/frappe/email/doctype/email_account/email_account.py",
+        "line": 307,
+        "quote": "if not smtp_session.has_extn(\"DSN\"):"
+      },
+      {
+        "path": "suite/frontend/src/apps/mail/routes.test.ts",
+        "line": 43,
+        "quote": "it('dashboard DMARC routes resolve as dashboard pages', () => {"
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/email-domain.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/adapters/message_delivery/email_domain_mvp.py"
+    ],
+    "plannedTestFile": "backend/saas_platform/saas_platform/adapters/message_delivery/test_email_domain_mvp.py",
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "integration/fragments/email-domain--integration.json"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "email_account: str, 1-140 karakter, var olan Email Account adı. authentication_results: str, 1-4096 karakter, tek başlık değeri, satır sonları birleştirilmiş.",
+    "output": "{version: 'email-domain.auth-results.v1', sender_domain: str (email_id alanından yalnız alan adı), spf: enum, dkim: enum, dmarc: enum, spf_aligned: bool, dkim_aligned: bool}. Enum değerleri: pass|fail|none|unknown. Hizalama gevşek kipte değerlendirilir: alan adı eşit olmalı ya da gönderen alan adının alt alanı olmalı.",
+    "authorization": "Yerel site sınırında oturum kullanıcısının ilgili Email Account kaydı için yerleşik read izni olmalıdır. Kullanılacak yerleşik izin API'sinin adı Frappe17-dev'de doğrulanacak, şu an bilinmiyor. Alan düzeyinde yalnız sender_domain türetilir. Fonksiyon whitelist edilmez, HTTP üzerinden açılmaz.",
+    "persistence": "Yok. Salt okunur çalışır: transaction, hook, DDL ya da kuyruk kullanılmaz. Sonucun nereye kaydedileceği karar bekliyor.",
+    "failure": "Boş veya sınırı aşan girdi: frappe.throw (ValidationError). Kayıt bulunamazsa DoesNotExistError, izin yoksa PermissionError. Tanınmayan yöntem değeri unknown döner, hata atılmaz. Çağıran taraf hatayı olduğu gibi yüzeye çıkarır ve yeniden denemez."
+  },
+  "development": {
+    "dependencies": [
+      "email-domain--contract",
+      "localPilot frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6 (suite.localhost, cookie/CSRF)"
+    ],
+    "admission": "T-00 hedef taban, R-00 yeniden kullanım eşlemesi ve email-domain--contract tamamlanmış olmalıdır. Yerleşik ayrıştırıcı ve izin API'sinin adı doğrulanmalıdır. Yerel kanıt uzak ürün tabanının yerine geçmez. Uzak taban ve Suite HEAD bilinmiyor.",
+    "steps": [
+      "Frappe17-dev'de yerleşik Authentication-Results ayrıştırıcısını ara. Bulunursa onu yeniden kullan ve adaptörü yazma.",
+      "Planlanan tek testi yaz, gerçek RED sonucunu kaydet.",
+      "email_domain_mvp.py içinde evaluate_authentication_results fonksiyonunu yaz: izin kontrolü, uzunluk sınırı, ayrıştırma, hizalama.",
+      "Aynı test komutuyla GREEN sonucunu kaydet. hooks.py ve UI değişmez."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Fixture Email Account email_id alan adı example.com. Başlık: 'spf=pass smtp.mailfrom=example.com; dkim=pass header.d=example.net; dmarc=fail header.from=example.com'. Beklenen sonuç: spf=pass, spf_aligned=true, dkim=pass, dkim_aligned=false, dmarc=fail, sender_domain=example.com.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: Fixture Email Account email_id alan adı example.com. Başlık: 'spf=pass smtp.mailfrom=example.com; dkim=pass header.d=example.net; dmarc=fail header.from=example.com'. Beklenen sonuç: spf=pass, spf_aligned=true, dkim=pass, dkim_aligned=false, dmarc=fail, sender_domain=example.com. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Uygulamadan sonra aynı test aynı komutla geçer. Yerleşik bir ayrıştırıcı bulunursa uydurma bir RED üretilmez, görev reuse olarak kapatılır."
+    },
+    "rollback": "Yerelde iki planlı dosyayı geri almak yeterlidir. Veri yazılmadığından veri geri alma gerekmez. Production değişikliği ya da yetkisi yoktur."
+  },
+  "remainingGaps": [
+    "Gönderen alan adı, alt alan ve DMARC politikası kararı kullanıcıda bekliyor. Sağlayıcı/vendor seçilmedi.",
+    "Sağlayıcının istediği SPF/DKIM/DMARC kayıt listesini Huseyin Cengiz hazırlar, kayıtları GoDaddy'de Asistan Huseyin uygular, sonucu Huseyin Cengiz doğrular. Bu adımlar bağımlılıktır, burada yürütülmez.",
+    "Test iletisi sonucunun nereye kaydedileceği tanımsız. Bu sözleşme hiçbir şeyi kalıcı olarak yazmaz.",
+    "Yerleşik izin API'sinin adı ve yerleşik bir ayrıştırıcı olmadığı kaynakla kanıtlanmadı, ikisi de unknown.",
+    "HTTP veya UI üzerinden açmak, entegrasyon sahibine ait hooks.py değişikliği gerektirir ve kapsam dışıdır.",
+    "Sağlayıcı alan doğrulamasının geçmesi ve gerçek test iletisinin gönderilmesi canlı DNS ile sağlayıcıya bağlıdır. Bu adımlar not_run."
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "email-6": "mvp"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

@@ -1,0 +1,111 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "database-capacity",
+  "canonicalTaskIds": ["database-capacity--implementation"],
+  "requirementIds": ["performance-4"],
+  "stage": "mvp",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "Yerel pilot DocType'taki tek kritik liste sorgusunun filtre alanı native indeksle desteklenir ve planı bu indeksi kullanır",
+    "trigger": "Yerel Frappe17-dev/suite.localhost üzerinde bench migrate sırasında DocType modülünün on_doctype_update kancası çalışır; ardından /api/v2 liste sorgusu (filters=[alan,=,değer], limit<=20) çağrılır.",
+    "expected": "Migrate sonrası filtre alanı üzerinde tek bir indeks bulunur; sitenin db_type değerine uygun EXPLAIN çıktısı bu indeksi kullanır; v2 yanıtı en fazla limit kadar satır ve has_next_page döner.",
+    "denied": "Okuma yetkisi olmayan kullanıcı için v2 sorgusu ignore_permissions=False ile native olarak reddedilir; indeks yetki kapsamını değiştirmez. 200'den fazla toplu ekleme native olarak reddedilir."
+  },
+  "reuse": {
+    "mechanism": "Native: DocType modülündeki on_doctype_update içinde frappe.db index/unique API deseni (rate_limit.py örneği) ve native v2 sayfalama. Yeni ORM, sorgu motoru veya adapter yok. Konfigürasyon yalnız sahip olunan YAML'da kritik sorgu ve plan beklentisini kaydeder.",
+    "evidence": [
+      {
+        "path": "suite/suite/suite_core/doctype/rate_limit/rate_limit.py",
+        "line": 149,
+        "quote": "frappe.db.add_unique("
+      },
+      {
+        "path": "frappe/frappe/api/v2.py",
+        "line": 162,
+        "quote": "limit=limit + 1,  # Fetch one extra to check if there's a next page"
+      },
+      {
+        "path": "frappe/frappe/client.py",
+        "line": 246,
+        "quote": "frappe.throw(_(\"Only 200 inserts allowed in one request\"))"
+      },
+      {
+        "path": "frappe/frappe/query_builder/utils.py",
+        "line": 41,
+        "quote": "SQLITE = \"sqlite\""
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/database-capacity.json",
+    "plannedProduction": [
+      "operations/database-capacity/database_capacity_mvp.yml"
+    ],
+    "plannedTestFile": "backend/saas_platform/saas_platform/tests/test_database_capacity.py",
+    "sharedIntegrationFiles": [
+      "integration/fragments/database-capacity--integration.json"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "YAML: db_type (mariadb|postgres|sqlite, yerel siteden okunur), doctype (pilot t08 Data kaydı DocType'ı), filter_field (tek alan), page_limit (int, 1-20), expected_index (bool). v2 isteği: doctype, fields, filters, limit, start.",
+    "output": "v2: izinli alanlar listesi, en fazla limit satır, frappe.response.has_next_page. Test çıktısı: indeks var/yok ve plan anahtar adı. Sözleşme sürümü contract-database-capacity v1.",
+    "authorization": "Native site sınırı (yalnız suite.localhost yerel kanıt), native kullanıcı/rol ve kayıt izinleri; v2 ignore_permissions=False korunur. Indeks kontrolü test bağlamında yönetici ile, sorgu kontrolü pilot reader kapsamı ile yapılır. Yetkisiz okuma native PermissionError ile reddedilir.",
+    "persistence": "İndeks yalnız migrate sırasında on_doctype_update ile oluşur. DDL'in işlem içinde geri alınacağı garanti edilmez (motor davranışı db_type'a bağlı, doğrulanmadı). Belge kaydı native Document.save ile değişmez.",
+    "failure": "Geçersiz order_by/group_by: FrappeValueError; 200 üstü insert_many: frappe.throw (ValidationError); yetkisiz: PermissionError. HTTP durum eşlemesi bu kanıtta doğrulanmadı; tüketici native hata mesajını gösterir, yeniden denemez. Bağlantı baskısında davranış tanımsız (remainingGaps)."
+  },
+  "development": {
+    "dependencies": [
+      "database-capacity--contract",
+      "local pilot t08: existing one Data record read/update with native admin/reader scopes",
+      "local pilot frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6"
+    ],
+    "admission": "T-00 hedef taban ve R-00 yeniden kullanım eşlemesi, okuyucu tüketici için R-01. Yerel sitenin gerçek db_type değeri ve pilot DocType'ın modül yolu kaydedilmeden başlanmaz. Seçilen filtre alanı zaten indeksliyse RED üretilemez; bu davranış native kabul edilip başka indekssiz alan seçilir. Uzak ürün tabanı ve Suite HEAD bilinmiyor; yerel kanıt uzak tabanı kanıtlamaz.",
+    "steps": [
+      "Yerel site db_type ve pilot DocType/alanını database_capacity_mvp.yml'e yaz",
+      "Planlanan tek testi yaz ve indekssiz alanda RED'i gör",
+      "Pilot DocType modülüne on_doctype_update ile tek alan indeksi ekle (dosya entegrasyon sahibi Codex onayıyla)",
+      "Yerel bench migrate, aynı testi GREEN çalıştır"
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Migrate sonrası pilot DocType'ın filter_field alanında indeks vardır ve aynı alanla filtrelenen v2 liste sorgusunun EXPLAIN planı bu indeksi kullanır; yanıt limit kadar satır ve has_next_page içerir.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: Migrate sonrası pilot DocType'ın filter_field alanında indeks vardır ve aynı alanla filtrelenen v2 liste sorgusunun EXPLAIN planı bu indeksi kullanır; yanıt limit kadar satır ve has_next_page içerir. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Aynı test dosyası ve aynı bench run-tests komutu on_doctype_update eklenip migrate yapıldıktan sonra geçer. Native zaten çalışan sayfalama/insert sınırı için RED üretilmez."
+    },
+    "rollback": "Yerel commit geri alınır ve yerel dev sitede migrate tekrarlanır; artık indeks yalnız yerel sitede Hüseyin Cengiz onayıyla kaldırılır. Production yetkisi yok."
+  },
+  "remainingGaps": [
+    "Hedef DB motoru ve yerel sitenin gerçek db_type değeri bilinmiyor; EXPLAIN biçimi motora göre değişir",
+    "has_index/add_index için satır alıntısı sağlanmadı; API adı uygulama öncesi kaynakta doğrulanmalı",
+    "Kritik sorgu listesi tek sorguyla sınırlı; diğerleri mevcut görevde kalır, yeni görev açılmaz",
+    "Bağlantı havuzu (DB/proxy), gunicorn/worker sayısı ve havuz sahibi tanımsız; karar ve dağıtım Hüseyin Cengiz'e bağımlılık",
+    "Bağlantı baskısında timeout/503/kuyruk davranışı sayısal değil; ölçüm bu sözleşmede yok",
+    "Pilot DocType modül yolu ve Suite HEAD bilinmiyor"
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "performance-4": "mvp"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

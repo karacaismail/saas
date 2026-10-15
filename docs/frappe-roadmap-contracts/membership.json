@@ -1,0 +1,104 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "membership",
+  "canonicalTaskIds": ["membership--implementation"],
+  "requirementIds": ["tenant-4"],
+  "stage": "mvp",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "Tek kullanimlik davet kabulu: Membership Invited->Active gecisi yalniz davet edilen kullanici tarafindan ve yalniz bir kez yapilir",
+    "trigger": "Mevcut Membership kaydinda status alani Invited iken Active yapilarak Document.save cagrilmasi (native REST PUT /api/resource/Membership/<name> veya sunucu ici doc.save).",
+    "expected": "frappe.session.user == doc.user ise kayit Active olur, accepted_at bir kez yazilir; ayni kayit sonradan tekrar Invited'a cekilip yeniden kabul edilemez.",
+    "denied": "Baska kullanici (System Manager dahil) adina kabul frappe.PermissionError; Active/Revoked kaydin yeniden Invited'a donmesi veya accepted_at degisimi frappe.ValidationError."
+  },
+  "reuse": {
+    "mechanism": "Native Frappe controller yasam dongusu (Document.save icinde validate) ve native DocPerm. Yeni API, ORM, event motoru veya Drive davet yeniden kullanimi yok; kural yalniz sahip olunan membership.py validate metodunda. Drive User Invitation kurum uyeligi yerine gecirilmez cunku ayri DocType ve ayri permission_query_conditions kancasi olarak Drive'a ozgu. Document.save/validate ve get_doc_before_save bu pakette satirla kanitlanmadi; Frappe HEAD adf1fd0 uzerinde dogrulanacak.",
+    "evidence": [
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 127,
+        "quote": "\"Drive User Invitation\": \"suite.drive.utils.overrides.filter_drive_invitation\","
+      },
+      {
+        "path": "frappe/frappe/permissions.py",
+        "line": 7,
+        "quote": "import frappe.share"
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/membership.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/tenant_control/doctype/membership/membership.py"
+    ],
+    "plannedTestFile": "backend/saas_platform/saas_platform/tenant_control/doctype/membership/test_membership.py",
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "backend/saas_platform/saas_platform/tenant_control/doctype/membership/membership.json",
+      "contracts/membership.v1.json"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "Membership alanlari membership--schema'ya bagli ve su an bilinmiyor; planlanan: user (Link User, zorunlu), tenant (Link, hedef DocType bilinmiyor), status (Select: Invited|Active|Revoked), accepted_at (Datetime, salt okunur). Istemci yalniz status=Active gonderir; accepted_at istemciden kabul edilmez.",
+    "output": "Native REST yaniti data: name, user, tenant, status, accepted_at, modified; alan gorunurlugu native DocPerm/permlevel ile. Surum: contract-membership v1, contract-kernel-envelope v1 zarfi.",
+    "authorization": "Yerel site siniri (suite.localhost) yalniz yerel kanit. Native DocPerm write yetkisi on kosul; validate ek olarak gecis aninda session user == doc.user ister, aksi frappe.PermissionError. Rol yetkisi (System Manager) baskasi adina kabulu acmaz. Kurum kapsami modeli kararsiz; tenant global modeli secilmez.",
+    "persistence": "Tek Document.save istek islemi; validate istisnasi tum yazimi geri alir. DDL garantisi yok; alanlar membership--schema'dan gelir. Eszamanli iki kabulde native modified zaman damgasi kontrolu disinda satir kilidi bilinmiyor; kanitlanmadan iddia edilmez.",
+    "failure": "Yetkisiz kabul: frappe.PermissionError (HTTP 403); gecersiz gecis: frappe.ValidationError (HTTP 417). Mevcut React19/AntD6/TanStack tuketici mutation hatasini AntD mesajiyla gosterir, sorguyu yeniden dogrular, iyimser Active gosterimi yapmaz; Outfit 14px, 320-first, cevreleyen odak halkasi yok, simetrik Cubic hareket korunur."
+  },
+  "development": {
+    "dependencies": [
+      "membership--contract",
+      "membership--schema",
+      "kernel-envelope--contract",
+      "localPilot frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6 (suite.localhost, cookie/CSRF)"
+    ],
+    "admission": "T-00 hedef baseline ve R-00 reuse eslemesi; Membership DocType ve user/tenant/status/accepted_at alanlari membership--schema ile mevcut olmali. saas_platform uygulamasinin suite.localhost'a kurulu olup olmadigi, uzak urun baseline ve Suite HEAD bilinmiyor. Yerel kanit uzak baseline degildir.",
+    "steps": [
+      "membership.py validate icinde onceki status'u native onceki belge ile karsilastir.",
+      "Invited->Active: session user == user degilse PermissionError; uygunsa accepted_at bir kez ata.",
+      "Active/Revoked->Invited ve accepted_at degisimini ValidationError ile reddet.",
+      "Baska dosya, hook veya UI degisikligi yok."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Invited Membership icin B kullanicisinin Active kaydetmesi PermissionError, ardindan A'nin kabulu Active ve accepted_at dolu, ardindan Invited'a geri cekme ValidationError.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: Invited Membership icin B kullanicisinin Active kaydetmesi PermissionError, ardindan A'nin kabulu Active ve accepted_at dolu, ardindan Invited'a geri cekme ValidationError. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Ayni test ayni komutla: bench --site suite.localhost run-tests --module saas_platform.tenant_control.doctype.membership.test_membership (uygulama kurulumu dogrulanacak)."
+    },
+    "rollback": "Yalniz membership.py validate degisikligini yerelde geri al; veri silme, servis yeniden baslatma veya production yetkisi yok."
+  },
+  "remainingGaps": [
+    "Keycloak kullanici/organization <-> Frappe User eslemesi ve provisioning yonu (JIT/SCIM benzeri) Keycloak karari bekledigi icin kapsam disi.",
+    "Kurum degistirmede aktif oturum ve cache yenileme davranisi tanimsiz; ayri karar gerekir.",
+    "Sahiplik devri bu davranista yok. Drive'da sahip tum deny'lari astigi icin (suite/suite/drive/api/permissions.py:53 '# Owners hold everything, bypassing any deny on the path.') File.owner degisimi dosya erisimini dogrudan etkiler; hangi DocType'larda owner degisecegi ve DocShare (frappe.share) kayitlarinin korunup korunmayacagi karar bekler.",
+    "Drive User Invitation ile kurum daveti iliskisi: bu sozlesme ayri akisi esas alir; birlestirme karari yok.",
+    "Eszamanli kabulde satir kilidi ve davet suresi/iptal politikasi tanimsiz.",
+    "Uzak ortama dagitim gerekirse teknik sahip Huseyin Cengiz; bu sozlesme dagitim yetkisi vermez."
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "tenant-4": "mvp"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

@@ -1,0 +1,115 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "client-local-outbox",
+  "canonicalTaskIds": ["client-local-outbox--implementation"],
+  "requirementIds": ["channels-15", "channels-7"],
+  "stage": "mvp",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "Mevcut bir kaydın yerel güncellemesi ve outbox girdisi tek IndexedDB transaction'ında atomik yazılır",
+    "trigger": "Kullanıcı, yerel pilotta (t08) var olan tek bir Data kaydını çevrimdışı ya da çevrimiçi düzenleyip kaydeder.",
+    "expected": "records ve outbox store'ları aynı readwrite transaction'ında yazılır. Yalnızca transaction oncomplete olayından sonra sonuç {status:'pending'} olur. Arayüz yerel kaydı, bekleyen aktarımı ve sunucu kabulünü ayrı durumlar olarak gösterir. Bu davranış sunucu kabulünü iddia etmez.",
+    "denied": "Transaction abort/error (ConstraintError, QuotaExceededError, UnknownError) durumunda iki store'a da hiçbir şey yazılmaz. Sonuç {status:'local_failed', reason} olur ve başarı gösterilmez. Kuyruğa girmeyen bir iş kaydı oluşmaz."
+  },
+  "reuse": {
+    "mechanism": "İstemcide tarayıcının yerel IndexedDB transaction atomikliği kullanılır. Yeni ORM, sync motoru ya da TanStack Query kalıcılığı eklenmez. Gelecekteki gönderim hedefi yerel pilotta çalışan native v1 update_doc yoludur (for_update + save). Toplu boşaltmada native 200 sınırına uyulur. Slides ledger/quota örneği yalnızca hata raporlama deseni olarak alınır; transactional değildir ve kopyalanmaz.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 60,
+        "quote": "doc.update(data)"
+      },
+      {
+        "path": "frappe/frappe/client.py",
+        "line": 246,
+        "quote": "frappe.throw(_(\"Only 200 inserts allowed in one request\"))"
+      },
+      {
+        "path": "suite/frontend/src/apps/slides/stores/offlineCopy.js",
+        "line": 23,
+        "quote": "the record is the ledger"
+      },
+      {
+        "path": "suite/frontend/src/apps/slides/stores/offlineCopy.test.ts",
+        "line": 217,
+        "quote": "it('stops at the first quota error and reports it', async () => {"
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/client-local-outbox.json",
+    "plannedProduction": [
+      "frontend/packages/platform/src/client-local-outbox/client_local_outbox_mvp.tsx"
+    ],
+    "plannedTestFile": "frontend/packages/platform/src/client-local-outbox/client_local_outbox_mvp.test.tsx (yalnız plan; aktif lease değildir)",
+    "sharedIntegrationFiles": [
+      "integration/fragments/client-local-outbox--integration.json",
+      "frontend/package.json",
+      "frontend/packages/ui/src/index.ts"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "writeLocalUpdate({doctype:string, name:string, fields:Record<string,scalar>, baseModified:string}). Her çağrıda tek kayıt yazılır. opId istemcide crypto.randomUUID ile üretilir. schemaVersion=1.",
+    "output": "{status:'pending'|'local_failed', opId, reason?:'quota'|'constraint'|'storage'}. Outbox girdisi: {opId, doctype, name, method:'PUT', target:'/api/resource/{doctype}/{name}', fields, baseModified, state:'pending', createdAt, schemaVersion:1}.",
+    "authorization": "Yerel yazma, sunucu yetkisi vermez. Veritabanı adı native site sınırına ve oturum kullanıcısına göre ayrılır: saas-outbox:{origin}:{user}. Bu ayrım yalnızca yerel kanıt içindir; tenant global modeli seçilmez. Token, cookie veya CSRF değeri IndexedDB'ye yazılmaz. Gerçek izin denetimi gönderim sırasında native DocType izinleriyle yapılır.",
+    "persistence": "Tek db.transaction(['records','outbox'],'readwrite') içinde records.put ile outbox.add birlikte çalışır. Sunucu DDL'i yoktur. Tarayıcı deposu kayıpsızlık garantisi sayılmaz. navigator.storage.persist sonucu yalnızca bilgi amaçlı gösterilir.",
+    "failure": "tx.onabort/onerror DOMException adına göre eşlenir: QuotaExceededError -> quota, ConstraintError -> constraint, diğerleri -> storage. Tüketici kaydı kirli bırakır, mevcut AntD uyarısıyla bildirir ve tekrar denemeye izin verir."
+  },
+  "development": {
+    "dependencies": [
+      "client-local-outbox--contract",
+      "kernel-envelope--contract",
+      "sync-receipt--contract",
+      "device-grant--contract",
+      "local pilot t08 (frappeHead adf1fd0c, recordCommit 6ea301c)"
+    ],
+    "admission": "T-00 hedef baseline'ı ve R-00 yeniden kullanım eşlemesi gerekir. Mevcut React19/AntD6 tüketicisinin test çalıştırıcısında IndexedDB shim'i olup olmadığı bilinmiyor. Yoksa paket kurulmaz; admission bloklanır ve entegrasyon sahibine bildirilir. Yerel kanıt remote baseline'ı kanıtlamaz; Suite HEAD bilinmiyor.",
+    "steps": [
+      "Sahip olunan dosyada openOutboxDb (records keyPath [doctype,name], outbox keyPath opId) ve writeLocalUpdate yazılır.",
+      "Hata eşleme ve durum ayrımı (local/pending/accepted) ilgili mevcut AntD bileşeninde gösterilir. Outfit 14px, 320-first, çevreleyen odak halkası olmaması ve simetrik Cubic hareket korunur.",
+      "Gönderim ve uzlaştırma bu davranışın dışında bırakılır."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Outbox'ta zaten bulunan bir opId ile writeLocalUpdate çağrılır. outbox.add gerçek bir ConstraintError verir ve transaction'ı abort eder. Beklenen: sonuç {status:'local_failed', reason:'constraint'} olur; DB yeniden açıldığında records içinde yeni alan değeri yoktur.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: Outbox'ta zaten bulunan bir opId ile writeLocalUpdate çağrılır. outbox.add gerçek bir ConstraintError verir ve transaction'ı abort eder. Beklenen: sonuç {status:'local_failed', reason:'constraint'} olur; DB yeniden açıldığında records içinde yeni alan değeri yoktur. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Uygulamadan sonra aynı test aynı komutla geçer. Native olarak zaten çalışan bir davranış için RED üretilmez."
+    },
+    "rollback": "Yalnızca sahip olunan tsx ve planlanan test geri alınır. Yerel test DB'si silinir. Production ve sunucu tarafında hiçbir değişiklik yoktur."
+  },
+  "remainingGaps": [
+    "Sunucu idempotency'si: v1 create_doc tekrar denemede çift kayıt üretebilir. opId'nin nerede saklanacağı karara bağlanmadı (ince whitelisted method; ignore_permissions kullanılmaz).",
+    "Çakışma: baseModified ile native check_if_latest/modified davranışı yerel v17'de doğrulanmadı. İki cihaz çakışmasında çözüm arayüzü yok.",
+    "Outbox boşaltma, yeniden bağlanma, 200'lük toplu sınır ve sync-receipt eşlemesi tanımlanmadı.",
+    "Yerel şifreleme/anahtar adaptörü, SQLite (Tauri/Capacitor) portu, şema göçü ve silme sözleşmesi yok.",
+    "Submit/cancel/delete işlemlerinin kuyruğa alınması, token süresi dolması, izin iptali ve tenant değişimi politikası yok. Keycloak kapsam dışı (not_run).",
+    "O0-O3 planı pakette yok."
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "channels-15": "mvp",
+    "channels-7": "mvp"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

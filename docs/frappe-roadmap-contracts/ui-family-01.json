@@ -1,0 +1,146 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "ui-family-01",
+  "canonicalTaskIds": [
+    "ui-family-01--implementation",
+    "ui-family-01--implementation-mvp"
+  ],
+  "requirementIds": ["shell-10", "channels-4", "channels-5", "channels-6"],
+  "stage": "poc",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "Mevcut genui-saas-panel tema kaynağı, ApplicationShell ve kalan UI tüketicileri için tek token kaynağı olarak yeniden kullanılır; yeni shell/tema kaynağı yazılmaz",
+    "trigger": "Bir ui-family-01 tüketicisi (kabuk veya kalan UI ailesi) AntD bileşeni render eder.",
+    "expected": "Tüketici yalnız buildTheme(mode) ve interactionCssTokens kullanır: Outfit ilk sırada, fontSize 14 ve --nx-font-min 14px, simetrik Cubic cubic-bezier(0.65, 0, 0.35, 1) ve pozitif 0.16s, lineWidthFocus 0 ile çevrelemeyen tek alt çizgi odak, Input sınırı >=3:1. 320 px testi kullanıcı tarafından mevcut olarak onaylandı; test yolu bu pakette sağlanmadı.",
+    "denied": "İkinci ThemeConfig/ConfigProvider, Espresso --focus-* halka veya 11-13px tokenlarının kopyalanması, bileşen içi sabit değer ve AntD varsayılanına karşı üretilmiş sahte RED."
+  },
+  "reuse": {
+    "mechanism": "reuse_existing: genui-saas-panel src/theme.ts ve src/interactionTokens.ts zaten AntD6 ThemeConfig ile CSS adapter tokenlarını sağlıyor. Yeni kaynak, config veya adapter gerekmiyor. Espresso yalnız karşı örnek; Vue fieldtype ve GenUI registry kapsam dışı.",
+    "evidence": [
+      {
+        "path": "src/theme.ts",
+        "line": 20,
+        "quote": "  fontSize: 14,",
+        "repository": "genui-saas-panel@6ea301c"
+      },
+      {
+        "path": "src/theme.ts",
+        "line": 24,
+        "quote": "  lineWidthFocus: 0,",
+        "repository": "genui-saas-panel@6ea301c"
+      },
+      {
+        "path": "src/theme.ts",
+        "line": 112,
+        "quote": "      // Unfocused functional boundary ≥3:1 on light and dark surfaces; focus keeps the single underline.",
+        "repository": "genui-saas-panel@6ea301c"
+      },
+      {
+        "path": "src/interactionTokens.ts",
+        "line": 3,
+        "quote": " fontFamily: \"Outfit, 'Segoe UI', system-ui, -apple-system, sans-serif\",",
+        "repository": "genui-saas-panel@6ea301c"
+      },
+      {
+        "path": "src/interactionTokens.ts",
+        "line": 4,
+        "quote": " motionEasing: 'cubic-bezier(0.65, 0, 0.35, 1)',",
+        "repository": "genui-saas-panel@6ea301c"
+      },
+      {
+        "path": "src/interactionTokens.ts",
+        "line": 11,
+        "quote": " '--nx-font-min': '14px',",
+        "repository": "genui-saas-panel@6ea301c"
+      },
+      {
+        "path": "package.json",
+        "line": 31,
+        "quote": "    \"antd\": \"^6.6.5\",",
+        "repository": "genui-saas-panel@6ea301c"
+      },
+      {
+        "path": "frappe_provider/headless_provider/records.py",
+        "line": 55,
+        "quote": "\t\t\tfrappe.TimestampMismatchError,",
+        "repository": "genui-saas-panel@6ea301c"
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/ui-family-01.json",
+    "plannedProduction": [],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "src/theme.ts",
+      "src/interactionTokens.ts",
+      "frontend/packages/ui/src/index.ts",
+      "frontend/packages/ui/src/registry.ts"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "buildTheme(mode: 'light'|'dark'): ThemeConfig ve interactionCssTokens: Record<string,string>; uygulama kökü .nx-theme sınıfını taşır. Yeni prop veya alan yok.",
+    "output": "ThemeConfig (cssVar prefix nx, key nx-theme, hashed false). Sürüm: panel 1.0.0, antd aralığı ^6.6.5; lockfile çözümü bilinmiyor. Ayrı katalog sürümü yok.",
+    "authorization": "Yalnız UI teması; veri veya izin üretmez. Veri tüketicileri native cookie/CSRF ve records.py izinlerine bağlıdır; gizlenen UI izin sayılmaz.",
+    "persistence": "Yok. DocType, Document.save, hook veya DDL yok.",
+    "failure": "Tema bağlanmazsa tüketici AntD varsayılanına düşer; bu bir entegrasyon hatasıdır, yeni kaynak gerekçesi değildir. records.py TimestampMismatchError ve _forbidden yanıtlarının erişilebilir sunumu kalan iştir."
+  },
+  "development": {
+    "dependencies": [
+      "ui-family-01--contract",
+      "kernel-envelope--contract",
+      "api-middleware--contract",
+      "client-rule-parity--contract",
+      "local pilot: genui-saas-panel React19/AntD6/TanStack, Frappe17-dev suite.localhost"
+    ],
+    "admission": "Kalan bir tüketiciye geçmeden önce o tüketicinin panelde gerçekten eksik olduğu kaynak okunarak doğrulanmalı; varsa reuse edilir ve RED üretilmez. CSS adapter yolu, 320 test yolu, index.html viewport içeriği ve lockfile bu pakette yok: bilinmiyor. Remote baseline ve Suite HEAD bilinmiyor.",
+    "steps": [
+      "Şimdi kod değişikliği yok; sözleşme theme.ts ve interactionTokens.ts dosyalarını ui-family-01 token kaynağı olarak eşler.",
+      "Canonical owns yolları (frontend/packages/ui/src/components/ui-family-01/index.tsx, mvp.tsx) ile gerçek src/ düzeni arasındaki eşlemeyi Codex entegrasyonda karara bağlar; yeni dosya açılmaz.",
+      "Somut eksik tüketici bulunursa yalnız o tüketici aynı tokenları kullanır; tema genişletilmez."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Gelecek ve koşullu (channels-6/channels-5): kayıt formu save_record çağrısından TimestampMismatchError aldığında hata özeti role=alert ile ikon ve metin içerir, odak özete taşınır, metin >=14px olur.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: Gelecek ve koşullu (channels-6/channels-5): kayıt formu save_record çağrısından TimestampMismatchError aldığında hata özeti role=alert ile ikon ve metin içerir, odak özete taşınır, metin >=14px olur. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Aynı Playwright testi aynı test:e2e komutuyla tüketici uygulandıktan sonra geçer; Chromium dışı motorlar ayrı raporlanır."
+    },
+    "rollback": "Yalnız bu sözleşme dosyası yerelde geri alınır; kaynak, servis veya production değişikliği yok."
+  },
+  "remainingGaps": [
+    "shell-10: sürümlü onaylı katalog mevcut ui-provider-registry--implementation görevinde kalıyor; markalı Select'in bu temayı kullandığına dair kanıt sağlanmadı.",
+    "channels-4: 360/375/390, yatay telefon, %400 zoom, tablo kapsayıcısı içinde kaydırma ve panel viewport'unda user-scalable/maximum-scale bulunmaması doğrulanmadı (ui-family-09, ui-view-list).",
+    "channels-5: atlama bağlantısı, main landmark, TanStack route sonrası odak, role=status/alert ve axe kanıtı sağlanmadı.",
+    "channels-6: reduced-motion istisnası (CSS adapter sağlanmadı), runtime kontrast ölçümü, exc_type/_server_messages hatalarının alan veya özet odağına eşlenmesi ve HTML mesajların güvenli metne çevrilmesi eksik.",
+    "Mevcut pilot tüm UI ailesinin tamamlandığı anlamına gelmez; Firefox, WebKit, gerçek Safari ve bağımsız QA not_run."
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "shell-10": "poc",
+    "channels-4": "mvp",
+    "channels-5": "mvp",
+    "channels-6": "mvp"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

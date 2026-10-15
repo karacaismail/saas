@@ -1,0 +1,105 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "page-profile",
+  "canonicalTaskIds": ["page-profile--implementation"],
+  "requirementIds": ["shell-4"],
+  "stage": "mvp",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "Oturumdaki kullanıcı kendi User kaydındaki tek bir ürün tercihini okur ve kaydeder",
+    "trigger": "ProfilePage'de kullanıcı tercih değerini değiştirip Kaydet'e basar; istemci native REST ile kendi User kaydına yalnızca tercih alanını gönderir.",
+    "expected": "Değer, native Document.save ile oturumdaki kullanıcının User kaydında kalıcı olur. Sonraki okumada aynı değer ve güncel modified döner. Sayfa yenilendiğinde değer korunur.",
+    "denied": "Başka bir kullanıcının User kaydına yazma isteği native has_permission tarafından reddedilir ve hiçbir alan değişmez. Oturumsuz istek reddedilir. Keycloak'a ait alanlar (e-posta, ad) bu davranışın kapsamında değildir ve bu sayfadan gönderilmez."
+  },
+  "reuse": {
+    "mechanism": "Native kullanım: tercih alanı User DocType'ına native Custom Field olarak eklenir. Okuma ve yazma native REST resource API, Document.save ve User has_permission hook'u üzerinden yapılır. Yeni DocType, ORM, CRUD veya adaptör yazılmaz. suite.api.account.get_workspace yalnızca okuma örneğidir ve tercih yazma yolu olarak kullanılmaz; Suite HEAD bilinmiyor.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/hooks.py",
+        "line": 167,
+        "quote": "\"User\": \"frappe.core.doctype.user.user.has_permission\","
+      },
+      {
+        "path": "suite/frontend/src/shell/useWorkspace.ts",
+        "line": 25,
+        "quote": "createResource({ url: 'suite.api.account.get_workspace', auto: true, onSuccess: setWorkspace })"
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/page-profile.json",
+    "plannedProduction": [
+      "frontend/packages/ui/src/pages/page-profile/index.tsx"
+    ],
+    "plannedTestFile": "backend/saas_platform/saas_platform/tests/test_page_profile_preference.py",
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "backend/saas_platform/saas_platform/patches.txt",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/packages/ui/src/registry.ts"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "PUT /api/resource/User/{session_user} gövdesi: tek anahtar {<tercih_alani>: string}. Alan adı ve izin verilen değerler page-profile--contract'ta sabitlenir (öneri: Select, en fazla 140 karakter). Bunun dışındaki anahtarlar istemci tarafından gönderilmez. Kimlik doğrulama native cookie ve CSRF ile yapılır.",
+    "output": "Native resource yanıtındaki data içinden yalnızca name, <tercih_alani> ve modified kullanılır. Sürüm, Custom Field fixture'ının commit değeridir. Diğer User alanları sayfada gösterilmez.",
+    "authorization": "Yetki native User has_permission ile belirlenir: oturumdaki kullanıcı yalnızca kendi kaydını günceller, diğer kullanıcının kaydı reddedilir. Alan yazma izni Custom Field'ın permlevel değerine bağlıdır. Yerel kanıtta kapsam native site sınırıdır; tenant modeli seçilmemiştir. Self-update izninin gerçekten verildiği kaynakta doğrulanmamıştır ve bu durum RED adımında ölçülür.",
+    "persistence": "Native Document.save tek istek içinde transaction oluşturur ve validate/on_update hook'larını çalıştırır. Custom Field tabloya kolon ekler; DDL zamanlaması ve fixture'ın uygulanması integration sahibinin migrate adımına aittir. Bu sözleşme DDL garantisi vermez.",
+    "failure": "PermissionError (HTTP 403): istemci alanı eski değere döndürür ve AntD inline hata metni gösterir. ValidationError (geçersiz Select değeri): girilen değer korunur, alan hatası gösterilir. Eşzamanlı değişiklikte native modified çakışması olur: istemci kaydı yeniden okur ve kullanıcıya yeniden dener seçeneği sunar. 401 veya oturum yoksa kullanıcı oturum akışına yönlendirilir. Bu hatalar için tam HTTP kodları yerel çalıştırmada gözlenmeden kesin kabul edilmez."
+  },
+  "development": {
+    "dependencies": [
+      "page-profile--contract",
+      "kernel-envelope--contract",
+      "api-middleware--contract",
+      "client-rule-parity--contract",
+      "local pilot t08: existing one Data record read/update with native admin/reader scopes"
+    ],
+    "admission": "T-00 hedef baseline'ı ve R-00 yeniden kullanım eşlemesi gerekir; R-01 izinli veri tüketicisi için kullanılır. Yerel kanıt Frappe adf1fd0c ve suite.localhost üzerindedir; bu, uzak ürün baseline'ı değildir. Suite HEAD bilinmiyor. Keycloak not_run olduğu için yerel kanıtta yalnızca native cookie oturumu kullanılır.",
+    "steps": [
+      "page-profile--contract'ta tercih alanının adı ve seçenekleri sabitlenir.",
+      "Integration sahibi, User için tek bir Custom Field'ı fixture olarak ortak dosyalara ekler ve yerel sitede migrate eder.",
+      "ProfilePage mevcut React19, AntD6 ve TanStack tüketicisiyle native resource üzerinden okuma ve yazma yapar. UI kuralları: Outfit, en az 14px, 320 öncelikli, çevreleyen odak halkası yok, simetrik pozitif Cubic hareket, markalı AntD Select.",
+      "Planlanan tek test aynı komutla RED ve ardından GREEN olarak çalıştırılır."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Reader kullanıcı kendi User kaydına <tercih_alani> yazar ve yeniden okur; dönen değer gönderilen değere eşittir. Aynı testte ikinci kullanıcının bu kayda yazma girişimi PermissionError ile reddedilir ve değer değişmez.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: Reader kullanıcı kendi User kaydına <tercih_alani> yazar ve yeniden okur; dönen değer gönderilen değere eşittir. Aynı testte ikinci kullanıcının bu kayda yazma girişimi PermissionError ile reddedilir ve değer değişmez. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Fixture uygulandıktan sonra aynı test dosyası aynı bench run-tests komutuyla yerel sitede geçer. Komut ve çıktı kaydedilir."
+    },
+    "rollback": "Geri alma yalnızca yereldir: ProfilePage değişikliği ve Custom Field fixture girdisi geri alınır; yerel test sitesindeki Custom Field kaydı kaldırılır. Production yetkisi yoktur ve müşteri kaydı silinmez."
+  },
+  "remainingGaps": [
+    "Alan sahipliği tablosu karar bekliyor. Öneri: e-posta ve ad Keycloak'a ait, Frappe'de salt okunur; dil, saat dilimi ve avatar için sahip seçilmedi; ürün tercihi Frappe Custom Field'ında tutulur. Keycloak kararı dışlandığı için bu tablo onaylanmamıştır.",
+    "Keycloak'tan Frappe User'a provizyon/senkron yönü ve OIDC giriş yolu yerel kaynağa eşlenmedi. Bu ayrı bir bağımlılıktır; dağıtımın teknik sahibi Hüseyin Cengiz'dir.",
+    "Keycloak'a ait alanların Frappe'de salt okunur olmasını sağlayan kural (permlevel veya validate) tanımlanmadı.",
+    "Tenant kapsamı tanımsız; yerel kanıt yalnızca native site sınırına dayanır.",
+    "Kullanıcının kendi User kaydını güncelleme izni ve alan permlevel davranışı yerel çalıştırmada doğrulanmadı."
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "shell-4": "mvp"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

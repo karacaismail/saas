@@ -1,0 +1,129 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "server-backup",
+  "canonicalTaskIds": ["server-backup--implementation"],
+  "requirementIds": [
+    "backup-1",
+    "backup-2",
+    "backup-4",
+    "backup-5",
+    "backup-6"
+  ],
+  "stage": "mvp",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "Native yedek setinden secret içermeyen restore manifesti üretimi",
+    "trigger": "Yerel suite.localhost için native BackupGenerator ile DB, public/private dosya ve config yedeği alındıktan sonra manifest adaptörü bu set üzerinde çalıştırılır.",
+    "expected": "Manifest DB, public_files, private_files ve config olmak üzere dört artifact'i dosya adı, boyut, sha256 ve encrypted bilgisiyle listeler. Config bölümü yalnızca redakte edilmiş anahtar adlarını taşır. Şifreleme anahtarı için yalnızca configKey=backup_encryption_key ve operatörün verdiği opak keyRef bulunur.",
+    "denied": "backup_encryption_key ya da başka bir secret değeri manifestte kalırsa manifest yazılmaz ve çıkış kodu sıfırdan farklı olur. Eksik artifact varsa da manifest üretilmez."
+  },
+  "reuse": {
+    "mechanism": "Yedek üretimi native BackupGenerator ile, restore ve anahtar verme işi native bench restore ile yapılır. Bunlar yeniden yazılmaz. Gözlenen tek eksik, manifest ve redaksiyon kuralıdır. Bu eksik için en küçük adaptör eklenir. Yeni DocType, hook, queue ya da scheduler eklenmez.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/utils/backups.py",
+        "line": 34,
+        "quote": "BACKUP_ENCRYPTION_CONFIG_KEY = \"backup_encryption_key\""
+      },
+      {
+        "path": "frappe/frappe/utils/backups.py",
+        "line": 72,
+        "quote": "backup_path_private_files=None,"
+      },
+      {
+        "path": "frappe/frappe/utils/backups.py",
+        "line": 77,
+        "quote": "backup_path_conf=None,"
+      },
+      {
+        "path": "frappe/frappe/commands/site.py",
+        "line": 197,
+        "quote": "envvar=\"FRAPPE_BACKUP_ENCRYPTION_KEY\","
+      },
+      {
+        "path": "frappe/frappe/commands/site.py",
+        "line": 202,
+        "quote": "\"--non-interactive\","
+      },
+      {
+        "path": "suite/pyproject.toml",
+        "line": 88,
+        "quote": "# standalone services, each deployed and run outside the Frappe site"
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/server-backup.json",
+    "plannedProduction": [
+      "operations/server-backup/server_backup_mvp.yml",
+      "operations/server-backup/build_restore_manifest.py (görevin owns listesinde yok; Codex sahiplik genişletmesini onaylamazsa uygulanmaz)"
+    ],
+    "plannedTestFile": "operations/server-backup/tests/test_restore_manifest.py",
+    "sharedIntegrationFiles": [
+      "integration/fragments/server-backup--integration.json"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "site: string (yerel pilotta suite.localhost). Native yedek setinin dört dosya yolu: db .sql.gz, public tar, private tar, site config yedeği; her biri mevcut ve okunabilir olmalı. keyRef: opak string, en fazla 128 karakter, anahtar değerinden türetilmez. redactKeys: yml içinde sabit liste (en az backup_encryption_key ve db_password).",
+    "output": "server-backup-manifest.v1 sürümlü JSON: site, createdAt (ISO-8601), artifacts[{kind, fileName, sizeBytes, sha256, encrypted}], config.redactedKeys[], keyRef{configKey, refId}. Mutlak sunucu yolu, env değeri ve secret değeri yer almaz.",
+    "authorization": "Yetki sınırı native site sınırıdır: adaptör yalnızca bench sahibi OS kullanıcısıyla, tek bir sitenin backup dizini üzerinde çalışır. HTTP/API ucu açılmaz ve Frappe rolü verilmez. Başka sitenin yolu verilirse istek reddedilir.",
+    "persistence": "Veritabanına yazılmaz, DDL değişikliği yapılmaz, Document.save ya da hook kullanılmaz. Manifest önce geçici dosyaya yazılır; redaksiyon denetimi geçerse atomik rename ile kalıcı hâle gelir. Denetim geçmezse geçici dosya silinir.",
+    "failure": "Hata durumları: MANIFEST_ARTIFACT_MISSING (exit 2), MANIFEST_SECRET_LEAK (exit 3), SITE_SCOPE_DENIED (exit 4). Tüketici olan prova veya operatör, sıfırdan farklı çıkış kodunda artifact'i yayınlamaz. Native restore tarafında, şifreli yedekte --non-interactive ile anahtar verilmezse native hata korunur ve sarmalanmaz."
+  },
+  "development": {
+    "dependencies": [
+      "server-backup--contract",
+      "yerel pilot: frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6, suite.localhost"
+    ],
+    "admission": "T-00 hedef baseline ve R-00 yeniden kullanım eşlemesi gerekir. Codex adaptör dosyası için sahiplik kararını vermelidir. Yerel v17 bench backup CLI bayraklarının BackupGenerator parametreleriyle eşlemesi bilinmiyor; doğrulanmalı. Suite HEAD ve uzak ürün baseline'ı bilinmiyor. Yerel kanıt, uzak baseline'ın kanıtı sayılmaz.",
+    "steps": [
+      "yml dosyasına manifest şemasını, redactKeys listesini ve dört artifact türünü yaz; zamanlama tanımı ekleme.",
+      "Adaptör native yedek setini okusun, sha256 değerlerini hesaplasın, config'i redakte etsin ve sızıntı denetimini yazmadan önce yapsın.",
+      "Yalnızca yerel suite.localhost üzerinde çalıştır; servis yeniden başlatma, cron ya da production adımı ekleme."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Native BackupGenerator ile yerel suite.localhost yedeği alınır. Geçici bir config kopyasına sentetik bir test anahtarı eklenir. Adaptör çalıştırılır ve şu doğrulanır: dört artifact sha256 değerleriyle eşleşiyor, manifest metninde sentetik anahtar değeri geçmiyor, keyRef mevcut.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: Native BackupGenerator ile yerel suite.localhost yedeği alınır. Geçici bir config kopyasına sentetik bir test anahtarı eklenir. Adaptör çalıştırılır ve şu doğrulanır: dört artifact sha256 değerleriyle eşleşiyor, manifest metninde sentetik anahtar değeri geçmiyor, keyRef mevcut. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Adaptör uygulandıktan sonra aynı test aynı komutla geçmelidir. Sızıntı enjekte edilen ek bir doğrulamada MANIFEST_SECRET_LEAK hatası alınmalıdır."
+    },
+    "rollback": "yml ve adaptör değişiklikleri yerelde geri alınır, yerel geçici manifest dosyaları silinir. Production'a dokunma yetkisi yoktur ve müşteri kaydı silinmez."
+  },
+  "remainingGaps": [
+    "backup-2: offsite hedef, değiştirilemez saklama, retention süresi, ayrı silme yetkisi ve anahtarın yedekten ayrı tutulacağı secret deposu kararsız. Sahibi Hüseyin Cengiz; vendor seçilmedi.",
+    "backup-4: izole prova sitesi, sayım ve dosya kontrol listesi ile alarm kanalı tanımsız. Prova işi pasif tanımlanabilir, etkinleştirmesi Hüseyin Cengiz'e aittir.",
+    "backup-5/backup-6: sayısal RPO/RTO değerleri ve onaylayan kişi yok; kritik akış probu ve ayağa kalkma sırası tanımsız.",
+    "backup-1: site dışı Suite servisleri (sfu, stt, recorder, collab), Stalwart ve Keycloak realm export'u bench yedeğinin kapsamında değil. Sahibi Hüseyin Cengiz; Keycloak karar beklediği için kapsam dışı. DNS bağımlılığı Asistan Hüseyin'e aittir.",
+    "Adaptör dosyası mevcut owns listesinin dışında; sahiplik kararı Codex entegrasyonuna aittir."
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "backup-1": "mvp",
+    "backup-2": "mvp",
+    "backup-4": "mvp",
+    "backup-5": "mvp",
+    "backup-6": "mvp"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

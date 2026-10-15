@@ -1,0 +1,98 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "alert-routing",
+  "canonicalTaskIds": ["alert-routing--implementation"],
+  "requirementIds": ["observability-7"],
+  "stage": "mvp",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "Recorder kapasite kullanimi esik asiminda tek, tekillestirilmis alarm uretir",
+    "trigger": "Pano ifadesinin instance filtresi kaldirilmis hali (100 * sum(recorder_active_jobs) / sum(recorder_capacity)) onerilen 90 degerine esit veya ustunde, onerilen 'for: 5m' suresi boyunca kalir. Esik ve sure Huseyin Cengiz onayina baglidir.",
+    "expected": "alertname=RecorderCapacityHigh adli tek bir firing alarm uretilir. sum() instance etiketini dusurdugu icin olusan tek seri tekillestirme saglar. Alarm etiketlerinde severity ve route anahtari, annotation'larda da runbook_url ve review_url yer tikutucularini tasir. Ifade esigin altina indiginde alarm resolved durumuna gecer.",
+    "denied": "Deger esigin altinda kalirsa, sure dolmadan duserse veya recorder_capacity sifir ya da yok olursa (NaN veya bos sonuc) alarm uretilmez. Bu durumda instance basina coklu alarm da olusmaz."
+  },
+  "reuse": {
+    "mechanism": "Varolan Prometheus metrikleri ve panodaki ayni ifade, sahip olunan YAML dosyasinda Prometheus alarm kurali olarak yeniden kullanilir. Frappe Notification, mevcut talimata gore operasyon vakasi icin yeterli degildir. Yeni DocType, ORM veya olay motoru kopyasi yoktur. Pano esikleri (70/90) gorsel renk esigidir, kanita gore alarm kurali degildir; 90 yalnizca hizalama onerisidir.",
+    "evidence": [
+      {
+        "path": "suite/suite/meet/observability/grafana/provisioning/dashboards/json/recorder-overview.json",
+        "line": 41,
+        "quote": "{ \"color\": \"yellow\", \"value\": 70 }, { \"color\": \"red\", \"value\": 90 }"
+      },
+      {
+        "path": "suite/suite/meet/observability/grafana/provisioning/dashboards/json/recorder-overview.json",
+        "line": 46,
+        "quote": "\"title\": \"Capacity Used\","
+      },
+      {
+        "path": "suite/suite/meet/recorder-server/src/config.ts",
+        "line": 85,
+        "quote": "const metricsToken = required(env, 'RECORDER_METRICS_TOKEN');"
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/alert-routing.json",
+    "plannedProduction": ["operations/alert-routing/alert_routing_mvp.yml"],
+    "plannedTestFile": "operations/alert-routing/alert_routing_mvp.test.yml (yalnizca plan; canonical owns listesinde yok, sahipligi Codex entegrasyon onayi gerektirir)",
+    "sharedIntegrationFiles": [
+      "integration/fragments/alert-routing--integration.json"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "Prometheus metrikleri recorder_active_jobs ve recorder_capacity (sayisal gauge; capacity 1..1024 araliginda, config.ts maxConcurrent). Kural dosyasinda tek group ve tek rule; Grafana $instance degiskeni kullanilmaz.",
+    "output": "Prometheus alarm nesnesi: labels {alertname, severity, route}, annotations {summary, runbook_url, review_url}. Sema surumu contract-alert-routing v1. Kisisel veri veya secret icermez.",
+    "authorization": "Metrik kazima, RECORDER_METRICS_TOKEN ile korunan uca yapilir. Token degeri repoya ve ciktiya yazilmaz, mevcut secret kaynagindan okunur. Frappe site/kullanici/kayit yetkisi bu davranista uygulanmaz. Tokensiz kazima reddedilir ve up=0 uretir (bu dogrulanmamistir).",
+    "persistence": "Frappe transaction veya hook yoktur. Kural dosyasi yapilandirmadir; alarm durumu Prometheus belleginde tutulur. DDL yoktur. Inceleme kaydi kalici depolama karari beklemektedir.",
+    "failure": "Kural sozdizimi hatasi 'promtool check rules' ile reddedilir. Metrik yoksa ifade bos sonuc verir ve alarm olusmaz; bu durumu ayri 'servis erisilemez' alarmi kapsamalidir (bu alarm acik bosluktur). Tuketici, NaN veya bos sonucu saglikli olarak yorumlamamalidir."
+  },
+  "development": {
+    "dependencies": ["alert-routing--contract"],
+    "admission": "T-00 hedef taban ve R-00 yeniden kullanim eslemesi gerekir. Suite kaynak HEAD'i bilinmiyor. Prometheus, Alertmanager ve promtool surumleri ile kurulu olup olmadiklari bilinmiyor. Yerel pilot (Frappe17-dev/suite.localhost) uzak urun tabanini kanitlamaz. Kurulum ve dogrulama sahibi Huseyin Cengiz'dir.",
+    "steps": [
+      "operations/alert-routing/alert_routing_mvp.yml icinde tek bir RecorderCapacityHigh kurali yazilir: pano ifadesi, instance filtresi olmadan ve esik 90 onerisiyle kullanilir.",
+      "Rota etiketi yer tutucu olarak birakilir; gercek alici veya vendor secilmez.",
+      "Kural, promtool check rules ile yerelde dogrulanir. Hicbir ortamda yukleme, yeniden baslatma veya zamanlama yapilmaz."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "promtool test rules senaryosu: recorder_active_jobs=19 ve recorder_capacity=20 (yuzde 95) 10 dakika boyunca surer. eval_time=6m aninda tam olarak bir RecorderCapacityHigh alarmi beklenir.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: promtool test rules senaryosu: recorder_active_jobs=19 ve recorder_capacity=20 (yuzde 95) 10 dakika boyunca surer. eval_time=6m aninda tam olarak bir RecorderCapacityHigh alarmi beklenir. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Kural eklendikten sonra ayni komut (promtool test rules operations/alert-routing/alert_routing_mvp.test.yml) basarili olur."
+    },
+    "rollback": "Yalnizca yerel kural dosyasi geri alinir. Uretim veya uzak ortam yetkisi yoktur; yukleme yapilmadigi icin servis etkisi olmaz."
+  },
+  "remainingGaps": [
+    "Servis erisilemez ve hata orani esigi alarmlari bu sozlesmede yoktur.",
+    "Gercek nobet rotasi, nobet cizelgesi ve gruplama (Alertmanager veya baska bir bilesen) secilmemistir; vendor karari kullaniciya aittir.",
+    "Cozum ve inceleme kaydinin yeri (harici arac mi, yetkili bir Frappe DocType'i mi) tek bir kararla sabitlenmemistir. Inceleme ekrani kapsam disindadir. Bu nedenle kabul olcutu karsilanmamistir.",
+    "Esik (90) ve 'for' suresi Huseyin Cengiz onayi bekler. Uzak ortama kurulum ve dogrulama Huseyin Cengiz'in bagimliligidir.",
+    "Metrik ucunun token reddi ve kazima davranisi calisma zamaninda dogrulanmamistir."
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "observability-7": "mvp"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

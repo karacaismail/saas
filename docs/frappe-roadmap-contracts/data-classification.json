@@ -1,0 +1,115 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "data-classification",
+  "canonicalTaskIds": ["data-classification--implementation"],
+  "requirementIds": ["governance-1"],
+  "stage": "mvp",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "Data Classification kaydı kaydedilirken hedef DocType alanı native meta ile doğrulanır",
+    "trigger": "Yetkili kullanıcı native Document.save (REST insert/update) ile hedef DocType, alan adı, sahip modül, amaç, saklama kuralı referansı ve kopya konumları içeren Data Classification kaydı kaydeder.",
+    "expected": "Controller validate() içinde frappe.get_meta(hedef DocType) okunur, alan varsa kayıt saklanır. Örnek Sheet Snapshot alanının sahibi, amacı, kopya konumları ve saklama kuralı native liste/okuma ile bulunur.",
+    "denied": "Meta'da olmayan alan adı ValidationError ile reddedilir, kayıt oluşmaz. Yetkisiz kullanıcı native PermissionError alır."
+  },
+  "reuse": {
+    "mechanism": "Native: schema görevinin DocType'ı, Document.save ve controller validate(). Hedef şema frappe.get_meta ile okunur. Ayrı envanter motoru, ORM kopyası veya yeni endpoint yok. Kopya konumu seçenekleri yalnız kaynakta görülen hedeflerle sınırlıdır: Sheet Op Log, Sheet Snapshot, Writer sqlite_search, mail tantivy bağımlılığı. Custom Field ve ayrı DocType kararı schema/contract görevlerindedir, bu sözleşme şemayı değiştirmez.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/api/v2.py",
+        "line": 247,
+        "quote": "return frappe.get_meta(doctype)"
+      },
+      {
+        "path": "suite/suite/sheets/permissions.py",
+        "line": 3,
+        "quote": "`Sheet Op Log` and `Sheet Snapshot` carry the full content of every workbook"
+      },
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 38,
+        "quote": "sqlite_search = [\"suite.writer.search.WriterSearch\"]"
+      },
+      {
+        "path": "suite/pyproject.toml",
+        "line": 27,
+        "quote": "\"tantivy~=0.26.0\","
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/data-classification.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/audit_governance/doctype/data_classification/data_classification.py"
+    ],
+    "plannedTestFile": "backend/saas_platform/saas_platform/audit_governance/doctype/data_classification/test_data_classification.py",
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/audit_governance/doctype/data_classification/data_classification.json",
+      "contracts/data-classification.v1.json",
+      "integration/fragments/data-classification--integration.json"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "Kesin alan adları data-classification--schema ve contract-data-classification v1 ile belirlenir, şu an bilinmiyor. Mantıksal alanlar: hedef DocType (Link, zorunlu), hedef alan adı (Data, en fazla 140, zorunlu), sahip modül, amaç, hassasiyet sınıfı (değer listesi bilinmiyor), saklama kuralı referansı (süre seçilmez), kopya konumları.",
+    "output": "Native v2 document yanıtı, native alan düzeyi okuma izinleriyle döner, sürüm contract-data-classification v1. Hedef kayıt verisi okunmaz ve kopyalanmaz, yalnız meta okunur.",
+    "authorization": "Yerel kanıt sınırı suite.localhost sitesidir. Yazma/okuma rolleri native-user-policy--contract ve schema DocType izinleriyle belirlenir, şu an bilinmiyor. Yetkisiz yazmada native PermissionError döner. v2 get_meta only_for('All') ile korunur.",
+    "persistence": "Tek native Document.save transaction'ı kullanılır. validate içinde throw olursa istek rollback olur, kısmi kayıt kalmaz. Bu görev hooks, patch veya DDL değiştirmez, DDL garantisi vermez.",
+    "failure": "Bilinmeyen hedef DocType için get_meta native hatası, meta'da olmayan alan için frappe.throw ValidationError döner. Türkçe mesaj alan adını içerir, kayıt verisi içermez. Mevcut React19/AntD6 tüketicisi bunu form alan hatası olarak gösterir. HTTP durum kodu yerelde gözlenecek."
+  },
+  "development": {
+    "dependencies": [
+      "data-classification--contract",
+      "data-classification--schema",
+      "kernel-envelope--contract",
+      "tenant-registry--contract",
+      "native-user-policy--contract",
+      "localPilot t08: native admin/reader kapsamları, frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6"
+    ],
+    "admission": "T-00 baseline ve R-00 eşlemesi tamamlanmış olmalı. data_classification.json yerel Frappe17-dev suite.localhost üzerinde migrate edilmiş ve Sheet Snapshot meta'sı okunabilir olmalı. Suite source HEAD ve uzak ürün baseline bilinmiyor. Yerel kanıt uzak kabul sayılmaz.",
+    "steps": [
+      "Schema görevindeki kesin alan adlarını oku",
+      "data_classification.py validate() içinde frappe.get_meta ile hedef alanı doğrula, yoksa frappe.throw kullan",
+      "Tek testi yaz, RED gözle, uygula, aynı komutla GREEN al"
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Sheet Snapshot için meta'da olmayan alan adıyla insert ValidationError vermeli ve kayıt oluşmamalı. Ardından get_meta ile okunan gerçek bir alanla insert başarılı olmalı ve frappe.get_all sahip, amaç, kopya konumu ve saklama kuralını döndürmeli.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: Sheet Snapshot için meta'da olmayan alan adıyla insert ValidationError vermeli ve kayıt oluşmamalı. Ardından get_meta ile okunan gerçek bir alanla insert başarılı olmalı ve frappe.get_all sahip, amaç, kopya konumu ve saklama kuralını döndürmeli. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Aynı test aynı komutla çalıştırılır. Planlanan komut: bench --site suite.localhost run-tests --module saas_platform.audit_governance.doctype.data_classification.test_data_classification. Komut entegrasyon sahibi tarafından doğrulanacak."
+    },
+    "rollback": "data_classification.py ve planlı test dosyası yerelde geri alınır. Veri silme, migrate geri alma veya production yetkisi yok."
+  },
+  "remainingGaps": [
+    "Hassasiyet taksonomisi değer listesi contract-data-classification kararıdır, burada seçilmedi",
+    "DocType meta'dan otomatik türetme kapsam dışıdır. Bu davranış yalnız insanın girdiği kaydı doğrular, onay akışı tanımsızdır",
+    "S3 ve SFU kopya konumları sağlanan kaynakta kanıtlanmadı, bilinmiyor",
+    "Saklama süreleri ve tenant global modeli seçilmedi",
+    "Envanter liste UI'si bu davranışta yok. Eklenirse Outfit 14px, 320-first, çevreleyen odak halkası olmadan, simetrik Cubic hareket ve mevcut AntD korunur",
+    "Uzak dağıtım ve migrate bağımlılığı Hüseyin Cengiz'e (teknik) aittir, zamanlama veya cron etkinleştirme yok"
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "governance-1": "mvp"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

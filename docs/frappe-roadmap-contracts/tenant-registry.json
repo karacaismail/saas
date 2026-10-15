@@ -1,0 +1,113 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "tenant-registry",
+  "canonicalTaskIds": [
+    "tenant-registry--implementation",
+    "tenant-registry--implementation-mvp"
+  ],
+  "requirementIds": ["tenant-1", "tenant-3", "tenant-5"],
+  "stage": "poc",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "Aynı idempotency_key ile tekrarlanan kiracı kaydı isteği ikinci Tenant Registry kaydı açmaz",
+    "trigger": "Yetkili kullanıcı control-plane sitesinde register(idempotency_key, site_name) çağrısını aynı anahtarla ikinci kez yapar.",
+    "expected": "İlk çağrı tek kayıt ekler ve replayed=false döner. İkinci çağrı yeni satır eklemez, aynı name değerini replayed=true ile döner. Site açılmaz; new-site/bench çağrılmaz.",
+    "denied": "Create izni olmayan kullanıcı PermissionError alır, kayıt yazılmaz. Aynı anahtar farklı site_name ile gelirse ValidationError döner, mevcut kayıt değişmez."
+  },
+  "reuse": {
+    "mechanism": "Önce native: schema görevinin Tenant Registry DocType'ı üzerinde unique idempotency_key alanı, Document.insert ve DocType rol izinleri. Native tekrar koruması yalnız site dizini adına bakıyor; istemci anahtarına göre mevcut kaydı döndürmüyor. En küçük adapter: sahip olunan controller modülünde tek whitelisted fonksiyon. Document.insert, has_permission ve unique hata sınıfı için kaynak alıntısı sağlanmadı; Frappe adf1fd0c üzerinde doğrulanana kadar unknown.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/installer.py",
+        "line": 66,
+        "quote": "if not force and os.path.exists(site):"
+      },
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 117,
+        "quote": "ignore_file_permissions = True"
+      },
+      {
+        "path": "suite/pyproject.toml",
+        "line": 88,
+        "quote": "# standalone services, each deployed and run outside the Frappe site"
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/tenant-registry.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/tenant_control/doctype/tenant_registry/tenant_registry.py"
+    ],
+    "plannedTestFile": "backend/saas_platform/saas_platform/tenant_control/doctype/tenant_registry/test_tenant_registry.py",
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/tenant_control/doctype/tenant_registry/tenant_registry.json",
+      "contracts/tenant-registry.v1.json",
+      "integration/fragments/tenant-registry--integration.json"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "POST /api/method/saas_platform.tenant_control.doctype.tenant_registry.tenant_registry.register. idempotency_key: str, 16-140, [A-Za-z0-9_-]. site_name: str, en fazla 140, küçük harf hostname. Başka alan kabul edilmez. Native cookie/CSRF oturumu; Keycloak not_run.",
+    "output": "{name, site_name, idempotency_key, replayed: bool, contractVersion: 'tenant-registry.v1'}. Yalnız çağıranın okuma izni olan alanlar döner; müşteri iş verisi yok.",
+    "authorization": "Yalnız control-plane sitesi: yerelde Frappe17-dev/suite.localhost; uzak control-plane kimliği unknown. Tenant Registry create izni yoksa PermissionError döner. Replay yanıtında mevcut kayıt için read izni ayrıca kontrol edilir. ignore_permissions kullanılmaz. Rol adı schema görevine bağlı, unknown.",
+    "persistence": "Tek istek transaction'ı: önce idempotency_key ile okunur, kayıt yoksa doc.insert() çağrılır. Eşzamanlı yarışta unique index ikinci insert'i reddeder; savepoint'e dönülür ve mevcut kayıt yeniden okunur. Index native DocType senkronuyla oluşur; DDL garantisi verilmez. Manuel commit yok; site/DB oluşturma bu davranışta yok.",
+    "failure": "PermissionError: tüketici yetki mesajı gösterir, tekrar denemez. ValidationError (format hatası veya anahtar-site çakışması): alan hatası gösterilir, tekrar denenmez. Ağ hatası veya zaman aşımında aynı anahtarla güvenle tekrar denenir. HTTP kodları yerelde doğrulanacak. Mevcut React19/AntD6/TanStack tüketicisi replayed=true yanıtını başarı sayar. Bu sözleşmede yeni UI yok; ileride UI eklenirse Outfit 14px, 320-first, çevreleyen odak halkası yasağı ve simetrik pozitif Cubic hareket kuralları korunur."
+  },
+  "development": {
+    "dependencies": [
+      "tenant-registry--contract",
+      "tenant-registry--schema",
+      "kernel-envelope--contract",
+      "local pilot: frappeHead adf1fd0c, schemaCommit f926e9b, recordCommit 6ea301c"
+    ],
+    "admission": "T-00 hedef baseline ve R-00 reuse eşlemesi hazır olmalı. Schema görevi idempotency_key (unique) ve site_name alanlarını teslim etmiş olmalı; saas_platform yerel test sitesine kurulu olmalı (kurulu olup olmadığı unknown). Yerel kanıt uzak ürün baseline'ı değildir; Suite HEAD unknown.",
+    "steps": [
+      "tenant_registry.py içine register fonksiyonu eklenir: girdi doğrulanır, create izni kontrol edilir, anahtarla okunur; eşleşen kayıt varsa site_name karşılaştırılıp kayıt döndürülür, yoksa insert yapılır; unique yarışında kayıt yeniden okunur.",
+      "Kayıt yalnız site referansı tutar; provisioning ve bench çağrısı yoktur.",
+      "Çıktı alanları contracts/tenant-registry.v1.json dosyasına entegrasyon sahibi tarafından eklenir."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Yerel test sitesinde Administrator aynı idempotency_key ile register fonksiyonunu iki kez çağırır. İki çağrı da aynı name değerini döndürür, ikinci çağrıda replayed=true olur ve o anahtar için kayıt sayısı 1 kalır.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: Yerel test sitesinde Administrator aynı idempotency_key ile register fonksiyonunu iki kez çağırır. İki çağrı da aynı name değerini döndürür, ikinci çağrıda replayed=true olur ve o anahtar için kayıt sayısı 1 kalır. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Aynı test aynı komutla geçer: bench --site <yerel test sitesi> run-tests, hedef test_tenant_registry modülü. Komut ve site Frappe17-dev üzerinde doğrulanacak."
+    },
+    "rollback": "Yalnız tenant_registry.py içindeki register fonksiyonu ve planlanan test geri alınır; yerel test kayıtları test transaction'ıyla silinir. Production, site, cron veya servis değişikliği yoktur."
+  },
+  "remainingGaps": [
+    "tenant-1: Varsayılan ve karma kiracılık modeli kararı yok. site=kiracı yalnız yerel kanıt varsayımıdır. Keycloak realm/organization eşlemesi bekleyen karar olduğu için kapsam dışıdır.",
+    "tenant-1/tenant-5: Site dışında çalışan sfu, recorder ve collab servisleri için kiracı doğrulaması yok.",
+    "tenant-3 (tenant-registry--implementation-mvp): Durum makinesi, aktivasyon adımı, kiracıya özel askıya alma, oturum ve API token iptali, _new_site sarmalama, veri teslim formatı, saklama kararı kaydı ve silme kanıtı yok. maintenance_mode Administrator dahil tüm istekleri durdurur; drop-site arşivi süresiz kalır. Saklama süresi bu sözleşmede seçilmez.",
+    "tenant-5: İzolasyon envanteri yok: Drive dosya izni (ignore_file_permissions), tantivy indeks yolu, S3 prefix, global Redis anahtarı, RQ job site bağlamı. Çapraz erişim reddi ayrı bir tek davranış olarak seçilmeli.",
+    "Frappe 17.0.0-dev sürüm eşlemesi, bench sarmalayıcısı, uzak ürün baseline'ı ve Suite HEAD unknown.",
+    "Control-plane sitesinin ileride kurulması ve deploy edilmesi: teknik sahip Huseyin Cengiz, DNS sahibi Asistan Huseyin. Bu sözleşme bunlar için yetki vermez."
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "tenant-1": "poc",
+    "tenant-3": "mvp",
+    "tenant-5": "poc"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

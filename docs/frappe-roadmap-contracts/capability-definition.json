@@ -1,0 +1,117 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "capability-definition",
+  "canonicalTaskIds": ["capability-definition--implementation"],
+  "requirementIds": ["modules-2", "modules-3", "modules-6"],
+  "stage": "poc",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "CapabilityDefinition kaydı, native hedefe çözümlenemeyen capability anahtarını reddeder",
+    "trigger": "Yetkili kullanıcı Document.insert/save ile capability_key alanı 'doctype:<DocType>:<ptype>' veya 'method:<dotted.path>' biçiminde bir CapabilityDefinition kaydeder.",
+    "expected": "Anahtar mevcut bir DocType ve geçerli bir native ptype'a ya da whitelisted bir metoda çözümlenirse kayıt aynı transaction içinde kaydedilir. Kayıt yalnızca tanımdır, çağırma yetkisi vermez.",
+    "denied": "Biçim geçersizse, DocType yoksa, ptype native listede değilse ya da metot whitelisted değilse validate frappe.ValidationError fırlatır ve kayıt yazılmaz. Aynı anahtar ikinci kez kaydedilirse native isimlendirme frappe.DuplicateEntryError fırlatır. Bu native davranış olduğundan RED kaynağı olarak kullanılamaz."
+  },
+  "reuse": {
+    "mechanism": "Native önce: capability yeni bir yetki motoru değildir. Whitelisted metot ya da DocType ile ptype ikilisinin tanımıdır. Çalışma zamanı reddi mevcut whitelist, DocType izni ve has_permission zincirinden gelir. Hook ve app metadata okumak için frappe.get_hooks kullanılır. Yeni kod yalnızca sahip olunan controller içindeki validate adımıdır. GenUI/model/UI capability registry kapsam dışıdır ve birleştirilmez.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 121,
+        "quote": "doc.is_whitelisted(method)"
+      },
+      {
+        "path": "frappe/frappe/custom/report/audit_system_hooks/audit_system_hooks.py",
+        "line": 52,
+        "quote": "if app_hooks := delist(frappe.get_hooks(hook, app_name=app)):"
+      },
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 16,
+        "quote": "add_to_apps_screen = ["
+      },
+      {
+        "path": "frappe/frappe/core/doctype/installed_applications/installed_applications.py",
+        "line": 189,
+        "quote": "if apps := frappe.get_hooks(\"required_apps\", app_name=current_app):"
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/capability-definition.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/capability_catalog/doctype/capability_definition/capability_definition.py"
+    ],
+    "plannedTestFile": "backend/saas_platform/saas_platform/capability_catalog/doctype/capability_definition/test_capability_definition.py",
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "backend/saas_platform/saas_platform/modules.txt",
+      "backend/saas_platform/saas_platform/patches.txt",
+      "integration/fragments/capability-definition--integration.json"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "capability_key: Data, zorunlu, en fazla 140 karakter, büyük/küçük harf duyarlı. Önek 'doctype:' ya da 'method:' olmalıdır. kind, target ve ptype alanları anahtardan türetilir ve salt okunurdur. Alan adları capability-definition--schema görevinin JSON'una bağlıdır ve şu an bilinmiyor.",
+    "output": "Native REST/Document yanıtı: name (=capability_key), kind, target, ptype, modified. Alan görünürlüğü DocType ve alan izinleriyle belirlenir. Sürüm bilgisi native modified ve Version kaydıdır, ayrı bir sürüm alanı eklenmez.",
+    "authorization": "Site sınırı native site'tır ve yalnız yerel kanıt içindir. Oluşturma ve yazma, schema görevindeki DocType izinleriyle sınırlı yönetici rolüne açıktır. Yetkisiz yazma isteğine native PermissionError (403) döner. Tanımı okuyabilmek çağırma yetkisi vermez. Capability çağrısı whitelist, DocType izni ve has_permission zinciri reddederse sunucuda reddedilir.",
+    "persistence": "Native Document.save transaction'ı kullanılır. Kontrol validate içinde yapılır ve hata durumunda istek rollback'ine güvenilir. Yeni tablo, patch ya da DDL garantisi yoktur. Hook kaydı eklenmez.",
+    "failure": "frappe.ValidationError, HTTP 417 ve _server_messages ile döner. Mevcut React19/AntD6/TanStack tüketicisi alan hatasını mevcut AntD form hatası olarak gösterir; yeniden deneme yapılmaz. frappe.DuplicateEntryError çakışma olarak gösterilir. PermissionError olduğunda yazma kontrolleri devre dışı bırakılır. UI için Outfit, en az 14px, 320-first yaklaşımı, çevreleyen odak halkası olmaması ve simetrik pozitif Cubic hareket kuralları korunur."
+  },
+  "development": {
+    "dependencies": [
+      "capability-definition--contract",
+      "capability-definition--schema",
+      "kernel-envelope--contract",
+      "tenant-registry--contract",
+      "native-user-policy--contract",
+      "local pilot frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6"
+    ],
+    "admission": "Önkoşullar: T-00 hedef baseline, R-00 reuse eşlemesi, CapabilityDefinition DocType'ının yerel suite.localhost üzerinde migrate edilmiş olması (schema görevi) ve saas_platform app'inin yerelde kurulu olması. App'in kurulu olup olmadığı bilinmiyor. Dotted-path metotlar için native whitelist yardımcısının adı yerel Frappe17-dev head'inde doğrulanmalıdır; şu an bilinmiyor. Remote ürün baseline'ı ve Suite HEAD bilinmiyor; yerel kanıt remote baseline sayılmaz.",
+    "steps": [
+      "capability_definition.py içine anahtarı ayrıştıran validate ekle.",
+      "doctype anahtarı için frappe.db.exists('DocType', target) ve native ptype kümesi kontrolü yap.",
+      "method anahtarı için native whitelist kontrolünü yeniden kullan, yeni bir yetki listesi yazma.",
+      "Hata için frappe.throw ile ValidationError fırlat, başka hook ekleme."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "capability_key='doctype:NoSuchDocTypeX:read' olan bir CapabilityDefinition insert edildiğinde frappe.ValidationError beklenir ve kayıt oluşmamalıdır.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: capability_key='doctype:NoSuchDocTypeX:read' olan bir CapabilityDefinition insert edildiğinde frappe.ValidationError beklenir ve kayıt oluşmamalıdır. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Aynı test, implementasyondan sonra yerel sitede aynı bench run-tests --module komutuyla geçmelidir. Test yalnızca gerçek implementasyonla birlikte yazılır."
+    },
+    "rollback": "Yerelde yalnız capability_definition.py ve test dosyasındaki değişiklik geri alınır. Veri ya da şema silinmez. Production izni yoktur. Deploy ve rollback bağımlılığının sahibi Hüseyin Cengiz'dir."
+  },
+  "remainingGaps": [
+    "modules-2: Ayrı bir module.manifest.yml yazma kaynağı önerilmez. Gerekirse hooks.py, pyproject [tool.bench.frappe-dependencies] ve required_apps kaynaklarından türetilen salt okunur bir görünüm olur. Şema ve gereklilik kararı hâlâ açıktır.",
+    "modules-3: Installed Applications, required_apps ve frappe-dependencies üzerinden salt okunur katalog projeksiyonu, sürüm uyum politikası, varsayılan olarak uninstall yerine devre dışı bırakma ve yedek/geri dönüş adımları tanımlı değil. Yedek ve rollback sahibi Hüseyin Cengiz'dir. Suite monolitik olduğu için ürün bazında app kurulumu yapılamaz.",
+    "modules-6: Headless ekran kaydı ve UI provider gösterimi ui-provider-registry--implementation ile ui-provider-permission--implementation görevlerinde kalır. Olay kaydı kapsanmadı. Kiracı kapsamı tenant-registry kararına bağlıdır.",
+    "Yerel app kurulumu, DocType alanları ve native ptype sabiti doğrulanmadı."
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "modules-2": "poc",
+    "modules-3": "poc",
+    "modules-6": "poc"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

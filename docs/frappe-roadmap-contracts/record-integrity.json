@@ -1,0 +1,141 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "record-integrity",
+  "canonicalTaskIds": [
+    "record-integrity--implementation",
+    "record-integrity--implementation-mvp"
+  ],
+  "requirementIds": ["integrity-1", "integrity-4", "integrity-5"],
+  "stage": "poc",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "Stale hatasından sonra güncel kayıt ile taslağın salt okunur karşılaştırması",
+    "trigger": "RecordWorkspace kaydı mevcut save_record çağrısından FrappeError code='stale' alır; request.version ve scope güncel.",
+    "expected": "İstemci mevcut read_record ile tek GET yapar; 'Güncel kayıt ile taslağınız' bölümünde her kaydedilmemiş alan için güncel değer ve taslak değeri alt alta, salt okunur gösterilir. edits, draft.baseModified ve recordKey önbelleği değişmez; girdi ve odak korunur.",
+    "denied": "Otomatik tekrar, baseModified yükseltme, üzerine yazma, birleştirme ve taslak silme yok. Yeniden Kaydet eski baseModified ile gider ve native olarak yine reddedilir. Yeni zarf, HTTP statüsü veya backend yok."
+  },
+  "reuse": {
+    "mechanism": "Mevcut headless-metadata.v1: save_record bayat sürümü native FOR UPDATE altında TimestampMismatchError ile, bilinmeyen/yasak alanları api._forbidden ile reddediyor (yerel kapı 8/8). Önceki öneri (409/428, ayrı zarf, alanları yok sayma) hatalıydı, geri çekildi. Eksik yalnız istemci: mevcut onLoad taslağı siliyor (setEdits(null)); güncel değer taslak kaybolmadan görülemiyor. read_record, client.readRecord ve bindEnvelope yeniden kullanılır. records.py/RecordWorkspace satırları sağlanan içerikten sayıldı; kaynak runtime kanıtı değildir.",
+    "evidence": [
+      {
+        "path": "frappe_provider/headless_provider/records.py",
+        "line": 37,
+        "quote": "def save_record(doctype: str, name: str, base_modified: str, values: dict | str) -> dict[str, Any]:",
+        "repository": "genui-saas-panel@6ea301c"
+      },
+      {
+        "path": "frappe_provider/headless_provider/records.py",
+        "line": 51,
+        "quote": "api._forbidden(_(\"Yalnız düzenleme yetkiniz olan alanlar değiştirilebilir.\"))",
+        "repository": "genui-saas-panel@6ea301c"
+      },
+      {
+        "path": "frappe_provider/headless_provider/records.py",
+        "line": 52,
+        "quote": "if cstr(doc.modified) != modified:",
+        "repository": "genui-saas-panel@6ea301c"
+      },
+      {
+        "path": "frappe_provider/headless_provider/records.py",
+        "line": 28,
+        "quote": "def read_record(doctype: str, name: str) -> dict[str, Any]:",
+        "repository": "genui-saas-panel@6ea301c"
+      },
+      {
+        "path": "src/features/records/RecordWorkspace.tsx",
+        "line": 31,
+        "quote": "stale: 'Kayıt bu arada başka bir işlemle değişti. Kaydı yeniden yükleyip değişikliği tekrar uygulayın.',",
+        "repository": "genui-saas-panel@6ea301c"
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/record-integrity.json",
+    "plannedProduction": ["src/features/records/RecordWorkspace.tsx"],
+    "plannedTestFile": "tests/headless-schema.spec.ts",
+    "sharedIntegrationFiles": [
+      "src/features/records/RecordWorkspace.tsx",
+      "src/features/records/records.css",
+      "integration/fragments/record-integrity--integration.json"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "Koşul: saveMutation.error FrappeError, code==='stale', aktif lifecycle ve scope. Okuma: client.readRecord(doctype, name, {signal}) -> GET read_record (name ≤140). Anahtar ['records','compare',site,user,doctype,name,draft.baseModified]; retry:false, gcTime:0, staleTime:Infinity, focus/reconnect refetch ve polling yok.",
+    "output": "Mevcut RecordEnvelope {metadata, record{name,modified,values}, canWrite, writableFields}, bindEnvelope ile bağlı. Yalnız kaydedilmemiş yapılandırılmış alanlar: etiket, 'Güncel değer', 'Taslağınız'. Envelope'ta olmayan alan için yalnız 'Güncel değer görüntülenemiyor'.",
+    "authorization": "Native cookie/CSRF, suite.localhost site sınırı; read_record _require_user, izinli _snapshot, has_permission('read'), apply_fieldlevel_read_permissions. Auth kaybında mevcut dropPrivateState taslağı, karşılaştırmayı ve önbelleği temizler. Keycloak not_run.",
+    "persistence": "Yazma yok; yalnız GET. Transaction, hook, DDL yok. Taslak yalnız bellekte.",
+    "failure": "TimestampMismatchError'ın 'stale' koduna eşlemesi ve HTTP statüsü sağlanan kaynakta görünmüyor; client.ts okunur, değiştirilmez. Karşılaştırma okumasında auth kaybı -> dropPrivateState; diğer hata -> messageFor, taslak korunur, tekrar yok. stale metni 'Kaydı yükle taslağı siler' bilgisini içerecek şekilde güncellenir."
+  },
+  "development": {
+    "dependencies": [
+      "record-integrity--contract",
+      "kernel-envelope--contract",
+      "tenant-registry--contract",
+      "native-user-policy--contract",
+      "ui-family-40--implementation",
+      "local pilot recordCommit 6ea301c recordFullGate 8/8"
+    ],
+    "admission": "T-00 baseline ve R-00 eşlemesi. Yerel pilot Frappe17-dev adf1fd0c, suite.localhost; remote baseline ve Suite HEAD bilinmiyor. Planlanan dosyalar aktif kira değil; Codex tek entegrasyon sahibi.",
+    "steps": [
+      "client.ts stale eşlemesini oku.",
+      "Tek testi yaz, RED'i gör.",
+      "RecordWorkspace'e stale koşullu ayrı karşılaştırma useQuery'si ekle; recordKey, edits, baseModified'a dokunma.",
+      "h2 + dl salt okunur bölüm; mevcut AntD, nx-records sınıfları, Outfit, ≥14px, 320-first dikey akış, çevreleyen odak halkası yok, yeni hareket yok.",
+      "stale metnini güncelle; başarılı kayıt, açık yükleme, kimlik kaybı ve unmount mevcut lifecycle ile karşılaştırmayı kaldırır."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "conflict comparison reads the current native value without replacing or resending the draft",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: Stub FrappeClient: readRecord M1 base_notes='A'; kullanıcı 'B' yazıp kaydeder; saveRecord FrappeError code='stale' döner; ikinci readRecord M2 base_notes='C'. Beklenen: bölüm 'C' ve 'B' gösterir, input 'B', saveRecord 1, readRecord 2 çağrı, 1 alan kaydedilmedi. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Aynı komut: npm test -- src/features/records/RecordWorkspace.staleCompare.test.tsx; ayrıca typecheck ve lint."
+    },
+    "rollback": "RecordWorkspace.tsx, gerekirse records.css ve test dosyası yerelde geri alınır; backend değişmez. Production yetkisi yok."
+  },
+  "remainingGaps": [
+    "Kanonik görevin diğer gereksinimleri ve aşağıdaki kalan işler bu yerel dilimle DONE sayılmaz.",
+    "integrity-1: taslağı güncel sürüme bilinçli taşıma kararı tanımsız; karşılaştırma salt okunur.",
+    "integrity-1: db.set_value, client.set_value ve Suite save_doc (TimestampMismatchError yutuluyor) korumayı atlıyor; ui-provider-query--implementation bağımlılığı.",
+    "Kanonik görevin record_integrity_poc.py sahipliği bu davranış için gerekmiyor; uyumsuzluğu Codex çözer.",
+    "Chromium/Firefox/WebKit, 320..masaüstü, klavye ve bağımsız QA not_run.",
+    "integrity-4 (MVP): toplu güncelleme/submit sonucu, iptal, idempotency, dış etki telafisi, async eşik kararı açık; zamanlama aktiflenmez.",
+    "integrity-5 (MVP): ERPNext kurulumu ayrı karar, şimdi yok; kritik submittable DocType, ters kayıt ve gerekçe modeli açık.",
+    "Remote dağıtım yalnız bağımlılık; teknik sahip Hüseyin Cengiz."
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "integrity-1": "poc",
+    "integrity-4": "mvp",
+    "integrity-5": "mvp"
+  },
+  "implementationAdmission": {
+    "status": "LOCAL_DEFINED_SLICE_VERIFIED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  },
+  "localDeliveryProof": {
+    "repository": "/Users/w6x/Developer/genui-saas-panel",
+    "commit": "16b0224b1da739d8bab4676dfc3ff11bba776698",
+    "testFile": "tests/headless-schema.spec.ts",
+    "wholeFileGate": "10/10,49.0s",
+    "finalFocusedAfterMinorCopy": "1/1,6.7s",
+    "rootProof": "../frappe-roadmap-analysis.json executionBacklog.localDelivery",
+    "canonicalWholeTaskDone": false
+  }
+}

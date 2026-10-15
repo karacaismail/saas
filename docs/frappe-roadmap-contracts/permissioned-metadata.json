@@ -1,0 +1,130 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "permissioned-metadata",
+  "canonicalTaskIds": ["permissioned-metadata--implementation"],
+  "requirementIds": ["model-8"],
+  "stage": "poc",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "Okunamayan permlevel alanlari cikarilmis, surumlu DocType metadata projeksiyonu",
+    "trigger": "Oturum acmis kullanici sahip olunan whitelisted adapter metodunu GET ile doctype parametresiyle cagirir.",
+    "expected": "Kullanicinin DocType icin read izni varsa yalniz okuyabildigi permlevel alanlari, semantik tip ve iliski hedefi (Link options, Dynamic Link options alan adi, Table child DocType adi) ile meta surumu (meta.modified) doner. Desk frm/Client Script davranisi calistirilmaz, yanitta acikca not_executed olarak bildirilir.",
+    "denied": "DocType read izni yoksa 403 PermissionError doner; okunamayan permlevel alani yanitta adi ve etiketiyle bile yer almaz. Ham frappe.get_meta ciktisina geri dusulmez."
+  },
+  "reuse": {
+    "mechanism": "Native once: frappe.get_meta (onbellekli Meta) ve kayit okumada kullanilan native alan duzeyi izin mekanizmasi yeniden kullanilir; yeni izin motoru veya meta kopyasi yazilmaz. v2 get_meta yalniz only_for(All) kontrolu yapip tam meta dondugu ve v2 ic isleyisi kararsiz oldugu icin dogrudan baglanilmaz; sahip olunan dosyada en kucuk whitelisted projeksiyon adapteri gerekir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/api/v2.py",
+        "line": 246,
+        "quote": "frappe.only_for(\"All\")"
+      },
+      {
+        "path": "frappe/frappe/api/v2.py",
+        "line": 8,
+        "quote": "internal implementation can change without treating it as \"breaking change\"."
+      },
+      {
+        "path": "frappe/frappe/model/meta.py",
+        "line": 83,
+        "quote": "frappe.client_cache.get_value(f\"doctype_meta::{doctype}\")"
+      },
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 84,
+        "quote": "doc.apply_fieldlevel_read_permissions()"
+      },
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 102,
+        "quote": "doctype = field.options if field.fieldtype == \"Link\" else doc_dict.get(field.options)"
+      },
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 466,
+        "quote": "\"/api/\","
+      },
+      {
+        "path": "suite/pyproject.toml",
+        "line": 45,
+        "quote": "frappe = \">=16.0.0,<18.0.0\""
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/permissioned-metadata.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/adapters/api_boundary/permissioned_metadata_poc.py"
+    ],
+    "plannedTestFile": "backend/saas_platform/saas_platform/adapters/api_boundary/test_permissioned_metadata_poc.py",
+    "sharedIntegrationFiles": [
+      "integration/fragments/permissioned-metadata--integration.json"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "GET doctype: str (zorunlu, mevcut DocType adi, en fazla 140 karakter). Baska parametre kabul edilmez.",
+    "output": "{schemaVersion:'permissioned-metadata.poc.v1', doctype, metaVersion: meta.modified, frappeVersion: calisan surum, fields:[{fieldname, fieldtype, label, options, reqd, read_only, permlevel}], clientBehavior:'not_executed'}. Yalniz okunabilir permlevel alanlari; kernel-envelope sarmalamasi o sozlesme kesinlesince uygulanir.",
+    "authorization": "Native site oturumu (cookie/CSRF). Once DocType read izni native has_permission ile kontrol edilir, ret durumunda PermissionError. Alan suzme native permlevel erisimiyle yapilir; v17 meta tarafi yardimci adi/imzasi bu kanitta gorulmedi (unknown), admission'da kaynaktan dogrulanir. Tenant kapsami: native site siniri, yalniz yerel kanit.",
+    "persistence": "Salt okunur; DB yazimi, transaction, hook, DDL yok. Projeksiyon onbelleklenmez; native meta onbellegi yalniz DocType adiyla anahtarlandigi icin kullaniciya ozel sonuc her istekte hesaplanir.",
+    "failure": "Bilinmeyen DocType: DoesNotExistError (404). Read izni yok: PermissionError (403). Tuketici her iki durumda guvenli mesaj gosterir, ham meta veya onceki kullanicinin onbellegini kullanmaz; metaVersion degisirse eski yaniti atar."
+  },
+  "development": {
+    "dependencies": [
+      "permissioned-metadata--contract",
+      "kernel-envelope--contract",
+      "device-grant--contract",
+      "native-user-policy--contract",
+      "capability-definition--contract",
+      "native-doctype-schema--contract",
+      "local pilot: schemaCommit f926e9b (11 alan tipi), recordCommit 6ea301c, frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6"
+    ],
+    "admission": "T-00 hedef surum ve R-00 yeniden kullanim eslemesi gerekli. v17 kaynagindan meta permlevel suzme yardimcisi dogrulanir; suite DENIED_WILDCARD_PATHS '/api/' girdisinin /api/method/ cagrisini engelleyip engellemedigi unknown, suite.localhost uzerinde kanitlanir. Yerel kanit uzak urun tabani degildir; suiteSourceHead unknown.",
+    "steps": [
+      "Sahip olunan dosyaya tek whitelisted GET metodu ekle: read izni kontrolu, frappe.get_meta, okunabilir permlevel alanlarina suzme, sozlesme ciktisi.",
+      "Fixture: yerel pilot DocType'ta permlevel 1 alani ve yalniz permlevel 0 read yetkili okuyucu rolu; kurulus yontemi DDL gerektirmeyecek sekilde admission'da secilir.",
+      "Entegrasyon fragmanini Codex'e birak; hooks.py ve frontend dosyalarina dokunma."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Okuyucu kullanici permlevel 1 alani olan pilot DocType icin adapteri cagirir; yanit permlevel 0 alanlarini ve metaVersion'i icerir, permlevel 1 alanini icermez.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: Okuyucu kullanici permlevel 1 alani olan pilot DocType icin adapteri cagirir; yanit permlevel 0 alanlarini ve metaVersion'i icerir, permlevel 1 alanini icermez. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Ayni test ayni komutla (bench --site suite.localhost run-tests --module saas_platform.adapters.api_boundary.test_permissioned_metadata_poc, planli) uygulama sonrasi gecer. Native calisan davranis icin sahte RED uretilmez."
+    },
+    "rollback": "Yalniz sahip olunan adapter ve test dosyasini yerelde geri al; hook, sema veya production degisikligi yok."
+  },
+  "remainingGaps": [
+    "v17 meta permlevel yardimcisinin adi/imzasi unknown.",
+    "suite DENIED_WILDCARD_PATHS etkisi unknown.",
+    "Child table meta genisletmesi, ana kayit iliskisi ve v1 child silme TODO karsiligi bu davranis disinda.",
+    "Dynamic Link hedefinin kayit verisinden cozulmesi ve gecersiz referansin kaydetmede reddi kapsam disi.",
+    "Kullanici/site/rol baglamli onbellek anahtari tuketicide (TanStack) tanimlanacak; ETag yok.",
+    "kernel-envelope sarmalamasi ve tenant global modeli bekleyen kararlara bagli.",
+    "Para/tarih semantik eslemesi ve renderer UI isi ui-family/ui-provider gorevlerinde; UI kararlari Outfit 14px, 320-first, cevreleyen odak halkasi yok, simetrik Cubic hareket korunur."
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "model-8": "poc"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}

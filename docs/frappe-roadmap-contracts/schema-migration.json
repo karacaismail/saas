@@ -1,0 +1,122 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "schema-migration",
+  "canonicalTaskIds": ["schema-migration--implementation"],
+  "requirementIds": ["releases-4", "releases-7"],
+  "stage": "mvp",
+  "deliveryKind": "instruction_contract",
+  "behavior": {
+    "title": "Sheets migrate_blob_to_cells patch'i bos olmayan blob'u Sheet Cell satirlarina donusturur; donusturemezse hatayi yutmaz, migrate'i durdurur",
+    "trigger": "Yerel tek kullanimlik suite.localhost test kopyasinda, eski blob'u bos olmayan bir Sheet belgesi uzerinde patch'in belge bazli donusum fonksiyonunun calistirilmasi (fonksiyon adi saglanan alintida yok, unknown)",
+    "expected": "Ornek blob sheet.sheets = {Sheet1: {A1: '5'}} icin tam bir Sheet Cell satiri olusur: parent_sheet=belge adi, sheet_name=Sheet1, cell_id=A1, raw_value='5'. Bos hucreler saklanmaz.",
+    "denied": "Donusum hatasi (or. NameError) loglanip patch basarili sayilmaz. Hata patch_handler.run_all'a kadar yukselir; --skip-failing kullanilmaz ve migrate fazi geri alinir."
+  },
+  "reuse": {
+    "mechanism": "Native: bench migrate, patches.txt, PatchType bolumleri, Patch Log ve atomic faz commit'i aynen kullanilir. Yeni motor, ORM veya olay katmani yoktur. Tek kod degisikligi, mevcut Suite patch'indeki tanimsiz adin yerel 'sheets' degiskeniyle (satir 57) degistirilmesi ve hatanin yukari tasinmasidir.",
+    "evidence": [
+      {
+        "path": "suite/suite/sheets/patches/v0_1/migrate_blob_to_cells.py",
+        "line": 66,
+        "quote": "for sheet_name, cells in suite.sheets.items():"
+      },
+      {
+        "path": "suite/suite/sheets/patches/v0_1/migrate_blob_to_cells.py",
+        "line": 6,
+        "quote": "parent doc as a rollback artifact"
+      },
+      {
+        "path": "frappe/frappe/migrate.py",
+        "line": 142,
+        "quote": "frappe.modules.patch_handler.run_all("
+      },
+      {
+        "path": "frappe/frappe/migrate.py",
+        "line": 47,
+        "quote": "def atomic(method):"
+      },
+      {
+        "path": "frappe/frappe/modules/patch_handler.py",
+        "line": 48,
+        "quote": "logs a failing patch in Patch Log with"
+      }
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/schema-migration.json",
+    "plannedProduction": [
+      "operations/schema-migration/schema_migration_mvp.yml"
+    ],
+    "plannedTestFile": "suite/suite/sheets/tests/test_migrate_blob_to_cells.py (yalniz planli; dizin varligi unknown; Suite kaynagi gorev owns disinda, entegrasyon kabulu gerekir)",
+    "sharedIntegrationFiles": [
+      "suite/suite/sheets/patches/v0_1/migrate_blob_to_cells.py",
+      "suite/suite/hooks.py",
+      "backend/saas_platform/saas_platform/patches.txt",
+      "integration/fragments/schema-migration--integration.json"
+    ],
+    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+  },
+  "contract": {
+    "input": "Sheet belge adi (string) ve parse edilmis blob: sheet.sheets (sheet_name -> {cell_id: raw}), formats, merge, view, sheet.current (varsayilan Sheet1). Ek boyut limiti tanimlanmadi.",
+    "output": "Sheet Cell satirlari: name, parent_sheet, sheet_name, cell_id, raw_value, format_json. API surumu degismez; okuyan tuketiciler native DocType izinleriyle (R-01) okur.",
+    "authorization": "Bench CLI uzerinden site seviyesinde Administrator baglaminda calisir. Kullanici, kayit veya alan izni uygulanmaz (bulk_insert). Web istegiyle tetiklenmez; HTTP yuzeyi yoktur.",
+    "persistence": "frappe.db.bulk_insert, run_schema_updates'in @atomic faz transaction'i icinde calisir; hata olursa frappe.db.rollback cagrilir. DDL ve dosya etkilerinin atomik geri alindigi garanti edilmez. Testte Frappe test sinifinin rollback'i kullanilir.",
+    "failure": "Python istisnasi yukselir, run_all icinde skip_failing=False oldugu icin tekrar firlatilir ve migrate durur. Runbook, Patch Log'da skipped=1 veya migrate penceresinde yeni Error Log kaydi gorurse surumu basarisiz sayar."
+  },
+  "development": {
+    "dependencies": [
+      "schema-migration--contract",
+      "yerel pilot: frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6, suite.localhost"
+    ],
+    "admission": "T-00 hedef temel cizgisi ve R-00 eslemesi gerekir. Suite kaynak HEAD'i unknown; Suite dosyasi degisikligini entegrasyon sahibi (Codex) kabul etmeli. Test sitesinde allow_tests'in acik olup olmadigi unknown; acik degilse site konfigurasyonu degistirilmez, bagimlilik olarak bildirilir. Yerel kanit uzak urun temel cizgisi degildir.",
+    "steps": [
+      "Planli testi yaz ve mevcut kodda calistir (RED veya bulgu)",
+      "Satir 66'da suite.sheets yerine yerel sheets degiskenini kullan; satir bazli hatayi yutan blok varsa (saglanan alintida gorunmuyor, unknown) istisnayi yukari tasi",
+      "Ayni testi tekrar calistir (GREEN)",
+      "Runbook YAML'a yaz: once kontrol, --skip-failing yasagi, migrate sonrasi Patch Log/Error Log kontrolu ve bu patch icin 'restore gerekli' etiketi"
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Bir Sheet belgesine blob olarak Sheet1/A1='5' verilir, donusum fonksiyonu cagrilir ve tek bir Sheet Cell satiri (Sheet1, A1, '5') olusmasi beklenir.",
+      "red": "Çalışan test koşucusu ve geçerli yerel fixture üzerinden aşağıdaki tek davranış assertion’ı eksik uygulama nedeniyle başarısız olmalı: Bir Sheet belgesine blob olarak Sheet1/A1='5' verilir, donusum fonksiyonu cagrilir ve tek bir Sheet Cell satiri (Sheet1, A1, '5') olusmasi beklenir. Test toplama/import/kurulum/bağlantı hatası davranış RED’i değildir. Yalnız RED almak için geçici boş uygulama veya çalışan native kontrolü bozan değişiklik yazılmaz. İlk kontrol zaten geçerse native yeniden kullanım kanıtı kaydedilir; yeni kod/test üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Ayni komut (bench --site suite.localhost run-tests --module suite.sheets.tests.test_migrate_blob_to_cells) duzeltme sonrasi gecer."
+    },
+    "rollback": "Yerelde tek satirlik patch degisikligi ve test dosyasi geri alinir. Uretim yetkisi yoktur. Patch daha once bir sitede calistiysa geri donus uygulama rollback'iyle olmaz, yalniz restore ile yapilir."
+  },
+  "remainingGaps": [
+    "pre/post_model_sync ve post_fixture_sync bolum kurali yalniz runbook'ta belgelenir; otomatik kontrol yoktur",
+    "never_skip_patches'e kritik patch kaydi suite hooks.py uzerinden yapilir ve entegrasyon sahibine aittir; hangi patch'lerin kritik oldugu karari acik",
+    "Drive integrate_with_framework hatalari yalniz print ediliyor; satir hatasi esigi politikasi tanimsiz",
+    "Sieve rebuild enqueue isinin tamamlanma takibi yok; zamanlama veya otomasyon etkinlestirilmez",
+    "v16->v17 yukseltme yolu ve frappe>=16,<18 test matrisi eslenmedi",
+    "Geri alinamayan patch'ler (create_suite_user_role ham UPDATE, migrate_cache_to_mail_namespace rmtree) yalniz restore ile geri donulebilir olarak etiketlenmeli",
+    "Restore uyumlulugu ve RPO/RTO degerleri kullanici karari bekliyor; bu sozlesme deger secmez",
+    "Staging kopyasi, yedek ve kapasite provasi: teknik sahip Huseyin Cengiz; not_run",
+    "Fazlar arasinda DDL ve dosya etkilerinin atomikligi kanitlanmadi"
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "sourceStages": {
+    "releases-4": "mvp",
+    "releases-7": "mvp"
+  },
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "reason": "Bu dosya tek davranışın yönergesidir; development.admission ve mevcut kanonik bağımlılıklar doğrulanmadan üretim yazımı açılmaz.",
+    "installedApps": ["frappe", "suite"],
+    "uninstalledTemplateApp": "saas_platform is not installed; canonical template paths are not a deployed app or installation instruction.",
+    "currentTargets": {
+      "providerRepository": "/Users/w6x/Developer/genui-saas-panel/frappe_provider/headless_provider",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel"
+    },
+    "localPilotBoundary": "headless-metadata.v1: schema creation11types; existing records read/update only Data; not generic child/Table/delete/submit/API-v2 support.",
+    "sharedFilesOwner": "Codex serial integration; planned paths are not active production/test leases",
+    "constraints": [
+      "no new apps, ERPNext/HRMS, engine/ORM copies or GenUI core",
+      "no service restart, cron/automation activation, production or customer-data changes",
+      "permissioned metadata only; raw get_meta is not an allowed projection",
+      "native field/record checks and strict unknown-field rejection; no ignore_permissions",
+      "same single genuine RED/GREEN when actual implementation begins; no test wave"
+    ]
+  }
+}
