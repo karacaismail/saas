@@ -25,11 +25,11 @@ Asıl eksik, yeni başlık sayısından çok mevcut başlıkları uygulanabilir 
 
 Bu, T-00 için somut bir **yerel inceleme baseline’ıdır**. Yerel kurulumun hedef SaaS ürün deposu olduğuna, uzak siteyle eşleştiğine veya Suite build zincirinin yeniden üretilebilirliğine karar verilmiş değildir. Kanonik ürün `baseCommit` alanına planlama deposunun commit’i yazılmayacak. T-00 ve R-00/R-01/R-02 kaynak bulgusu nedeniyle otomatik DONE olmayacak.
 
-## İnceleme yöntemi ve sayıların anlamı
+## İlk tur inceleme yöntemi ve tarihsel sayılar
 
 Yerel uygulama kaynaklarından 4263 metin dosyalı, site ayarlarını, secretları ve müşteri verilerini içermeyen salt okunur bir snapshot alındı. 49 alt başlık, 387 gereksinim kimliği tam birer kez ele alınacak şekilde 72 bağımsız kaynak paketine ayrıldı. Claude CLI `claude-opus-5-5`, high ile 72 kaynak incelemesi; Codex CLI `gpt-6-astra`, high ile üç yeni metadata ihtiyacının bağımsız incelemesi yapıldı. Gerçek eşzamanlı CLI süreç zirvesi 73 olarak ölçüldü. Sonlu işler tamamlandığında sayıyı doldurmak için yeni iş üretilmedi.
 
-İnceleyicilere ilgili kaynak kesitleri verildi; her dosyanın bütün yolları, tüm kurulu ayarlar ve müşteri verisi taranmış değildir. Görülmeyen yetenek `unknown` kalır. 387 maddenin kimlik kapsamı ve kaynak alıntılarının dosya/satır bağları kontrol edildi; yedi komşu satır işaretçisi düzeltildi. Alıntının bulunması, çıkarımın veya davranışın çalıştığını tek başına kanıtlamaz. Aşağıdaki sınıflar kaynak incelemesine dayalı gerekçeli **ön değerlendirmedir**; kanonik kabul durumlarını değiştirmez.
+İnceleyicilere ilgili kaynak kesitleri verildi; her dosyanın bütün yolları, tüm kurulu ayarlar ve müşteri verisi taranmış değildir. Görülmeyen yetenek `unknown` kalır. 387 maddenin kimlik kapsamı ve kaynak alıntılarının dosya/satır bağları kontrol edildi; yedi komşu satır işaretçisi düzeltildi. Alıntının bulunması, çıkarımın veya davranışın çalıştığını tek başına kanıtlamaz. Aşağıdaki tablo ilk turun tarihsel **ön değerlendirmesidir**; güncel 64 madde sonucu sonraki bölümde yer alır. Kanonik kabul durumlarını değiştirmez.
 
 | Değerlendirme                      | Madde sayısı | Anlamı                                                                                                                      |
 | ---------------------------------- | -----------: | --------------------------------------------------------------------------------------------------------------------------- |
@@ -39,9 +39,139 @@ Yerel uygulama kaynaklarından 4263 metin dosyalı, site ayarlarını, secretlar
 | Yerel kaynakta kısmi temel         |          287 | İlgili yapı taşları görülüyor; istenen uçtan uca davranış kanıtlanmış değil.                                                |
 | Yerel kaynakta doğrudan temel      |            7 | İlgili native mekanizma doğrudan görülüyor; ürünün tamamlandığı anlamına gelmez.                                            |
 | Yerel kurulu app kapsamı dışında   |           29 | Bu sitede kurulu olmayan uygulama yeteneğine dayanıyor; tüm Frappe ekosisteminde yok demek değildir.                        |
-| Kaynak kesitleriyle belirlenemeyen |           64 | Daha dar, hedefli kaynak/ayar kanıtı gerekiyor; yok veya hazır diye işaretlenmez.                                           |
+| Kaynak kesitleriyle belirlenemeyen |           64 | İlk turda belirlenemedi; ikinci turda bu 64 maddenin tamamı aşağıdaki üç durumdan birine bağlandı.                          |
 
 İlk üç satır yönergeyi, son dört satır yerel kaynak temelini değerlendirir; birbirine eklenmez ve tamamlanma yüzdesine çevrilmez. İşlevsel headless kabul: **not_run**. Yeni test dosyası/senaryosu: **0**. Belgeye yapay TDD başarısızlığı üretilmedi.
+
+## İkinci tur: 64 belirsiz maddenin güncel kaynak sonucu
+
+64 maddenin tamamı yeniden incelendi: **VAR 0, KISMİ 53, YOK 11**. Belirsiz veya `needs_review` kalan madde: **0**. Kurulu olmayan uygulamalara dayanan **29 madde** ayrıca “kurulu değil - karar gerekli” listesinde tutulur. Bu sayılar kaynak değerlendirmesidir; ürünün tamamlanma oranı değildir.
+
+Çalışan yerel bench içindeki Frappe ve Suite dizinlerinin 7.895 dosyalık güncel kopyası alındı. Yalnız `.git`, `node_modules`, Python bytecode/cache ve `.env` dosyaları dışarıda bırakıldı. DocType JSON/controller, hook, API, frontend, public kaynakları, fixture ve uygulama test kaynakları kopyada mevcuttur. Dosya envanteri, her satırın okunduğu anlamına gelmez; her maddede gerçek arama ve okuma kapsamı kayıtlıdır. Test kaynakları yalnız okundu; hiçbir test çalıştırılmadı.
+
+Madde başına bir Temporal workflow/activity ile **64 Claude Opus 5.5 high terminal ajanı gerçekten aynı anda çalıştı**; zirve zamanı `2026-10-15T07:36:38.572Z`. 64 workflow tamamlandı. Kaynaklar salt okunur Grep/Read ile incelendi. Alıntıların dosya/satır bağları kontrol edildi; bir JavaScript Unicode kaçışının JSON’da farklı yazılması kaynaktaki literal yazımla düzeltildi. Ana entegrasyonda üç öneri de düzeltildi: GenUI/Frappe registry sahipliği, zaten var olan native kontrol için yapay RED önerisi ve preview sırasında yan etkili controller doğrulaması. Ham ajan önerileri özel yürütüm kaydında korundu. Yeni test dosyası/senaryosu/koşusu: **0 / 0 / 0**.
+
+| Durum | Anlamı                                                                                                                                              |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| VAR   | İstenen davranışın kurulu uygulama kaynağında tamamı görülüyor. Runtime kabulü değildir.                                                            |
+| KISMİ | Somut temel mevcut; istenen davranışın veya entegrasyonun eksik kısmı belirtilmiştir.                                                               |
+| YOK   | İstenen uygulama, belirtilen yerel kaynak yollarında yapılan aramalarda bulunamadı. Frappe ekosistemi veya başka repo için yokluk iddiası değildir. |
+
+Genel 387 maddelik kaynak tablosu: **340 kısmi temel**, **7 doğrudan kaynak mekanizması**, **11 yerel kaynakta bulunamayan davranış**, **29 kurulu olmayan app dayanağı**, **0 belirsiz**. Önceki doğrudan kaynak mekanizması sınıfı, ikinci turun tam davranış anlamındaki VAR sınıfıyla eş anlamlı değildir. 386 kısmi/1 yeterli yönerge değerlendirmesi değişmedi; bu tur yönergelerin kanıtını ve sonraki geliştirme adımlarını tamamlar.
+
+Suite’in yerel `headless_provider` kodu upstream-native yeteneklerden ayrıdır. Kurulu app köklerinde React/Tauri/Keycloak uygulaması bulunamaması, başka repolarda hiç kod olmadığı anlamına gelmez. `genui-saas-panel` için aşağıdaki yerel pilot kanıtı korunur; bütün roadmap’in veya GenUI’nin tamamlandığı sonucu çıkarılmaz.
+
+| Madde             | İkinci tur sonucu | İlk kaynak / arama kapsamı                                                                           |
+| ----------------- | ----------------- | ---------------------------------------------------------------------------------------------------- |
+| `performance-5`   | KISMİ             | `frappe/frappe/utils/background_jobs.py:117`                                                         |
+| `backup-7`        | KISMİ             | `frappe/frappe/api/v1.py:50`                                                                         |
+| `service-3`       | KISMİ             | `frappe/frappe/email/doctype/notification/notification.json:76`                                      |
+| `tenant-3`        | KISMİ             | `frappe/frappe/installer.py:66`                                                                      |
+| `tenant-6`        | KISMİ             | `frappe/frappe/commands/site.py:223`                                                                 |
+| `legal-5`         | KISMİ             | `frappe/frappe/email/queue.py:97`                                                                    |
+| `governance-6`    | KISMİ             | `suite/suite/drive/utils/files.py:246`                                                               |
+| `governance-7`    | KISMİ             | `frappe/frappe/commands/site.py:404`                                                                 |
+| `search-3`        | YOK               | `suite/suite/store/search_store.py:41`                                                               |
+| `ai-7`            | KISMİ             | `suite/suite/sheets/ai/client.py:51`                                                                 |
+| `agents-4`        | KISMİ             | `frappe/frappe/automation_engine/runner.py:25`                                                       |
+| `locale-2`        | YOK               | `frappe/frappe/public/js/frappe/ui/toolbar/fuzzy_match.js:87`                                        |
+| `workflow-5`      | KISMİ             | `frappe/frappe/model/workflow.py:72`                                                                 |
+| `workflow-6`      | KISMİ             | `frappe/frappe/automation_engine/runner.py:242`                                                      |
+| `email-2`         | KISMİ             | `frappe/frappe/www/login.py:137`                                                                     |
+| `realtime-2`      | KISMİ             | `frappe/frappe/realtime/__init__.py:30`                                                              |
+| `realtime-4`      | KISMİ             | `frappe/frappe/desk/form/utils.py:31`                                                                |
+| `realtime-7`      | KISMİ             | `frappe/frappe/desk/form/assign_to.py:72`                                                            |
+| `entitlements-6`  | YOK               | `frappe/frappe/integrations/frappe_providers/frappecloud_billing.py:101`                             |
+| `payments-3`      | YOK               | `frappe/frappe/integrations/frappe_providers/cloud_billing.py:3`                                     |
+| `payments-4`      | KISMİ             | `frappe/frappe/integrations/doctype/integration_request/integration_request.py:33`                   |
+| `payments-5`      | KISMİ             | `frappe/frappe/integrations/frappe_providers/cloud_billing.py:57`                                    |
+| `crm-5`           | KISMİ             | `frappe/frappe/automation_engine/scheduler.py:180`                                                   |
+| `crm-6`           | KISMİ             | `frappe/frappe/automation/doctype/automation_flow/automation_flow.json:89`                           |
+| `analytics-1`     | KISMİ             | `frappe/frappe/website/doctype/website_settings/website_settings.json:261`                           |
+| `analytics-2`     | KISMİ             | `frappe/frappe/website/doctype/website_settings/website_settings.json:220`                           |
+| `analytics-6`     | KISMİ             | `frappe/frappe/utils/telemetry/pulse/client.py:20`                                                   |
+| `analytics-7`     | KISMİ             | `frappe/frappe/public/js/frappe/utils/utils.js:2178`                                                 |
+| `views-6`         | KISMİ             | `frappe/frappe/utils/messages.py:121`                                                                |
+| `integration-5`   | KISMİ             | `frappe/frappe/integrations/doctype/webhook/webhook.py:20`                                           |
+| `integration-10`  | YOK               | `frappe/frappe/api/__init__.py:97`                                                                   |
+| `integration-11`  | YOK               | `frappe/frappe/app.py:341`                                                                           |
+| `integration-13`  | KISMİ             | `frappe/frappe/api/v2.py:606`                                                                        |
+| `releases-1`      | KISMİ             | `suite/.github/workflows/meet-sfu-build.yml:19`                                                      |
+| `releases-12`     | YOK               | `suite/frontend/src/apps/mail/sw.ts:49`                                                              |
+| `releases-13`     | KISMİ             | `frappe/frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:128` |
+| `security-2`      | KISMİ             | `frappe/frappe/hooks.py:500`                                                                         |
+| `security-11`     | KISMİ             | `frappe/.github/workflows/linters.yml:72`                                                            |
+| `security-12`     | YOK               | `frappe/.github/workflows/linters.yml:72`                                                            |
+| `deployment-5`    | KISMİ             | `suite/suite/mail/api/admin.py:169`                                                                  |
+| `integrity-6`     | KISMİ             | `frappe/frappe/core/doctype/deleted_document/deleted_document.py:44`                                 |
+| `integrity-10`    | KISMİ             | `suite/frontend/src/apps/slides/stores/saving.js:62`                                                 |
+| `shell-10`        | KISMİ             | `frappe/frappe/public/css/espresso/components/button.css:4`                                          |
+| `channels-12`     | YOK               | `frappe/frappe/oauth.py:33`                                                                          |
+| `channels-17`     | YOK               | `suite/frontend/vite.config.ts:84`                                                                   |
+| `channels-19`     | KISMİ             | `suite/frontend/src/composables/useKeyboardInsets.ts:34`                                             |
+| `notifications-4` | KISMİ             | `frappe/frappe/email/doctype/notification/notification.json:76`                                      |
+| `notifications-9` | KISMİ             | `frappe/frappe/integrations/doctype/slack_webhook_url/slack_webhook_url.py:63`                       |
+| `support-2`       | KISMİ             | `frappe/frappe/desk/desktop.py:712`                                                                  |
+| `support-6`       | KISMİ             | `frappe/frappe/desk/desktop.py:735`                                                                  |
+| `support-9`       | KISMİ             | `frappe/frappe/app.py:274`                                                                           |
+| `reports-3`       | YOK               | `frappe/frappe/desk/query_report.py:49`                                                              |
+| `reports-7`       | KISMİ             | `frappe/frappe/desk/doctype/number_card/number_card.py:127`                                          |
+| `channels-4`      | KISMİ             | `suite/frontend/src/composables/useScreenSize.ts:16`                                                 |
+| `channels-5`      | KISMİ             | `frappe/frappe/public/js/frappe/ui/page.js:235`                                                      |
+| `views-11`        | KISMİ             | `frappe/frappe/__init__.py:1478`                                                                     |
+| `observability-8` | KISMİ             | `suite/suite/meet/sfu-server/src/telemetry/Telemetry.ts:40`                                          |
+| `access-4`        | KISMİ             | `frappe/frappe/core/doctype/user/user.py:1581`                                                       |
+| `model-3`         | KISMİ             | `frappe/frappe/utils/nestedset.py:129`                                                               |
+| `files-3`         | KISMİ             | `suite/suite/drive/webdav/put.py:920`                                                                |
+| `usage-8`         | KISMİ             | `frappe/frappe/integrations/frappe_providers/cloud_billing.py:3`                                     |
+| `content-3`       | KISMİ             | `frappe/frappe/website/website_generator.py:10`                                                      |
+| `content-5`       | KISMİ             | `frappe/frappe/utils/change_log.py:64`                                                               |
+| `content-8`       | KISMİ             | `frappe/frappe/model/workflow.py:72`                                                                 |
+
+### Kurulu değil - karar gerekli: 29 madde
+
+Yerel `bench --site suite.localhost list-apps --format json` çıktısı yalnız `frappe` ve `suite` gösterir. ERPNext/HRMS kurulmadı; hiçbir app kurulumu yapılmadı. Bu 29 maddenin dayanakları arasında CRM, Helpdesk ve Payments gibi ayrı uygulamalar da bulunur; hepsinin HRMS gerektirdiği varsayılmaz. Önce mevcut domain app’i mi, harici hizmeti mi, dar bir Frappe adapter’ını mı kullanacağımız sürüm/lisans ve veri sahipliğiyle kararlaştırılmalı. Mevcut görev kimlikleri korunur.
+
+| Madde             | İhtiyaç                                                                                               | Durum                        |
+| ----------------- | ----------------------------------------------------------------------------------------------------- | ---------------------------- |
+| `service-4`       | Hizmet hedefi ihlali ve sözleşmeye bağlı hizmet kredisi kaydı.                                        | kurulu değil - karar gerekli |
+| `catalog-1`       | Paket, plan, fiyat ve pricing table (paket-fiyat karşılaştırma tablosu) yönetimi.                     | kurulu değil - karar gerekli |
+| `catalog-4`       | Aylık/yıllık, kullanıcı başına, kullanım bazlı ve karma fiyat modelleri.                              | kurulu değil - karar gerekli |
+| `catalog-5`       | Ek modül, ek kullanıcı, ek kota ve müşteri özel fiyat teklifi.                                        | kurulu değil - karar gerekli |
+| `subscriptions-1` | Abonelik başlatma, yenileme, iptal ve suspend (hizmeti askıya alma).                                  | kurulu değil - karar gerekli |
+| `subscriptions-2` | Ücretsiz plan, deneme süresi ve denemeden ücretli plana geçiş.                                        | kurulu değil - karar gerekli |
+| `subscriptions-4` | Dönem içi fiyat farkı, ödeme ek süresi ve yeniden etkinleştirme.                                      | kurulu değil - karar gerekli |
+| `subscriptions-6` | İptal nedeni, duraklatma, bitiş tarihi ve yeniden abonelik.                                           | kurulu değil - karar gerekli |
+| `campaigns-1`     | Kupon, kampanya ve indirim yönetimi.                                                                  | kurulu değil - karar gerekli |
+| `campaigns-2`     | BOGO (Buy One, Get One — bir alana ek ürün) kampanyaları.                                             | kurulu değil - karar gerekli |
+| `campaigns-3`     | Hedef kitle, geçerlilik süresi, bütçe ve kullanım sınırları.                                          | kurulu değil - karar gerekli |
+| `campaigns-4`     | İndirim birleştirme, öncelik ve kapsam dışı ürün kuralları.                                           | kurulu değil - karar gerekli |
+| `campaigns-5`     | İade/iptalde kupon haklarının düzeltilmesi ve suistimal denetimi.                                     | kurulu değil - karar gerekli |
+| `payments-1`      | Ödeme sağlayıcısı, ödeme yöntemi ve tahsilat yönetimi.                                                | kurulu değil - karar gerekli |
+| `crm-1`           | CRM (Customer Relationship Management — müşteri ilişkileri yönetimi) ve satış.                        | kurulu değil - karar gerekli |
+| `crm-2`           | Müşteri adayı, kişi, firma, fırsat ve satış aşamaları.                                                | kurulu değil - karar gerekli |
+| `releases-5`      | Demo verisi etkinleştirme.                                                                            | kurulu değil - karar gerekli |
+| `integrity-9`     | Bağlantısız cihazlarda stok/kota hakkı ayırma, merkezi onay ve uzaktaki etkileri bağlantıya erteleme. | kurulu değil - karar gerekli |
+| `finance-1`       | Sipariş, fatura, muhasebeleştirme ve ön muhasebe.                                                     | kurulu değil - karar gerekli |
+| `finance-2`       | Para birimi, döviz kuru ve vergilendirme yönetimi.                                                    | kurulu değil - karar gerekli |
+| `finance-4`       | Fatura bilgileri, numaralandırma, vergi profili ve yuvarlama kuralları.                               | kurulu değil - karar gerekli |
+| `finance-5`       | Alacak/borç düzeltmeleri, ön ödeme, vade ve gecikme takibi.                                           | kurulu değil - karar gerekli |
+| `finance-6`       | Banka, ödeme sağlayıcısı ve muhasebe kayıtlarını uzlaştırma.                                          | kurulu değil - karar gerekli |
+| `finance-7`       | Muhasebe sistemi ve uygulanabilir e-belge entegrasyonları.                                            | kurulu değil - karar gerekli |
+| `finance-9`       | Ertelenmiş gelir; hizmet dönemine göre gelir tanıma planı ve dönemsel muhasebeleştirme.               | kurulu değil - karar gerekli |
+| `support-1`       | Helpdesk (destek merkezi), support (destek) ve ticket (destek talebi).                                | kurulu değil - karar gerekli |
+| `support-4`       | SLA (Service Level Agreement — hizmet seviyesi anlaşması), öncelik ve yanıt süresi.                   | kurulu değil - karar gerekli |
+| `reports-2`       | BI (Business Intelligence — iş zekâsı) panoları; BI Board.                                            | kurulu değil - karar gerekli |
+| `reports-8`       | SaaS iş metrikleri: MRR, ARR, müşteri/gelir kaybı ve LTV; tanım, dönem ve kaynak uzlaştırması.        | kurulu değil - karar gerekli |
+
+### Kaynağa göre sonraki geliştirme sırası
+
+1. Yerel bench kanıtını T-00 kaynak/build eşlemesine ve R-00 tek yeniden kullanım envanterine bağla; Suite commit’i ve uzak ürün eşlemesi bilinmiyor kalır. İnceleme commit’i ürün baseline’ı yapılmaz.
+2. Yerel üç davranış pilotunun dar kanıtını koruyarak R-01 izinli/sürümlü metadata sözleşmesini ve R-02 iki config tüketimini tamamla. T-01 Keycloak kimlik eşlemesi ile T-02 bağlantı sözleşmesi kendi gerçek bağımlılıklarıyla paralel ilerler; erken T-08 gerçek Frappe entegrasyonu ertelenmez.
+3. Önce mevcut primitive’leri adapte et: kullanıcı adına erişimde süre/hedef/audit kısıtları, atama kuyruğunda referans kayıt izni, geri yüklemede önizleme ve ilişki doğrulaması, otomasyonda headless yürütüm sözleşmesi. Her maddenin ayrıntılı sonraki adımı ve mevcut görev eşlemesi aşağıdadır.
+4. Qdrant, GraphQL/SOAP, müşteri lisansı, ödeme iadesi/itirazı, Tauri paketleme ve Metabase gibi yerel kaynakta bulunmayan davranışlar için önce sınır/sağlayıcı sözleşmesini belirle. GenUI motorunu kullanıcı geliştirir; burada Frappe sağlayıcı sorumluluğu tanımlanır. Kurulu olmayan 29 domain maddesinde karar gelmeden app kurulmaz.
+
+Bu denetim sırasında uygulama kodu, şema, veritabanı, çalışan servisler ve kanonik görev durumları değiştirilmedi. Uygulama testleri tekrar koşulmadı; GitHub Pages yayını bu kaynak denetimi teslimine dahil edilmedi.
 
 ## On iki ana başlık: ne var, ne tamamlanacak?
 
@@ -214,15 +344,40 @@ Mevcut birincil görev: `database-capacity--implementation`. Kaynak: `suite/suit
 
 #### performance-5 — Zaman aşımı, bağlantı sınırı ve arızalı bağımlılığa çağrıyı geçici kesme.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Excerpt'te yalnız DB tarafı busy timeout/zaman aşımı tespiti ve reconnect yardımcısı görülüyor. Dış çağrı timeout'u veya circuit breaker kodu bu kaynakta yok; bu, global yokluk değil, bilinmiyor demektir. Suite'in gerçek dış bağımlılıkları (anthropic, JMAP, S3) var ama talimatta adlandırılmamış.
+Somut temel parçalar var. Frappe RQ kuyruk/iş timeout'ları mevcut: long kuyruğu 1500 sn; özel worker timeout'u ve enqueue(timeout=...) desteği var. DB statement timeout, enable_db_statement_timeout açıksa HTTP isteğinde http_timeout veya 300 sn, job'da job.timeout değerinin 1.5 katı olarak uygulanıyor. Suite JMAP istemcisinde httpx connect/read/write/pool timeout'ları ve sınırlı RetryPolicy (max_attempts=2) var. recorder_client'ta TIMEOUT=(2,5) kullanılıyor. link_preview'da connect 3 sn, read 4 sn, maxsize=1 bağlantı havuzu ve retries=False var. frappe/automation_engine içinde Redis'te tutulan, kural bazlı ardışık hata sayacı var: eşik aşılınca Automation Flow kalıcı olarak devre dışı kalıyor, bekleyen kuyruk Skipped yapılıyor ve sahibine bildirim gidiyor. Bu bir bağımlılık breaker'ı değil, iş akışı kuralı breaker'ıdır. suite/headless_provider (LOCAL PILOT, additive) yalnız advisory lock timeout'u içeriyor. Suite Vue frontend'inde yalnız istemci tarafı retry/backoff var.
 
-Eksik: Dış bağımlılık envanteri yok (Anthropic API, JMAP, boto3/S3, meet SFU, collab-server); Bağımlılık başına timeout bütçesi ve breaker eşikleri (hata oranı, açık kalma süresi) tanımsız; Breaker durumunun nerede tutulacağı (worker-yerel ya da Redis paylaşımlı) belirtilmemiş; Background job timeout'unun v17-dev kaynağında doğrulanması yapılmamış
+Eksik: Dış bağımlılık başına genel bir circuit breaker yok: kapalı/açık/yarı açık durumları, açık kalma süresi ve devre açıkken yeni çağrıların kontrollü reddi bulunmuyor.; Anthropic çağrısında (suite/suite/sheets/ai/client.py:88-100) açık timeout veya breaker yok; davranış SDK varsayılanına bırakılmış.; frappe.integrations.utils.make_request'in varsayılanı timeout=None; dış çağrılar için merkezi timeout bütçesi ve bağımlılık envanteri yok.; Bağımlılık başına paylaşımlı bir eşzamanlı bağlantı sınırı politikası yok; link_preview'daki maxsize=1 yalnız o modülde geçerli.; Headless provider kontratında dış bağımlılık dayanıklılığı için bir yüzey yok.; Runtime functionalAcceptance: not_run.
 
-Sonraki adım önerisi: Görevde ilk olarak tek bir dış bağımlılık (örn. Anthropic çağrısı) seçilsin. Timeout değeri ve breaker açık/yarı açık davranışı kabul ölçütüne yazılsın. Mevcut çağrı noktası kaynakta okunup sarmalama sınırı belirlensin.
+Sonraki somut adım: Mevcut sırayı koruyun. 1) dependency-resilience--contract: yalnız Anthropic çağrısını kapsayın. Timeout (connect/read), hata eşiği, açık kalma süresi, yarı açık deneme sayısı ve açık devrede dönecek hata kontratını yazın. Breaker durumu, automation_engine'deki site anahtarlı Redis sayaç desenine benzer şekilde frappe.cache'te tutulsun. 2) dependency-resilience--implementation: anthropic.Anthropic(...) çağrısına açık timeout verin ve messages.create'i küçük bir breaker sarmalayıcısıyla sarın. Önce başarısız (RED) testi yazın: arızalı bağımlılık süre içinde kesilsin, eşikten sonra çağrı yapılmadan reddedilsin. Ardından GREEN'e getirin. 3) Aynı sarmalayıcıyı JMAP ve make_request çağrı noktalarına sonradan genişletin.
 
-Mevcut birincil görev: `dependency-resilience--implementation`. Kaynak: `frappe/frappe/database/sqlite/database.py:22`; `frappe/frappe/database/utils.py:202`; `suite/pyproject.toml:32`; `suite/pyproject.toml:30`.
+Önerilen bağımlılık/sıra: dependency-resilience--contract. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `dependency-resilience--implementation`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/utils/background_jobs.py:117` — `"long": 1500,`
+- `frappe/frappe/database/database.py:1692` — `timeout = frappe.conf.http_timeout or 300`
+- `suite/suite/mail/jmap.py:308` — `RETRY_POLICY = RetryPolicy(max_attempts=2, max_retry_after=5.0)`
+- `suite/suite/sheets/link_preview.py:134` — `return urllib3.HTTPConnectionPool(ip, port=port, maxsize=1, retries=False, timeout=timeout)`
+- `frappe/frappe/automation_engine/runner.py:602` — `if frappe.cache.incr(_failure_key(rule.name)) >= threshold:`
+- `suite/suite/sheets/ai/client.py:88` — `client = anthropic.Anthropic(api_key=api_key)`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- source (frappe + suite, *.py/toml/json/ts/js/vue); arama `(?i)circuit.?breaker|pybreaker|half.?open|backoff|tenacity`: Bağımlılık düzeyinde breaker kütüphanesi yok. tenacity yalnız retry için kullanılıyor. Breaker yalnız frappe/automation_engine'de kural bazlı. Suite frontend ve meet TS servislerinde yerel backoff var. 'half-open' eşleşmeleri yalnız zaman aralığı yorumlarında geçiyor.
+- suite (*.py); arama `(?i)timeout\s*=`: JMAP (jmap.py, user_settings), recorder_client (2,5), link_preview (3/4 sn), suite_cloud DEFAULT_TIMEOUT (5,60) ve job/lock timeout'ları var.
+- frappe/frappe/automation_engine (*.py); arama `(?i)breaker|consecutive_fail|failure_threshold|FAILURE`: runner.py:596-625'te Redis sayacı ve _trip_breaker var; flow'u kapatıyor. settings.py'de failure_threshold=10. Yarı açık durumu veya otomatik kurtarma yok.
+- suite/suite/**/{ai,assistant,llm,agent}\*/**/*.py; arama `(?i)anthropic\.|Anthropic\(|max_retries|timeout`: sheets/ai/client.py yalnız hata eşlemesi yapıyor; açık timeout veya breaker yok.
+- frappe/frappe {utils/background_jobs.py, integrations/utils.py, database/**, redis_wrapper.py, app.py, hooks.py}; arama `def make_request|job_timeout|JobTimeoutException|max_connections|pool_size|maxsize`: Kuyruk timeout'ları ve JobTimeoutException işleme var. make_request timeout=None. DB/HTTP bağlantı havuzu sınırı politikası yok.
+- suite/suite (*.py); arama `RETRY_POLICY\s*=|class SuiteHTTPClient|limits=|max_connections|max_keepalive`: JMAP RetryPolicy var. httpx max_connections/limits kullanılmıyor. meet 'limits=' kayıt politikasına ait, bağlantıya değil.
+- suite/suite/headless_provider; arama `(?i)timeout|rate_limit|breaker|max_conn|limit`: Yalnız advisory_lock timeout ve QueryTimeoutError işleme var. Dış bağımlılık dayanıklılığı yok.
+
+Sınır: Yalnız Read/Glob/Grep ile statik kaynak incelemesi yapıldı. Test, komut veya runtime çalıştırılmadı; functionalAcceptance not_run.; Nginx/gunicorn/reverse proxy bağlantı sınırları ve site_config değerleri (http_timeout, enable_db_statement_timeout, exchange_*_timeout) kaynakta yok; deploy davranışı doğrulanamaz.; Anthropic, httpx ve jmaplib SDK varsayılan timeout/retry davranışları kurulu bağımlılık kaynağı dışında kaldığı için doğrulanmadı.; frappe/automation_engine'in upstream mı yerel ekleme mi olduğu kaynaktan ayrıştırılmadı. frappeCommit adf1fd0 içinde mevcut, suiteCommit bilinmiyor.; Derlenmiş public/dist bundle'ları davranış kanıtı sayılmadı. meet sfu/recorder TS servislerinin yerel backoff'u yalnız grep ile görüldü, satır satır okunmadı.
+
+Temporal workflow: `saas-recheck-20261015t073528z-001`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### performance-6 — Aşırı yükte bekletme, kontrollü kapasite azaltma ve kiracı kaynak adaleti.
 
@@ -322,15 +477,42 @@ Mevcut birincil görev: `server-backup--implementation`. Kaynak: `frappe/frappe/
 
 #### backup-7 — Cihazdaki çalışma verisi ve eşitlenmemiş kayıtlar için şifreli bağımsız yedek, anahtar kurtarma ve geri yükleme.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Kabul ölçütü ayrıntılı ve doğru sınırları çiziyor. Ancak bunu uygulanabilir kılacak sözleşmeler yok: yedek manifest şeması, anahtar kurtarma mekanizması ve sunucu tarafında tekilleştirme/sonuç sorgusu. İstemci kodu (Tauri, PWA, WXT) snapshot'ta yok. Suite'teki taslak geri yükleme yalnızca aynı cihazda çalışan bir Vue taslağıdır, bağımsız yedek değildir. Frappe create ucunda idempotency anahtarı görünmüyor.
+Kaynakta ilgili iki parça var, ancak ikisi de bu maddenin gereğini karşılamıyor. (1) Suite'in Vue Slides istemcisi (upstream-native Suite kodu; headless_provider değil) eşitlenmemiş sunum düzenlemelerini aynı cihazda IndexedDB'de (DRAFTS_DB_NAME/'presentations') düz kayıt olarak tutuyor. Kayıtta dirty ve baseModified alanları bulunuyor; yükleme sırasında sunucu kopyasıyla karşılaştırılıp yerel taslak geri yükleniyor. Kalıcılık için navigator.storage.persist isteniyor. Bu taslak şifresiz, cihazdan bağımsız değil ve dışa aktarılamıyor; uygun olmayan durumda da sessizce atılıyor. (2) Frappe'nin sunucu tarafı site yedeği, isteğe bağlı olarak gpg ile şifreleniyor (encrypt_backup ayarı). Anahtar site config'deki backup_encryption_key'den alınıyor, yoksa üretiliyor. Bu yalnızca bulut DB/dosya yedeğidir; cihazdaki gönderilmemiş kayıtları içermez. Frappe v1 create_doc, idempotency anahtarı olmadan doğrudan insert() yapıyor. automation_engine outbox'ı sunucu içi otomasyon kuyruğudur, istemci mutasyon outbox'ı değildir. Meet E2EE/crypto.subtle kodu medya şifrelemesidir, yedekle ilgisi yoktur. suite/headless_provider (yerel pilot ek kod) içinde mutasyon, idempotency, outbox, yedek veya cihaz sözleşmesi bulunmuyor. Tauri, PWA ve WXT istemci kodu snapshot'ta yok.
 
-Eksik: Outbox, mutasyon kimliği, şema sürümü ve sync imlecini kapsayan manifest formatı tanımsız.; Anahtar kurtarma yöntemi ve yedekten ayrı erişim politikası seçilmemiş. Tauri Stronghold, OS anahtar zinciri ve web/eklenti için ayrı yollar netleşmeli.; Frappe tarafında mutasyon tekilleştirme penceresi ve sonuç sorgusu sözleşmesi yok. v1 create_doc doğrudan insert yapıyor.
+Eksik: Cihaz verisi, outbox, mutasyon kimlikleri, şema/kural sürümü ve sync imlecini kapsayan şifreli yedek manifest şeması ve bunu üreten veya doğrulayan kod yok; Ayrı fiziksel ortama bağımsız yedekleme ve başka cihazda yetkili geri yükleme yok; Slides taslağı yalnızca aynı tarayıcı profilindeki IndexedDB'de duruyor; Anahtar kurtarma ve yedekten ayrı erişim politikası yok (Stronghold, OS keychain veya web için anahtar türetme bulunamadı); Bozuk veya yanlış anahtarlı yedeğin reddi, tenant kapsamı, saklama süresi ve kurtarma noktasının gösterimi yok; Sunucu tarafında idempotent mutasyon (mutasyon kimliği, tekilleştirme penceresi) ve sonuç sorgusu ucu yok; v1 create_doc doğrudan insert yapıyor; Geri yüklemede özgün cihaz kapsamı, işlem zarfı ve kimliğinin korunması ile yeni cihazın güncel yetkiyle doğrulanması (device-grant) yok; headless_provider'da istemci yedeği veya sync sözleşmesi yok
 
-Sonraki adım önerisi: client-backup--implementation, offline/sync görevine bağımlı olarak işaretlenmeli. Önce iki sözleşme yazılmalı: manifest şeması ve sunucuda idempotent mutasyon/sonuç sorgusu. Bunlar ignore_permissions kullanmayan bir whitelisted uçla ve yerel Frappe izinleri yeniden kullanılarak tanımlanmalı.
+Sonraki somut adım: Mevcut bağımlılık sırası korunmalı. İlk adım sync-receipt--contract ve kernel-envelope--contract kapsamında headless_provider'a tek bir dar whitelisted uç eklemek olmalı. Bu uç ignore_permissions kullanmamalı ve yerel Frappe izinlerini yeniden kullanmalı. İstemci mutation_id'sini tenant ve cihaz kapsamında tekil bir makbuz DocType'ına yazıp insert'ü aynı işlemde yapmalı; tekrar gelen kimlik için kayıtlı sonucu dönmeli. Yanına bir sonuç sorgusu ucu eklenmeli ve önce RED/GREEN testi yazılmalı. Ardından client-backup--contract ile manifest JSON şeması yazılmalı: sürüm, tenant, cihaz kimliği, outbox, mutasyon kimlikleri, şema/kural sürümü, sync imleci, oluşturulma zamanı ve AEAD şifreleme ile anahtar kimliği. device-grant--contract ile yeni cihaz yetkilendirmesi tanımlanmalı. En son client-backup--implementation yapılmalı: önce tek bir istemcide (Tauri Stronghold veya web) şifreli dışa ve içe aktarma ile yanlış anahtar reddi eklenmeli. Suite Vue Slides taslağı referans alınabilir, ancak yeniden kullanılacak bir yedek mekanizması sayılmamalı.
 
-Mevcut birincil görev: `client-backup--implementation`. Kaynak: `frappe/frappe/api/v1.py:50`; `suite/frontend/src/apps/slides/stores/presentationRestore.test.ts:92`; `suite/frontend/src/apps/slides/stores/presentationRestore.test.ts:103`.
+Önerilen bağımlılık/sıra: client-backup--contract; kernel-envelope--contract; sync-receipt--contract; device-grant--contract. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `client-backup--implementation`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/api/v1.py:50` — `return frappe.new_doc(doctype, **data).insert()`
+- `suite/frontend/src/apps/slides/stores/saving.js:24` — `const req = indexedDB.open(DRAFTS_DB_NAME, DB_VERSION)`
+- `suite/frontend/src/apps/slides/stores/saving.js:80` — `return savePresentationToLocalDB(record).then(() => true, () => false)`
+- `suite/frontend/src/apps/slides/stores/presentation.js:274` — `const servedIsStale = local?.baseModified > doc.modified`
+- `suite/frontend/src/apps/slides/stores/presentation.js:291` — `if (!landed) toast.warning('Changes that never reached the server were discarded.')`
+- `frappe/frappe/utils/backups.py:778` — `key = frappe.conf.get(BACKUP_ENCRYPTION_CONFIG_KEY)`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- source (frappe + suite, *.{py,ts,js,json,vue}); arama `(?i)(idempotency|idempoten|mutation_id|client_mutation|dedup)`: 187 dosya eşleşti; çoğu ilgisiz dedup işi (arama, sidebar, mail index vb.). İstemci mutasyonu için idempotency uygulaması bulunamadı.
+- source (frappe + suite); arama `(?i)(outbox|offline.?queue|pending.?mutation|syncQueue|unsynced)`: Eşleşenler: Frappe automation_engine outbox testi (sunucu içi), mail OutboxView (e-posta gönderim kuyruğu), Slides presentation.js/saving taslağı. Genel bir istemci mutasyon outbox'ı yok.
+- suite/frontend/src; arama `(?i)(backup|encrypt|crypto\.subtle|recovery.?key|restore)`: 150 dosya eşleşti; Meet E2EE, Sheets/Writer sürüm geçmişi ve Slides taslak geri yükleme var. Cihaz verisi için şifreli bağımsız yedek yok.
+- suite/suite/headless_provider; arama `(?i)(idempot|mutation|outbox|backup|device|sync)`: Yalnızca api.py:6'da 'native schema sync' yorumu var. Yedek, mutasyon veya cihaz sözleşmesi yok.
+- suite/frontend/src/apps/slides/stores/saving.js; arama `(?i)(indexedDB|idb|openDB|encrypt|export const writeDraft|getPresentationFromLocalDB =)`: Düz IndexedDB store'u var, şifreleme yok.
+- frappe/frappe/utils/backups.py; arama `(?i)(encrypt|backup_encryption_key|def get_or_generate_backup_encryption)`: Sunucu site yedeği için gpg şifreleme ve config anahtarı var; cihaz verisi kapsamda değil.
+- source (dist/frontend build çıktıları hariç); arama `(?i)(crypto\.subtle|AES-GCM|deriveKey|stronghold|keychain|recovery.?key|backup.?manifest|exportDrafts|navigator\.storage\.persist)`: Yalnızca Meet E2EE, recorder ve Chromium süreç dosyaları eşleşti. Stronghold, keychain, kurtarma anahtarı ve yedek manifesti yok.
+- source (*.{py,ts,js,json}); arama `(?i)(idempotency[-_ ]?key|X-Idempotency|request_id.*dedup)`: Yalnızca derlenmiş SheetEditor bundle'ındaki bir kütüphane satırı eşleşti; Frappe ve Suite API'sinde idempotency anahtarı yok.
+- frappe/frappe/automation_engine; arama `(?i)(class .*Outbox|def .*outbox|idempoten)`: Yalnızca TestOutbox test sınıfı var; sunucu otomasyonuna ait, istemci yedeğiyle ilgisi yok.
+
+Sınır: Yalnızca kaynak kod incelendi; functionalAcceptance=not_run. Dağıtım, cihaz ve runtime davranışı kanıtlanmadı.; Tauri, PWA ve WXT istemci kodu snapshot'ta yok; bu nedenle istemci tarafı yalnızca Suite Vue frontend'i üzerinden değerlendirildi.; public/dist ve public/frontend altındaki derlenmiş bundle'lar karar kanıtı olarak kullanılmadı.; automation_engine outbox ve Meet E2EE uygulamaları yalnızca ilgisizliklerini doğrulayacak kadar incelendi.; ERPNext/HRMS kurulu değil, değerlendirilmedi; suiteCommit bilinmiyor.; Test dosyaları yalnızca arama sonucu olarak görüldü, çalıştırılmadı.
+
+Temporal workflow: `saas-recheck-20261015t073528z-002`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### service-1 — İç/dış status page (hizmet durumu sayfası).
 
@@ -358,15 +540,41 @@ Mevcut birincil görev: `incident-comms--implementation`. Kaynak: `frappe/frappe
 
 #### service-3 — Kesinti iletişimi, güncelleme geçmişi ve olay sonrası açıklama.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Kabul metni ilk bildirim, güncellemeler, çözüm zamanları, hedef kitle ve olay sonrası rapor bağlantısını kapsıyor. Görev kimliği service-2 ile ortak, bu doğru bir tekilleştirme. Pakette Notification, Version ve iletişim DocType kaynakları yok; yalnız genel DocType oluşturma ve izin primitifleri görülüyor. Bu yüzden yerel yetenek bilinmiyor.
+Upstream Frappe'de kullanılabilecek genel primitifler var. (1) Notification DocType'ı Email, Slack, System Notification ve SMS kanallarıyla belge olaylarına bağlanabiliyor. send(), send_notification_by_channel'ı çağırıyor; evaluate_alert Python/Filters koşuluyla ve Value Change olayıyla tetikleniyor. (2) track_changes açık DocType'larda Document.save_version, Version kaydını ignore_permissions ile ekliyor. Version DocType'ında in_create=1 var; System Manager yalnız okuyup dışa aktarabiliyor, delete yalnız Administrator'da. (3) Navbar Settings'teki announcement_widget, Desk navbar'ının altında kapatılabilen, global ve tek metinli bir banner; toolbar.js ve navbar.html bunu boot üzerinden gösteriyor. Suite'te kesinti iletişimine en yakın şey, Suite Settings'teki contact_email alanının açıklaması ('planned downtime' bildirimlerinin adresi). Bu yalnız bir alan tanımı, iş akışı yok. Suite'in Vue arayüzündeki boot/config.ts yalnız 'mail server unavailable' ekranını ele alıyor. suite/headless_provider yerel pilot ek kod ve yalnız DocType metadata/şema düzenleme uçları sunuyor (session, metadata, create_field, preview_edit, apply_edit); incident sözleşmesi yok.
 
-Eksik: Güncelleme geçmişinin değişmezliği (yalnız ekleme mi, düzenleme mi) ve sürüm/denetim kaynağı belirtilmemiş.; Hedef kitle ve kanal sözleşmesi yok: iç kullanıcı, etkilenen tenant ya da kamu; e-posta ya da durum sayfası.; Kamuya yayın öncesi onay adımı ve yetkili rol tanımlı değil; native DocType izinlerine eşlenmemiş.; Olay sonrası raporun sahibi, şablonu ve bağlanma kuralı yok.; Frappe v17-dev'de Notification davranışı kaynakta doğrulanmamış; dokümandaki kaynak sürüm eşlemesi yok.
+Eksik: Kurulu iki app'te de Incident/Outage/Status Page/Postmortem DocType'ı, controller'ı, API'si veya UI'ı yok.; Olay yaşam döngüsü (ilk bildirim → güncellemeler → çözüm) ve bu adımların zaman damgalarını koruyan model yok.; Yalnız ekleme yapılan güncelleme geçmişi yok. Version alan farkı tutuyor ama olay güncellemesi semantiği taşımıyor ve Administrator Version kaydını silebiliyor.; Hedef kitle/kanal sözleşmesi yok (iç kullanıcı, etkilenen tenant, kamu). Notification alıcıları belge bağlamından türetiliyor; tenant hedeflemesi yok. announcement_widget tek, global ve geçmişsiz bir metin.; Kamuya yayın öncesi onay adımı ve yetkili rolün native DocType izinlerine eşlenmesi yok.; Olay sonrası rapor bağlantısı, raporun sahibi ve şablonu yok.; Headless provider'da incident okuma/yazma sözleşmesi yok (React/AntD/GenUI tüketicileri için).
 
-Sonraki adım önerisi: Notification ve Version kaynaklarını v17-dev ağacında salt okunur inceleyin. Ardından incident-comms--implementation'a dört öğe ekleyin: olay → güncelleme (yalnız ekleme) → çözüm → olay sonrası rapor yaşam döngüsü, hedef kitle/kanal tablosu ve native DocType izinleriyle yayın onayı rolü. ignore_permissions kısayoluna yer verilmesin.
+Sonraki somut adım: incident-comms--contract bağımlılığı tamamlandıktan sonra incident-comms--implementation altında en küçük adım: Suite'te custom bir 'Service Incident' DocType'ı. Alanlar: durum (Investigating/Identified/Monitoring/Resolved), started_at, resolved_at, hedef kitle (Internal/Affected Tenants/Public), postmortem Link alanı ve track_changes=1. Native izinler: yazan rol ve ayrı bir yayın onay rolü; ignore_permissions kullanılmayacak. Sıra: (1) başlık DocType'ı ve izinleri; ilk RED/GREEN testi yalnız 'çözümde resolved_at korunur ve sonra değiştirilemez' davranışı. (2) Yalnız ekleme yapılan 'Incident Update' child veya ayrı DocType'ı; controller'da güncelleme ve silme reddedilir. (3) Yayınlanan güncellemede mevcut Notification primitifinin Email/System Notification kanallarının kitleye göre bağlanması. (4) Postmortem bağlantısı. (5) Headless provider'a salt okunur incident uç noktası. Status page, Suite'in Vue arayüzünden ayrı bir tüketici olarak sonraya kalır.
 
-Mevcut birincil görev: `incident-comms--implementation`. Kaynak: `frappe/frappe/permissions.py:82`; `frappe/frappe/api/v1.py:50`.
+Önerilen bağımlılık/sıra: incident-comms--contract; T-00; R-00; R-01. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `incident-comms--implementation`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/email/doctype/notification/notification.json:76` — `"options": "Email\nSlack\nSystem Notification\nSMS",`
+- `frappe/frappe/email/doctype/notification/notification.py:401` — `self.send_notification_by_channel(doc, context)`
+- `frappe/frappe/model/document.py:2043` — `not getattr(self.meta, "track_changes", False)`
+- `frappe/frappe/core/doctype/version/version.json:71` — `"delete": 1,`
+- `frappe/frappe/public/js/frappe/ui/toolbar/toolbar.js:159` — `let current_announcement = frappe.boot.navbar_settings.announcement_widget;`
+- `suite/suite/suite_core/doctype/suite_settings/suite_settings.json:53` — `"description": "Where connected services send notices about this workspace, such as planned downtime or quota warnings."`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- suite (tüm app kökü); arama `(?i)incident|outage|status.?page|postmortem|post.mortem|downtime`: 26 dosya. Çoğu derlenmiş .map, lisans, test veya mail/meet/sheets içi ilgisiz kullanım. İlgili tek tanım suite_settings.json:53 contact_email açıklaması; incident DocType'ı veya API'si yok.
+- frappe (tüm app kökü); arama `(?i)incident|outage|status.?page|postmortem|post.mortem`: 17 dosya: locale, lisans, playwright, ActivityTimeline docs ve client.py içinde 'incidental'. Incident/status page uygulaması yok.
+- frappe/frappe (*.py); arama `(?i)incident|outage|status.?page|postmortem|post-incident|root.?cause|downtime`: Yalnız app.py maintenance_mode yorumu, bir test mesajı ve client.py 'incidental'. Olay iletişimi kodu yok.
+- frappe/frappe/**/doctype/**/*.json; arama `(?i)incident|outage|announcement|broadcast|banner|maintenance.?mode|system.?notice`: navbar_settings, website_settings ve web_form. İlgili olan Navbar Settings announcement_widget.
+- frappe/frappe; arama `announcement_widget`: navbar_settings.json/.py, toolbar.js:158-177 ve navbar.html:2-6. Global, kapatılabilir, localStorage tabanlı ve geçmişsiz tek banner.
+- frappe/frappe/email/doctype/notification; arama `channel options; def send|evaluate_alert|trigger_notifications`: Dört kanal, koşul/Value Change tetikleme ve zamanlanmış daily/offset uygulaması okundu.
+- frappe/frappe/model/document.py; core/doctype/version/version.json; arama `track_changes|save_version; permissions`: Version, ignore_permissions ile otomatik ekleniyor; in_create=1; delete yalnız Administrator rolünde.
+- suite/suite/headless_provider; arama `(?i)incident|outage|notice|announce|notification|status ve ^def |@frappe.whitelist`: Incident terimi eşleşmesi yok. api.py yalnız session, metadata, create_field, preview_edit ve apply_edit sunuyor.
+
+Sınır: Değerlendirme yalnız kaynak kodu okumasına dayanıyor. Çalışma zamanında işlevsel kabul yapılmadı (functionalAcceptance: not_run). Test yazılmadı veya çalıştırılmadı.; Suite commit'i bilinmiyor. Arama kapsamı yalnız dışa aktarılan frappe/ ve suite/ kökleri; ERPNext/HRMS ve harici status page araçları kapsam dışı.; Derlenmiş .map ve locale dosyalarındaki eşleşmeler davranış kanıtı sayılmadı.; suite/headless_provider yerel pilot ek koddur, upstream-native değildir.; Site yapılandırması, Notification kayıtları ve gerçek dağıtım/kanal (SMTP/Slack/SMS) ayarları görülmedi.
+
+Temporal workflow: `saas-recheck-20261015t073528z-003`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### service-4 — Hizmet hedefi ihlali ve sözleşmeye bağlı hizmet kredisi kaydı.
 
@@ -382,15 +590,42 @@ Mevcut birincil görev: `service-credit--implementation`. Kaynak: `suite/pyproje
 
 #### releases-1 — DevOps (Development and Operations — geliştirme ve işletim birlikteliği) araç bağlantıları.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Hedef ve kapsam ilkesi (servis hesabı yalnız gerekli repo/artifact) var. Ancak araç seçilmemiş: Press ile frappe_docker arasında karar yok. Kaynakta yalnız paketleme ipuçları görülüyor: apt bağımlılığı ve Frappe dışında konuşlanan bağımsız servisler. DevOps araç bağlantısına dair kaynak kanıtı yok.
+Upstream kaynakta iki somut primitive var. (1) Suite reposunda GitHub Actions tabanlı CI ve artifact hattı bulunuyor. suite-ci.yml dosyası bench get-app ve bench build adımlarını çalıştırıyor. meet-sfu-build.yml, meet-recorder-build.yml ve meet-stt-build.yml Docker Buildx ile ghcr.io'ya imaj itiyor. Bu iş akışlarında permissions bölümü contents:read ve packages:write ile sınırlı; GITHUB_TOKEN kullanılıyor ve sha etiketi üretiliyor. (2) Frappe çekirdeğindeki Webhook DocType, belge olaylarında dış HTTP uç noktasına istek gönderiyor (enqueue_webhook → send_webhook_request). İmza başlığı, yeniden deneme ve Webhook Request Log destekleniyor. Connected App ve OAuth Client genel dış araç bağlantısı sağlıyor. Pakette ayrıca [deploy.dependencies.apt] ffmpeg tanımı ve bench dışında konuşlanan bağımsız servis listesi var. Yerel pilot suite/headless_provider'da DevOps, CI veya release sözleşmesi yok; buradaki 'release' eşleşmeleri yalnız DB kilit bırakma kodu.
 
-Eksik: frappe_docker ile Press arasında karar ve sorumlu kişi (tam adla) belirtilmemiş; Suite sourceHead null; yerel build'in bildirdiği revizyon ile kaynak kimliğini eşleyen sözleşme yok; sfu-server, recorder-server ve collab-server gibi Frappe dışı servislerin artifact/registry yolu tanımlanmamış; [deploy.dependencies.apt] (ffmpeg) imaja nasıl taşınacak belirtilmemiş
+Eksik: Bu iş akışları upstream frappe/suite reposuna ait. Hedef SaaS için seçilmiş bir DevOps aracı yok: frappe_docker veya Press kararı kaynakta bulunmuyor; sorumlu da tam adla belirtilmemiş.; Frappe ve Suite uygulamasının birlikte paketlendiği site/bench imajı ve registry yolu tanımlı değil.; sheets/collab-server için Dockerfile ve imaj build iş akışı yok; CI'da yalnız test ediliyor.; Suite commit'i bilinmiyor; build çıktısını kaynak revizyonuna (frappe adf1fd0 + suite) bağlayan sözleşme yok.; Hedef org'a özel servis hesabı ve repo/artifact kapsamı tanımlı değil; mevcut izinler upstream GITHUB_TOKEN için.; Frappe içinde GitHub/GitLab/Jenkins/ArgoCD gibi DevOps araçlarına özel bağlayıcı DocType yok; mevcut olan genel Webhook ve OAuth/Connected App.; ffmpeg apt bağımlılığının imaja nasıl aktarılacağı tanımlı değil.; Headless provider tarafında deploy veya sürüm kimliği uç noktası yok.
 
-Sonraki adım önerisi: ci-pipeline--implementation görevine şunları yazın: tek dağıtım aracı kararı, frappe adf1fd0 ve suite revizyon sabitlemesi, bağımsız servislerin ayrı artifact listesi, servis hesabı kapsamı. Yeni görev açmayın.
+Sonraki somut adım: Mevcut ci-pipeline--contract tamamlandıktan sonra ci-pipeline--implementation görevinde şu sırayla ilerleyin: 1) Tek dağıtım aracı kararını sorumlusunun tam adıyla yazın (frappe_docker veya Press). 2) frappe adf1fd0 ve suite commit'ini sabitleyen bir apps listesiyle site imajı build adımını tanımlayın; ffmpeg'i bu imaja ekleyin. 3) Mevcut meet-*-build.yml desenini (sha etiketi, en az yetki) hedef org registry'sine uyarlayın ve collab-server için eksik Dockerfile ile build adımını ekleyin. 4) Servis hesabını yalnız ilgili repo okuma ve paket yazma yetkisiyle sınırlayın. Yeni görev açmayın; testler yazılmadı ve çalıştırılmadı.
 
-Mevcut birincil görev: `ci-pipeline--implementation`. Kaynak: `suite/pyproject.toml:35`; `suite/pyproject.toml:88`.
+Önerilen bağımlılık/sıra: ci-pipeline--contract. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `ci-pipeline--implementation`.
+
+Kaynak kanıtı:
+
+- `suite/.github/workflows/meet-sfu-build.yml:19` — `  REGISTRY: ghcr.io`
+- `suite/.github/workflows/meet-sfu-build.yml:27` — `      packages: write`
+- `suite/.github/workflows/suite-ci.yml:128` — `          bench get-app suite $GITHUB_WORKSPACE --skip-assets`
+- `frappe/frappe/integrations/doctype/webhook/webhook.py:173` — `		res = send_webhook_request(webhook.request_method, request_url, headers, data, webhook.timeout)`
+- `suite/pyproject.toml:35` — `[deploy.dependencies.apt]`
+- `suite/pyproject.toml:88` — `    # standalone services, each deployed and run outside the Frappe site`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- suite (_.py,_.json,_.toml,_.yml,*.yaml); arama `(?i)(github|gitlab|bitbucket|jenkins|ci/cd|webhook)`: 33 dosya bulundu: .github/workflows altında CI ve imaj build iş akışları, ARC runner değerleri, pre-commit ve hooks.py. Python tarafındaki eşleşmeler mail/calendar push/exchange webhook'ları; DevOps bağlayıcısı değil.
+- frappe/frappe; arama `(?i)(gitlab|jenkins|bitbucket|argocd|circleci|github_app|github api|api\.github\.com)`: Yalnız yardımcı GitHub API okumaları bulundu (change_log releases/advisories, boilerplate lisans, installer ve Social Login GitHub). DevOps araç bağlayıcısı yok.
+- suite/suite/headless_provider; arama `(?i)(devops|ci/cd|pipeline|registry|deploy|release|artifact|webhook)`: Yalnız api.py içindeki DB kilit 'release' kodu bulundu; DevOps sözleşmesi yok.
+- frappe/frappe/integrations/doctype/_/_.json; arama `glob`: Webhook, Webhook Request Log, Connected App, OAuth Client, Slack Webhook URL ve Integration Request var; CI/CD'ye özel DocType yok.
+- frappe/frappe/integrations/doctype/webhook; arama `^def (enqueue_webhook|get_webhook_data|run_webhooks|_make_request)|requests\.request|webhook_secret|X-Frappe-Webhook-Signature`: Olay tetiklemeli HTTP gönderimi, HMAC imza başlığı ve yeniden deneme günlüğü uygulanmış.
+- suite/suite/{meet/sfu-server,meet/recorder-server,sheets/collab-server}/Dockerfile*; arama `glob`: sfu-server ve recorder-server için Dockerfile var; collab-server için yok.
+- suite/.github; arama `collab-server`: Yalnız suite-ci.yml içindeki test/değişiklik filtresinde geçiyor; imaj build veya push adımı yok.
+- suite/.github/workflows (suite-ci, meet-recorder-build, meet-stt-build, arc-runner-image, assets); arama `(?i)(IMAGE_NAME|registry:|on:|bench get-app|bench build|docker)`: recorder, stt ve ARC runner imajları ghcr.io'ya itiliyor; Frappe/Suite site imajı build ve push edilmiyor.
+- frappe/.github/workflows/*; arama `glob`: Upstream test, lint, release ve asset iş akışları var; dağıtım imajı iş akışı yok.
+
+Sınır: Yalnız yerel kaynak anlık görüntüsü okundu (Read/Glob/Grep). Workflow'lar, testler ve build çalıştırılmadı; functionalAcceptance=not_run.; GitHub Actions iş akışları upstream frappe/suite reposuna aittir; hedef SaaS org'unda çalıştıkları kanıtlanmadı.; frappe_docker ve Press kurulu kaynakta yok; değerlendirilmedi.; Suite commit'i bilinmiyor; kaynak kimliği doğrulanamadı.; Registry/servis hesabı yetkileri ve secret değerleri kaynakla doğrulanamaz ve incelenmedi.; ERPNext/HRMS kurulu değil; kapsam dışı.
+
+Temporal workflow: `saas-recheck-20261015t073528z-034`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### releases-2 — CI/CD (Continuous Integration / Continuous Delivery — sürekli entegrasyon / sürekli teslimat) güncelleme bağlantısı.
 
@@ -514,27 +749,74 @@ Mevcut birincil görev: `client-migration--implementation`. Kaynak: `frappe/frap
 
 #### releases-12 — Tauri 2 mobilde imzalı mağaza güncellemesi; masaüstü updater ile mobil OTA sınırını ayırma.
 
-Yönerge: **Yeterli**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Yeterli**. İkinci tur kaynak sonucu: **YOK**. İşlevsel kabul: `not_run`.
 
-Hedef, sınır ve kabul net: masaüstü updater ile mobil mağaza yolu ayrılmış, Frappe'nin bu sistemi sağlamadığı belirtilmiş, mobil OTA PoC'ye bağlanmış. İncelenen kaynakta Tauri istemcisi yok. Suite'in frontend'i bench asset'i olarak derleniyor. Bu yüzden kaynakla doğrulanamıyor.
+Kurulu frappe ve suite kaynağında Tauri 2 istemcisi yok: src-tauri, tauri.conf veya updater eklentisi bulunmuyor. Mağaza paketleme ve imza yapılandırması (keystore, signingConfig, fastlane/TestFlight, .apk/.aab/.ipa) da yok. Mobil OTA mekanizması ve masaüstü updater/mobil OTA sınırını tanımlayan kod da bulunmuyor. Bulunanlar bu maddeyle ilgisizdir. Suite'in Vue frontend'i bench asset'i olarak derleniyor. Web PWA tarafında iki service worker var: Slides için önbellek SW'si ve Mail için yalnız FCM bildirim SW'si (vite-plugin-pwa injectManifest, manifest:false). Her ikisi de skipWaiting/clients.claim ile yeni sürümü hemen etkinleştiriyor. Bu davranış, kullanıcı form doldururken zorla yenilememe veya outbox'ı koruyarak güncelleme kabulüne aykırı. Üstelik yalnız tarayıcı PWA kapsamında; Tauri mağaza veya OTA primitifi değil. headless_provider (yerel pilot, upstream değil) yalnız 'headless-metadata.v1' metadata sözleşmesi sunuyor; istemci sürümü, minimum sürüm veya güncelleme sözleşmesi yok. frappe/ui içindeki 'liveUpdates' eşleşmesi ActivityTimeline'ın gerçek zamanlı güncellemesi; OTA değil.
 
-Eksik: releases-11'deki client-migration görevine açık bağımlılık yazılmamış.; İmza anahtarı saklama sorumluluğu ve rotasyonu belirtilmemiş.
+Eksik: Tauri 2 istemci projesi (src-tauri, tauri.conf, capabilities) ve React/AntDesign istemcisinin Tauri kabuğu; Masaüstü için Tauri updater eklentisi, imzalı güncelleme manifesti ve imza anahtarı yönetimi; Mobil için imzalı App Store/Google Play paketleme hattı (Android keystore/AAB, iOS provisioning/IPA); Masaüstü updater ile mobil mağaza/OTA yolunu ayıran açık yapılandırma veya sözleşme; İstemci native/şema sürümü ve minimum desteklenen sürüm sözleşmesi (Frappe provider tarafında da yok); Güncelleme ve migration sırasında form/outbox/dosya koruması, soğuk açılış sağlık kontrolü, veri kaybettirmeyen geri dönüş engeli; Mobil OTA PoC (yapılmadıkça desteklenmiyor sayılır); İmza anahtarının saklanma sorumluluğu ve rotasyonu (kaynakta yok, talimatta da tanımlı değil)
 
-Sonraki adım önerisi: tauri-mobile-release--implementation'a client-migration--implementation bağımlılığını ve imza anahtarı sorumlusunu (Hüseyin Cengiz) ekle. Bunun dışında ek talimat gerekmiyor.
+Sonraki somut adım: Mevcut bağımlılık sırası korunarak önce tauri-mobile-release--contract tamamlanmalı. Bu sözleşme şunları tanımlamalı: masaüstü yolu Tauri updater ile imzalı manifest, mobil yolu ise yalnız imzalı mağaza paketi; OTA, PoC doğrulanana kadar kapalı. Sözleşme istemcinin native/şema sürümünü ve minimum desteklenen sürümü de içermeli. İmza anahtarlarının sahibi ve rotasyon sorumlusu olarak Hüseyin Cengiz yazılmalı. Önerilen bağımlılık, client-migration--implementation, açık bağımlılık olarak eklenmeli. Ardından ayrı istemci reposunda (Frappe app'i değil) en küçük uygulama adımı atılmalı: React/Vite istemcisine minimal Tauri 2 kabuğu eklenmeli. Önce yalnız Android için imzalı debug olmayan bir AAB üretim hattı ve soğuk açılış sağlık kontrolü kurulmalı; bunun için RED/GREEN kanıtı gerekir. Masaüstü updater bundan sonra gelir. İstemci sürümünü dönen salt okunur provider ucu, gerekiyorsa en son eklenmeli. Suite'in Vue frontend'i ve SW'leri bu işin tabanı olarak kullanılmamalı.
 
-Mevcut birincil görev: `tauri-mobile-release--implementation`. Kaynak: `suite/pyproject.toml:95`; `suite/suite/hooks.py:21`.
+Önerilen bağımlılık/sıra: tauri-mobile-release--contract; ui-family-01--contract; client-rule-parity--contract; keycloak-login--contract; önerilen: client-migration--implementation (releases-11). Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `tauri-mobile-release--implementation`.
+
+Kaynak kanıtı:
+
+- `suite/frontend/src/apps/mail/sw.ts:49` — `self.skipWaiting()`
+- `suite/suite/www/service-worker.js:219` — `self.skipWaiting();`
+- `suite/frontend/vite.config.ts:126` — `manifest: false,`
+- `suite/suite/headless_provider/api.py:26` — `CONTRACT_VERSION = "headless-metadata.v1"`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- sourceRoot (frappe/ + suite/ tamamı; po/pot/mo/csv/svg/min.js/map hariç); arama `(?i)tauri|capacitor|app[_ -]?store|google[_ -]?play|play[_ -]?store|live[_ -]?update|over[_ -]the[_ -]air|\bOTA\b`: 10 dosya eşleşti, hiçbiri Tauri, mağaza veya OTA ile ilgili değil. Eşleşmeler: frappe/ui ActivityTimeline'daki liveUpdates (gerçek zamanlı zaman çizelgesi), utils.js'teki 'dataURI', root.ts yorumundaki 'stores/', derlenmiş asset ve e2e dosyaları.
+- sourceRoot (frappe/ + suite/ tamamı); arama `(?i)keystore|\.apk\b|\.aab\b|\.ipa\b|fastlane|testflight|provisioning[_ ]profile|signingConfig|tauri\.conf|src-tauri|minisign`: Eşleşme yok.
+- sourceRoot (frappe/ + suite/ tamamı); arama `(?i)updater|skipWaiting|registerSW|onNeedRefresh|needRefresh|update[_ ]?available|code[_ -]?sign|minimum[_ ]?(app|client)[_ ]?version|force[_ ]?update|app[_ ]?version`: 76 dosya. İlgili olanlar yalnız suite web SW'leri (www/service-worker.js, mail/sw.ts, slides/service-worker.js) ve hooks.py'deki app_version; diğerleri derlenmiş bundle'lar veya alakasız eşleşmeler. Tauri updater veya istemci sürüm kapısı yok.
+- suite/frontend/src/**, suite/suite/www/**, frappe/frappe/public/js/frappe/*.js, hooks.py; arama `(?i)skipWaiting|clients\.claim|updatefound|controllerchange|registration\.update|app_version|build_version|version.*(changed|mismatch)`: SW'ler skipWaiting/clients.claim ile hemen etkinleşiyor; korumalı güncelleme istemi (updatefound, needRefresh) yok.
+- suite/suite/headless_provider/; arama `(?i)version|release|update|mobile|client`: Yalnız headless-metadata.v1 sözleşme sürümü ve şema kilidi; istemci sürüm/güncelleme sözleşmesi yok.
+- suite/frontend/; arama `(?i)service-worker|serviceWorker|sw\.js|webmanifest|display.*standalone`: Web PWA manifesti ve SW kayıtları (SlidesShell, MailLayout) var. Bunlar tarayıcı PWA'sıdır; Tauri değildir.
+
+Sınır: İnceleme yalnız kurulu frappe ve suite kaynağını kapsıyor; ayrı bir istemci reposu (React/Tauri) bu snapshot'ta yok ve değerlendirilmedi.; YOK, kurulu kaynak kapsamındaki yokluğu ifade eder; Tauri, mağaza ve OTA ekosisteminin genel yokluğu anlamına gelmez.; Derlenmiş asset'ler (public/dist, public/frontend/assets) yalnız grep ile tarandı, ayrıntılı okunmadı.; Hiçbir komut, test veya build çalıştırılmadı; functionalAcceptance not_run. Mağaza politikası, imza ve cihaz davranışı kaynakla kanıtlanamaz.; suiteCommit bilinmiyor; headless_provider yerel pilot ek koddur, upstream değildir.; ERPNext/HRMS kurulu değil, değerlendirilmedi.
+
+Temporal workflow: `saas-recheck-20261015t073528z-035`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### releases-13 — Mobil mağaza kabulü ve yayın kapısı: gerçek uygulama faydası, izinler, indirilen kod ve login politikaları.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Mağaza politikası sınırları (Apple 4.2/2.5.2/4.8, Google Play) dikkatli işlenmiş ve kabul garantisi verilmiyor. Ancak yayın kapısının somut kaydı ve onaylayıcısı tanımsız. Login gerektiren uygulamalar için hesap silme yükümlülüğü değerlendirilmemiş. Mevcut Suite arayüzü bir web rotası; yeniden paketlenmiş web sitesi riski Frappe kaynağıyla çözülmez.
+Upstream Frappe'de mağaza politikalarıyla ilişkili somut bir yapı taşı var: 'Personal Data Deletion Request' DocType'ı. Bu DocType e-posta doğrulaması, System Manager onayı, user_data_fields kapsamında alan anonimleştirme ve silme adımlarını yürütüyor. www/me.html'deki 'Delete Account' bağlantısı Website Settings'teki show_account_deletion_link bayrağıyla açılıyor. Onay bekleyen talepleri auto_account_deletion süresine göre otomatik işleyen zamanlanmış bir hook da tanımlı. Suite tarafında upstream Vue frontend'in bir PWA katmanı var: rota bazlı manifest enjeksiyonu (setPwaTags), display:standalone manifesti, Apple splash/ikon varlıkları ve VitePWA injectManifest ile service worker. Bu bir web kurulum yüzeyi; imzalı native mağaza paketi değil. suite/suite/headless_provider yerel pilot ekidir; yalnız şema metadata/düzenleme RPC'si sunuyor, yayın/izin/mağaza sözleşmesi içermiyor.
 
-Eksik: Sürüm başına içerik sınıflandırması için kayıt yeri ve onaylayan rol (ürün ekibi / Hüseyin Cengiz) tanımsız.; Keycloak ile hesap oluşturan uygulamalarda uygulama içi hesap silme gerekliliği ele alınmamış.; İzin açıklamaları ile kullanılan native eklenti listesi arasında eşleme yok.
+Eksik: Tauri/Capacitor/Cordova veya başka bir native mobil kabuk ve imzalı paket yapılandırması yok.; Native izin bildirimleri ve açıklamaları (NS*UsageDescription, uses-permission) ile bunların kullanılan eklentilerle eşlemesi yok.; Sürüm başına içerik sınıflandırması için kayıt yok (metin/görünüm, yeni işlev/veri/ödeme, native/izin değişikliği).; Yayın kapısı DocType'ı/API'si, onaylayıcı rolü ve inceleme kanıtı bağlantısı yok.; OTA/indirilen kod dağıtımını sınırlayan bir kapı yok; service worker'larda skipWaiting var ama içerik sınıfına bağlı onay kapısı yok.; Sign in with Apple ve Apple 4.8 değerlendirmesi yok.; Frappe'nin hesap silme akışı yalnız Frappe User kaydını anonimleştiriyor; Keycloak kimliğinin silinmesiyle entegrasyon yok.; Hesap silme bağlantısı bir site ayarına bağlı ve web sayfası (/me) olarak sunuluyor; Suite Vue arayüzünde veya headless provider sözleşmesinde uygulama içi hesap silme girişi yok.; Suite hooks.py'de suite verileri için user_data_fields bildirimi yok; mail tarafında kullanıcı devre dışı bırakılınca/silinince çalışan ayrı temizlik event'leri var.
 
-Sonraki adım önerisi: tauri-mobile-release--implementation'a tek bir yayın kapısı kontrol listesi ekle: değişiklik sınıfı, izin/eklenti farkı, hesap silme ve login akışı değerlendirmesi, inceleme kanıtı bağlantısı. Yeni bir görev açma.
+Sonraki somut adım: tauri-mobile-release--implementation içinde, mevcut sözleşme bağımlılıkları (tauri-mobile-release--contract, keycloak-login--contract) tamamlandıktan sonra en küçük adım: 1) Yayın kapısı kontrol listesini sürümle birlikte versiyonlanan tek bir artefakt olarak tanımla. Alanlar: değişiklik sınıfı, native eklenti/izin farkı, izin açıklaması eşlemesi, login/4.8 değerlendirmesi, hesap silme yolu, inceleme kanıtı bağlantısı, onaylayıcı (ürün ekibi + Hüseyin Cengiz). 2) Hesap silme için Frappe'nin Personal Data Deletion Request akışını Keycloak kullanıcı silme/devre dışı bırakma ile eşleyen dar bir provider sözleşmesi yaz ve uygulama içinden erişilebilir bir giriş noktası tanımla. 3) Native/izin değişikliğinde OTA'yı reddeden tek bir kuralı gerçek RED/GREEN kanıtıyla ekle. Yeni görev açma.
 
-Mevcut birincil görev: `tauri-mobile-release--implementation`. Kaynak: `suite/suite/hooks.py:21`; `suite/pyproject.toml:95`.
+Önerilen bağımlılık/sıra: tauri-mobile-release--contract; ui-family-01--contract; client-rule-parity--contract; keycloak-login--contract. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `tauri-mobile-release--implementation`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:128` — `def trigger_data_deletion(self):`
+- `frappe/frappe/www/me.html:60` — `{% if frappe.db.get_single_value("Website Settings", "show_account_deletion_link") %}`
+- `frappe/frappe/hooks.py:301` — `"frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request.process_data_deletion_request",`
+- `suite/frontend/public/pwa/suite/manifest.webmanifest:6` — `"display": "standalone",`
+- `suite/frontend/src/router/index.ts:319` — `function setPwaTags(to: RouteLocationNormalizedLoaded) {`
+- `suite/frontend/vite.config.ts:119` — `strategies: 'injectManifest',`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- source/ (frappe + suite, tamamı); arama `(?i)(app.?store|play.?store|google.?play|testflight|capacitor|tauri|cordova|in.?app.?review|store.?review|release.?gate)`: Yalnız derlenmiş dist/.map dosyalarında ve locale'de ilgisiz eşleşmeler var; kaynakta (dist/locale hariç) native kabuk veya mağaza yapılandırması yok. Sadece 'dataURI' ve 'Per-app' gibi yanlış pozitifler çıktı.
+- source/ (frappe + suite, dist/public/frontend/locale hariç); arama `(?i)(delete.?(my.?)?account|account.?deletion|personal.?data.?deletion|PersonalDataDeletionRequest|delete_user_data|sign.?in.?with.?apple|apple.?login)`: Frappe'de Personal Data Deletion Request DocType'ı, web formları, Website Settings ve me.html bulundu. Suite'te yalnız mail hesap yönetimi/silme ile ilgili dosyalar var. Sign in with Apple yok.
+- frappe/frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py; arama `(?i)(def |deletion|anonymi|delete)`: Doğrulama e-postası, yönetici bildirimi, anonimleştirme, silme adımları ve otomatik silme zamanlayıcısı uygulanmış.
+- **/hooks.py (frappe + suite); arama `(?i)(user_data_fields|process_data_deletion_request)`: Yalnız frappe/frappe/hooks.py'de var (satır 301 ve 361); suite hooks.py'de user_data_fields bildirimi yok.
+- source/ (dist/public/frontend/locale hariç); arama `(?i)(headless_provider|mobile_release|release_gate|store_review|permission_rationale|NSCameraUsage|uses-permission)`: Yalnız suite/suite/headless_provider/api.py çıktı; şema RPC'si, yayın/izin içeriği yok.
+- suite/frontend; arama `(?i)(registerType|autoUpdate|skipWaiting|clientsClaim|injectManifest|VitePWA|precache)`: VitePWA injectManifest ve mail/slides service worker'larında skipWaiting var; sürüm kapısı yok.
+- suite/frontend/src/router/index.ts; arama `(?i)(setPwaTags|manifest)`: Manifest, kurulabilir uygulama rotalarında çalışma zamanında enjekte ediliyor (web PWA).
+
+Sınır: Yalnız Read/Grep/Glob ile yapılmış statik kaynak incelemesi; kod çalıştırılmadı, test yürütülmedi. functionalAcceptance: not_run.; Kaynak, Apple/Google mağaza kabulünü, cihaz davranışını veya güncel politika uyumunu kanıtlayamaz; kabul garantisi verilemez.; dist ve public/frontend altındaki derlenmiş bundle'lar davranış kanıtı sayılmadı.; Keycloak, Tauri 2 ve React/Ant Design istemcisi kurulu kaynakta yok; bunlarla entegrasyon değerlendirilemedi.; suiteCommit bilinmiyor; headless_provider yerel pilot ekidir, upstream değil.; ERPNext/HRMS kurulu değil; değerlendirilmedi.
+
+Temporal workflow: `saas-recheck-20261015t073528z-036`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### deployment-1 — On-premises (müşterinin kendi ortamında kurulum) desteği.
 
@@ -586,15 +868,40 @@ Mevcut birincil görev: `cluster-capacity--implementation`. Kaynak: `frappe/frap
 
 #### deployment-5 — Alan adı sahipliği doğrulama; güvenlik sertifikası oluşturma ve yenileme.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Kabul metni net: doğrulanmamış domain bağlanmasın, yenileme hatası alarm versin. Ancak sertifika ve domain doğrulama Frappe uygulama kaynağında değil, bench/nginx/proxy katmanında; o katman incelenen excerpt'lerde yok. Kaynakta yalnız proxy arkası çalışma ve geliştirme modunda TLS gevşetme izleri var.
+İlgili ama dağınık primitifler var. (1) Suite Mail (upstream Suite, yerel pilot değil) domain sahipliği akışı: get_domain_ownership_record, add_domain ve verify_domain whitelisted API'leri, sahiplik kaydı ve DNS doğrulamasını uzaktaki Suite Cloud'a (get_client().call) devrediyor. Docstring'e göre sahiplik kaydı çözümlenmeden domain eklenmiyor ve kontrol saatlik yapılıyor; ancak bu zorlama yerel kodda değil, uzak serviste. Yerelde get_active_domain_names yalnız enabled ve is_verified domainleri hesap/grup/liste için sunuyor. Yani doğrulanmamış domain mail kullanımına kapalı, ama bu yalnız mail domaini için geçerli; site/tenant host bağlama değil. (2) Ayrı Meet SFU deploy paketi: certbot-init.sh Let's Encrypt HTTP-01 webroot ile ilk sertifikayı alıyor. docker-compose'daki certbot servisi 12 saatte bir 'certbot renew --quiet' çalıştırıyor, deploy.sh ssl-renew ile zorla yenileme yapılabiliyor. Bu yalnız SFU alt servisini kapsıyor. (3) Frappe çekirdeğinde get_url yalnız site config'teki ssl_certificate veya wildcard.ssl_certificate değerine bakarak https şemasını seçiyor; sertifika üretmiyor, domain doğrulamıyor. suite/headless_provider (yerel pilot; api.py, local_fixture.py) içinde domain/TLS ile ilgili hiçbir şey yok.
 
-Eksik: Sahiplik doğrulama yöntemi (DNS TXT, HTTP-01 vb.) ve domain bağlamadan önce yapılacak kontrol tanımsız.; Sertifika aracı/ACME istemcisi, yenileme takvimi ve alarm kanalı seçilmemiş.; developer_mode, allow_tests veya CI açıkken OAuth için zorunlu TLS kapanıyor. Üretim kabulünde bu bayrakların kapalı olması şart koşulmamış.; TLS'in proxy'de sonlandırılması ve ProxyFix/forwarded başlık güveni sözleşmesi yok.; deployment-3 ile sıralama bağımlılığı (önce doğrula, sonra bağla) açıkça yazılmamış.
+Eksik: Frappe sitesine/tenant'a özel domain (custom host) bağlamadan önce sahiplik doğrulaması (DNS TXT, HTTP-01 vb.) yok. Bu iş bench/nginx katmanında; o katman kaynakta yok.; Frappe siteleri için sertifika üretme ve yenileme otomasyonu yok; yalnız SFU alt servisinde certbot var.; Yenileme başarısızlığında alarm yok: SFU'daki 'renew --quiet' döngüsü bildirim üretmiyor; kaynakta sertifika bitiş tarihi izlemesi bulunamadı.; Doğrulanmamış domainin site routing'ine bağlanmasını engelleyen yerel kapı yok.; headless_provider'da domain yaşam döngüsü sözleşmesi (durum, doğrulama, sertifika durumu) yok.; Mail domain doğrulaması dış Suite Cloud'a bağımlı; yerel kodda bağımsız DNS çözümleme ve doğrulama yok.; developer_mode, allow_tests veya CI açıkken OAUTHLIB_INSECURE_TRANSPORT açılıyor (eski bulgu). Üretimde bu bayrakların kapalı olması şartı hâlâ tanımsız.
 
-Sonraki adım önerisi: domain-lifecycle--implementation görevine şu sırayı ekleyin: doğrulama yöntemi → bağlama → sertifika → yenileme alarmı. Üretimde developer_mode ve allow_tests kapalı olmalı. Teknik kayıt değerlerini Hüseyin Cengiz hazırlasın, GoDaddy'de Asistan Hüseyin uygulasın, sonucu Hüseyin Cengiz doğrulasın.
+Sonraki somut adım: domain-lifecycle--contract kapsamında önce headless_provider için dar bir domain durum sözleşmesi tanımlayın: pending_verification → verified → bound → cert_active/cert_failed. Sıra şöyle olmalı: (1) Sahiplik doğrulama kapısı. Mail'deki 'ownership record + verify + yalnız verified domain aktif' desenini (suite/suite/mail/api/admin.py, suite/suite/mail/directory.py) örnek alın; doğrulanmamış domain için bağlamayı reddeden tek bir davranışı RED/GREEN testle kurun. (2) Bağlama (bench/nginx host ekleme). (3) Sertifika: SFU certbot HTTP-01 webroot desenini referans alın. (4) Yenileme başarısızlığı alarmı; 'renew --quiet' döngüsü bildirim üretmiyor, bu yüzden ayrıca eklenmeli. Üretim kabulünde developer_mode ve allow_tests kapalı olmalı. DNS kayıt değerlerini Hüseyin Cengiz hazırlasın, GoDaddy'de Asistan Hüseyin uygulasın, sunucu tarafındaki sonucu Hüseyin Cengiz doğrulasın.
 
-Mevcut birincil görev: `domain-lifecycle--implementation`. Kaynak: `frappe/frappe/integrations/doctype/connected_app/connected_app.py:17`; `frappe/frappe/integrations/doctype/connected_app/connected_app.py:19`; `frappe/frappe/app.py:11`.
+Önerilen bağımlılık/sıra: domain-lifecycle--contract; domain-lifecycle--implementation; deployment-3. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `domain-lifecycle--implementation`.
+
+Kaynak kanıtı:
+
+- `suite/suite/mail/api/admin.py:169` — `return get_client().call("mail.domains.check_domain", domain=name)`
+- `suite/suite/mail/api/admin.py:214` — `result = get_client().call("mail.domains.verify_dns_records", domain=domain_id)`
+- `suite/suite/mail/directory.py:31` — `return sorted(d["domain"] for d in get_domains() if d.get("enabled") and d.get("is_verified"))`
+- `suite/suite/meet/sfu-server/deploy/nginx/certbot-init.sh:99` — `--webroot-path=/var/www/certbot`
+- `suite/suite/meet/sfu-server/deploy/docker-compose.yml:117` — `# Renew certificates every 12 hours (certbot is idempotent)`
+- `frappe/frappe/utils/data.py:1995` — `if frappe.local.conf.ssl_certificate:`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- frappe ve suite (tüm sourceRoot; min.js/map/svg/po/pot/csv hariç); arama `(?i)(letsencrypt|certbot|acme|ssl_certificate|domain.?verif|verify.?domain|txt.?record|cert.?renew|certificate.?expir)`: 44 dosya. Frappe'de yalnız email ssl doğrulama bayrakları, utils/data.py get_url ve test/örnek 'Acme' metinleri çıktı. Suite'te mail domain API/UI ve meet/sfu-server/deploy altında certbot dosyaları bulundu.
+- suite/suite (public hariç); arama `(?i)(def .*verif.*domain|def .*domain.*verif|verify_dns|dns_record|is_verified|domain_verified|custom_domain|add_domain)`: mail/api/admin.py içinde add_domain, verify_domain, get_domain_ownership_record bulundu ve Suite Cloud'a devrediyor. dns_record DocType yalnız main.pot'ta geçiyor; dns_record.py dosyası mevcut değil.
+- suite/suite/meet/sfu-server/deploy; arama `(?i)(certbot|renew|ssl|cert)`: certbot servisi 12 saatlik renew döngüsü, ssl-init/ssl-renew komutları ve nginx Let's Encrypt yolları var; alarm yok.
+- suite/suite; arama `def get_active_domain_names|def get_site_domains`: directory.py:31 yalnız enabled ve is_verified domainleri döndürüyor.
+- suite/suite/headless_provider; arama `(?i)(domain|tls|certificate|https|ssl)`: Eşleşme yok.
+- frappe/frappe; arama `(?i)(letsencrypt|certbot|acme|ssl_certificate|domain.?verif|verify.?domain|txt.?record|cert.?renew|certificate.?expir)`: Yalnız email validate_ssl_certificate alanları ve data.py:1995 get_url https seçimi var; ACME/doğrulama/yenileme yok.
+- suite (public hariç); arama `(?i)(renew.*(fail|alert|notify)|cert.*(alert|monitor|expir)|ssl.*(alert|expir))`: Yalnız push subscription yenileme hatası ve mail TLS-RPT 'certificate-expired' rapor görünümü var (karşı sunucu raporu); kendi sertifika yenileme alarmı yok.
+
+Sınır: Yalnız sourceRoot altındaki frappe ve suite app kaynakları incelendi. bench, nginx/supervisor config, site_config ve sunucu katmanı kaynakta yok.; Suite Cloud uzak servis kodu kaynakta yok; sahiplik zorlaması yalnız docstring ve istemci çağrısı düzeyinde görüldü, uzaktaki davranış doğrulanamaz.; Hiçbir komut, test veya deploy çalıştırılmadı; functionalAcceptance: not_run.; SFU deploy paketi yalnız Meet SFU alt servisini kapsıyor; Frappe site domainlerini kapsamıyor.; Kodun varlığı, üretimde sertifikanın gerçekten yenilendiğini veya alarm üretildiğini kanıtlamaz.
+
+Temporal workflow: `saas-recheck-20261015t073528z-040`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### deployment-6 — Kurulum sihirbazı, ortam yapılandırması ve kurulum sağlık denetimi.
 
@@ -742,15 +1049,40 @@ Mevcut birincil görev: `alert-routing--implementation`. Kaynak: `suite/suite/me
 
 #### observability-8 — Hizmet seviyesi göstergesi ve hedefi (SLI/SLO); hata bütçesi, tüketim alarmı ve yayın kararları.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Kabul metni güçlü: pencerenin yeniden hesaplanması, hızlı/yavaş bütçe tüketimi alarmı, yayın kararının kaydı ve SLA'nın ayrı tutulması tanımlı. Ancak seçilecek yolculuk ve sayısal hedefler eksik. SLO yönetimine dair kaynak görülmedi. Yalnızca recorder'daki outcome etiketli başlatma sayacı olası bir SLI hammaddesi olarak var.
+SLI hammaddesi olabilecek somut ilkel bileşenler var, ancak SLO yönetimi yok. (1) Suite Meet SFU (prom-client) outcome etiketli sayaçlar ve histogramlar üretiyor: meet_sfu_room_joins_total{scope,rejoin,outcome} ve meet_sfu_room_join_duration_seconds. Bunlar "toplantıya katılma" yolculuğu için iyi olay/toplam olay oranını ve gecikme SLI'sını hesaplamaya elverişli. (2) Recorder sunucusunda recorder_starts_total{outcome,reason} sayacı var. (3) Merkezi bir Prometheus/Loki/Grafana yığını var: Prometheus SFU ve recorder hedeflerini 15 saniyede bir, Bearer token ile kazıyor. Grafana panoları hazır. (4) Frappe upstream'deki frappe/monitor.py, conf.monitor açıksa istek ve iş başına süre ile status_code değerini monitor.json.log dosyasına yazıyor. Bu, HTTP kullanılabilirlik SLI'sı için ham kayıttır, ama metrik ya da SLO değildir. (5) Observability README, SENTRY_RELEASE ile sürüm etiketlemeyi tarif ediyor. Bu yalnız regresyonu sürüme bağlar, yayın kararı vermez. headless_provider (yerel pilot) içinde metrik ya da SLO sözleşmesi yok.
 
-Eksik: Pilot kullanıcı yolculuğu ve SLI formülü (iyi olay / toplam olay) seçilmemiş.; Hedef yüzdesi, ölçüm penceresi ve burn-rate eşikleri sayısal olarak tanımlı değil.; Yayın kararının nerede kayıt altına alınacağı ve hangi geçitle bağlanacağı (CI/CD) belirsiz.; Bağımlılık açıkça yazılmamış: observability-5 ve observability-7 tamamlanmadan bu madde başlayamaz.
+Eksik: SLO tanımı yok: seçilmiş yolculuk, SLI formülü, hedef yüzdesi ve ölçüm penceresi kaynakta tanımlı değil. Tek SLO geçen yer stt-server/load/README.md'deki 'önce SLO üzerinde anlaşın' notu; bu bir uygulama değil.; prometheus.yml'de rule_files, recording rule ya da alerting/Alertmanager yapılandırması yok. Pencerenin yeniden hesaplanması, hızlı/yavaş burn-rate alarmı ve hata bütçesi hesabı yok.; Hata bütçesi politikası ve yayın kararı kaydı yok: bütçe ihlalinde yayını dondurma ya da iyileştirme kararı tutan bir DocType, API, CI geçidi veya kayıt bulunmuyor.; Sözleşmesel SLA'yı SLO'dan ayıran bir model ya da belge yok.; Frappe backend ve headless_provider için Prometheus metrik ihracı yok. frappe/monitor.py yalnız JSON log yazıyor ve conf.monitor ile kapalı başlıyor.; Runtime functionalAcceptance: not_run. Alarmların çalıştığı ya da panoların veri aldığı kaynaktan kanıtlanamaz.
 
-Sonraki adım önerisi: slo-policy--implementation, observability-5 ve observability-7'ye bağımlı olarak işaretlenmeli. Tek bir pilot yolculuk seçilmeli; örnek aday, recorder_starts_total outcome oranı. SLI formülü, hedef, pencere ve iki burn-rate eşiği bir sayfada yazılmalı. Yayın kaydının yeri belirlenmeli.
+Sonraki somut adım: Önerilen sıra: (1) slo-policy--contract kapsamında tek bir pilot yolculuk seçilir. Öneri: SFU oda katılımı. SLI = sum(rate(meet_sfu_room_joins_total{outcome="success"}[w])) / sum(rate(meet_sfu_room_joins_total[w])). Hedef, pencere (ör. 28 gün) ve iki burn-rate eşiği (hızlı: 1s/5dk, yavaş: 6s/30dk) tek sayfaya yazılır. SLA bu sayfadan ayrı tutulur. (2) slo-policy--implementation: suite/suite/meet/observability/prometheus altına bir recording-rules dosyası ve çok pencereli burn-rate alert kuralları eklenir, prometheus.yml'ye rule_files bağlanır. Mevcut validate-config.sh'ye promtool check rules ve sentetik seriyle promtool test rules (RED→GREEN) adımı eklenir. (3) Alarm teslimi (Alertmanager ya da Grafana alerting) devreye alınır. (4) Bütçe ihlalinde verilen yayın ve iyileştirme kararı için kayıt yeri belirlenir ve CI/CD geçidine bağlanır; teknik kurulum Hüseyin Cengiz'dedir. Frappe/headless_provider HTTP SLI'sı ancak bundan sonra, ayrı bir adım olarak monitor log → metrik dönüşümüyle ele alınır.
 
-Mevcut birincil görev: `slo-policy--implementation`. Kaynak: `suite/suite/meet/recorder-server/src/app.ts:169`; `suite/suite/meet/recorder-server/src/app.ts:171`; `suite/suite/meet/observability/grafana/provisioning/dashboards/json/recorder-overview.json:85`.
+Önerilen bağımlılık/sıra: slo-policy--contract; slo-policy--implementation. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `slo-policy--implementation`.
+
+Kaynak kanıtı:
+
+- `suite/suite/meet/sfu-server/src/telemetry/Telemetry.ts:40` — `name: 'meet_sfu_room_joins_total',`
+- `suite/suite/meet/sfu-server/src/telemetry/Telemetry.ts:42` — `labelNames: ['scope', 'rejoin', 'outcome'] as const,`
+- `suite/suite/meet/recorder-server/src/app.ts:169` — `name: 'recorder_starts_total',`
+- `suite/suite/meet/observability/prometheus/prometheus.yml:3` — `evaluation_interval: 15s`
+- `frappe/frappe/monitor.py:23` — `if frappe.conf.monitor:`
+- `frappe/frappe/monitor.py:109` — `self.data.request.status_code = response.status_code`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- source (frappe + suite, tümü); arama `(?i)(\bSLO\b|\bSLI\b|error[_ ]budget|burn[_ -]?rate|service level (objective|indicator))`: Uygulama yok. Yalnızca suite/suite/meet/sfu-server/stt-server/load/README.md:53'te SLO üzerinde anlaşılması gerektiğini söyleyen bir doküman notu ve vendored bir JS dosyasında ilgisiz bir eşleşme var.
+- source (frappe + suite, *.py/json/ts/js/yml/yaml/md/vue/alloy); arama `(?i)(error.?budget|burn.?rate|sli_|slo_|objective_target|service.?level)`: Eşleşme yok.
+- source (frappe + suite, tümü); arama `(?i)(alertmanager|alerting_rules|PrometheusRule|alert:|for: \d+m|availability_target|uptime_target)`: Yalnız UI ve takvim alert'leri ile güvenlik e-postaları çıktı. Prometheus veya Alertmanager kuralı yok.
+- source (frappe + suite, public hariç); arama `(?i)(prom-client|prometheus_client|Histogram\(|new client\.(Counter|Histogram)|_total['"])`: Metrikler yalnız suite/meet/sfu-server/src/telemetry/Telemetry.ts ve suite/meet/recorder-server/src/app.ts içinde (prom-client). Frappe Python tarafında Prometheus ihracı yok.
+- suite/suite/meet/observability; arama `(?i)(rule_files|alerting|recording_rules|slo|budget|burn|release|deploy|freeze)`: rule_files, alerting veya budget yok. README'de yalnız Sentry release etiketleme ve deploy talimatları var.
+- frappe/frappe/monitor.py; arama `(?i)(def (start|stop|log)\b|monitor_|MONITOR_REDIS_KEY|class Monitor)`: conf.monitor ile açılan istek/iş monitörü bulundu: süre ve status_code değerini Redis'e, oradan monitor.json.log dosyasına yazıyor. SLO veya alarm yok.
+- suite/suite/headless_provider; arama `(?i)(metric|telemetry|sentry|slo|latency|availability|health)`: Yalnız api.py'de ilgisiz 'slots' eşleşmesi var. Yerel pilot sağlayıcıda gözlemlenebilirlik veya SLO sözleşmesi yok.
+
+Sınır: Yalnız sourceRoot altındaki frappe ve suite uygulama kaynağı statik olarak okundu. Komut, test veya promtool çalıştırılmadı; functionalAcceptance not_run.; Grafana pano JSON içerikleri (recorder-overview, sfu-overview, stt-delivery) bu turda satır satır okunmadı. Panolar görselleştirmedir; alarm ya da SLO kanıtı sayılmadı.; Dağıtılmış Prometheus/Grafana/Sentry/Frappe Cloud ortamındaki alarm veya SLO ayarları kaynaktan görülemez.; suiteCommit bilinmiyor. ERPNext/HRMS kurulu değil ve değerlendirilmedi.; headless_provider yerel pilot ekleme koddur; upstream-native kaynaktan ayrı tutuldu. Suite'in Vue frontend'i SLO açısından ilgisiz bulundu.
+
+Temporal workflow: `saas-recheck-20261015t073528z-057`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 ### Müşteri, kimlik ve erişim
 
@@ -780,15 +1112,39 @@ Mevcut birincil görev: `organization-unit--implementation`. Kaynak: `frappe/fra
 
 #### tenant-3 — Kiracı oluşturma, etkinleştirme, kapatma ve güvenli müşteri çıkışı.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-İdempotent oluşturma ve çıkış öncesi teslim/saklama kabulü iyi tanımlı. Site oluşturma/silme/yedek komut kaynağı (frappe/commands, bench) pakette yok, bu yüzden yerel yetenek bilinmiyor. is_fc_site yalnızca bir Frappe Cloud işaretidir, yaşam döngüsü kanıtı değildir.
+Upstream Frappe site düzeyinde yaşam döngüsü ilkellerini CLI olarak sağlıyor. (1) `new-site` (frappe/frappe/commands/site.py:74), installer._new_site'ı çağırıyor; site dizini varsa ve --force verilmemişse çıkıyor (installer.py:66-68). Bu, yalnız site adı/dizin varlığına dayalı bir tekrar koruması. Hata durumunda rollback yalnız TTY onayıyla çalışıyor. (2) Askıya alma/kapatma ilkeli: `bench set-maintenance-mode` (commands/scheduler.py:115) site_config'e maintenance_mode yazıyor. app.py:203-207 her istekte SessionStopped fırlatıyor; allow_reads_during_maintenance açıksa salt-okuma moduna geçiyor. Scheduler da maintenance_mode'da durduruluyor (utils/scheduler.py:181). (3) Veri teslimi/yedek: `bench backup`; --with-files, --compress ve yol seçenekleriyle DB, dosya ve config yedeği alıyor (commands/site.py:900-956, utils/backups.py:646). (4) Kalıcı kapatma: `drop-site` (site.py:1141) varsayılan olarak önce yedek alıyor ve yedek başarısızsa duruyor. Ardından DB'yi ve DB kullanıcısını siliyor, site dizinini archived/sites altına taşıyor (site.py:1168-1200). Personal Data Download/Deletion Request kullanıcı düzeyinde; kiracı çıkışı değil. Suite'te tenant/site yaşam döngüsü kodu yok. suite/headless_provider/local_fixture.py LOCAL PILOT ek kodu. Oradaki provision() yalnız suite.localhost'ta Administrator için DocType/rol/kullanıcı fikstürü kuruyor; kiracı oluşturmuyor.
 
-Eksik: Kiracı durum makinesi tanımsız (provisioning/active/suspended/closing/closed) ve askıya almanın oturum/API etkisi yok.; İdempotency anahtarı ve tekrar deneme sözleşmesi yok.; Saklama süresi, veri teslim formatı ve silme kanıtı tanımsız.; Bench/Frappe 17-dev CLI komut eşlemesi doğrulanmamış.
+Eksik: Kiracı kayıt DocType'ı/registry ve durum makinesi (provisioning/active/suspended/closing/closed) yok; durum geçişi API'si ve denetim kaydı da yok.; İstemci kaynaklı idempotency anahtarı ve tekrar deneme sözleşmesi yok. Mevcut koruma yalnız site dizini varlığına bakıyor; aynı istek farklı site adıyla tekrarlanırsa ikinci kiracı açılabilir.; Ayrı bir 'aktivasyon' adımı yok. new-site sonunda site doğrudan kullanılabilir oluyor.; maintenance_mode askıya alma amacıyla tasarlanmamış, bakım bayrağı. Tüm istekleri (Administrator dahil) durduruyor. Kiracıya özel askı mesajı, mevcut oturumların sonlandırılması ve API token iptali politikası yok.; Müşteri çıkış akışı yok: veri teslim formatı (yedek dışında taşınabilir export), teslim kabulü kaydı, saklama süresi kararı, saklama süresi dolunca arşivin silinmesi ve silme kanıtı yok. drop-site arşivi süresiz olarak archived/sites'ta bırakıyor.; Bu işlemlerin hepsi bench CLI. Headless provider veya Frappe HTTP API üzerinden kiracı yaşam döngüsü sözleşmesi yok; bench'in kendi kaynağı pakette değil.
 
-Sonraki adım önerisi: tenant-registry--implementation-mvp için durum makinesi ile idempotency anahtarını tek tabloda tanımla. Kullanılacak site komutlarını frappe/commands kaynağından Frappe 17-dev'e göre ayrıca doğrula.
+Sonraki somut adım: tenant-registry--contract/schema bağımlılıkları sırasıyla: önce tek bir 'Tenant' kayıt şeması tanımla. İçeriği: idempotency_key unique, site_name, status enum ve geçiş tablosu. Ardından ilk dar davranışı uygula: aynı idempotency_key ile ikinci oluşturma isteği mevcut kaydı döndürsün ve yeni site açmasın; bu davranışın RED/GREEN testi yazılsın. Provisioning adımı installer._new_site'ı sarmalasın. Askıya alma ilk sürümde maintenance_mode yerine kiracıya özel bir before_request kontrolü olarak tasarlansın; maintenance_mode'un Administrator dahil tüm istekleri durdurduğu dikkate alınsın. Çıkış (closing→closed) adımı en son eklensin: scheduled_backup çıktısını teslim kaydına bağla, saklama kararını kaydet, sonra _drop_site çağır. Komut eşlemesi bu kaynak commit'inde (adf1fd0c) doğrulandı; bench sarmalayıcısı ayrıca doğrulanmalı.
 
-Mevcut birincil görev: `tenant-registry--implementation-mvp`. Kaynak: `frappe/frappe/website/utils.py:213`; `suite/pyproject.toml:45`.
+Önerilen bağımlılık/sıra: tenant-registry--contract; tenant-registry--schema; tenant-registry--implementation; kernel-envelope--contract. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `tenant-registry--implementation-mvp`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/installer.py:66` — `if not force and os.path.exists(site):`
+- `frappe/frappe/app.py:207` — `raise frappe.SessionStopped("Session Stopped")`
+- `frappe/frappe/commands/scheduler.py:124` — `update_site_config("maintenance_mode", 1 if (state == "on") else 0)`
+- `frappe/frappe/commands/site.py:1170` — `odb = scheduled_backup(ignore_files=False, ignore_conf=True, force=True, verbose=True)`
+- `frappe/frappe/commands/site.py:1191` — `drop_user_and_database(frappe.conf.db_name, frappe.conf.db_user)`
+- `suite/suite/headless_provider/local_fixture.py:12` — `if frappe.local.site != "suite.localhost" or doctype != DOCTYPE or frappe.session.user != "Administrator":`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- frappe/frappe; arama `def (new_site|drop_site|_new_site|disable_scheduler|set_maintenance_mode|backup)\b`: commands/site.py new_site:74, backup:956, drop_site:1141; installer.py _new_site:42; commands/scheduler.py set_maintenance_mode:115; utils/backups.py backup:818
+- suite; arama `(?i)(tenant|provision|suspend|offboard|data_export|retention|idempoten)`: 121 dosya; eşleşmeler Meet/Mail/Sheets alan terimleri (sheets versioning retention, meet SFU provisioning, mail suspend vb.) ve derlenmiş frontend varlıkları. Kiracı yaşam döngüsü yok.
+- suite/suite/headless_provider; arama `(?i)(tenant|lifecycle|suspend|provision|offboard|idempot)`: Yalnız local_fixture.py:15 provision(): yerel fikstür, kiracı değil
+- frappe/frappe (*.py); arama `(?i)(maintenance_mode|site_suspended|suspended|subscription_expir|expires_on|...)`: maintenance_mode: app.py:203, utils/scheduler.py:181/276, commands/scheduler.py:124. Site askı/abonelik bitişi kavramı yok; expires_on yalnız belge paylaşım anahtarı/web form içindir.
+- suite/suite (*.py); arama `(new_site|drop_site|_drop_site|scheduled_backup|maintenance_mode|update_site_config|deactivate|offboard|tenant_id|tenant_status)`: Yalnız mail sieve_script 'deactivate' eşleşmeleri; site/kiracı yaşam döngüsü yok
+- frappe/frappe (*.py); arama `(--with-files|--compress|...|def scheduled_backup|def new_backup|class PersonalData(Download|Deletion)Request)`: backup seçenekleri site.py:900/953; backups.py scheduled_backup:646, new_backup:685; kullanıcı düzeyi kişisel veri indirme/silme DocType'ları
+
+Sınır: Yalnız statik kaynak okundu; komut çalıştırılmadı, test yazılmadı veya çalıştırılmadı. functionalAcceptance=not_run.; Bench CLI (frappe-bench paketi) ve Frappe Cloud/Press kaynağı pakette yok; sarmalayıcı davranışı değerlendirilmedi.; ERPNext/HRMS kurulu değil, değerlendirilmedi.; suiteCommit bilinmiyor; suite/headless_provider yerel pilot ek koddur, upstream değildir.; Derlenmiş frontend varlıklarındaki (public/frontend/assets) eşleşmeler ayrıntılı okunmadı; kaynak Vue/TS dosyalarında kiracı terimi bulunmadı.; Kaynak, kodun varlığını kanıtlar; dağıtılmış operasyonu, saklama uyumluluğunu veya silme kanıtının yeterliliğini kanıtlamaz.
+
+Temporal workflow: `saas-recheck-20261015t073528z-004`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### tenant-4 — Kullanıcı daveti, kurum üyeliği, kurum değiştirme ve sahiplik devri.
 
@@ -816,15 +1172,42 @@ Mevcut birincil görev: `tenant-registry--implementation`. Kaynak: `suite/suite/
 
 #### tenant-6 — Kiracı taşıma ve paylaşımlı / ayrılmış kurulum arasında geçiş.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Deneme taşıması ve geri dönüş kabulü var. Yedekleme/geri yükleme komut kaynağı pakette yok. Suite S3 dosyaları, yerel arama indeksi ve site dışı servisler taşımanın kapsamına girmesi gereken ama talimatta geçmeyen bileşenler.
+Upstream Frappe'de site düzeyinde taşıma araçları var. `bench backup` komutu (frappe/frappe/commands/site.py:956) scheduled_backup/BackupGenerator ile veritabanını, site_config.json dosyasını ve isteğe bağlı olarak public ve private files dizinlerinin tar arşivini alıyor. DocType için include/exclude, sıkıştırma, şifreleme ve hata durumunda rollback_callback destekleniyor. `restore` komutu (site.py:208) site_restore dosya kilidi altında çalışıyor; SQL'i ve isteğe bağlı public/private tar dosyalarını geri yüklüyor, gerekirse şifreyi çözüyor. `partial-restore` ve `migrate` (SiteMigration) da var. `migrate-to` komutu ise yalnızca Frappe Cloud'a özgü: frappecloud.com'dan uzak bir betik indirip execv ile çalıştırıyor; yerel ve sağlayıcıdan bağımsız bir taşıma değil. Suite tarafında veri siteye göre ayrılıyor. Tantivy arama indeksi sites/<site>/private/files/search-index, LMDB veri deposu private/files/data-store altında; ikisi de private tar'a girdiği için yedeğe dolaylı olarak dahil. Blob deposu bilerek sites/<site>/blob-store altında tutuluyor ve yedek dışında kalıyor; kaynaktaki açıklamaya göre bu bir önbellek ve gerektiğinde yeniden çekiliyor. Drive içerikleri isteğe bağlı olarak Drive Disk Settings'teki S3 bucket'ında tutulabiliyor. Suite'in after_migrate hook'ları mevcut. Yerel pilot headless_provider yalnızca frappe.local.site değerini döndürüyor; taşıma veya yedekleme sözleşmesi içermiyor.
 
-Eksik: RPO/RTO, kesinti penceresi ve geri dönüş tetik ölçütü tanımsız.; S3 nesneleri, tantivy indeksi ve harici servis durumunun taşıma sırası belirtilmemiş.; Keycloak kimlik eşlemesinin hedef ortamda korunma kuralı yok.; Paylaşımlı↔ayrılmış geçişte DNS/host değişikliği sorumluluğu ayrılmamış (teknik gereksinim ile uygulayan rol).
+Eksik: Kiracıyı paylaşımlı ve ayrılmış kurulum arasında taşıyan bir orkestrasyon kaynakta yok: kiracı kaydında topoloji alanı, taşıma durum makinesi ve deneme taşıması ile doğrulama adımı bulunmuyor.; Geri dönüş tetik ölçütü, RPO/RTO ve kesinti penceresi kodda tanımlı değil; restore yalnızca elle çalıştırılan bir CLI adımı.; Frappe yedeği S3 bucket nesnelerini ve blob-store'u kapsamıyor; S3 nesnelerini kopyalamak veya bucket'ı yeniden bağlamak için bir mekanizma yok.; Ayrı çalışan Suite servislerinin (sheets collab-server, meet sfu-server, mail) durumunu taşıma sırasına bağlayan bir kod yok.; Hedef ortamda Keycloak/OAuth kimlik eşlemesinin korunduğunu doğrulayan bir kural yok.; Hedefte Tantivy indeksinin tutarlılığını kontrol edecek ya da indeksi yeniden kuracak bir kanca yok (yalnızca şema sürümü değişince yeniden kurulum yapılıyor).; DNS ve host değişikliği ile rol ayrımı kaynakta yok; `bench add-to-hosts` yalnızca yerel /etc/hosts dosyasına yazıyor.; hooks.py'de izinli yollar listesinde `/api/method/create-site-migration` geçiyor ama kurulu kaynakta bu yolu karşılayan bir uygulama bulunamadı.; Headless provider'da taşıma veya topoloji durumunu sunan bir sözleşme yok.
 
-Sonraki adım önerisi: tenant-registry--implementation-scale için taşıma bileşen listesini ve geri dönüş ölçütünü yaz. Backup/restore komutlarını Frappe 17-dev kaynağından doğrula. Yeni altyapı önerme.
+Sonraki somut adım: Mevcut tenant-registry--implementation-scale görevi altında, tenant-registry--contract/schema/implementation ve kernel-envelope--contract bağımlılıkları sağlandıktan sonra şu sırayla ilerle: (1) Taşıma bileşen envanterini sözleşme olarak yaz: DB, site_config, public/private files (search-index ve data-store dahil), S3 bucket öneki, blob-store (yeniden çekilebilir önbellek), harici servisler ve Keycloak istemci/kimlik eşlemesi. (2) Mevcut `bench backup --with-files` ve `bench restore --with-public-files --with-private-files` komutlarını yeniden kullanan, salt okunur bir taşıma öncesi/sonrası doğrulama fonksiyonu yaz: kayıt sayıları, File kayıtlarına karşı S3 anahtar örneklemesi, Tantivy indeksindeki belge sayısı ve kullanıcı↔Keycloak eşlemesi karşılaştırılsın. Bunun için önce başarısız (RED), sonra geçen (GREEN) bir test yaz. (3) Geri dönüş ölçütünü ve RPO/RTO değerlerini bu doğrulamanın çıktısına bağla. DNS kayıt gereksinimini Hüseyin Cengiz hazırlasın, GoDaddy'de Asistan Hüseyin uygulasın; bunu kod dışında bir devir notu olarak tut. `migrate-to` komutunu (Frappe Cloud uzak betiği) kullanma. Yeni altyapı önerilmiyor.
 
-Mevcut birincil görev: `tenant-registry--implementation-scale`. Kaynak: `suite/pyproject.toml:88`; `suite/pyproject.toml:15`; `frappe/frappe/website/doctype/website_theme/website_theme.py:99`.
+Önerilen bağımlılık/sıra: tenant-registry--contract; tenant-registry--schema; tenant-registry--implementation; kernel-envelope--contract. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `tenant-registry--implementation-scale`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/commands/site.py:223` — `"Restore site database from an sql file"`
+- `frappe/frappe/utils/backups.py:380` — `for folder in ("public", "private"):`
+- `frappe/frappe/integrations/frappe_providers/frappecloud.py:10` — `request_url = f"https://{remote_site}/api/method/press.api.script"`
+- `suite/suite/store/__init__.py:29` — `return os.path.join(get_bench_path(), "sites", frappe.local.site, "blob-store")`
+- `suite/suite/store/__init__.py:38` — `return os.path.join(get_bench_path(), "sites", frappe.local.site, "private", "files", "search-index")`
+- `suite/suite/hooks.py:408` — `"/api/method/create-site-migration",`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- frappe/frappe/commands; arama `def (backup|restore|partial_restore|migrate_to)\b|def _new_site|def migrate_to\(`: site.py içinde restore:208, partial_restore:433, migrate_to:808 ve backup:956 bulundu; implementasyonları okundu.
+- suite; arama `(?i)(migrat\w*_tenant|tenant.*(migrat|move|transfer)|dedicated|shared.?(site|bench|tenant)|isolation|backup|restore|s3|tantivy)`: 79 dosya eşleşti: drive S3, store/search_store, mail izolasyonu ve sheets versiyonlama. Hiçbirinde kiracı taşıma orkestrasyonu yok.
+- suite/suite/headless_provider; arama `(?i)(tenant|site_name|frappe\.local\.site|backup|restore|migrat)`: Yalnızca site/user/csrf dönen session yanıtı ve yerel fixture kontrolü var; taşıma sözleşmesi yok.
+- frappe/frappe/utils/backups.py; arama `(?i)(def (scheduled_backup|new_backup|backup_files|take_dump)|class BackupGenerator|include_files|private_files|site_config_backup)`: BackupGenerator yalnızca public/private files, DB ve site_config yedekliyor.
+- suite/suite (store, drive/api/s3.py, drive_disk_settings.json, hooks.py); arama `(?i)(tantivy|index_path|get_site_path|site_path|rebuild|bucket|endpoint_url|aws_key|s3_)`: Tantivy indeksi site bazında tutuluyor ve şema sürümü değişince yeniden kuruluyor; S3 bucket/endpoint ayarları Drive Disk Settings'te.
+- .; arama `(?i)(before_backup|after_backup|before_restore|after_restore|before_migrate|after_migrate|on_backup|backup_hook)`: Yalnızca before/after_migrate hook'ları var; backup/restore hook'u iki uygulamada da yok.
+- suite/suite/store; arama `(?i)(get_site_path|get_bench_path|def _namespace|path =|namespace_dir|SEARCH_ROOT|indexes)`: data-store ve search-index private/files altında, blob-store ise private dışında.
+- suite/suite/hooks.py; arama `(?i)(tenant|migrat|dedicated|shared|keycloak|social_login|backup|restore|export_site|import_site|dns|host_name)`: Yalnızca after_migrate ve izinli yollar listesindeki create-site-migration girdisi bulundu.
+- .; arama `(?i)(tenant.?(migrat|move|transfer|registry)|dedicated.?(site|bench|server)|switch.?topolog|move.?site|site.?migration)`: Yalnızca SiteMigration (şema migrate) ve hooks.py'deki allowlist girdisi bulundu; topoloji geçişi implementasyonu yok.
+
+Sınır: Değerlendirme yalnızca kaynak koda dayanıyor; hiçbir komut veya test çalıştırılmadı. functionalAcceptance: not_run.; Bench CLI (bench uygulaması) sourceRoot içinde olmadığı için bench düzeyindeki new-site/setup multitenancy ve DNS davranışı değerlendirilmedi.; Keycloak sunucusu, S3 sağlayıcısı ve harici servislerin çalışma zamanı durumu kaynaktan doğrulanamaz.; suiteCommit bilinmiyor; headless_provider yerel pilot kodu, upstream değil.; Suite frontend ve realtime servislerinin node kaynakları (collab-server, sfu-server) taşıma açısından ayrıntılı okunmadı.; Ürün DONE veya yüzde iddiası yok.
+
+Temporal workflow: `saas-recheck-20261015t073528z-005`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### tenant-7 — Kiracı klonlama; yapılandırma ve şablon verisini seçerek yeni kiracı oluşturma.
 
@@ -996,15 +1379,38 @@ Mevcut birincil görev: `native-user-policy--implementation`. Kaynak: `frappe/fr
 
 #### access-4 — Impersonation (destek amacıyla kullanıcı adına geçici erişim).
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Kapsam koşullu olarak doğru tanımlanmış ve kabulde 'asıl ve temsil edilen kimlik ayrımı' isteniyor. İncelenen kesitlerde Frappe'nin yerleşik bir impersonation mekanizması görülmedi; bu, kaynakta yok demek değil, 'unknown' olarak kalmalı. İzin değerlendirmesi tek bir session.user üzerinden yapılıyor. WebDAV Basic/API key gibi alternatif giriş yolları da tek kimlik döndürüyor. Keycloak impersonation oturumunun hangi claim ile Frappe'ye taşınacağı, süre ve onay kuralları, korunan roller ve alternatif giriş yollarının kapsamı tanımlanmamış.
+Yerel kaynakta upstream Frappe'nin kendi impersonation özelliği var; önceki 'unknown' değerlendirmesi bununla düzeltildi. Kodda bulunanlar: (1) frappe.core.doctype.user.user.impersonate(user, reason) adlı, yalnız POST kabul eden whitelisted metot. Çağıranın User üzerinde 'impersonate' izin türüne sahip olması gerekiyor; bu tür user_impersonate Permission Type JSON'unda tanımlı. (2) Metot bir Activity Log kaydı (operation=Impersonate, user=hedef, subject metninde impersonator) oluşturuyor, hedef kullanıcıya gerekçeyle birlikte Notification Log gönderiyor ve varsayılan giden e-posta hesabı varsa güvenlik uyarısı e-postası atıyor. (3) LoginManager.impersonate, login_as ile hedef kullanıcıya yeni bir oturum açıyor. Bu oturum önceki oturumun session_end ve audit_user değerlerini devralıyor; set_impersonated ile impersonated_by oturum verisine yazılıp kaydediliyor. (4) Version.set_impersonator, belge değişikliği diff/insert verisine impersonated_by ve audit_user ekliyor; form zaman çizelgesinde 'Impersonated by' gösteriliyor. (5) Boot bilgisi impersonated_by alanını taşıyor; Desk'te impersonation banner'ı ve toolbar/form kısıtlaması var. (6) User.js'teki Impersonate düğmesi gerekçeyi zorunlu tutuyor ve restrict_ip olan kullanıcıda işlemi engelliyor; ancak bu kontrol yalnız istemci tarafında. Suite'te (Drive/Mail/Meet/WebDAV) ve yerel pilot olan suite/headless_provider içinde impersonation'a özgü kod yok; headless_provider yalnız frappe.session.user kullanıyor.
 
-Eksik: Keycloak impersonation çıktısının (impersonator kimliği) Frappe oturumuna ve audit kaydına nasıl taşınacağı tanımsız; yerel OAuth kodu yalnızca genel bir provider akışı gösteriyor.; Frappe'nin yerleşik impersonation özelliğinin yerel v17 dev kaynağında olup olmadığı doğrulanmadı; Keycloak ile Frappe-native arasında seçim yapılmamış.; Süre, gerekçe, onaylayan kişi ve impersonate edilemeyecek roller (Administrator/System Manager) belirtilmemiş.; WebDAV, API key ve realtime gibi alternatif giriş yollarında destek oturumunun nasıl engelleneceği ya da izleneceği belirtilmemiş.
+Eksik: Hedef kullanıcı koruması sunucu tarafında yok: impersonate() yalnız genel User 'impersonate' izin türünü kontrol ediyor. Administrator/System Manager gibi korunan rolleri ve restrict_ip olan hedefleri sunucuda reddetmiyor; IP kontrolü yalnız user.js'te.; Ayrı süre sınırı, onaylayan kişi, bekleyen talep ve iptal (revocation) kaydı yok. Oturum süresi yalnız impersonator oturumunun session_end değerinden devralınıyor; gerekçe yalnız bildirim metninde duruyor, yapılandırılmış alan olarak saklanmıyor.; Asıl ve temsil edilen kimliğin ayrımı yalnız Version diff'lerinde ve Activity Log subject metninde var. Her işlem için yapılandırılmış actor/subject alanları yok: Access Log, Comment, Error Log, RPC/whitelist çağrıları, realtime olayları, Suite'in kendi aktivite kayıtları ve headless_provider yanıtları impersonated_by bilgisini taşımıyor.; Keycloak impersonation veya token-exchange claim'ini (ör. act/impersonator) Frappe oturumundaki impersonated_by alanına bağlayan kod yok; Frappe tarafındaki OAuth/Social Login akışı tek kimlik üretiyor.; Alternatif giriş yolları için politika yok: API key/token, WebDAV Basic Auth ve Meet SFU JWT yollarında impersonation oturumunu engelleyen ya da izleyen bir mekanizma yok; bu yollar tek bir kullanıcı kimliği döndürüyor.; Headless provider kontratında (React/AntDesign istemcisi için) impersonated_by ve actor/subject alanlarını dışa veren bir alan yok; impersonation banner'ı yalnız Frappe Desk'te var, Suite'in Vue frontend'inde yok.
 
-Sonraki adım önerisi: support-grant--implementation öncesinde yerel frappe/core/doctype/user kaynağında yerleşik impersonation olup olmadığı salt-okunur olarak doğrulanmalı. Ardından tek bir yol seçilmeli: Keycloak ya da Frappe-native. Destek izni kaydının alanları (talep eden, hedef, gerekçe, bitiş, onaylayan) ve log biçimi (actor/subject) yazılmalı.
+Sonraki somut adım: Yeni bir mekanizma kurmadan Frappe-native impersonate akışı yeniden kullanılmalı (R-00). Önerilen sıra: 1) support-grant--contract: Destek İzni kaydının alanları tanımlanır (talep eden, hedef, gerekçe, başlangıç/bitiş, onaylayan, durum). Korunan roller (Administrator, System Manager) ve log biçimi (actor = impersonated_by, subject = session.user) yazılır. Keycloak claim'i ancak sonradan bu alana eşlenmelidir. 2) support-grant--schema: Bu alanlarla bir DocType eklenir. 3) support-grant--implementation: Tek ve dar bir davranışla başlanır. Sunucu tarafındaki bir before-guard ya da wrapper, geçerli ve onaylı bir grant yoksa veya hedef korunan role sahipse ya da restrict_ip içeriyorsa impersonate çağrısını reddeder. Önce başarısız (RED) test, sonra geçen (GREEN) test kanıtı üretilir. Ardından grant bitişi oturum session_end değerine bağlanır. Son olarak headless_provider yanıtına salt okunur actor/subject alanları eklenir.
 
-Mevcut birincil görev: `support-grant--implementation`. Kaynak: `frappe/frappe/permissions.py:107`; `frappe/frappe/utils/oauth.py:107`; `suite/suite/drive/webdav/auth.py:35`; `suite/suite/meet/sfu-server/src/server/AuthManager.ts:97`.
+Önerilen bağımlılık/sıra: support-grant--contract; support-grant--schema; kernel-envelope--contract; tenant-registry--contract. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `support-grant--implementation`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/core/doctype/user/user.py:1581` — `frappe.has_permission("User", "impersonate", throw=True)`
+- `frappe/frappe/core/doctype/user/user.py:1590` — `"operation": "Impersonate",`
+- `frappe/frappe/auth.py:376` — `self.login_as(user, session_end=session_data.session_end, audit_user=session_data.audit_user)`
+- `frappe/frappe/sessions.py:495` — `self.data.data.impersonated_by = original_user`
+- `frappe/frappe/core/doctype/version/version.py:44` — `data["impersonated_by"] = impersonator`
+- `frappe/frappe/core/doctype/user/user.js:401` — `if (frm.doc.restrict_ip) {`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- source (frappe + suite, locale hariç); arama `(?i)impersonat`: Eşleşmelerin tamamı frappe içinde: user.py, auth.py, sessions.py, version.py, activity_log, permission_type/user_impersonate, user.js, site_banners.js, version_timeline, layout.js, toolbar.js ve testler. Suite içinde eşleşme yok.
+- suite; arama `(?i)(login.?as|act.?on.?behalf|sudo|switch.?user|support.?grant|support.?session|run.?as)`: İlgili davranış yok. drive_user_invitation.py ve drive/api/product.py, login_as'ı kullanıcının kendi oturumu için çağırıyor; destek/impersonation amacı taşımıyor. Kalan eşleşmeler CI'daki sudo ve .run(as_dict) çağrıları.
+- suite/suite; arama `(?i)(keycloak|token.?exchange|on_behalf|\bact\b.?claim|delegat|actor_user|real_user|original_user)`: Keycloak veya token-exchange entegrasyonu yok. Eşleşmeler izin devri (permission delegation) ve calendar invitations içindeki geçici set_user(original_user) çağrısıyla ilgili; impersonation değil.
+- frappe/frappe (*.py); arama `impersonated_by|audit_user`: Bu alanlar yalnız auth.py, sessions.py ve version.py içinde kullanılıyor. Access Log, Activity Log alanları ve RPC/realtime yollarında yayılmıyor.
+- suite/suite/headless_provider; arama `(?i)(session\.user|impersonat|actor|subject|audit|whitelist)`: Yerel pilot kodda yalnız whitelisted RPC'ler ve frappe.session.user var; impersonation veya actor/subject alanı yok.
+
+Sınır: Yalnız kaynak kod okundu; test çalıştırılmadı. Runtime functionalAcceptance: not_run.; Kaynak, kodun var olduğunu kanıtlıyor; 'impersonate' izninin hangi rollere verildiği site veritabanına bağlı ve görülmedi.; Keycloak sunucusundaki impersonation yapılandırması bu kaynak kapsamının dışında.; suiteCommit bilinmiyor. headless_provider, upstream'e ait değil; yerel pilot olarak eklenmiş kod.; public/dist altındaki derlenmiş bundle'lar incelenmedi; kaynak JS dosyaları esas alındı.; ERPNext/HRMS kurulu değil, kapsam dışı.
+
+Temporal workflow: `saas-recheck-20261015t073528z-058`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### access-5 — Destek erişiminde izin, gerekçe, süre, hassas işlem sınırı ve denetim izi.
 
@@ -1166,15 +1572,43 @@ Mevcut birincil görev: `consent-evidence--implementation`. Kaynak: `frappe/frap
 
 #### legal-5 — Çerez tercihleri, ticari ileti izinleri ve geri çekme.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Kabul metni test edilebilir: kanal bazında geri çekme sonraki gönderimi durduracak; zorunlu ve isteğe bağlı çerez ayrışacak. Ancak gönderimden önce izni kontrol eden nokta tanımlı değil. Kurulu Suite Mail ve `frappe.sendmail` gönderim yolu var. Frappe'nin unsubscribe/Newsletter kaynakları bu pakette yok, bu yüzden yerel yetenek bilinmiyor.
+Upstream Frappe'de yalnız e-posta kanalı için geri çekme (opt-out) primitive'i var. Email Unsubscribe DocType iki tür kayıt tutuyor: belirli bir belgeye bağlı (reference_doctype/reference_name) kayıt ve global_unsubscribe kaydı. Controller tekrar eden kaydı ve global kaydın daraltılmasını engelliyor. frappe.email.queue.unsubscribe guest olarak çağrılabiliyor ve imzalı istek doğrulamasından (verify_request) sonra bu kaydı oluşturuyor. Bağlantı, Email Queue'daki imzalı parametrelerle (get_signed_params) e-postanın altına ekleniyor. frappe.sendmail → QueueBuilder kuyruğa alma sırasında get_unsubscribed_user_emails ile to/cc/bcc alıcılarını eliyor: global kaydı olanlar ve aynı referans için çıkanlar düşüyor. Bu, e-postada sonraki gönderimi durduran gönderim öncesi kontrol noktası. Email Group Member.unsubscribed alanı var. Suite yalnız hooks.py'de unsubscribe endpoint'ini izinli rotalar listesine almış. Suite Mail'deki is_newsletter / Mail Queue.newsletter bayrağı yalnız toplu teslim modunu ve önceliği belirliyor; izin denetimi yapmıyor.
 
-Eksik: Çerez kategorileri listesi ve React/Vite istemcide tercih saklama/okuma sözleşmesi tanımlı değil.; Pazarlama gönderiminin geçeceği tek kontrol noktası tanımlı değil: Suite Mail mi, `frappe.sendmail` mi, dış ESP mi?; İşlemsel ileti ile ticari ileti ayrımının hangi alan veya bayrakla yapılacağı tanımlı değil.; Frappe'nin Email Unsubscribe/Newsletter yetenekleri v17 kaynağında incelenmedi.
+Eksik: Çerez tercihleri için kaynakta hiçbir şey yok: zorunlu/isteğe bağlı kategori, banner, tercih saklama ve consent-mode kodu bulunmadı.; İzin (opt-in) kaydı ve kanıtı yok: zaman, kaynak, metin sürümü ve kanal tutulmuyor. Yalnız geri çekme (opt-out) kaydı var.; Kanal bazlı izin modeli yok: SMS, push ve telefon için tercih kaydı ve geri çekme yok; mevcut mekanizma yalnız e-posta için.; İşlemsel ile ticari ileti ayrımı için alan veya bayrak yok. Email Unsubscribe kapsamı referans belge ya da global; bir 'pazarlama' kategorisi yok.; Suite Mail outbound (suite/mail/api/outbound.py → Mail Queue) Email Unsubscribe filtresini uygulamıyor. Bu yoldan geri çekilmiş alıcıya pazarlama gönderimi engellenmeden geçebilir.; Bu Frappe kaynağında Newsletter DocType yok. Unsubscribe bağlantısı, açık unsubscribe_message verilmedikçe yalnız reference_doctype == 'Newsletter' olduğunda ekleniyor.; Filtre kuyruğa alma anında (QueueBuilder) çalışıyor; daha önce kuyruğa girmiş iletilerin flush sırasında yeniden kontrol edildiği doğrulanmadı.; headless_provider'da (yerel pilot) izin veya tercih okuma/yazma sözleşmesi yok. React/Vite istemcide çerez tercih sözleşmesi bu kaynakta yok.
 
-Sonraki adım önerisi: Frappe v17 kaynağında Email Unsubscribe/Newsletter ve sendmail unsubscribe yolu salt okuma ile incelensin. Sonra `consent-evidence--implementation` görevine tek bir gönderim öncesi izin kontrolü kuralı ile işlemsel/ticari bayrağı yazılsın.
+Sonraki somut adım: Sıralama önerisi, yeni görev kaydı değil; mevcut bağımlılıklar korunur. (1) consent-evidence--contract: kanal (email/sms/push), amaç (transactional/marketing), durum, zaman, kaynak ve metin sürümünden oluşan izin kaydını ve çerez kategorisi sözleşmesini (necessary/optional) yaz. (2) consent-evidence--schema: Email Unsubscribe'ı değiştirmeden ek bir izin DocType'ı tanımla. (3) consent-evidence--implementation: tek gönderim öncesi kontrol noktası kur. En küçük adım: frappe.sendmail/QueueBuilder için marketing bayrağı taşıyan iletilerde izin kontrolü ekle; geri çekmede Email Unsubscribe global veya kanal kaydını da yaz. Ardından aynı kontrolü Suite Mail outbound newsletter yoluna bağla. Önce RED test: geri çekilmiş alıcıya marketing ileti kuyruğa alınmamalı. Çerez tercihini React istemcide bağımsız uygula; headless provider'a yalnız izin okuma/yazma uç noktası ekle.
 
-Mevcut birincil görev: `consent-evidence--implementation`. Kaynak: `frappe/frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:146`; `suite/pyproject.toml:6`.
+Önerilen bağımlılık/sıra: consent-evidence--contract; consent-evidence--schema; kernel-envelope--contract; tenant-registry--contract; native-user-policy--contract. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `consent-evidence--implementation`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/email/queue.py:97` — `def unsubscribe(doctype: str, name: str, email: str):`
+- `frappe/frappe/email/queue.py:105` — `"doctype": "Email Unsubscribe",`
+- `frappe/frappe/email/doctype/email_queue/email_queue.py:792` — `| (EmailUnsubscribe.global_unsubscribe == 1)`
+- `frappe/frappe/email/doctype/email_queue/email_queue.py:805` — `return [mail_id for mail_id in self.recipients if mail_id not in unsubscribed_emails]`
+- `frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py:31` — `frappe.throw(_("Delete this record to allow sending to this email address"))`
+- `suite/suite/mail/api/outbound.py:120` — `delivery_mode="Batch" if is_newsletter else "Enqueue",`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- source (frappe + suite); arama `(?i)cookie_consent|cookie consent|Email Unsubscribe|unsubscribe`: Frappe email/* (queue, email_queue, email_unsubscribe, email_group_member) ve contact/user/communication eşleşti; çoğu locale dosyası.
+- frappe/frappe/email/queue.py; arama `(?i)unsubscribe|send_unsubscribe|Email Unsubscribe|global_unsubscribe`: Guest unsubscribe endpoint'i, imzalı URL üretimi ve unsubscribe mesajı bulundu.
+- frappe/frappe/email/doctype/email_queue/email_queue.py; arama `(?i)unsubscribe|Email Unsubscribe|global_unsubscribe|send_after`: QueueBuilder get_unsubscribed_user_emails ve final_recipients/cc/bcc ile filtreliyor; add_unsubscribe_link varsayılanı 1.
+- frappe/frappe/email/doctype/email_queue/email_queue.py; arama `final_recipients\(\)|final_cc\(\)`: Filtrelenmiş alıcılar kuyruk belgesi oluşturulurken kullanılıyor (satır 834-972).
+- suite; arama `(?i)cookie.?consent|consent|unsubscribe|marketing|opt.?out|opt.?in`: Yalnız ilgisiz eşleşmeler var: meet captions, realtime, derlenmiş asset'ler. İzin uygulaması yok.
+- suite (_.py,_.json,_.vue,_.ts); arama `(?i)unsubscribe|newsletter|marketing|cookie.?consent|commercial`: Yalnız hooks.py:425'te unsubscribe rota izni ve Mail Queue.newsletter toplu teslim bayrağı var; izin filtresi yok.
+- source (locale ve public/frontend hariç); arama `(?i)cookie_consent|cookie.?banner|accept.?cookies|cookie_policy|show_cookie|consent_mode|gtag\(.consent`: Eşleşme yok: çerez onay uygulaması yok.
+- frappe/frappe/**/doctype/{newsletter*,email_group*,consent*,cookie*}; arama `glob *.json`: Yalnız email_group ve email_group_member var; Newsletter, Consent ve Cookie DocType'ı yok.
+- suite/suite/headless_provider; arama `(?i)consent|unsubscribe|marketing|cookie|opt_out|preference`: Yalnız api.py'de 'cookie-session user' ifadesi geçiyor; izin sözleşmesi yok.
+- frappe/frappe/email/doctype/email_group/email_group.py; arama `(?i)unsubscribe|def `: unsubscribed alanı yalnız üye içe aktarmada kopyalanıyor; gönderimde kullanıldığı burada görülmedi.
+
+Sınır: Yalnız kaynak kodu salt okunur incelendi; çalışma zamanı kabulü (functionalAcceptance) not_run. Test yazılmadı ve çalıştırılmadı.; Hukuki uyum (KVKK/GDPR/İYS) kaynaktan kanıtlanamaz.; React/AntDesign istemci, Keycloak ve dış ESP kaynakları bu snapshot'ta yok; çerez tercihi orada değerlendirilemedi.; Suite commit bilinmiyor. headless_provider yerel pilot ek koddur, upstream değildir.; Email Queue flush aşamasında unsubscribe'ın yeniden kontrol edilip edilmediği tam okunmadı.; ERPNext/HRMS kurulu değil; onların Newsletter/Campaign yetenekleri değerlendirilmedi.
+
+Temporal workflow: `saas-recheck-20261015t073528z-006`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### legal-6 — Müşteri özel sözleşmeleri, veri işleme şartları ve taahhüt kaydı.
 
@@ -1262,27 +1696,77 @@ Mevcut birincil görev: `legal-hold--implementation`. Kaynak: `suite/suite/drive
 
 #### governance-6 — Veri yerleşimi, ülke/bölge kısıtları ve alt işleyen envanteri.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Bu madde dış/altyapı doğrulaması olarak doğru sınıflanmış. Kaynakta alt işleyen temas noktaları görünüyor (S3/boto3, Anthropic SDK, site dışında çalışan SFU/recorder/collab servisleri); bölge kısıtlayan bir mekanizma görülmedi. Onaylı bölge listesi ve engelleme noktası talimatlarda yok.
+Yalnız ilgili altyapı taşları var; yerleşim politikası yok. (1) Suite Drive'daki FileManager (suite/suite/drive/utils/files.py), S3 bucket'ının gerçek bölgesini get_bucket_location ile bulup 24 saat cache'liyor. Bu bilgi yalnız presigned URL imzası için kullanılıyor; bölgeye izin verme veya engelleme yapılmıyor. Custom endpoint_url (MinIO vb.) tanımlıysa bölge hiç sorgulanmıyor. (2) Veriyi dışarı gönderen noktalar ayarlarla veya site config ile tanımlı: Drive Disk Settings endpoint_url/bucket ve Sheets AI Settings api_key/model. Anthropic istemcisi base_url veya bölge seçeneği olmadan varsayılan uç noktayla kuruluyor ve çalışma sayfası bağlamını gönderiyor. Bunlara ek olarak site config'te sfu_server_url, recorder_server_url, collab_ws_url ve push_relay_server_url; Suite Settings'te suite_cloud_url; Mail Settings'te server_url var. (3) frappe System Settings'teki country alanı yalnız yerel ayar varsayılanıdır, veri yerleşimini zorlamaz. Yerel pilot kodu suite/headless_provider (upstream değil) bölge, tenant veya alt işleyen sözleşmesi içermiyor.
 
-Eksik: Onaylı bölge listesi ve koşullu kapsamın tetikleyicisi yok; S3 bucket bölgesi, Sheets AI sağlayıcısı ve standalone servislerin konumu envantere bağlanmamış; 'Yasak bölgeye aktarımı engelle' için teknik uygulama noktası (yapılandırma doğrulaması mı, egress politikası mı) tanımsız; DevOps tarafının teknik devri (Hüseyin Cengiz) ve kabul kanıtı tanımlı değil
+Eksik: Onaylı bölge/ülke listesi modeli (DocType veya site config) yok; Alt işleyen envanteri kaydı yok: S3, Anthropic, Meet SFU/recorder/STT, Sheets collab, push relay, Suite Cloud ve Mail sunucusu bağlanmamış; Ayar kaydedilirken uç nokta veya bölge doğrulaması yok; S3 bölge tespiti engelleme amacıyla kullanılmıyor; Yasak bölgeye yeni aktarımı engelleyen bir uygulama noktası yok (validate hook ya da egress allowlist); Tenant başına yerleşim bağlamı ve yedek/analitik kopyalarının konum kaydı yok; Headless provider'da yerleşim ve alt işleyen bilgisini sunan sözleşme yok; Ağ egress politikası ve gerçek veri merkezi konumu kaynaktan kanıtlanamaz; bu, Hüseyin Cengiz'in altyapı doğrulaması ve Hukuk ekibinin sözleşme kontrolüdür
 
-Sonraki adım önerisi: residency-policy--implementation görevine kaynakta görülen alt işleyen listesini (S3, Anthropic, Meet SFU/recorder, Sheets collab) ekle. Engelleme kontrolünü Hüseyin Cengiz'in altyapı devrine ve yapılandırma doğrulamasına bağla.
+Sonraki somut adım: Mevcut residency-policy--contract → residency-policy--schema → residency-policy--implementation sırası izlenmeli. En küçük adım iki parçalı: önce onaylı bölge listesi için tek bir ayar tanımlanır. Ardından Drive Disk Settings validate() içinde, files.py'deki get_bucket_location mantığı yeniden kullanılarak S3 bucket bölgesi bu listeyle karşılaştırılır. Liste dışı bölgede ya da doğrulanamayan custom endpoint'te kayıt reddedilir; önce RED/GREEN testi yazılır. Sonra aynı allowlist kontrolü Sheets AI çağrısından önce ve site config URL'lerine (SFU, recorder, collab, push relay, suite_cloud) envanter kaydı olarak uygulanır. Headless provider'a, alt işleyen listesini salt okunur sunan bir uç nokta yerleşim sözleşmesinden sonra eklenir. Egress engeli ve fiziksel konum kanıtı Hüseyin Cengiz'in altyapı devrine bağlanır.
 
-Mevcut birincil görev: `residency-policy--implementation`. Kaynak: `suite/pyproject.toml:32`; `suite/pyproject.toml:15`; `suite/suite/drive/utils/files.py:38`; `suite/pyproject.toml:88`.
+Önerilen bağımlılık/sıra: residency-policy--contract; residency-policy--schema; kernel-envelope--contract; tenant-registry--contract; native-user-policy--contract. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `residency-policy--implementation`.
+
+Kaynak kanıtı:
+
+- `suite/suite/drive/utils/files.py:246` — `region = self.conn.get_bucket_location(Bucket=bucket).get("LocationConstraint") or "us-east-1"`
+- `suite/suite/drive/utils/files.py:42` — `endpoint_url=(settings.endpoint_url or None),`
+- `suite/suite/sheets/ai/client.py:88` — `client = anthropic.Anthropic(api_key=api_key)`
+- `suite/suite/meet/utils/sfu_config.py:12` — `"sfu_server_url": frappe.conf.get("sfu_server_url", "http://localhost"),`
+- `suite/suite/meet/api/recording.py:272` — `base_url=frappe.conf.get("recorder_server_url"),`
+- `suite/suite/suite_core/doctype/suite_settings/suite_settings.json:61` — `"fieldname": "suite_cloud_url",`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- frappe/, suite/ (tüm kaynak; min.js/map/svg/po/pot/csv hariç); arama `(?i)(data[_ ]residency|residency|data_region|allowed_regions|sub[-_ ]?processor|subprocessor|data[_ ]location|cross[-_ ]border|region_name|AWS_REGION)`: Yalnız suite/suite/drive/utils/files.py:248,251,257 eşleşti; hepsi S3 imza bölgesi için. Residency veya alt işleyen modeli yok.
+- frappe/, suite/ (*.py); arama `(?i)(anthropic\.|Anthropic\(|base_url|api\.anthropic|openai|egress|allowed_hosts|allowlist.*(host|domain|url)|blocked_countr|geo_?ip|data_?processing_?agreement|processor_inventory)`: Eşleşenler: Anthropic istemcisi (sheets/ai/client.py), recorder base_url, suite_cloud ve JMAP istemcileri. Egress allowlist, geo-IP veya DPA/envanter yok.
+- frappe/, suite/ (system_settings, drive_disk_settings, s3_backup_settings, personal_data_deletion_request, headless_provider* JSON); arama `(?i)(country|region|residency|location)`: Yalnız System Settings country alanı (yerel ayar) eşleşti.
+- frappe/, suite/ (*.py, *.json); arama `(?i)(s3_backup|dropbox|google_drive|backup_to_|offsite|recorder_server_url|sfu_server_url|stt_server|suite_cloud_url|collab_server)`: 22 dosya eşleşti: Meet, Sheets collab, Suite Settings ve Google Settings; ayrıca frappe'de dropbox ile ilgili eski bir patch var. Bölge kısıtı yok.
+- suite/suite/headless_provider; arama `(?i)(region|residency|country|processor|tenant|egress)`: Eşleşme yok.
+- suite/suite/**/doctype/_settings_/*.json; arama `(?i)"fieldname": "[a-z_]*(url|server|endpoint|cloud|region|ai_|api_key|model)[a-z_]*"`: Dış uç nokta alanları: endpoint_url, suite_cloud_url, server_url, Sheets AI model/api_key. Bölge alanı yok.
+- suite/suite (*.py); arama `(?i)(frappe\.conf\.get\(|conf\.get\()"?[a-z_]*(url|server|host|region)`: push_relay_server_url, collab_ws_url, recorder_server_url ve sfu_server_url site config'ten okunuyor; doğrulama yok.
+
+Sınır: Yalnız Read/Glob/Grep ile statik kaynak incelendi; kod veya test çalıştırılmadı. functionalAcceptance: not_run.; Site config, gerçek bucket bölgesi, sunucu konumu, ağ egress kuralları ve sözleşmeler kaynakta yok; bunlar kanıtlanamaz.; ERPNext/HRMS kurulu değil, değerlendirilmedi. suiteCommit bilinmiyor.; Standalone servislerin (SFU/STT/recorder/collab) dağıtım konumu kaynaktan belirlenemez.; suite/headless_provider yerel pilot ek koddur, upstream sayılmadı. Suite'in Vue frontend'i ile headless sözleşmesi ayrı tutuldu.
+
+Temporal workflow: `saas-recheck-20261015t073528z-007`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### governance-7 — Yedekten dönüşte daha önce silinmiş verilerin yeniden silinmesi.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Kabul ölçütü güçlü (servis açılmadan yeniden silme). Ancak restore ya da migrate kanca noktası bu excerpt'te görünmüyor. Drive after_delete satırları iz bırakmadan siliyor; kalıcı tüketilmiş-ID deposu yalnızca SFU tarafında ve Frappe için yeniden kullanılabilir değil.
+Upstream frappe'de ilgili ilkel parçalar var: (1) `bench restore` (commands/site.py restore/_restore/restore_backup) SQL dökümünü `_new_site(source_sql=...)` ile içe alıyor ve isteğe bağlı olarak dosyaları açıyor; bu akışta restore sonrası kanca, silme yeniden oynatma veya bakım/karantina kapısı yok. (2) Personal Data Deletion Request DocType'ı `user_data_fields` kancasında tanımlı DocType'ları anonimleştiriyor (redact/rename, User yeniden adlandırma, rewrite_owner_fields); günlük zamanlanmış iş `process_data_deletion_request` da bunu çalıştırıyor. Ancak talep kaydı e-postayı açık metin olarak aynı veritabanında tutuyor; eski bir yedek geri yüklenince talebin kendisi de kayboluyor. (3) Deleted Document, silinen dokümanın tam JSON'unu (`doc.as_json()`) aynı veritabanında saklıyor. Bu bir tombstone değil, geri dönüşüm kutusu gibi çalışıyor ve kişisel veri taşıyor. (4) migrate.py'de kullanılabilir bir `after_migrate` kanca noktası var; Suite'in after_migrate'i yalnızca mail işini çalıştırıyor. Suite/headless_provider (yerel pilot, ek kod) içinde restore, tombstone veya silme yeniden oynatma bulunmadı; api.py:719'daki 'restored' ifadesi istek bağlamıyla ilgili ve bu konuyla ilgisiz.
 
-Eksik: Tombstone veri modeli tanımlı değil; tombstone'un kendisinin kişisel veri taşımaması gerekir (örneğin özetlenmiş anahtar); Restore sonrası karantina ve servis açılış kapısı için bench/Frappe kanca noktası belirtilmemiş; Arama ve AI kopyalarının yeniden temizlenmesi governance-3 yayılımına bağımlı, ama bu bağımlılık yazılmamış; Ayrı bir görev yok; retention-rule--implementation içinde alt kabul olarak tanımlanmalı
+Eksik: Veritabanı yedeğinden bağımsız saklanan ve kişisel veri taşımayan bir tombstone deposu yok (örneğin tenant başına tuzlanmış hash anahtarı, DocType, silme zamanı, karar kimliği).; Restore veya migrate sonrasında tombstone'ları yeniden uygulayan bir işleyici yok.; Kullanıcı trafiği, scheduler ve kuyruk açılmadan önce çalışan bir karantina/servis açılış kapısı yok; restore akışı hiçbir kanca çağırmıyor.; Hard delete (frappe.delete_doc / frappe.db.delete) ve Drive after_delete için tombstone yazımı yok.; Arama ve RAG/AI kopyalarının yeniden temizlenmesi governance-3 yayılımına bağlı; kaynakta indeks veya vektör temizleyen restore entegrasyonu bulunmadı.; Personal Data Deletion Request kaydının kendisi PII taşıyor ve yedekle birlikte geri dönüyor ya da kayboluyor; yeniden oynatmaya kaynak olamaz.
 
-Sonraki adım önerisi: retention-rule--implementation içine 'restore sonrası yeniden silme' alt kabulünü ekle: tombstone şeması, restore sonrası karantina adımı ve governance-3 hedeflerinin yeniden çalıştırılması. Önce v17-dev'deki restore/after_migrate kanca kaynağını doğrula.
+Sonraki somut adım: retention-rule--contract ve retention-rule--schema bağımlılıkları tamamlandıktan sonra retention-rule--implementation içinde şu sırayla dar bir RED/GREEN adımı uygulanmalı: (1) PII içermeyen tombstone şeması tanımlanmalı ve yedek dışı bir depoya yazılmalı. (2) Personal Data Deletion Request'in _anonymize_data akışı ile hard-delete yolu tamamlandığında tombstone yazılmalı. (3) Suite'in after_migrate kancasına ve ayrı bir bench komutuna, tombstone'ları mevcut anonimleştirme ve silme ilkelleriyle yeniden uygulayan, idempotent bir replay eklenmeli. (4) Replay başarıyla bitene kadar site maintenance/scheduler kapalı tutulmalı (karantina kapısı). (5) governance-3 hedeflerinin (arama ve RAG kopyaları) yeniden temizlenmesi bağımlılık olarak çağrılmalı. İlk test: silinmiş bir kişiyi içeren bir fixture restore edilir, ardından replay çalıştırılır ve kişinin anonimleşmiş olduğu doğrulanır.
 
-Mevcut birincil görev: `retention-rule--implementation`. Kaynak: `suite/suite/drive/overrides/file.py:143`; `suite/suite/meet/sfu-server/src/server/__tests__/RecordingGrantPersistenceFile.test.ts:59`.
+Önerilen bağımlılık/sıra: retention-rule--contract; retention-rule--schema; kernel-envelope--contract; tenant-registry--contract; native-user-policy--contract. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `retention-rule--implementation`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/commands/site.py:404` — `source_sql=sql_file_path,`
+- `frappe/frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:41` — `self.user_data_fields = frappe.get_hooks("user_data_fields")`
+- `frappe/frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:302` — `self.db_set("status", "Deleted")`
+- `frappe/frappe/model/delete_doc.py:259` — `data=doc.as_json(),`
+- `frappe/frappe/migrate.py:212` — `for fn in frappe.get_hooks("after_migrate", app_name=app):`
+- `suite/suite/suite_core/boot.py:88` — `_run("mail.after_migrate", mail_after_migrate)`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- frappe/, suite/ (_.py,_.json,_.ts,_.js); arama `(?i)tombstone|deleted_document|re-?delete|after_restore|before_restore|restore_hook|post_restore`: Tombstone veya restore sonrası kanca bulunmadı. Eşleşmeler Deleted Document DocType'ı, workspace restore ve Meet SFU snapshot kodu; konuyla ilgisiz.
+- frappe/, suite/ (*.py); arama `(?i)def restore|restore_backup|after_migrate|before_migrate|_restore\(`: bench restore/_restore/restore_backup, installer.partial_restore, migrate.py after_migrate kanca döngüsü ve suite boot.after_migrate (yalnızca mail) bulundu. Sheets, Drive ve Deleted Document restore işlevleri tekil doküman geri yüklemesi yapıyor, yedek restore'u değil.
+- frappe/frappe/installer.py; arama `get_hooks\(|source_sql|maintenance_mode|def _new_site`: _new_site source_sql ile çalışıyor. Restore'a özgü bir kanca veya bakım kapısı yok; yalnızca app install/enable kancaları var.
+- frappe/, suite/ (_.py,_.json); arama `(?i)personal.data.deletion|anonymi[sz]e|erase|right.to.be.forgotten|data_deletion`: Personal Data Deletion Request/Step, Website Settings auto_account_deletion ve hooks user_data_fields bulundu; restore sonrası yeniden oynatma yok.
+- **/hooks.py; arama `user_data_fields|scheduler_events|process_data_deletion_request`: frappe/hooks.py:301'de scheduler, :361'de user_data_fields var. suite/hooks.py user_data_fields tanımlamıyor.
+- suite/suite/**/headless_provider/**; arama `(?i)restore|tombstone|purge|erasure|deletion|redact`: Yalnızca api.py:719'da istek bağlamının geri yüklenmesine dair bir yorum var; silme veya restore yönetişimi yok.
+- frappe/, suite/ (*.py); arama `(?i)(reindex|rebuild_index|remove_from_index|delete_from_index|vector|embedding).*(delet|purge|restore)|on_restore|restored_from_backup|backup_restored`: Eşleşme yok; arama veya RAG kopyalarını restore sonrası temizleyen bir kod bulunmadı.
+
+Sınır: Yalnızca dışa aktarılmış frappe ve suite kaynağı okundu (frappe commit adf1fd0c, suite commit bilinmiyor). Hiçbir komut veya test çalıştırılmadı; functionalAcceptance not_run.; Kaynak, kod varlığını kanıtlar; dağıtılmış operasyonları, yedek saklama politikasını veya GDPR uyumunu kanıtlamaz.; bench CLI (frappe dışı bench paketi) ve harici yedek/altyapı betikleri kapsam dışında kaldı.; ERPNext/HRMS kurulu değil, değerlendirilmedi.; Suite'in Vue frontend'i ve Meet SFU'nun kalıcı ID deposu Frappe tombstone'u olarak kullanılamaz; ayrıntılı incelenmedi.
+
+Temporal workflow: `saas-recheck-20261015t073528z-008`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### security-1 — Security management (güvenlik yönetimi).
 
@@ -1298,15 +1782,40 @@ Mevcut birincil görev: `security-baseline--implementation`. Kaynak: `frappe/fra
 
 #### security-2 — WAF (Web Application Firewall — web uygulaması güvenlik duvarı).
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-WAF doğru biçimde edge/harici kapsamda tutulmuş; kabul metni anlamlı (bloklama, meşru geçiş, geri alma). Ürün seçimi, dağıtım topolojisi ve istisna listesi yok. Kaynakta WAF'ın geçirmesi gereken yüzeyler görünüyor: /api/method RPC, OAuth2 token uçları, WebDAV /dav (Basic auth, WebDAV fiilleri) ve mail redirect'leri. WAF ürünü kaynak kapsamında değil.
+WAF motoru veya kural seti kaynakta yok; yalnızca uygulama katmanında kötüye kullanıma karşı bazı yapı taşları (primitive) var, bunların hepsi upstream/Suite'e ait. (1) Frappe global hız sınırlayıcı: hooks.py içinde before_request'e bağlanmış. site config'teki rate_limit ile süre tabanlı bütçe uyguluyor, aşımda 429 ve Retry-After/X-RateLimit-* başlıkları dönüyor. (2) Frappe @rate_limit dekoratörü: endpoint bazında IP'ye ya da kullanıcıya göre sayaç tutuyor. (3) Frappe User restrict_ip: validate_ip_address ile IP öneki allowlist'i uyguluyor, 2FA ile bypass seçeneği var. (4) Suite 'Rate Limit' DocType ve @dynamic_rate_limit dekoratörü: metot yolu bazında DB'den okunan limit, allowed_ips/blocked_ips önek listeleri ve enabled bayrağı var. Kayıt devre dışı bırakılarak kural geri alınabiliyor. Meet ve diğer API'ler kullanıyor. İstemci IP'si X-Forwarded-For başlığının ilk değerinden alınıyor, yani proxy/WAF topolojisine bağımlı. Yerel pilot suite/headless_provider'da WAF/rate-limit kodu bulunamadı. Repoda gelen deploy örnekleri (sheets nginx snippet, meet Caddyfile) yalnızca yönlendirme/proxy içeriyor, WAF kuralı yok. Runtime functionalAcceptance: not_run.
 
-Eksik: WAF ürünü/konumu (CDN, nginx/ingress) ve sahibi (Hüseyin Cengiz) seçilmemiş.; Geçmesi gereken route envanteri yok: /api/method, /api/v2, OAuth2/Keycloak callback, /dav (PROPFIND vb.), /outbound/*, socket.io.; Yanlış pozitif geri alma prosedürü ve log/izleme kanalı tanımsız.
+Eksik: HTTP istek gövdesi, başlık ve URL için imza/anomali tabanlı saldırı tespiti (SQLi/XSS/OWASP CRS benzeri) yok; mevcut primitive'ler sadece hız sınırı ve IP öneki filtresi.; Edge/CDN/ingress WAF ürünü ve topolojisi seçilmemiş (sahibi Hüseyin Cengiz); kaynak kapsamı dışında.; WAF'ın geçirmesi gereken route/fiil envanteri yok: /api/method, /api/v2, OAuth2 token uçları, Keycloak callback, /dav (PROPFIND vb.), socket.io, mail outbound/redirect.; Güvenilir proxy doğrulaması yok: request_ip, X-Forwarded-For'un ilk değerinden koşulsuz alınıyor. Edge bu başlığı ezmezse IP tabanlı limitler ve blocked_ips sahte başlıkla atlatılabilir (kaynak okumasına dayalı çıkarım).; Yanlış pozitif geri alma prosedürü, WAF log/izleme kanalı ve 'örnek saldırı bloklanır, meşru API ve Keycloak geçer' kabul testi tanımsız ve çalıştırılmadı.
 
-Sonraki adım önerisi: edge-abuse--implementation için kaynaktaki url_rules, suite website_redirects ve allowlist'ten türetilmiş bir route/fiil istisna listesi çıkarılsın. WAF seçimi ve topolojisi Hüseyin Cengiz'in devir notunda karara bağlansın. Kabul testi production değişikliği olmadan staging'de planlansın.
+Sonraki somut adım: Sıra önerisi: (1) edge-abuse--contract kapsamında, frappe/api/v1.py url_rules, api/v2 ve suite/hooks.py'deki allowlist/redirect girdilerinden route+HTTP fiili istisna listesi çıkarılır (OAuth2/Keycloak, /dav WebDAV fiilleri ve socket.io dahil). Ek olarak edge'in X-Forwarded-For başlığını ezme/güvenilir proxy sözleşmesi yazılır. (2) Hüseyin Cengiz, devir notunda WAF ürününü ve konumunu (CDN veya nginx/ingress), log kanalını ve kural geri alma yöntemini karara bağlar. (3) edge-abuse--implementation'da tek dar davranış ele alınır: staging'de bir örnek saldırı kuralının bloklandığı, /api/method ve Keycloak callback'in geçtiği RED/GREEN kabul senaryosu, production değişikliği yapılmadan. Uygulama katmanındaki Suite Rate Limit/blocked_ips ve Frappe rate_limit ikinci savunma hattı olarak korunur; WAF yerine sayılmaz.
 
-Mevcut birincil görev: `edge-abuse--implementation`. Kaynak: `frappe/frappe/api/v1.py:152`; `suite/suite/hooks.py:417`; `suite/suite/hooks.py:436`; `suite/suite/drive/webdav/auth.py:1`.
+Önerilen bağımlılık/sıra: edge-abuse--contract. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `edge-abuse--implementation`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/hooks.py:500` — `"frappe.rate_limiter.apply",`
+- `frappe/frappe/rate_limiter.py:101` — `return Response(_("Too Many Requests"), status=429)`
+- `suite/suite/utils/rate_limiter.py:49` — `elif any(request_ip.startswith(prefix) for prefix in rl["blocked_ips"]):`
+- `frappe/frappe/auth.py:66` — `frappe.local.request_ip = (frappe.get_request_header("X-Forwarded-For").split(",", 1)[0]).strip()`
+- `frappe/frappe/auth.py:512` — `_("Access not allowed from this IP Address") + f": {frappe.local.request_ip}",`
+- `suite/suite/suite_core/doctype/rate_limit/rate_limit.py:126` — `.where((RATE_LIMIT.enabled == 1) & (RATE_LIMIT.method_path == method_path))`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- source/ (frappe + suite, svg/min.js/map/po/pot/csv/lock hariç); arama `(?i)\b(waf|web application firewall|modsecurity|owasp crs|coraza|cloudflare)\b`: WAF uygulaması yok; eşleşmeler yalnızca build edilmiş frontend asset'leri ve .gitignore'daki 'node-waf' yorumları.
+- source/ (*.py); arama `(?i)(rate_limit|ratelimit|ip_restrict|restrict_ip|allowed_ip|blocked_ip|ip_blacklist|ip_whitelist|deny_list|block_ip)`: 60+ dosya: frappe rate_limiter.py, auth.py, hooks.py, oauth2.py, www/login.py; suite rate_limit DocType, utils/rate_limiter.py, mail/meet/drive API'leri.
+- frappe/frappe/{app.py,auth.py,rate_limiter.py,sessions.py}; arama `(?i)(def validate_ip_address|restrict_ip|def rate_limit|class RateLimiter|def apply\(|X-Forwarded-For|get_ip_address)`: RateLimiter sınıfı, rate_limit dekoratörü, validate_ip_address ve X-Forwarded-For'dan request_ip türetimi okundu.
+- suite/suite/{headless_provider/**,hooks.py,suite_core/doctype/rate_limit/rate_limit.py}; arama `(?i)(waf|firewall|rate.?limit|ip.?(allow|block|deny)|abuse)`: Yalnızca Suite Rate Limit DocType eşleşti; yerel pilot headless_provider ve hooks.py'de eşleşme yok.
+- suite/suite (tests hariç); arama `(?i)(dynamic_rate_limit|blocked_ips|allowed_ips)`: utils/rate_limiter.py dinamik limit ve IP blok/izin uyguluyor; meet API ve meet_room kullanıyor.
+- source/; arama `glob **/{nginx*.conf,*nginx*,*ingress*,Caddyfile,traefik*}`: sheets/collab-server nginx snippet ile 2 meet Caddyfile bulundu; deny/limit_req/modsecurity/waf aramasında WAF kuralı yok.
+- frappe/frappe; arama `rate_limiter\.apply\(\)|frappe\.rate_limiter\.apply`: hooks.py:500 before_request kaydı; app.py:270-271 başlık ekleme, app.py:413 429 yanıtı.
+
+Sınır: Sadece salt okunur kaynak analizi; komut, test, ağ veya runtime doğrulaması yapılmadı. functionalAcceptance: not_run.; WAF bir edge/harici altyapı yeteneği; CDN, ingress ve production nginx yapılandırmaları kaynak kapsamında değil, dağıtılmış durum kanıtlanamaz.; Site config (rate_limit değerleri) ve DB'deki Rate Limit kayıtları yok; limitlerin etkin olup olmadığı bilinmiyor.; X-Forwarded-For atlatma riski kaynak okumasına dayalı bir çıkarım, çalıştırılarak doğrulanmadı.; Ürün DONE ya da yüzde iddiası yok; ERPNext/HRMS kapsam dışı.
+
+Temporal workflow: `saas-recheck-20261015t073528z-037`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### security-3 — Bot ve scraping (otomatik veri toplama) engelleme.
 
@@ -1406,27 +1915,78 @@ Mevcut birincil görev: `tenant-key--implementation`. Kaynak: `frappe/frappe/uti
 
 #### security-11 — Kaynak kodu, bağımlılık ve dağıtım imajlarında güvenlik açığı taraması; bulgu önceliği ve düzeltme takibi.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Tarama süreci kaynak dışında yürüyen bir CI işi ve CI yapılandırması bu alıntıda yok. Kaynakta yalnızca tedarik zinciri girdileri görünüyor: Frappe'de uv 7 günlük bekleme süresi ve güvenlik kütüphaneleri için istisna, Suite'te alt sınırı açık bırakılmış bağımlılıklar ve bench doğrulamasının dışında tutulan Node servisleri. Kabul metni anlamlı, fakat araç türleri, risk eşiği ve istisna süresi tanımlı değil.
+Kaynakta upstream CI düzeyinde gerçek tarama adımları var. Frappe linters.yml, PR'larda Semgrep (frappe-semgrep-rules ve r/python.lang.correctness) çalıştırıyor. Aynı dosyada pip-audit adımı da var; üç zafiyet kimliği için satır içi yorumlu ama süresiz istisna tanımlı. Frappe dependabot.yml yalnızca github-actions ekosistemini haftalık izliyor. Suite suite-linter.yml, PR'larda ve gece cron'unda Semgrep ile pip-audit çalıştırıyor. Kök, sfu-server ve recorder-server için 'yarn audit --groups dependencies --level high' adımı da çalışıyor. Ancak bu adım continue-on-error olduğundan yalnızca kanıt üretiyor ve yayını durdurmuyor; çıktısı 30 günlük artifact olarak saklanıyor. Frappe boilerplate.py, yeni uygulamalar için aynı Semgrep/pip-audit linter şablonunu üretiyor. Bunların hepsi upstream-native CI yapılandırması. Yerel pilot suite/suite/headless_provider (api.py, local_fixture.py, **init**.py) içinde güvenlik veya taramayla ilgili kod yok.
 
-Eksik: Tarama türleri (SAST, SCA, container image, secret) ve her birinin hangi repo/servis için çalışacağı belirtilmemiş. sfu-server, recorder-server ve collab-server bench validation dışında, ayrı tarama kapsamı gerektiriyor.; Yayını durduracak önem eşiği, istisnanın en uzun süresi ve onaylayacak kişi tanımsız.; Suite'teki '>=' bağımlılık aralıkları kilit dosyası olmadan tekrarlanabilir taramayı zorlaştırıyor. Lockfile bu alıntıda görünmüyor.; Suite ruff seçiminde güvenlik kural seti yok. Bu bir SAST yerine geçmez, ama eksikliğin kaydedilmesi gerekiyor.
+Eksik: Dağıtım/konteyner imajı taraması yok. meet-sfu-build, meet-recorder-build, meet-stt-build ve arc-runner-image imajları docker/build-push-action ile taranmadan GHCR'ye push ediliyor. Trivy, Grype, SBOM, attestation veya cosign bulunmadı.; Secret taraması (gitleaks, trufflehog, detect-secrets) iki uygulamada da bulunmadı.; JS bağımlılık denetimi eksik. Suite'te sheets/collab-server (package-lock.json) ve stt-server audit kapsamı dışında. Frappe'nin kendi yarn.lock dosyaları için audit adımı yok. Suite'teki yarn audit continue-on-error olduğu için yayını bloklamıyor.; Önem eşiği politikası (blokla/uyar), istisnanın en uzun süresi ve onaylayan kişi tanımlı değil. pip-audit istisnaları yalnızca CLI bayrağı ve yorumdan ibaret.; Bulgu önceliklendirme ve düzeltme takibi için DocType, API veya kayıt mekanizması yok. Giderilen bulgunun yeniden kontrol kanıtı da yok.; Bilinen zafiyet örneğinin yakalandığına ve eşiğin yayını durdurduğuna dair kabul kanıtı yok. Upstream GitHub workflow'larının SaaS'ın kendi CI'ında çalıştığı kaynaktan kanıtlanamaz. functionalAcceptance: not_run.
 
-Sonraki adım önerisi: vulnerability-scan--implementation için tek bir eşik/istisna politikası yazılmalı: önem → blokla/uyar, istisna için en uzun süre ve sorumlu. Kapsam listesine Frappe app, Suite app, üç bağımsız Node servisi ve dağıtım imajı ayrı satırlar olarak eklenmeli. CI kurulumu Hüseyin Cengiz'e devredilmeli.
+Sonraki somut adım: Mevcut vulnerability-scan--contract bağımlılığı sırasıyla ilerlenmeli. 1) Sözleşmede tek bir politika tanımlanmalı: önem→blokla/uyar eşiği (ör. high/critical blokla), istisna için en uzun süre, sahibi ve yeniden kontrol kuralı. Kapsam satırları ayrı olmalı: Frappe app, Suite app, sfu-server, stt-server, recorder-server, collab-server ve dağıtım imajları. 2) vulnerability-scan--implementation'da en küçük adım: mevcut pip-audit/semgrep/yarn audit adımları SaaS CI'ında yeniden kullanılmalı. Suite'teki yarn audit için continue-on-error kaldırılarak eşik bloklayıcı yapılmalı. Ardından collab-server/stt-server audit'i, imaj build'lerinden sonra imaj taraması ve secret taraması eklenmeli. Bilinen zafiyetli bir fixture ile RED/GREEN kanıtı toplanmalı. 3) İstisnalar süreli bir kayıt dosyasına taşınmalı, bulgu takibi ise CI artifact'ı veya issue ile bağlanmalı. CI teknik kurulumu Hüseyin Cengiz'e devredilmeli.
 
-Mevcut birincil görev: `vulnerability-scan--implementation`. Kaynak: `frappe/pyproject.toml:228`; `frappe/pyproject.toml:229`; `suite/pyproject.toml:19`; `suite/pyproject.toml:89`.
+Önerilen bağımlılık/sıra: vulnerability-scan--contract. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `vulnerability-scan--implementation`.
+
+Kaynak kanıtı:
+
+- `frappe/.github/workflows/linters.yml:72` — `semgrep ci --config ./frappe-semgrep-rules/rules --config r/python.lang.correctness`
+- `frappe/.github/workflows/linters.yml:99` — `pip-audit --desc on --ignore-vuln PYSEC-2023-312 --ignore-vuln CVE-2026-4539 --ignore-vuln CVE-2025-26240 .`
+- `suite/.github/workflows/suite-linter.yml:87` — `pip-audit --desc on .`
+- `suite/.github/workflows/suite-linter.yml:124` — `continue-on-error: true`
+- `suite/.github/workflows/suite-linter.yml:128` — `yarn audit --groups dependencies --level high 2>&1 | tee test-results/yarn-audit.txt || status=1`
+- `suite/.github/workflows/meet-sfu-build.yml:55` — `uses: docker/build-push-action@v6`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- frappe/ ve suite/ (tüm kaynak kökü); arama `(?i)(semgrep|bandit|codeql|pip-audit|safety check|trivy|grype|snyk|dependabot|osv-scanner|npm audit|yarn audit|gitleaks|trufflehog|vulnerabilit)`: Çoğu eşleşme nosemgrep yorumu veya locale dosyası. Davranışsal eşleşmeler yalnızca CI workflow'larında ve boilerplate şablonunda bulundu.
+- frappe/.github; arama `(?i)(semgrep|bandit|codeql|pip-audit|trivy|grype|snyk|osv|audit|gitleaks|trufflehog|security|dependency-review)`: linters.yml içinde Semgrep (PR) ve pip-audit bulundu; pip-audit'te 3 ignore-vuln istisnası var. CodeQL, imaj ve secret taraması yok.
+- suite/.github; arama `(?i)(semgrep|bandit|codeql|pip-audit|trivy|grype|snyk|osv|audit|gitleaks|trufflehog|security|dependency-review|dependabot)`: suite-linter.yml içinde Semgrep, pip-audit ve yarn audit (continue-on-error) bulundu. Dependabot, imaj ve secret taraması yok.
+- suite/.github/workflows; arama `(?i)(scan|sbom|provenance|attest|cosign|docker/build-push|cve)`: Dört imaj workflow'u build-push-action kullanıyor; hiçbirinde tarama, SBOM veya imza adımı yok.
+- suite (**/*.{py,json,ts,js,vue,toml,yaml,yml,md}); arama `(?i)(vulnerab|cve-|remediation|security_finding|security finding|pip-audit|semgrep)`: Eşleşmeler yalnızca suite-linter.yml, README güvenlik bildirim linki ve lock.py içindeki nosemgrep yorumu. Bulgu takip DocType'ı veya API'si yok.
+- suite/suite/headless_provider; arama `(?i)(security|vulnerab|scan|audit)`: Eşleşme yok; yerel pilot kodda tarama ilgisi bulunmuyor.
+- frappe/frappe/utils/boilerplate.py, frappe|suite .pre-commit-config.yaml, pyproject.toml; arama `(?i)(pip-audit|semgrep|gitleaks|detect-secrets|detect-private-key|bandit|ruleset|"S")`: Yalnızca boilerplate.py'deki linter şablonu (Semgrep ve pip-audit) eşleşti. Pre-commit yapılandırmalarında secret veya bandit kancası yok.
+
+Sınır: Kaynak, CI yapılandırmasının varlığını kanıtlar; workflow'ların çalıştığını, sonuçlarını veya SaaS CI'ında kullanıldığını kanıtlamaz. functionalAcceptance: not_run.; Uzak frappe/semgrep-rules deposu ve GitHub tarafındaki secret scanning/Dependabot alerts gibi repo ayarları kaynak dışında; değerlendirilmedi.; Suite commit'i bilinmiyor. ERPNext/HRMS kurulu değil, değerlendirilmedi.; Test, komut veya ağ işlemi çalıştırılmadı; yalnızca Read, Glob ve Grep kullanıldı.
+
+Temporal workflow: `saas-recheck-20261015t073528z-038`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### security-12 — Risk temelli penetrasyon testi; kapsam, bağımsız bulgu, düzeltme ve yeniden test kanıtı.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **YOK**. İşlevsel kabul: `not_run`.
 
-Penetrasyon testi kaynak dışında yapılan bir doğrulama faaliyeti. Kaynak yalnızca test edilecek yüzeyi gösteriyor: genel RPC rotası, başlıktan okunan realtime site adı, izinli listede yer alan test_helpers ön eki ve replay korumalı recorder callback'leri. Talimat odak alanlarını (tenant aşımı, yetki yükseltme, oturum) belirtiyor. Yetki/kapsam belgesi, ortam, tetikleme koşulu ve yeniden test kabul ölçütü ise eksik.
+Kurulu frappe ve suite kaynağında penetrasyon testi kapsamı, bağımsız bulgu kaydı, önem/sorumlu ataması, düzeltme takibi ya da yeniden test kanıtı modeli bulunmuyor. Yakın ama bu maddeyi karşılamayan upstream-native kontroller şunlar: (1) CI'da Semgrep SAST ve pip-audit/yarn audit bağımlılık taraması var (frappe linters.yml, suite suite-linter.yml). Bunlar statik ve bağımlılık analizidir, pentest değildir; suite'teki yarn audit adımı continue-on-error olduğu için CI'ı durdurmaz. (2) Security Settings DocType'ı security.txt ile zafiyet bildirim kanalı sunuyor; bu bir bildirim girişi, bulgu ya da vaka yönetimi değil. (3) suite.meet.api.test_helpers uçları whitelist_for_tests ile korunuyor. Bu kapı frappe.in_test, dev server ile allow_tests birleşimi veya CI ortam değişkeni olduğunda açılıyor. Uç, hooks.py içindeki izinli wildcard listesinde de yer alıyor; bu yüzden pentest kapsamında ön koşul olarak doğrulanması gereken bir yüzey. Sheets'teki test_api_security.py yalnızca mock tabanlı yetki şekli testleri; bağımsız güvenlik testi kanıtı sayılmaz. suite/headless_provider LOCAL PILOT eki; whitelisted RPC uçları ekliyor (test edilecek yeni bir yüzey), pentest işlevi içermiyor.
 
-Eksik: Yetkili test kapsamı ve kurallar (hangi ortamda yapılacağı, production hariç tutulup tutulmayacağı, kimin onaylayacağı) tanımsız.; Koşullu kapsamın tetikleyicisi (önemli değişiklik tanımı, müşteri yükümlülüğü) ölçülebilir değil.; Kaynaktan çıkan yüksek riskli hedefler kapsam listesine bağlanmamış: X-Frappe-Site-Name ile site seçimi, suite.meet.api.test_helpers ön ekinin izinli olması, /api/method genel RPC rotası.; Bulguların security-9 vaka modeliyle ve security-11 takibiyle nasıl ilişkilendirileceği yazılmamış.
+Eksik: Onaylı pentest kapsam/kural belgesi: ortam, production hariç tutma, onaylayan kişi, tetikleme koşulu; Bağımsız bulgu kaydı: önem, sorumlu, durum, kanıt; security-9 vaka modeliyle ve security-11 takibiyle bağlantısı; Kritik bulgu için zorunlu bağımsız yeniden test ve kapanış kanıtı; Kaynaktan çıkan öncelikli hedeflerin kapsam satırlarına bağlanması: /api/method ve /api/v2 genel RPC, X-Frappe-Site-Name ile site seçimi, test_helpers wildcard izni ve CI ortam değişkeni kapısı, headless_provider whitelisted uçları, recorder callback'leri; Tenant aşımı, yetki yükseltme ve oturum akışları için yetkili test senaryoları; Keycloak kimlik geçişi dahil
 
-Sonraki adım önerisi: independent-pentest--implementation için tek sayfalık bir kapsam belgesi hazırlanmalı. Yukarıdaki kaynak kaynaklı hedefler öncelikli kapsam satırları olmalı. test_helpers ön ekinin production'da kapalı olduğu, testten önce ayrıca doğrulanacak bir ön koşul olarak işaretlenmeli. Kritik bulgunun kapanması için bağımsız yeniden test zorunlu kabul kriteri olarak yazılmalı.
+Sonraki somut adım: Sıra şöyle olmalı. Önce mevcut bağımlılık olan independent-pentest--contract tamamlanmalı: tek sayfalık kapsam belgesi, production dışı izole bir hedef ortam, onaylayan sahip ve kritik bulgu için bağımsız yeniden test kabul ölçütü yazılmalı. Ardından independent-pentest--implementation adımında test öncesi ön koşul kontrolü yapılmalı: hedef sitede allow_tests kapalı olmalı, CI ortam değişkeni bulunmamalı ve /api/v2/method/suite.meet.api.test_helpers.* çağrısı reddedilmeli. Daha sonra headless_provider uçları, X-Frappe-Site-Name ile site seçimi ve genel RPC rotası öncelikli kapsam satırları olarak test edilmeli. Bulgular security-9 vaka kaydına önem ve sorumluyla bağlanmalı. Kapanış ancak bağımsız yeniden test kanıtıyla yapılmalı. Kod tarafında yeni görev açılmıyor; Semgrep/pip-audit CI kontrolleri pentestin yerine geçmez, yalnızca tamamlayıcıdır.
 
-Mevcut birincil görev: `independent-pentest--implementation`. Kaynak: `suite/suite/hooks.py:450`; `frappe/realtime/middlewares/authenticate.js:94`; `frappe/frappe/api/v1.py:152`; `frappe/frappe/api/v2.py:246`; `suite/suite/meet/recording/callback_auth.py:399`.
+Önerilen bağımlılık/sıra: independent-pentest--contract. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `independent-pentest--implementation`.
+
+Kaynak kanıtı:
+
+- `frappe/.github/workflows/linters.yml:72` — `semgrep ci --config ./frappe-semgrep-rules/rules --config r/python.lang.correctness`
+- `frappe/.github/workflows/linters.yml:99` — `pip-audit --desc on --ignore-vuln PYSEC-2023-312 --ignore-vuln CVE-2026-4539 --ignore-vuln CVE-2025-26240 .`
+- `frappe/frappe/core/doctype/security_settings/security_settings.json:27` — `"description": "Website, email or phone where vulnerabilities can be reported. Defaults to \`https://security.frappe.io\`",`
+- `frappe/frappe/tests/utils/__init__.py:29` — `frappe.in_test or (frappe._dev_server and frappe.conf.allow_tests) or os.environ.get("CI")`
+- `suite/suite/meet/api/test_helpers.py:11` — `@whitelist_for_tests(methods=["POST"])`
+- `suite/suite/hooks.py:450` — `"/api/v2/method/suite.meet.api.test_helpers.",`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- source/ (frappe + suite, tüm kök); arama `(?i)(pentest|penetration|security[ _-]?(audit|scan|test)|vulnerability|bandit|semgrep|codeql|zap|owasp)`: 121 dosya eşleşti; çoğu gürültü (dist bundle, locale, nosemgrep yorumları). Pentest uygulaması yok; anlamlı eşleşmeler CI Semgrep/pip-audit, SECURITY.md ve security_settings.
+- source/ (dist, public/frontend, node_modules hariç); arama `(?i)(pentest|penetration[ _-]?test|re-?test|security[ _-]?finding|bug[ _-]?bounty|semgrep|bandit|codeql|zaproxy|owasp|vulnerab)`: Pentest, bulgu ya da yeniden test modeli yok. Yalnızca linters.yml/suite-linter.yml Semgrep ve pip-audit, README güvenlik bildirim linki ve security.txt açıklamaları bulundu.
+- source/**/{SECURITY.md,.github/workflows/*.yml}; arama `glob`: frappe/SECURITY.md yalnızca harici bildirim politikasına link veriyor. Pentest workflow'u yok; frappe ve suite'te 37 workflow listelendi.
+- source/ (*.py,json,js,ts,vue,md,yml); arama `(?i)(security[ _-]?finding|finding[ _-]?(severity|status|owner)|remediation|retest|re_test|vulnerability[ _-]?(report|case))`: İlgisiz test/util dosyaları ve security_settings.json eşleşti. Bulgu, önem veya düzeltme DocType'ı yok.
+- suite/suite (public hariç); arama `test_helpers|allow_guest_prefix|ALLOWED.*PREFIX|developer_mode|allow_tests`: hooks.py:450 test_helpers wildcard izni; test_helpers.py whitelist_for_tests kullanıyor.
+- suite/suite/headless_provider; arama `(?i)(pentest|security|finding|severity|retest|tenant|whitelist)`: LOCAL PILOT api.py'de 5 adet frappe.whitelist RPC ucu var; pentest işlevi yok, yalnızca test edilecek yüzey.
+- frappe/frappe/tests/utils/**init**.py; arama `def whitelist_for_tests|allow_tests|in_test`: Test uçlarının kapısı in_test, dev_server+allow_tests veya CI ortam değişkeni. CI değişkeni bir ön koşul riski olarak kontrol edilmeli.
+- frappe/frappe/core/doctype/security_settings/security_settings.json; arama `"(fieldname|label|description)"`: Yalnızca security.txt alanları var (contact, policy, expires); bulgu yönetimi yok.
+
+Sınır: Kapsam yalnızca sourceRoot altındaki frappe ve suite kaynağı; ERPNext/HRMS, Keycloak ve harici pentest raporları kapsam dışında.; Pentest kaynak dışında yapılan bir faaliyettir; kaynak yalnızca test yüzeyini ve CI statik kontrollerini gösterebilir.; CI workflow dosyaları okundu ancak çalıştırılmadı; gerçek CI sonuçları ve production config'inde allow_tests/CI değerleri doğrulanamaz.; Testler yalnızca okundu, çalıştırılmadı; functionalAcceptance not_run.; suiteCommit bilinmiyor; headless_provider LOCAL PILOT ek kodu, upstream değil.; Ürün tamamlanma ya da uyumluluk iddiası yok.
+
+Temporal workflow: `saas-recheck-20261015t073528z-039`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### integrity-1 — Eşzamanlı düzenleme çakışması ve optimistic locking (kayıt sürümünü karşılaştırarak yazma).
 
@@ -1490,15 +2050,41 @@ Mevcut birincil görev: `record-integrity--implementation-mvp`. Kaynak: `frappe/
 
 #### integrity-6 — Silinen kayıtları kontrollü kurtarma; yetkili önizleme, saklama süresi, ilişki ve iş kuralı doğrulaması.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Hedef ve kabul ölçütü net: yetkili önizleme, tenant yalıtımı, çift kurtarma engeli, saklama süresi ve backup restore ayrımı tanımlı. Ancak not version-15 Deleted Document.restore kaynağına dayanıyor. Yerel Frappe 17.0.0.dev0 (adf1fd0) ve bu restore kodu excerpt içinde yok. Excerpt'te yalnız silme yolları görünüyor; Suite uygulamaları da kendi çöp kutusu ve purge mekanizmalarını kullanıyor.
+Upstream-native v17 (adf1fd0) temel mevcut: frappe.delete_doc, delete_permanently=False iken add_to_deleted_document ile tüm belge JSON'unu (doc.as_json) Deleted Document'a yazıyor (model/delete_doc.py:240-261). Whitelisted restore(): yalnız System Manager (only_for), restored=1 ise DocumentAlreadyRestored ile çift kurtarmayı engelliyor; hedef DocType için create ve belge bazlı read izni denetliyor; doc.insert() ile normal validate/iş kuralı ve isim çakışması (insert) yolundan geçiriyor; iptal edilmiş belgeyi Draft'a çevirip workflow state'i temizliyor; owner/creation/modified meta verisini koruyor; 'restored X as Y' yorumu ile iz bırakıyor; new_name/restored alanlarını güncelliyor. bulk_restore restored/invalid/failed ayrımı ve satır bazlı rollback yapıyor. DocType izinleri yalnız System Manager read/delete/export; Data alanı read-only Code olarak Desk'te ham JSON görüntüsü sağlıyor. Saklama: DeletedDocument.clear_old_logs(days=180) Log Settings arayüzüne uyuyor ancak frappe/hooks.py default_log_clearing_doctypes listesinde Deleted Document yok; yani otomatik temizlik ancak Log Settings'e elle kaydedilirse çalışır. Suite (upstream-native app kodu, Vue frontend): Sheets kendi soft-delete akışını uyguluyor (trashed bayrağı, owner-only delete izniyle restore_sheet, yalnız çöpteki sayfayı kalıcı silme, sheets_trash_retention_days ile gece purge); Drive dosya katmanında trash/restore taşıma var. suite/headless_provider (LOCAL PILOT) içinde restore/trash sözleşmesi yok.
 
-Eksik: Deleted Document restore davranışı ve izinleri v17 kaynağında doğrulanmadı; version-15 notu yerel sürüme bağlanmadı.; 'Tenant' kavramının Frappe site, User Permission veya alan bazlı ayrımdan hangisine karşılık geldiği tanımlı değil.; WriterDocument.on_trash bağlı Writer Version kayıtlarını doğrudan siliyor. Bu nedenle ilişkili kayıtların kurtarma sözleşmesi eksik.; Suite'in kendi trash/purge akışlarının (Drive, Sheets) Deleted Document ile ilişkisi ve hangisinin kaynak kabul edileceği belirsiz.; Saklama süresi ve kalıcı silme politikasının hangi DocType/ayar ile yönetileceği belirtilmemiş.
+Eksik: Yetkili yapılandırılmış önizleme yok: restore doğrudan insert ediyor; dry-run/diff/doğrulama-önizleme API'si bulunamadı (yalnız Desk'te ham JSON görüntüsü).; Tenant yalıtımı yok: Deleted Document yalnız System Manager rolüne açık, tenant/User Permission/alan bazlı kapsam filtresi yok; restore, silinen kaydın tenant'ını kontrol etmiyor.; Saklama süresi restore anında uygulanmıyor: süresi dolmuş kayıt purge edilene kadar geri yüklenebilir; Deleted Document varsayılan log temizliğine kayıtlı değil (180 gün yalnız metot varsayılanı).; İlişki doğrulaması sınırlı: delete sırasında silinen/temizlenen bağlı kayıtlar (on_trash ile silinen alt varlıklar, örn. Writer Version; dinamik link temizliği; ekler) birlikte geri getirilmiyor; ilişkili kurtarma sözleşmesi yok.; Kalıcı silme politikası (delete_permanently, for_reload, automation_engine düz DELETE) restore edilemez; politika/DocType bazlı merkezi kurtarılabilirlik ayarı yok.; Suite Sheets/Drive trash ile Deleted Document arasında eşleme yok; iki ayrı kurtarma modeli var.; Backup restore ayrımı kodda ayrıdır (farklı mekanizma) ama ürün sözleşmesi olarak belgelenmemiş.; Headless provider (React/AntD) için restore/önizleme/denetim sözleşmesi yok; Suite'in Vue arayüzü bu sözleşmenin yerine geçmez.
 
-Sonraki adım önerisi: Önce v17 kaynağında deleted_document.py restore yolunu ve izin denetimlerini okuyup notu güncelle. Ardından record-integrity--implementation-post-mvp görevine 'ilişkili kayıt + Suite trash eşlemesi' ve tenant tanımını kabul ön koşulu olarak ekle.
+Sonraki somut adım: record-integrity--contract içinde tenant/kayıt/alan izni, retention, ilişkili kayıtlar ve idempotent restore sınırını tanımla. İlk dar adım, Deleted Document için izinli salt okunur restore_preview projection/diff sözleşmesidir: gerekli alan, tip, isim/ilişki çakışmasını yan etkisiz metadata kontrolleriyle raporla; keyfi DocType controller validate hooklarını salt okunur diye çağırma, hooklar yazma veya dış etki üretebilir. Tam native iş kuralı kabulü preview ile kanıtlanmış sayılmaz. Sonraki adım native deleted_document.restore yaşam döngüsünü saran izin/retention/audit adapterıdır; standart validation ve çift geri yükleme koruması korunur. İlişkili Writer/Sheets/Drive davranışları ayrı mevcut bağımlılıklarda ele alınır. Bu turda kod, veri veya test değişikliği yapılmaz.
 
-Mevcut birincil görev: `record-integrity--implementation-post-mvp`. Kaynak: `frappe/frappe/api/v1.py:72`; `suite/suite/writer/doctype/writer_document/writer_document.py:26`; `suite/suite/hooks.py:299`; `suite/suite/hooks.py:295`.
+Önerilen bağımlılık/sıra: record-integrity--contract; record-integrity--implementation; kernel-envelope--contract; tenant-registry--contract; native-user-policy--contract; ui-family-20--implementation-post-mvp. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `record-integrity--implementation-post-mvp`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/core/doctype/deleted_document/deleted_document.py:44` — `frappe.only_for("System Manager")`
+- `frappe/frappe/core/doctype/deleted_document/deleted_document.py:48` — `frappe.throw(_("Document {0} Already Restored").format(name), exc=frappe.DocumentAlreadyRestored)`
+- `frappe/frappe/core/doctype/deleted_document/deleted_document.py:58` — `if not frappe.has_permission(doc.doctype, "read", doc=doc):`
+- `frappe/frappe/core/doctype/deleted_document/deleted_document.py:34` — `def clear_old_logs(days=180):`
+- `frappe/frappe/model/delete_doc.py:241` — `add_to_deleted_document(doc)`
+- `suite/suite/sheets/api.py:475` — `frappe.has_permission("Sheet", doc=name, ptype="delete", throw=True)`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- frappe/frappe/core/doctype/deleted_document/; arama `Glob *`: deleted_document.py/.json/.js/_list.js/test mevcut; restore ve bulk_restore uygulaması okundu.
+- suite; arama `Deleted Document|restore_doc|def restore|bulk_restore`: Suite Deleted Document kullanmıyor; kendi restore'ları: drive/utils/files.py:437, sheets/api.py:473 restore_sheet, sheets/versioning restore.
+- frappe/frappe (_.py,_.json); arama `Deleted Document|from_restore`: Yazım yolu model/delete_doc.py:252-261; workspace_restore, sqlite_search okuyucuları; from_restore bayrağı yalnız restore içinde set ediliyor.
+- suite/suite/headless_provider; arama `restore|delete|trash|tenant (-i)`: Restore/trash sözleşmesi yok; yalnız local_fixture'da Custom Field/Property Setter silme.
+- frappe/frappe/core/doctype/log_settings; arama `Deleted Document|clear_old_logs|DEFAULT_LOGTYPES_RETENTION`: Genel clear_old_logs arayüzü var; Deleted Document'a özel kayıt yok.
+- frappe/frappe/hooks.py; arama `default_log_clearing_doctypes|"Deleted Document"`: Varsayılan temizlik listesinde Deleted Document yok.
+- suite/suite/sheets/trash.py; arama `def retention_days|def purge_trashed_sheets|retention`: Sheets'e özgü sheets_trash_retention_days ve purge mevcut.
+- . (frappe+suite, *.py/js/ts/vue); arama `restore.*preview|preview.*restore|dry_run.*restore|restore_preview (-i)`: Silinen kayıt geri yükleme önizlemesi yok; eşleşmeler yalnız Writer/Sheets sürüm geçmişi önizlemesi ve Meet medya önizlemesi.
+
+Sınır: Yalnız kaynak okundu; hiçbir test/komut çalıştırılmadı; functionalAcceptance not_run.; Kaynak kod varlığını kanıtlar; dağıtım, site yapılandırması (Log Settings kayıtları, site_config retention) ve çalışma zamanı davranışı doğrulanmadı.; doc.insert içindeki validate/naming/link doğrulamasının her DocType'ta iş kuralını yeterli kıldığı DocType bazında incelenmedi.; Drive trash akışının tamamı (API, purge clear_deleted_files) ayrıntılı okunmadı; yalnız storage restore metodu okundu.; ERPNext/HRMS kurulu değil, değerlendirilmedi; suiteCommit bilinmiyor.; Kaynaktaki AGENTS.md/CLAUDE.md talimatları veri olarak ele alındı, uygulanmadı.
+
+Temporal workflow: `saas-recheck-20261015t073528z-041`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### integrity-7 — Buluttaki Frappe için özel çift yönlü senkronizasyon; imleç, silme kaydı, idempotent işlem ve commit sonrası kabul.
 
@@ -1538,15 +2124,61 @@ Mevcut birincil görev: `offline-reservation--implementation`. Kaynak: `suite/py
 
 #### integrity-10 — Dört gün bağlantısız çalışma, cihaz/uygulama yeniden başlatma, kayıt çökmesi ve aktarım ortasında kesinti kabulü.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Hata enjeksiyon senaryoları ve kabul ölçütü güçlü: dört günlük kesinti, çökme, commit/ack arası kesinti, yedekten geri dönüş ve mutasyon kimliğiyle karşılaştırma tanımlı. Ancak sorumlu bileşen henüz kaynakta olmayan istemci uygulamaları: React, Tauri2 ve PWA. Mevcut Suite frontend'i Vue/frappe-ui kullanıyor ve çevrimdışı kuyruğu yok. Mevcut e2e testleri yalnız çevrimiçi kalıcılığı (reload) sınıyor.
+Upstream Suite'in Vue/frappe-ui frontend'inde uygulamaya özel, çalışan çevrimdışı primitifler var.
 
-Eksik: Dört günlük gerçek bekleme yerine simüle saat ve yetki süresi enjeksiyonu tanımlı değil. Mevcut insan test bütçesiyle (5 dk) gerçek süre uyumsuz.; Platform bazında kalıcı depolama (IndexedDB eviction, Tauri dosya/SQLite) ve 'commit tamamlandı' noktası eşlenmemiş.; integrity-7/8 sözleşmeleri olmadan kabul paketi uygulanamaz. Bağımlılık sırası açık değil.; Kanıt kaydı formatı (mutasyon kimliği karşılaştırma çıktısı) belirtilmemiş.
+Slides tarafında:
 
-Sonraki adım önerisi: client-offline-faults--implementation'a ön koşul olarak integrity-7 sözleşmesini ve simüle-saat gereksinimini yaz. Fault matrisini tek tabloda tut; yeni altyapı veya test önerme.
+- saving.js taslağı IndexedDB'ye yazıyor; kaydın başarılı sayılması tx.oncomplete'e bağlı.
+- Çevrimdışıyken (navigator.onLine=false) taslak kirli kalıyor ve itilmiyor. Bağlantı dönünce ('online' olayı) üstel bekleme ile yeniden deneniyor.
+- Uçuş sırasında gelen düzenlemeler nesil sayacıyla korunuyor.
+- Yeniden yüklemede presentation.js yerel taslağı baseModified/modified karşılaştırmasıyla geri yüklüyor.
+- Yanıtı kaybolan bir push, holdsOwnRows ile 'sunucuya gerçekten ulaştı mı' diye kontrol ediliyor. Bu, commit ile ack arasındaki kesintiye karşı içerik bazlı bir koruma.
+- Sunucuda save_slides, base_modified uyuşmazsa reddediyor. Bu, Frappe'nin Document.check_if_latest / TimestampMismatchError iyimser eşzamanlılık desenine karşılık geliyor.
+- Service Worker + Cache API ile salt-okuma bir 'offline copy' ve navigator.storage.persist çağrısı var.
 
-Mevcut birincil görev: `client-offline-faults--implementation`. Kaynak: `suite/frontend/src/apps/writer/composables/useDocument.ts:2`; `suite/e2e/drive-backed-apps/specs/writer/documents.spec.ts:32`; `suite/frontend/src/router/documentTitle.test.ts:2`.
+Writer, y-indexeddb ile Yjs belgesini yerelde kalıcı tutuyor.
+
+Yerel pilot suite/headless_provider yalnız sunucu tarafında HTTP commit/rollback ve kilit yönetimi yapıyor; istemci kuyruğu, mutasyon kimliği veya cihaz yetkisi içermiyor.
+
+Eksik: Genel ve platformdan bağımsız bir çevrimdışı mutasyon kuyruğu (transactional outbox) yok.; Mutasyon kimliği ile idempotent sunucu alımı ve sync receipt/ack sözleşmesi yok. Mükerrer gönderim koruması yalnız Slides'a özel ve tüm belgenin içerik eşitliğine (holdsOwnRows) dayanıyor.; Cihaz yetkisi yok. Süreli yerel yetki bitince yasak işlemlerin engellenmesi ve bekleyen kayıtların korunması uygulanmamış.; Dört günlük kesinti için simüle saat enjeksiyonu yok. Yedekten geri yükleme ve mutasyon kimliğiyle karşılaştırılan kanıt kaydı da yok.; Seçilen React/AntDesign, Tauri2 ve Vite-PWA istemcileri yok; Tauri'nin dosya/SQLite kalıcılığı da yok. Mevcut primitifler yalnız Suite'in Vue frontend'ine ait, headless provider sözleşmesi değil.; Slides, base uyuşmazsa çakışmayı birleştirmiyor. Bazı yollarda yerel taslağı atıp toast gösteriyor ('Changes that never reached the server were discarded'); bu, 'kalıcı kaydedilen işlem kaybolmasın' ölçütüyle çelişiyor.; Hata enjeksiyonu kabul paketi yok: çökme, commit/ack arası kesinti, yeniden başlatma ve mükerrer gönderim senaryoları tanımlanmamış (testler yalnız okundu, çalıştırılmadı).
+
+Sonraki somut adım: Sıra şöyle olmalı:
+
+1. Önce mevcut contract görevlerini yaz: kernel-envelope--contract (mutasyon kimliği zarfı), sync-receipt--contract (idempotent alım ve receipt/ack) ve device-grant--contract. Bunlar Frappe provider sözleşmesi olarak tanımlanmalı. Referans desen olarak Slides'taki base_modified + check_if_latest ve tx.oncomplete sonrası başarı bildirimi kullanılabilir.
+2. Ardından client-offline-faults--contract içinde hata matrisini ve simüle saat gereksinimini tek tabloda tanımla.
+3. Ancak bundan sonra client-offline-faults--implementation'da tek dar bir davranışı gerçek RED/GREEN kanıtıyla uygula. Bu davranış: sunucuda mutasyon kimliğiyle mükerrer gönderimin reddi.
+
+Suite'in Vue kodu taşınmamalı; GenUI uygulanmamalı.
+
+Önerilen bağımlılık/sıra: client-offline-faults--contract; kernel-envelope--contract; sync-receipt--contract; device-grant--contract; ui-family-40--implementation-post-mvp. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `client-offline-faults--implementation`.
+
+Kaynak kanıtı:
+
+- `suite/frontend/src/apps/slides/stores/saving.js:62` — `tx.oncomplete = () => {`
+- `suite/frontend/src/apps/slides/stores/saving.js:247` — `if (!navigator.onLine) return`
+- `suite/frontend/src/apps/slides/stores/presentation.js:274` — `const servedIsStale = local?.baseModified > doc.modified`
+- `suite/suite/slides/api/slides.py:34` — `if cstr(doc.modified) != cstr(base_modified):`
+- `suite/frontend/src/apps/writer/composables/useYjs.ts:2` — `import { IndexeddbPersistence } from 'y-indexeddb'`
+- `frappe/frappe/model/document.py:1387` — `def check_if_latest(self):`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- suite; arama `(?i)(offline|outbox|indexeddb|idempoten|mutation_id|client_mutation|service.?worker)`: Slides offlineCopy/saving/serviceWorker, mail OutboxView (SMTP gönderim kuyruğu, istemci outbox değil) ve derlenmiş public/frontend asset'leri bulundu.
+- frappe; arama `(?i)(outbox|indexeddb|idempoten|mutation_id|client_mutation|offline.?queue|sync.?receipt|device.?grant)`: İstemci çevrimdışı kuyruğu, sync receipt veya device grant yok. automation_engine outbox sunucu tarafı otomasyon; diğer eşleşmeler ilgisiz idempotent yardımcılar.
+- suite/frontend/src; arama `(?i)(offline|outbox|indexeddb|idb|idempoten|mutation.?id|pending.?queue|navigator\.onLine)`: Slides saving.js/presentation.js/offlineCopy.js ve Writer useYjs/NonCollabEditor IndexedDB kalıcılığı bulundu; mutasyon kimliği yok.
+- suite/suite (*.py); arama `(?i)(offline|outbox|idempoten|mutation_id|client_request_id|dedup|replay)`: Alan-özel idempotent/dedup mantıkları var (mail, drive, meet). Genel istemci mutasyon kimliği alımı yok.
+- suite/suite/headless_provider; arama `(?i)(offline|mutation|idempot|receipt|grant|outbox|replay|ack)`: Yalnız HTTP commit/rollback ve kilit callback'leri var; offline, receipt ve grant yok (yerel pilot).
+- suite/frontend/src/apps/slides; arama `(getPresentationFromLocalDB|baseModified|TimestampMismatch|online'|addEventListener\('online)`: Yerel taslak geri yükleme, base_modified ile push ve online olayında yeniden deneme doğrulandı.
+- frappe/frappe/model/document.py; arama `def check_if_latest|TimestampMismatchError`: Upstream iyimser eşzamanlılık kontrolü satır 1387 ve 1412'de.
+- suite/frontend/src/apps/writer; arama `(?i)(indexeddb|IndexeddbPersistence|offline)`: y-indexeddb kalıcılığı ve çevrimdışı göstergesi var; mutasyon kuyruğu yok.
+
+Sınır: Yalnız kaynak okundu; komut, test veya runtime çalıştırılmadı (functionalAcceptance=not_run).; Derlenmiş public/frontend asset'leri ve sourcemap'ler değerlendirilmedi; src esas alındı.; Mail OutboxView, drive ve meet içindeki dedup mantıkları ayrıntılı okunmadı; bunlar istemci çevrimdışı kuyruğu değil, alan-özel sunucu işlemleri.; React/Tauri2/PWA istemcileri kaynak kapsamında yok; ERPNext/HRMS kurulu değil.; Dört günlük kesinti, cihaz yeniden başlatma ve depolama tahliyesi davranışları kaynaktan kanıtlanamaz.; suiteCommit bilinmiyor.
+
+Temporal workflow: `saas-recheck-20261015t073528z-042`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 ### Veri modeli, dosyalar ve arama
 
@@ -1576,15 +2208,39 @@ Mevcut birincil görev: `search-query--implementation`. Kaynak: `frappe/frappe/c
 
 #### search-3 — Vector search (vektör benzerlik araması) ve Qdrant adaptörü.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **YOK**. İşlevsel kabul: `not_run`.
 
-İncelenen kesitlerde vektör ya da embedding kodu yok; Qdrant da bağımlılıklarda yok. Bu, yalnızca görülen kesitler için geçerli bir tespit. Kabul kriteri anlamlı (tenant izolasyonu ve indeks sürümü), ancak embedding modeli, sahibi ve izin süzme sırası tanımsız. GenUI ve AI kayıtlarıyla arasındaki sınır da belirtilmemiş.
+frappe ve suite kaynak köklerinde vektör benzerlik araması, embedding üretimi, Qdrant istemcisi, adaptörü veya bağımlılığı yok. Taranan iki kökte yalnızca sözcük tabanlı tam metin araması bulunuyor. Bunlar vektör araması için temel sayılmaz; yalnızca yeniden kullanılabilecek bitişik desenlerdir: (1) Upstream frappe/frappe/search/sqlite_search.py: SQLite FTS5 ve BM25 sıralamalı, soyut SQLiteSearch sınıfı. get_search_filters ile sorgu düzeyinde izin süzmesi (pre-filter) yapıyor; indeks dosyası site yolu altında duruyor. (2) Upstream Suite suite/suite/store/search_store.py: Tantivy ile tam metin indeksi kuran SearchStore. Her namespace için ayrı dizin açıyor ve FIELDS değişince şema sürümünü artırıp indeksi yeniden kuruyor. get_search_base_path indeksleri siteye özgü private dizinde tutuyor. (3) frappe redis_wrapper içindeki RedisearchWrapper yalnızca öneri ve FT sarmalayıcısı; vektör kullanımı yok. Lokal pilot suite/headless_provider (api.py, local_fixture.py) içinde arama ya da vektör sözleşmesi yok; Suite'in Vue frontend aramasıyla da ilgisi yok.
 
-Eksik: Embedding üretim sahibi, model ve sürüm kimliği, yeniden üretim tetikleyicisi tanımlı değil.; Vektör sonuçlarına Frappe kayıt ve alan izninin ne zaman uygulanacağı (pre/post filter) yazılmamış.; Tenant anahtarı Frappe site ya da namespace ile eşleştirilmemiş. SearchStore'daki namespace deseni yeniden kullanılabilir.; Kapsam koşullu değil, 'implementation' olarak işaretlenmiş; bağımlılık search-4'e bağlanmamış.
+Eksik: Qdrant (veya başka bir vektör deposu) istemcisi, adaptörü ve bağımlılığı (frappe/pyproject.toml ve suite/pyproject.toml'da yok; suite yalnızca tantivy~=0.26.0 kullanıyor); Embedding üretimi: model ve sürüm kimliği, sahibi, yeniden üretim tetikleyicisi (doc_events veya outbox bağlantısı); Tenant (Frappe site) ↔ Qdrant koleksiyonu veya payload anahtarı eşlemesi ve başka tenant vektörünün sonuca sızmamasının garantisi; Model değişiminde indeks sürümü izleme (SearchStore'un schema.version deseni yalnızca Tantivy şeması için); Vektör sonuçlarına Frappe kayıt ve alan izninin uygulanması (pre/post-filter); bu search-4 sözleşmesine bağlı; Headless provider'da vektör araması API sözleşmesi
 
-Sonraki adım önerisi: vector-search--implementation görevini search-4 izin sözleşmesine bağımlı yap. Embedding sürümünü ve tenant anahtarını tanımla, yeni bir registry açmadan koşullu olarak sırala.
+Sonraki somut adım: Önce mevcut contract bağımlılıkları kapanmalı: vector-search--contract, native-user-policy--contract ve search-4 izin sözleşmesi. Sözleşmede embedding model ve sürüm kimliği tanımlanmalı; tenant anahtarı frappe.local.site ile eşlenmeli (get_search_base_path'teki site başına izolasyon deseni kullanılabilir); izin süzmesi önce pre-filter olarak tanımlanmalı (SQLiteSearch.get_search_filters deseni). Ardından en dar implementation adımı gelir: tek bir DocType için, site payload filtresi ve model_version alanı taşıyan bir Qdrant adaptör arayüzü. İlk RED testi, başka bir sitenin vektörünün sonuç dönmemesini doğrulamalı. Sonra outbox üzerinden yeniden embedding tetikleyicisi bağlanır. Bu iş post_mvp aşamasında, mevcut görev kimlikleriyle ilerler; yeni bir registry açılmaz.
 
-Mevcut birincil görev: `vector-search--implementation`. Kaynak: `suite/suite/store/search_store.py:46`.
+Önerilen bağımlılık/sıra: vector-search--contract; kernel-envelope--contract; native-user-policy--contract; native-doctype-schema--contract; outbox--contract; search-4. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `vector-search--implementation`.
+
+Kaynak kanıtı:
+
+- `suite/suite/store/search_store.py:41` — `"""A Tantivy full-text index for one entity type, scoped to a \`namespace\`.`
+- `suite/suite/store/search_store.py:53` — `# Schema definition; changing it bumps the schema version and triggers a rebuild.`
+- `suite/suite/store/__init__.py:35` — `Sits alongside the site's private files, so it is per-site (multi-tenant safe) and never web-served.`
+- `frappe/frappe/search/sqlite_search.py:109` — `Abstract base class for SQLite FTS5-based full-text search for Frappe.`
+- `frappe/frappe/search/sqlite_search.py:292` — `permission_filters = self.get_search_filters()`
+- `suite/pyproject.toml:27` — `"tantivy~=0.26.0",`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- source/ (frappe + suite, tüm kök); arama `(?i)(qdrant|embedding|vector_search|vectorstore|vector store|cosine|pgvector|faiss|chroma|milvus|weaviate|sentence.transformers|similarity_search)`: 62 dosya eşleşti: locale .po, dist/assets map, yarn.lock hash'leri ve ilgisiz 'embedding' kullanımları (web_form allowed_embedding_domains, sieve, invitations, typst). Vektör kodu yok.
+- source/ (locale, dist ve assets hariç); arama `(?i)(qdrant|embedding|vector_search|vectorstore|pgvector|faiss|chromadb|milvus|weaviate|sentence.transformers|similarity_search|semantic.search|\bknn\b|ann_index|hnsw)`: Yalnızca ilgisiz 'embedding' bağlamları ve yarn.lock integrity eşleşmeleri çıktı. Vektör veya Qdrant implementasyonu yok.
+- source/ (locale, dist ve assets hariç); arama `(?i)(whoosh|tantivy|meilisearch|elasticsearch|opensearch|typesense|redisearch|FT\.SEARCH)`: suite/suite/store/search_store.py (Tantivy), suite/pyproject.toml (tantivy) ve frappe redis_wrapper.py (RedisearchWrapper) bulundu; geri kalanı frontend UI dosyaları. Tümü sözcük tabanlı ya da öneri araması.
+- suite/suite/headless_provider/; arama `(?i)(search|vector|index)`: Yalnızca liste .index() kullanımları var (api.py:578, 742); arama veya vektör sözleşmesi yok.
+- frappe/frappe/search/sqlite_search.py; arama `(?i)(^class |fts5|bm25|permission|def search\()`: SQLiteSearch: FTS5 ve BM25, izin süzgeçleri sorguda birleştiriliyor. Yoğun (dense) vektör yok.
+- source/ (*.py, *.toml, *.json); arama `(?i)(semantic|similarity|nearest|dense|rerank|llm|openai|ollama)`: Hedefli kontrolde yalnızca semantic-version bağımlılığı, regex fullmatch ve hooks yorumu çıktı. Embedding veya LLM entegrasyonu yok.
+
+Sınır: Kapsam yalnızca sourceRoot altındaki kurulu frappe ve suite uygulamaları (.git, node_modules, cache ve .env hariç); diğer ekosistem uygulamaları ve ERPNext/HRMS değerlendirilmedi.; suiteCommit bilinmiyor; frappe commit adf1fd0c.; Derlenmiş dist/assets bundle'ları ve locale dosyaları yalnızca dosya düzeyinde elendi; satır satır okunmadı.; Runtime functionalAcceptance: not_run. Test çalıştırılmadı, Qdrant servisi ve site yapılandırması incelenmedi.; YOK, kurulu kaynak kapsamında implementasyon olmadığı anlamına gelir; Qdrant'ın dış bir servis olarak entegre edilebilirliği ayrıca değerlendirilmeli (destek türü: external, eylem: integrate).
+
+Temporal workflow: `saas-recheck-20261015t073528z-009`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### search-4 — Kiracı, kayıt ve alan yetkisine göre sonuç/gösterim filtreleme.
 
@@ -1744,15 +2400,41 @@ Mevcut birincil görev: `native-doctype-schema--implementation-mvp`. Kaynak: `fr
 
 #### model-3 — Taxonomy management (kategori, etiket ve sınıflandırma yönetimi).
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Kabul ölçütü anlamlı: döngü engeli, taşıma ve çoklu etiket araması isteniyor. Ancak veri modeli kararı yok. Ağaç DocType (is_tree), etiket ve Table MultiSelect seçenekleri arasında seçim yapılmamış. Kaynak alıntılarında yalnız is_tree bayrağı görülüyor. NestedSet ve Tag kaynağı alıntıda yok, bu nedenle yerel yetenek bilinmiyor.
+Upstream Frappe'de yeniden kullanılabilir taxonomy parçaları var. (1) frappe/frappe/utils/nestedset.py: NestedSet Document temel sınıfı. on_update içinde update_nsm çalışır; parent değişince update_move_node düğümü taşır. update_add_node ve update_move_node, validate_loop ile bir düğümün kendi alt düğümüne taşınmasını NestedSetRecursionError ile reddeder. Çocuğu olan düğüm silinemez (NestedSetChildExistsError). İstemciden gelen lft/rgt değerleri restore_nsm_fields ile kayıtlı değerlere döndürülür. Ayrıca rebuild_tree ve remove_subtree var. (2) frappe/frappe/desk/treeview.py: whitelisted get_children, get_all_nodes ve add_node. _get_children frappe.qb.get_query kullandığı için standart izin kontrolünden geçer. (3) frappe/frappe/desk/doctype/tag/tag.py: Tag master, Tag Link ve whitelisted add_tag, add_tags (bulk_actions kontrolü), remove_tag, get_tagged_docs API'leri. Etiketler _user_tags kolonunda tutulur. update_tags write iznini kontrol eder ve Tag Link kayıtlarını eşitler. Desk liste görünümünde _user_tags için filtre ve istatistik var (base_list.js). suite kökünde ve yerel pilot olan, eklenti niteliğindeki suite/suite/headless_provider/api.py içinde is_tree, NestedSet, _user_tags, Tag Link ya da taxonomy kullanımı yok. Headless provider ağaç ve etiket sözleşmesi sunmuyor. Suite'in Vue frontend'i bu kalemle ilgili değil.
 
-Eksik: taxonomy-term görevinde Frappe ağaç DocType'ı (is_tree/NestedSet) mı, yerleşik etiketleme mi, özel bir Table MultiSelect bağlantı DocType'ı mı kullanılacağı belirsiz.; Kategori taşıma ve çoklu etiket araması için izin ve kiracı (tenant) kapsamı tanımsız.; Döngü engelinin yerel NestedSet doğrulamasına mı dayanacağı, ek doğrulama mı gerektireceği belirtilmemiş. İlgili kaynak alıntıda yok.; Sürümsüz doküman bağlantıları; Frappe 17-dev tree API eşlemesi yok.
+Eksik: Kurulu kaynakta somut bir kategori/taxonomy-term DocType'ı (is_tree=1, nsm_parent_field) yok; JSON taramasında is_tree:1 eşleşmesi çıkmadı.; Etiket ilişki modeli seçilip uygulanmamış: Table MultiSelect ile bağlantı DocType'ı mı, yerleşik Tag/_user_tags mı, karar yok.; Çoklu etiket araması (AND) için ayrılmış bir API yok. get_tagged_docs tek etiketle LIKE yapar; get_documents_for_tag tek etiket alır ve ilk karakteri koşulsuz siler. Virgülle ayrılmış _user_tags üzerinde LIKE aramasında kısmi eşleşme (örn. 'ab' ile 'abc') riski var; tag sınırına duyarlı eşleşme yok.; Kategori taşıma için kiracı ve izin politikası yok. NestedSet tek tabloda global lft/rgt tutar; kiracı başına ağaç ayrımı ya da taşıma sırasında kiracı sınırı kontrolü kaynakta görülmedi.; Tag master, add_tag içinde ignore_permissions ile global olarak oluşturuluyor; kiracıya özgü etiket sözlüğü yok.; Headless provider için ağaç ve etiket sözleşmesi yok (list/move/search endpoint'leri ve kiracı zarfı).; Döngü engeli, taşıma ve çoklu etiket kabulü için çalıştırılmış RED/GREEN kanıtı yok; functionalAcceptance=not_run.
 
-Sonraki adım önerisi: Görevde modeli sabitle: kategori için is_tree=1 olan custom DocType, etiket için Table MultiSelect ile bağlantı DocType'ı (ya da yerleşik etiketleme). Sonra nestedset ve tag kaynağını okuyup döngü ve taşıma davranışını doğrula. Yeni bir taxonomy motoru yazılmamalı.
+Sonraki somut adım: Mevcut görev sırasına uyarak (taxonomy-term--contract → taxonomy-term--schema → taxonomy-term--implementation) en küçük adımlar: (1) Kontrat aşamasında modeli sabitle. Kategori, is_tree=1 olan özel bir DocType olsun; controller'ı frappe.utils.nestedset.NestedSet'ten türesin, döngü ve taşıma yerel validate_loop ile update_move_node'a bıraksın. Etiket için tek bir model seç; kiracı kapsamı gerekiyorsa kiracı alanlı Taxonomy Term ile Table MultiSelect bağlantı tablosu kullan. (2) Kiracı alanını ve taşıma sırasında aynı kiracı içinde kalma doğrulamasını tanımla (tenant-registry ve native-user-policy kontratlarına bağlı). (3) Native döngü reddini yeniden uygulama veya sırf TDD görünümü için zaten geçen native kontrolü tekrar yazma. İlk yeni davranışı tenant kapsamlı taxonomy adapter sınırına daralt; tam etiket eşleşmesi ve taşıma yetkisini sözleşmede tanımla. Uygulama aşamasında yalnız gerçekten eksik bu davranışın gerekli kontrolü seçilir; bu analizde test eklenmez. (4) Ancak bundan sonra headless provider için ince bir ağaç ve etiket arama sözleşmesi ekle. Yeni bir taxonomy motoru yazma.
 
-Mevcut birincil görev: `taxonomy-term--implementation`. Kaynak: `frappe/frappe/core/doctype/doctype/doctype.js:116`; `frappe/frappe/custom/doctype/customize_form_field/customize_form_field.py:74`.
+Önerilen bağımlılık/sıra: taxonomy-term--contract; taxonomy-term--schema; kernel-envelope--contract; tenant-registry--contract; native-user-policy--contract; ui-view-tree--implementation-mvp (destekleyici). Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `taxonomy-term--implementation`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/utils/nestedset.py:129` — `validate_loop(doc.doctype, doc.name, new_parent.lft, new_parent.rgt)`
+- `frappe/frappe/utils/nestedset.py:252` — `frappe.throw(_("Item cannot be added to its own descendants"), NestedSetRecursionError)`
+- `frappe/frappe/utils/nestedset.py:57` — `elif old_parent != parent:`
+- `frappe/frappe/desk/treeview.py:42` — `def get_children(doctype: str, parent: str = "", include_disabled: str | int | bool = False, **filters):`
+- `frappe/frappe/desk/doctype/tag/tag.py:70` — `return (frappe.qb.from_(doctype).where(doctype._user_tags.like(tag)).select(doctype.name)).run()`
+- `frappe/frappe/desk/doctype/tag/tag.py:101` — `frappe.get_doc({"doctype": "Tag", "name": tag}).insert(ignore_permissions=True)`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- frappe/frappe/utils/nestedset.py; arama `class NestedSetRecursionError|def validate_loop|def update_move_node|def rebuild_tree|class NestedSet\b`: NestedSet, validate_loop, update_move_node ve rebuild_tree bulundu; implementasyon okundu.
+- frappe/frappe; arama `def (add_tag|remove_tag|get_tagged_docs|get_tags|get_documents_for_tag|add_tags)\b|_user_tags.*like`: tag.py içinde whitelisted etiket API'leri ve document.py'de add_tag/remove_tag/get_tags bulundu; AND çoklu etiket API'si yok.
+- suite; arama `(?i)is_tree|NestedSet|nestedset|_user_tags|Tag Link|taxonomy|categor(y|ies)`: Yalnız alakasız eşleşmeler var (mail, sheets, meet, build asset'leri). Taxonomy, ağaç ya da etiket modeli yok.
+- suite/suite/headless_provider/api.py; arama `(?i)is_tree|NestedSet|nestedset|_user_tags|Tag Link|taxonom|categor`: Tek eşleşme unicodedata.category (karakter doğrulama); ağaç ya da etiket sözleşmesi yok.
+- frappe/frappe/desk; arama `def (get_all_nodes|get_children|add_node|make_tree_args)\b|_user_tags`: treeview.py ağaç API'leri ile reportview'deki _user_tags istatistikleri bulundu.
+- frappe/frappe/public/js; arama `_user_tags`: Desk liste/kanban etiket filtre ve istatistik kodu (base_list.js, tag_editor.js) bulundu.
+- . (frappe+suite, *.json); arama `"is_tree":\s*1|"nsm_parent_field"`: Yalnız core doctype.json'daki nsm_parent_field alan tanımı var; is_tree=1 olan somut bir DocType yok.
+- frappe/frappe; arama `_user_tags.*like|like.*_user_tags`: Yalnız get_tagged_docs'ta tek etiketli LIKE var; tam etiket eşleşmeli çoklu arama yok.
+
+Sınır: Yalnız kurulu frappe (commit adf1fd0c) ve suite kaynak kökleri okundu; ERPNext/HRMS kurulu değil ve değerlendirilmedi.; Hiçbir test ya da komut çalıştırılmadı; functionalAcceptance=not_run. Kaynak yalnız kodun varlığını kanıtlar, runtime davranışını kanıtlamaz.; frappe.get_list/reportview'ün birden fazla _user_tags LIKE filtresini AND ile birleştirdiği genel filtre mekanizmasından çıkarıldı; database/query.py ayrıntılı okunmadı.; Derlenmiş public/dist bundle'ları ve source map'ler kanıt sayılmadı.; headless_provider yerel pilot ve eklenti niteliğinde koddur, upstream-native değildir; yalnız api.py'de hedefli grep yapıldı.; Suite commit'i bilinmiyor.
+
+Temporal workflow: `saas-recheck-20261015t073528z-059`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### model-4 — İlişki tipleri, zorunlu alan, benzersizlik ve referans bütünlüğü.
 
@@ -1840,15 +2522,41 @@ Mevcut birincil görev: `file-type-policy--implementation`. Kaynak: `suite/suite
 
 #### files-3 — ClamAV ile zararlı dosya taraması.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Kabul metni güçlü: EICAR yayınlanmaz, scanner yokken fail-closed. Ancak karantina durum modeli ve entegrasyon noktası tanımlı değil. WebDAV PUT'ta bir upload validator çağrısı var, içeriği görülmedi. Bağımlılıklarda ClamAV istemcisi yok. Drive durum sabitlerinde de karantina durumu görülmedi.
+Upstream Suite Drive'da senkron, kalıcılaştırma öncesi çalışan genişletilebilir bir upload doğrulama kancası var: validate_drive_upload. WebDAV PUT içinde _run_upload_validators tamamlanmış scratch dosyasını FileStorage olarak her hook'a veriyor. Hook True/None dışında bir değer döndürürse istek Forbidden ile reddediliyor (put.py:919-928). Bu çağrı create (put.py:153) ve overwrite (put.py:225) yollarında var. HTTP upload_file aynı hook'u çağırıp reddi frappe.throw ile uyguluyor (files.py:64-68). Frappe core File akışında before_write_file (yalnız file_size alır) ve depolamayı değiştiren write_file hook noktaları var (file.py:977-980). Bunlar tarama için kullanılabilecek ilkel araçlar, ama tarayıcı değil.
 
-Eksik: Karantina durumu tanımsız: yeni File status mu, yayın öncesi bekletme mi? GET/PROPFIND/Drive listesinde gizleme kuralı yok.; Tarama noktası (_run_upload_validators vb.) ve senkron/asenkron (RQ) kararı belirtilmemiş.; Scanner erişilemezken 'onaylı görünmeme' kuralının S3 presigned yönlendirmesi (drive_webdav_s3_redirect) dahil tüm indirme yollarına uygulanacağı yazılmamış.; ClamAV servisinin sahibi ve dağıtımı (Platform: Hüseyin Cengiz) ile sürüm/imza güncelleme sözleşmesi yok.
+Eksik: İki app kökünde (frappe, suite) ClamAV/clamd istemcisi, INSTREAM çağrısı, tarayıcı ayarı veya bağımlılığı yok.; Ne suite ne frappe hooks.py dosyasında validate_drive_upload kaydı var. Hook listesi boş olduğundan hiçbir şey taranmıyor ve put.py:921 bu durumda sessizce geçiyor; bu fail-open demek.; Karantina veya tarama durum modeli yok. Drive yalnız Active/Trashed/Removed durumlarını tanıyor. Bu yüzden GET, PROPFIND, liste ve S3 presigned redirect (get.py:87-88) yollarında onaylanmamış dosyayı gizleme kuralı da yok.; HTTP chunked upload'da hook, birleştirilmiş dosya yerine her istekteki chunk ile çağrılıyor (files.py:64-66; birleştirme files.py:96-100). Bu yüzden tam dosya taranmaz.; Frappe core File/attachment akışında içerik tarama çağrısı yok. before_write_file kancası içerik değil yalnız file_size alıyor.; Tarayıcıya erişilemezken fail-closed davranışı ve EICAR reddi yok.; headless_provider (yerel pilot, upstream değil) içinde dosya veya tarama sözleşmesi yok.; ClamAV servis sahipliği ve imza güncelleme sözleşmesi kaynakta yok (operasyonel konu).
 
-Sonraki adım önerisi: malware-scan--implementation için önce _run_upload_validators'ın tanımını ve Drive upload kancalarını okuyun. Karantina durumu ile fail-closed okuma kuralını tek sayfalık bir sözleşme olarak yazın. ClamAV servis devrini platform görevine bağlayın.
+Sonraki somut adım: Sıra mevcut bağımlılıklara göre: (1) malware-scan--contract: Drive File için tarama durumu (Pending/Clean/Infected/ScanError) ile fail-closed okuma kuralı yazılır. Kural GET/PROPFIND/liste/presigned redirect yollarının tamamını kapsar. (2) malware-scan--implementation'ın ilk dar davranışı: suite hooks.py'ye bir validate_drive_upload uygulaması kaydedilir. Bu uygulama clamd INSTREAM ile senkron tarama yapar; infected sonuçta ya da tarayıcıya erişilemediğinde reddeder (fail-closed). Önce EICAR ve tarayıcıya-erişilemez durumları için RED test yazılır (mock clamd), sonra GREEN yapılır. (3) files.py chunked yolunda tarama, create_drive_file öncesinde birleştirilmiş temp_path üzerinde yapılacak şekilde taşınır. (4) Asenkron (RQ) tarama gerekirse karantina durumu ve okuma filtreleri eklenir. (5) Frappe core File ekleri için write_file veya File doc_events entegrasyonu ayrıca ele alınır. ClamAV servisi ve imza güncellemesi Hüseyin Cengiz'in platform devri olarak bağlanır.
 
-Mevcut birincil görev: `malware-scan--implementation`. Kaynak: `suite/suite/drive/webdav/put.py:153`; `suite/suite/drive/webdav/get.py:87`; `suite/suite/sheets/patches/integrate_with_drive.py:3`.
+Önerilen bağımlılık/sıra: malware-scan--contract; kernel-envelope--contract; tenant-registry--contract; native-user-policy--contract; native-doctype-schema--contract; outbox--contract. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `malware-scan--implementation`.
+
+Kaynak kanıtı:
+
+- `suite/suite/drive/webdav/put.py:920` — `checks = frappe.get_hooks("validate_drive_upload")`
+- `suite/suite/drive/webdav/put.py:928` — `raise Forbidden(str(result) or "This upload was cancelled by a validation check.")`
+- `suite/suite/drive/api/files.py:66` — `res = frappe.call(check, file=frappe.request.files["file"], parent=parent, embed=embed)`
+- `suite/suite/drive/utils/__init__.py:13` — `STATUS_TRASHED = "Trashed"`
+- `suite/suite/drive/webdav/get.py:88` — `return redirect(manager.presigned_url(key, row.file_name, row.mime_type), code=302)`
+- `frappe/frappe/core/doctype/file/file.py:977` — `call_hook_method("before_write_file", file_size=self.file_size)`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- source (frappe + suite, tüm kök; min.js/map/svg/po/pot/csv hariç); arama `(?i)clamav|clamd|pyclamd|malware|antivirus|virus|quarantin|eicar`: 6 dosya eşleşti; hiçbiri ClamAV değil. Eşleşmeler mail DMARC 'quarantine', meet recorder segment karantinası ve derlenmiş pdfWorker/noise-suppression asset'leri.
+- source (_.py,_.ts,_.json,_.toml,*.txt); arama `(?i)clamav|clamd|malware|antivirus|virus|quarantin|eicar`: Yalnız dmarc.ts ve meet SegmentWatcher/CapturePipeline.test eşleşti; dosya zararlı yazılım taraması yok.
+- source (_.py,_.json,_.toml,_.cfg,_.yml,_.yaml,*.txt); arama `(?i)clam|scan_status|scanned|virus_scan|is_scanned|infected`: Yalnız ilgisiz 'clamp' ve 'scanned' sayaçları bulundu; tarama durum alanı yok.
+- source (tüm kök); arama `_run_upload_validators|upload_validator|before_upload|validate_upload|on_upload|file_upload_hook`: Drive WebDAV put.py:153/225/919 ve meet callback_auth sorgu doğrulaması bulundu; frappe tarafında yalnız JS on_upload_complete UI geri çağrısı var.
+- source (*.py); arama `validate_drive_upload|before_write_file|"write_file"|write_file\s*=|get_hooks\("(write_file|delete_file_data_content)`: Hook tüketicileri put.py:920, files.py:64, file.py:977-978 ve file_manager.py:161-163'te; kayıtlı bir uygulama yok.
+- source/**/hooks.py; arama `validate_drive_upload|before_write_file|write_file|doc_events`: suite/hooks.py ve frappe/hooks.py içinde validate_drive_upload veya tarama kaydı yok.
+- suite/suite/drive; arama `^STATUS_|STATUS_\w+ *=`: Yalnız Active/Trashed/Removed var; karantina durumu yok.
+- suite/suite/headless_provider; arama `(?i)scan|upload|validate_drive|File\b`: Eşleşme yok; yerel pilotta dosya tarama sözleşmesi yok.
+
+Sınır: Yalnız statik kaynak okundu; kod, test, ClamAV servisi ve EICAR denemesi çalıştırılmadı. functionalAcceptance=not_run.; Site config, bench ortamı ve dağıtılmış servisler incelenmedi; dışarıdan kurulmuş bir ClamAV veya proxy taraması kaynakla ne kanıtlanabilir ne de dışlanabilir.; suiteCommit bilinmiyor; değerlendirme sabit yerel snapshot ile sınırlı.; Frappe core'un frappe.handler upload uç noktası ayrıntılı okunmadı; core'daki hook noktası File.save_file ve file_manager üzerinden doğrulandı.; ERPNext/HRMS kurulu değil, değerlendirilmedi.; Ürün tamamlanma iddiası veya yüzde verilmez.
+
+Temporal workflow: `saas-recheck-20261015t073528z-060`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### files-4 — Depolama adaptörleri: MinIO ve Amazon S3 (Simple Storage Service — basit depolama hizmeti).
 
@@ -2070,15 +2778,40 @@ Mevcut birincil görev: `ai-policy--implementation`. Kaynak: `suite/suite/sheets
 
 #### ai-7 — Ant Design X / X Cards ile izinli katalogdan şemalı GenUI ve AI kesintisinde normal iş ekranları.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Kabul metni ayrıntılı (bilinmeyen bileşen ve yetkisiz eylem reddi, kesintide normal ekran, 320px). Ancak notta '1rem' yaklaşımı geçiyor; bu, 2026-10-14 tarihli 14 CSS px kararıyla çelişiyor. Kurulu Suite önyüzü Vue/frappe-ui; React/Ant Design X kaynağı bu snapshot'ta yok, bu yüzden durum bilinmiyor. Kullanıcının bağımsız GenUI projesiyle katalog sahipliği sınırı tanımlanmamış.
+Kurulu kaynakta Ant Design, Ant Design X, X Cards, A2UI veya GenUI bileşen kataloğu yok. Kodda bulunan en yakın yapılar şunlar: (1) Upstream Suite Sheets 'AI Assist' (Vue arayüzü). ai_assist uç noktası önce Sheet için write iznini doğruluyor. Model, zorunlu bir tool çağrısıyla yalnızca JSON şemalı eylemler üretebiliyor (enum: setCell ve answer; additionalProperties=false). Sunucudaki clean_actions bu şemaya uymayan eylemleri sessizce atıyor; ilk adım deterministik ve yerel bir sezgisel kural katmanı. Sunucu sayfayı kendisi değiştirmiyor; eylemler istemci motorunda undo/op-log hattına katılıyor. AI ayarı kapalıysa ya da anahtar yoksa yalnızca AI çağrısı hata veriyor; normal Sheets ekranı bundan ayrı çalışmaya devam ediyor. (2) suite/headless_provider, yerel pilot olarak sonradan eklenmiş kod; upstream'de yok. headless-metadata.v1 sözleşmesi kapsamında: oturum kullanıcısı ve yerel izin yeniden kontrolü, alan düzeyinde okuma izniyle filtrelenmiş metadata projeksiyonu, bilinmeyen anahtarların reddi, preview→digest→apply onay akışı ve revision çakışma kontrolü. (3) frappe/ui (Vue) içinde bir fieldtype→component kaydı var, ancak bilinmeyen tür reddedilmiyor; FALLBACK bileşenine düşüyor.
 
-Eksik: Not ve kabul metnindeki '1rem' ifadesi güncel 14 CSS px minimumuna göre düzeltilmeli.; Katalog şemasının sürümü ve sahibi tanımsız; kullanıcının bağımsız GenUI projesindeki registry ile, Suite Sheets eylem sözleşmesiyle ve sunucu sorgu/eylem registry'si ile birleştirilmeyeceği yazılmamış.; Kesinti senaryosunda yerel kayıt ve senkronizasyon kuyruğunun hangi göreve bağlı olduğu belirtilmemiş.
+Eksik: Frappe kaynak/action registry kimlikleri ile kullanıcıya ait ayrı GenUI capability registry kimlikleri arasında sürümlü eşleme sözleşmesi eksik.; Kurulu Suite Vue/Sheets AI örneği, seçilmiş React/Ant/X Cards tüketicisinin entegrasyon kanıtı değildir; tüketici bu turda taranmadı.; İzinli server action şeması, açık red/hata, tenant kapsamı, onay ve AI kesintisinde normal ekran sözleşmesi eksik; yerel metadata pilotunun dar kanıtı ayrı tutulur.; Yerel callback/ReactNode ile serileştirilebilir model JSON sınırının kabul ölçütü mevcut göreve bağlanmalı.
 
-Sonraki adım önerisi: ui-family-39 görevinin metnini düzeltin: 1rem yerine 14 CSS px yazılsın; katalog sözleşmesinin sahibi belirtilsin ve GenUI yalnızca dış tüketici olarak anılsın. ui-provider-registry ile kapsam ayrımını tek satırla kaydedin.
+Sonraki somut adım: Önce mevcut capability-definition--contract, native-user-policy--contract ve kernel-envelope--contract sınırlarını netleştir; ui-family-39--contract bunları tüketir. Frappe sağlayıcı yalnız izinli kaynak/projection metadata kimliklerini, sunucu eylem kimliklerini, JSON girdi/çıktı şemalarını, revizyonu ve kullanıcı/tenant yetki kapsamını mevcut kaynak/action registry üzerinden sunmalı. GenUI component/props capability kataloğu kullanıcıya ait backend bağımsız projede kalır; Frappe bileşen kataloğunun sahibi veya kopyası olmaz. Tüketici bu iki ayrı registry kimliğini açık bir eşleme ile bağlar; callback/ReactNode model JSON sınırından geçmez. En küçük sonraki davranış, mevcut metadata sözleşmesiyle tek izinli action kimliğinin sürüm/yetki reddini bağlamaktır. Yazma eylemlerinde preview/onay/apply ve native validation korunur. AI kesintisinde normal headless ekran ayrı çalışır; offline/outbox kapsamı kendi mevcut görevindedir. Bu denetimde test veya uygulama yapılmaz.
 
-Mevcut birincil görev: `ui-family-39--implementation-post-mvp`. Kaynak: `suite/frontend/src/apps/sheets/engine/sheet.js:6`; `suite/frontend/src/apps/writer/utils/docximporter.test.js:12`; `suite/suite/sheets/ai/client.py:51`.
+Önerilen bağımlılık/sıra: ui-family-39--contract; ui-family-39--implementation; kernel-envelope--contract; ui-family-01--contract; native-user-policy--contract; capability-definition--contract; ui-family-07--contract; ui-provider-registry--implementation-post-mvp. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `ui-family-39--implementation-post-mvp`.
+
+Kaynak kanıtı:
+
+- `suite/suite/sheets/ai/client.py:51` — `"enum": ["setCell", "answer"],`
+- `suite/suite/sheets/ai/client.py:97` — `tool_choice={"type": "tool", "name": "emit_actions"},`
+- `suite/suite/sheets/api.py:620` — `frappe.has_permission("Sheet", doc=name, ptype="write", throw=True)`
+- `suite/suite/sheets/api.py:665` — `return {"actions": ai_validate.clean_actions(raw), "model": model, "source": source}`
+- `suite/suite/headless_provider/api.py:26` — `CONTRACT_VERSION = "headless-metadata.v1"`
+- `frappe/ui/src/components/Fields/fieldTypes.ts:62` — `return registry.get(fieldtype) ?? registry.get(FALLBACK)!;`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- source (frappe+suite, tümü); arama `(?i)(ant-design|antd|@ant-design/x|x-cards|a2ui|genui|generative.?ui|component.?catalog)`: 58 dosya eşleşti; hepsi alakasız alt dize eşleşmesi (participant vb.) veya derlenmiş map dosyası.
+- source (frappe+suite, *.map hariç); arama `(@ant-design|\bantd\b|x-cards|XCards|\bA2UI\b|GenUI|generative[_ -]?ui)`: Eşleşme yok.
+- suite/suite/sheets (*.py); arama `clean_actions|generate_actions|heuristic|ai_assist|has_permission`: ai_assist bulundu: write izni, sezgisel kural→model akışı ve clean_actions doğrulaması.
+- source (dist/assets hariç); arama `(?i)(offline|navigator\.onLine|serviceWorker|IndexedDB|sync.?queue|outbox)`: Yalnız alakasız eşleşmeler: locale, email_queue, automation_engine outbox testi vb. İstemci tarafında offline kayıt/kuyruk yok.
+- source (dist/assets/locale hariç); arama `(?i)(json.?render|render.?schema|component.?registry|allowed.?components|ui.?schema|catalog)`: frappe/ui fieldTypes.ts (Vue, fallback'li registry) ve Suite ayar katalogu bulundu; GenUI kataloğu yok.
+- frappe/ui (package.json, fieldTypes.ts); arama `(?i)(catalog|registry|"react"|"vue"|unknown|unsupported)`: Vue >=3.3 bağımlılığı var; bilinmeyen fieldtype FALLBACK bileşenine düşüyor.
+- suite/frontend/src; arama `(?i)(ai.?assist|aiAssist|actions\.forEach|setCell)`: Sheets Vue bileşenleri ve motoru bulundu (AISettingsDialog.vue, SheetEditor); React/Ant Design yok.
+
+Sınır: Yalnızca statik kaynak okundu; komut veya test çalıştırılmadı. functionalAcceptance: not_run.; Sheets frontend'inin eylemleri nasıl uyguladığı ayrıntılı okunmadı; undo/op-log iddiası api.py docstring'ine ve sheet_op_log'daki 'ai_assist' kaynağına dayanıyor.; headless_provider yerel pilot koddur; upstream Suite veya Frappe davranışı sayılmamalı.; ERPNext/HRMS ve kullanıcının GenUI projesi bu kaynakta yok ve değerlendirilmedi.; Derlenmiş dist/assets/*.map dosyaları ayrıntılı incelenmedi; kaynak eşleşmesi olmadığı için yeterli kabul edildi.; 320px ve 14 CSS px tarayıcı doğrulaması yapılmadı.
+
+Temporal workflow: `saas-recheck-20261015t073528z-010`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### rag-1 — RAG (Retrieval-Augmented Generation — bilgi getirmeyle desteklenen üretim) sunucusu.
 
@@ -2178,15 +2911,41 @@ Mevcut birincil görev: `human-decision--implementation`. Kaynak: `frappe/frappe
 
 #### agents-4 — Görev hafızası, yürütüm geçmişi, yeniden deneme ve devretme.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Kalıcı state ve devir hedefi tanımlı. Ancak idempotency, tekrar deneme etkisi ve tenant izolasyonu sözleşmesi yok. Yerel kaynakta ajan hafızası ya da checkpoint görülmedi. Görülen tek ilgili temel, kullanıcı/yol/metod kaydeden isteğe bağlı API Request Log; bu bir yürütüm geçmişi değil.
+Kurulu frappe uygulamasındaki automation_engine, deterministik Automation Flow'lar için kalıcı yürütüm altyapısı sağlıyor. Bu bir AI ajanı değil. (1) Yürütüm geçmişi: Automation Run DocType'ı status, user (Run As), queue_row, started_at/ended_at, error_summary, steps (Automation Run Step), actions_snapshot ve run_state alanlarını tutuyor; run_steps adım kayıtlarını geri okuyor. (2) Checkpoint/devam: Wait/WaitForEvent adımı resume_run ve resume_from_idx alanlı bir kuyruk satırı yazıyor. Böylece aynı Run, ilk snapshot ve adımlarıyla kaldığı yerden sürüyor. (3) Yeniden deneme: drainer, satırları savepoint ve commit gruplarıyla çalıştırıyor. attempt sayacı max_attempts değerine (varsayılan 3) ulaşınca durum Failed oluyor; grup commit'i başarısız olursa satırlar tek tek yeniden çalıştırılıyor. Arka plan işleri de deadlock veya zaman aşımında en fazla 5 kez yeniden deneniyor ve job_id+deduplicate destekliyor. (4) Yan etki güvenliği: Automation Trigger Queue'daki unique dedup_key indeksi çift tetiklemeyi engelliyor. effects_delivered işareti, veritabanı dışına etki etmiş (webhook, mail) bir satırı yeniden denemek yerine Failed yapıyor. (5) Yetkili kimlik: _execution_identity ve _ensure_trigger_access her çalıştırmada kimliği ve erişimi yeniden kuruyor. suite/headless_provider YEREL PİLOT ek koddur ve upstream'de yoktur; yalnız şema düzenleme için base_revision ve proposal_digest tabanlı iyimser eşzamanlılık sunar. Ajan çalıştırma, hafıza veya devir içermez. Suite'in Vue frontend'i bu maddeyle ilgili değildir.
 
-Eksik: Yeniden denemede çift yazmayı önleyecek idempotency anahtarı tanımsız.; Hafızanın nerede tutulacağı belirsiz (orkestratör mü, Frappe DocType mı) ve tenant izolasyonu tanımsız.; Devirde iznin aynen mi taşınacağı yoksa yeniden mi değerlendirileceği yazılmamış.; API Request Log ayarla açılıyor ve gövde/sonuç tutmuyor; denetim izi gereksinimi tanımsız.
+Eksik: AI ajanına özgü agent-run ve agent-step kaydı yok: model/araç çağrısı, araç girdi/çıktı özeti ve istem/bağlam sürümü tutulmuyor.; Ajan görev hafızası yok: hafıza DocType'ı, kapsamı/TTL'si ve tenant izolasyonu tanımlı değil.; Araç çağrısı başına istemcinin verdiği idempotency anahtarı ve bu anahtarla sonucun yeniden döndürülmesi yok. dedup_key yalnızca automation+belge bazında bekleyen tetiklemeyi tekilleştiriyor.; Ajanlar arası devretme yok: hedef ajan, devralınan geçmiş ve iznin hedef ajanın rolüyle yeniden kontrol edilmesi sözleşmesi bulunmuyor.; Headless provider'da ajan run/step okuma-yazma ucu yok; GenUI sağlayıcı sözleşmesi bu maddeyi kapsamıyor.
 
-Sonraki adım önerisi: agent-run--implementation ve agent-step--implementation içinde: adım kaydı (run_id, step, araç, sonuç durumu, idempotency anahtarı) ve devirde yetkinin hedef ajanın kendi rolüyle yeniden kontrol edilmesi kuralını yazın.
+Sonraki somut adım: Sıra şöyle: agent-run--contract → agent-run--schema → agent-run--implementation → agent-step--implementation. İlk ve en küçük adım: Automation Run, Automation Run Step ve Trigger Queue'nun dedup/attempt/resume desenini yeniden kullanan dar bir Agent Run + Agent Step şeması. Agent Step alanları: run, idx, tool, status, idempotency_key (unique), result_digest, effects_delivered. Önce tek bir davranış için başarısız (RED) test yazılmalı: aynı idempotency_key ile tekrarlanan adım ikinci kez yan etki üretmemeli ve kayıtlı sonucu döndürmeli. Sonra bu testi geçirecek (GREEN) kod yazılmalı. Ardından devir kuralı eklenmeli: devirde izin taşınmaz, hedef ajanın kimliğiyle _execution_identity benzeri bir kontrol yeniden yapılır. Tenant izolasyonu R-01 eşlemesine bağlanmalı. Headless provider ucu en son eklenmeli.
 
-Mevcut birincil görev: `agent-run--implementation`. Kaynak: `frappe/frappe/api/__init__.py:47`; `frappe/frappe/api/__init__.py:50`.
+Önerilen bağımlılık/sıra: agent-run--contract; agent-run--schema; kernel-envelope--contract; native-user-policy--contract; capability-definition--contract; native-doctype-schema--contract; outbox--contract; audit-envelope--contract. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `agent-run--implementation`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/automation_engine/runner.py:25` — `RUN = "Automation Run"`
+- `frappe/frappe/automation_engine/runner.py:92` — `"""Pick a waiting run back up: same Automation Run, its original snapshot and steps."""`
+- `frappe/frappe/automation_engine/drainer.py:167` — `exhausted = attempt >= cint(settings.get("max_attempts"))`
+- `frappe/frappe/automation_engine/drainer.py:136` — `if effects_delivered(name):`
+- `frappe/frappe/automation_engine/dispatch.py:109` — `The \`dedup_key\` unique index is the real guard; the lookup below only avoids the failed insert.`
+- `suite/suite/headless_provider/api.py:140` — `if not isinstance(proposal_digest, str) or not _DIGEST.fullmatch(proposal_digest):`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- suite; arama `(?i)(agent_run|agent run|agent_step|checkpoint|idempoten|handoff|hand_off|retry|attempt)`: Sonuçlar ağırlıkla derlenmiş frontend asset'leri, mail/drive/meet modüllerindeki yeniden denemeler ve composeHandoff (e-posta taslağı devri). Ajan run/step veya ajan devri bulunmadı.
+- suite/suite (_.py,_.json); arama `(?i)(agent|checkpoint|idempoten|handoff|retry|memory|run_id)`: Mail kuyruğu, WebDAV ve kayıt alma gibi alan-özel yeniden deneme ve idempotency kodları var; ajan hafızası veya yürütümü yok.
+- suite/suite/headless_provider/api.py; arama `(?i)(agent|checkpoint|idempoten|handoff|retry|memory|run_id|def )`: Yalnız session, metadata, create_field, preview_edit ve apply_edit uçları var (revision/digest kontrolü). Ajan run, hafıza veya devir yok.
+- frappe/frappe (_.py,_.json); arama `(?i)(idempoten|checkpoint|run_id|agent_run|handoff|tool_call|ai_agent|agent memory)`: automation_engine/api.py içinde manual_run_id, background_jobs.create_job_id idempotent yardımcısı ve ilgisiz sidebar/print eşleşmeleri bulundu. Ajan kavramı yok.
+- frappe/frappe/automation_engine; arama `(?i)(idempoten|checkpoint|run_id|retry|attempt|agent|handoff)`: drainer.py içinde attempt/max_attempts ve effects_delivered, runner.py içinde Retry sonucu bulundu.
+- frappe/frappe/automation_engine/runner.py; arama `(?i)(^RUN\s*=|resume_from|resume|dedup_key|run_steps|execute_automation|branches)`: Automation Run ile resume_run/resume_from_idx tabanlı devam etme ve adım kaydı doğrulandı.
+- frappe/frappe; arama `dedup_key`: automation_trigger_queue.py dosyası unique_dedup_key indeksini ekliyor; dispatch.queue_trigger bu indekse dayanıyor.
+- frappe/frappe ve suite/suite (_.py,_.json); arama `(?i)(llm|langgraph|agent_memory|ai agent|tool_call|agent_run|handoff)`: LLM/ajan orkestrasyonu yok. sheets/ai/heuristics.py kendini 'no LLM' olarak tanımlıyor; diğer eşleşmeler alt dize (fullmatch) eşleşmeleri.
+
+Sınır: Yalnız kaynak kod okundu; test çalıştırılmadı, functionalAcceptance=not_run.; automation_engine ve automation DocType'ları kurulu frappe uygulamasında (commit adf1fd0) bulundu; upstream sürümle karşılaştırılmadı, bu yüzden yerel fork kökeni doğrulanmadı.; Testler yalnız arama sonucu olarak görüldü; davranış kanıtı olarak sayılmadı.; Tenant izolasyonu, çalışma zamanı kalıcılığı ve devreye alınmış operasyonlar kaynaktan kanıtlanamaz.; ERPNext/HRMS ve harici orkestratörler (LangGraph vb.) kurulu kaynakta yok; değerlendirilmedi.
+
+Temporal workflow: `saas-recheck-20261015t073528z-011`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### agents-5 — Adım, süre, kaynak ve harcama üst sınırları.
 
@@ -2262,15 +3021,41 @@ Mevcut birincil görev: `api-response--implementation`. Kaynak: `frappe/frappe/a
 
 #### integration-5 — Webhook (olay gerçekleşince dış sisteme bildirim) alma/gönderme; imza ve tekrar saldırısı denetimi.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Kabul ölçütü (geçerli imza, değiştirilmiş gövde, tekrar) iyi. Ancak Frappe Webhook/HMAC kaynağı bu pakette görülmedi; outbound imza desteği kaynaktan doğrulanamadı. Görülen tek ilgili primitif, OAuth state için TTL'li tek kullanımlık cache anahtarı. Bu desen bir yol gösterir ama Redis tahliyesine açık, kalıcı bir replay deposu değil.
+Upstream Frappe'de giden webhook gönderimi var (frappe/frappe/integrations/doctype/webhook/webhook.py). DocType olayı tetiklenince istek kuyruğa alınır. enable_security açıksa gövde HMAC-SHA256 ile imzalanır ve base64 değer X-Frappe-Webhook-Signature başlığına yazılır. İmza, gönderilen frappe.as_json(data) gövdesinin aynısı üzerinden hesaplanır. Teslim denemeleri Webhook Request Log'a yazılır (Delivered/Failed/Exhausted, attempt, next_retry). Yeniden deneme RETRY_SCHEDULE ile zamanlanır ve job_id ile tekilleştirilir; logdaki başlık ve gövde aynen yeniden gönderilir. automation_engine CallWebhook eylemi de dışarıya HTTP çağrısı yapar ama imza üretmez. Suite'te gelen istek için yalnız alana özgü bir örnek var: Meet kayıt cihazı geri çağrısı (suite/suite/meet/recording/callback_auth.py). Bu akış body_sha256'yı compare_digest ile karşılaştırır ve iat/exp için yaklaşık 30 saniyelik pencere ile 5 saniyelik saat kayması toleransı uygular. Tekrar kullanılan jti'yi Redis'te SET NX ve 40 saniyelik TTL ile reddeder. suite/headless_provider yerel pilot kodunda webhook/imza/tekrar sözleşmesi yok; oradaki hmac yalnız öneri özetini karşılaştırır.
 
-Eksik: İmza başlığı, algoritma, zaman penceresi ve saat kayması toleransı tanımsız; Replay tekilleştirme deposu (kalıcı benzersiz anahtar mı, TTL'li cache mi) seçilmemiş; Tenant başına imza sırrı ve rotasyon kuralı yok; Inbound uç: guest whitelist + imza zorunluluğu ve teslim denemesi kaydı saklama süresi belirtilmemiş
+Eksik: Giden imza yalnız gövdeyi kapsıyor; zaman damgası, olay kimliği ve nonce imzaya ya da başlıklara girmiyor. Bu yüzden alıcı, yeniden gönderilen imzalı bir isteği tekrar olarak ayırt edemez.; Frappe'de gelen webhook'lar için genel bir doğrulama ucu yok: imza doğrulayan guest endpoint, zaman penceresi ve tekrar deposu bulunmuyor.; Suite'teki jti ve gövde özeti deseni Meet'e özgü ve Redis TTL'li; tahliyeye açık, kalıcı benzersiz anahtar değil, genel webhook alımında yeniden kullanılmıyor.; Tenant başına imza sırrı ve rotasyon/çift sır dönemi yok; webhook_secret, her Webhook kaydında tek bir Password alanı.; İmza algoritması veya sürüm başlığı yok.; headless_provider'da gelen ve giden webhook sağlayıcı sözleşmesi yok (GenUI/React tüketicisi için yönetim/teslim durumu yüzeyi yok).
 
-Sonraki adım önerisi: Önce Frappe Webhook DocType kaynağını v17-dev commit'inde oku ve HMAC başlığını doğrula. Ardından delivery-attempt--implementation görevine imza/pencere/kalıcı tekilleştirme sözleşmesini ekle.
+Sonraki somut adım: Mevcut delivery-attempt--contract ve delivery-attempt--schema bağımlılıklarından sonra, delivery-attempt--implementation içinde en küçük adım şu sırayla yapılmalı: (1) Gelen istek doğrulayıcısı yazılsın. callback_auth.py'deki compare_digest, zaman penceresi ve jti desenini genelleştirsin; X-Frappe-Webhook-Signature ile uyumlu HMAC-SHA256 doğrulaması yapsın ve zaman damgası ile olay kimliği başlıklarını zorunlu tutsun. Tekrar kontrolü, Redis TTL yerine olay kimliğine benzersiz indeks veren kalıcı bir tabloyla yapılsın. (2) Bunun için önce RED testleri: geçerli imza kabul, değiştirilmiş gövde red, aynı olay kimliğinin tekrarı red, pencere dışı zaman damgası red. (3) Ardından giden tarafta upstream Webhook'u fork etmeden, ek bir başlık katmanıyla imzaya zaman damgası ve olay kimliği eklenebilir mi değerlendirilsin. Tenant başına sır ve rotasyon tenant-registry--contract'a bağlansın. headless_provider'a yalnız sözleşme/durum okuma ucu eklensin.
 
-Mevcut birincil görev: `delivery-attempt--implementation`. Kaynak: `frappe/frappe/utils/oauth.py:160`; `frappe/frappe/utils/oauth.py:173`.
+Önerilen bağımlılık/sıra: delivery-attempt--contract; delivery-attempt--schema; kernel-envelope--contract; tenant-registry--contract; native-user-policy--contract; capability-definition--contract; native-doctype-schema--contract; outbox--contract; api-middleware--contract. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `delivery-attempt--implementation`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/integrations/doctype/webhook/webhook.py:20` — `WEBHOOK_SECRET_HEADER = "X-Frappe-Webhook-Signature"`
+- `frappe/frappe/integrations/doctype/webhook/webhook.py:348` — `frappe.as_json(data).encode("utf8"),`
+- `frappe/frappe/integrations/doctype/webhook/webhook.py:22` — `RETRY_SCHEDULE = [5 * 60, 30 * 60, 2 * 3600, 5 * 3600, 10 * 3600, 10 * 3600]`
+- `frappe/frappe/integrations/doctype/webhook/webhook.py:264` — `headers = json.loads(log.headers) if log.headers else {}`
+- `suite/suite/meet/recording/callback_auth.py:383` — `if not hmac.compare_digest(claims["body_sha256"], body_sha256):`
+- `suite/suite/meet/recording/callback_auth.py:399` — `if not frappe.cache.set(replay_key, "1", ex=40, nx=True):`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- frappe/frappe; arama `X-Frappe-Webhook-Signature|hmac\.new|webhook_secret`: webhook.py: imza başlığı, HMAC-SHA256 ve gizli alan doğrulaması bulundu; ek olarak verified_command.py'de URL imzası var (webhook değil).
+- suite; arama `(?i)webhook|hmac|signature|replay|nonce|idempoten`: Çoğu sonuç derlenmiş frontend asset, mail imzası ve JMAP push. İlgili sonuçlar: meet/recording/callback_auth.py ve headless_provider/api.py.
+- suite/suite/headless_provider; arama `(?i)webhook|hmac|signature|replay|nonce|timestamp`: Yalnız öneri özeti için compare_digest ve TimestampMismatchError var; webhook sözleşmesi yok.
+- suite/suite (*.py); arama `(?i)(compare_digest|X-Hub-Signature|Stripe-Signature|verify_signature|validate_signature|webhook)`: Alana özgü doğrulamalar var (meet callback, calendar rsvp, webdav, sheets collab); genel gelen webhook alıcısı yok.
+- suite/suite/meet/recording/callback_auth.py; arama `(?i)jti|replay|nonce|exp\b|iat|max_age|window|seen|cache\.|insert|unique`: iat/exp penceresi ve jti için Redis SET NX ex=40 tekrar reddi var; kalıcı tablo yok.
+- frappe/frappe (*.py); arama `(?i)verify.*signature|signature.*verif|compare_digest|replay`: OAuth, API anahtarı ve realtime secret karşılaştırmaları bulundu; gelen webhook imza doğrulaması yok.
+- frappe/frappe/{integrations,automation_engine}/**/*.py; arama `allow_guest=True|X-Frappe-Webhook|enable_security|get_webhook_headers`: Guest uçların hepsi OAuth/LDAP/connected_app; webhook alıcısı yok.
+- frappe/frappe/automation_engine/actions; arama `(?i)webhook|signature|hmac`: CallWebhook eylemi var; imza veya HMAC yok.
+
+Sınır: Yalnız sourceRoot altındaki frappe ve suite kaynakları Read/Grep/Glob ile okundu; hiçbir şey çalıştırılmadı, test çalıştırılmadı. functionalAcceptance: not_run.; suiteCommit bilinmiyor. headless_provider yerel pilot ek kod; upstream-native değil.; Kaynak, kodun var olduğunu kanıtlar; dağıtılmış davranışı, Redis kalıcılığını veya alıcı tarafın uyumluluğunu kanıtlamaz.; Derlenmiş public/frontend asset ve .map dosyaları ile locale .po dosyaları davranış kanıtı sayılmadı. Suite Vue frontend bu maddeyle ilgili değerlendirilmedi.; ERPNext/HRMS kurulu değil, değerlendirilmedi.
+
+Temporal workflow: `saas-recheck-20261015t073528z-030`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### integration-6 — API sürümü, standart hata yanıtı, sözleşme dokümanı ve kullanımdan kaldırma.
 
@@ -2322,27 +3107,82 @@ Mevcut birincil görev: `rest-api--implementation`. Kaynak: `frappe/frappe/api/v
 
 #### integration-10 — GraphQL entegrasyonu; şema, query/mutation ve yetkili resolver katmanı.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **YOK**. İşlevsel kabul: `not_run`.
 
-Kabul metni güçlü: kiracı/alan yasağı, derinlik/maliyet sınırı, N+1 bütçesi. Görülen kesitlerde GraphQL kütüphanesi veya uç noktası yok, ama pyproject kesiti kısmi. Resolver'ların yeniden kullanacağı izin ve liste primitifleri mevcut. Kütüphane seçimi ve REST/hata sözleşmesine bağımlılık yazılmamış.
+Kurulu frappe ve suite kaynağında GraphQL uygulaması bulunamadı: şema/tip üretimi, query/mutation ayrıştırıcı veya yürütücü, resolver katmanı, /graphql rotası ya da GraphQL bağımlılığı yok. GraphQL eşleşmeleri yalnız şu yerlerde: frappe/.github CI iş akışlarında GitHub API çağrısı ('gh api graphql'), suite ship-pr SKILL.md içinde GitHub PR GraphQL'i ve derlenmiş/vendored JS bundle'ları (desk.bundle, suite/public/frontend/assets). Bunların hiçbiri ürün davranışı sayılmaz. Gelecekteki resolver'ların yeniden kullanabileceği upstream-native REST primitifleri var: /api/v1 ve /api/v2 Werkzeug URL haritası, v2 document_list içinde ignore_permissions=False ile frappe.qb.get_query, read_doc/update_doc içinde check_permission ve apply_fieldlevel_read_permissions, has_next_page sayfalaması ve controller get_list kancası. Yerel pilot olarak eklenen suite/headless_provider/api.py (headless-metadata.v1) yalnız whitelisted RPC'dir. Bu dosya meta.get_permitted_fieldnames ile alan seviyesinde izinli şema projeksiyonu yapar ama GraphQL değildir. Suite'in Vue frontend'i bu sözleşmelerden ayrıdır.
 
-Eksik: GraphQL kütüphanesi ve Python 3.14 uyumu seçilmemiş.; Resolver kuralı açık değil. frappe.client.get_list/get_doc ve has_permission üzerinden gitmeli. frappe.db.sql veya ignore_permissions yasak.; Alan seviyesi izin (permlevel) ile şema görünürlüğü ayrımı belirtilmemiş.; integration-8 hata şeması ve integration-9 sürüm sözleşmesine bağımlılık yazılmamış.; Subscription kapsam dışı notu var ama hangi taşıma kullanılacağı ertelenmiş.
+Eksik: GraphQL kütüphanesi seçilmemiş, bağımlılık yok, Python sürüm uyumu da doğrulanmamış (pyproject/package.json içinde graphql/graphene/strawberry/ariadne eşleşmesi yok).; DocType meta'sından GraphQL şema/tip üretimi yok; permlevel'e göre kullanıcıya özel şema görünürlüğü de yok.; Query/mutation resolver katmanı yok. Resolver'ların yalnız izinli native yollara (get_query ignore_permissions=False, get_doc+check_permission, apply_fieldlevel_read_permissions, doc.insert/save) bağlanacağına dair kural da yok.; Derinlik/maliyet sınırı, karmaşıklık analizi ve N+1 bütçesi/dataloader yok. v2 document_list'teki limit istemciden alınıyor ve kodda üst sınır görülmedi.; Kiracı (site) izolasyonuna dair GraphQL testi/kanıtı, integration-8 hata zarfı ve integration-9 sürüm sözleşmesi eşlemesi yok.; Subscription taşıması tanımsız; kapsam dışı.
 
-Sonraki adım önerisi: graphql-api--implementation'ı integration-8/9 tamamlanmasına bağla. Resolver kuralını (yalnız native izinli okuma/yazma yolları) ve kütüphane seçimini tek paragraf olarak ekle.
+Sonraki somut adım: Mevcut graphql-api--contract bağımlılığı içinde ilerle. 1) Sözleşmede kütüphane seçimini ve Python/Frappe sürüm uyumunu, ayrıca 'resolver yalnız native izinli yollar' kuralını yaz; frappe.db.sql ve ignore_permissions yasaklansın. Hata zarfı kernel-envelope/api-middleware sözleşmelerine eşlensin. 2) graphql-api--implementation'ın ilk dar dilimi tek bir salt-okunur query olsun: bir DocType için liste ve tekil kayıt; v2 document_list/read_doc'taki get_query(ignore_permissions=False) + check_permission + apply_fieldlevel_read_permissions yolunu yeniden kullansın; şemaya get_permitted_fieldnames ile yalnız okunabilir alanları koysun; limit üst sınırı ile derinlik/maliyet sınırını içersin. Önce RED testler yazılsın: başka site/kiracıya erişim, yasak permlevel alanı, aşırı derinlik ve sorgu sayısı bütçesi; sonra GREEN. 3) Mutation'lar ancak bundan sonra eklenecek ve doc.insert/save üzerinden gidecek. Subscription bu dilimin dışında kalır. GenUI/React tüketicisi yalnız bu provider sözleşmesini kullanır.
 
-Mevcut birincil görev: `graphql-api--implementation`. Kaynak: `frappe/frappe/permissions.py:82`; `frappe/frappe/client.py:26`; `frappe/frappe/api/v1.py:84`.
+Önerilen bağımlılık/sıra: graphql-api--contract; kernel-envelope--contract; tenant-registry--contract; native-user-policy--contract; capability-definition--contract; native-doctype-schema--contract; outbox--contract; api-middleware--contract; integration-8 (hata şeması); integration-9 (sürüm sözleşmesi); ui-family-36--implementation-post-mvp (destekleyici). Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `graphql-api--implementation`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/api/__init__.py:97` — `Submount(f"/api/{ApiVersion.V2.value}", v2_rules),`
+- `frappe/frappe/api/v2.py:164` — `ignore_permissions=False,`
+- `frappe/frappe/api/v2.py:87` — `doc.apply_fieldlevel_read_permissions()`
+- `frappe/frappe/api/v2.py:142` — `limit: int = cint(args.get("limit", 20))`
+- `suite/suite/headless_provider/api.py:274` — `allowed = set(meta.get_permitted_fieldnames(user=user, permission_type="read"))`
+- `frappe/.github/workflows/post-review.yml:72` — `gh api graphql --paginate`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- frappe/; arama `(?i)graphql|graphene|strawberry|ariadne`: 8 dosya eşleşti: .github/helper/roulette.py, 5 CI iş akışı ve derlenmiş desk.bundle JS/map. post-review.yml'deki eşleşme GitHub API çağrısı. roulette.py içerik aramasında graphql eşleşmesi çıkmadı. Uygulama kodu yok.
+- suite/; arama `(?i)graphql|graphene|strawberry|ariadne`: Yalnız suite/public/frontend/assets altındaki derlenmiş/vendored JS bundle'ları ve .agents/skills/ship-pr/SKILL.md (GitHub PR GraphQL). Python veya Vue kaynak kodunda uygulama yok.
+- frappe/ ve suite/ (**/pyproject.toml, **/package.json, *_/requirements_.txt); arama `(?i)graphql|gql|schema introspection|query_depth|max_depth|dataloader`: Eşleşme yok; GraphQL bağımlılığı bildirilmemiş.
+- frappe/frappe/{api/*.py,client.py,model/db_query.py,database/query.py,handler.py}; arama `(?i)query_cost|max_query_depth|complexity|n\+1|max_page_length|limit_page_length.*>|MAX_.*LIMIT`: Yalnız database/query.py MAX_LIMIT (2^64-1, sınırsız anlamında). Maliyet/derinlik sınırı yok.
+- frappe/frappe/api/v2.py; arama `def (document_list|read_doc|...)|apply_fieldlevel_read_permissions|check_permission|Rule\(`: REST v2 rotaları ve izinli okuma/yazma primitifleri okundu. GraphQL rotası yok.
+- frappe/frappe/api/discovery.py; arama `^def |openapi|schema`: Yalnız whitelisted metot/DocType metot keşfi ve arama. GraphQL/OpenAPI şeması üretilmiyor.
+- suite/suite/hooks.py; arama `(?i)graphql|website_route_rules|api_route|override_whitelisted_methods`: website_route_rules ve override_whitelisted_methods var. GraphQL rotası/hook'u yok.
+- suite/suite/headless_provider/; arama `glob **/*.py + api.py tamamı okundu`: Yerel pilot headless-metadata.v1 RPC'si (session/metadata/create_field/preview_edit/apply_edit). İzinli şema projeksiyonu yapıyor, GraphQL değil.
+
+Sınır: Kapsam yalnız sourceRoot altındaki kurulu frappe ve suite uygulama kaynağıyla sınırlı. Bu bir ekosistem geneli yokluk iddiası değildir; ERPNext/HRMS kurulu değil ve değerlendirilmedi.; Derlenmiş/vendored JS bundle'larındaki eşleşmeler satır satır incelenmedi. Kaynak Vue/TS kodunda karşılık bulunmadığı için ürün davranışı sayılmadı.; Kod çalıştırılmadı, test yazılmadı veya çalıştırılmadı. functionalAcceptance: not_run. Kiracı izolasyonu ve N+1 davranışı runtime'da ölçülmedi.; suiteCommit bilinmiyor. headless_provider yerel pilot ek kod; upstream-native değil.; v2 document_list limitinin üst sınırsız olduğu yalnız bu dosyadaki kod yolundan çıkarıldı; frappe.qb.get_query içindeki olası kısıtlar ayrıntılı okunmadı.
+
+Temporal workflow: `saas-recheck-20261015t073528z-031`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### integration-11 — SOAP entegrasyonu; WSDL/XSD sözleşmeli servis sunma ve tüketme.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **YOK**. İşlevsel kabul: `not_run`.
 
-WSDL/XSD doğrulama ve güvenli SOAP fault kabul ölçütü tanımlı. Görülen kaynakta SOAP/WSDL araç zinciri yok. lxml yalnız suite/drive bağımlılığı olarak görünüyor. Sağlayıcı, SOAP sürümü ve barındırma rotası belirsiz.
+Kurulu frappe ve suite kaynağında SOAP için hiçbir uygulama yok. SOAP zarfı (envelope), WSDL/XSD üretimi, tüketimi ya da doğrulaması, SOAP fault işleme, SOAPAction veya application/soap+xml yönlendirmesi ve zeep/spyne/xmlschema bağımlılığı bulunamadı. Bu maddeyle yalnız dolaylı ilişkisi olan, SOAP'a özgü olmayan yapı taşları şunlar:
+(1) Upstream frappe: make_form_dict istek gövdesini yalnız JSON ya da form/query olarak ayrıştırıyor, XML gövde ayrıştırma yolu yok (frappe/frappe/app.py:341).
+(2) Upstream frappe: Webhook DocType'ının request_structure alanı yalnız "Form URL-Encoded" ve "JSON" seçeneklerini sunuyor, XML/SOAP seçeneği yok (frappe/frappe/integrations/doctype/webhook/webhook.json:127).
+(3) Suite: Drive/WebDAV modülü lxml ile sertleştirilmiş bir XML ayrıştırıcı içeriyor. Varlık çözümleme, ağ erişimi ve DTD kapalı; DOCTYPE reddediliyor; gövde 1 MB ile sınırlı. Ancak bu ayrıştırıcı DAV ad alanına ve WebDAV hata sınıflarına bağlı, SOAP sözleşmesi değil. Suite kendi pyproject'inde lxml'i Drive için açıkça bağımlılık olarak tanımlıyor.
+(4) Yerel pilot suite/headless_provider (api.py, local_fixture.py) içinde XML veya SOAP ile ilgili hiçbir şey yok. Suite'in Vue arayüzündeki derlenmiş bundle'larda geçen eşleşmeler sözdizimi renklendirme ve kütüphane metinleri; davranış kanıtı değil.
 
-Eksik: Hedef sağlayıcı, SOAP 1.1/1.2 ve WS-Security ihtiyacı bilinmiyor.; İstemci/sunucu kütüphanesi seçilmemiş.; Sunucu tarafının nasıl bağlanacağı tanımsız: whitelisted method mı, before_request dispatcher mı? Suite WebDAV dispatcher'ı örnek alınırsa global hook riski var.; Kimlik bilgisi saklama deseni (Password alanı + get_decrypted_password) belirtilmemiş.; XML parser güvenliği (XXE kapalı) açıkça istenmemiş. lxml'i suite'ten dolaylı kullanmak bağımlılık sahipliği sorunu yaratır.
+Eksik: SOAP 1.1/1.2 sunucu uç noktası (zarf ayrıştırma, SOAPAction veya action parametresine göre yönlendirme, SOAP fault yanıtı); WSDL yayımlama ve WSDL/XSD sözleşmesine göre istek/yanıt doğrulaması; SOAP istemcisi (WSDL'den işlem çağırma, namespace/sürüm uyumsuzluğunu yakalama); Fault içinde gizli bilgi ve iç izleme (traceback) sızıntısını engelleyen hata eşlemesi; Sağlayıcı kimlik bilgisini Password alanında saklayan ve yalnız sunucuda çözen bir SOAP bağlantı DocType'ı; WS-Security/WS-Addressing desteği (gereksinim tanımlanmamış); headless_provider içinde SOAP için yetenek (capability) ve zarf (kernel-envelope) sözleşmesi; Sağlayıcı, SOAP sürümü ve örnek WSDL girdisi (kaynak dışı, hâlâ belirsiz)
 
-Sonraki adım önerisi: soap-api--implementation'a önce somut sağlayıcı ve WSDL örneği girdisi ekle. Bu gelmeden build başlamasın. Kütüphane ve parser güvenlik kuralını kendi uygulama bağımlılığı olarak tanımla.
+Sonraki somut adım: Önce soap-api--contract için hedef sağlayıcıyı, SOAP sürümünü, WS-Security gereksinimini ve gerçek bir örnek WSDL/XSD'yi girdi olarak sabitle; bu girdi gelmeden build başlamasın. Sonra yeni bağımsız bir uygulama modülünde SOAP/XML bağımlılığını kendi pyproject'inde tanımla; suite'in lxml'ine dolaylı yoldan dayanma. Ardından en dar davranış için, örnek WSDL'deki tek bir işlemin istemci tarafı tüketimi için, gerçek RED/GREEN testi yaz: XSD'ye uymayan yanıt reddedilmeli, namespace/sürüm uyumsuzluğu tipli hata vermeli, fault gizli bilgi taşımamalı. XML ayrıştırıcıda suite/drive/webdav/xmlutil.py'deki sertleştirme ayarlarını örnek al (resolve_entities=False, no_network, load_dtd=False, DOCTYPE reddi, gövde sınırı), ama modülü doğrudan import etme. Sunucu tarafını en son ekle: global before_request yerine allow_guest=False ile tanımlı tek bir whitelisted method ya da ayrı ve kapsamı sınırlı bir rota kullan. Kimlik bilgisi Password alanında tutulsun, get_decrypted_password ile yalnız sunucuda okunsun. Mevcut bağımlılık sırası korunsun: kernel-envelope, tenant-registry, native-user-policy, capability-definition, outbox ve api-middleware sözleşmeleri.
 
-Mevcut birincil görev: `soap-api--implementation`. Kaynak: `suite/pyproject.toml:17`; `suite/suite/hooks.py:343`; `frappe/frappe/utils/oauth.py:147`.
+Önerilen bağımlılık/sıra: soap-api--contract; kernel-envelope--contract; tenant-registry--contract; native-user-policy--contract; capability-definition--contract; native-doctype-schema--contract; outbox--contract; api-middleware--contract. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `soap-api--implementation`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/app.py:341` — `if request_data and request.is_json:`
+- `frappe/frappe/integrations/doctype/webhook/webhook.json:127` — `"options": "\nForm URL-Encoded\nJSON"`
+- `suite/suite/drive/webdav/xmlutil.py:18` — `resolve_entities=False,`
+- `suite/suite/drive/webdav/xmlutil.py:46` — `if b"<!DOCTYPE" in body or b"<!ENTITY" in body:`
+- `suite/pyproject.toml:17` — `"lxml~=6.1",  # drive: WebDAV XML (previously only a transitive dep via frappe)`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- frappe (tüm uygulama kökü); arama `(?i)\b(soap|wsdl|xsd|zeep|suds|spyne|xmlschema)\b`: 6 dosya eşleşti, hiçbiri uygulama değil: lucide ikon SVG'si, derlenmiş syntax_highlighting/web bundle'ları ve frappe/ui/src/components/Fields/fieldtypeToLanguage.ts:50 içindeki 'xsd' dil eşlemesi.
+- suite (tüm uygulama kökü); arama `(?i)\b(soap|wsdl|xsd|zeep|suds|spyne|xmlschema)\b`: Yalnız derlenmiş Vue arayüz bundle'ları eşleşti (suite/suite/public/frontend/assets/*.js ve map dosyaları: editor, gemoji, xlsx, lib); hiçbiri SOAP uygulaması değil.
+- frappe (_.py,_.json,_.toml,_.ts,*.vue); arama `(?i)(soap|wsdl|xsd|zeep|xmlschema|text/xml|application/soap\+xml|SOAPAction)`: Tek eşleşme fieldtypeToLanguage.ts:50 (sözdizimi dili eşlemesi); SOAP ile ilgili kaynak yok.
+- suite (_.py,_.json,_.toml,_.ts,*.vue); arama `(?i)(soap|wsdl|xsd|zeep|xmlschema|text/xml|application/soap\+xml|SOAPAction|resolve_entities|XMLParser)`: Yalnız suite/suite/drive/webdav/xmlutil.py:17-18 (WebDAV'a özgü, sertleştirilmiş lxml ayrıştırıcı) ve ilgisiz bir package-lock integrity eşleşmesi.
+- frappe/frappe/{api/_.py,app.py,handler.py,integrations/\**/_.py,utils/response.py,utils/xlsxutils.py}; arama `(?i)(xml|lxml|ElementTree|defusedxml)`: XML istek ayrıştırma yok; yalnız XMLHttpRequest başlığı, openxmlformats MIME türleri ve response.py:322'deki '.xml' uzantısı geçiyor.
+- frappe/frappe/{app.py,integrations/doctype/webhook/webhook.json,webhook.py}; arama `(?i)(request_structure|content_type|get_json|is_json)`: İstek gövdesi yalnız JSON ya da form olarak ayrıştırılıyor (app.py:341). Webhook yalnız Form URL-Encoded/JSON destekliyor (webhook.json:127, webhook.py:110-113).
+- frappe/pyproject.toml, suite/pyproject.toml; arama `(?i)(lxml|xml)`: Suite'te Drive için lxml~=6.1 tanımlı; frappe'te yalnız test raporlama için unittest-xml-reporting/xmlrunner var. SOAP/WSDL kütüphanesi yok.
+- suite/suite/headless_provider; arama `(?i)(xml|envelope|content_type|mimetype)`: Eşleşme yok; yerel pilot sağlayıcıda SOAP/XML sözleşmesi bulunmuyor.
+
+Sınır: Kapsam yalnız sourceRoot altındaki frappe ve suite uygulama kökleri; ERPNext/HRMS ve harici ekosistem paketleri değerlendirilmedi.; Kaynağın varlığı çalışma zamanı davranışını kanıtlamaz; functionalAcceptance=not_run. Hiçbir test yazılmadı veya çalıştırılmadı.; Derlenmiş JS bundle'larındaki eşleşmeler kütüphane metni olarak sınıflandırıldı ve tek tek ayrıntılı okunmadı.; Python ortamında frappe'ye geçişli olarak gelen paketler (site-packages) kaynak kapsamında değil; zeep gibi bir kütüphanenin ortamda kurulu olup olmadığı bilinmiyor.; Sağlayıcı, SOAP sürümü ve WS-Security gereksinimi kaynakta yok; bunlar ürün girdisi olarak belirsiz kalıyor.; Plan modu etkin olsa da kullanıcı yalnız Read/Glob/Grep'e izin verdi; plan dosyası yazılmadı, yalnız istenen JSON çıktısı üretildi.
+
+Temporal workflow: `saas-recheck-20261015t073528z-032`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### integration-12 — XML canlı besleme; HTTP pull/push ile çift yönlü ve artımlı veri eşitleme.
 
@@ -2358,15 +3198,40 @@ Mevcut birincil görev: `xml-feed--implementation`. Kaynak: `suite/suite/hooks.p
 
 #### integration-13 — MCP entegrasyonu; şemalı araç/kaynak kataloğu ve güvenli uzak erişim.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-MCP sürümü, Streamable HTTP/stdio ayrımı, audience ve yazma onayı kabulü belirgin. Görülen kaynakta MCP sunucusu yok. Frappe'nin kendi OAuth2 sağlayıcı uçları ve PyJWT var, ama Keycloak seçili. Araç→whitelisted method eşlemesi ve GenUI registry ayrımı yazılmamış.
+Frappe ve Suite'te MCP sunucusu yok: JSON-RPC MCP uç noktası, Streamable HTTP/stdio taşıması, initialize/protokol sürümü, tools/list, tools/call ya da resources/* bulunmuyor. Upstream Frappe'de MCP için kullanılabilecek, gerçekten çalışan şu temel parçalar var: (1) frappe/frappe/api/discovery.py ve v2 /api/v2/discovery* rotaları, whitelisted Python metotlarını ve DocType controller metotlarını AST ve inspect ile tarayarak makinece okunabilir bir katalog üretiyor. Katalogda parametre adı, zorunluluk, varsayılan değer ve tip; endpoint; HTTP metotları; allow_guest ve DocType metotları için GET=read/POST=write izin eşlemesi yer alıyor. Kaynak kodun gösterilmesi expose_discovery_source hook'una bağlı, katalog Redis'te önbellekleniyor ve erişim yalnız System Manager'a açık. (2) OAuth tarafında RFC 9728 /.well-known/oauth-protected-resource (OAuth Settings'e bağlı, Social Login Key'leri authorization_servers olarak ekleyebiliyor), RFC 8414 sunucu metadata'sı, RFC 7591 dinamik istemci kaydı, PKCE S256 ve 401 yanıtında WWW-Authenticate resource_metadata başlığı var. (3) Kimlik doğrulama: validate_oauth yalnız Frappe'nin kendi verdiği ve OAuth Bearer Token DocType'ında hash olarak saklanan tokenları kabul ediyor. auth_hooks bir genişletme noktası. Keycloak yalnız Social Login Key ile tarayıcı/cookie girişi olarak bağlı. (4) Suite'teki LOCAL PILOT headless_provider (headless-metadata.v1), yazma onayı için örnek bir desen sunuyor: preview_edit ile proposalDigest, apply_edit'te hmac ile digest eşleşmesi, revision kontrolü, native izin denetimi ve advisory lock. Ancak bu MCP değil, cookie oturumuyla çalışan bir RPC. Suite'in Sheets AI istemcisi Anthropic API'ye giden bir LLM çağrısı (emit_actions tool_use); MCP altyapısı sayılmaz.
 
-Eksik: MCP tool/resource tanımlarının hangi native Frappe whitelisted method ve DocType izinlerine eşleneceği tanımsız.; Keycloak access token audience doğrulamasının nerede yapılacağı ve Frappe User'a nasıl eşleneceği tanımsız. Frappe oauth2 uçları ayrı bir sağlayıcı.; Bu katalog GenUI ve sunucu query-action registry'lerinden ayrı tutulmalı. Birleştirme yasağı açık yazılmamış.; Yazma onayı kaydı (kim, ne zaman, hangi argüman) ve audit hedefi tanımsız.; Suite'teki anthropic bağımlılığı (sheets AI Assist) MCP altyapısı sayılmamalı.
+Eksik: MCP JSON-RPC sunucusu yok: initialize ve protokol sürümü pazarlığı, tools/list, tools/call, resources/list ve resources/read uygulanmamış.; Streamable HTTP uç noktası (tek MCP yolu, Origin doğrulaması, oturum başlığı) ve yerel stdio taşıması yok.; Discovery çıktısı MCP inputSchema/outputSchema'ya (JSON Schema) çevrilmiyor. Yalnız System Manager görebildiği için kullanıcı kapsamlı, izne göre süzülmüş bir araç kataloğu yok. Tüm whitelisted metotlar listeleniyor; açıkça onaylanmış bir araç allowlist'i yok.; Keycloak'un verdiği access token'ı (JWT, JWKS, iss, aud/resource) doğrulayıp Frappe User'a eşleyen bir bearer doğrulaması yok. validate_oauth yalnız Frappe'nin kendi token'ını tanıyor ve audience kontrolü yapmıyor.; Okuma/yazma araç politikası, MCP yazma çağrıları için açık onay/ret akışı ve kalıcı onay/audit kaydı (kim, ne zaman, hangi argüman ve sonuç) yok.; MCP araç kataloğunun GenUI component registry'sinden ve query-action registry'sinden ayrı tutulduğunu gösteren bir sınır/sözleşme yok.
 
-Sonraki adım önerisi: mcp-api--implementation'a kısa eşleme tablosu ekle: okuma araçları için 3-5 native method, yazma araçları için onay akışı. Keycloak audience doğrulama noktasını integration-9 kimlik ADR'sine bağla.
+Sonraki somut adım: Sıra mevcut bağımlılıklara göre: önce mcp-api--contract ve native-user-policy--contract, sonra mcp-api--implementation. En küçük adım: Suite içinde, headless_provider'dan ayrı bir modülde, salt okunur ve sabit allowlist'li 3-5 araçla Streamable HTTP üzerinden çalışan bir MCP tools/list + tools/call ucu. Örnek araçlar: frappe.client.get_list/get, headless_provider.metadata. Araç şeması discovery.py'deki _method_params çıktısından JSON Schema'ya çevrilsin, her çağrı native has_permission ile kullanıcı bağlamında çalışsın. Ardından auth_hooks ile Keycloak JWT doğrulaması (iss, aud=MCP resource, JWKS) ve Frappe User eşlemesi eklensin; mevcut oauth-protected-resource metadata'sı bu resource ile hizalansın (integration-9 kimlik ADR'sine bağlı). Yazma araçları en son gelsin; headless_provider'daki preview→digest→apply desenini ve kalıcı onay/audit kaydını kullansın. Her davranış için önce RED, sonra GREEN test kanıtı üretilsin; testler bu incelemede yazılmadı ve çalıştırılmadı.
 
-Mevcut birincil görev: `mcp-api--implementation`. Kaynak: `suite/suite/hooks.py:415`; `frappe/pyproject.toml:19`; `frappe/frappe/api/v1.py:152`; `suite/pyproject.toml:32`.
+Önerilen bağımlılık/sıra: mcp-api--contract; kernel-envelope--contract; tenant-registry--contract; native-user-policy--contract; capability-definition--contract; native-doctype-schema--contract; outbox--contract; api-middleware--contract; ui-family-36--implementation-post-mvp. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `mcp-api--implementation`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/api/v2.py:606` — `Rule("/discovery", methods=["GET"], endpoint=discovery.root),`
+- `frappe/frappe/api/discovery.py:29` — `frappe.only_for("System Manager")`
+- `frappe/frappe/api/discovery.py:305` — `"permission": {"GET": "read", "POST": "write"},`
+- `frappe/frappe/integrations/oauth2.py:307` — `if path.startswith("/.well-known/oauth-protected-resource") and is_oauth_metadata_enabled("resource"):`
+- `frappe/frappe/auth.py:722` — `"OAuth Bearer Token", token_filters, ("scopes", "user"), as_dict=True`
+- `suite/suite/headless_provider/api.py:149` — `if not hmac.compare_digest(_proposal_digest(snapshot, requested, diff), proposal_digest):`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- source (frappe + suite tümü); arama `(?i)\bmcp\b|model.?context.?protocol|streamable.?http|json-?rpc`: Yalnız frappe/.gitignore'da '.playwright-mcp' satırı ve suite derlenmiş bir JS source map dosyası eşleşti; MCP sunucu kodu yok.
+- source (*.py); arama `(?i)(tool_?(catalog|registry|schema|definition)|input_?schema|list_?tools|resources/list|tools/call|anthropic|openai|llm|agent)`: 49 dosya eşleşti, çoğu user-agent ya da ilgisiz kullanım. İlgili olanlar: frappe/frappe/api/discovery.py (katalog), suite/suite/headless_provider/api.py (pilot RPC), suite/suite/sheets/ai/client.py (Anthropic tool_use istemcisi, MCP değil).
+- frappe/frappe/api; arama `discovery`: v2.py:606-618 satırlarında discovery rotaları kayıtlı; discovery.py tamamı okundu.
+- source (*.py); arama `(?i)def validate_oauth|def validate_auth|audience|"aud"|protected.?resource|resource_indicator|well-known/oauth`: oauth2.py'de RFC 9728/8414 metadata uçları, app.py:334'te WWW-Authenticate resource_metadata, auth.py'de validate_oauth (yalnız Frappe token'ı) bulundu. Suite'teki aud kullanımları Meet recorder'a özel; MCP ile ilgisiz.
+- suite/suite/hooks.py; arama `(?i)auth_hooks|expose_discovery_source|keycloak|oauth`: Yalnız Frappe oauth2 yolları için bir path listesi eşleşti (satır 415-440). auth_hooks ya da expose_discovery_source kullanılmıyor.
+- source (*.{py,json,ts,js,vue}); arama `(?i)keycloak|auth_hooks\s*=|expose_discovery_source\s*=`: Keycloak yalnız Social Login Key sağlayıcısı ve login_via_keycloak (tarayıcı girişi) olarak geçiyor. frappe/hooks.py:603'te expose_discovery_source = True. Hiçbir uygulamada auth_hooks kaydı yok.
+- suite/suite/sheets/ai/client.py; arama `(?i)tools|tool_use|anthropic\.|messages\.create|approval|confirm`: Anthropic messages.create çağrısı tek bir emit_actions aracıyla yapılıyor: dışarıya giden bir LLM istemcisi, MCP sunucusu değil.
+
+Sınır: Yalnız yerel source snapshot'ı (frappe ve suite) Read/Grep/Glob ile okundu. Kod çalıştırılmadı, test yazılmadı ya da çalıştırılmadı; functionalAcceptance: not_run.; Kaynak yalnız kodun varlığını gösterir. OAuth Settings değerleri, Keycloak realm/audience yapılandırması ve deploy edilmiş davranış doğrulanamaz.; suite/headless_provider LOCAL PILOT ek koddur, upstream'e ait değildir. MCP değildir; yalnız yazma onayı deseni için örnek olarak değerlendirildi.; Suite'in Vue frontend'i ile headless provider sözleşmeleri ayrı tutuldu. GenUI kodu bu kaynakta yok ve değerlendirilmedi.; ERPNext/HRMS kurulu değil, değerlendirme kapsamı dışında. MCP 2026-07-28 spesifikasyonuna uyum harici belgelere göre iddia edilmedi.; suiteCommit bilinmiyor.
+
+Temporal workflow: `saas-recheck-20261015t073528z-033`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### integration-14 — AI Mapping; kaynak/hedef alan, tip, birim, kod ve ilişki eşlemesine denetlenebilir öneri.
 
@@ -2468,15 +3333,37 @@ Mevcut birincil görev: `ui-localization--implementation`. Kaynak: `frappe/frapp
 
 #### locale-2 — Transliteration / t13n (yazı sistemleri arasında harf dönüşümü).
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **YOK**. İşlevsel kabul: `not_run`.
 
-Talimat transliterasyonu çeviriden doğru biçimde ayırıyor. Ancak hangi alfabe çiftlerinin destekleneceği, eklemeyi hangi koşulun tetikleyeceği ve nereye bağlanacağı (arama/link araması ya da veri girişi) belirtilmemiş. Sağlanan alıntılarda transliterasyon kodu görülmedi. Bu, kaynakta hiç olmadığı anlamına gelmez; durum bilinmiyor. Arama tarafında bağlanabilecek nokta search_widget.
+Kurulu frappe ve suite kaynağında yazı sistemleri arasında dönüşüm yapan (ör. Kiril→Latin, Yunan→Latin, Kana/Pinyin) bir transliterasyon/t13n servisi, API'si, DocType'ı, hook'u ya da arama entegrasyonu bulunamadı. Bulunanlar yalnızca komşu, aynı alfabe içinde çalışan aksan/Unicode normalizasyon primitifleri; transliterasyonun yerine geçmezler: (1) Frappe Desk awesomebar fuzzy_match.js karakterleri NFD'ye çevirip birleşik aksan işaretlerini (U+0300–036F) atarak karşılaştırıyor; yalnız istemci tarafı Desk araç çubuğu eşleşmesi. (2) frappe/search/sqlite_search.py FTS5 varsayılan tokenizer'ı 'unicode61 remove_diacritics 2'; Suite writer/search.py aynı tokenizer'ı kullanıyor. Bu Latin aksanlarını katlar, alfabe dönüştürmez. (3) desk/search.py search_widget düz 'like %txt%' filtresiyle arıyor; normalizasyon ya da transliterasyon katmanı yok. (4) Suite drive content_disposition, ASCII olmayan dosya adları için NFKD + ascii 'ignore' kullanıyor. Bu, Kiril/CJK karakterlerini dönüştürmüyor, siliyor; özgün ad RFC 5987 filename* ile korunuyor. (5) Suite Vue frontend'inde slugify npm paketi yalnızca drive/writer URL slug'ı için kullanılıyor. Paket kodu node_modules'ta olduğundan dışarıda kaldı; karakter haritası doğrulanamadı ve bu kullanım arama veya veri girişi transliterasyonu değil. (6) Yerel pilot suite/headless_provider/api.py yalnız kontrol karakterlerini reddediyor; locale/transliterasyon sözleşmesi yok. clean_text NFKC + boşluk sadeleştirmesi yapıyor, alfabe dönüştürmüyor.
 
-Eksik: Alfabe çiftleri ve örnek veri seti belirtilmemiş; bu haliyle kabul ölçütü ölçülemez.; Özgün metin nasıl saklanacak (ör. ayrı Custom Field) ve aramada nasıl eşlenecek (search_widget/arama indeksi), tanımlı değil.; Ana görev ui-localization; asıl iş arama/backend olduğu hâlde backend sahibi ve bağımlılık atanmamış.; Kullanılacak dönüşüm kütüphanesi ve lisansı seçilmemiş.
+Eksik: Alfabe çiftleri için dönüşüm fonksiyonu/kütüphanesi (Python backend tarafında unidecode/anyascii/PyICU benzeri hiçbir bağımlılık veya kod yok); kütüphane ve lisans seçimi yapılmamış.; Özgün metni koruyup transliterasyonlu biçimi saklayan alan ya da indeks (Custom Field, ayrı arama sütunu veya FTS metin alanı) yok.; search_widget/link araması ve SQLiteSearch indeksleme hattında transliterasyonlu eşleme yok; mevcut tek yaklaşım Latin aksan katlama.; headless_provider için locale/transliterasyon provider sözleşmesi (girdi dili/alfabesi, çıktı, özgün metin referansı) yok; React/AntDesign istemcisinin tüketeceği bir uç nokta yok.; Kabul ölçütü olarak seçilmiş alfabe çiftleri ve 3–5 örneklik test veri seti yok.
 
-Sonraki adım önerisi: Koşullu kapsam kararına bir tetikleyici yazılmalı (hangi dil çifti, hangi arama senaryosu). Seçim yapılmışsa mevcut göreve bir backend destek eşlemesi ve 3–5 örneklik kabul tablosu eklenmeli. Seçim yoksa madde ertelenmiş olarak işaretlenmeli.
+Sonraki somut adım: Mevcut ui-localization--contract bağımlılığı içinde önce kapsamı daraltın: tek bir alfabe çifti (ör. Kiril→Latin) ve tek bir senaryo (link/global arama) seçin, 3–5 örneklik kabul tablosu yazın. Kütüphane ve lisans seçimini kullanıcıyla netleştirin. Ardından sırasıyla: (1) backend'de saf bir transliterate(text, source_script, target) yardımcı fonksiyonu yazın; önce bu fonksiyon için RED/GREEN birim testi kurun. (2) Bu fonksiyonu SQLiteSearch alt sınıfının indekslediği metne ek bir alan olarak bağlayın; özgün metin değişmeden kalsın. Alternatif olarak search_widget'a or_filters ile ikinci bir aday terim ekleyin. (3) Bunu headless_provider'da okunur bir sözleşme alanı olarak açın. Suite'in Vue frontend'ine ve GenUI'ye dokunmayın. Seçim yapılamıyorsa maddeyi post_mvp'de ertelenmiş olarak bırakın.
 
-Mevcut birincil görev: `ui-localization--implementation`. Kaynak: `frappe/frappe/client.py:11`.
+Önerilen bağımlılık/sıra: ui-localization--contract; kernel-envelope--contract; api-middleware--contract; client-rule-parity--contract. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `ui-localization--implementation`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/public/js/frappe/ui/toolbar/fuzzy_match.js:87` — `.replace(/[\u0300-\u036f]/g, "")`
+- `frappe/frappe/search/sqlite_search.py:224` — `schema.setdefault("tokenizer", "unicode61 remove_diacritics 2")`
+- `frappe/frappe/desk/search.py:251` — `or_filters.append([doctype, f.strip(), "like", f"%{txt}%"])`
+- `suite/suite/drive/utils/files.py:582` — `simple = unicodedata.normalize("NFKD", download_name).encode("ascii", "ignore").decode("ascii")`
+- `suite/suite/writer/search.py:12` — `"tokenizer": "unicode61 remove_diacritics 2 tokenchars '-_'",`
+- `suite/suite/utils/__init__.py:148` — `text = unicodedata.normalize("NFKC", text)`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- source/ (frappe + suite tamamı); arama `(?i)translitera|t13n|unidecode|anyascii|romaniz|unicodedata\.normalize|cyrillic|latinize|text-unidecode`: Transliterasyon kodu yok. Eşleşmeler: suite/utils clean_text NFKC, drive content_disposition NFKD, meet STT NFKC, frappe safe_exec NFKC; ayrıca sr.po içinde 'Serbian (Cyrillic)' çeviri ekibi başlığı ve derlenmiş/minify edilmiş üçüncü taraf JS dosyaları. Hiçbiri alfabe dönüşümü yapmıyor.
+- source/ (frappe + suite; *.map, *.po, *.mo, *.csv hariç); arama `(?i)slugify|diacritic|unaccent|strip_accents|remove_accents|ascii.?fold|pinyin|hiragana|katakana|pyicu|\bicu\b|deburr|NFKD|NFD"`: Bulunanlar: fuzzy_match.js NFD aksan katlama, SQLiteSearch remove_diacritics tokenizer'ı (frappe ve suite writer), Suite Vue frontend'inde drive/writer URL slug'ı için slugify. ICU/pinyin/kana veya genel bir transliterasyon servisi yok.
+- suite/suite/headless_provider/; arama `(?i)normaliz|translit|unicode|locale|search|lang`: Yalnız api.py:425'te kontrol karakteri reddi var; locale veya transliterasyon sözleşmesi yok.
+- frappe/frappe/desk/search.py; arama `(?i)normaliz|unicode|translit|accent|_txt_|like`: search_widget düz LIKE %txt% kullanıyor. _normalize_awesomebar_result yalnız sonuç sözlüğünü biçimliyor; metin normalizasyonu ya da transliterasyon yapmıyor.
+
+Sınır: Kapsam yalnızca sourceRoot altındaki kurulu frappe ve suite uygulamalarıdır. ERPNext/HRMS ve genel ekosistem değerlendirilmedi.; node_modules dışarıda kaldı: slugify paketinin karakter haritası ve tarayıcı içinde transliterasyon davranışı kaynaktan doğrulanamadı. Bu kullanım zaten yalnız URL slug'ı içindir.; Derlenmiş/minify edilmiş dist ve public/assets dosyalarındaki uzun satırlar incelenmedi; kaynak eşdeğerleri esas alındı.; Veritabanı collation'ı ve MariaDB/SQLite runtime eşleme davranışı kaynaktan kanıtlanamaz; functionalAcceptance=not_run.; suite/headless_provider yerel pilot ek koddur, upstream-native değildir. Suite'in Vue frontend'i headless React/AntDesign sözleşmesinden ayrıdır.; Hiçbir test çalıştırılmadı veya yazılmadı. Bu sonuç ürün DONE/yüzde bildirimi değildir.
+
+Temporal workflow: `saas-recheck-20261015t073528z-012`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### locale-3 — Dil anahtarları, yedek dil, çoğul kuralları ve çeviri sürümleri.
 
@@ -2576,15 +3463,39 @@ Mevcut birincil görev: `ui-view-state--implementation`. Kaynak: `frappe/ui/src/
 
 #### views-6 — Toast / Snackbar (kısa süreli işlem sonucu mesajları).
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Kabul ölçütü erişilebilirlik ve kalıcı hata ayrıntısını kapsıyor. Kaynaktaki mesaj mekanizması (msgprint) Desk istemcisine bağlı. Sunucu mesajlarının headless yanıttaki biçimi bu excerpt'te görünmüyor.
+Upstream Frappe'de somut toast primitive'leri var. Sunucu tarafında frappe/utils/messages.py içindeki toast(), msgprint(alert=True) çağrısı yapıyor. Mesaj message_log'a alert, indicator, title ve raise_exception alanlarıyla ekleniyor; realtime seçeneği publish_realtime ile gönderiyor. utils/response.py v1'de _server_messages alanını iç içe JSON string olarak, v2'de messages alanını yapılandırılmış liste olarak üretiyor. Desk istemcisinde request.js, alert/toast bayraklı mesajları diyalog açmadan yönlendiriyor. messages.js'deki frappe.show_alert, indicator'ı success/error/warning/info türüne eşliyor. components/toast.js'deki frappe.ui.toast şunları sağlıyor: error için role=alert, diğer türler için role=status, kapatma düğmesi, duration=0 ile kalıcı toast, hover/focus sırasında duraklatma ve aynı id ile yerinde güncelleme. Suite'in Vue önyüzü frappe-ui/sonner toast'unu kullanıyor; bu, seçilen React/AntD yığını değil. suite/headless_provider (LOCAL PILOT) hatalarını yalnız frappe.throw ile ValidationError veya PermissionError olarak üretiyor; bunlar standart message_log/exc_type yolunu izliyor.
 
-Eksik: Frappe sunucu mesajlarını ve exception türlerini toast ile kalıcı hata paneline eşleyen sözleşme yok.; Hareket sözleşmesi, en az 14 CSS px metin, Ant Design bildirim bileşeni seçimi ve aria-live seviyesi talimatta bağlanmamış.; Toast kapandıktan sonra hata ayrıntısının nerede kalacağı tanımsız.
+Eksik: React/Ant Design (message/notification) tabanlı bir headless toast/snackbar katmanı kurulu kaynakta yok.; v2 messages ve v1 _server_messages ile indicator/alert/raise_exception/exc_type alanlarını bildirim düzeyine eşleyen bir headless sözleşme yok. headless_provider bir mesaj/bildirim zarfı tanımlamıyor.; Toast kapandıktan sonra hata ayrıntısını tutan kalıcı bir hata paneli/geçmişi yok. Desk toast'u dismiss sonrası DOM'dan siliniyor.; Merkezi token, hareket sözleşmesi, 14 CSS px alt sınırı ve React tarafında aria-live/role bağlaması yok. Desk'teki role=alert/status yalnız Desk'e özgü.; Ekran okuyucu duyurusu gibi çalışma zamanı davranışı kaynakla kanıtlanamaz; functionalAcceptance=not_run.
 
-Sonraki adım önerisi: ui-family-06 görevine sunucu mesajı ve exc_type'tan bildirim düzeyine eşleme tablosu eklenmeli. Bu eşleme v17-dev yanıt örneğiyle doğrulanmalı. Ant Design bildirimi merkezi tokenlar ve hareket kurallarıyla kullanılmalı.
+Sonraki somut adım: Sıra şöyle olmalı: (1) ui-family-06--contract kapsamında, kernel-envelope ve api-middleware sözleşmeleriyle uyumlu küçük bir eşleme tablosu tanımlanır. Tablo Frappe v2 messages[] öğelerini (alert, indicator, title, raise_exception) ve HTTP status+exc_type değerini success/info/warning/error ile toast/kalıcı panel hedefine bağlar. (2) Bu eşleme, frappe/tests/test_api.py'deki mevcut yanıt şekillerine dayanan bir RED fixture ile doğrulanır. (3) ui-family-06--implementation'da tek bir dar davranış uygulanır: React/AntD message/notification sarmalayıcısı merkezi token ve hareket kurallarıyla kullanılır, error için role=alert, diğerleri için role=status verilir ve error ayrıntısı toast kapandıktan sonra da kalıcı bir hata panelinde tutulur. Tarayıcı/ekran okuyucu kabulü ayrıca koşulur.
 
-Mevcut birincil görev: `ui-family-06--implementation`. Kaynak: `frappe/frappe/permissions.py:8`; `frappe/frappe/email/doctype/auto_email_report/auto_email_report.js:17`.
+Önerilen bağımlılık/sıra: ui-family-06--contract; kernel-envelope--contract; api-middleware--contract; client-rule-parity--contract. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `ui-family-06--implementation`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/utils/messages.py:121` — `def toast(message: str, indicator: Literal["blue", "green", "orange", "red", "yellow"] | None = None):`
+- `frappe/frappe/utils/response.py:218` — `response["messages"] = frappe.local.message_log`
+- `frappe/frappe/public/js/frappe/request.js:508` — `return !(message.alert || message.toast);`
+- `frappe/frappe/public/js/frappe/ui/components/toast.js:45` — `$el.attr("role", type === "error" ? "alert" : "status");`
+- `frappe/frappe/public/js/frappe/ui/messages.js:430` — `frappe.show_alert = frappe.toast = function (message, seconds = 7, actions = {}) {`
+- `suite/suite/headless_provider/api.py:405` — `frappe.throw(message, frappe.ValidationError)`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- frappe/ ve suite/ (*.py); arama `_server_messages|server_messages`: response.py v1 üretimi, frappeclient.py tüketimi, test_api.py yanıt şekilleri ve suite/mail/suite_cloud istemci ayrıştırması bulundu.
+- suite/; arama `toast|snackbar|aria-live|show_alert|message_log|exc_type (-i)`: 1054 eşleşme bulundu. Çoğu Vue frontend'deki frappe-ui toast kullanımı ve derlenmiş public/frontend asset'leri; React/AntD yok.
+- suite/suite/headless_provider; arama `message|toast|exc_type|_server_messages|error (-i)`: Yalnız _invalid/_forbidden frappe.throw yardımcıları var; bildirim zarfı yok.
+- frappe/frappe/public/js; arama `show_alert = |aria-live|role="alert"|role="status"`: messages.js:430 show_alert ve ui/components/alert.js role=alert bulundu; toast role ataması toast.js'de ayrıca okundu.
+- frappe/frappe/public/js/frappe/request.js; arama `_server_messages|\.alert\b|show_alert`: v1/v2 mesajları ayrıştırılıyor; alert/toast olanlar diyalog açmadan msgprint'e gidiyor.
+- suite/frontend/package.json; arama `ant-design|antd|@tanstack|notification`: Yalnız @tanstack/vue-virtual var; antd/React bağımlılığı yok.
+
+Sınır: Yalnız sourceRoot altındaki frappe ve suite uygulama kaynakları okundu; komut veya test çalıştırılmadı.; Ekran okuyucu duyurusu, toast süresi ve tarayıcı davranışı çalışma zamanında doğrulanmadı; functionalAcceptance=not_run.; suiteCommit bilinmiyor. headless_provider yerel pilot ek kodudur, upstream değildir.; Derlenmiş suite/public/frontend asset'leri ve frappe-ui node_modules içeriği değerlendirilmedi.; ERPNext/HRMS kurulu değil; değerlendirilmedi.
+
+Temporal workflow: `saas-recheck-20261015t073528z-029`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### views-7 — Filtreleme, sıralama, sayfalama, sütun seçimi ve kayıtlı görünümler.
 
@@ -2720,15 +3631,40 @@ Mevcut birincil görev: `ui-family-02--implementation`. Kaynak: `frappe/frappe/h
 
 #### shell-10 — Ortak tasarım sistemi; semantik tokenlar, onaylı bileşen kataloğu ve erişilebilir etkileşim sözleşmeleri.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Kabul ölçütü güçlü: ortak semantik tokenlar, 320 px, klavye odağı, hata ve büyütme durumları, sürümlü katalog, minimum metin boyutu. Yerel Frappe/Suite kaynağı Vue/frappe-ui ve yardımcı CSS sınıfları kullanıyor; seçilen Ant Design tasarım sistemine kaynak sağlamıyor. Headless React frontend kaynağı bu pakette yok, bu yüzden yerel yetenek bilinmiyor.
+Upstream-native somut ilkel yapılar var. Frappe Desk tarafında framework'ten bağımsız, düz CSS ile yazılmış bir "Espresso" semantik token katmanı bulunuyor: colors, typography, spacing, radius ve effects (surface/ink/outline/focus). Bu katman veri-öznitelikli `.es-button` gibi bileşen stillerine bağlanıyor. Suite'in Vue frontend'i tek token kaynağı olarak frappe-ui Tailwind preset'ini kullanıyor ve uygulamaları FrappeUIProvider ile sarıyor. frappe/ui (@framework/ui) içinde fieldtype→bileşen kayıt defteri (registerFieldType) var. Bunlar Vue/frappe-ui/Desk tasarım sistemidir. Ant Design/Pro/X'e bağlı bir token, tema veya bileşen kaynağı bulunmuyor. Yerel pilot suite/suite/headless_provider (api.py, local_fixture.py) yalnız oturum/CSRF bağlamı sağlıyor. UI kataloğu, tema veya token sözleşmesi sunmuyor. Runtime functionalAcceptance: not_run.
 
-Eksik: Token kaynağı (tek doğruluk kaynağı) ve Ant Design ThemeConfig/semantik token eşleme sözleşmesi yok.; Onaylı bileşen kataloğunun yeri, sürümleme kuralı ve ui-provider-registry ile ilişkisi belirsiz. GenUI kaydıyla birleştirilmeyeceği yazılmamış.; Çevreleyen odak halkası yasağı, hareket (motion) sözleşmesi ve markalı açılır menü (dropdown) kuralları kabul metnine bağlanmamış.; Ant Design, Pro ve X sürüm sabitlemesi ile tarayıcı/giriş test matrisi belirtilmemiş.; 'Hazır tema kabul kanıtı değildir' denmiş, ancak kanıt türü (görsel fark, DOM/ARIA, hesaplanmış yazı boyutu) tanımlanmamış.
+Eksik: Ant Design ThemeConfig/ConfigProvider ile Espresso/frappe-ui semantik tokenları arasında eşleme sözleşmesi ve headless React tarafının tek token kaynağı (kaynakta @ant-design/antd referansı yok).; Sürümlü, onaylı bileşen kataloğu ve ui-provider-registry sözleşmesi yok. Mevcut registry yalnız Vue fieldtype eşlemesi; sürüm alanı ve provider API'si içermiyor.; Odak tokenları çevreleyen halka olarak tanımlı (box-shadow 0 0 0 2px / outline 2px solid). Çevrelemeyen odak sözleşmesi yok.; Tipografi tokenları 14 CSS px altında (11/12/13px). Minimum metin boyutu sözleşmesi yok.; Merkezi motion tokenı (easeInOut Cubic, iki yönlü süre, reduced-motion) yok. Geçişler bileşenlere dağılmış durumda.; Markalı Select/dropdown, 320 px, zoom ve hata durumu kabulleri ile görsel/DOM/ARIA/hesaplanmış font kanıt türleri kaynakta sözleşme olarak tanımlı değil.
 
-Sonraki adım önerisi: ui-family-01--implementation için tek bir token kaynağı ve Ant Design token eşleme tablosu yazılmalı. Ortak kurallar (odak halkası yok, 14 px minimum, motion tokenları, markalı Select) kabul ölçütüne bağlanmalı. Katalog sürümleme kuralı ui-provider-registry görevinde tanımlanmalı. Frontend kaynağı denetlenmeden yerel yetenek iddia edilmemeli.
+Sonraki somut adım: Mevcut bağımlılıklar korunarak sıra şöyle olmalı. (1) ui-family-01--contract: Espresso semantik token adlarını (surface/ink/outline/text/radius/spacing/focus) kaynak alan tek bir token dosyası ve Ant Design ThemeConfig eşleme tablosu yazılmalı. Bu tabloda 14px minimum, çevrelemeyen odak ve motion tokenları kural olarak yer almalı. (2) ui-family-01--implementation: headless React kabuğunda tek ConfigProvider teması kurulmalı. İlk dar davranış olarak bir Button ve markalı Select için RED/GREEN regresyon testi yazılmalı; test hesaplanmış font ≥14px'i, çevre halkası yokluğunu ve 320px görünümü kapsamalı. (3) ui-provider-registry--implementation: sürüm alanlı onaylı bileşen kataloğu tanımlanmalı. Frappe tarafı yalnız provider sözleşmesi sağlamalı; Suite'in Vue frontend'i ve GenUI bu katalogla birleştirilmemeli. (4) Destekleyici ui-family-07 ve ui-family-39 bu katalog/token sözleşmesine bağlanmalı.
 
-Mevcut birincil görev: `ui-family-01--implementation`. Kaynak: `suite/frontend/src/shell/useWorkspace.ts:2`; `suite/frontend/src/shell/useWorkspace.ts:1`; `frappe/frappe/desk/page/workspace_restore/workspace_restore.js:62`.
+Önerilen bağımlılık/sıra: ui-family-01--contract; kernel-envelope--contract; api-middleware--contract; client-rule-parity--contract; ui-family-01--implementation; ui-family-07--implementation; ui-family-39--implementation; ui-provider-registry--implementation. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `ui-family-01--implementation`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/public/css/espresso/components/button.css:4` — ` * \`.es-button\` class + data-attributes, binding only to the semantic token`
+- `frappe/frappe/public/css/espresso/effects.css:27` — `  --focus-default: 0px 0px 0px 2px #c9c9c9e5;`
+- `frappe/frappe/public/css/espresso/components/button.css:207` — `    outline: var(--bt-focus);`
+- `frappe/frappe/public/css/espresso/typography.css:16` — `  --text-sm: 13px;`
+- `suite/frontend/tailwind.config.js:5` — `  // Single design-token source for the whole suite: the frappe-ui preset`
+- `frappe/ui/src/components/Fields/fieldTypes.ts:27` — `/** Process-global fieldtype → component registry. */`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- frappe/, suite/ (tüm sourceRoot); arama `(?i)(design[-_ ]?token|ThemeConfig|ConfigProvider|antd|@ant-design|semantic[-_ ]token)`: 46 dosya eşleşti. Çoğu dist/assets sourcemap ve 'participant' gibi yanlış pozitif. Gerçek eşleşmeler Espresso CSS, suite frontend tailwind/index.css ve AGENTS.md dosyalarında.
+- frappe/, suite/ (dist/assets hariç); arama `(@ant-design|\bantd\b|ThemeConfig|design[-_ ]?tokens?\b)`: Ant Design/ThemeConfig eşleşmesi yok. Yalnız frappe-ui/Espresso token yorumları bulundu (tailwind.config.js:5, index.css:2, sheets constants.js).
+- suite/suite/headless_provider; arama `(?i)(catalog|registry|component|theme|token|ui_)`: Yalnız CSRF token ve fixture parola üretimi eşleşti. UI katalog/tema sözleşmesi yok.
+- frappe/, suite/ (dist/assets hariç); arama `(?i)(component[-_ ]?(catalog|registry)|ui[-_ ]?(catalog|registry|provider)|catalogVersion|catalog_version)`: FrappeUIProvider kullanımları (Suite Vue layout'ları) ve frappe/ui fieldTypes.ts registry bulundu. Sürümlü katalog yok.
+- frappe/frappe/public (dist hariç); arama `(--[a-z-]*(surface|ink|outline)[a-z0-9-]*\s*:|focus-visible|box-shadow:\s*var\(--focus)`: 37 dosyada 922 eşleşme. Merkez colors.css (834) ve effects.css; bileşen CSS'leri tokenları kullanıyor.
+- frappe/frappe/public/css/espresso/{effects,typography}.css; arama `(focus|--font-size|--text-(xs|sm|2xs)|ring)`: Focus tokenları çevreleyen box-shadow/outline halkası olarak tanımlı. Metin tokenları 11/12/13px.
+- frappe/, suite/ (dist/assets/node_modules hariç); arama `(cubic-bezier|--(duration|ease|motion)[a-z0-9-]*\s*:|prefers-reduced-motion)`: 36 dosyada 93 eşleşme, bileşenlere dağılmış. Merkezi motion token sözleşmesi görülmedi.
+
+Sınır: Salt okuma kaynak analizi yapıldı; komut, test veya build çalıştırılmadı. functionalAcceptance: not_run.; Headless React/Ant Design frontend kaynağı bu snapshot'ta yok. Ant Design yokluğu yalnız frappe ve suite kökleri için geçerli bir YOK bulgusudur.; node_modules hariç tutulduğu için frappe-ui paketinin kendi token/odak/motion kaynağı okunmadı.; colors.css'in 834 tanımının tamamı ve tüm motion eşleşmeleri tek tek okunmadı. Değerlendirme temsili dosyalara dayanıyor.; suiteCommit bilinmiyor. headless_provider yerel pilot ek koddur, upstream-native değildir.; Kaynaktaki AGENTS.md/CLAUDE.md talimatları veri olarak ele alındı, uygulanmadı.
+
+Temporal workflow: `saas-recheck-20261015t073528z-043`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### channels-10 — Buluttaki Frappe için ortak istemci çekirdeği, tasarım sistemi ve platform adaptörleri.
 
@@ -2756,15 +3692,39 @@ Mevcut birincil görev: `pwa-service-worker--implementation`. Kaynak: `suite/fro
 
 #### channels-12 — Android/iOS için Capacitor ile gömülü arayüz ve ayrı imzalı AAB/APK/IPA paketleri.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **YOK**. İşlevsel kabul: `not_run`.
 
-scopeDecision bu maddenin tarihsel bir Capacitor alternatifi olduğunu, güncel mobil yolun ise Tauri 2 (channels-17) olduğunu söylüyor. Buna rağmen madde metni ve kabul ölçütü hâlâ Capacitor'u anlatıyor; görev eşlemesi ise tauri-mobile-package--implementation. Bu çelişki aynı işin iki kez sayılmasına yol açabilir. Kaynakta Capacitor ya da Tauri mobil izi yok.
+Taranan frappe ve suite kaynağında Capacitor ya da Tauri ile Android/iOS'a gömülü arayüz yok. Yerel proje dosyaları (capacitor.config, tauri.conf.json, AndroidManifest.xml, Info.plist, gradle, xcodeproj, Podfile) ve imzalı AAB/APK/IPA üretim hattı da yok. 'capacitor|tauri' aramasının sonuçları yanlış pozitif: 'dataURI' gibi kelimelerin parçası olarak eşleştiler (utils.js, derlenmiş bundle'lar). 'android' sonuçları yalnızca yarn.lock'taki derleme aracı binary'leri. Maddeye bitişik ama madde olmayan üç parça var. (1) Frappe'nin kendi OAuth sağlayıcısı: token_endpoint_auth_method='None' olan public client için PKCE zorunlu ve redirect_uri yalnızca birebir kayıtlı değerle eşleşirse kabul ediliyor. Ancak bu Keycloak değil; Keycloak'a özgü bir mobil callback akışı yok. (2) Suite'in Vue arayüzü vite-plugin-pwa ve paylaşılan webmanifest ile kurulabilir bir PWA ve duyarlı mobil web arayüzü sunuyor. Bu yerel uygulama paketi değil, React/AntDesign headless istemcisi de değil. (3) suite/suite/headless_provider yerel pilot olarak eklenmiş bir metadata API'si (headless-metadata.v1). Çerez oturumuyla çalışıyor ve içinde mobil, native ya da OAuth sözleşmesi yok.
 
-Eksik: Madde metni ile görev eşlemesi çelişiyor (Capacitor ↔ tauri-mobile-package).; channels-17 ile aynı görevin çift sayılmasını önleyecek bir kural yok.; Keycloak callback için RFC 8252 yöntemi (deep link veya loopback) ve Frappe tarafında token doğrulama sınırı Tauri mobil için tanımlı değil.
+Eksik: Capacitor (yerine geçen Tauri 2 mobil) projesi ve web arayüzünü uygulamaya gömme yapılandırması yok; Android AAB/APK ve iOS IPA derleme, imzalama, güncelleme ve mağaza dağıtım hattı yok; Kamera, bildirim, dosya, güvenli anahtar saklama ve SQLite için yerel adaptörler yok; Uçak modunda soğuk açılış ve kalıcı yerel işlem desteği yok; Keycloak callback için RFC 8252 yöntemi (özel URI şeması, claimed https ya da loopback) ve Frappe tarafında bearer token doğrulama sınırı tanımlı değil; Headless provider'da mobil istemci için kimlik doğrulama ve oturum sözleşmesi yok; channels-17 ile çift sayımı önleyecek bir kapsam kuralı kaynakta yok; bu bir planlama verisi
 
-Sonraki adım önerisi: Madde kimliğini koru, durumunu 'tarihsel/superseded → channels-17' olarak işaretle. tauri-mobile-package--implementation görevinin birincil sahibinin channels-17 olduğunu yaz. Capacitor kabul ölçütünü uygulama hedefi olarak kullanma.
+Sonraki somut adım: Madde kimliği ve bağımlılıklar korunsun. Madde 'tarihsel/superseded → channels-17' olarak işaretlensin ve tauri-mobile-package--implementation görevinin birincil sahibi channels-17 olarak yazılsın. Capacitor kabul ölçütü uygulama hedefi olarak kullanılmasın. Uygulama channels-17 altında şu sırayla ilerlesin: (1) keycloak-login--contract: Tauri mobil için RFC 8252 callback yöntemi seçilsin (claimed https/özel şema ya da loopback, PKCE S256). Frappe'nin Keycloak bearer token'ı nasıl doğrulayacağı (issuer/audience) dar bir provider sözleşmesi olarak belgelensin. (2) ui-family-01 ve client-rule-parity sözleşmeleri tamamlandıktan sonra, yalnız Android için tek bir Tauri 2 mobil iskeleti kurulsun. Bu iskelet derlenmiş React/AntDesign arayüzünü gömsün ve tek bir okuma akışını göstersin. Bu adım için gerçek RED/GREEN kanıtı üretilsin. (3) İmzalama ve mağaza dağıtımı Hüseyin Cengiz'e ayrı bir devir olarak verilsin. Suite'in Vue PWA'sı mobil paket kanıtı sayılmasın.
 
-Mevcut birincil görev: `tauri-mobile-package--implementation`. Kaynak: `suite/suite/hooks.py:440`.
+Önerilen bağımlılık/sıra: tauri-mobile-package--contract; ui-family-01--contract; client-rule-parity--contract; keycloak-login--contract; channels-17. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `tauri-mobile-package--implementation`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/oauth.py:33` — `return frappe.db.get_value("OAuth Client", client_id, "token_endpoint_auth_method") == "None"`
+- `frappe/frappe/oauth.py:45` — `if redirect_uri in redirect_uris:`
+- `suite/frontend/vite.config.ts:7` — `import { VitePWA } from 'vite-plugin-pwa'`
+- `suite/frontend/src/router/index.ts:333` — `appendPwaTag('link', { rel: 'manifest', href: \`${assets}manifest.webmanifest\` })`
+- `suite/suite/hooks.py:440` — `"/api/method/frappe.integrations.oauth2_logins.",`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- source/ (frappe ve suite tamamı); arama `(?i)capacitor|@capacitor|tauri`: 10 dosyada eşleşme var, hepsi yanlış pozitif: 'dataURI' gibi kelimelerin parçası (frappe utils.js:1141, suite lib-*.js 'taUri'), ayrıca .po ve .map dosyaları. Gerçek bir Capacitor veya Tauri kullanımı yok.
+- source/; arama `**/{capacitor.config.*,AndroidManifest.xml,Info.plist,*.gradle,tauri.conf.json,*.xcodeproj,Podfile}`: Hiç dosya bulunamadı
+- source/ (map/po/csv hariç); arama `(?i)\b(aab|apk|ipa)\b|deep[_ -]?link|custom[_ -]?scheme|redirect_uri.*(://|loopback|127\.0\.0\.1)|code_challenge|pkce`: Yalnızca Frappe OAuth/PKCE dosyaları ve alakasız UI/e2e eşleşmeleri çıktı; mobil paket ya da deep link uygulaması yok
+- frappe/frappe (*.py, *.json); arama `(?i)code_challenge|pkce|redirect_uris|public client|token_endpoint_auth_method|client_type`: oauth.py'de public client için PKCE ve birebir redirect_uri doğrulaması uygulanmış. Bu Frappe'nin kendi OAuth sağlayıcısı, Keycloak değil.
+- suite (public/frontend, dist, lock, map, po hariç); arama `(?i)deep[_ -]?link|\b(apk|aab|ipa)\b|mobile|android|\bios\b|capacitor|tauri|oauth|keycloak`: Vue tarafında mobil web bileşenleri, PWA (InstallPrompt, generate-pwa-assets) ve iOS standalone meta'ları var. Native paket ya da Keycloak eşleşmesi yok.
+- suite/frontend; arama `(?i)beforeinstallprompt|standalone|manifest|serviceWorker|registerSW|vite-plugin-pwa`: VitePWA (injectManifest) ve paylaşılan webmanifest var; bu yalnızca bir PWA
+- suite/suite/headless_provider; arama `(?i)mobile|native|oauth|redirect|pkce|capacitor|tauri`: 'native' sözcüğü yalnızca 'Frappe native permission/schema' anlamında geçiyor; mobil veya OAuth sözleşmesi yok
+
+Sınır: Kaynak yalnızca kodun var olup olmadığını kanıtlar; functionalAcceptance=not_run. Cihaz, imzalama, mağaza ve çevrimdışı davranışı doğrulanmadı.; Kapsam yalnızca kurulu frappe ve suite uygulamaları. ERPNext/HRMS, harici Tauri/Capacitor depoları ve React/AntDesign istemci deposu taranmadı.; Derlenmiş bundle/.map ve lock dosyalarındaki eşleşmeler davranış kanıtı sayılmadı.; headless_provider yerel pilot olarak eklenmiş kod, upstream'e ait değil. Suite'in Vue PWA'sı seçilen React headless istemciden ayrı bir şey.; Capacitor tarihsel bir seçenek ve yerini Tauri 2 (channels-17) aldı. Bu bir geçiş önerisi değil.; Testler yalnızca okundu, çalıştırılmadı. suiteCommit bilinmiyor.
+
+Temporal workflow: `saas-recheck-20261015t073528z-044`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### channels-13 — Windows/macOS/Linux için Tauri 2 ile gömülü arayüz ve imzalı masaüstü dağıtımı.
 
@@ -2816,15 +3776,40 @@ Mevcut birincil görev: `client-offline-boot--implementation`. Kaynak: `suite/fr
 
 #### channels-17 — Tauri 2 ile Android/iOS ve masaüstü için ortak React, Ant Design ve Ant Design X arayüzünü paketleme.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **YOK**. İşlevsel kabul: `not_run`.
 
-Hedef açık: Tauri 2 ile Android, iOS ve masaüstü paketi, frontendDist ile gömülü Vite çıktısı. Uzak siteyi açmanın offline kabulü sayılmayacağı da belirtilmiş. Frappe ve Suite paketleme sağlamıyor. Suite, bench üzerinden sunucudan servis edilen bir Vue SPA ve kabulde reddedilen uzak site modeline örnek. React/AntD istemci kaynağı snapshot'ta yok.
+İki kurulu app kökünde (frappe, suite) Tauri 2 paketlemesi yok. src-tauri, tauri.conf.json, Cargo.toml, AndroidManifest.xml, Info.plist, xcodeproj ve capacitor.config bulunamadı. Hiçbir package.json'da @tauri-apps, react, antd veya @ant-design bağımlılığı yok. Paketlenecek ortak React/AntD/Ant Design X istemcisi de snapshot'ta yok. 'tauri/cordova/electron' eşleşmeleri yalnız minified vendor bundle'larda, sourcemap'lerde, lisans/CoC metinlerinde ve 'dataURI' alt dizgisinde çıktı; hiçbiri davranış kanıtı değil. Suite'in upstream kaynağı Vue 3 + frappe-ui SPA'sıdır. Production'da base '/assets/suite/frontend/' olur, Jinja suite.html Frappe tarafından servis edilir. vite-plugin-pwa yalnız FCM service worker'ı içindir ve precache kapalıdır. Bu, kabulde reddedilen uzak site modelidir; gömülü frontendDist ile offline açılış sağlamaz. Paketleme değil ama ileride entegrasyon noktası olabilecek Frappe primitifleri şunlar: site config ile verilen allow_cors origin allowlist'i (set_cors_headers), OAuth Client redirect_uris tam eşleşme kontrolü ve Social Login Key içindeki Keycloak sağlayıcısı. Keycloak akışı sunucu tarafında /api/method yönlendirmesidir; native/custom-scheme PKCE akışı değildir. suite/headless_provider/api.py (yerel pilot, upstream değil) yalnız cookie-session tabanlı headless-metadata.v1 şema RPC'sidir; paketleme, origin veya mobil kimlik doğrulama içermez.
 
-Eksik: Tauri CLI, Android/iOS SDK ve minimum WebView sürümleri sabitlenmemiş (notta da açıkça belirtilmiş).; Gömülü origin'den (tauri custom scheme) Frappe v17 API'ye CORS/origin ve Keycloak redirect URI sözleşmesi yok.; İmza ve mağaza hesaplarının sahipliği belirsiz: Hüseyin Cengiz ile istemci ekibi arasındaki ayrım ve kabul ölçütü yazılmamış.; Ortak React frontend reposunun yeri ve build çıktısı yolu tanımlanmamış.
+Eksik: Tauri 2 projesi yok: src-tauri, tauri.conf.json, frontendDist ve build.devUrl ayarları ile Android/iOS/masaüstü hedefleri.; Paketlenecek ortak React + Ant Design/Pro/X + Vite istemci kaynağı ve build çıktısı snapshot'ta yok.; Gömülü origin'in (tauri://localhost, http://tauri.localhost) Frappe allow_cors listesindeki yeri ve cookie/CSRF ya da token sözleşmesi tanımlı değil.; Keycloak için native/custom-scheme ya da loopback PKCE redirect URI sözleşmesi yok. Mevcut Keycloak social login yalnız sunucu yönlendirmesidir.; Offline ilk açılış, imza ve mağaza paketleri ile WebView minimum sürüm sabitlemesi yok.; Tauri CLI, Android/iOS SDK ve WebView sürüm sabitlemesi yok.
 
-Sonraki adım önerisi: tauri-mobile-package--implementation için şu bilgiler sabitlenmeli: Tauri, SDK ve WebView minimum sürümleri; gömülü origin listesi; Keycloak redirect URI'leri. Frappe tarafında yalnız allow_cors ve OAuth ayarı gereksinimi Hüseyin Cengiz'e teknik devir olarak yazılmalı.
+Sonraki somut adım: Mevcut tauri-mobile-package--implementation görevi için sıra: (1) Bağımlı contract görevleri kapanmalı: tauri-mobile-package--contract (Tauri CLI, Android/iOS SDK, WebView minimum sürümleri, gömülü origin listesi), ui-family-01--contract (ortak React/AntD istemcisinin repo yolu ve Vite dist yolu), keycloak-login--contract (Tauri için PKCE redirect URI'leri). (2) Ortak React istemci reposunda en küçük adım: frontendDist'i Vite dist'e bağlayan bir src-tauri iskeleti kurulmalı. İlk kabul, tek masaüstü hedefinde gömülü varlıklarla ağsız açılış olmalı; RED/GREEN kanıtı istemci reposunda tutulmalı. (3) Frappe tarafında kod yazılmamalı. Hüseyin Cengiz'e teknik devir: site config allow_cors'a gömülü origin'in eklenmesi ve Keycloak client redirect URI'lerinin kaydı. Kabul ölçütü, gömülü origin'den gelen preflight'ın Access-Control-Allow-Origin ile dönmesidir. (4) Ardından Android ve iOS hedefleri. İmza ve mağaza hesaplarının sahibi tam adla yazılmalı. Suite Vue SPA'sı paketleme hedefi değildir, uzak site örneği olarak kalmalıdır.
 
-Mevcut birincil görev: `tauri-mobile-package--implementation`. Kaynak: `suite/pyproject.toml:95`; `suite/pyproject.toml:97`; `suite/suite/hooks.py:48`.
+Önerilen bağımlılık/sıra: tauri-mobile-package--contract; ui-family-01--contract; client-rule-parity--contract; keycloak-login--contract. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `tauri-mobile-package--implementation`.
+
+Kaynak kanıtı:
+
+- `suite/frontend/vite.config.ts:84` — `base: mode === 'production' ? '/assets/suite/frontend/' : '/',`
+- `suite/frontend/vite.config.ts:100` — `indexHtmlPath: '../suite/www/suite.html',`
+- `suite/frontend/package.json:88` — `"vue": "^3.5.38",`
+- `frappe/frappe/app.py:296` — `allowed_origins = frappe.conf.allow_cors`
+- `frappe/frappe/oauth.py:219` — `return redirect_uri in redirect_uris`
+- `frappe/frappe/integrations/doctype/social_login_key/social_login_key.py:234` — `providers["Keycloak"] = {`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- source (frappe + suite tam kök); arama `(?i)tauri|capacitor|frontendDist|cordova|electron`: Kaynak/config dosyasında eşleşme yok. Eşleşmeler yalnız .map/.lock/.po dosyalarında, suite/suite/public/frontend/assets altındaki minified vendor bundle'larda, license.txt, CODE_OF_CONDUCT.md ve playwright yorumunda; utils.js'teki 'taURI' ise 'dataURI' alt dizgisi.
+- source (frappe + suite); arama `glob **/{src-tauri,tauri.conf.json,Cargo.toml,capacitor.config.*,AndroidManifest.xml,Info.plist,*.xcodeproj}`: Hiç dosya bulunamadı.
+- source/**/package.json; arama `"(react|antd|@ant-design/[a-z-]+|@tauri-apps/[a-z-]+|vite-plugin-pwa|vue)"\s*:`: Yalnız vue (frappe, frappe/ui, suite, suite/frontend) ve suite/frontend'de vite-plugin-pwa var. react, antd, @ant-design ve @tauri-apps yok.
+- suite/frontend; arama `(?i)(android|ios|apk|aab|ipa|webview|deep.?link|custom.?scheme|app_bundle|native.?shell)`: 157 dosya eşleşti, ancak bunlar 'participants'/'iOS PWA splash' gibi alakasız alt dizgiler ya da PWA/klavye inset kodu. Native paketleme kodu yok.
+- frappe/frappe (*.py); arama `allow_cors|Access-Control-Allow-Origin|redirect_uris`: app.py set_cors_headers'da site config ile origin allowlist'i, oauth.py'de OAuth Client redirect_uris tam eşleşme kontrolü var. Bunlar genel backend primitifleri, paketleme değil.
+- source (frappe + suite); arama `(?i)keycloak`: Yalnız frappe social_login_key (json/py), oauth2_logins.py ve main.pot. Akış sunucu tarafında /api/method redirect'idir; native/custom-scheme PKCE yok. Suite'te eşleşme yok.
+- suite (headless_provider); arama `(?i)headless_provider`: Yalnız suite/suite/headless_provider/api.py (yerel pilot). Okundu: cookie-session tabanlı şema metadata/düzenleme RPC'si; paketleme ve origin içermiyor.
+
+Sınır: Kapsam yalnız sourceRoot altındaki kurulu frappe ve suite app kaynağıdır. Harici React istemci reposu, Tauri araç zinciri ve mağaza/imza hesapları bu snapshot'ta değil; bu YOK küresel ekosistem yokluğu anlamına gelmez.; Komut, build ve test çalıştırılmadı; functionalAcceptance: not_run. Cihaz/WebView davranışı ve offline açılış kaynaktan kanıtlanamaz.; Site config (allow_cors değeri) ve Keycloak/OAuth Client kayıtları snapshot'ta yok; yalnız kod yolu okundu, gerçek ayarlar bilinmiyor.; Minified bundle ve sourcemap eşleşmeleri yalnız vendor alt dizgisi olarak değerlendirildi, satır satır incelenmedi.; suite/headless_provider yerel pilot ek koddur, upstream-native değildir. Suite commit'i bilinmiyor.
+
+Temporal workflow: `saas-recheck-20261015t073528z-045`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### channels-18 — Tauri mobil cihaz iş akışları: belge fotoğrafı, barkod, güvenli dosya erişimi ve bildirimden yetkili kayda geçiş.
 
@@ -2840,15 +3825,39 @@ Mevcut birincil görev: `tauri-device-capability--implementation`. Kaynak: `suit
 
 #### channels-19 — Mobil yaşam döngüsü: sistem geri hareketi, klavye, safe area, arka plan dönüşü ve işletim sistemi sonlandırması.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Yaşam döngüsü riskleri ve kabul matrisi (320–390 px, gerçek cihaz, OS sonlandırması, outbox korunumu) tanımlı. Bu tamamen istemci davranışı; Frappe kaynağında karşılığı yok. Suite Calendar'da URL'yi tek doğruluk kaynağı yapan ve Back hareketini navigasyonla eşleyen bir desen var. Ancak bu Vue tabanlı ve TanStack Router'a doğrudan aktarılamaz.
+Bulunanlar yalnız web/PWA tarayıcı primitifleri. Bunlar upstream-native olup hedef React/Tauri istemcisinde değil; Suite'in Vue frontend'inde ve Frappe Desk JS'inde yer alıyor. (1) Sanal klavye: Suite'teki useKeyboardInsets, visualViewport resize/scroll olaylarıyla görünür yüksekliği ve offsetTop değerini izliyor. Frappe Desk bottom_sheet.js, klavyenin örttüğü yüksekliği --es-sheet-keyboard değişkenine yazıyor ve pinch-zoom durumunu ayırıyor. (2) Safe area: Suite'in mobil bileşenlerinde ve Frappe Desk SCSS/espresso CSS'inde env(safe-area-inset-*) paddingleri var; bunlar semantik token değil, bileşenlere gömülü. (3) Geri hareketi: Slides PresentationEditor popstate olayında açık dialogları kapatıyor, onBeforeRouteLeave ise kirli durumda onay istiyor. Calendar'da görünüm URL'de tutuluyor, böylece Back navigasyonu geri izliyor. (4) Arka plan ve kapanma: Slides, pagehide anında kirli değişikliği saveDraft ile en iyi çabayla IndexedDB'deki slides-db deposuna yazıyor ve beforeunload uyarısı veriyor. Writer IndexedDB/y-indexeddb kullanıyor; Meet/Slideshow visibilitychange dinliyor. Mail'deki Outbox sunucu taraflı bir JMAP EmailSubmission listesi, istemci offline outbox'ı değil. Yerel pilot suite/headless_provider (api.py, local_fixture.py) içinde ilgili sözleşme yok.
 
-Eksik: Android sistem geri hareketinin Tauri üzerinden TanStack Router geçmişine bağlanma sözleşmesi tanımsız: açık panel, dialog, taslak çıkışı.; Taslak (draft) ile outbox kaydı arasındaki sınır ve taslak saklama katmanı belirsiz. channels-15 ile ilişkisi yazılmamış.; Safe area ve sanal klavye için semantik token/inset kuralı ile hedef OS/WebView sürümleri belirlenmemiş.; Gerçek cihaz testleri insan test bütçesini aşıyor; sürüm öncesi kapsam ayrımı belirtilmemiş.
+Eksik: Tauri 2 mobil entegrasyonu iki app kökünde de yok: Android sistem geri hareketi, uygulama pause/resume ve süreç sonlandırması sonrası geri yükleme.; React + TanStack Router için geri yığını sözleşmesi yok: Back'in önce açık panel/dialog/sheet katmanını, ardından taslak çıkışını ele alması tanımlı değil. Suite'teki desen Vue Router'a özgü ve doğrudan aktarılamaz.; Yerel taslak ile istemci outbox kaydı arasındaki sınır tanımlı değil; OS sonlandırması sonrasında outbox'ın korunup yeniden açılışta bulunması kodlanmamış. Slides pagehide kaydı uygulamaya özgü ve en iyi çaba düzeyinde; channels-15 ile bağı yok.; Safe area ve klavye inset değerleri merkezi semantik token değil; hedef OS/WebView sürümleri ve izin reddi ile çağrı kesintisi davranışları kaynakta yok.; Headless provider (suite/headless_provider) mobil yaşam döngüsü, taslak veya outbox kabul/idempotency sözleşmesi sunmuyor.; Gerçek cihaz ve 320–390 px kabulü çalıştırılmadı (functionalAcceptance=not_run).
 
-Sonraki adım önerisi: tauri-mobile-lifecycle--implementation için kısa bir kural yazılmalı: URL ve router durumu tek kaynak, Back önce açık katmanı kapatır, taslak her alan değişiminde yerel depoya alınır, outbox yalnız açık kayıtla oluşur. Gerçek cihaz kabulü sürüm öncesi kapsamına not_run olarak işlenmeli.
+Sonraki somut adım: tauri-mobile-lifecycle--contract kapsamında en küçük adım sırası: (1) Tek sayfalık bir yaşam döngüsü kuralı yaz: URL/TanStack Router durumu tek kaynak olsun; Back önce en üstteki açık katmanı kapatsın, sonra kirli taslakta onay istesin. Calendar'daki URL ve Slides'taki popstate→hideOpenDialogs desenlerini davranış referansı olarak kullan, kodu taşıma. (2) Taslağı her alan değişiminde ve pagehide/visibilitychange=hidden anında yerel depoya yazma kuralını, Slides saveDraft/IndexedDB desenine dayanarak tanımla; outbox kaydı yalnız açık 'kaydet' eylemiyle oluşsun ve channels-15'e bağlansın. (3) Klavye için visualViewport tabanlı tek bir inset hook'u ve safe-area semantik tokenları tanımla (useKeyboardInsets ve bottom_sheet referans). (4) Tauri 2 Android geri olayını router geri yığınına bağlayan tek dar davranış için RED/GREEN testi yaz. Gerçek cihaz kabulü sürüm öncesi kapsamda not_run olarak kalsın. Mevcut bağımlılıklar korunur.
 
-Mevcut birincil görev: `tauri-mobile-lifecycle--implementation`. Kaynak: `suite/frontend/src/apps/calendar/utils/mobileView.ts:27`.
+Önerilen bağımlılık/sıra: tauri-mobile-lifecycle--contract; ui-family-01--contract; client-rule-parity--contract; keycloak-login--contract. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `tauri-mobile-lifecycle--implementation`.
+
+Kaynak kanıtı:
+
+- `suite/frontend/src/composables/useKeyboardInsets.ts:34` — `window.visualViewport?.addEventListener('resize', update)`
+- `frappe/frappe/public/js/frappe/ui/components/bottom_sheet.js:527` — `// an on-screen keyboard shrinks the visual viewport; the sheet sits above it`
+- `suite/frontend/src/components/AdaptiveDropdown.vue:12` — `<div class="px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">`
+- `suite/frontend/src/apps/slides/pages/PresentationEditor.vue:451` — `window.addEventListener('popstate', hideOpenDialogs)`
+- `suite/frontend/src/apps/slides/pages/PresentationEditor.vue:267` — `if (dirty.value) saveDraft()`
+- `suite/frontend/src/apps/calendar/utils/mobileView.ts:27` — `for which view is up — switching is a navigation, so Back retraces it — which`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- suite/; arama `popstate|safe-area-inset|visualViewport|visibilitychange|pagehide|beforeunload|backbutton|onBackPressed`: Vue frontend'de useKeyboardInsets, çok sayıda safe-area paddingi, Slides'ta pagehide/beforeunload/popstate, Meet/Slideshow'da visibilitychange bulundu. backbutton/onBackPressed yok.
+- frappe/; arama `popstate|safe-area-inset|visualViewport|visibilitychange|pagehide|backbutton|onBackPressed (min.js hariç)`: router.js:18'de popstate, bottom_sheet.js'te visualViewport ile klavye hesabı, SCSS/espresso'da safe-area, setup_wizard'da pagehide bulundu. Native geri olayı yok.
+- suite/ (public/frontend build hariç); arama `(?i)tauri|capacitor|@tauri-apps|outbox|draft.*(localStorage|indexedDB)|indexedDB`: Tauri/Capacitor yok. Writer ve Slides'ta IndexedDB taslak/yerel kayıt var. Outbox, Mail'deki sunucu taraflı JMAP EmailSubmission listesi.
+- suite/frontend/src/apps/slides; arama `handlePageHide|const saveDraft|DRAFTS_DB_NAME =|handleBeforeUnload =`: pagehide→saveDraft→writeSnapshot zinciri ve slides-db IndexedDB adı doğrulandı.
+- suite/suite/headless_provider; arama `(?i)popstate|history\.(back|pushState)|mobile|lifecycle|safe.?area|keyboard|tauri|offline|outbox|draft`: Eşleşme yok.
+- frappe/frappe/public/js/frappe/ui/components/bottom_sheet.js; arama `history|popstate|hashchange`: Eşleşme yok: Desk bottom sheet'i tarayıcı/sistem geri hareketine bağlı değil; yalnız Escape, scrim ve sürükleme ile kapanıyor.
+
+Sınır: Yalnız sourceRoot altındaki frappe ve suite kökleri okundu; ERPNext/HRMS kurulu değil ve değerlendirilmedi.; Bulunan primitifler Suite Vue/Frappe Desk tarayıcı kodu; hedef React/AntDesign/TanStack/Tauri istemcisinde karşılıkları yok ve doğrudan taşınamaz.; Kaynak yalnız kodun varlığını gösterir; gerçek cihaz, WebView sürümü, OS sonlandırması ve 320–390 px davranışı çalıştırılmadı (functionalAcceptance=not_run).; Testler okunmadı ve çalıştırılmadı; derlenmiş public/frontend ve dist bundle'ları kanıt sayılmadı.; suiteCommit bilinmiyor.
+
+Temporal workflow: `saas-recheck-20261015t073528z-046`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### channels-1 — SaaS (Software as a Service — hizmet olarak yazılım) web uygulaması.
 
@@ -2888,27 +3897,90 @@ Mevcut birincil görev: `auth-channel-bridge--implementation`. Kaynak: `suite/su
 
 #### channels-4 — 320 pikselden başlayan uyarlanabilir ekranlar ve büyütmede yeniden akış.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Kabul ölçütü ölçülebilir: 320/360/375/390 px, yatay telefon ve %400 zoom. Backend'in yeniden akış sağlamadığı doğru tespit edilmiş. Kaynakta yalnız Suite'in Vue telefon görünümü eşlemesi var. Seçilen React/Ant Design paneli kaynakta görülmediği için yerel yetenek bilinmiyor; Frappe get_meta yalnız sunum metadatasını sağlıyor.
+Kaynakta somut duyarlı yerleşim parçaları var, ancak hiçbiri seçilen React/Ant Design yüzeyine ait değil.
+(1) Suite'in upstream Vue ön yüzü, sayfa yüklenirken 640px eşiğine göre ayrı mobil veya masaüstü bileşen ağacı seçiyor (useScreenSize.ts). Bu seçim bilerek pencere boyut değişimini izlemiyor. Boyutlandırmayı Tailwind max-sm: sınıfları canlı izliyor. isMobile/viewport/matchMedia kullanımı 127 dosyada bulundu (mail, takvim, drive, meet).
+(2) Frappe Desk SCSS'inde 38 dosyada 176 @media kuralı var: mobile.scss'te max-width 991px kuralı, utils.js is_xs() içinde 768px eşiği ve liste görünümünde .result-container için kapsayıcı içi overflow-x: auto.
+(3) Yerel pilot suite/headless_provider/api.py yalnızca metadata, alan ekleme, düzenleme önizlemesi ve uygulama sözleşmesi sağlıyor. Buradaki "layout" alan sırası parmak izinden ibaret; duyarlı yerleşim veya yeniden akış sözleşmesi değil.
+Backend'in UI yeniden akışı sağlamadığı tespiti doğrulandı.
 
-Eksik: 'Ana yolculuk'un hangi ekranları kapsadığı tanımlı değil; liste, form ve dashboard ayrımı yok.; 14 CSS px minimum metin, tabloda kapsayıcı içi yatay kaydırma ve çevreleyen odak halkası yasağı kabul ölçütüne bağlanmamış.; Ant Design token ve breakpoint kararları ile 1 test dosyası / 3 senaryo bütçesinin hangi genişliklere dağılacağı belirsiz.; ui-family-01 MVP ile ui-family-09 ve ui-view-list arasındaki sorumluluk sınırı yazılmamış.
+Eksik: Seçilen React + Ant Design/Pro + TanStack paneli kaynakta yok. suite/frontend/package.json yalnızca @tanstack/vue-virtual içeriyor; antd ve react yok.; Desk (frappe/www/desk.html) ve Suite (frontend/index.html, suite/www/suite.html) viewport tanımında user-scalable=no var; Desk'te ayrıca maximum-scale=1.0 var. Bu, kaynak düzeyinde zoom ve %400 yeniden akış kabulüne karşı bir sinyal.; 320/360/375/390 px ve yatay telefon için açık breakpoint veya kabul tanımı yok. Mevcut eşikler 640, 768 ve 991 px.; Suite'in mobil/masaüstü ağaç seçimi yeniden boyutlandırma ve yön değişiminde güncellenmiyor; yatay telefon ve bölünmüş ekran uyarlaması yok.; 14 CSS px minimum metin, tablo kapsayıcısı içinde kaydırma ve çevreleyen odak halkası yasağı için hedef panelde kaynak kapısı (gate) yok.; Headless provider sözleşmesinde istemciye yerleşim, yoğunluk veya ana yolculuk ipucu yok.; Runtime functionalAcceptance not_run; cihaz/tarayıcı doğrulaması kaynakla kanıtlanamaz.
 
-Sonraki adım önerisi: ui-family-01--implementation-mvp görevine tek bir ana yolculuk tanımlayın (ör. liste → kayıt formu). Bu yolculuk için 320 px ve %400 zoom kabulünü, 14 px, odak ve tablo kaydırma kurallarıyla birlikte yazın. Diğer genişlikleri N−1/N/N+1 olarak işaretleyin.
+Sonraki somut adım: Mevcut bağımlılıklar korunarak (ui-family-01--contract → ui-family-01--implementation → ui-family-01--implementation-mvp) ilerlenmeli:
 
-Mevcut birincil görev: `ui-family-01--implementation-mvp`. Kaynak: `suite/frontend/src/apps/calendar/utils/mobileView.ts:26`; `suite/frontend/src/apps/calendar/utils/mobileView.ts:50`; `frappe/frappe/api/v2.py:247`.
+1. React/Ant Design panelinde tek bir ana yolculuk tanımlanır: headless_provider.metadata ile liste → kayıt formu.
+2. Önce bu yolculuk için 320 px ve %400 zoom'da başarısız (RED) bir Playwright testi yazılır. Test şunları kontrol eder: sayfa genelinde yatay taşma olmaması, tablonun kendi kapsayıcısında kaydırılması, hesaplanan metnin 14 px'ten küçük olmaması ve klavye odağının çevreleyen halka olmadan görünmesi.
+3. Panelin index.html dosyasında user-scalable=no ve maximum-scale kullanılmadan, akışkan Ant Design token/Grid ile test GREEN yapılır.
+4. 360/375/390, yatay telefon ve tablet N−1/N/N+1 olarak ui-family-09 ve ui-view-list görevlerine bırakılır.
+   Suite Vue ve Desk viewport dosyalarına dokunulmaz.
+
+Önerilen bağımlılık/sıra: ui-family-01--contract; ui-family-01--implementation; kernel-envelope--contract; api-middleware--contract; client-rule-parity--contract; page-super-admin--contract; page-tenant-admin--contract; ui-family-09--implementation; ui-view-list--implementation. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `ui-family-01--implementation-mvp`.
+
+Kaynak kanıtı:
+
+- `suite/frontend/src/composables/useScreenSize.ts:16` — `const isMobile = ref(window.innerWidth < 640)`
+- `suite/frontend/index.html:25` — `content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content"`
+- `frappe/frappe/www/desk.html:15` — `maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, minimal-ui, viewport-fit=cover`
+- `frappe/frappe/public/scss/desk/list.scss:765` — `overflow-x: auto;`
+- `frappe/frappe/public/js/frappe/utils/utils.js:206` — `return $(document).width() < 768;`
+- `suite/suite/headless_provider/api.py:243` — `"layout": [[df.fieldname, df.fieldtype, cint(df.permlevel)] for df in meta.fields],`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- suite/frontend/src; arama `@media|min-width:\s*320|max-width:\s*(320|360|375|390|576|640|767|768)px`: 19 dosyada 35 eşleşme. Bunlar bileşen düzeyinde; 320/360/375/390 için kabul tanımı yok.
+- suite/frontend/src; arama `useBreakpoints|matchMedia|isMobile|sm:|md:hidden|viewport`: 127 dosyada 565 eşleşme. Merkez nokta useScreenSize.ts: 640px eşiği, yükleme anında bir kez belirleniyor.
+- suite/frontend/src (*.css); arama `mobile|640|@media`: Yalnızca writer/styles/print.css içinde @media print var.
+- suite (**/package.json); arama `antd|ant-design|@tanstack|react-dom`: Yalnızca @tanstack/vue-virtual var; React veya Ant Design yok.
+- suite/suite/headless_provider/api.py; arama `def |layout|breakpoint|responsive|viewport|mobile`: Yalnızca metadata/şema düzenleme fonksiyonları var; layout = alan sırası parmak izi. Duyarlı yerleşim sözleşmesi yok.
+- frappe/frappe; arama `name="viewport"|initial-scale|user-scalable|maximum-scale`: desk.html satır 14-15'te user-scalable=no ve maximum-scale=1.0 var.
+- suite; arama `name="viewport"|initial-scale|user-scalable|maximum-scale`: frontend/index.html, suite/www/suite.html ve public/frontend/index.html dosyalarında user-scalable=no var.
+- frappe/frappe/public/scss; arama `@media \(max-width|@include media-breakpoint|@media \(min-width`: 38 dosyada 176 eşleşme. Desk duyarlı CSS içeriyor; mobile.scss'te 991px.
+- frappe/frappe/public/js/frappe/utils; arama `is_xs\(\)|is_mobile\(\)|function is_xs|is_mobile:|is_xs:`: is_xs: genişlik < 768.
+- frappe/frappe/public/scss/desk/list.scss; arama `overflow-x:\s*auto|overflow-x:\s*scroll`: Liste görünümünde .result-container için overflow-x: auto (satır 765).
+
+Sınır: Yalnızca Read/Glob/Grep ile statik kaynak incelemesi yapıldı. Hiçbir komut, test, tarayıcı veya zoom ölçümü çalıştırılmadı; functionalAcceptance not_run.; Kapsam yalnızca sourceRoot altındaki frappe ve suite uygulamalarıdır. React/Ant Design paneli bu kaynakta yok ve değerlendirilemedi.; Tarayıcıların user-scalable=no davranışı (ör. iOS Safari'nin bunu yok sayması) çalışma zamanı konusudur; kaynak yalnızca bildirimin varlığını kanıtlar.; Desk SCSS ve Suite bileşenleri tek tek 320 px'de doğrulanmadı; yalnızca eşik ve primitif varlığı tespit edildi.; Derlenmiş public/dist dosyaları kanıt olarak kullanılmadı.; suite/headless_provider yerel pilot ek koddur; upstream Frappe/Suite değildir.; Ürün DONE durumu veya yüzde raporlanmaz.
+
+Temporal workflow: `saas-recheck-20261015t073528z-054`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### channels-5 — Erişilebilirlik: klavye, odak sırası, ekran okuyucu ve renk dışı durum işaretleri.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Hedef ve kabul ölçütü somut: Tab/Shift+Tab, odak sırası, ekran okuyucu adları ve renkten bağımsız durum. Frappe kaynağında headless React/Ant Design erişilebilirliğiyle ilgili kanıt yok. Suite ön yüzü Vue/frappe-ui ile yazılmış; yalnız örüntü olarak okunabilir, kodu yeniden kullanılamaz.
+Kaynakta erişilebilirlik ilkelleri var ama yalnız upstream Frappe Desk (jQuery/Espresso) ve Suite Vue/frappe-ui ön yüzlerinde. (1) Frappe Desk: Page sınıfında "ana içeriğe git" atlama bağlantısı var. Bu bağlantı ana bölgeye tabindex=-1 verip odağı oraya taşıyor (page.js:232-250). (2) frappe.ui.alert bileşeni role=alert kullanıyor. Her tema için ayrı Lucide ikonu ve metin başlığı veriyor, böylece durum yalnız renkle aktarılmıyor. Kapatma düğmesinde aria-label var (alert.js:23-67). (3) Toolbar ve arama düğmelerinde aria-label kullanılıyor, klavye ile odak taşınıyor (toolbar/search.js, about.js). (4) Suite Vue kabuğunda, örneğin SuiteCommandPalette.vue içinde, aria-label, aria-expanded, role=button+tabindex=0 ve Enter/Space ile klavye etkinleştirmesi var. (5) Frappe'de Playwright testleri var; Suite'te e2e/meet testleri getByRole/toHaveAccessibleName kullanıyor. Bu testler yalnız okundu, çalıştırılmadı; davranış kanıtı sayılmaz. Yerel pilot suite/headless_provider (api.py, local_fixture.py) içinde erişilebilirlikle ilgili hiçbir sözleşme yok. Bu beklenen bir durum, çünkü konu ön yüz katmanına ait. Runtime functionalAcceptance: not_run.
 
-Eksik: Hedef seviye (WCAG 2.2 AA) ve ölçülebilir eşikler kabul metninde açık değil.; Kalıcı odak politikası (çevreleyen halka yasağı, çevrelemeyen tek gösterge) ve Ant Design varsayılan odak stilinin kaynağında nasıl düzeltileceği tanımsız.; TanStack Router sayfa geçişinde odağın nereye taşınacağı ve sayfa başlığı/landmark sözleşmesi yok.; Asenkron durumlar için live region/ARIA durum sözleşmesi (kaydedildi, hata, senkron) tanımsız.; Doğrulama araçları ve tarayıcı matrisi (axe/Playwright, Chromium/Firefox/WebKit) ile insan bütçesine eşleme yok.
+Eksik: Seçilen headless React/Ant Design/Pro/X + TanStack ön yüzünde hiçbir erişilebilirlik uygulaması yok. Desk ve Suite Vue kodu bu yığında yeniden kullanılamaz, yalnız örüntü olarak okunabilir.; Tab/Shift+Tab ve odak sırası sözleşmesi yok; TanStack route geçişinde odağın nereye taşınacağı ve sayfa başlığı/landmark kuralı tanımsız.; Asenkron durumlar (kaydedildi, hata, senkron) için aria-live/role=status sözleşmesi yok. Frappe alert yalnız Desk'te role=alert kullanıyor.; Renk dışı durum için ikon+metin semantik tokenları ve erişilebilir ad kuralları headless kabukta yok.; Frappe'nin odak tokenı (--focus-default: 0 0 0 2px box-shadow, buttons.scss :focus-visible) çevreleyen bir odak halkası çiziyor. Bu, kalıcı odak politikasıyla çelişiyor; örnek alınmamalı. Ant Design'ın varsayılan odak stilinin token kaynağında düzeltilmesi de tanımsız.; axe/Playwright ile Chromium/Firefox/WebKit klavye yolculuğu regresyon testi yok.; WCAG 2.2 AA hedefi ve ölçülebilir eşikler kabul metninde açık değil.
 
-Sonraki adım önerisi: ui-family-01 için kabul metnine WCAG 2.2 AA'yı, odak göstergesi tokenını, route değişiminde odak hedefini ve renk dışı durum ikonu/metin kuralını ekleyin. Doğrulamayı mevcut tek test dosyası bütçesi içinde, klavye yolculuğunu kapsayan tek senaryo olarak planlayın.
+Sonraki somut adım: En küçük adım: ui-family-01--contract kabul metnine şunlar eklenir: WCAG 2.2 AA hedefi, çevrelemeyen tek odak göstergesi tokenı, route değişiminde odağın h1/main öğesine taşınması, renk dışı durum için ikon+metin kuralı ve role=status/alert canlı bölge sözleşmesi. Ardından ui-family-01--implementation-mvp içinde tek bir React/AntD kabuk dilimi yapılır: atlama bağlantısı, main landmark, TanStack route sonrası odak yönetimi ve tek durum bildirimi bileşeni. Önce bu dilim için klavye yolculuğu (Tab/Shift+Tab, Enter, Escape) ve axe kontrolü içeren tek bir Playwright senaryosu RED olarak yazılır, sonra uygulama GREEN yapılır. Sıra: contract → implementation-mvp → ui-family-09--implementation. Frappe Desk skip-link ve alert örüntüsü yalnız referans olarak kullanılır; kod kopyalanmaz.
 
-Mevcut birincil görev: `ui-family-01--implementation-mvp`. Kaynak: `suite/pyproject.toml:6`; `suite/frontend/src/apps/calendar/utils/mobileView.ts:35`.
+Önerilen bağımlılık/sıra: ui-family-01--contract; ui-family-01--implementation; kernel-envelope--contract; api-middleware--contract; client-rule-parity--contract; page-super-admin--contract; page-tenant-admin--contract; ui-family-09--implementation. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `ui-family-01--implementation-mvp`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/public/js/frappe/ui/page.js:235` — `.text(__("Navigate to main content"))`
+- `frappe/frappe/public/js/frappe/ui/page.js:241` — `main.focus();`
+- `frappe/frappe/public/js/frappe/ui/components/alert.js:43` — `const attrs = ['role="alert"'];`
+- `frappe/frappe/public/js/frappe/ui/components/alert.js:26` — `red: "circle-x",`
+- `frappe/frappe/public/css/espresso/effects.css:27` — `--focus-default: 0px 0px 0px 2px #c9c9c9e5;`
+- `suite/frontend/src/shell/SuiteCommandPalette.vue:75` — `@keydown.enter.space.prevent="activateMailFilter(filter.key)"`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- frappe/frappe; arama `aria-live|role="status"|role="alert"|skip-link|skip to (main )?content|focus-visible|prefers-reduced-motion`: 60+ dosya (limitte kesildi): Espresso CSS bileşenleri, scss focus-visible stilleri, page.js skip link, alert.js role=alert, router.js; dist paketleri de eşleşti.
+- suite; arama `aria-live|role="status"|role="alert"|skip-link|focus-visible|prefers-reduced-motion|aria-label|focus-trap|useFocusTrap|tabindex`: 233 dosyada 353 eşleşme; kaynak Vue bileşenleri (shell, drive, meet, mail, slides, writer) ve derlenmiş assets.
+- frappe/frappe/public/js/frappe (router.js, ui/page.js, ui/components/alert.js, ui/toolbar/*.js); arama `aria-live|role="status"|role="alert"|skip-link|focus\(\)|aria-label`: page.js:232-241 skip link ve main.focus; alert.js:43 role=alert; search.js/about.js aria-label; router.js'deki skip-link yalnız dış bağlantı uyarısı token'ı, a11y değil.
+- suite/suite/headless_provider; arama `(?i)a11y|accessib|aria|wcag|focus|keyboard|screen.?reader`: Erişilebilirlikle ilgili sonuç yok; tek eşleşme api.py'de advisory lock bağlamında 'mariadb'.
+- . (frappe+suite, dist/assets hariç); arama `axe-core|@axe-core|AxeBuilder|toHaveAccessibleName|getByRole`: axe kullanımı bulunamadı; getByRole/toHaveAccessibleName yalnız Frappe playwright ve Suite e2e testlerinde (yalnız okundu, çalıştırılmadı).
+- frappe/frappe/public (dist hariç) ve scss/common/buttons.scss; arama `--focus-default\s*:|focus-visible`: effects.css:27/42 box-shadow spread halkası; buttons.scss:117-118 :focus-visible ile uygulanıyor; çevreleyen halka.
+- suite/frontend/src/shell/SuiteCommandPalette.vue; arama `aria-|role=|@keydown|tabindex`: aria-label, aria-expanded, aria-hidden ikonlar, role=button+tabindex=0, Enter/Space klavye işleyicisi.
+
+Sınır: Yalnız sourceRoot altındaki frappe ve suite uygulama kaynakları okundu; komut çalıştırılmadı, test koşturulmadı, tarayıcı/ekran okuyucu davranışı doğrulanmadı.; Kaynak yalnız kod varlığını kanıtlar; WCAG uyumu, gerçek odak sırası ve ekran okuyucu çıktısı runtime'da ölçülmedi (functionalAcceptance: not_run).; Desk ve Suite Vue ilkelleri seçilen React/AntD headless ön yüzüne ait değil; yeniden kullanılabilir kod değil, örüntü kanıtı.; Grep sonuçları head_limit nedeniyle kesildi; her Vue bileşeni tek tek okunmadı, örnek dosyalar okundu.; ERPNext/HRMS kurulu değil, değerlendirilmedi; suite commit bilinmiyor.; Plan modu dosya yazmayı öngörse de kullanıcı yalnız Read/Glob/Grep izni verdi; plan dosyası yazılmadı.
+
+Temporal workflow: `saas-recheck-20261015t073528z-055`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### channels-6 — Hareket azaltma, kontrast, metin büyütme ve erişilebilir hata sunumu.
 
@@ -2984,15 +4056,39 @@ Mevcut birincil görev: `ui-family-09--implementation-post-mvp`. Kaynak: `frappe
 
 #### views-11 — Canlı bağlantı ve sunucu erişimi göstergesi; çevrimdışı, erişilemiyor ve yeniden bağlanıyor durumları.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Kabul ölçütü iyi tanımlı: ağ kesintisi ile sunucuya erişilememe ayrılıyor, 401/403 bağlantı arızası sayılmıyor, otomatik yeniden gönderim yok ve erişilebilir duyuru isteniyor. Alıntılarda genel amaçlı bir sağlık veya ping uç noktası ya da realtime bağlantı durumu kaynağı görünmüyor. Tek ilgili kod Suite Meet'e özgü tanı raporu; o da navigator.onLine değerini yalnız raporluyor. Bu nedenle yerel yetenek kanıtlanamıyor.
+Upstream Frappe'de (v17-dev, adf1fd0c) şu temel parçalar var: (1) Konuk erişimine açık, whitelist'li frappe.ping() 'pong' döndürüyor. v1'de /api/method/frappe.ping üzerinden, v2'de /method/ping kuralıyla erişiliyor; hafif bir sunucu erişim yoklaması olarak kullanılabilir. (2) Desk'te frappe.is_online() yalnız navigator.onLine'a bakıyor ve developer_mode'da her zaman true dönüyor. window online/offline olayları 'connection-status' kimlikli tek bir toast'ı güncelliyor; frappe.call çevrimdışıyken aynı toast'ı gösteriyor. (3) frappe.request.call içinde 401 ve 403 yanıtları önce handle_session_expiry'ye gidiyor; yani oturum süresinin dolması bağlantı arızasından ayrı ele alınıyor. 403 izin mesajı veriyor; 502, 504 ve 508 için ayrı kullanıcı mesajları var. (4) socket.io istemcisi reconnectionAttempts:3 ile kuruluyor; connect_error yalnız console.error'a yazılıyor. Sunucuda realtime 'ping' işleyicisi var. frappe/ui socket.ts yeniden bağlanınca doküman odalarına tekrar abone oluyor. Mutasyonları otomatik yeniden göndermeye dair bir kod görülmedi. Suite tarafında (Vue arayüzü, headless değil) şunlar var: Writer'da isOffline, Slides'ta online/offline işleyicileri ve navigator.onLine kontrolleri, Meet'te ParticipantConnection ve tanı raporu. Bunlar uygulamaya özgü ve dağınık. Yerel pilot suite/suite/headless_provider içinde bağlantı veya sağlık sözleşmesi yok.
 
-Eksik: Erişilebilirliği ölçecek kaynak seçilmemiş: hafif bir yöntem çağrısı mı, son başarılı uygulama isteği mi, realtime soket mi? İlgili Frappe kaynağı bu alıntılarda yok.; Not 'Frappe/Keycloak sürümleri seçilmedi' diyor; oysa yerel kurulum v17-dev. Bu eşleme güncellenmemiş.; Keycloak token süresinin dolması/yenilenmesi ile bağlantı hatasını ayıracak kural yok.; Yeniden bağlanma zamanlaması ve backoff tanımsız; Tauri, PWA ve WXT MV3 ortamlarındaki farklar ele alınmamış.; ui-family-06 ile ui-family-40 arasında sorumluluk sınırı yazılmamış.
+Eksik: Çevrimdışı, sunucuya erişilemiyor ve yeniden bağlanıyor durumlarını ayıran tek bir durum modeli yok.; İnternet açıkken sunucuya erişilemiyor durumunu sınıflayan mantık yok: request.js .fail yolu yalnız statusCode tablosuna bakıyor; status 0, ağ hatası veya ping başarısızlığı için işleyici yok.; Son başarılı temas zaman damgası yok.; Yeniden bağlanma ve backoff durumu kullanıcıya gösterilmiyor: socket.io connect_error yalnız console'a yazılıyor ve ping yoklaması zamanlanmıyor.; frappe.is_online developer_mode'da her zaman true dönüyor; navigator.onLine sunucu erişimini kanıtlamıyor.; Ekran okuyucuya odağı çalmadan duyuru (aria-live/status) ve renk dışı gösterge, bu alanda okunan kodda doğrulanmadı.; Headless React/Ant Design için Frappe provider bağlantı durumu sözleşmesi yok (headless_provider'da da yok).; Keycloak token yenileme ile bağlantı hatasını ayıran kural yok; Tauri, PWA ve WXT MV3 farkları kaynakta ele alınmamış.
 
-Sonraki adım önerisi: ui-family-06--implementation tanımında şunları belirt: v17-dev hedefi; erişim sinyali olarak gerçek uygulama isteği sonuçları ve son başarılı temas; 401/403 hatalarının oturum durumuna yönlendirilmesi; mutasyonların otomatik yeniden gönderilmemesi. Realtime soket kullanımını ayrı bir karar olarak işaretle.
+Sonraki somut adım: Sıra şöyle olmalı: (1) ui-family-06--contract içinde headless istemci için ConnectionState sözleşmesini tanımla. Durumlar: online, offline (navigator), unreachable (status 0, ağ veya zaman aşımı hatası ya da GET /api/v2/method/ping başarısızlığı), reconnecting (socket.io reconnect_attempt / ping backoff) ve lastSuccessAt. 401/403 auth/session durumuna gitsin, bağlantı durumuna değil. Upstream'deki frappe.ping ve handle_session_expiry ayrımı referans alınsın. (2) api-middleware--contract tarafında TanStack Query fetch katmanında yalnız gerçek istek sonuçlarından durum türeten saf bir sınıflandırıcı yaz. Önce birim testlerde RED, sonra GREEN kanıtı üret. Mutasyonların retry değeri 0 olsun ve otomatik yeniden gönderim olmasın. (3) Ardından ui-family-40--implementation-mvp içinde Ant Design göstergesini role=status/aria-live=polite, metin ve ikon ile bağla. Realtime soket sinyali ayrı bir karar olarak eklensin. Suite Vue koduna dokunulmasın; upstream Desk toast'ı değiştirilmesin.
 
-Mevcut birincil görev: `ui-family-06--implementation`. Kaynak: `suite/frontend/src/apps/meet/utils/diagnostics/problemReport.ts:75`; `suite/frontend/src/apps/meet/utils/diagnostics/problemReport.ts:76`; `frappe/frappe/api/v1.py:152`.
+Önerilen bağımlılık/sıra: ui-family-06--contract; kernel-envelope--contract; api-middleware--contract; client-rule-parity--contract; ui-family-06--implementation; ui-family-40--implementation-mvp. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `ui-family-06--implementation`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/__init__.py:1478` — `def ping():`
+- `frappe/frappe/api/v2.py:623` — `Rule("/method/ping", endpoint=frappe.ping),`
+- `frappe/frappe/public/js/frappe/dom.js:397` — `return navigator.onLine;`
+- `frappe/frappe/public/js/frappe/request.js:152` — `if (frappe.request.handle_session_expiry(xhr.responseJSON)) return;`
+- `frappe/frappe/public/js/frappe/socketio_client.js:73` — `console.error("Error connecting to socket.io:", err.message);`
+- `frappe/frappe/public/js/frappe/request.js:56` — `description: __("You are not connected to Internet. Retry after sometime."),`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- source (frappe + suite tümü, *.min.js hariç); arama `navigator\.onLine|addEventListener\(["'](online|offline)["']|\$\(window\)\.on\(["']online|frappe\.realtime\.on\(["']connect|socket\.on\(["'](connect|disconnect|reconnect)`: Frappe tarafında dom.js'te is_online ve online/offline toast'ı, socketio_client.js'te connect_error, frappe/ui socket.ts'te connect sonrası yeniden abonelik bulundu. Suite tarafındakiler Writer, Slides ve Meet'e özgü Vue kodu; geri kalanlar e2e/test ve dist bundle'ları.
+- source (frappe + suite tümü); arama `def ping\(|/api/method/ping|is_online|connection_lost|Connection lost|reconnect`: 139 dosya eşleşti. İlgili uygulama kodu: frappe/**init**.py ping, realtime/handlers.py ping, request.js, dom.js, socketio_client.js, suite/frontend/src/realtime.ts. Geri kalanı locale, test, dist ve Meet SFU.
+- frappe/frappe (dist ve locale hariç); arama `def ping|status_code == 0|xhr\.status === 0|Server Unavailable|connection_lost|frappe\.ping|"ping"`: frappe.ping (allow_guest) bulundu; v2 /method/ping kuralı ve realtime ping var. Genel istek katmanında status 0 işleyicisi yok (yalnız FileUploader'da var).
+- frappe/frappe/public/js/frappe/request.js; arama `\.fail\(|status === 0|status == 0|timeout|handle_session_expiry = `: .fail yalnız JSON exception ve statusCode tablosunu kullanıyor; status 0 ya da ağ hatası için ayrı bir durum yok. 401/403 handle_session_expiry'ye gidiyor.
+- suite/suite/headless_provider; arama `connect|disconnect|reconnect|online|offline|health|ping (case-insensitive)`: Yalnız DB connection yorumları eşleşti; bağlantı durumu ya da sağlık sözleşmesi yok.
+- suite/frontend/src/realtime.ts; arama `connect|disconnect|offline|online`: reconnectionAttempts: 5 ve sınırsız yeniden bağlanma yorumu var; UI'ya açılan bağlantı durumu bu grep'te görülmedi.
+
+Sınır: Yalnız statik kaynak okundu; komut, test ya da tarayıcı çalıştırılmadı. functionalAcceptance: not_run.; frappe.ui.toast'ın aria-live/role davranışı okunmadı; erişilebilir duyuru doğrulanmadı.; Dist bundle'ları ve source map'ler içerik olarak incelenmedi; kaynak JS esas alındı.; Suite Vue uygulamalarındaki (Writer, Slides, Meet) bağlantı göstergeleri ayrıntılı okunmadı; bunlar headless React sözleşmesi değil.; Keycloak, Tauri, PWA ve WXT ortamları kurulu kaynakta yok; bu konular değerlendirilmedi.; suiteCommit bilinmiyor; ERPNext/HRMS kurulu değil.
+
+Temporal workflow: `saas-recheck-20261015t073528z-056`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### views-12 — Kaydetme durumu; değiştirildi, kaydediliyor, bu cihazda taslak, sunucuya kaydedildi ve kaydetme hatası.
 
@@ -3118,27 +4214,76 @@ Mevcut birincil görev: `process-definition--implementation`. Kaynak: `frappe/fr
 
 #### workflow-5 — BPMN (Business Process Model and Notation — iş süreci modelleme ve gösterimi) desteği.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Kesitte BPMN içe/dışa aktarma ya da yürütümü görülmedi. Workflow Builder Desk'e bağlı ve beta; workflow_data yalnızca gizli bir JSON alanı. Görmemek global yokluk kanıtı değil. Talimatta kabul ölçütü var ama motor seçimi, desteklenecek BPMN alt kümesi ve Frappe adaptörü sözleşmesi yok.
+Upstream Frappe'de BPMN olmayan, durum/geçiş tabanlı bir Workflow motoru var. model/workflow.py içindeki get_transitions okuma izni kontrol ediyor, ardından rol ve safe_eval koşuluyla filtreliyor. apply_workflow geçişi doğrulayıp workflow_state alanını güncelliyor. Workflow DocType'ı states/transitions tablolarını ve gizli workflow_data JSON alanını tutuyor. Desk/Vue Workflow Builder (@vue-flow/core) grafiği BPMN XML olarak değil, Vue Flow node/edge JSON'u olarak saklıyor. Beta Automation Flow tetikleyici/koşul/aksiyon modeli kullanıyor; süreç grafiği veya BPMN değil. Suite'te süreç motoru yok; buradaki 'workflow' eşleşmeleri yalnızca CI dosyaları. Yerel pilot suite/headless_provider'da (api.py, local_fixture.py) workflow/transition sözleşmesi yok.
 
-Eksik: Desteklenecek BPMN öğeleri listelenmemiş.; Motor adayı ve lisans değerlendirmesi yapılmamış.; Hangi tarafın yetkili kaynak olacağı (Frappe Workflow mu, BPMN mi) belirlenmemiş.; Adaptörün Frappe izin ve doğrulama yollarını nasıl çağıracağı tanımsız.
+Eksik: BPMN 2.0 XML import/export, ayrıştırıcı, şema doğrulama ve yürütme iki uygulama kökünde de yok.; Gateway, event, subprocess ve lane semantiği yok; Frappe Workflow yalnızca doğrusal durum/geçiş yapısını destekliyor.; Desteklenen BPMN alt kümesi listesi ve desteklenmeyen öğeyi açıkça reddetme davranışı yok.; BPMN ile Frappe Workflow states/transitions arasında eşleme yapan bir adaptör yok; yetkili kaynak kararı verilmemiş.; headless_provider'da süreç tanımı veya geçiş API sözleşmesi yok; Builder yalnızca Desk/Vue tarafında, React/AntDesign karşılığı yok.; Runtime functionalAcceptance: not_run.
 
-Sonraki adım önerisi: İlerlemeden önce BPMN gerektiren gerçek bir süreç olup olmadığını kullanıcıyla netleştir. Gerekiyorsa process-definition--implementation-scale görevine yalnızca alt küme listesi ve 'desteklenmeyen öğeyi reddet' sözleşmesini ekle.
+Sonraki somut adım: Mevcut görev ID'leri ve bağımlılıklar korunur. (1) Önce kullanıcıyla BPMN gerektiren gerçek bir süreç olup olmadığı netleştirilir. (2) Gerekirse process-definition--contract içinde Frappe Workflow yetkili kaynak olarak belirlenir. Desteklenen en dar BPMN alt kümesi (startEvent, userTask→State, sequenceFlow→Transition, endEvent) ve diğer öğeleri reddetme sözleşmesi yazılır. (3) process-definition--schema/implementation aşamasında headless_provider'a salt okunur bir export eklenir: Workflow states/transitions → BPMN alt kümesi. Bunun için gerçek RED/GREEN testi yazılır. (4) Import en son eklenir; frappe.client.save ve Workflow validate yolu üzerinden yapılır ve desteklenmeyen öğeyi reddeder. Geçişler model/workflow.py apply_workflow ile yürütülmeye devam eder. (5) Görselleştirme ui-family-38--implementation-scale kapsamında React/AntDesign tarafında yapılır.
 
-Mevcut birincil görev: `process-definition--implementation-scale`. Kaynak: `frappe/frappe/workflow/doctype/workflow/workflow.json:108`; `frappe/frappe/workflow/doctype/workflow/workflow.js:20`; `frappe/frappe/workflow/page/workflow_builder/workflow_builder.js:25`.
+Önerilen bağımlılık/sıra: process-definition--contract; process-definition--schema; process-definition--implementation; kernel-envelope--contract; native-user-policy--contract; capability-definition--contract; native-doctype-schema--contract; outbox--contract; audit-envelope--contract. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `process-definition--implementation-scale`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/model/workflow.py:72` — `if transition.state == current_state and transition.allowed in roles:`
+- `frappe/frappe/model/workflow.py:119` — `def apply_workflow(doc: Document | str | dict, action: str):`
+- `frappe/frappe/workflow/doctype/workflow/workflow.json:108` — `"fieldname": "workflow_data",`
+- `frappe/frappe/public/js/workflow_builder/store.js:85` — `doc.workflow_data = JSON.stringify(workflow_data);`
+- `frappe/frappe/public/js/workflow_builder/WorkflowBuilder.vue:2` — `import { VueFlow, useVueFlow, Panel, PanelPosition } from "@vue-flow/core";`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- source (frappe+suite, tümü); arama `(?i)bpmn|bpmn-js|camunda|zeebe|flowable|SpiffWorkflow|xmlns:bpmn`: Yalnızca minify edilmiş .map dosyalarında ve suite noise-suppression worklet'inde alt dize eşleşmeleri çıktı; davranış yok.
+- source (tümü); arama `(?i)\bbpmn`: 0 eşleşme.
+- source (*.map hariç); arama `(?i)process[_ ]?definition|swimlane|boundary[_ ]?event|workflow.*(import|export).*xml`: Yalnızca kanban 'swimlane' eşleşmeleri çıktı; süreç/BPMN yok.
+- suite (*.map hariç); arama `(?i)workflow`: Yalnızca .github/workflows, README/AGENTS ve build asset dosyalarında; süreç motoru yok.
+- suite/suite/headless_provider; arama `(?i)workflow|transition|process`: 0 eşleşme.
+- frappe (dist/locale hariç); arama `workflow_data|@vue-flow|vueflow`: Workflow Builder Vue Flow kullanıyor; workflow_data JSON string olarak kaydediliyor.
+- source (dist/locale hariç); arama `(?i)automation[_ ]flow|flow_definition|state[_ ]machine`: frappe automation_flow DocType ve automation_engine bulundu; alanları trigger/filters/actions, BPMN değil.
+
+Sınır: Yalnızca yerel snapshot kaynağı okundu: frappe@adf1fd0c, suite commit bilinmiyor. Komut veya test çalıştırılmadı; functionalAcceptance not_run.; BPMN yokluğu yalnızca bu kurulu iki uygulama için geçerli; global ekosistem yokluğu iddia edilmiyor. ERPNext/HRMS kurulu değil ve değerlendirilmedi.; Automation Flow ve automation_engine yalnızca alan düzeyinde incelendi; tam yürütme semantiği okunmadı.; headless_provider yerel pilot ek koddur, upstream değil. Suite Vue frontend'i, seçilen React/AntDesign istemcisinden ayrıdır.
+
+Temporal workflow: `saas-recheck-20261015t073528z-013`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### workflow-6 — Bekleme, süre aşımı, yeniden başlatma ve telafi adımları.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Automation Flow'un bekleme ve süre aşımı kaynağı bu kesitte yok. Geçiş görevleri (Webhook/Server Script, asynchronous bayrağı) var. Ancak idempotency, yeniden deneme ve telafi kaydı görülmedi. Talimat bunu doğru biçimde 'verify' olarak işaretliyor ama hedef sürümü ve kalıcı yürütüm sözleşmesini tanımlamıyor.
+Upstream-native Frappe kaynağında (frappe/frappe/automation_engine ve automation doctype'ları) Automation Flow motoru var; önceki 'unknown' değerlendirmesi geçersiz. Bulunanlar: (1) Bekleme: Wait adımı (runner.py _begin_wait/schedule_wait) resume_run ve resume_from_idx alanlı bir Automation Trigger Queue satırı açar. Devam ederken aynı Automation Run, actions_snapshot ve run_state (step_outputs/records/branches) geri yüklenir. (2) Süre aşımı: WaitForEvent adımı, Automation Event Subscription kaydı ve timeout_value/timeout_unit ile çalışır. Olay gelmezse get_wait_outcome aboneliği 'Timed Out' yapar ve sonucu event bağlamına koyar. Webhook eyleminde HTTP timeout var (en çok 120 sn). StopAutomation ile bir eylem akışı park edebilir. (3) Kesinti sonrası devam ve yeniden deneme: drainer satırları FOR UPDATE SKIP LOCKED ile alır. Takılı Running satırlarını requeue_stale_running Pending'e döndürür; bu, hooks.py'deki drain_due zamanlayıcısına bağlıdır. _settle_escaped_row hatalı satırı attempt/max_attempts sınırına kadar yeniden dener. TimestampMismatchError olursa adım bir kez daha denenir. Her adımın kendi savepoint ve geri alması var. Ardışık hatalarda devre kesici akışı devre dışı bırakır. (4) Çift yan etki koruması: işlemsel olmayan adım çalışmadan önce mark_effects_delivered Redis'e 24 saat TTL'li bir işaret yazar. İşaretli satır baştan tekrar oynatılmaz, Failed yapılır. Run ve adım durumları kalıcıdır. Suite'teki 'compensation' eşleşmeleri motordan ayrı ve alana özgüdür (suite/drive/webdav/put.py _Compensation yalnız dosya yükleme telafisidir). suite/headless_provider (yerel pilot) içinde workflow, wait veya timeout sözleşmesi yok.
 
-Eksik: Automation Flow'un yerel v17-dev kaynağında bulunup bulunmadığı doğrulanmamış.; Dış yan etkiler için idempotency anahtarı ve çift çalışmayı önleme sözleşmesi yok.; Telafi adımının kaydı ve sahibi tanımlanmamış.; Asenkron geçiş görevi başarısız olursa durum geri alınıyor mu, belirsiz.
+Eksik: Telafi adımı yok: compensation/undo adım türü, hatada ters sırada geri alma ve telafi sonucu ile sahibinin kaydı motor kodunda bulunmadı (yalnız DB savepoint geri alması var; dış yan etki geri alınmıyor).; Dış yan etkiler için uçtan uca idempotency anahtarı yok: webhook isteğine idempotency anahtarı eklenmiyor. Çift çalışma koruması yalnızca 24 saat TTL'li Redis işaretine dayanıyor; TTL dolarsa veya Redis kaybolursa koruma ortadan kalkar.; Yan etkisi teslim edilmiş başarısız bir run'ı Failed adımdan güvenle sürdürecek bir yeniden başlatma API'si yok. api.py yalnız run_manually ve trial_run içeriyor; bunlar yeni run başlatır.; Wait adımının kendi için bir üst süre veya iptal politikası yok (WaitForEvent dışında). Bekleyen run'ı iptal edecek API de bulunmadı.; headless_provider ile Automation Run/Wait/timeout durumunu React/AntDesign istemcisine açan bir sözleşme yok.
 
-Sonraki adım önerisi: Yerel kaynakta Automation Flow modülünün varlığını ve sürümünü doğrula. Sonra process-step--implementation-scale görevine idempotency ve telafi kaydı sözleşmesini ekle; yeni bir motor önerme.
+Sonraki somut adım: Yeni motor yazmadan, mevcut automation_engine üzerinde şu sırayla ilerle: 1) process-step--implementation-scale kapsamında mevcut Wait/WaitForEvent/resume/effects-mark davranışını kanıtlayan dar bir RED/GREEN testi seç (mevcut test_runner/test_drainer testlerini oku, yeniden kullan). 2) Webhook eylemine run+step_key'den türetilen deterministik bir idempotency başlığı ekle; dayanıklılık için kalıcı effects kaydını Redis TTL yerine queue/run satırında tut. 3) Ancak bundan sonra telafi adımını tasarla: adım snapshot'ına compensation alanı ekle, hatada ters sırada çalıştır ve sonucu Automation Run Step'e Compensated/Failed olarak sahibiyle yaz. 4) En son headless_provider'a salt okunur bir run-durum sözleşmesi ekle. Mevcut bağımlılıklar (process-definition--contract, outbox--contract, audit-envelope--contract) korunur.
 
-Mevcut birincil görev: `process-definition--implementation-scale`. Kaynak: `frappe/frappe/model/workflow.py:19`; `frappe/frappe/model/workflow.py:156`.
+Önerilen bağımlılık/sıra: process-definition--contract; process-definition--schema; process-definition--implementation; kernel-envelope--contract; native-user-policy--contract; capability-definition--contract; native-doctype-schema--contract; outbox--contract; audit-envelope--contract; process-step--implementation-scale. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `process-definition--implementation-scale`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/automation_engine/runner.py:242` — `if step_type == "Wait":`
+- `frappe/frappe/automation_engine/events.py:68` — `subscription.db_set("status", "Timed Out", update_modified=False)`
+- `frappe/frappe/automation_engine/drainer.py:319` — `"""Flip Running rows stuck past the claim timeout back to Pending"""`
+- `frappe/frappe/automation_engine/drainer.py:171` — `{"attempt": attempt, "status": "Failed" if exhausted else "Pending"},`
+- `frappe/frappe/automation_engine/runner.py:388` — `mark_effects_delivered(context["queue_row"].name)`
+- `frappe/frappe/hooks.py:262` — `"frappe.automation_engine.drainer.drain_due",`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- source (frappe + suite, tüm kök); arama `(?i)automation.?flow|class Automation|automation_step`: frappe/frappe/automation_engine/* ve automation doctype'ları (automation_flow, automation_run, automation_trigger_queue, automation_event_subscription) bulundu; suite'te motor yok.
+- frappe/frappe/automation_engine (testler hariç); arama `(?i)wait|timeout|time_out|resume|retry|retries|idempot|compensat|rollback|delay`: Wait/WaitForEvent, timeout, resume, retry ve rollback var; idempot ve compensat için motor kodunda eşleşme yok.
+- source (frappe + suite; py/js/ts/tsx/vue/json); arama `(?i)compensat|saga|undo_step|rollback_action|idempotency.?key|retry_run|rerun|re_run|restart_run|resume_run\(`: Workflow telafisi veya idempotency anahtarı yok. Yalnız suite/drive/webdav/put.py içinde alana özgü _Compensation ile patch testlerinde 'rerun' var.
+- suite/**/headless_provider/**; arama `(?i)automation|wait|timeout|compensat|retry|idempot`: Yalnız şema advisory lock için LOCK_WAIT_SECONDS/QueryTimeoutError var; workflow sözleşmesi yok.
+- frappe/frappe/automation_engine/api.py; arama `^def |@frappe.whitelist`: Whitelist edilmiş fonksiyonlar: get_automation_capabilities, validate_action_params, get_param_options, run_manually, get_runs, trial_run. Retry, resume veya cancel API'si yok.
+- frappe/frappe/automation/doctype/*.json; arama `fieldname/options içinde status|resume|attempt|Waiting|Timed Out|Running`: Run: Running/Waiting/Success/Partially Failed/Failed/Skipped; Subscription: Waiting/Matched/Timed Out/Cancelled; Queue: attempt, resume_run, resume_from_idx; Settings: max_attempts. Compensated durumu yok.
+- frappe/frappe/hooks.py; arama `automation_engine\.(drainer|scheduler)`: drain_due, process_cron, process_date_based ve purge_queue zamanlayıcıya bağlı.
+
+Sınır: Yalnız kaynak okundu. Hiçbir test veya komut çalıştırılmadı; functionalAcceptance=not_run.; Kaynak Redis TTL, kilit ve zamanlayıcı davranışının deploy edilmiş runtime'da çalıştığını kanıtlamaz.; core.py webhook eyleminin ve test dosyalarının tamamı satır satır okunmadı; idempotency başlığının yokluğu grep ile sınırlı olarak doğrulandı.; suiteCommit bilinmiyor. headless_provider yerel pilot ek koddur, upstream-native değildir.; ERPNext/HRMS kurulu değil, değerlendirilmedi.
+
+Temporal workflow: `saas-recheck-20261015t073528z-014`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### workflow-7 — Durum geçişinin ilgili iş modülünün kurallarıyla doğrulanması.
 
@@ -3396,15 +4541,41 @@ Mevcut birincil görev: `email-template--implementation`. Kaynak: `frappe/frappe
 
 #### email-2 — Giriş, kayıt, magic link, doğrulama ve parola kurtarma e-posta senaryoları.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Kimlik e-postalarını Keycloak'a bırakan sınır doğru tanımlanmış. Ancak Keycloak yapılandırması bu kaynak anlık görüntüsünde yok. Kurulu Suite Mail'in kendi signup/login/reset-password guest rotaları var. Talimat bu ikinci kimlik akışının nasıl devre dışı bırakılacağını ya da Keycloak'a yönlendirileceğini söylemiyor.
+Upstream Frappe kendi kimlik e-postalarını uyguluyor. Magic link: frappe/frappe/www/login.py içindeki send_login_link süreli ve tek kullanımlık bir anahtar üretiyor (one_time_login_key, cache'te tutuluyor), login_with_email_link şablonuyla e-posta gönderiyor ve hız sınırı uyguluyor. login_via_key anahtarı kullanınca siliyor ve oturumu açıyor. Kayıt ve doğrulama: user.py içindeki sign_up bir Website User oluşturuyor. send_welcome_mail_to_user, new_user şablonuyla /update-password bağlantısını gönderiyor. Parola kurtarma: reset_password, kullanıcının var olup olmadığını sızdırmayan genel bir yanıt veriyor. _reset_password hash'lenmiş anahtarı ve password_reset e-postasını üretiyor. Keycloak: Social Login Key'de hazır bir OIDC sağlayıcı şablonu var (login_via_keycloak redirect). Bu yalnızca Frappe tarafında OIDC girişi sağlıyor; Keycloak tarafındaki e-postaları yönetmiyor. Suite (upstream app kodu, LOCAL PILOT değil) Mail için ikinci, bağımsız bir akış içeriyor: suite/mail/api/account.py içinde signup, OTP ile e-posta doğrulama (verify_otp, resend_otp), create_account ve send_reset_password_link var. Drive'da OTP ile signup/login (drive/api/product.py) ve davet e-postası var. suite/headless_provider (LOCAL PILOT ek kod) yalnızca local fixture kullanıcısı oluşturuyor (send_welcome_email=0). Auth e-postası veya Keycloak sözleşmesi içermiyor.
 
-Eksik: Keycloak sürümü ve magic link kararı açık; karar sahibi ve tarihi yok; Suite Mail ve Frappe yerel giriş/parola sıfırlama rotalarının ürün akışındaki durumu (kapatma/yönlendirme) tanımsız; Keycloak e-posta teması, dil/marka ve SMTP sağlayıcısının email-3 ile ilişkisi belirtilmemiş
+Eksik: Gereksinimin hedefi olan Keycloak tarafındaki e-postalar (realm, e-posta teması/dil/marka, SMTP, verify-email ve reset-credentials required action'ları) bu kaynakta yok; kaynak bunları kanıtlayamaz.; Keycloak magic link kararı ve sürümü (yerleşik özellik mi, eklenti mi) kaynakta veya talimatta karara bağlanmamış.; Frappe yerel akışlarını (send_login_link/login_via_key, sign_up, reset_password, /update-password) ürün yolunda kapatan veya Keycloak'a yönlendiren bir hook, website_redirects ya da ayar yok.; Suite Mail (signup/OTP/send_reset_password_link) ve Drive (OTP signup/login) yerel kimlik akışlarını Keycloak'a bağlayan veya devre dışı bırakan bir entegrasyon yok. Suite hooks ALLOWED_PATHS listesi /api/method/login ve frappe.core.doctype.user.user.update_password yollarını açık tutuyor.; Headless provider'da kimlik e-postası veya IdP sınırını tanımlayan bir sözleşme yok (örneğin yerel auth rotalarının devre dışı olduğunu bildiren bir capability).; Runtime functionalAcceptance: not_run.
 
-Sonraki adım önerisi: keycloak-login--implementation-mvp görevine Keycloak sürümünü ve magic link kararını yazın. Ayrıca Suite/Frappe yerel login, signup ve reset rotalarının ürün yolunda kullanılmayacağını ve nasıl yönlendirileceğini açıkça yazın.
+Sonraki somut adım: keycloak-login--contract kapsamında önce şu karar yazılmalı: Keycloak sürümü ve magic link yöntemi; e-posta tema/SMTP sahibi (email-3 ile ilişkisi). Sonra keycloak-login--implementation-mvp içinde en küçük adım şu: Frappe'de Keycloak Social Login Key'i (mevcut provider şablonu) etkinleştiren ayarı tanımla. Ardından yerel auth yüzeyini daraltan tek bir davranışı RED/GREEN ile ekle: System Settings login_with_email_link=0 olsun, Website Settings disable_signup=1 olsun, Mail Settings allow_signup=0 olsun; /login, /signup ve /update-password ile Suite Mail signup/reset istekleri Keycloak'a yönlendirilsin ya da reddedilsin. Doğrulama ve kurtarma e-postaları Keycloak required action'larıyla sağlanmalı. React/AntD istemcisi Suite'in Vue rotalarını değil Keycloak OIDC akışını kullanmalı.
 
-Mevcut birincil görev: `keycloak-login--implementation-mvp`. Kaynak: `suite/frontend/src/apps/mail/routes.ts:35`; `suite/frontend/src/apps/mail/routes.ts:54`.
+Önerilen bağımlılık/sıra: keycloak-login--contract; keycloak-login--implementation. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `keycloak-login--implementation-mvp`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/www/login.py:137` — `def send_login_link(email: str):`
+- `frappe/frappe/core/doctype/user/user.py:1254` — `return 1, _("Please check your email for verification")`
+- `frappe/frappe/core/doctype/user/user.py:518` — `self.password_reset_mail(link)`
+- `frappe/frappe/integrations/doctype/social_login_key/social_login_key.py:238` — `"redirect_url": "/api/method/frappe.integrations.oauth2_logins.login_via_keycloak",`
+- `suite/suite/mail/api/account.py:54` — `def signup(username: str, domain: str, email: str) -> str:`
+- `suite/suite/mail/api/account.py:417` — `def send_reset_password_link(user: str) -> str:`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- frappe/frappe; arama `def (sign_up|reset_password|send_login_link|login_via_key|update_password|verify_login)\b`: login.py:137 send_login_link, login.py:183 login_via_key, user.py:1205 sign_up, user.py:1261 reset_password, user.py:1003 update_password; ldap_settings reset_password
+- suite; arama `(?i)(magic.?link|login_link|signup|sign_up|reset.?password|verify.?email|email.?verif|otp) (*.py)`: Mail account.py signup/resend_otp/verify_otp, mail/install.py rate limits, Drive product.py signup/send_otp/verify_otp, account_request OTP email, hooks signup_form_template
+- frappe/frappe/core/doctype/user/user.py; arama `def (send_welcome_mail_to_user|send_login_mail|_reset_password|password_reset_mail)`: 504 _reset_password, 526 password_reset_mail, 541 send_welcome_mail_to_user, 571 send_login_mail
+- frappe/frappe; arama `(?i)keycloak (*.py,*.json,*.js)`: Only the Social Login Key options/provider template and oauth2_logins.login_via_keycloak; no Keycloak email/realm/theme configuration
+- suite (all), suite/suite (*.py); arama `(?i)keycloak|openid|oidc|social_login|provider_name`: Python: only drive/meet enable_social_login filters and hooks.py openid_profile allowed path; other hits are unrelated frontend bundle/test files; no Keycloak integration
+- suite/suite/headless_provider; arama `(?i)(login|signup|reset|password|auth|keycloak|email)`: Only local_fixture user/password creation and api.py transaction comments; no auth-email/IdP contract
+- suite/suite/hooks.py; arama `(?i)(website_redirects|login|signup|reset|update-password|auth_hooks|on_session_creation|openid)`: website_redirects only cover mail auth/outbound; on_login push; ALLOWED_PATHS keep /api/method/login and update_password; no redirect of local auth to Keycloak
+- suite/suite/mail/api/account.py; arama `def (send_reset_password_link|get_user_for_reset_password_key|reset_password|create_account)`: 155 create_account, 417 send_reset_password_link, 444 get_user_for_reset_password_key
+
+Sınır: Yalnızca sourceRoot altındaki frappe ve suite app kaynakları okundu. Keycloak sunucusu, realm export'u, site config ve veritabanı ayarları (login_with_email_link, disable_signup, allow_signup) kapsam dışında; çalışma zamanındaki değerleri bilinmiyor.; Suite commit'i bilinmiyor. Testler, komutlar ve ağ erişimi çalıştırılmadı; functionalAcceptance not_run.; Suite Vue frontend rotaları (mail routes.ts signup/reset-password) bu turda yeniden okunmadı; backend API'leri okundu.; Kaynak kodun var olduğunu kanıtlar; e-postanın teslim edildiğini, SMTP'nin çalıştığını veya uyumluluğu kanıtlamaz.
+
+Temporal workflow: `saas-recheck-20261015t073528z-015`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### email-3 — Mailgun adaptörü ve Postfix sunucu bağlantısı.
 
@@ -3480,15 +4651,40 @@ Mevcut birincil görev: `websocket-api--implementation`. Kaynak: `frappe/pyproje
 
 #### realtime-2 — SSE (Server-Sent Events — sunucudan gönderilen olaylar) ile canlı iletim.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Kabul ölçütü (EventSource reconnect, heartbeat, son olay) anlamlı. Ancak scope kararı 'WebSocket veya SSE' diyor ve SSE'nin hangi tüketici için gerektiği seçilmemiş. Görülen kaynakta taşıma Socket.IO; SSE izine rastlanmadı. Bu görülmeyen kaynakta da olmadığını kanıtlamaz.
+Upstream Frappe'de canlı iletim için somut bir temel parça var. frappe/frappe/realtime/**init**.py içindeki publish_realtime olayı user/doctype/doc/task/site odasına göre yönlendiriyor. after_commit seçeneğiyle olay, transaction commit edildikten sonra gönderilecek şekilde ertelenebiliyor; rollback olursa atılıyor. emit_via_redis olayları Redis 'events' kanalına site namespace'iyle yayımlıyor. frappe/realtime/index.js de bu kanala abone olan Node Socket.IO sunucusu ve olayları odalara emit ediyor. Ancak taşıma yalnız Socket.IO (WebSocket/long-poll). Suite'te 'eventSourceUrl' yalnız harici bir JMAP sunucusunun session URL'sinin Redis'te önbelleklenmesi; bu bir SSE sunucusu ya da tüketicisi değil. direct_passthrough kullanımları dosya/WebDAV akışı; SSE değil. LOCAL PILOT suite/headless_provider içinde (api.py, local_fixture.py, **init**.py) realtime/stream/event/cursor ile ilgili hiçbir kod yok.
 
-Eksik: SSE'nin gerekip gerekmediğine dair karar kapısı ve tüketici (ör. WXT MV3) tanımı yok; Last-Event-ID kalıcı olay günlüğü gerektirir; realtime-3 cursor sözleşmesiyle bağı yazılmamış; EventSource başlık gönderemez; Keycloak kimliği için cookie/kısa ömürlü bilet kararı yok; Proxy buffering/timeout davranışı tanımsız
+Eksik: Her iki app kökünde de (derlenmiş dist/public/frontend bundle'ları hariç) 'text/event-stream' yanıtı veren bir SSE endpoint'i ve id/event/retry çerçevelemesi bulunamadı; Last-Event-ID ile kaldığı yerden devam ve kalıcı, sıra numaralı olay günlüğü yok; Redis pub/sub geçici, replay yok; SSE heartbeat/yorum satırı ile X-Accel-Buffering/proxy buffering ve timeout ayarı yok; EventSource başlık gönderemediği için gereken Keycloak cookie veya kısa ömürlü bilet ile kimlik doğrulama ve SSE için oda/izin denetimi yok; Headless provider'da SSE sözleşmesi yok; Suite Vue frontend'inde EventSource tüketicisi yok; SSE'nin hangi tüketici için gerektiğine dair karar (ör. WXT MV3) kaynakta yok
 
-Sonraki adım önerisi: sse-api--implementation için önce kısa bir karar kaydı yazın: SSE ancak somut bir tüketici Socket.IO kullanamıyorsa açılsın. Açılırsa realtime-3'teki aynı sıra numarası/cursor kaynağını kullansın, ayrı olay deposu kurulmasın.
+Sonraki somut adım: Sıra şöyle olmalı. 1) sse-api--contract: SSE'yi yalnız Socket.IO kullanamayan somut bir tüketici için açan bir karar kaydı yazılmalı. Bu kayıt kimliği (cookie ya da kısa ömürlü bilet), heartbeat aralığını, proxy buffering ayarını ve Last-Event-ID'nin realtime-3 cursor/outbox sıra numarasına bağlanmasını tanımlamalı. 2) Ayrı bir olay deposu kurulmamalı. Olaylar mevcut publish_realtime/emit_via_redis 'events' akışından ve outbox--contract sıra kaynağından okunmalı. 3) Sonra tek bir dar SSE endpoint'i yazılmalı: kimliği doğrulanmış tek kullanıcı odası, heartbeat ve Last-Event-ID ile replay. Bu adım RED/GREEN testle kanıtlanmalı.
 
-Mevcut birincil görev: `sse-api--implementation`. Kaynak: `frappe/pyproject.toml:97`; `suite/frontend/src/apps/sheets/collab/hocuspocus-client.js:8`.
+Önerilen bağımlılık/sıra: sse-api--contract; kernel-envelope--contract; tenant-registry--contract; native-user-policy--contract; capability-definition--contract; native-doctype-schema--contract; outbox--contract; api-middleware--contract. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `sse-api--implementation`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/realtime/__init__.py:30` — `def publish_realtime(`
+- `frappe/frappe/realtime/__init__.py:83` — `frappe.db.after_commit.add(flush_realtime_log)`
+- `frappe/frappe/realtime/__init__.py:118` — `"events",`
+- `frappe/realtime/index.js:1` — `const { Server } = require("socket.io");`
+- `frappe/realtime/index.js:81` — `io.of(namespace).to(message.room).emit(message.event, message.message);`
+- `suite/suite/mail/jmap.py:689` — `"eventSourceUrl": session.event_source_url,`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- frappe; arama `(?i)text/event-stream|EventSource|Last-Event-ID|server[-_ ]sent`: Eşleşmeler yalnız frappe/frappe/public/dist içindeki derlenmiş üçüncü taraf bundle ve map dosyalarında. Kaynakta SSE uygulaması yok.
+- frappe/frappe (glob !**/dist/**); arama `(?i)text/event-stream|EventSource|Last-Event-ID|event_source|stream_with_context|StreamingResponse|mimetype=.text/event`: Eşleşme yok.
+- suite; arama `(?i)text/event-stream|EventSource|Last-Event-ID|server[-_ ]sent`: Eşleşmeler: jmap.py içindeki eventSourceUrl önbelleği, bir test sabiti, alakasız yorumlar ve public/frontend içindeki derlenmiş asset'ler. SSE endpoint'i yok.
+- suite (glob !**/public/frontend/**); arama `(?i)event_source_url|eventSourceUrl|EventSource|text/event-stream|stream_with_context|Last-Event-ID`: Yalnız suite/suite/mail/jmap.py:689 ve suite/suite/mail/tests/test_jmap_client.py:44 eşleşti. İkisi de harici JMAP session URL'sinin önbelleklenmesi.
+- frappe (glob !**/dist/**); arama `def publish_realtime|redis_server\.publish|def emit_via_redis|new Server\(|require\("socket\.io"\)|from "socket.io"`: Realtime yolu frappe/frappe/realtime/**init**.py ve frappe/realtime/index.js dosyalarında; okundu. Taşıma Socket.IO ve Redis pub/sub.
+- suite/suite/headless_provider; arama `(?i)realtime|stream|sse|event|socket|cursor`: Eşleşme yok. Pilot provider'da realtime sözleşmesi yok.
+- . (frappe ve suite, glob !**/{dist,public/frontend}/**); arama `(?i)X-Accel-Buffering|direct_passthrough|heartbeat|keepalive|keep-alive`: Eşleşmeler yalnız drive dosya akışı (direct_passthrough), meet STT keepalive, RQ/scheduler heartbeat ve Vue keep-alive. SSE heartbeat'i veya proxy buffering ayarı yok.
+
+Sınır: Yalnız kaynak kodu okundu; hiçbir şey çalıştırılmadı ve functionalAcceptance not_run. Deploy edilmiş proxy (nginx) ve Socket.IO çalışma davranışı doğrulanmadı.; Derlenmiş dist/public/frontend bundle'ları üçüncü taraf kod sayılarak SSE kanıtı olarak değerlendirilmedi.; suite/realtime handler'ları ve sfu-server ayrıntılı okunmadı. Bu dosyalarda SSE anahtar kelimesi eşleşmedi.; suiteCommit bilinmiyor. ERPNext/HRMS kurulu değil, değerlendirilmedi.; Plan modu etkin olduğu için plan dosyası yazılmadı. Kullanıcı yalnız Read/Glob/Grep ile salt okunur analiz istedi.
+
+Temporal workflow: `saas-recheck-20261015t073528z-016`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### realtime-3 — Bağlantı yetkisi, yeniden bağlanma ve kaçırılan olayları tamamlama.
 
@@ -3504,15 +4700,40 @@ Mevcut birincil görev: `websocket-api--implementation`. Kaynak: `suite/frontend
 
 #### realtime-4 — Kayıt üzerinde ekip yorumları, bahsetme ve takip etme.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Kabul ölçütü (mention doğru kişiye gitsin, izinsiz kullanıcı yorumu görmesin) anlamlı. Ancak hangi native varlıkların yeniden kullanılacağı yazılmamış (Comment, Notification Log, Document Follow). Bu varlıkların kaynağı pakette yok. Görülen tek dayanak doküman düzeyindeki izin kontrolü.
+Upstream frappe çekirdeğinde şunlar var. (1) Whitelist'li add_comment ve update_comment uçları: add_comment, referans kayıtta check_permission=True ile okuma izni ister; update_comment yalnız yorum sahibine veya Administrator'a izin verir. (2) Comment controller'ı hooks.py içinde kayıtlıdır (138 ve 173. satırlar). has_permission, yorumun okunabilirliğini referans kaydın read iznine bağlar; Comment zincirini en fazla 10 adım izler. get_permission_query_conditions, okunamayan DocType'ların yorumlarını eler. get_document_comments, docinfo ve get_comments içinde izin kontrolü uygular. İçerik sanitize_html ile temizlenir. (3) Comment.after_insert, notify_mentions'ı çağırır. extract_mentions, .mention data-id değerlerini ve User Group üyelerini ayrıştırır. Alıcılar enabled, System User ve allowed_in_mentions filtrelerinden geçer, sonra type=Mention olan Notification Log kaydı oluşur. Notification Log, for_user'a realtime 'notification' olayı ve isteğe bağlı e-posta gönderir; kaydı yalnız for_user okuyabilir. (4) Document Follow için follow, unfollow ve update_follow uçları var. Takip için track_changes, read izni ve document_follow_notify gerekir. follow_commented_documents açıksa yorum yazan kullanıcı kaydı otomatik takip eder; takipçilere periyodik özet e-postası gider. (5) docinfo_update olayı kaydın realtime odasına yayınlanır; doc_subscribe odaya katılmadan önce has_permission kontrolü yapar. Suite'teki Vue Writer/Sheets yorumları ve drive notify_mentions ürüne özgüdür, genel kayıt yorumu sağlayıcısı değildir. Yerel pilot suite/headless_provider/api.py yalnız session, metadata, create_field, preview_edit ve apply_edit uçlarını sunar; yorum, mention veya takip sözleşmesi içermez.
 
-Eksik: Yeniden kullanılacak native DocType'lar ve v17 API eşlemesi adlandırılmamış; Yorum görünürlüğünün referans kaydın read/share iznini miras alma kuralı yazılmamış; Mention ayrıştırma ve bildirim kanalı (realtime + Notification Log) bağı tanımsız; Kaynak görülmediği için native yetenek doğrulanmadı
+Eksik: Kabul ölçütünü bozan açık: notify_mentions, bahsedilen kullanıcının referans kayıtta read izni olup olmadığını kontrol etmiyor. Yorum içeriği email_content alanıyla Notification Log'a ve bildirim e-postasına kopyalanıyor. Bu yüzden kayda izni olmayan biri mention yoluyla yorumu görebilir.; add_comment, comment_email ve comment_by değerlerini istemciden alıyor; validate yalnız boş comment_email'i dolduruyor. Yazar kimliği oturum kullanıcısına sabitlenmiyor.; suite/headless_provider içinde yorum listeleme/ekleme/düzenleme, mention bildirimi ve takip için tenant ve izin kapsamlı provider sözleşmesi yok.; React/Ant Design (Pro/X) tarafında yorum, mention ve takip yüzeyi kaynakta yok. Mevcut UI Desk JS ve Suite Vue tarafında.; Realtime docinfo_update ile Notification Log olaylarının headless istemciye (kernel envelope/outbox) eşlenmesi tanımlı değil.
 
-Sonraki adım önerisi: native-comment--implementation için v17'de Comment, mention bildirimi ve Document Follow kaynaklarını okuyun. Bunları kayıt read iznine bağlayan headless uç nokta listesini yazın; yorum ORM'i kopyalamayın.
+Sonraki somut adım: native-comment--contract sırasına bağlı kalınarak şu sırayla ilerlenmeli: 1) Önce RED regresyon testi yazılmalı. Testte okuma izni olmayan kullanıcı mention edilmeli; ne Notification Log oluşmalı ne e-posta gitmeli. 2) Ardından notify_mentions'ta alıcılar frappe.has_permission(ref_doctype, 'read', doc=ref_name, user=...) ile süzülmeli ve test GREEN'e geçirilmeli. Bu düzeltme upstream'e veya yerel override'a küçük bir yama olarak yapılmalı. 3) add_comment'te yazar kimliği oturum kullanıcısına sabitlenmeli. 4) Sonra headless_provider'a ince sarmalayıcılar eklenmeli: comments.list (get_document_comments), comments.add/update (frappe.desk.form.utils), follow.toggle (update_follow) ve notifications.list (Notification Log). Comment ORM'i kopyalanmamalı. 5) Realtime docinfo_update ve notification olayları kernel envelope'a eşlenmeli.
 
-Mevcut birincil görev: `native-comment--implementation`. Kaynak: `frappe/frappe/permissions.py:94`; `frappe/frappe/api/v1.py:83`.
+Önerilen bağımlılık/sıra: native-comment--contract; kernel-envelope--contract; tenant-registry--contract; native-user-policy--contract; capability-definition--contract; native-doctype-schema--contract; outbox--contract. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `native-comment--implementation`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/desk/form/utils.py:31` — `reference_doc = frappe.get_lazy_doc(reference_doctype, reference_name, check_permission=True)`
+- `frappe/frappe/core/doctype/comment/comment.py:128` — `"""A comment is readable as far as the document it was written on is."""`
+- `frappe/frappe/desk/notifications.py:465` — `{"enabled": 1, "name": name, "user_type": "System User", "allowed_in_mentions": 1},`
+- `frappe/frappe/desk/notifications.py:483` — `"email_content": content,`
+- `frappe/frappe/desk/form/document_follow.py:68` — `if not frappe.has_permission(doctype, "read", doc=doc_name, user=user):`
+- `frappe/frappe/realtime/handlers.py:76` — `if await socket.has_permission(doctype, docname):`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- source (frappe + suite tümü); arama `def (add_comment|notify_mentions|extract_mentions|get_mentioned_users|follow_document|unfollow_document|get_follow_users|send_document_follow_mails|update_comment)\b`: Çekirdek: frappe/desk/form/utils.py, desk/notifications.py, desk/form/document_follow.py, model/document.py, desk/like.py, templates comments.py. Suite tarafında yalnız suite/drive/api/notifications.py içinde Drive'a özgü notify_mentions var.
+- suite; arama `(?i)(mention|comment|follow)`: Eşleşmeler Vue Writer/Sheets/Mail bileşenlerinde, Drive bildirimlerinde, calendar ve locale dosyalarında; genel kayıt yorumu sağlayıcısı yok.
+- suite/suite/headless_provider; arama `(?i)(comment|mention|follow|notification_log|docinfo)`: 0 eşleşme. Pilot provider yorum, mention veya takip sözleşmesi içermiyor.
+- frappe/frappe/hooks.py; arama `"Comment"|Comment"|comment\.comment`: Comment için permission_query_conditions (138) ve has_permission (173) hook kayıtları var.
+- frappe/frappe/desk/doctype/notification_log/notification_log.py; arama `def (enqueue_create_notification|make_notification_logs|...)|has_permission\(|after_insert|publish_realtime`: Realtime 'notification' olayı, yalnız for_user'a okuma izni ve e-posta var. Alıcının referans kayıtta izni olup olmadığı kontrol edilmiyor.
+- frappe/frappe/desk/form/load.py; arama `def (get_comments|get_docinfo|...)|get_document_comments|is_document_followed`: get_docinfo, check_permission=True ile çalışıyor; yorumlar get_document_comments ile izin süzgecinden geçiyor.
+- frappe; arama `def can_subscribe_doc|doc_subscribe`: realtime/handlers.py:75-77 ve handlers.js:58-61 odaya katılmadan önce izin kontrolü yapıyor.
+
+Sınır: Yalnız kaynak okundu; test, komut veya runtime çalıştırılmadı. functionalAcceptance=not_run.; Mention izin açığının sonucu kaynak okumasından çıkarıldı; runtime'da RED testiyle doğrulanmadı.; Desk JS mention autocomplete kullanıcı listesinin izin süzgeci incelenmedi.; suiteCommit bilinmiyor. headless_provider yerel pilot, upstream değil.; ERPNext/HRMS kurulu değil, değerlendirilmedi.; Derlenmiş public/dist bundle'ları davranış kanıtı sayılmadı.
+
+Temporal workflow: `saas-recheck-20261015t073528z-017`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### realtime-5 — Kimin görüntülediği/düzenlediği bilgisi ve eşzamanlı düzenleme uyarısı.
 
@@ -3540,15 +4761,59 @@ Mevcut birincil görev: `ui-family-24--implementation-post-mvp`. Kaynak: `frappe
 
 #### realtime-7 — Modüller arası ortak atama ve Benim işlerim kuyruğu; sorumlu, takipçi, son tarih, hatırlatma ve yetkili kayıt eylemleri.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Hedef, sınırlar (workflow ve background job'dan ayrım) ve kabul ölçütü ayrıntılı. Ancak referans verilen CRM ve Helpdesk yerelde kurulu değil; kurulu uygulamalar yalnız frappe ve suite. 'En az iki iş modülü' yerel Suite modüllerinden seçilmemiş. Native ToDo/assign_to v17 kaynağı da pakette görülmedi.
+Upstream Frappe'de çalışan atama yapı taşları var:
 
-Eksik: CRM/Helpdesk kurulu değil; referans yerel kaynakla doğrulanamaz; Kabul için iki modül (ör. Suite içinden) adlandırılmamış; Native ToDo/assign_to v17 API eşlemesi ve tekilleştirilmiş hatırlatma kaynağı tanımsız; Tenant izolasyonunun hangi izin katmanıyla (User Permission/share) sağlanacağı yazılmamış
+- frappe/frappe/desk/form/assign_to.py: whitelisted add, remove, close, add_multiple ve remove_multiple uçları. Atama yapılırken referans kayıt için check_permission çalışır. Aynı kişiye ikinci açık atama yapılmaz (açık ToDo varsa atlanır). Atanan kişinin yetkisi yoksa kayıt onunla paylaşılır; System Settings'te paylaşım kapalıysa işlem reddedilir. Kullanıcı ayarı açıksa atanan kişi kaydı otomatik takip eder. Atanan kişiye Notification Log ile bildirim gider. close yalnız atanan kişinin kendisine izinlidir.
+- ToDo DocType şu alanları tutar: allocated_to (sorumlu), assigned_by, date (son tarih), priority, status (Open/Closed/Cancelled) ve reference_type/reference_name (modüller arası dinamik kayıt referansı). Atama ve kaldırma referans kayda Comment olarak yazılır (denetim izi). Açık atamalar referans kaydın _assign alanına senkronlanır.
+- ToDo için permission_query_conditions ve has_permission hookları tanımlı. ToDo rolü olmayan kullanıcı yalnız allocated_to, assigned_by veya owner olduğu ToDo'ları görür. Bu, "Benim işlerim" listesinin temelidir.
+- Takipçi tarafı: Document Follow ve periyodik özet e-postaları var. Özet gönderilirken referans kayıt için read izni yeniden kontrol edilir.
+- Hatırlatma tarafı: Reminder DocType, create_new_reminder ve 15 dakikalık send_reminders işi var. notified bayrağı aynı hatırlatmanın iki kez gönderilmesini önler.
 
-Sonraki adım önerisi: native-assignment--implementation için v17 assign_to/ToDo kaynağını okuyun ve kuyruğu ToDo üzerinde izin süzgeçli get_list olarak tanımlayın. Kabul için kurulu iki Suite modülünü adlandırın; CRM/Helpdesk'i yalnız tasarım referansı olarak işaretleyin.
+Suite tarafı:
 
-Mevcut birincil görev: `native-assignment--implementation`. Kaynak: `suite/pyproject.toml:6`; `frappe/frappe/client.py:26`; `frappe/frappe/permissions.py:82`.
+- Suite'te atama, ToDo veya iş kuyruğu kodu yok. Calendar'daki hatırlatmalar yalnız takvim olayları için.
+- suite/headless_provider yerel pilot ek kod. Yalnız session, metadata ve DocType alan düzenleme sözleşmesi sunuyor; atama veya kuyruk sözleşmesi içermiyor.
+
+Eksik: Kuyruk görünürlüğü referans kaydın iznine bağlı değil. ToDo.has_permission ve query koşulu yalnız allocated_to/assigned_by/owner alanlarına bakıyor. Kayıt izni veya üyelik kaldırılsa da ToDo ve description görünmeye devam eder; kabul ölçütü karşılanmıyor.; Tenant izolasyonu yok. ToDo'da tenant alanı ve tenant süzgeci bulunmuyor.; Takipçi atamanın bir parçası değil. Document Follow ayrı bir mekanizma; ToDo üzerinde takipçi alanı yok.; Son tarihe bağlı otomatik hatırlatma yok. ToDo.date için zamanlanmış iş bulunmuyor. Reminder kullanıcıya özel ve elle oluşturuluyor; ToDo ile otomatik bağı ve atama başına tekilleştirmesi yok. Reminder, bağlı kayıt için izin kontrolü de yapmıyor.; Sahiplik devri tek atomik işlem değil. Yeniden atama için ayrı remove ve add çağrısı gerekiyor.; Tamamlanmış iş üzerindeki geçersiz eylem açıkça reddedilmiyor. set_status zaten aynı durumdaki iş için sessizce geçiyor; Closed bir işi Cancelled yapmayı engelleyen bir kural yok.; İç not koruması yok. description alanı serbest metin ve alan düzeyinde gizlenmiyor.; En az iki kurulu Suite modülünün atama akışına bağlandığı bir entegrasyon yok. Headless provider'da kuyruk sözleşmesi de yok.
+
+Sonraki somut adım: Upstream ToDo ve assign_to korunacak; yeni katman yalnız suite/headless_provider'a ek olarak yazılacak. Sıra:
+
+1. native-assignment--contract kapsamında şu sözleşmeyi tanımla: sorumlu = ToDo.allocated_to, son tarih = ToDo.date, takipçi = Document Follow, hatırlatma = Reminder (referans ToDo).
+2. Provider'a tek bir salt okunur my_work uç noktası ekle. Uç, ToDo'yu frappe.get_list ile kullanıcı izniyle çeksin. Her satırda frappe.has_permission ile referans kaydı ayrıca kontrol etsin; okunamayan kaydı ve description alanını düşürsün. Tenant süzgeci tenant-registry--contract'a bağlansın.
+3. Kayıt izni kaldırıldığında işin kuyruktan düşmesini önce başarısız (RED), sonra geçen (GREEN) testle kanıtla.
+4. Ardından sunucuda yetkilendirilen reassign eylemini ekle; Closed veya Cancelled iş üzerindeki eylemi reddetsin.
+5. Son tarihe göre tekilleştirilmiş hatırlatmayı (her ToDo ve tarih için tek Reminder) en son ekle.
+6. Kabul için iki kurulu Suite modülünü açıkça seç (öneri: Drive ve Calendar). CRM/Helpdesk yalnız tasarım referansı olarak kalsın.
+
+Önerilen bağımlılık/sıra: native-assignment--contract; kernel-envelope--contract; tenant-registry--contract; native-user-policy--contract; capability-definition--contract; native-doctype-schema--contract; outbox--contract. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `native-assignment--implementation`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/desk/form/assign_to.py:72` — `frappe.get_doc(args["doctype"], args["name"]).check_permission()`
+- `frappe/frappe/desk/form/assign_to.py:211` — `frappe.throw(_("Only the assignee can complete this to-do."))`
+- `frappe/frappe/desk/doctype/todo/todo.py:174` — `return doc.allocated_to == user or doc.assigned_by == user or doc.owner == user`
+- `frappe/frappe/desk/doctype/todo/todo.py:84` — `frappe.get_doc(self.reference_type, self.reference_name).add_comment(comment_type, text)`
+- `frappe/frappe/automation/doctype/reminder/reminder.py:47` — `self.db_set("notified", 1, update_modified=False)`
+- `frappe/frappe/hooks.py:165` — `"ToDo": "frappe.desk.doctype.todo.todo.has_permission",`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- frappe/frappe/desk/form/assign_to.py; arama `def (add|remove|close|get|add_multiple|set_status|close_all_assignments|clear)\(`: add/remove/close/set_status/clear fonksiyonları bulundu ve tamamı okundu.
+- suite; arama `assign_to|ToDo|allocated_to|_assign`: Eşleşmeler yalnız derlenmiş frontend bundle'ları, Mail signup/install/role yamaları ve writer docx yardımcılarında. Atama veya kuyruk davranışı yok.
+- frappe/frappe/desk/doctype/todo/*; arama `glob`: todo.json, todo.py ve list/calendar js bulundu. todo.py okundu.
+- suite/suite (*.py, *.json); arama `(?i)(assignee|my[_ ]tasks|my[_ ]work|due_date|remind|follower|work[_ ]queue)`: Yalnız calendar modülünde etkinlik hatırlatmaları var. İş kuyruğu yok.
+- frappe/frappe/automation/doctype/{reminder,assignment_rule}; arama `glob *.py`: Reminder ve Assignment Rule bulundu. reminder.py okundu.
+- suite/**/headless_provider/**; arama `(?i)(assign|todo|task|follow)`: Eşleşme yok. Provider'da atama sözleşmesi bulunmuyor.
+- suite/suite/headless_provider/api.py; arama `(?i)def |whitelist|doctype`: Yalnız session, metadata, create_field, preview_edit ve apply_edit uçları var.
+- frappe/frappe/{hooks.py,desk/form/document_follow.py}; arama `document_follow|"ToDo"|assign_to`: ToDo izin hookları ve document follow özet işleri bulundu. Özet gönderiminde read izni kontrolü var.
+
+Sınır: Kanıt yalnız kaynak kodun varlığını gösterir. Hiçbir test veya komut çalıştırılmadı; functionalAcceptance: not_run.; Suite commit sürümü bilinmiyor. headless_provider, upstream'den ayrı yerel pilot kod olarak değerlendirildi.; Atama ToDo'yu ignore_permissions ile oluşturuyor. Atanan kişinin kayda erişimi, paylaşım açıksa share ile; kapalıysa ancak atamadan önce ayrıca verilen izinlerle sağlanıyor. Çalışma zamanı davranışı doğrulanmadı.; ToDo frontend'leri (todo_list.js, todo_calendar.js) ve Assignment Rule ayrıntıları okunmadı. Desk UI, headless sözleşmenin parçası olarak sayılmadı.; Bilgiyi başka yere sızdırabilecek diğer yollar (ör. ToDo üzerinden e-posta) incelenmedi.; CRM, Helpdesk, ERPNext ve HRMS kurulu değil; değerlendirme dışı.
+
+Temporal workflow: `saas-recheck-20261015t073528z-018`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### notifications-1 — In-app notification (uygulama içi bildirim) merkezi.
 
@@ -3588,15 +4853,51 @@ Mevcut birincil görev: `web-desktop-push--implementation`. Kaynak: `suite/front
 
 #### notifications-4 — WhatsApp Business API, Telegram Bot ve Discord kanalları.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Amaç ve kabul ölçütü (doğrulanmış alıcıya gönderim, sağlayıcı hatasının kaydı) tanımlı. Ancak bu pakette WhatsApp, Telegram veya Discord adaptörüne ait kaynak görülmedi; bu, kurulumun tamamında bulunmadığı anlamına gelmez. Yerel kalıplar karışık: Drive bildirim oluşturmada hatayı log_error ile kaydediyor, e-posta gönderiminde ise hatayı sessizce yutuyor. Bu ikinci davranış kabul ölçütüyle çelişen bir örnek.
+Upstream frappe'de ilgili temel yapılar var, ancak bunlar bu üç kanalın adaptörü değil. (1) Notification DocType yalnız Email, Slack, System Notification ve SMS kanallarını dağıtıyor; gönderim hatasını log_error ile kaydediyor (notification.py:430-449). (2) Slack Webhook URL entegrasyonu requests.post ile gönderiyor ve başarısız yanıtı frappe.log_error ile kaydediyor. (3) Genel Webhook DocType giden HTTP isteği gönderiyor. İstekler Delivered/Failed/Exhausted durumlarıyla Webhook Request Log'a yazılıyor; RETRY_SCHEDULE ile yeniden deneniyor ve HMAC imzalı giden X-Frappe-Webhook-Signature başlığı ekleniyor. Yapılandırmayla bir Discord gelen webhook'una istek atabilir, ancak bu bir kanal adaptörü değildir. (4) SMS Settings genel bir HTTP gateway ve SMS Log sağlıyor. notification.js:96'daki 'WhatsApp' dalı yalnız alıcı alanı filtresi. Kanal seçeneklerinde WhatsApp olmadığı için bu dal ölü bir UI kalıntısı; gönderim kodu yok. Suite'te (Vue frontend, Mail push_subscription, Meet ChatPanel) ve yerel pilot suite/headless_provider'da bildirim kanalı ya da sosyal mesajlaşma kodu bulunamadı.
 
-Eksik: Sağlayıcı kimlik bilgilerinin nerede saklanacağı ve kimlerin erişeceği tanımsız; secret'lar kaynak dışında tutulmalı.; Alıcı eşlemesi ile doğrulama ve opt-in sözleşmesi yok (telefon, chat_id, Discord kanal/webhook).; Gelen webhook ve geri bildirimler için imza doğrulaması, tekrar deneme ve hız sınırı tanımsız.; Bu kanalları sağlayacak ayrı bir Frappe uygulaması kurulacaksa uygulama kimliği ve sürüm eşlemesi verilmemiş; kurulu uygulamalar yalnız frappe ve suite.; Ortak bir hata kaydı modeli yok; sessizce yutma kalıbının yeniden kullanımı yasaklanmamış.
+Eksik: WhatsApp Business (Cloud) API adaptörü yok: mesaj/şablon gönderimi ve wa_id eşlemesi bulunmuyor.; Telegram Bot adaptörü yok: sendMessage çağrısı ve chat_id eşlemesi bulunmuyor.; Discord bot/webhook adaptörü yok.; Bu üç kanal için sağlayıcı kimlik bilgisi DocType'ı veya Password alanı yok; secret'lar kaynak dışında tutulmalı.; Doğrulanmış alıcı eşlemesi ve opt-in sözleşmesi yok (telefon, chat_id, Discord kanalı).; Sağlayıcıdan gelen teslim/durum geri bildirimleri için gelen imza doğrulaması ve hız sınırı yok.; Kanal başına sağlayıcı hata kodunu saklayan bir teslim kaydı yok. Webhook Request Log genel HTTP kaydıdır, alıcı veya kanal semantiği taşımaz.; Notification.channel sabit bir Select/Literal alanı (Email/Slack/System Notification/SMS). Yeni kanal eklemek için uzantı noktası (hook/override) gerekiyor; mevcut değil.; Suite Drive bildiriminde e-posta hatasını sessizce yutan 'except Exception: pass' kalıbı önceki incelemede kaydedildi ve kabul ölçütüyle çelişiyor.
 
-Sonraki adım önerisi: social-message-delivery--implementation görevini kanal başına ayrı adaptör sınırı olarak yaz. Her kanal için kimlik bilgisi saklama, alıcı doğrulama ve imzalı webhook sözleşmesini belirt. Sağlayıcı hatası frappe.log_error veya bir teslim kaydıyla izlenebilir olsun; 'except: pass' kalıbı açıkça yasaklansın.
+Sonraki somut adım: Önerilen sıra:
 
-Mevcut birincil görev: `social-message-delivery--implementation`. Kaynak: `suite/suite/drive/api/notifications.py:131`; `suite/suite/drive/api/notifications.py:159`; `suite/suite/drive/api/notifications.py:160`.
+1. Mevcut social-message-delivery--contract görevinde tek bir kanal adaptörü arayüzünü yaz: send(recipient_ref, message) bir sonuç döndürsün (delivered/failed, provider_code, provider_error).
+2. Aynı sözleşmeye şunları ekle:
+   - doğrulanmış alıcı ve opt-in kaydı;
+   - credential için yalnız Password alanı veya site config, kaynakta değer olmayacak;
+   - Delivered/Failed/Exhausted ve next_retry alanlı teslim kaydı. Bu kayıt Webhook Request Log ile retry_failed_webhooks kalıbını yeniden kullansın; 'except: pass' yasak.
+3. social-message-delivery--implementation görevinde ilk olarak tek kanalı ek (additive) uygulama kodu olarak yaz: Telegram Bot. Kurulu frappe'yi değiştirme; ayrı bir app'te veya pilot headless_provider sınırında yaz.
+4. Bu kanal için iki RED/GREEN testi yaz: doğrulanmamış alıcı reddedilmeli; sağlayıcıdan gelen 4xx teslim kaydına Failed ve hata metniyle düşmeli.
+5. Ardından aynı arayüzle Discord'u, sonra WhatsApp'ı (şablon/opt-in gerektirir) ekle.
+6. En son Notification'a bağla: Property Setter ile kanal seçeneği ekle ve doc_events/override ile dağıt.
+
+Headless provider bu kanalları kendi teslim kaydı ve sonuç sözleşmesiyle sunsun; Suite Vue frontend'ine bağımlı olmasın.
+
+Önerilen bağımlılık/sıra: social-message-delivery--contract; kernel-envelope--contract; native-user-policy--contract; capability-definition--contract; outbox--contract; email-template--contract. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `social-message-delivery--implementation`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/email/doctype/notification/notification.json:76` — `"options": "Email\nSlack\nSystem Notification\nSMS",`
+- `frappe/frappe/email/doctype/notification/notification.js:96` — `} else if (["WhatsApp", "SMS"].includes(frm.doc.channel)) {`
+- `frappe/frappe/email/doctype/notification/notification.py:449` — `self.log_error("Failed to send Notification")`
+- `frappe/frappe/integrations/doctype/slack_webhook_url/slack_webhook_url.py:67` — `frappe.log_error(message, _("Slack Webhook Error"))`
+- `frappe/frappe/integrations/doctype/webhook/webhook.py:176` — `log_request(webhook.name, doc.doctype, doc.name, request_url, headers, data, res, status="Delivered")`
+- `frappe/frappe/integrations/doctype/webhook/webhook.py:20` — `WEBHOOK_SECRET_HEADER = "X-Frappe-Webhook-Signature"`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- frappe/ + suite/ (tüm sourceRoot; svg/po/pot/csv/mo/min.js hariç); arama `(?i)whatsapp|telegram|discord`: 3 dosya eşleşti. frappe/frappe/email/doctype/notification/notification.js:96 yalnız alıcı alanı filtresi; frappe/ui Phone story bir UI örneği; suite asset .map derlenmiş üçüncü taraf kodu. Hiçbirinde adaptör yok.
+- frappe/ + suite/ (_.py,_.json,_.ts,_.tsx,_.vue,_.js); arama `(?i)chat_id|bot_token|wa_id|graph\.facebook|api\.telegram|discord(app)?\.com/api|sendMessage|messaging_product`: Eşleşenler: graph.facebook yalnız Facebook OAuth girişi (social_login_key.py, oauth.py); sendMessage yalnız Meet ChatPanel'in iç sohbeti; diğerleri suite derlenmiş asset'leri. Mesajlaşma sağlayıcısı entegrasyonu yok.
+- frappe/frappe/email/doctype/notification/; arama `channel.*options|Slack|SMS|System Notification`: Kanal seçenekleri sabit: Email/Slack/System Notification/SMS. Dağıtım ve hata kaydı send_notification_by_channel içinde.
+- frappe/frappe/integrations/doctype/slack_webhook_url/slack_webhook_url.py, frappe/frappe/integrations/doctype/webhook/webhook.py, frappe/frappe/core/doctype/sms_settings/sms_settings.py; arama `send_slack_message|requests\.(post|request)|log_error|log_request|webhook_secret|send_via_gateway|create_sms_log`: Slack hata kaydı, genel Webhook teslim günlüğü/yeniden deneme/HMAC imzası ve SMS gateway/log mevcut. Bunlar yeniden kullanılabilir temel yapılar; WhatsApp, Telegram ve Discord'a özel değiller.
+- suite/suite (_.py,_.json), suite/suite/hooks.py; arama `(?i)notification_channel|messaging|sms_settings|send_sms|webhook`: Yalnız Mail push_subscription ve testleri ile hooks.py:283'teki realtime/webhook yorumu eşleşti. Sosyal kanal yok.
+- suite/suite/headless_provider/; arama `(?i)notif|channel|whatsapp|telegram|discord|deliver`: Eşleşme yok. Yerel pilot sağlayıcıda bildirim kanalı sözleşmesi bulunmuyor.
+
+Sınır: Yalnız sourceRoot altındaki frappe ve suite kaynağı salt okunur incelendi. ERPNext/HRMS ve ayrı bir WhatsApp/Telegram uygulaması kurulu değil; değerlendirilmedi.; Site config, veritabanı, Webhook veya Slack kayıtları ve credential değerleri incelenmedi. Kurulu bir sitede yapılandırma yoluyla Discord webhook'una istek atılıp atılmadığı kaynaktan bilinemez.; Test yazılmadı ve çalıştırılmadı; functionalAcceptance=not_run. Bu analiz yalnız kod varlığını gösterir, teslim/runtime davranışını kanıtlamaz.; Derlenmiş suite asset ve .map dosyalarındaki eşleşmeler satır satır okunmadı; üçüncü taraf kütüphane kodu kabul edildi.; suiteCommit bilinmiyor; frappe commit adf1fd0c2d6215ad4cac9976251198b2a35fbda6.
+
+Temporal workflow: `saas-recheck-20261015t073528z-047`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### notifications-5 — Bildirim kanal yönetimi.
 
@@ -3648,15 +4949,39 @@ Mevcut birincil görev: `notification-message--implementation`. Kaynak: `suite/s
 
 #### notifications-9 — Slack ve Microsoft Teams bildirim bağlayıcıları; kanal eşleme ve bağlantı yaşam döngüsü.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Kabul ölçütü güçlü: izinli kanal, hız sınırı ve tekrar izlenebilirliği, sahip ayrılınca görünürlük, iptalin gönderimi kesmesi. Teams API değişikliği riski de not edilmiş. Verilen kaynak alıntılarında Slack/Teams bağlayıcı kodu yok. Frappe çekirdeğinde bir Slack webhook primitive'i olup olmadığı bu alıntılardan doğrulanamıyor. Görünen tek ilgili parça asenkron gönderim için kullanılabilecek frappe.enqueue.
+Upstream Frappe'de somut bir Slack primitive'i var. "Slack Webhook URL" DocType'ında webhook_name (unique, autoname), webhook_url ve show_document_link alanları bulunuyor. Yalnızca System Manager DocPerm'i tanımlı. Değişiklikler track_changes ile izleniyor. send_slack_message, requests.post ile tek seferlik bir JSON POST yapıyor. Hata olursa 400/403/404/410/500 için sabit mesajı frappe.log_error'a yazıp "error" döndürüyor. Notification DocType'ının channel seçenekleri Email/Slack/System Notification/SMS. Slack kanalında slack_webhook_url Link alanı zorunlu ve send_notification_by_channel → send_a_slack_msg ile gönderiliyor. İstisnalar log_error ile kaydediliyor. queue_send, evaluate_alert'i frappe enqueue (RQ) ile arka plana atabiliyor. Bu kısım "bildirimi Slack'te bir webhook kanalına eşleme" davranışını kısmen karşılıyor. Suite uygulamasında ve yerel pilot olan suite/headless_provider'da (api.py, local_fixture.py, **init**.py) Slack, Teams, webhook ya da kanal bağlayıcısı yok. Suite'teki "teams" eşleşmeleri Drive ekip kavramıyla ilgili kaldırma patch'leri; Retry-After eşleşmeleri ise mail/JMAP istemcisine ait. Microsoft Teams bağlayıcısı hiçbir kökte yok. Bu sonuç yalnızca kaynak koda dayanıyor, runtime kabulü yapılmadı (functionalAcceptance: not_run).
 
-Eksik: v17 Frappe kaynağında Slack Webhook URL benzeri bir DocType ya da Notification kanalı olup olmadığı doğrulanmamış.; Kiracıya ait bağlantı kaydının modeli (webhook URL'si Password alanında mı, OAuth bot token mı), sahiplik ve DocPerm tanımsız.; Teams için hedef yol (Workflows mı, bot mu) seçilmemiş; sürüm bazlı doğrulamanın sahibi yok.; Hız sınırı (429/Retry-After) ve geçici hata tekrarlarının hangi kuyrukta, kaç denemeyle izleneceği tanımsız.; Bağlantı iptal edildiğinde kuyruktaki bekleyen işlerin iptal davranışı belirtilmemiş.
+Eksik: Microsoft Teams bağlayıcısı (Workflows/Power Automate webhook veya bot/Graph yolu) iki app kökünde de yok.; Kiracıya ait bağlantı modeli yok. Slack Webhook URL kaydında tenant/sahip alanı yok ve DocPerm yalnız System Manager'a tanımlı. Kiracı veya sahip bazında izin ve user permission kapsamı yok.; webhook_url gizli değer olmasına rağmen Password değil Data alanı; secret olarak saklanmıyor, liste görünümünde de çıkıyor (in_list_view).; İzinli kanal politikası yok: hangi kiracının, hangi rolün hangi kanala gönderebileceğini sınırlayan bir allowlist veya capability kontrolü bulunmuyor.; Hız sınırı yok: 429 ve Retry-After işlenmiyor, geçici hatalarda tekrar deneme ya da backoff yok, gönderim denemesi ve sonucu için kalıcı bir teslim/outbox kaydı yok. Elde yalnız Error Log var.; Bağlantı yaşam döngüsü yok: active/revoked/needs_reauth durumu, sahip ayrılınca devir veya yeniden yetkilendirme görünürlüğü ve iptal edilen bağlantı için kuyruktaki işi kesen bir kontrol bulunmuyor. send_slack_message kayıt varsa koşulsuz gönderiyor.; requests.post timeout içermiyor; Slack OAuth/bot token yolu yok.; headless_provider'da bağlantı ya da teslim sözleşmesini dışa açan bir API yok.
 
-Sonraki adım önerisi: team-message-delivery görevinde önce v17 frappe/integrations kaynağında Slack primitive'i aranmalı ve sonuç kaydedilmeli. Ardından tek bir bağlantı DocType sözleşmesi (secret Password alanında, kiracı ve sahip, iptal durumu) ile enqueue tabanlı gönderim ve Retry-After kuralı yazılmalı. Teams yolu tek bir hedef API ile sınırlandırılmalı.
+Sonraki somut adım: Tek ve dar bir davranışla başlanmalı: iptal edilen bağlantı gönderimi kesmeli. Sıra şöyle önerilir: 1) team-message-delivery--contract içinde kiracıya ait bir bağlantı DocType sözleşmesi tanımlanır. Bu sözleşme tenant, sahip, provider (Slack/Teams), Password tipinde secret, status (active/revoked/needs_reauth) ve izinli kanal alanlarını içerir. Mevcut Slack Webhook URL değiştirilmez; additive olarak ondan yeniden kullanılır. 2) Gönderim, outbox--contract üzerinden enqueue edilen bir teslim kaydına bağlanır. Worker gönderimden hemen önce status ve izinli kanal kontrolünü yapar. İptal edilmiş bağlantı için RED testi yazılır, sonra GREEN yapılır. 3) Aynı worker'a timeout, 429/Retry-After ve sınırlı backoff ile denemeleri izlenebilir kılan teslim kaydı eklenir. 4) Sahip ayrılınca needs_reauth durumuna geçiş ve bunun görünürlüğü eklenir. 5) Ancak bundan sonra tek bir hedef Teams API'si (Workflows webhook) aynı sözleşmeye ikinci provider olarak bağlanır. Headless provider yalnız bu sözleşmeyi dışa açmalı; Suite Vue arayüzüne bağımlı olmamalı.
 
-Mevcut birincil görev: `team-message-delivery--implementation`. Kaynak: `frappe/frappe/api/v2.py:293`.
+Önerilen bağımlılık/sıra: team-message-delivery--contract; kernel-envelope--contract; native-user-policy--contract; capability-definition--contract; outbox--contract; email-template--contract. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `team-message-delivery--implementation`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/integrations/doctype/slack_webhook_url/slack_webhook_url.py:63` — `r = requests.post(slack_url, data=json.dumps(data))`
+- `frappe/frappe/integrations/doctype/slack_webhook_url/slack_webhook_url.py:67` — `frappe.log_error(message, _("Slack Webhook Error"))`
+- `frappe/frappe/integrations/doctype/slack_webhook_url/slack_webhook_url.json:27` — `"label": "Webhook URL",`
+- `frappe/frappe/email/doctype/notification/notification.json:76` — `"options": "Email\nSlack\nSystem Notification\nSMS",`
+- `frappe/frappe/email/doctype/notification/notification.py:438` — `self.send_a_slack_msg(doc, context)`
+- `frappe/frappe/email/doctype/notification/notification.py:385` — `"frappe.email.doctype.notification.notification.evaluate_alert",`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- frappe/ ve suite/ (sourceRoot tamamı; _.po/pot/csv/mo hariç); arama `(?i)slack|microsoft.?teams|incoming.?webhook`: 25 dosya bulundu. Gerçek uygulama yalnız frappe/frappe/integrations/doctype/slack_webhook_url/_ ve frappe/frappe/email/doctype/notification/* içinde. Diğerleri ikon, derlenmiş bundle/map dosyaları ve Suite takvim UI'ındaki ilgisiz eşleşmeler.
+- frappe/frappe/email/doctype/notification; arama `(?i)slack`: Channel=Slack seçeneği, slack_webhook_url Link alanı ve send_a_slack_msg → send_slack_message çağrısı bulundu.
+- sourceRoot tamamı (*.map/po/pot/csv/mo/svg hariç); arama `(?i)microsoft.?teams|ms.?teams|teams.?webhook|power.?automate|adaptive.?card|chat\.postMessage|slack_sdk|bot.?token`: Eşleşme yok. Teams bağlayıcısı ve Slack bot/OAuth yolu bulunmuyor.
+- suite/; arama `(?i)teams|retry.?after|\b429\b|webhook_url|o365|msteams`: 34 dosya bulundu. Eşleşmeler Drive ekip kaldırma patch'leri, mail/JMAP Retry-After ve meet recorder ile ilgili. Bildirim kanalı bağlayıcısı yok.
+- suite/suite/headless_provider; arama `(?i)slack|webhook|notification|channel`: Eşleşme yok. Yerel pilot provider'da kanal teslim sözleşmesi bulunmuyor.
+- frappe/frappe/email/doctype/notification/notification.py; arama `def (evaluate_alert|trigger_notifications|run_notifications)|enqueue\(|send_notification_by_channel`: queue_send içindeki enqueue(evaluate_alert) bulundu. Slack gönderiminde retry, rate-limit veya iptal kontrolü yok.
+
+Sınır: Kaynak analizi yalnızca kurulu frappe ve suite app kökleriyle sınırlı. ERPNext/HRMS ve harici ekosistem incelenmedi.; Hiçbir kod veya test çalıştırılmadı. functionalAcceptance: not_run. Slack/Teams uç noktalarının gerçek davranışı ve Teams API değişiklikleri doğrulanmadı.; suiteCommit bilinmiyor. headless_provider yerel pilot ek kod; upstream-native değil.; Notification tetikleme yolunun tamamı (trigger_notifications ile hooks arasındaki eşzamanlı ya da asenkron çağrı akışı) satır satır okunmadı. Değerlendirme Slack gönderim kodu ile queue_send/enqueue üzerine kuruldu.; Derlenmiş public/dist ve .map dosyaları davranış kanıtı sayılmadı.
+
+Temporal workflow: `saas-recheck-20261015t073528z-048`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 ### Modüller, paketler ve kullanım hakları
 
@@ -3950,15 +5275,39 @@ Mevcut birincil görev: `entitlement-grant--implementation`. Kaynak: `frappe/fra
 
 #### entitlements-6 — Müşteri ortamına kurulum için lisans doğrulama ve çevrimdışı tolerans.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **YOK**. İşlevsel kabul: `not_run`.
 
-İmzası bozuk veya süresi dolmuş lisans, ağ kesintisi ve deterministik grace süresi ölçüt olarak yazılmış. Ancak grace süresi 'kararlaştırılmış' denip belirlenmemiş, kurulum modeli de koşullu bırakılmış. İncelenen alıntılarda lisans doğrulama kaynağı görülmedi. PyJWT bağımlılığı tek başına bir yetenek sayılmaz. Suite AGPL-3.0 lisanslı; müşteri ortamında kaynak değiştirilebileceği için lisans denetiminin hangi güvenlik garantisini verebileceği belirsiz.
+frappe ve suite kaynak köklerinde, müşteri ortamı kurulumu için imzalı lisans doğrulaması, lisans süresi kontrolü, çevrimdışı grace/tolerans veya lisans ile hak eşlemesi yapan bir kod bulunamadı. Bulunanlar yalnızca lisansla ilgisi olmayan genel ilkellerdir. (1) Upstream frappe'de PyJWT ile imza doğrulayan Entra/O365 token kontrolü vardır (frappe/frappe/utils/oauth.py:48). (2) Suite Meet kayıt callback'inde HS256 JWT doğrulaması vardır (aud/iss/require) (suite/suite/meet/recording/callback_auth.py:357). (3) Frappe Cloud faturalandırma istemcisi, barındırılan SaaS'ta site bilgisini ve trial_end_date'i uzaktan çeker. Ağ hatasında None döner; grace mantığı veya imzalı yerel lisans yoktur. (4) boot.py, frappe.conf.subscription değerini yalnızca bootinfo'ya taşır; uygulayıcı bir kontrol değildir. Lokal pilot suite/suite/headless_provider (api.py, local_fixture.py) lisans, abonelik, süre veya grace içermiyor. Suite'in Vue frontend'inde ve frappe/ui TrialBanner'da yalnızca FC deneme süresi gösterimi var; bu bir doğrulama değildir.
 
-Eksik: Grace süresi, saat kayması toleransı ve süre dolunca uygulanacak kesme politikası (salt okunur mu, tam kesme mi) belirlenmemiş.; İmza anahtarı yönetimi ve rotasyonu, lisans içeriğinin şeması ve hangi hakları taşıdığı tanımsız.; AGPL-3.0 kapsamında lisans denetiminin hukuki ve teknik sınırı ele alınmamış. Bu konu kullanıcıyla netleştirilmeli.; entitlements-1 ile aynı hak modeline bağlanıp bağlanmayacağı belirtilmemiş.
+Eksik: İmzalı lisans artefaktının şeması (müşteri/tenant, hak listesi, iat/nbf/exp, kid) ve doğrulayıcısı (asimetrik imza, örn. EdDSA/RS256; yalnız public key sitede); Bozuk imza, yanlış kid veya süresi dolmuş lisansın deterministik reddi, saat kayması toleransı (leeway); Çevrimdışı tolerans: son başarılı doğrulama zamanının kalıcı kaydı ve enjekte edilebilir saatle deterministik grace hesabı (grace değeri kararlaştırılmamış); Süre dolunca uygulanacak kesme politikası (salt okunur / tam kesme) ve bunu uygulayan request/permission hook'u; Lisans haklarının entitlement-grant (entitlements-1) kaydına eşlenmesi ve audit/outbox olayları; İmza anahtarı yönetimi/rotasyonu ve iptal (revocation) mekanizması; Headless provider sözleşmesinde lisans/hak durumunun GenUI'ye sunulması (salt okunur durum uç noktası); AGPL-3.0 kapsamında müşteri kaynağı değiştirebildiği için teknik garantinin sınırı: hukuki/ürün kararı kullanıcıyla netleştirilmeli
 
-Sonraki adım önerisi: Önce müşteri ortamına kurulumun kapsamda olup olmadığına ve grace değerine karar verin. Ardından imzalı lisansın entitlements-1 hak kaydına nasıl eşleneceğini görev metnine yazın; o zamana kadar uygulamayı ertelemek doğru.
+Sonraki somut adım: Sıra korunmalı: önce entitlement-grant--contract/schema bağımlılıkları kapanmalı. Ardından kullanıcı şu üç kararı vermeli: müşteri ortamı kurulumu kapsamda mı, grace süresi kaç gün, süre dolunca salt okunur mu yoksa tam kesme mi. En küçük somut adım şudur: suite içinde, headless_provider pilotundan ayrı, saf ve yan etkisiz bir verify_license(token, public_keys_by_kid, now, last_verified_at, grace) fonksiyonu yazılmalı. Bu fonksiyon PyJWT ile algoritmayı sabitlemeli ve exp/iat/kid alanlarını zorunlu tutmalı (callback_auth.py:357 desenini izleyerek). Önce gerçek RED testleri yazılmalı: bozuk imza, süresi dolmuş, grace sınırının bir saniye öncesi/sonrası, saat kayması. Sonra GREEN yapılmalı. Sonraki adımlar sırasıyla: (2) son başarılı doğrulama zamanını kalıcılaştırmak; (3) claim'leri entitlement-grant kaydına eşlemek; (4) kesme politikasını tek bir hook ile uygulamak; (5) durumu headless provider'da salt okunur sözleşme olarak sunmak.
 
-Mevcut birincil görev: `entitlement-grant--implementation`. Kaynak: `suite/suite/hooks.py:11`; `frappe/pyproject.toml:19`; `suite/pyproject.toml:45`.
+Önerilen bağımlılık/sıra: entitlement-grant--contract; entitlement-grant--schema; kernel-envelope--contract; tenant-registry--contract; native-user-policy--contract; capability-definition--contract; outbox--contract; audit-envelope--contract. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `entitlement-grant--implementation`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/integrations/frappe_providers/frappecloud_billing.py:101` — `request = post("press.saas.api.site.info")`
+- `frappe/frappe/integrations/frappe_providers/frappecloud_billing.py:103` — `return None`
+- `frappe/frappe/boot.py:633` — `return frappe.conf.subscription`
+- `frappe/frappe/utils/oauth.py:48` — `return jwt.decode(token, signing_key.key, algorithms=["RS256"], audience=client_id)`
+- `suite/suite/meet/recording/callback_auth.py:357` — `claims = jwt.decode(`
+- `frappe/frappe/integrations/frappe_providers/frappecloud_billing.py:50` — `"trial_end_date": add_days(nowdate(), trial_days),`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- source (frappe + suite, *.py/json/js/ts/vue); arama `(?i)(license_key|licen[cs]e.{0,20}(verif|valid|signature|expir)|grace.?period|offline.?(grace|toleran|mode)|verify_signature|public_key)`: Lisans doğrulaması yok. Grace eşleşmeleri ilgisiz: esbuild süreç sonlandırma, OAuth dinamik istemci temizliği, SFU token yenileme, takvim daveti. public_key eşleşmeleri Mail push ve Meet E2EE'ye ait.
+- source (frappe + suite, *.py/json/ts/vue); arama `(?i)(entitlement|subscription_(plan|status|expir)|licen[cs]e_(token|file|status|expir)|activation_key|product_key|is_licensed|trial_end|expires_on)`: Entitlement veya lisans kodu yok. Yalnızca FC trial_end_date (frappecloud_billing.py, TrialBanner) ile document_share_key ve web_form_request expires_on alanları bulundu; bunlar lisansla ilgisiz.
+- suite/suite/headless_provider; arama `(?i)(licen[cs]|subscription|expir|grace|offline|signature|entitle)`: Eşleşme yok. Lokal pilot provider lisans ya da hak durumu içermiyor.
+- frappe/frappe (*.py); arama `(?i)(def\s+\w*(licen[cs]e|subscription|expir)\w*|"(subscription|license)[a-z_]*"\s*:|conf\.get\(\s*["'](subscription|license|expiry|limits))`: Yalnızca boot.add_subscription_conf bulundu (conf değerini bootinfo'ya taşıyor, uygulama yok). boilerplate/package get_license_text ise açık kaynak lisans metni içindir.
+- frappe/frappe (*.py); arama `jwt\.decode|verify_jwt|ed25519.*verify|\.verify\(`: İmza doğrulama ilkelleri yalnızca OAuth/OIDC, 2FA ve parola bağlamında var. Lisans bağlamında kullanım yok.
+- suite (*.py/json/ts/vue); arama `(?i)(licen[cs]e_[a-z]|subscription_[a-z]|plan_limit|max_users|user_limit|jwt\.decode|offline_grace)`: Eşleşmeler yalnızca Meet kayıt JWT'leri ve Mail push subscription ile ilgili. Lisans veya plan limiti yok.
+
+Sınır: Kapsam yalnızca sourceRoot altındaki kurulu frappe ve suite app kaynaklarıdır. ERPNext/HRMS, Press/Frappe Cloud sunucu tarafı ve site_config değerleri incelenmedi; bunlar yok.; Bu değerlendirme yalnızca statik kaynak incelemesidir. Komut ve test çalıştırılmadı; functionalAcceptance: not_run.; Sonuç, kaynakta kodun var olup olmadığını gösterir. Dağıtım, hukuki uyum (AGPL-3.0) veya runtime davranışı kanıtlanmadı.; Derlenmiş public/frontend/assets bundle'larındaki uzun satırlar ayrıntılı incelenmedi. Kaynak frontend'de lisans mantığı bulunamadı.; Listelenen JWT/imza ilkelleri ancak gelecekte yeniden kullanılabilecek desenlerdir; lisans yeteneği sayılmaz.; suiteCommit bilinmiyor.
+
+Temporal workflow: `saas-recheck-20261015t073528z-019`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### campaigns-1 — Kupon, kampanya ve indirim yönetimi.
 
@@ -4118,15 +5467,41 @@ Mevcut birincil görev: `usage-ledger--implementation`. Kaynak: `frappe/frappe/r
 
 #### usage-8 — Ön ödemeli kredi veya ek kota satın alma; bakiye yükleme, geçerlilik ve iade uzlaştırması.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Kabul ölçütü güçlü: tek ödeme bildiriminden tek artış, kaynak ve son kullanma takibi, kiracı izolasyonu. Ancak ödeme sağlayıcısı seçilmemiş. Ödeme veya webhook alım kaynağı bu excerpt'lerde yok; ERPNext ve ödeme uygulamaları da kurulu değil. Defter tarafında yalnız usage-6'daki yapı taşları kullanılabilir. Ödeme tarafının yerel kabiliyeti bilinmiyor.
+Upstream frappe kaynağında frappe/frappe/integrations/frappe_providers/cloud_billing.py ve cloud_settings.py var. Bunlar, Frappe Cloud/Atlas'ta barındırılan sitenin cüzdan bakiyesi yükleme (create_topup_checkout), checkout durumu, plan, ödeme yöntemi ve özet çağrılarını Central billing API'ye ileten ince bir HTTP proxy'sidir. Uçlar whitelisted'dır. Erişim yalnız pilot_endpoint ve pilot_auth_token tanımlıysa ve kullanıcı System Manager ise açılır (_assert_access). Bakiye ve kredi mantığı yerelde değil, harici Central'dadır. Bu yetenek, hosting sağlayıcısının siteye kestiği faturadır; SaaS kiracılarına kredi satan bir defter değildir. Genel yapı taşları da var: Integration Request DocType ve create_request_log harici istek ve bildirim kaydını tutar. Bu kayıtta request_id ve status alanları var ama request_id benzersiz değil. frappe.db.add_unique ile kompozit benzersizlik kalıbı da kullanılabilir (örnek: suite Rate Limit). Suite Python kodunda kredi, cüzdan, ödeme veya iade uygulaması yok. Suite frontend'deki topUp eşleşmeleri mail sayfalamasına ait. Yerel pilot suite/headless_provider (api.py, local_fixture.py) kredi, defter veya kullanım sözleşmesi içermiyor.
 
-Eksik: Ödeme sağlayıcısı seçimi ve webhook doğrulama sözleşmesi (imza, replay koruması) yok.; Tüketilmiş kredi için ödeme iadesi kuralı yazılmamış; 'tutarlı çalışsın' ifadesi bir politika değil.; Kredi düşümünün hangi sırayla yapılacağı (FIFO, son kullanma önceliği) ve süresi dolan kredinin nasıl kaydedileceği tanımsız.; Para birimi, ondalık hassasiyet ve kredi birimi dönüşümü belirtilmemiş.; usage-6 defterine olan bağımlılık sırası talimatta açık değil.
+Eksik: Kiracı başına yetkili kredi defteri yok: grant/consume/expire/clawback hareket türleri ve bakiye türetimi bulunmuyor.; Gelen ödeme sağlayıcısı webhook alıcısı yok; imza doğrulama ve replay koruması da yok.; provider_event_id benzersizliği yok, dolayısıyla 'aynı ödeme bildirimi = tek bakiye artışı' garantisi yok. Integration Request.request_id benzersiz değil.; Kredi kaynağı ve son kullanma tarihi takibi, düşüm sırası (FIFO veya son kullanma önceliği) ve süresi dolan kredinin kaydı yok.; Ödeme iadesi ile tüketilmiş kredi arasındaki uzlaştırma kuralı yok.; Para birimi, ondalık hassasiyet ve kredi birimi dönüşümü yok.; Kiracı izolasyonlu bakiye ve hareket okuma için headless provider sözleşmesi yok.; Cloud billing proxy Frappe Cloud'a bağlı, System Manager'a özel ve site düzeyinde. SaaS kiracı faturalaması için yeniden kullanılamaz.; Ödeme sağlayıcısı seçimi ve tüketilmiş kredi iade politikası henüz kullanıcı kararı olarak işaretlenmemiş.
 
-Sonraki adım önerisi: Önce usage-6 defter sözleşmesi tamamlanmalı. Ardından aynı defterde grant/expire/clawback giriş türleri ve provider_event_id benzersizliği tanımlanmalı. Sağlayıcı seçimi ve tüketilmiş kredinin iade politikası kullanıcı kararı olarak açıkça işaretlenmeli.
+Sonraki somut adım: Mevcut bağımlılık sırası korunmalı. İlk adım, usage-ledger--contract ve usage-ledger--schema kapsamında aynı defterde hareket türlerini (grant, consume, expire, clawback) tanımlamak. Her hareket şu alanları taşımalı: tenant, amount (Decimal), currency/unit, source_ref, expires_at. Ardından bu defterde (tenant, provider, provider_event_id) üzerine frappe.db.add_unique kısıtı konmalı. Tek ve dar ilk davranış şu olmalı: aynı provider_event_id ile gelen ikinci grant, ikinci bakiye artışı üretmesin. Bunun için gerçek RED/GREEN kanıtı gerekli. Sonra sırasıyla şunlar gelir: kiracı kapsamlı bakiye okuma ucu (headless provider sözleşmesi), expire işi, clawback ve iade kuralı. İade kuralı ve sağlayıcı webhook imza doğrulaması, kullanıcı sağlayıcıyı ve iade politikasını seçtikten sonra yapılmalı. Webhook ham kaydı için Integration Request yeniden kullanılabilir. cloud_billing proxy'si bu iş için kullanılmamalı.
 
-Mevcut birincil görev: `usage-ledger--implementation`. Kaynak: `suite/suite/suite_core/doctype/rate_limit/rate_limit.py:149`; `frappe/frappe/api/v2.py:164`.
+Önerilen bağımlılık/sıra: usage-ledger--contract; usage-ledger--schema; kernel-envelope--contract; tenant-registry--contract; native-user-policy--contract; capability-definition--contract; outbox--contract; audit-envelope--contract; usage-reservation--implementation. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `usage-ledger--implementation`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/integrations/frappe_providers/cloud_billing.py:3` — `Pilot forwards these calls to an allowlisted Central billing API using the bench's`
+- `frappe/frappe/integrations/frappe_providers/cloud_billing.py:73` — `def create_topup_checkout(client, amount, redirect_url: str) -> dict:`
+- `frappe/frappe/integrations/frappe_providers/cloud_settings.py:12` — `CLOUD_SETTINGS_ROLE = "System Manager"`
+- `frappe/frappe/integrations/frappe_providers/cloud_settings.py:129` — `if not (frappe.conf.get("pilot_endpoint") and frappe.conf.get("pilot_auth_token")):`
+- `frappe/frappe/integrations/doctype/integration_request/integration_request.json:90` — `"fieldname": "request_id",`
+- `suite/suite/suite_core/doctype/rate_limit/rate_limit.py:149` — `frappe.db.add_unique(`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- suite/suite (_.py,_.json); arama `(?i)(\bcredits?\b|top_?up|prepaid|wallet|refund|clawback|payment|billing|invoice|stripe|razorpay)`: Yalnız alakasız eşleşmeler çıktı: webdav yorumu, sieve test metinleri, STT bias listesinde 'Frappe Payments' dizgesi. Ödeme veya kredi uygulaması yok.
+- suite/suite (_.py,_.json); arama `(?i)(credit|top_?up|prepaid|wallet|refund|clawback|grant|ledger|quota|expir)`: 80+ dosya eşleşti; çoğu calendar, drive, mail izin, kilit ve token süresi ile ilgili. Mail Quota ve drive storage rezervasyonu depolama kotası; kredi defteri değil.
+- suite (tüm dosyalar); arama `(?i)(credit|top.?up|prepaid|wallet|balance|refund|clawback|webhook)`: Eşleşmeler derlenmiş frontend asset'leri, mail, drive ve push aboneliğinde; ödeme webhook'u veya kredi yok.
+- suite/suite/headless_provider; arama `(?i)(ledger|usage|credit|quota|balance|idempot|provider_event)`: Eşleşme yok.
+- suite/frontend/src; arama `(?i)(topup|top_up|prepaid|wallet|credit_balance|billing_credit)`: Yalnız mail usePaginatedThreads topUpIfShort (sayfalama); alakasız.
+- frappe/frappe (_.py,_.json); arama `(?i)(prepaid|top_?up|wallet|clawback|credit_balance|billing_credit|stripe|razorpay|paypal|braintree)`: cloud_billing.py ve cloud_settings.py (Frappe Cloud proxy'si), delete_payment_gateways yaması (payments uygulaması yoksa gateway DocType'larını siler) ve testler bulundu. Yerel defter yok.
+- frappe/frappe/integrations/frappe_providers; arama `(?i)(topup|checkout_status|def create_topup|def get_checkout)`: create_topup_checkout ve get_checkout_status, _assert_access ile korunan ve PilotClient'a ileten whitelisted uçlar.
+- frappe/frappe/integrations; arama `(?i)(class IntegrationRequest|def create_request_log|fieldname request_id/status)`: Integration Request genel istek ve bildirim log'u; request_id için unique tanımı yok.
+
+Sınır: Yalnız kurulu frappe ve suite kaynağı okundu; ERPNext, payments ve HRMS kurulu değil ve değerlendirilmedi.; Frappe Cloud Central billing API'si harici; davranışı bu kaynakla doğrulanamaz.; Kod çalıştırılmadı, test koşulmadı; functionalAcceptance: not_run.; Derlenmiş frontend asset'leri ve map dosyaları ayrıntılı incelenmedi; kaynak src araması temel alındı.; Suite commit bilinmiyor; headless_provider yerel pilot ek kodudur, upstream-native değildir.; Plan modu talimatına rağmen kullanıcı düzenlemeyi yasakladığı için plan dosyası yazılmadı; çıktı yalnız bu JSON.
+
+Temporal workflow: `saas-recheck-20261015t073528z-061`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 ### Tahsilat, faturalama ve finans
 
@@ -4156,39 +5531,113 @@ Mevcut birincil görev: `payment-attempt--implementation`. Kaynak: `frappe/frapp
 
 #### payments-3 — Tam/kısmi iade, ters ibraz ve ödeme itirazı yönetimi.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **YOK**. İşlevsel kabul: `not_run`.
 
-Hedef ve kabul ölçütü (bakiye/hizmet kararının tutarlı güncellenmesi) var. Ancak finans kaydı ve hak etkisi tanımlanmamış. ERPNext kurulu olmadığı için muhasebe kaydı native değil. Sağlanan alıntılarda iade/itiraz primitifi görülmedi.
+Taranan kurulu kaynakta (frappe, suite, suite/headless_provider) tam/kısmi iade, ters ibraz (chargeback) ya da ödeme itirazı (dispute) için hiçbir uygulama yok: DocType, controller, whitelisted API, webhook işleyicisi veya bakiye/hak düzeltme mantığı bulunmuyor. Ödemeyle ilgili tek gerçek kod, Frappe upstream'indeki frappe/integrations/frappe_providers/cloud_billing.py ve cloud_settings.py'deki whitelisted proxy'ler. Bunlar sitenin kendi Frappe Cloud barındırma faturası için plan, profil, ödeme yöntemi, cüzdana bakiye yükleme (top-up) checkout'u ve checkout durumu çağrılarını Central'a iletiyor. İade, itiraz, ters ibraz veya alacak dekontu (credit note) uç noktası yok. Bu proxy, SaaS operatörünün kendi müşterilerinden aldığı ödemeleri yöneten bir primitif de değil. Asıl iş mantığı uzak Central servisinde ve yerel kaynakta yok. Patch delete_payment_gateways.py, 'payments' uygulaması kurulu değilse Stripe/Razorpay/PayPal gibi ödeme ağ geçidi DocType'larını siliyor; dolayısıyla Frappe'nin kendi ödeme ağ geçidi DocType'ları da kurulu değil. Suite'teki 'reversal' eşleşmeleri Drive WebDAV kota/rollup geri alma mantığı, 'subscription' eşleşmeleri ise Mail push aboneliği; ödemeyle ilgisi yok. LOCAL PILOT suite/headless_provider (api.py, local_fixture.py, **init**.py) içinde ödeme, iade, bakiye veya hak (entitlement) sözleşmesi yok. ERPNext kurulu değil, bu yüzden muhasebe defteri veya Credit Note primitifi de yok.
 
-Eksik: İade ve ters ibrazın hangi yerel kayda (credit note, bakiye düzeltmesi) yansıyacağı tanımsız.; Dispute sırasında hizmetin askıya alınması veya korunması kuralı yok.; ERPNext olmadan finans defterinin nerede tutulacağı belirtilmemiş.; Kısmi iadenin toplam tutarı aşmaması gibi invariant'lar yazılmamış.
+Eksik: Ödeme denemesine bağlı, tutarı, durumu ve sağlayıcı referansı olan bir iade kaydı (DocType/şema) ve iş kuralı: kısmi iadelerin toplamı yakalanan tutarı aşamaz, aynı iade iki kez işlenmez (idempotency).; Ters ibraz ve itiraz yaşam döngüsü (açıldı/kanıt gönderildi/kazanıldı/kaybedildi) ile bunun kaydı ve durum makinesi.; İmzası doğrulanan, idempotent işlenen ve outbox üzerinden yayınlanan sağlayıcı webhook alıcısı (refund._, charge.dispute._).; İade veya ters ibrazın bakiyeye, alacak dekontuna ve abonelik/hizmet hakkına etkisini belirleyen eşleme ve uygulayıcı; itiraz süresince hizmetin askıya alınıp alınmayacağı kuralı.; ERPNext olmadığından yerel finans defteri ya da düzeltme kaydı kararı ve bunun uygulaması.; Audit envelope ve tenant kapsamlı yetki kontrolüyle korunan headless provider API sözleşmesi (iade başlatma/sorgulama, itiraz durumu).
 
-Sonraki adım önerisi: Kapsam onaylanırsa iade/dispute olaylarının bakiye ve abonelik hakkı etkisini aynı görevde tek bir eşleme tablosu olarak tanımlayın. Finans defteri kararını (ERPNext yok) açıkça kaydedin.
+Sonraki somut adım: Mevcut bağımlılık sırası korunur: önce payment-attempt--contract ve payment-attempt--schema tamamlanır, kernel-envelope, tenant-registry, outbox ve audit-envelope sözleşmeleri hazır olur. Sonra payment-attempt--implementation kapsamında en küçük dikey dilim tek bir davranış olarak eklenir. Bu, yeni bir görev kaydı açmak anlamına gelmez. Dilim şunlardan oluşur: (1) Payment Attempt'e bağlı, tenant kapsamlı bir iade kaydı ve kısmi iadelerin toplamının yakalanan tutarı aşamayacağı kuralı; (2) önce bu kural için başarısız (RED) test, sonra uygulama (GREEN); (3) ardından sağlayıcı refund webhook'unu imza doğrulamasıyla ve idempotent işleyen alıcı, outbox ve audit kaydı; (4) itiraz/ters ibraz durum makinesi ve bakiye/hak etkisi eşlemesi ayrı bir sonraki dilim olarak gelir. Finans defteri kararı (ERPNext yok) 1. adımdan önce yazılı kayda alınır. Frappe Cloud billing proxy'si bu işe temel olarak kullanılmaz.
 
-Mevcut birincil görev: `payment-attempt--implementation`. Kaynak: `frappe/frappe/patches/v14_0/delete_payment_gateways.py:14`.
+Önerilen bağımlılık/sıra: payment-attempt--contract; payment-attempt--schema; kernel-envelope--contract; tenant-registry--contract; native-user-policy--contract; capability-definition--contract; outbox--contract; audit-envelope--contract. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `payment-attempt--implementation`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/integrations/frappe_providers/cloud_billing.py:3` — `Pilot forwards these calls to an allowlisted Central billing API using the bench's`
+- `frappe/frappe/integrations/frappe_providers/cloud_billing.py:73` — `def create_topup_checkout(client, amount, redirect_url: str) -> dict:`
+- `frappe/frappe/integrations/frappe_providers/cloud_settings.py:324` — `@frappe.whitelist(methods=["GET"])`
+- `frappe/frappe/patches/v14_0/delete_payment_gateways.py:5` — `if "payments" in frappe.get_installed_apps():`
+- `frappe/frappe/patches/v14_0/delete_payment_gateways.py:14` — `"Stripe Settings",`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- suite; arama `(?i)(refund|chargeback|dispute|credit[_ ]note|reversal)`: Yalnızca suite/suite/drive/webdav/put.py ve onun testi eşleşti; buradaki 'reversal' Drive kota/rollup geri alması, ödemeyle ilgisiz.
+- frappe; arama `(?i)(refund|chargeback|charge_back|dispute)`: Yalnızca UI ConditionBuilder örnekleri, component_explorer ve playwright spec'i eşleşti (demo/örnek veri); backend'de iade veya itiraz uygulaması yok.
+- suite/suite (_.py,_.json); arama `(?i)(payment|billing|invoice|subscription|stripe|ledger)`: 31 dosya eşleşti; hepsi Mail push_subscription, Exchange/JMAP, Meet ve WebDAV bağlamında. Ödeme veya faturalama uygulaması yok.
+- frappe/frappe (*.py); arama `(?i)(payment|stripe|razorpay|paypal|braintree|ledger|credit.note)`: İlgili olanlar yalnızca cloud_billing.py/cloud_settings.py (Frappe Cloud barındırma faturası proxy'si) ve delete_payment_gateways.py; diğerleri ilgisiz (nestedset, test, sidebar vb.).
+- suite/suite/headless_provider; arama `(?i)(payment|refund|chargeback|dispute|billing|invoice|balance|entitlement)`: Eşleşme yok; LOCAL PILOT headless provider'da ödeme veya hak sözleşmesi bulunmuyor.
+- frappe/frappe/integrations/frappe_providers; arama `(?i)(cloud_billing\.|refund|credit|invoice|webhook)`: Yalnızca plan, profil, ödeme yöntemi, top-up ve checkout proxy çağrıları var; refund, invoice veya webhook işleyicisi yok.
+- frappe/frappe/integrations (*.json); arama `(?i)(refund|chargeback|dispute|payment|reversal)`: Eşleşen DocType JSON'u yok.
+- suite/frontend/src; arama `(?i)(refund|chargeback|dispute|payment)`: Yalnızca sheets/engine/formula.js eşleşti (tablo formül fonksiyonu); ödeme arayüzü veya akışı yok.
+
+Sınır: Değerlendirme yalnızca sourceRoot altındaki frappe ve suite (headless_provider dahil) kaynak okumasına dayanır. Komut, test veya runtime çalıştırılmadı; functionalAcceptance=not_run.; Frappe Cloud Central billing API'si uzak bir servis ve yerel kaynakta yok. Orada iade veya itiraz olup olmadığı değerlendirilemez; bu kalem için zaten site sahibinin barındırma faturasıdır.; ERPNext, HRMS ve frappe/payments uygulaması kurulu değil ve değerlendirilmedi. YOK, yalnızca taranan kurulu kaynak kapsamı için geçerlidir; ekosistemde var olup olmadığı hakkında hüküm değildir.; Tests ve frontend dosyaları yalnızca okunacak kaynak olarak arandı; ürünün tamamlandığı iddia edilmez ve yüzde verilmez.; suiteCommit bilinmiyor; frappe commit adf1fd0c2d6215ad4cac9976251198b2a35fbda6.
+
+Temporal workflow: `saas-recheck-20261015t073528z-020`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### payments-4 — Tekrarlanan istekte ikinci tahsilatı önleme ve ödeme durumu uzlaştırma.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Kabul ölçütü net: tek tahsilat ve kopma sonrası uzlaştırma. Kaynakta görülen idempotency yalnız Payments controller'ına atıf yapan yardım metni; kurulu kod değil. Cloud billing'deki reconcile/checkout_status ise Frappe Cloud'un kendi faturalaması, tenant tahsilatı değil.
+Upstream frappe'de ilgili üç temel yapı var. (1) Integration Request DocType: ödeme ve entegrasyon isteklerinin kaydı. request_id alanı ve "Queued/Authorized/Completed/Cancelled/Failed" durum alanı var. update_status, handle_success ve handle_failure metotları durumu geçiriyor. clear_old_logs eski kayıtları siliyor (varsayılan 30 gün). (2) background_jobs.enqueue: deduplicate=True verilirse aynı job_id ile ikinci bir iş kuyruğa alınmıyor. (3) frappe_providers/cloud_billing.py ve cloud_settings.py: whitelisted POST uçları var (create_topup_checkout, get_checkout_status, reconcile_payment_setup). Bunlar yalnızca Frappe Cloud Central billing API'sine istek iletiyor; iş mantığı Central'da duruyor. Yani bu, sitenin kendi Frappe Cloud faturası; tenant müşteri tahsilatı değil. Gerçek ödeme ağ geçidi DocType'ları (Payment Gateway, Stripe/Razorpay/PayPal/Braintree/Paytm Settings) "payments" uygulamasına taşınmış. Bu uygulama kurulu değilse bir patch bu DocType'ları siliyor. Suite'te (Vue frontend dahil) ve yerel pilot suite/headless_provider'da ödeme, idempotency veya uzlaştırma kodu bulunmadı.
 
-Eksik: Kalıcı işlem anahtarının kaynağı, kapsamı ve saklama süresi tanımsız.; Webhook event-id tekilleştirmesi için benzersizlik kısıtı veya kaydı belirtilmemiş.; Uzlaştırma tetikleyicisi (zamanlanmış iş mi, istek üzerine mi) ve çatışma çözüm kuralı yok.
+Eksik: Tenant tahsilatı için ödeme denemesi (payment attempt) DocType'ı veya durum makinesi yok.; Kalıcı idempotency anahtarı yok: kaynağı, tenant kapsamı, saklama süresi ve benzersizlik kısıtı tanımsız. Integration Request.request_id alanında unique kısıt yok; ikinci tahsilatı engelleyen bir kontrol de yok.; Sağlayıcıdan gelen webhook'u alan bir uç yok; imza doğrulama ve event-id tekilleştirmesi (benzersiz kayıt) de yok.; Bağlantı koptuktan sonra sağlayıcı durumunu sorgulayan yerel bir uzlaştırma işi (scheduler veya isteğe bağlı) ve çatışma çözüm kuralı yok. Mevcut reconcile_payment_setup ve get_checkout_status yalnızca Central'a vekil çağrı; davranış sözleşmeleri bu kaynakta değil.; Headless provider'da ödeme sözleşmesi (attempt, durum, olay) yok.
 
-Sonraki adım önerisi: Durum makinesi sözleşmesine üç alan ekleyin: idempotency anahtarı, sağlayıcı event-id benzersizliği, uzlaştırma kuralı. Bunları kabul ölçütündeki iki senaryoya (yinelenen istek, yinelenen webhook) bağlayın.
+Sonraki somut adım: Sıra mevcut bağımlılıklara göre. 1) payment-attempt--contract: tenant + idempotency_key birleşik benzersiz anahtarı, saklama süresi, durum geçişleri, provider_event_id tekilliği ve uzlaştırma çatışma kuralını yaz. 2) payment-attempt--schema: Payment Attempt DocType'ını oluştur. (tenant, idempotency_key) ve provider_event_id için unique index koy. Integration Request'i yalnızca ham istek/yanıt günlüğü olarak yeniden kullan. 3) payment-attempt--implementation içinde tek dar davranış: aynı anahtarla gelen ikinci istek mevcut attempt'i döndürsün ve ikinci kez tahsilat çağrısı yapılmasın. Önce RED testi, sonra GREEN. 4) Ardından yinelenen webhook event-id tekilleştirmesi. 5) En son, Queued/Authorized kayıtlar için sağlayıcıyı sorgulayan uzlaştırma işi (frappe enqueue + deduplicate/job_id). Bu iş outbox ve audit sözleşmelerine bağlanacak.
 
-Mevcut birincil görev: `payment-attempt--implementation`. Kaynak: `frappe/frappe/core/doctype/server_script/server_script.js:76`; `frappe/frappe/integrations/frappe_providers/cloud_billing.py:69`.
+Önerilen bağımlılık/sıra: payment-attempt--contract; payment-attempt--schema; kernel-envelope--contract; tenant-registry--contract; native-user-policy--contract; capability-definition--contract; outbox--contract; audit-envelope--contract. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `payment-attempt--implementation`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/integrations/doctype/integration_request/integration_request.py:33` — `status: DF.Literal["", "Queued", "Authorized", "Completed", "Cancelled", "Failed"]`
+- `frappe/frappe/integrations/doctype/integration_request/integration_request.json:90` — `"fieldname": "request_id",`
+- `frappe/frappe/utils/background_jobs.py:165` — `:param deduplicate: do not re-queue job if it's already queued, requires job_id.`
+- `frappe/frappe/integrations/frappe_providers/cloud_billing.py:4` — `credential. Formatting and business logic live in Central.`
+- `frappe/frappe/integrations/frappe_providers/cloud_billing.py:70` — `return client.post(_path(client, "reconcile_payment_setup"), {})`
+- `frappe/frappe/patches/v14_0/delete_payment_gateways.py:5` — `if "payments" in frappe.get_installed_apps():`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- sourceRoot (frappe/ + suite/), *.{py,json,js,ts,tsx,vue}; arama `(?i)idempoten|payment_request|payment_gateway|reconcil|webhook_event|event_id|charge_id|payment_intent`: 80+ dosya eşleşti. Ödeme dışı eşleşmeler: meet reconciler, takvim eventId, kanban. Ödemeyle ilgili olanlar yalnızca cloud_billing.py, cloud_settings.py ve server_script.js'teki yardım metni.
+- sourceRoot (frappe/ + suite/), dist/assets/locale hariç; arama `(?i)(payment[_ ]?(request|gateway|intent|attempt|transaction|status)|stripe|razorpay|paypal|braintree|iyzico|paytr|checkout_status)`: 20 dosya. Uygulama kodu olarak yalnızca cloud_billing.py, cloud_settings.py, delete_payment_gateways.py ve update_integration_request.py var. Suite tarafında tek eşleşme sfu-server package-lock.json; davranış değil.
+- suite/suite/headless_provider; arama `(?i)payment|idempot|reconcil|dedup`: Eşleşme yok.
+- sourceRoot (frappe/ + suite/), dist/assets/locale hariç; arama `(?i)(idempotency[_-]?key|Idempotency-Key|webhook.*(signature|secret).*verify|stripe-signature|X-Razorpay|payment.*(webhook|callback))`: Eşleşme yok: idempotency anahtarı da, gelen ödeme webhook'u ve imza doğrulaması da yok.
+- sourceRoot (frappe/ + suite/), dist/assets hariç; arama `(?i)reconcile_payment_setup|checkout_status|create_topup_checkout`: Yalnızca cloud_settings.py ve cloud_billing.py'deki Central'a vekil çağrılar ile test_cloud_settings.py.
+- frappe/frappe/integrations/doctype/integration_request/integration_request.json; arama `"(fieldname|unique|options)": "?(request_id|status|1|Queued)`: request_id alanı Data ve read_only; unique kısıtı yok.
+- frappe/frappe/utils/background_jobs.py; arama `deduplicate|def is_job_enqueued`: enqueue içinde job_id tabanlı deduplicate var; kuyruk düzeyinde tekilleştirme sağlıyor, tahsilat düzeyinde değil.
+
+Sınır: Yalnızca yerel kaynak snapshot'ı okundu (frappe adf1fd0c, suite commit bilinmiyor). Hiçbir komut ya da test çalıştırılmadı; functionalAcceptance: not_run.; "payments" ve ERPNext uygulamaları kurulu değil; onların idempotency ve uzlaştırma kodu değerlendirilmedi.; Frappe Cloud Central billing API'sinin sunucu tarafı bu kaynakta değil; reconcile ve checkout davranışı doğrulanamaz.; Derlenmiş dist/assets ve locale dosyaları ödeme aramalarında hariç tutuldu.; Kaynak yalnızca kodun varlığını kanıtlar; çalışan ortamda tek tahsilat ya da uzlaştırma doğrulanmadı.
+
+Temporal workflow: `saas-recheck-20261015t073528z-021`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### payments-5 — Kart verisi yerine sağlayıcı tokenı (güvenli ödeme referansı) saklama.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Kabul ölçütü (backend/log/export içinde PAN/CVV olmaması) ölçülebilir. Ancak toplama yüzeyi her istemci için seçilmemiş: Vite/PWA, Tauri2, WXT/MV3. Hosted checkout deseni yalnız Frappe Cloud billing'de görülüyor ve tenant için kullanılamaz.
+Upstream frappe'de tek somut ilgili parça Frappe Cloud abonelik faturalaması proxy'si. frappe/frappe/integrations/frappe_providers/cloud_billing.py ve cloud_settings.py içindeki whitelisted API'ler (_assert_access ile korunuyor) kart eklemeyi hosted setup checkout'a yönlendiriyor (create_payment_method_checkout → checkout URL). Sonrasında yalnız 'reference' (confirm_payment_method_checkout) ya da gateway SDK'nın tokenize ettiği callback payload'ı (confirm_payment_method) Central'a iletiliyor. Ödeme yöntemi kaldırılırken de yalnız payment_method referansı kullanılıyor. Bu yolda PAN/CVV alanı yok ve yerel kayıt yapılmıyor; saklama Central'da (harici). Integration Request DocType'ı genel bir entegrasyon log'u: data, request_headers ve output alanları var, maskeleme yok. Suite'te ödeme yok; 'card' eşleşmeleri mail contact_card (vCard) ile ilgili. Yerel pilot suite/headless_provider'da da ödeme yok.
 
-Eksik: Her istemci için sağlayıcının güvenli toplama yüzeyi (hosted checkout, iframe/SDK) seçilmemiş.; Saklanacak izinli metadata listesi (son 4 hane, marka, son kullanma tarihi) tanımlanmamış.; Log ve export maskeleme kuralı ile Data Import/Export dışlaması belirtilmemiş.
+Eksik: Tenant (müşteri) ödemeleri için sağlayıcı referansını saklayan bir DocType ya da şema yok: provider, payment_method_ref ve izinli metadata (marka, son 4 hane, son kullanma ay/yıl) tanımlı değil.; Payment Gateway, Stripe, Razorpay, Braintree, PayPal ve Paytm Settings DocType'ları 'payments' app kurulu değilse patch ile siliniyor; o app kurulu değil, dolayısıyla tenant gateway entegrasyonu yok.; PAN/CVV benzeri girdiyi reddeden bir validate kuralı ya da guard yok.; Integration Request, Error Log ve Data Import/Export için kart verisi maskeleme ya da dışlama kuralı yok.; Vite/PWA, Tauri2 ve WXT/MV3 istemcileri için sağlayıcının güvenli toplama yüzeyi (hosted checkout, iframe ya da SDK) entegrasyonu ve headless provider sözleşmesi yok.; cloud_billing yalnız sitenin kendi Frappe Cloud aboneliği için çalışıyor ve Central'a bağlı; tenant ödemelerinde yeniden kullanılamaz, yalnız desen olarak örnek alınabilir.
 
-Sonraki adım önerisi: Sağlayıcı seçilince istemci başına toplama yüzeyini ve izinli alan listesini tek paragrafla göreve ekleyin. Kart verisini backend'e taşıyan her akış açıkça yasaklansın.
+Sonraki somut adım: Sıra mevcut bağımlılıkları izler. 1) payment-attempt--contract'a şu kuralları ekleyin: kart verisi backend'e hiç girmez; saklanabilecek alanlar yalnız provider, provider_payment_method_ref, brand, last4, exp_month ve exp_year; istemci toplama yüzeyi sağlayıcının hosted checkout ya da iframe/SDK'sıdır. 2) payment-attempt--schema'da bu alanlarla dar bir tenant DocType tanımlayın. Önce RED test yazın: controller validate, 13–19 haneli PAN benzeri değerleri ve cvv/cvc alanlarını reddetmeli. Sonra GREEN uygulamasını yapın. 3) Ardından payment-attempt--implementation'da sağlayıcı referansını yalnız webhook ya da confirm(reference) üzerinden kaydedin; cloud_billing'deki confirm_payment_method_checkout(reference) deseni örnek alınabilir. Aynı adımda Integration Request'e yazılan payload'lar maskelensin, bu DocType Data Export'ta referans ve izinli metadata ile sınırlansın. Bu adımları Vue Suite frontend'inden bağımsız headless provider sözleşmesi olarak tanımlayın.
 
-Mevcut birincil görev: `payment-attempt--implementation`. Kaynak: `frappe/frappe/integrations/frappe_providers/cloud_billing.py:57`.
+Önerilen bağımlılık/sıra: payment-attempt--contract; payment-attempt--schema; kernel-envelope--contract; tenant-registry--contract; native-user-policy--contract; capability-definition--contract; outbox--contract; audit-envelope--contract. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `payment-attempt--implementation`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/integrations/frappe_providers/cloud_billing.py:57` — `"""Start adding a card via hosted setup checkout; returns the checkout URL to open."""`
+- `frappe/frappe/integrations/frappe_providers/cloud_billing.py:65` — `return client.post(_path(client, "confirm_payment_method_checkout"), {"reference": reference})`
+- `frappe/frappe/integrations/frappe_providers/cloud_settings.py:384` — `"""Finalize a payment method the gateway SDK tokenised (e.g. the Razorpay`
+- `frappe/frappe/integrations/frappe_providers/cloud_billing.py:3` — `Pilot forwards these calls to an allowlisted Central billing API using the bench's`
+- `frappe/frappe/patches/v14_0/delete_payment_gateways.py:5` — `if "payments" in frappe.get_installed_apps():`
+- `frappe/frappe/integrations/doctype/integration_request/integration_request.json:47` — `"label": "Request Data",`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- source (frappe + suite, tümü); arama `(?i)(payment_method|payment_token|card_token|setup_intent|SetupIntent|PaymentMethod|stripe_customer|tokeniz)`: 55 dosya. İlgili olanlar yalnız frappe/frappe/integrations/frappe_providers/cloud_billing.py ve cloud_settings.py. Diğer eşleşmeler ödeme dışı: arama/formül tokenizer'ları, mail, derlenmiş dist bundle'lar.
+- source (frappe + suite) *.{py,json,ts,vue,md,html}; arama `(?i)(\bpan\b|cvv|cvc|card_number|credit.?card|cardholder|\bstripe\b|razorpay|braintree|paypal|payment.?gateway|iyzico|adyen)`: 18 dosya. İlgili olanlar cloud_billing/cloud_settings, delete_payment_gateways patch'i ve update_integration_request patch'i. UI (pan gesture), changelog ve test eşleşmeleri ödeme davranışı değil. PAN/CVV işleyen kod yok.
+- **/headless_provider/**; arama `(?i)(payment|billing|checkout|card)`: Tek eşleşme suite/suite/headless_provider/api.py:353 ('discards', ilgisiz). Yerel pilotta ödeme sözleşmesi yok.
+- **/doctype/_{payment,billing,card,gateway,integration_request}_/_.json; arama `glob`: Payment/billing/gateway DocType yok. Yalnız number_card, mail contact_card_ (ilgisiz) ve integration_request (genel log, maskeleme yok).
+- frappe/frappe/integrations; arama `(?i)(mask|redact|sanitiz)\w*\s*\(`: Yalnız OAuth sanitize_redirect ve sanitize_kwargs. Ödeme ya da kart verisi maskeleme yok.
+- suite/suite *.{py,json}; arama `(?i)(payment|billing|checkout|card)`: Eşleşmeler mail contact_card/vCard, calendar ve drive ile ilgili. Suite'te ödeme ya da token saklama implementasyonu yok.
+
+Sınır: Yalnız statik kaynak okundu. Hiçbir komut ya da test çalıştırılmadı; functionalAcceptance: not_run.; cloud_billing'in hedefi olan Central billing API'si kaynakta yok. Token saklamanın Central'da nasıl yapıldığı doğrulanamaz.; 'payments' app, ERPNext ve HRMS kurulu değil ve değerlendirilmedi. Global ekosistemde ödeme yokluğu iddia edilmiyor.; Derlenmiş dist/*.js bundle eşleşmeleri davranış kanıtı sayılmadı.; Log ve export içinde PAN/CVV bulunmadığı runtime'da doğrulanmadı; kaynak yalnız kod varlığını ya da yokluğunu gösterir.; suiteCommit bilinmiyor; suite/headless_provider yerel pilot ek koddur ve upstream-native değildir.
+
+Temporal workflow: `saas-recheck-20261015t073528z-022`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### payments-6 — Sağlayıcı bildirimini doğrulama; geciken veya sırasız sonuçları işleme.
 
@@ -4362,27 +5811,78 @@ Mevcut birincil görev: `crm-lead-bridge--implementation`. Kaynak: `frappe/frapp
 
 #### crm-5 — Müşteri başarısı: hesap sağlığı, kullanım düşüşü ve yenileme riski.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Hedef ve açıklanabilir risk puanı kabulü tanımlı. Ancak ölçütler, kullanım olayı girdileri ve yenileme tarihinin hangi modelden geleceği yazılmamış; ERPNext kurulu olmadığı için abonelik/sözleşme verisi yok. Alıntılarda sağlık motoru görülmüyor; get_count gibi genel sayım ilkeleri ise motor sayılmaz.
+Upstream Frappe'de genel otomasyon primitive'leri var, hesap sağlığına özgü bir şey yok. (1) Automation Flow DocType'ında 'Date Based' tetikleyici bulunuyor: date_field, date_offset ve Before/After seçeneği. scheduler.process_date_based her saat çalışıyor ve hooks.py'de kayıtlı. Seçilen tarih alanı bugünkü ofsete denk gelen belgeleri kuyruğa alıyor ve her belge için günde bir kez tetikliyor; kodun kendi yorumu da '3 days Before renewal' örneğini veriyor. (2) Cron ile çalışan 'Scheduled' tetikleyici, filtre ve koşula göre belge seçebiliyor. (3) Eylem kayıt defterinde CreateDocument (ör. ToDo/görev üretimi), AssignToUser, SendNotification, SetFieldValue ve IncrementFieldValue var. Bunlar yaklaşan yenilemeye görev üretmek için yeniden kullanılabilir. Suite modülleri (Drive/Slides/Writer/Sheets/Meet/Mail/Calendar/Suite Core) içinde CRM, hesap veya abonelik modeli yok; 'renewal' eşleşmeleri yalnız Mail push-subscription yenilemesine ait. Yerel pilot suite/headless_provider yalnız headless-metadata.v1 şema sağlayıcısı (session/metadata/create_field/preview_edit/apply_edit); sağlık veya risk sözleşmesi içermiyor.
 
-Eksik: Kullanım düşüşü olay kaynağı ve zaman penceresi tanımsız; Yenileme tarihini taşıyan DocType yok (ERPNext kurulu değil); Puan formülü, eşikler ve 'açıklanabilirlik' çıktı biçimi yok; crm-6 görev üretimiyle arayüz sözleşmesi yok
+Eksik: Hesap/müşteri ve yenileme tarihini taşıyan bir DocType yok (ERPNext/CRM kurulu değil).; Kullanım olayı kaynağı, zaman penceresi ve kullanım düşüşü hesaplaması yok.; Sağlık/risk puanı motoru yok: formül, eşikler ve açıklanabilirlik çıktısı (hangi kuralın ne kadar puan kattığı) bulunmuyor. Puanı saklayan alan ya da puan geçmişi de yok.; Kullanım düşüşü ile yenileme yakınlığını tek bir puanda birleştiren mantık yok. Automation Flow koşulları yalnız belge alanlarını değerlendiriyor, zaman serisi kullanım verisini toplamıyor.; crm-6 görev üretimine bağlanan bir sözleşme yok.; Headless provider'da account-health uç noktası ya da GenUI'ye dönük sağlayıcı sözleşmesi yok.; system_health_report site işletim sağlığına ait, müşteri sağlığıyla ilgisi yok.
 
-Sonraki adım önerisi: account-health--implementation için önce veri sözleşmesini yaz: olay kaynağı, yenileme alanının sahibi ve iki-üç kurallı açıklanabilir puan. Motor geliştirmesini bu karara bağla.
+Sonraki somut adım: Mevcut bağımlılık sırası korunmalı. Önce account-health--contract yazılmalı: kullanım olayının kaynağı ve penceresi (ör. son 30 gün ile önceki 30 gün karşılaştırması), yenileme tarihi alanının sahibi ve iki kurallı açıklanabilir puan biçimi (kural, ağırlık, girdi değeri). Ardından account-health--schema: hesap kaydında renewal_date, usage_events ve health_score/health_reasons alanlarının yeri. Sonra en dar davranış: bir puan hesaplayıcısı ve yalnız bu davranış için RED/GREEN testi. Görev üretimi yeni kodla yazılmamalı. Yenileme tarihi için Automation Flow Date Based tetikleyicisi ile CreateDocument/AssignToUser eylemleri, puan eşiği için Scheduled tetikleyici ve koşul kullanılmalı. Headless provider'a salt okunur puan ve gerekçe projeksiyonu en son eklenmeli.
 
-Mevcut birincil görev: `account-health--implementation`. Kaynak: `frappe/frappe/client.py:78`.
+Önerilen bağımlılık/sıra: account-health--contract; account-health--schema; kernel-envelope--contract; tenant-registry--contract; native-user-policy--contract; capability-definition--contract; native-doctype-schema--contract; outbox--contract. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `account-health--implementation`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/automation_engine/scheduler.py:180` — `"""Queue Date Based automations for documents whose date field lands on today's offset.`
+- `frappe/frappe/automation_engine/scheduler.py:222` — `""" "3 days Before renewal" is due today when renewal is 3 days out; After looks back."""`
+- `frappe/frappe/hooks.py:292` — `"frappe.automation_engine.scheduler.process_date_based",`
+- `frappe/frappe/automation_engine/actions/core.py:97` — `action_type = "CreateDocument"`
+- `frappe/frappe/automation_engine/actions/core.py:299` — `action_type = "AssignToUser"`
+- `suite/suite/headless_provider/api.py:26` — `CONTRACT_VERSION = "headless-metadata.v1"`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- frappe/ + suite/ (tüm kaynak kökü); arama `(?i)(health.?score|account.?health|churn|renewal|customer.?success|usage.?drop|risk.?score)`: 30 dosya bulundu. Hiçbiri hesap sağlığı motoru değil: suite eşleşmeleri Mail push-subscription yenilemesine ve Drive webdav 'churn' terimine ait. Frappe tarafında yalnız automation_engine/scheduler.py'deki tarih ofseti yorumu ilgili.
+- suite/suite (*.json); arama `(?i)(\bcrm\b|subscription_end|contract_end|end_date|renew)`: Yalnız mail/doctype/user_settings/user_settings.json eşleşti. CRM, hesap veya yenileme DocType'ı yok.
+- suite/suite/modules.txt; arama `Read`: Modüller Drive, Slides, Writer, Sheets, Meet, Mail, Calendar ve Suite Core. CRM modülü yok.
+- frappe/frappe/automation_engine; arama `(?i)(create_todo|"ToDo"|Create Document|assign_to|def _action_|ACTION_)`: Eylem kayıt defterinde CreateDocument, AssignToUser, SendNotification, SetFieldValue ve IncrementFieldValue var.
+- frappe/frappe/**/automation_flow/*.json; arama `"(trigger_type|date_field|date_offset|date_direction)"`: Automation Flow DocType'ında date_field, date_offset (Int) ve date_direction (Before/After) alanları var.
+- frappe/frappe/hooks.py; arama `process_date_based|process_cron`: process_cron 261. satırda, process_date_based 292. satırda hourly olarak kayıtlı.
+- frappe/frappe (*.py); arama `(?i)(usage.?(event|log|metric|trend)|activity.?score|engagement|last_active|login.?count|decline)`: 11 dosya eşleşti (user.py, sessions.py, system_health_report.py, scheduler ve testler). Bunlar kullanıcı oturumu ve site işletim sağlığıyla ilgili; müşteri hesabı kullanım düşüşü analitiği yok.
+- suite/suite/headless_provider/; arama `Glob **/*.py + Read api.py`: Yerel pilot kod; yalnız şema meta sağlayıcısı (headless-metadata.v1). Sağlık veya risk uç noktası yok.
+
+Sınır: Yalnız yerel kaynak anlık görüntüsü incelendi (frappe adf1fd0c, suite commit bilinmiyor). Çalışma zamanı, zamanlayıcının gerçekten çalışması ve kabul testi doğrulanmadı; functionalAcceptance: not_run.; ERPNext, HRMS ve Frappe CRM uygulaması kurulu değil ve değerlendirilmedi. Global ekosistemde bu özelliğin olmadığı iddia edilmiyor.; Testler çalıştırılmadı. automation_engine'in koşul değerlendirici, dispatch ve runner dosyaları ayrıntılı okunmadı; görev üretimi yalnız eylem tanımı düzeyinde doğrulandı.; Suite'in Vue frontend'i ile headless sağlayıcı sözleşmesi birbirinden ayrı tutuldu. GenUI tarafı değerlendirilmedi.
+
+Temporal workflow: `saas-recheck-20261015t073528z-023`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### crm-6 — Müşteri devreye alma kontrol listesi ve yenileme müdahale görevleri.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Kabul ölçütü somut (doğru kontrol listesi, tek müdahale görevi). Ancak CRM Task kurulu değil; şablon modeli, 'yeni müşteri' tetikleyicisi ve tekil görev için tekrar-önleme anahtarı tanımsız. Alıntılarda çekirdek ToDo/atama kaynağı görülmediği için yerel yetenek bilinmiyor.
+Frappe uygulama kaynağında genel amaçlı yapı taşları var. (1) Automation Flow'da 'Doc Created' ve 'Date Based' tetikleyicileri bulunuyor. Date Based zamanlayıcı, tarih alanı hedef güne eşit olan kayıtları kuyruğa alıyor. Aynı gün işlenmiş ya da kuyrukta bekleyen kayıtlar atlanıyor; böylece belge başına günde bir tetikleme sağlanıyor. (2) CreateDocument (new_doc + insert) ve AssignToUser (assign_to.add) aksiyonları var. assign_to._add, aynı referans ve aynı kullanıcı için açık bir ToDo varsa yenisini oluşturmuyor. (3) Assignment Rule, koşula göre ToDo ataması yapıyor. (4) Module Onboarding ve Onboarding Step bir kontrol listesi modeli sunuyor (adımlar, is_complete/is_skipped, rol izni). Ancak ilerleme müşteri başına değil, site/modül genelinde tutuluyor. Suite'teki onboarding (hooks.py:279), masaüstü kurulum sihirbazının yerine geçiyor; müşteri onboarding'i değil. Yerel pilot suite/headless_provider'da (api.py, local_fixture.py) ilgili kod yok.
 
-Eksik: 'Yeni müşteri' olayının hangi DocType'tan geleceği tanımsız (CRM/ERPNext yok); Kontrol listesi şablonu ve tamamlanma modeli yok; 'Tek müdahale görevi' için tekrar-önleme (idempotency) anahtarı yok; crm-5 risk çıktısına bağımlılık sırası yazılmamış
+Eksik: Kurulu kaynakta Customer/CRM DocType'ı ve 'yeni müşteri' olayı yok (ERPNext/CRM kurulu değil); Müşteri başına örneklenen bir kontrol listesi şablonu ve tamamlanma modeli yok; Module Onboarding site genelinde çalışıyor; Yenileme tarihi ya da risk alanı yok, crm-5 risk çıktısıyla entegrasyon da yok; Müşteri+dönem anahtarlı kalıcı tekil müdahale görevi yok. Mevcut tekrar-önleme yalnız gün bazlı ve açık durumdaki ToDo/kullanıcı kapsamında çalışıyor; görev kapanınca ya da sorumlu değişince yeni görev oluşabilir; Bu kurallar için Automation Flow fixture'ı, headless provider API sözleşmesi ve React/AntD UI yok; Runtime functionalAcceptance: not_run
 
-Sonraki adım önerisi: onboarding-checklist--implementation görevine şunları ekle: tetikleyici kaynağı, şablon alanları ve müşteri+dönem tabanlı tekil görev anahtarı. Görev oluşturmayı izinli create_doc/insert yoluyla sınırla ve crm-5'i bağımlılık olarak işaretle.
+Sonraki somut adım: Sıra şöyle olmalı. (1) onboarding-checklist--contract/--schema: müşteri kaynak DocType'ı belirlenmeli. Customer Onboarding Template/Item ve müşteri başına checklist örneği DocType'ları tanımlanmalı; örneğe (customer, template) tekil kısıtı, müdahale görevine ise (customer, renewal_period) tekil kısıtı konmalı. (2) --implementation: 'Doc Created' tetikleyicili Automation Flow, CreateDocument ile checklist örneğini oluşturmalı. crm-5 risk alanını kullanan 'Date Based'/'Field Value Changed' akışı ise müdahale kaydını tekil anahtarla oluşturmalı ve AssignToUser ile tek sorumluya atamalı. Önce bu tek dar davranış için RED/GREEN testi yazılmalı. (3) Ardından headless provider sözleşmesi ve ui-family-37 eklenmeli.
 
-Mevcut birincil görev: `onboarding-checklist--implementation`. Kaynak: `frappe/frappe/api/v1.py:50`.
+Önerilen bağımlılık/sıra: onboarding-checklist--contract; onboarding-checklist--schema; kernel-envelope--contract; tenant-registry--contract; native-user-policy--contract; capability-definition--contract; native-doctype-schema--contract; outbox--contract; crm-5; ui-family-37--implementation. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `onboarding-checklist--implementation`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/automation/doctype/automation_flow/automation_flow.json:89` — `"options": "Doc Created`
+- `frappe/frappe/automation_engine/scheduler.py:214` — `if name in handled:`
+- `frappe/frappe/automation_engine/actions/core.py:123` — `target = frappe.new_doc(params["doctype"])`
+- `frappe/frappe/automation_engine/actions/core.py:319` — `from frappe.desk.form.assign_to import add`
+- `frappe/frappe/desk/form/assign_to.py:74` — `if frappe.get_all("ToDo", filters=filters):`
+- `frappe/frappe/desk/doctype/module_onboarding/module_onboarding.py:43` — `def required_steps_done(self) -> bool:`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- suite; arama `(?i)onboarding|checklist|renewal|churn`: 36 dosya: mail/drive/meet/sheets ve derlenmiş frontend; müşteri onboarding'i ya da yenileme müdahalesi yok. hooks.py:279 yalnız kurulum sihirbazının yerine geçiyor
+- suite/suite (*.json); arama `(?i)customer|crm|renewal|onboarding`: Yalnız meet/sfu-server/package-lock.json eşleşti; DocType yok
+- suite/suite/headless_provider; arama `(?i)onboarding|checklist|renewal|customer|ToDo|assign|automation`: Eşleşme yok
+- frappe/frappe (*.py,json,js,ts,vue); arama `(?i)renewal|churn|customer.?success|onboarding.?checklist|retention.?risk`: 5 dosya; ilgili olan yalnız automation_engine/scheduler.py (Date Based açıklaması). Yenileme/risk modeli yok
+- frappe/frappe/**/doctype/{todo,assignment_rule,onboarding_step,module_onboarding,auto_repeat,...}; arama `glob`: ToDo, Assignment Rule, Module Onboarding, Onboarding Step, Auto Repeat mevcut; okundu
+- frappe/frappe/automation_engine/actions/core.py, events.py, automation_flow.json; arama `class \w+|ToDo|assign_to|Create Document|trigger_type`: CreateDocument ve AssignToUser aksiyonları ile Doc Created/Date Based tetikleyicileri bulundu
+- frappe/frappe/desk/form/assign_to.py; arama `DuplicateToDoError|def add\(`: Açık durumdaki aynı referans+kullanıcı ToDo tekrarı engelleniyor
+
+Sınır: Yalnız kaynak kod okundu; hiçbir kod çalıştırılmadı, test yürütülmedi. functionalAcceptance: not_run; ERPNext/HRMS/Frappe CRM kurulu değil; onların Customer/CRM Task kodu değerlendirilmedi; automation_engine'in upstream kökeni frappe commit adf1fd0c ile sınırlı; site konfigürasyonu ve veritabanındaki Automation Flow kayıtları görülmedi; suiteCommit bilinmiyor; derlenmiş frontend map dosyaları ayrıntılı okunmadı; Test dosyaları (test_scheduler, test_actions) okunup çalıştırılmadı; davranış kanıtı implementasyon okumasına dayanıyor
+
+Temporal workflow: `saas-recheck-20261015t073528z-024`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### calendar-1 — Calendar (takvim) ve appointment (randevu) yönetimi.
 
@@ -4446,15 +5946,39 @@ Mevcut birincil görev: `helpdesk-ticket-bridge--implementation`. Kaynak: `suite
 
 #### support-2 — Onboarding (ilk kullanım yönlendirmesi) ve uygulama içi yardım.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Kabul ölçütü iki davranışı tarif ediyor: doğru adımda doğru yardım içeriği gösterilmeli ve tamamlanan adımlar saklanmalı. Ancak içerik kaynağı Helpdesk bilgi tabanına bağlanmış; Helpdesk kurulu değil. Frappe'nin yerel onboarding veya yardım DocType'ları incelenen alıntılarda görünmüyor, bu yüzden yerel yetenek bilinmiyor. Görülebilen yapı taşları yalnız genel REST CRUD ve izin kontrolü.
+Onboarding ve yardım için çalışan yapı taşları upstream Frappe desk modülünde var. (1) Module Onboarding, Onboarding Step, Onboarding Step Map ve Onboarding Permission DocType'ları. Adım eylemleri: Create Entry, Update Settings, Show Form Tour, View Report, Go to Page, View Docs, Complete Onboarding. Her adımda Markdown açıklama, video, path ve route_options alanları bulunur. (2) Adım durumu veritabanında saklanır. Whitelisted update_onboarding_step yalnız is_complete ve is_skipped alanlarını yazar. Rol kapısı can_update_step, iş doğrulaması throw_if_unfinished/is_work_done, modül tamamlanması update_completion ile yapılır. Bu ilerleme site genelinde tutulur, kullanıcı başına değil. get_onboarding_steps adımları rol filtreli ve çevrilmiş metinle döner. (3) Form Tour ve Form Tour Step, page_route'a bağlı UI turları sunar. Turun tamamlanma durumu kullanıcı başına User.onboarding_status JSON alanında tutulur (update_user_status, reset_tour) ve özellik enable_onboarding ile açılıp kapanır. (4) frappe/onboarding.py, uygulama bazlı ve kullanıcı başına adım durumu API'si sağlar: get_onboarding_status ve update_user_onboarding_status. (5) Help Article ve Help Category, website bilgi tabanını /kb portal rotasıyla sunar. (6) Suite'in Vue frontend'inde yalnız ilk kurulum kapısı var: Suite Settings.is_onboarded alanı, get_onboarding_state ve mark_onboarded (System Manager) API'leri ile router'ın /suite/setup yönlendirmesi. Bağlamsal yardım ya da adım listesi yok. Yerel pilot suite/headless_provider'da onboarding, yardım veya tur sözleşmesi yok.
 
-Eksik: Yardım içeriğinin sahibi belli değil: Helpdesk KB mi, Frappe'nin yerel yapıları mı, ayrı CMS mi?; Adım tamamlama durumunun hangi DocType'ta, kullanıcı mı tenant mı bazında tutulacağı tanımsız.; 'Doğru yardım içeriği' için bağlam anahtarı (route/DocType/adım ID) sözleşmesi yok.; ui-family-37--implementation görevi ile sorumluluk sınırı belirsiz.
+Eksik: Bağlam anahtarından (route/DocType/adım ID) yardım içeriğine çözümleme yapan API veya eşleme tablosu yok; Help Article yalnız portal KB'si, Onboarding Step/Form Tour ile bağı yok, View Docs yalnız path tutar.; Module Onboarding ilerlemesi site geneli; kullanıcı veya tenant başına adım ilerlemesi yalnız serbest JSON (User.onboarding_status) ile mümkün, şema/doğrulama yok.; Tenant kapsamı yok; Frappe site düzeyinde çalışır, tenant-registry ile bağ yok.; Headless provider sözleşmesi yok (adım listesi, durum yazma, bağlamsal yardım için kernel-envelope uyumlu uçlar).; Mevcut render katmanı Frappe Desk JS'dir; seçilen React/Ant Design frontendinde onboarding checklist veya bağlamsal yardım bileşeni yok (bu kaynakta yok, GenUI kapsamı dışı).; Helpdesk KB kurulu değil; içerik kaynağı kararı verilmemiş.
 
-Sonraki adım önerisi: Frappe kaynağında Module Onboarding ve Onboarding Step yapılarının varlığı ve v17-dev API'si doğrulansın. İçerik kaynağı ile adım durumu deposu tek karar notunda seçilsin. Bağlam anahtarı sözleşmesi onboarding-checklist--implementation altında tanımlansın.
+Sonraki somut adım: Sıra şöyle. (1) onboarding-checklist--contract: içerik kaynağı olarak upstream Help Article ve Onboarding Step seçilsin. Bağlam anahtarı tanımlansın: route, DocType ve stepId. İlerleme kapsamı belirlensin: kullanıcı mı tenant mı. Site geneli Module Onboarding, kullanıcı başına User.onboarding_status. (2) onboarding-checklist--schema: bağlam anahtarını yardım içeriğine eşleyen tek dar alan veya tablo eklensin. Upstream DocType'lar değiştirilmesin. (3) headless_provider'a iki salt sarmalayıcı uç eklensin: adımları ve bağlamsal yardımı okuyan uç get_onboarding_steps ve can_update_step'i yeniden kullansın; durumu yazan uç update_onboarding_step'i yeniden kullansın. Gerçek RED/GREEN kanıtıyla tek davranış uygulansın: tamamlanan adım saklanır ve tekrar okunur. (4) React UI bundan sonra ui-family-37 altında gelir.
 
-Mevcut birincil görev: `onboarding-checklist--implementation`. Kaynak: `frappe/frappe/api/v1.py:153`; `frappe/frappe/api/v1.py:83`.
+Önerilen bağımlılık/sıra: onboarding-checklist--contract; onboarding-checklist--schema; kernel-envelope--contract; tenant-registry--contract; native-user-policy--contract; capability-definition--contract; native-doctype-schema--contract; outbox--contract; ui-family-37--implementation. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `onboarding-checklist--implementation`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/desk/desktop.py:712` — `def update_onboarding_step(name: str | int, field: str, value: int | str):`
+- `frappe/frappe/desk/doctype/module_onboarding/module_onboarding.py:158` — `Progress is shared by the whole site, so the gate is the onboarding's own role list: anyone`
+- `frappe/frappe/desk/doctype/onboarding_step/onboarding_step.py:159` — `def get_onboarding_steps(ob_steps: str | list):`
+- `frappe/frappe/onboarding.py:13` — `def update_user_onboarding_status(steps: str | list | dict, appName: str):`
+- `frappe/frappe/desk/doctype/form_tour/form_tour.py:114` — `ui_tours = frappe.get_all("Form Tour", filters={"ui_tour": 1}, fields=["page_route", "name"])`
+- `suite/suite/api/account.py:16` — `"is_onboarded": bool(frappe.db.get_single_value("Suite Settings", "is_onboarded")),`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- frappe/frappe/desk/doctype (glob _/_/desk/doctype/_onboarding_/*); arama `*onboarding*`: module_onboarding, onboarding_step, onboarding_step_map, onboarding_permission DocType JSON/controller bulundu
+- suite; arama `(?i)onboarding|walkthrough|product.?tour|help.?article|in.?app.?help|tooltip.?tour`: Yalnız suite/api/account.py, frontend/src/router/index.ts, hooks.py, setup.py, www/suite.py, patches.txt ve derlenmiş asset; ilk kurulum kapısı, bağlamsal yardım yok
+- suite (public/frontend hariç); arama `(?i)onboarding|walkthrough|help`: Router onboarding gate (index.ts:162-200) ve patches.txt; help eşleşmeleri yalnız e2e helper/yarn.lock
+- .; arama `def (get_onboarding_data|update_onboarding_step|get_onboarding_state|complete_onboarding)|can_update_step\(|update_completion\(`: frappe/desk/desktop.py:712 update_onboarding_step; suite/api/account.py:12 get_onboarding_state; module_onboarding.py yardımcıları
+- frappe/frappe; arama `onboarding_status|Help Article|help_article|def get_onboarding_data|update_user_onboarding|"Form Tour"`: frappe/onboarding.py kullanıcı başına durum; form_tour.py kullanıcı tur durumu; website Help Article/Help Category ve hooks.py /kb rotası
+- suite/suite/headless_provider; arama `(?i)onboard|help|tour|guide`: Eşleşme yok; yerel pilotta onboarding/yardım sözleşmesi yok
+
+Sınır: Yalnız kaynak okuma; functionalAcceptance not_run, Desk JS widget render davranışı ve runtime doğrulanmadı.; Frappe desk frontend JS (onboarding widget, form tour JS) ayrıntılı okunmadı; değerlendirme backend DocType/API'lerine dayanır.; Help Article controller içeriği okunmadı; varlığı DocType JSON, hooks rotası ve help_category referansıyla sınırlı.; Helpdesk/ERPNext kurulu değil, değerlendirilmedi; suiteCommit bilinmiyor.; Tenant izolasyonu ve SaaS operasyonu kaynakla kanıtlanamaz.
+
+Temporal workflow: `saas-recheck-20261015t073528z-049`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### support-3 — Survey (anket) ve NPS (Net Promoter Score — tavsiye skoru).
 
@@ -4494,15 +6018,39 @@ Mevcut birincil görev: `helpdesk-ticket-bridge--implementation`. Kaynak: `frapp
 
 #### support-6 — Bağlama duyarlı yardım, ilk kurulum adımları ve tamamlanma takibi.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Kabul ölçütleri (aynı adımdan devam etme, sunucuda tamamlanma doğrulaması) net. Ancak sunucu tarafındaki durum modeli tanımsız. Frappe'nin kendi onboarding modelinin yeniden kullanılıp kullanılmayacağı da belirtilmemiş. İlgili Frappe kaynağı excerpt'te görünmediği için yerel yetenek bilinmiyor. Yalnız genel REST CRUD temeli görülüyor.
+Upstream Frappe'de çalışan onboarding ilkelleri var: Module Onboarding, Onboarding Step, Onboarding Step Map ve Onboarding Permission DocType'ları. Adım tamamlanması sunucuda doğrulanıyor. Whitelist'li desktop.update_onboarding_step yalnız is_complete/is_skipped alanlarını kabul ediyor; önce can_update_step ile rol kontrolü, sonra throw_if_unfinished yapıyor. is_work_done, Create Entry adımı için kaydın var olup olmadığına (submittable ise docstatus=1), Update Settings adımı için Single alan değerine bakıyor. Ardından update_completion onboarding'in is_complete değerini güncelliyor. İlerleme site genelinde paylaşılıyor ve adım bayraklarında kalıcı; bu yüzden yeniden girişte tamamlanmış adımlar korunuyor. Bağlama duyarlı yardım ilkelleri: Form Tour (ui_tour + page_route ile rota eşlemesi), kullanıcı başına User.onboarding_status JSON'u, DocType.documentation ve DocField/Report.documentation_url. Suite tarafındaki kurulu uygulama kodu: Suite Settings.is_onboarded tekil bayrağı, System Manager'a sınırlı mark_onboarded (complete_app_setup çağırıyor) ve Vue router'da /suite/setup ilk çalıştırma kapısı.
 
-Eksik: Çekirdek Module Onboarding/Onboarding Step DocType'larının yeniden kullanımı ya da yeni DocType kararı yok (kaynak excerpt'te yok).; Adım durumunun kapsamı (kullanıcı, tenant, rol) ve tamamlanmayı hangi sunucu kuralının doğrulayacağı tanımsız.; Bağlama duyarlı yardım içeriğinin kaynağı ve ekran–rota eşlemesi belirtilmemiş.; Kapsam gerekçesi destek kanalına bağlanmış. Onboarding'in destek modelinden bağımsız olduğu ayrıştırılmamış.; Kaynak URL'leri sürüm belirtmiyor; v17-dev ile eşlemesi yok.
+Eksik: Kullanıcı ve tenant kapsamlı devam imleci (current step) yok. Module Onboarding ilerlemesi site genelinde ve yalnız adım bayraklarında tutuluyor. Suite'te yalnız ikili is_onboarded bayrağı var ve sihirbazın ara adımı sunucuda saklanmıyor. 'Aynı adımdan devam' yalnız tamamlanmış bayraklardan dolaylı çıkarılabiliyor.; frappe.onboarding.update_user_onboarding_status, istemcinin gönderdiği adımları sunucu doğrulaması olmadan User.onboarding_status'a yazıyor. Bu nedenle tamamlanma kanıtı sayılamaz.; Yerel pilot suite/headless_provider (api.py, local_fixture.py) içinde onboarding, yardım veya tur sözleşmesi yok. React/AntD/X istemcisi için headless provider uç noktası ya da DTO bulunmuyor.; Bağlama duyarlı yardımın ekran/rota → içerik eşlemesi yalnız Desk'e bağlı Form Tour ve documentation URL alanlarıyla sınırlı. Headless rota kimliğiyle eşleşen bir yardım kaynağı modeli yok.; Tenant kapsamı yalnız site düzeyinde örtük. tenant-registry ve kernel-envelope sözleşmelerine bağlanmış bir onboarding durum modeli yok.; Module Onboarding kayıtları uygulama fixture'ı olarak tanımlanıyor (Suite'e özgü Module Onboarding kaydı bulunamadı). SaaS ürününe ait adım seti tanımlı değil.
 
-Sonraki adım önerisi: onboarding-checklist görevine şunu ekleyin: yerel v17-dev kaynağında onboarding DocType'larının varlığını doğrulayın. Varsa yeniden kullanın; yoksa kullanıcı ve tenant kapsamlı tek bir adım-durum DocType'ı tanımlayın. Tamamlanma bir izinli whitelist yöntemle doğrulansın.
+Sonraki somut adım: onboarding-checklist--contract içinde Frappe Module Onboarding/Onboarding Step'i yeniden kullanma kararını kaydedin. Ardından onboarding-checklist--schema kapsamında yalnız eksik olan kullanıcı/tenant kapsamlı devam imleci için ek alanı veya küçük bir DocType'ı tanımlayın. Sonra headless provider'a iki dar whitelist'li yöntem ekleyin. Okuma yöntemi get_onboarding_steps ve get_step_details'i sarmalayarak adımları ve imleci döndürsün. Yazma yöntemi update_onboarding_step'i (can_update_step + throw_if_unfinished) yeniden kullansın. Gerçek bir RED/GREEN testiyle şunları kanıtlayın: bitmemiş Create Entry adımı reddedilmeli, imleç yeniden girişte korunmalı. Bağlama duyarlı yardım (route → documentation/Form Tour eşlemesi) ui-family-37 ile sonraki adımda ele alınsın.
 
-Mevcut birincil görev: `onboarding-checklist--implementation`. Kaynak: `frappe/frappe/api/v1.py:50`; `frappe/frappe/api/v1.py:83`.
+Önerilen bağımlılık/sıra: onboarding-checklist--contract; onboarding-checklist--schema; kernel-envelope--contract; tenant-registry--contract; native-user-policy--contract; capability-definition--contract; native-doctype-schema--contract; outbox--contract; ui-family-37--implementation. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `onboarding-checklist--implementation`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/desk/desktop.py:735` — `frappe.get_doc("Onboarding Step", name).throw_if_unfinished()`
+- `frappe/frappe/desk/desktop.py:731` — `if not can_update_step(name):`
+- `frappe/frappe/desk/doctype/onboarding_step/onboarding_step.py:62` — `return bool(self.is_complete or self.is_skipped or self.is_work_done())`
+- `frappe/frappe/desk/doctype/module_onboarding/module_onboarding.py:158` — `Progress is shared by the whole site, so the gate is the onboarding's own role list: anyone`
+- `frappe/frappe/onboarding.py:21` — `onboarding_status[appName + "_onboarding_status"] = steps`
+- `suite/suite/api/account.py:30` — `frappe.db.set_single_value("Suite Settings", "is_onboarded", 1)`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- frappe/, suite/ (*.py, *.json); arama `(?i)onboarding`: 47 dosya bulundu: frappe/desk/doctype/{module_onboarding,onboarding_step,onboarding_step_map,onboarding_permission}, frappe/onboarding.py, desk/desktop.py, form_tour, setup_wizard; suite/api/account.py, suite_core/setup.py, hooks.py, www/suite.py
+- frappe/, suite/ (*.py); arama `can_update_step|throw_if_unfinished|def update_onboarding_step|update_completion\(`: Sunucu tarafı doğrulama zinciri desktop.py:712-739'da; module_onboarding.py ve onboarding_step.py'deki tanımlarla bağlı
+- suite/ (*.py, *.ts, *.vue, *.json, *.js); arama `(?i)onboarding|form.?tour|walkthrough|getting.?started|setup.?wizard|help.?(article|link|text)|context(ual)?.?help`: 15 dosya bulundu. İlgili davranış yalnız account.py get_onboarding_state/mark_onboarded ve frontend/src/router/index.ts ilk çalıştırma kapısında. Bağlama duyarlı yardım uygulaması yok.
+- suite/suite/headless_provider; arama `(?i)onboard|tour|help|setup|getting.?started|checklist`: Eşleşme yok (dizinde api.py, local_fixture.py, **init**.py var)
+- frappe/frappe (*.py, *.json); arama `def get_onboarding_data|onboarding_status|enable_onboarding`: System Settings.enable_onboarding kapısı, User.onboarding_status alanı, form_tour.update_user_status / reset_tour
+- frappe/, suite/ (*.py, *.json); arama `"fieldname": "(documentation|help_article|help|documentation_url)"|def get_help_messages|help_messages`: DocType.documentation, DocField.documentation_url, Report.documentation_url, Property Setter.help bulundu. Ayrı bir yardım içerik modeli yok.
+
+Sınır: Yalnız statik kaynak okundu. Test, komut veya runtime çalıştırılmadı; functionalAcceptance=not_run.; Desk JS tarafındaki onboarding widget ve Form Tour istemci kodu ayrıntılı okunmadı; değerlendirme sunucu tarafı davranışına dayanıyor.; suiteCommit bilinmiyor. headless_provider yerel pilot ek koddur, upstream değildir.; ERPNext/HRMS kurulu değil; bu uygulamaların onboarding kayıtları değerlendirilmedi.; Kaynak, dağıtılmış ortamdaki davranışı veya tenant izolasyonunu kanıtlamaz.
+
+Temporal workflow: `saas-recheck-20261015t073528z-050`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### support-7 — Özellik talepleri, geri bildirim toplama ve memnuniyet geçmişi.
 
@@ -4530,15 +6078,39 @@ Mevcut birincil görev: `helpdesk-ticket-bridge--implementation`. Kaynak: `frapp
 
 #### support-9 — Güvenli destek paketi; hata kimliği, zaman ve ilgili ekran bağlamını önizleyerek paylaşma.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Bu grubun en ayrıntılı kabul metni bu: allowlist alanlar, token/cookie/form verisinin hariç tutulması, kullanıcı önizlemesi ve ham konsol dökümünün gönderilmemesi. Ancak hata kimliğinin sunucuda hangi kaynaktan üretileceği belirsiz; Error Log veya request id excerpt'te görünmüyor. Alıcı ve destek entegrasyonu, saklama süresi ve depolama/izin modeli de seçilmemiş.
+Upstream Frappe'de hata kimliğinin kaynağı somut olarak var. frappe/monitor.py her istek için uuid4 izleme kimliği (trace id) üretiyor; istemci geçerli bir X-Frappe-Request-Id gönderirse onu kullanıyor. app.py process_response bu kimliği X-Frappe-Request-Id yanıt başlığına yazıyor. utils/error.py log_error aynı trace_id değerini Error Log kaydına yazıyor; böylece sunucu logu ile istemci arasında korelasyon kuruluyor. Error Log DocType izni yalnız System Manager rolünde. ErrorLog.clear_old_logs(days=30) ile saklama ve silme ilkeli (primitive) mevcut. Desk tarafında (headless değil) frappe.request.report_error şunları yapıyor: sunucu hatasında 'Report' düğmesi error_report_email alıcısına bir CommunicationComposer açıyor; alıcı yoksa 'Copy error to clipboard' paketi panoya kopyalıyor. Paket uygulama sürümlerini, route bilgisini, traceback'i, istek/yanıt verisini ve (yalnız pano yolunda) request_id değerini içeriyor. cleanup_request_opts yalnız doc içindeki parolaları maskeliyor. Suite Meet'te (Vue) problemReport.ts zaman damgası, URL, user agent, transport/ağ verisi ve son konsol log satırlarıyla, sabit bir dış adrese giden mailto bağlantısı hazırlıyor. suite/headless_provider (yerel pilot ek kod) içinde destek paketi veya hata kimliği sözleşmesi yok.
 
-Eksik: Hata kimliğinin kaynağı ve korelasyon sözleşmesi (sunucu log kimliği ↔ istemci) tanımsız.; Paketin nerede saklanacağı (DocType mı, Communication mı) ve hangi izinle yalnız yetkili alıcıya açılacağı belirtilmemiş.; Saklama ve silme süresi sayısal olarak verilmemiş.; Hedef Frappe sürümüne (v17-dev) eşleme yapılmamış; destek alıcısı (kurulu olmayan Helpdesk) seçilmemiş.
+Eksik: Sabit alan allowlist'i yok: desk paketi istek ve yanıt verisini, dolayısıyla form içeriğini de ekliyor. Yalnız parola maskeleniyor; token, cookie, kişisel veya tenant verisi varsayılan olarak hariç tutulmuyor.; Kullanıcının alanları tek tek görüp çıkarabildiği yapılandırılmış bir önizleme ve açık onay adımı yok. Composer yalnız serbest metin düzenlemeye izin veriyor.; Saat dilimi alanı yok. Desk 'Report' (e-posta) yolunda request_id yok; bu kimlik yalnız pano yolunda var.; Suite Meet raporu ham konsol satırlarını ve tam URL'yi pakete koyuyor, sabit bir dış alıcı kullanıyor. Bu, gereksinimle çelişiyor.; Headless (React/AntD) istemci için X-Frappe-Request-Id tüketimi, destek paketi DocType'ı veya whitelisted API sözleşmesi yok; headless_provider içinde de bulunmuyor.; Paylaşılan paket için yetkili alıcıyla sınırlı bir depolama/izin modeli ve pakete özel saklama/silme politikası yok. Error Log'un 30 günlük temizliği yalnız sunucu loglarını kapsıyor.; Destek alıcısı veya entegrasyonu seçilmemiş; Helpdesk kurulu değil.
 
-Sonraki adım önerisi: support-package görevine şunları ekleyin: istemci tarafında sabit alan allowlist'i belirleyin. Sunucuda tek bir whitelist yöntem, permission-check ile kaydı yalnız açık kullanıcı onayından sonra oluştursun. Hata kimliği kaynağını yerel kaynakta doğrulayın.
+Sonraki somut adım: Sıra şöyle: (1) support-package--contract kapsamında alan allowlist'ini sabitleyin: trace_id (X-Frappe-Request-Id), ISO zaman ve IANA saat dilimi, uygulama sürümü, route/ekran kimliği. Kullanıcı tarafından eklenen açıklama dışında form, request/response gövdesi, cookie, token ve ham konsol verisi olmasın. (2) Frappe tarafında tek bir whitelisted metot ve dar izinli bir Support Package DocType yazın. Bu metot yalnız allowlist alanlarını kabul etsin, trace_id ile Error Log'u yalnız yetkili rol için ilişkilendirsin ve clear_old_logs desenine benzer bir saklama işi içersin. Önce RED/GREEN testiyle başlayın. (3) Headless React istemcisi yanıt başlığından trace_id'yi okusun, alan bazlı önizleme ve çıkarma sunsun, gönderimi açık onaydan sonra yapsın. Otomatik dış mesaj gönderilmesin.
 
-Mevcut birincil görev: `support-package--implementation`. Kaynak: `frappe/frappe/api/v1.py:50`; `frappe/frappe/core/doctype/communication/email.py:94`.
+Önerilen bağımlılık/sıra: support-package--contract; kernel-envelope--contract; tenant-registry--contract; native-user-policy--contract; capability-definition--contract; native-doctype-schema--contract; outbox--contract. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `support-package--implementation`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/app.py:274` — `response.headers.update({"X-Frappe-Request-Id": trace_id})`
+- `frappe/frappe/utils/error.py:83` — `trace_id=trace_id,`
+- `frappe/frappe/public/js/frappe/request.js:595` — `request_data.request_id = xhr.getResponseHeader("X-Frappe-Request-Id");`
+- `frappe/frappe/public/js/frappe/request.js:634` — `recipients: error_report_email,`
+- `frappe/frappe/core/doctype/error_log/error_log.py:46` — `def clear_old_logs(days=30):`
+- `suite/frontend/src/apps/meet/utils/diagnostics/problemReport.ts:108` — `...consoleLogLines,`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- frappe/, suite/ (_.py,_.js,_.ts,_.vue,*.json); arama `request_id|X-Request-Id|error_log_id|trace_id|correlation`: 44 dosya. İlgili olanlar: monitor.py, app.py, utils/error.py, error_log DocType, public/js/frappe/request.js. Suite eşleşmeleri meet recording/sheets kimlikleri; destek paketiyle ilgisiz.
+- frappe/, suite/ (_.py,_.js,_.ts,_.vue,*.json); arama `(?i)support.?(package|bundle)|diagnostic|send_error_report|report_error|error_report`: Destek paketi DocType'ı veya API'si yok. İlgili olanlar: frappe request.js report_error, boot.py error_report_email, suite meet diagnostics/problemReport.ts ve consoleBuffer.ts.
+- frappe/frappe (public/dist hariç); arama `report_error|send_error_report|error_report|request_id|X-Frappe-Request`: monitor.py:79 gelen X-Frappe-Request-Id değerini kabul ediyor; app.py:274 bu başlığı yanıta yazıyor; boot.py:118 error_report_email; response.py:39 report_error.
+- frappe/frappe/public/js/frappe/request.js; arama `error_report_email|request_id|Request-Id|report_error`: Rapor diyaloğu ve pano/e-posta paketi 577-684 satırlarında; request_id yalnız pano yolunda.
+- suite/suite/headless_provider; arama `(?i)support|diagnos|trace_id|error_log|Error Log`: Yalnız ilgisiz '_order_supported' eşleşmeleri var; destek veya hata kimliği sözleşmesi yok.
+- frappe/frappe (request.js, error_log.py/json); arama `cleanup_request_opts = |delete\(|clear_old_logs|"role":`: Error Log izni yalnız System Manager; clear_old_logs 30 gün; cleanup_request_opts yalnız mask_passwords uyguluyor.
+
+Sınır: Yalnız kurulu frappe (commit adf1fd0c) ve suite (commit bilinmiyor) kaynağı statik olarak okundu. Kod çalıştırılmadı, test yürütülmedi; functionalAcceptance not_run.; public/dist derlenmiş bundle'ları kanıt olarak kullanılmadı; kaynak JS/TS okundu.; Error Log'a hangi hataların gerçekten yazıldığı ve izleme kimliğinin (trace_id) üretimde başlıkta görünmesi çalışma zamanına bağlı; doğrulanmadı.; Desk report_error ve Suite Meet Vue/jQuery arayüzüdür; headless React sağlayıcı sözleşmesi değildir.; ERPNext/Helpdesk kurulu değil ve değerlendirilmedi. Saklama, uyumluluk ve alıcı politikası kaynakla kanıtlanamaz.
+
+Temporal workflow: `saas-recheck-20261015t073528z-051`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### content-1 — CMS (Content Management System — içerik yönetim sistemi) ve yardım bilgi bankası.
 
@@ -4566,15 +6138,41 @@ Mevcut birincil görev: `native-web-page--implementation`. Kaynak: `suite/suite/
 
 #### content-3 — Programmatic SEO (veri/şablonla ölçekli arama odaklı sayfa üretimi).
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Kabul ölçütü (benzersiz canonical, eksik veri yayımlanmasın) anlamlı ve kapsam 'advanced' olarak doğru ertelenmiş. Website Generator kaynağı bu kesitlerde görülmedi. Kaynakta yalnız sayfalı liste API'si (varsayılan 20 kayıt) var; bu da kayıt başına sayfa üretimini kanıtlamaz. Görev content-2'deki render kararına bağlı, ancak bu bağımlılık talimatta yazılmamış.
+Upstream Frappe'de kayıt başına sayfa üretimi için temel parça var. WebsiteGenerator (frappe/frappe/website/website_generator.py), yayın koşulu sağlandığında başlık alanından slug üretip `route` alanına yazar (en fazla 139 karakter, meta.route öneki eklenir). Yayın durumunu is_published_field veya website.condition_field ile denetler; update/trash sırasında Google indexing isteğini kuyruğa alır. DocType.validate, has_web_view açık olan DocType'larda `route` alanını zorunlu tutar ve şablon boilerplate'i üretir. DocumentPage renderer, route ve yayın filtresiyle belgeyi bulur; yayınlanmamış kayıt bu yoldan render edilmez. sitemap.py yalnız guest erişimine açık, yayın koşulu tanımlı ve yayınlanmış kayıtları sitemap'e ekler; robots_txt'nin engellediği ve dinamik route'ları dışarıda bırakır. Website Route Meta ise route bazında meta etiketi tutar. Benzersizlik yalnız alan düzeyinde: örneğin Web Page `route` alanı `unique: 1`. Suite (Vue frontend + Python) içinde has_web_view veya WebsiteGenerator kullanan bir DocType bulunamadı; tek SEO izi statik `www/event_rsvp.html` sayfasındaki noindex meta etiketi. Yerel pilot olan suite/headless_provider içinde public/SEO route sözleşmesi yok; Guest kullanıcıyı reddeden bir yol var.
 
-Eksik: Hangi DocType'ın veri kaynağı olacağı ve veri kalitesi eşiği (zorunlu alanlar, en az içerik) tanımlı değil.; Slug benzersizliği, çakışma ve yönlendirme kuralı yok.; content-2'deki render/sitemap kararına bağımlılık açıkça belirtilmemiş.; Website Generator için v17-dev doğrulaması yok; headless frontend'de nasıl kullanılacağı belirsiz.
+Eksik: Programmatic SEO için kaynak DocType ve şablon/veri kümesi yok; ne Suite'te ne headless_provider'da has_web_view DocType tanımlı.; Veri kalitesi eşiği yok: zorunlu alan/minimum içerik kontrolü olmadan yayın engeli tanımlı değil. Mevcut kapı yalnız tek bir boolean yayın alanı.; DocType'lar arası route çakışması kontrolü yok. _find_matching_document_webview ilk eşleşen DocType'ı döndürüyor; benzersizlik yalnız DocType bazında unique alan bayrağına bağlı. Slug değişiminde redirect üretimi de WebsiteGenerator içinde yok.; Frappe şablonlarında (py/html) rel=canonical üretimi bulunamadı; kayıt bazında canonical URL ve noindex politikası yok.; Headless React/AntDesign frontend için route→kayıt çözümleyen, yayın/kalite kapısı uygulayan ve canonical/sitemap verisi dönen provider API sözleşmesi yok.; content-2 render/sitemap kararına bağımlılık canonical görev bağımlılıklarında yazılı değil (talimat düzeyi boşluk).; functionalAcceptance not_run: örnek veri kümesiyle benzersiz canonical rota üretimi çalıştırılarak doğrulanmadı.
 
-Sonraki adım önerisi: programmatic-seo--implementation görevine content-2 bağımlılığı eklenmeli. Örnek veri kümesi için şu kurallar tanımlanmalı: kaynak DocType, zorunlu alan kontrol listesi, slug benzersizliği ve eksik veride noindex/yayımlamama. Website Generator v17 kaynağı ayrıca okunmalı.
+Sonraki somut adım: Mevcut programmatic-seo--contract görevinin içinde en küçük adım ve sıra şöyle: (1) Tek bir pilot kaynak DocType seçilir; has_web_view, is_published_field ve unique `route` alanı tanımlanır, WebsiteGenerator yeniden kullanılır. (2) Controller validate adımına zorunlu alan/minimum içerik kontrolü eklenir; eşik sağlanmazsa yayın bayrağı reddedilir. Önce bunun için RED testi yazılır. (3) Uygulama düzeyinde DocType'lar arası route çakışma kontrolü eklenir. (4) Headless tüketim için route→kayıt çözümleyen, yalnız yayınlanmış ve kaliteli kaydı canonical URL ile döndüren tek bir salt-okunur provider endpoint'i eklenir; sitemap.py çıktısı yeniden kullanılır. React tarafı content-2 render kararından sonra bağlanır. Bu iş content-2 bağımlılığı netleştikten sonra yapılır.
 
-Mevcut birincil görev: `programmatic-seo--implementation`. Kaynak: `frappe/frappe/client.py:26`; `frappe/frappe/api/v1.py:22`.
+Önerilen bağımlılık/sıra: programmatic-seo--contract; kernel-envelope--contract; native-user-policy--contract; capability-definition--contract; native-doctype-schema--contract; outbox--contract; audit-envelope--contract; content-2 (render/sitemap kararı; talimatta açık bağımlılık olarak eksik). Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `programmatic-seo--implementation`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/website/website_generator.py:10` — `class WebsiteGenerator(Document):`
+- `frappe/frappe/website/website_generator.py:39` — `self.route = self.make_route()`
+- `frappe/frappe/website/website_generator.py:92` — `return self.get(condition_field) or False`
+- `frappe/frappe/core/doctype/doctype/doctype.py:423` — `frappe.throw(_('Field "route" is mandatory for Web Views'), title="Missing Field")`
+- `frappe/frappe/website/page_renderers/document_page.py:102` — `docname = frappe.db.get_value(doctype, filters, "name")`
+- `frappe/frappe/www/sitemap.py:55` — `condition_field = meta.is_published_field or controller.website.condition_field`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- source (frappe + suite tamamı); arama `class WebsiteGenerator`: Yalnız frappe/frappe/website/website_generator.py:10; Suite'te alt sınıf yok.
+- suite (tamamı); arama `(?i)programmatic.?seo|canonical|noindex|meta_robots|seo`: 147 dosya eşleşti; çoğu derlenmiş asset veya alakasız alt dizgi (canonicalMediaKey, recorder vb.). Programmatic SEO uygulaması yok.
+- suite (public/frontend hariç); arama `"has_web_view": 1|WebsiteGenerator|website_generators|sitemap|get_sitemap|canonical_url|robots`: Yalnız suite/suite/www/event_rsvp.html:6 noindex meta; web view DocType yok.
+- frappe/frappe (py, html); arama `canonical|def validate_route_conflict|route.*already exists|"unique": 1`: rel=canonical üretimi yok; validate_route_conflict DocType adı/desk rotası içindir, kayıt slug'ı için değil.
+- frappe/frappe (dist hariç); arama `def make_website_route|"fieldname": "route"|meta_tags|rel="canonical"`: route alanları (Web Page unique, Help Article, Web Form vb.) ve Website Route Meta meta_tags bulundu.
+- frappe/frappe/core/doctype/doctype/doctype.py; arama `has_web_view|is_published_field|route`: has_web_view için route zorunluluğu, şablon boilerplate ve is_published_field doğrulaması bulundu.
+- frappe/frappe/website; arama `condition_field|_find_matching_document_webview|get_page_info_from_web_page_with_dynamic_routes`: DocumentPage route ve yayın filtresiyle ilk eşleşen DocType'ı döndürüyor; DocType'lar arası çakışma kontrolü yok.
+- suite/suite/headless_provider; arama `(?i)route|slug|sitemap|seo|publish|web_view|guest`: Yalnız api.py: Guest reddi ve iç _route planlayıcı; SEO/public route sözleşmesi yok.
+
+Sınır: Yalnız sourceRoot altındaki frappe ve suite uygulama kaynakları okundu; komut, test veya runtime çalıştırılmadı (functionalAcceptance not_run).; suiteCommit bilinmiyor; frappe commit adf1fd0c2d6215ad4cac9976251198b2a35fbda6.; Jinja şablonlarının tamamı (templates/*.html) tek tek okunmadı; canonical araması py ve html glob'u ile sınırlıydı.; Google indexing'in gerçek çalışması, deploy edilmiş site, sitemap çıktısı ve arama motoru davranışı kaynakla kanıtlanamaz.; ERPNext/HRMS kurulu değil, değerlendirilmedi; GenUI uygulanmadı.; suite/headless_provider yerel pilot ek koddur, upstream-native değildir.
+
+Temporal workflow: `saas-recheck-20261015t073528z-062`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### content-4 — İçerik ve yorum moderation (yayına uygunluk denetimi).
 
@@ -4590,15 +6188,41 @@ Mevcut birincil görev: `moderation-case--implementation`. Kaynak: `suite/suite/
 
 #### content-5 — Changelog (değişiklik günlüğü) ve müşteri panelinde “Neler yeni?”.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Hedef ve kabul ölçütü anlamlı: hedef kitleye görünürlük, taslak ve kısıtlı duyurunun gizli kalması. Ancak içerik modeli belirsiz; Web Page, Notification Log ya da yeni bir Release Note DocType arasında seçim yapılmamış. Gönderilen kaynak parçalarında changelog veya duyuru DocType'ı yok. Yalnız genel izin primitifleri ve Suite Drive bildirim yardımcısı görülüyor. Kaynak bağlantıları version-15'i gösteriyor, yerel kurulum ise 17.0.0.dev0.
+Upstream Frappe'de (v17 dev, commit adf1fd0c) uygulama düzeyinde bir changelog mekanizması var. frappe/frappe/utils/change_log.py içindeki get_change_log, kurulu her uygulamanın <app>/change_log/vN/vX_Y_Z.md markdown dosyalarını okuyor. Bunları kullanıcının User.last_known_versions alanındaki sürümle (gizli, salt okunur Text alanı) karşılaştırıp aradaki sürümleri döndürüyor; böylece kullanıcı başına sürüme dayalı bir görüldü durumu da sağlıyor. sessions.py içindeki get bu sonucu bootinfo.change_log içine koyuyor. desk.js içindeki show_change_log içeriği Desk'te bir diyalogda gösteriyor; diyalog kapanınca whitelist'teki update_last_known_versions çağrılıyor. İlgili iki parça daha var: (1) check_for_update ve show_update_popup, GitHub sürüm bildirimini yalnız System Manager rolündekilere gösteriyor; (2) Navbar Settings'teki announcement_widget, tüm Desk kullanıcılarına tek bir global duyuru bandı gösteriyor ve kapatma durumunu yalnız tarayıcının localStorage'ında tutuyor. Genel okundu primitifi olarak Notification Log (read ve for_user alanları) var. Suite'in Vue frontend'inde ve backend'inde changelog, duyuru veya Neler yeni kodu bulunmadı. Yerel pilot suite/headless_provider/api.py yalnız session, metadata ve şema düzenleme uçlarını açıyor; changelog sözleşmesi içermiyor.
 
-Eksik: Duyuru modeli ve sahibi seçilmemiş (Web Page, Notification Log ya da yeni DocType); Blog Post, blog uygulamasına bağlı.; Hedef kitle kuralı (rol/tenant/plan) ve okundu (read-state) modeli için sözleşme yok.; Headless React panelinin hangi API ile okuyacağı belirsiz. Suite hooks /api/ yollarını wildcard ile reddediyor; izinli yol (allowlist) etkisi tanımlanmamış.; Kaynaklar v15'e eşlenmiş; v17 dev şeması doğrulanmamış.
+Eksik: Kayıt düzeyinde bir duyuru (Release Note) DocType'ı yok: taslak/yayınlandı durumu, yayın tarihi, hedef kitle (rol/tenant/plan) ve kayıt bazlı izinle kısıtlanan duyuru alanları bulunmuyor. Mevcut changelog, kod deposundaki statik markdown dosyalarından geliyor; yönetici içerik yazamıyor ve kitle hedefleyemiyor.; Kabul ölçütündeki 'taslak ve kısıtlı duyuru gizli kalsın' davranışı için sunucu tarafında bir filtre yok. announcement_widget tek ve global; hedefleme yapmıyor, kapatma durumunu da yalnız istemcide tutuyor.; Duyuru başına okundu kaydı yok. last_known_versions yalnız kullanıcı başına uygulama sürümlerini tutuyor.; Headless React/AntD müşteri paneli için Neler yeni okuma/okundu API sözleşmesi yok. Changelog yalnız Desk bootinfo'su ve jQuery diyaloğu üzerinden sunuluyor; headless_provider bunu açmıyor.; Suite hooks.py DENIED_WILDCARD_PATHS içinde /api/ yolunu engelliyor. Yeni bir okuma ucunun izinli yol (allowlist) listesine eklenmesi gerekiyor; bu kuralın nasıl uygulandığı ise bu incelemede okunmadı.; Tenant ve plan ile hedefleme, kernel/audit/outbox zarflarıyla entegrasyon kaynakta yok.
 
-Sonraki adım önerisi: release-note--implementation görevine yeni bir ID açmadan kısa bir karar notu ekleyin: v17 kaynağında model seçimini (Web Page ya da özel DocType artı Frappe izinleri), hedef kitle ve okundu alanlarını ve /api/v2 okuma yolunun Suite izinli yol listesiyle ilişkisini yazın. Kabul ölçütü olduğu gibi kalsın; durumu not_run.
+Sonraki somut adım: Sıra mevcut görevlerle aynı. (1) release-note--contract: Bir Release Note DocType sözleşmesi yazılır. Alanlar: title, body, status (Draft/Published), published_on, audience_roles (Table MultiSelect veya Has Role) ve isteğe bağlı tenant/plan. Okundu durumu için duyuru başına ayrı bir kayıt (Release Note Read) ya da Notification Log yeniden kullanılır. Upstream app changelog'u (change_log.py) yalnız geliştirici sürüm notu olarak kalır. (2) release-note--schema: DocType ve permission rules eklenir; get_list filtresi yalnız Published, yayın tarihi gelmiş ve rol kesişimi olan kayıtları döndürür. (3) release-note--implementation: Bir okuma ucu (liste ve mark_read) eklenir ve Suite hooks.py izinli yol listesine yazılır. Önce taslak ve kısıtlı duyurunun gizli kaldığını gösteren başarısız (RED) bir regresyon testi yazılır, sonra GREEN. React paneli bu provider sözleşmesini tüketir. functionalAcceptance: not_run.
 
-Mevcut birincil görev: `release-note--implementation`. Kaynak: `suite/suite/writer/doctype/writer_document/writer_document.py:11`; `suite/suite/writer/api/docs.py:142`; `suite/suite/hooks.py:466`; `frappe/frappe/api/v1.py:83`.
+Önerilen bağımlılık/sıra: release-note--contract; release-note--schema; kernel-envelope--contract; native-user-policy--contract; capability-definition--contract; native-doctype-schema--contract; outbox--contract; audit-envelope--contract. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `release-note--implementation`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/utils/change_log.py:64` — `change_log_folder = os.path.join(frappe.get_app_path(app), "change_log")`
+- `frappe/frappe/utils/change_log.py:26` — `json.loads(frappe.db.get_value("User", user, "last_known_versions") or "{}")`
+- `frappe/frappe/sessions.py:190` — `bootinfo["change_log"] = get_change_log()`
+- `frappe/frappe/public/js/frappe/desk.js:529` — `method: "frappe.utils.change_log.update_last_known_versions",`
+- `frappe/frappe/utils/change_log.py:366` — `system_managers = [user for user in user_list if "System Manager" in frappe.get_roles(user)]`
+- `suite/suite/hooks.py:466` — `"/api/",`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- frappe/ ve suite/ (tüm source root; *.po/pot/csv/mo/min.js/map hariç); arama `(?i)changelog|release[ _-]?note|what'?s[ _-]?new|announcement`: 39 dosya. Frappe'de change_log.py, change_log/v12-v13 markdown dosyaları, navbar_settings, desk.js ve toolbar eşleşti. Suite'te yalnız alakasız eşleşmeler çıktı (gemoji asset, exchange logger, meet CONTEXT.md).
+- frappe/frappe (*.py, *.js, *.json, *.html); arama `(?i)change_log|changelog|show_whats_new|last_known_versions|announcement`: Akış izlendi: change_log.py, sessions.py bootinfo, hooks.py scheduler (check_for_update) ve cache, desk.bundle import.
+- frappe/frappe/public/js/frappe; arama `(?i)change_log|announcement_widget|whats_new|update_last_known_versions`: desk.js show_change_log diyaloğu; toolbar.js ve navbar.html'de global announcement_widget, localStorage ile kapatma.
+- frappe/frappe/core/doctype/navbar_settings; arama `(?i)announcement`: announcement_widget (TextEditor), color ve dismissible alanları; hedef kitle veya taslak alanı yok.
+- suite (public/frontend hariç); arama `(?i)changelog|change_log|release[ _-]?note|what'?s[ _-]?new|announcement|last_known_versions|broadcast`: Duyuru veya changelog uygulaması yok; yalnız sheets collab broadcast ve exchange logger eşleşti.
+- suite/suite/headless_provider/api.py; arama `(?i)whitelist|def |change_log|notification|release|announce`: Yalnız session, metadata, create_field, preview_edit ve apply_edit uçları var; changelog/duyuru ucu yok.
+- suite/suite/hooks.py; arama `"/api/"|website_route_rules|block|deny|allow`: DENIED_WILDCARD_PATHS içinde /api/ var; allowlist yalnız writer, slides, sheets ve dav yollarını içeriyor.
+- frappe/frappe/core/doctype/user/user.json; arama `last_known_versions`: Text, hidden ve read_only alan olarak tanımlı.
+
+Sınır: Yalnız kaynak kod okundu; testler okunmadı veya çalıştırılmadı. Runtime functionalAcceptance: not_run.; DENIED_WILDCARD_PATHS kuralının nasıl uygulandığı (hangi middleware) okunmadı.; Derlenmiş public/dist bundle'ları ve suite/public/frontend asset'leri davranış kanıtı sayılmadı.; ERPNext/HRMS ve blog uygulaması kurulu değil; değerlendirilmedi.; Suite commit bilinmiyor; headless_provider yerel pilot koddur, upstream-native değildir.; Bu değerlendirme kod varlığını gösterir; Desk diyaloğunun gerçek kullanıcıda görünmesi veya SaaS dağıtımı doğrulanmadı.
+
+Temporal workflow: `saas-recheck-20261015t073528z-063`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### content-6 — Taslak, önizleme, yayın zamanı, sürüm geçmişi ve geri alma.
 
@@ -4626,41 +6250,113 @@ Mevcut birincil görev: `native-web-page--implementation`. Kaynak: `suite/suite/
 
 #### content-8 — Moderasyon kuyruğu, gerekçe, itiraz ve ihlal geçmişi.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Hedef ve kabul ölçütü var: gerekçeli red, itiraz, değişmez karar ve ihlal geçmişi. Ancak karar yetkisi, durum makinesi ve tenant kapsamı tanımlanmamış. Kaynak parçasında moderasyon DocType'ı yok; yalnız submit/cancel/amend ve has_permission gibi genel primitifler görülüyor. Bu bir ERPNext/HRMS yeteneği olmadığı için not_installed değil, unknown.
+Moderasyon alanına özgü bir uygulama yok. Ne frappe'de ne suite'te (yerel pilot suite/suite/headless_provider dahil) moderasyon kuyruğu, gerekçe, itiraz ya da ihlal geçmişi için DocType, controller, API veya hook bulundu. Yalnızca upstream Frappe'nin genel ve somut primitifleri var: (1) Workflow motoru, frappe/frappe/model/workflow.py içinde. get_transitions geçişleri mevcut duruma ve kullanıcı rolüne göre süzüyor. apply_workflow durum alanını güncelliyor ve has_approval_access ile kendi kendini onaylamayı engelliyor. (2) Submit sonrası değişmezlik: validate_update_after_submit ve _validate_update_after_submit, allow_on_submit olmayan alanların submit sonrası değişmesini engelliyor. (3) Document.save_version: track_changes açık DocType'larda değişiklik geçmişini Version kaydı olarak tutuyor. Suite'teki Screened Email Address (Spam/Reject/Accepted) ve Spam Check Log, posta göndericisi süzme ve spam işlevidir; içerik moderasyonu değildir. Gerekçe, itiraz ve ihlal geçmişi içermez.
 
-Eksik: Durum yaşam döngüsü tanımsız (kuyrukta, reddedildi, itirazda, kesinleşti).; Moderatör ve itiraz inceleyicisi rol ayrımı ile DocPerm eşlemesi yok.; Kararın değiştirilemezliği için docstatus (submit/amend) kullanımı açıkça seçilmemiş.; Hangi içerik türlerinin moderasyona girdiği ve tenant sınırı belirsiz.
+Eksik: Moderasyon vakası DocType'ı yok. İçerik referansı için Dynamic Link, tenant/kapsam, durum ve zorunlu gerekçe alanı tanımlı değil.; Kuyrukta → reddedildi → itirazda → kesinleşti durum makinesi için bir Workflow tanımı ve geçiş rolleri yok.; Moderatör ile itiraz inceleyicisi rol ayrımı ve DocPerm eşlemesi yok.; Önceki karara bağlı itiraz kaydı yok.; Kullanıcı ya da içerik başına değişmez ihlal geçmişi ve bunu sorgulayan bir API yok.; Hangi içerik türlerinin kuyruğa girdiğini belirleyen hooks/doc_events entegrasyonu yok.; Headless provider tarafında moderasyon sözleşmesi ve API'si yok; outbox ve audit-envelope bağlantısı da yok.; Moderasyon arayüzü yok: ne Suite'in Vue frontend'inde ne de React/Ant Design hedef arayüzünde.
 
-Sonraki adım önerisi: moderation-case--implementation için kısa bir tasarım notu yazın: submittable bir vaka modeli, gerekçe alanı, itirazın bağlı kayıt olarak tutulması ve kararların amend ile değişmeden izlenmesi. Roller native DocType izinleriyle verilsin; ignore_permissions içeren yardımcılar dışarı açılmasın.
+Sonraki somut adım: En küçük adım ve sıra şöyle: (1) moderation-case--contract: durumları, gerekçe zorunluluğunu, itiraz bağını ve tenant kapsamını içeren sözleşme notu. (2) moderation-case--schema: submittable bir Moderation Case DocType'ı. İçinde reference_doctype/reference_name (Dynamic Link), reason (zorunlu), decision, appeal_of (önceki vakaya Link) ve tenant alanı bulunsun; track_changes açık olsun. Karar submit edildiğinde validate_update_after_submit ile değişmez hale gelsin. İtiraz, kararı değiştirmesin; önceki vakaya bağlı yeni bir vaka olarak açılsın. (3) Native Workflow tanımı: moderatör ve itiraz inceleyicisi ayrı Role'ler olsun, geçişler bu rollere bağlansın. (4) Tek dar davranış için RED/GREEN testi: reddedilen içeriğe gerekçeli itiraz açılabilsin ve submit edilmiş önceki karar değiştirilemesin. Headless provider uç noktaları ve outbox/audit bağlantısı bu adımlardan sonra, ignore_permissions kullanmadan eklensin.
 
-Mevcut birincil görev: `moderation-case--implementation`. Kaynak: `frappe/frappe/permissions.py:20`; `frappe/frappe/permissions.py:82`.
+Önerilen bağımlılık/sıra: moderation-case--contract; moderation-case--schema; kernel-envelope--contract; native-user-policy--contract; capability-definition--contract; native-doctype-schema--contract; outbox--contract; audit-envelope--contract. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `moderation-case--implementation`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/model/workflow.py:72` — `if transition.state == current_state and transition.allowed in roles:`
+- `frappe/frappe/model/workflow.py:136` — `if not has_approval_access(user, doc, transition):`
+- `frappe/frappe/model/document.py:1485` — `def validate_update_after_submit(self):`
+- `frappe/frappe/model/base_document.py:1350` — `if df and not df.allow_on_submit and not df.is_virtual and (self.get(key) or db_value):`
+- `frappe/frappe/model/document.py:2038` — `def save_version(self):`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- frappe/ ve suite/ (tüm sourceRoot, *.{py,json,js,ts,vue,tsx}); arama `(?i)moderat|appeal|violation|takedown|flagged|report_abuse|content_review`: 59 dosya eşleşti. Eşleşmeler veritabanı constraint violation, mail flagged bayrakları ve sidebar ile ilgili. Moderasyon DocType'ı ya da API'si yok.
+- frappe/ ve suite/ (*.{py,json,ts,vue}); arama `(?i)moderat|appeal|abuse_report|report_content|content_violation|strike|takedown`: Yalnızca alakasız eşleşmeler çıktı: strikethrough biçimlendirmesi, şifre açıklaması ve get_report_content. Moderasyon kodu yok.
+- suite/suite (*.{py,json}); arama `(?i)\b(spam|junk|report_spam|mark_as_spam|block_sender|blocklist)\b`: Mail spam ve gönderici süzme işlevleri bulundu (Screened Email Address, Spam Check Log, spamd). İtiraz ve ihlal geçmişi içermiyor.
+- frappe/frappe; arama `def (validate_update_after_submit|check_if_latest|_validate_update_after_submit)|class Workflow\(|def get_transitions|def apply_workflow`: Workflow motoru ve submit sonrası değişmezlik primitifleri bulundu ve okundu.
+- frappe/frappe/model/document.py; arama `track_changes|def save_version|get_diff`: save_version, track_changes ile Version geçmişini tutuyor.
+- suite/suite/headless_provider/**/*.py; arama `glob`: Yalnızca **init**.py, api.py ve local_fixture.py var. Moderasyon desenleri bu dizinde de eşleşmedi (yukarıdaki suite araması bu dizini kapsıyor).
+
+Sınır: Kod hiç çalıştırılmadı; testler yalnızca okundu. functionalAcceptance: not_run.; Kapsam yalnızca sourceRoot altındaki frappe ve suite kaynaklarıdır. Site config ve veritabanındaki Workflow, Custom DocType ya da Server Script kayıtları görülmedi.; ERPNext/HRMS kurulu değil ve değerlendirilmedi.; Primitifler genel Frappe yetenekleridir; moderasyon gereksinimini karşıladıkları kanıtlanmamıştır.; suiteCommit bilinmiyor; headless_provider yerel pilot ve eklemeli bir koddur.
+
+Temporal workflow: `saas-recheck-20261015t073528z-064`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 ### Raporlama, ürün ve pazarlama ölçümü
 
 #### analytics-1 — GTM (Google Tag Manager — Google etiket yöneticisi) bağlantısı.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Hedef ve kabul ölçütü (izin uyumlu yükleme, rota değişiminde tekrar yok) somut. Frappe hosted ayarının headless sayfaya otomatik uygulanmadığı doğru tespit edilmiş. Ancak kaynak olarak version-15 Website Settings şeması verilmiş; yerel kurulum 17.0.0-dev. Website Settings kaynağı bu pakette yok, bu yüzden yerel GTM alanı doğrulanamadı. Suite tek SPA rotası olarak sunuluyor; ilk yükleme sunucu tarafında, sonraki rota geçişleri istemcide.
+Yerel v17-dev Frappe kaynağında GTM'ye özel alan, yükleyici veya API yok. İlgili, upstream'e ait (native) yapı taşları yalnız Frappe'nin sunucuda ürettiği sayfalarda çalışıyor. (1) Website Settings şemasında google_analytics_id, google_analytics_anonymize_ip ve serbest head_html alanları var. head_html, templates/base.html içinden includes/head.html aracılığıyla Frappe web sayfalarına kaçışsız basılıyor. Bir GTM snippet'i bu alana elle yapıştırılabilir, ama izin kontrolü yapılmıyor. (2) www/website_script.py ve website_script.js, GA kimliğini Website Settings'ten ya da site config'ten okuyor. Ardından eski Universal Analytics analytics.js dosyasını yükleyip ga('send','pageview') çağırıyor. Bu yalnız developer_mode kapalıyken oluyor ve izin kontrolü yok. www/desk.py ile desk.html, frappe.conf'taki GA kimliğiyle aynı eski GA snippet'ini Desk'e ekliyor. (3) Suite'in Vue/Vite SPA kabuğu (suite/suite/www/suite.html) bağımsız bir HTML. base.html'i genişletmiyor ve ne head_html ne de website_script içeriyor. Bu yüzden hosted GA/head_html ayarı Suite SPA'ya uygulanmıyor. Suite router'ındaki router.afterEach yalnız uygulama runtime'larına aktarım yapıyor, analitik üretmiyor. Yerel pilot ek kod olan suite/headless_provider (api.py, local_fixture.py) yalnız DocType alan etiketi, açıklama ve sıra sözleşmesini kapsıyor. Analitik, GTM veya izin sözleşmesi içermiyor.
 
-Eksik: Version-15 kaynağı yerel v17-dev ile eşlenmemiş; hosted GTM alanının headless kabukta kullanılmayacağı açıkça yazılmamış.; Hangi kabuklarda geçerli olduğu belirsiz: Vite/PWA, Tauri2 ya da WXT/MV3. MV3 uzaktan kod yüklemeyi yasaklıyor, Tauri'de CSP kısıtı var; ikisi için GTM'nin hariç tutulması ya da alternatifi tanımlı değil.; TanStack Router rota olayına bağlı tek page_view sözleşmesi ve CSP/nonce kuralı yok.; İzin sırası analytics-6'ya bağlı; ama bu bağımlılık task eşlemesinde ayrı bir ön koşul olarak yazılmamış.
+Eksik: GTM konteyner kimliği için ayar ya da provider sözleşmesi yok. Her iki kökte googletagmanager, gtm, dataLayer ve gtag için yapılan aramada davranış eşleşmesi çıkmadı; yalnız yarn.lock hash'lerine ve derlenmiş/binary gürültüye rastlandı.; Consent Mode ve kategori bazlı izin sırası yok. analytics-6 izin kararına bağlanan bir yükleme kapısı da yok.; Headless React/TanStack Router kabuğunda GTM yükleyicisi yok. Rota geçişine bağlı, tek seferlik page_view sözleşmesi ve tekrarı önleyici yapı da yok.; GTM için CSP/nonce kuralı yok. Mevcut head_html ve GA enjeksiyonları ham inline script.; Tauri2 ve WXT/MV3 kabukları için GTM'yi dışarıda tutma ya da alternatif kararı kaynakta yok.; Native GA yolu kullanımdan kalkmış Universal Analytics analytics.js'e bağlı. Bu yol hosted Frappe sayfalarıyla sınırlı ve Suite SPA ile headless kabuğa otomatik uygulanmıyor.
 
-Sonraki adım önerisi: analytics-consent--implementation görevine kısa bir not eklenmeli: GTM yalnız web/PWA kabuğunda ve yalnız izin verildikten sonra yüklensin. page_view TanStack Router'ın tek bir geçiş olayından üretilsin. Tauri ve MV3 için GTM kapsam dışı ya da ayrı karar olsun. Version-15 kaynağı v17-dev için 'hosted-only, headless'a uygulanmaz' diye etiketlensin.
+Sonraki somut adım: Sıra: 1) analytics-consent--contract içinde provider tarafını tanımla. Frappe headless kabuğa yalnız tenant'a ait GTM container ID'sini ve izin politikası meta verisini salt okunur verir. Script veya head_html enjekte etmez. Hosted Website Settings içindeki google_analytics_id ve head_html alanları 'hosted-only, headless'a uygulanmaz' diye etiketlenir. 2) analytics-consent--implementation görevinde ilk dar davranış olarak yalnız web/PWA (Vite) kabuğunu hedefle. GTM, Consent Mode varsayılanı 'denied' iken ve yalnız analytics-6 izni verildikten sonra yüklenir. page_view, TanStack Router'ın tek geçiş olayından ve rota başına bir kez üretilir. Önce RED test yaz, sonra GREEN. 3) CSP/nonce kuralını aynı adımda ekle. 4) Tauri2 ve WXT/MV3 için GTM'yi dışarıda tut ya da ayrı karar notu yaz. Mevcut task ID'leri ve bağımlılıklar korunur; yeni görev kaydı açılmaz.
 
-Mevcut birincil görev: `analytics-consent--implementation`. Kaynak: `suite/suite/hooks.py:48`.
+Önerilen bağımlılık/sıra: analytics-consent--contract; kernel-envelope--contract; native-user-policy--contract; capability-definition--contract; native-doctype-schema--contract; outbox--contract; audit-envelope--contract. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `analytics-consent--implementation`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/website/doctype/website_settings/website_settings.json:261` — `"fieldname": "head_html",`
+- `frappe/frappe/templates/includes/head.html:2` — `{{ head_html or "" }}`
+- `frappe/frappe/www/website_script.py:34` — `context["google_analytics_id"] = get_setting("google_analytics_id")`
+- `frappe/frappe/www/website_script.js:15` — `ga('send', 'pageview');`
+- `suite/suite/www/suite.html:37` — `<script type="module" crossorigin src="/assets/suite/frontend/assets/index-BmMNnzY_.js"></script>`
+- `suite/frontend/src/router/index.ts:233` — `if (appId) loadedAppRuntimes.get(appId)?.afterEach?.(to)`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- frappe/ ve suite/ (sourceRoot tamamı); arama `(?i)google_tag_manager|gtm|googletagmanager|tag_manager`: Davranış eşleşmesi yok. Sonuçlar yalnız yarn.lock integrity hash'leri, base64 test verisi, svg ve derlenmiş/minified dosyalardaki rastlantısal 'gtm' dizgileri.
+- frappe/ ve suite/ (map/lock hariç); arama `(?i)google_analytics|gtag|dataLayer|analytics_id|enable_google_indexing`: Website Settings google_analytics_id/anonymize_ip alanları; website_script.py/js'deki eski GA analytics.js; desk.py/desk.html ve app_analytics/google_analytics.html; heap_analytics.html bulundu. Suite kaynağında gtag ve dataLayer kullanımı yok.
+- frappe/ ve suite/ (map/lock/po/csv/svg hariç); arama `(?i)posthog|telemetry|cookie_consent|consent|page_view|pageview`: Frappe ürün telemetrisi (utils/telemetry, frappe/ui/src/telemetry, public/js/telemetry), Web Page View DocType'ı, Desk pageview.js ve setup_wizard izinleri bulundu. Suite'te yalnız meet/e2e eşleşmeleri çıktı. GTM'ye bağlı bir consent yapısı yok.
+- suite/ (public/frontend ve noise-suppression derlemeleri hariç); arama `(?i)website_script|head_html|analytics|tracking|tag_manager`: Suite kaynağında analitik veya GTM entegrasyonu yok. Yalnız yarn.lock'ta @firebase/analytics ve workbox-google-analytics geçişli bağımlılıkları var; bunlar davranış kanıtı değil.
+- suite/suite/headless_provider; arama `(?i)analytic|gtm|tag|consent|script|csp`: Yalnız DocType alan açıklama/etiket düzenleme sözleşmesi bulundu; analitik veya GTM yok.
+- frappe/frappe/templates; arama `head\.html|website_script\.js`: head.html yalnız templates/base.html:24'te dahil ediliyor. Suite SPA kabuğu suite.html base.html'i kullanmıyor.
+- suite/frontend/src; arama `(?i)afterEach|gtag|dataLayer|analytics`: router/index.ts:223 router.afterEach yalnız app runtime afterEach'ine aktarıyor. Analitik veya gtag çağrısı yok.
+
+Sınır: Yalnız kaynak koda statik bakıldı. functionalAcceptance=not_run; komut ya da test çalıştırılmadı, ağ kullanılmadı.; Site config'ler ve veritabanı yok; head_html'e bir tenant'ta GTM snippet'i konup konmadığı bilinemez.; Suite commit bilinmiyor. suite.html derlenmiş bir çıktı, bu yüzden kaynak index.html ayrıca incelenmedi.; frappe/ui/src/telemetry ve utils/telemetry Frappe ürün telemetrisi olarak grep ile görüldü, ayrıntılı okunmadı. GTM ile ilgisi olmadığı yalnız arama sonuçlarına dayanıyor.; Headless React/TanStack, Tauri2 ve WXT kabukları bu kaynakta yok. Onlar için sonuç yalnız Frappe provider sözleşmesinin yokluğunu gösteriyor.; ERPNext/HRMS kurulu değil ve değerlendirilmedi.
+
+Temporal workflow: `saas-recheck-20261015t073528z-025`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### analytics-2 — Google Analytics ve Yandex Metrica adaptörleri.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-İki sağlayıcının ayrı adaptörler olduğu ve PII/tenant verisinin dışarı çıkmaması gerektiği belirtilmiş. Kabul ölçütü ölçülebilir. Ancak ortak olay şeması (analytics-4) ile sağlayıcı alan eşlemesi tanımsız. İncelenen kaynakta GA ya da Metrica adaptörü yok. Frappe monitor modülü sunucu tarafı istek telemetrisi tutuyor, ürün analitiği adaptörü değil; dolayısıyla buna dayanılamaz.
+Upstream Frappe'de yalnız Google Analytics için eski, sunucuda şablonla üretilen bir ilkel var. Website Settings DocType'ında google_analytics_id ve google_analytics_anonymize_ip alanları bulunuyor. www/website_script.py bu değerleri Website Settings'ten veya site config'ten okuyor; developer_mode açıkken bunları bağlama eklemiyor. www/website_script.js, web sitesi sayfalarına legacy analytics.js (ga('create'), isteğe bağlı anonymizeIp, ga('send','pageview')) enjekte ediyor. Desk tarafında www/desk.py yalnız frappe.conf'tan okuyor; desk.html, templates/includes/app_analytics/google_analytics.html şablonunu ekliyor. Bu şablon her mousedown olayında data-doctype değerini, yoksa tıklanan öğenin innerText/textContent/title metnini ve route'u GA'ya olay olarak gönderiyor; bu tasarım PII/tenant verisi sızıntısı riski taşıyor. Ayrıca web_page_view'e fingerprint tabanlı sunucu içi görüntüleme kaydı var; bu dış sağlayıcı adaptörü değil. suite/headless_provider (yerel pilot, eklemeli kod) içinde analitik/telemetri/consent sözleşmesi yok. Suite'in Vue frontend'inde GA/Metrica/consent kodu yok. yarn.lock'taki workbox-google-analytics ve @firebase/analytics yalnız bağımlılık kayıtları; frontend kaynağında kullanılmıyor.
 
-Eksik: Adaptör arayüzü (track/identify/consent) ve sağlayıcı alan eşlemesi tanımsız.; Yandex Metrica ve GA için yurt dışı veri aktarımı (KVKK) ve veri çıkış izni kararı ile karar sahibi yok.; PII için bir yasak alan listesi yok; tenant_id/user_id'nin hash'lenip hash'lenmeyeceği belirsiz.; Webvisor/oturum kaydı gibi sağlayıcıya özgü özelliklerin varsayılan olarak kapalı olacağı yazılmamış.
+Eksik: Yandex Metrica adaptörü yok: 'yandex' eşleşmeleri yalnız Yandex.Mail e-posta ön ayarı; 'metrika|metrica' hiç eşleşmedi.; Sağlayıcıdan bağımsız adaptör arayüzü (track/identify/consent/page) yok; GA, sabit Jinja şablonu olarak gömülü.; Consent/onay kapısı yok: GA, ID tanımlıysa koşulsuz yükleniyor. Web tarafında yalnız view tracking için doNotTrack kontrolü var; GA için yok.; PII ve tenant verisi için yasak alan listesi, hash'leme ya da alan eşleme yok. Desk'teki GA şablonu innerText ve route'u filtrelemeden gönderiyor.; analytics-4 ortak olay şeması ile sağlayıcı alan eşlemesi yok.; React/AntDesign headless istemcisi için Frappe provider sözleşmesi yok: tenant bazlı sağlayıcı yapılandırması ve izin durumu sunan bir API yok.; Mevcut GA kodu legacy analytics.js/UA ga() API'sini kullanıyor; GA4 gtag ve Consent Mode yok (sağlayıcı tarafındaki geçerliliğine kaynak koddan bakılarak karar verilemez).; Webvisor ya da oturum kaydının varsayılan olarak kapalı olacağı kuralı yok.
 
-Sonraki adım önerisi: analytics-consent--implementation görevinde tek bir adaptör sözleşmesi ve sağlayıcı başına alan eşleme tablosu tanımlanmalı; analytics-4 şemasına referans verilmeli. Yandex için veri aktarım kararı çıkmadan bu adaptör devre dışı bırakılmalı.
+Sonraki somut adım: Önerilen sıra: (1) analytics-consent--contract kapsamında sağlayıcıdan bağımsız adaptör sözleşmesi tanımlanmalı: track/page/consent, analytics-4 olay şeması, izinli alan listesi ve tenant_id/user_id hash kuralı. Webvisor/oturum kaydı varsayılan olarak kapalı olmalı. (2) Mevcut upstream GA şablonları headless/SaaS profilinde devre dışı tutulmalı; özellikle desk.html'deki mousedown innerText olayı. Bunun için upstream kodu değiştirmek yerine site config'te google_analytics_id tanımlanmamalı. (3) analytics-consent--implementation görevinde ilk dar davranış React tarafında yapılmalı: consent yokken hiçbir sağlayıcı script'inin yüklenmediğini ve ağ isteği gitmediğini gösteren, önce RED sonra GREEN kanıtlı bir test. (4) Ardından GA4 adaptörü, izinli tek örnek olay ve PII filtresiyle eklenmeli. (5) Yandex Metrica adaptörü, KVKK yurt dışı aktarım kararı ve karar sahibi netleşene kadar feature flag ile kapalı kalmalı. Frappe tarafında gerekirse yalnız tenant bazlı sağlayıcı ID'si ve izin durumunu döndüren dar bir provider endpoint'i eklenmeli; GenUI uygulanmamalı.
 
-Mevcut birincil görev: `analytics-consent--implementation`. Kaynak: `frappe/frappe/monitor.py:23`.
+Önerilen bağımlılık/sıra: analytics-consent--contract; kernel-envelope--contract; native-user-policy--contract; capability-definition--contract; native-doctype-schema--contract; outbox--contract; audit-envelope--contract. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `analytics-consent--implementation`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/website/doctype/website_settings/website_settings.json:220` — `"fieldname": "google_analytics_id",`
+- `frappe/frappe/www/website_script.py:34` — `context["google_analytics_id"] = get_setting("google_analytics_id")`
+- `frappe/frappe/www/website_script.js:15` — `ga('send', 'pageview');`
+- `frappe/frappe/www/desk.py:88` — `"google_analytics_id": frappe.conf.get("google_analytics_id"),`
+- `frappe/frappe/www/desk.html:94` — `{% include "templates/includes/app_analytics/google_analytics.html" %}`
+- `frappe/frappe/templates/includes/app_analytics/google_analytics.html:22` — `ga('send', 'event', category, label);`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- frappe/ ve suite/ (tüm sourceRoot); arama `(?i)google_analytics|gtag|googletagmanager|metrika|metrica|yandex|ym\(`: 128 dosya eşleşti. Gerçek GA uygulaması website_settings, www/website_script._, www/desk._ ve templates/includes/app_analytics içinde. 'yandex' yalnız email_account (Yandex.Mail) içinde. Diğer eşleşmeler locale, dist/assets bundle ve yarn.lock'tan geliyor.
+- frappe/ ve suite/ (locale, dist, assets hariç); arama `(?i)google_analytics|gtag|metrika|yandex|anonymize_ip|analytics`: Yandex Metrica yok. GA alanları ve şablonları bulundu. Website Analytics raporu sunucu içi bir rapor. Suite'te yalnız yarn.lock bağımlılıkları (workbox-google-analytics, @firebase/analytics) çıktı.
+- suite/ (public, locale, dist, assets hariç); arama `(?i)analytics|metrika|metrica|gtag|consent|track_event|trackEvent|posthog|plausible|matomo|umami`: Ürün analitiği adaptörü veya consent kapısı yok. 'consent' yalnız Meet caption e2e test korpusu manifestinde geçiyor.
+- suite/suite/headless_provider; arama `(?i)analytic|telemetry|track|metric|consent`: Eşleşme yok. Yerel pilot headless provider'da analitik sözleşmesi yok.
+- suite/frontend; arama `googleAnalytics|workbox-google-analytics|offlineGoogleAnalytics`: Eşleşme yok. Workbox GA modülü frontend kaynağında kullanılmıyor.
+- frappe/frappe/www; arama `google_analytics|app_analytics|gtag`: Eşleşmeler website_script.py:34-35, website_script.js:4-12, desk.py:88-89 ve desk.html:94'te. gtag/GA4 yok.
+
+Sınır: Yalnız yerel kaynak anlık görüntüsü incelendi. Site config ve veritabanı yok; GA ID'sinin gerçekte tanımlı olup olmadığı bilinmiyor.; functionalAcceptance: not_run. Hiçbir test veya komut çalıştırılmadı; tarayıcıda ağ davranışı doğrulanmadı.; dist/assets/locale altındaki derlenmiş bundle ve çeviri eşleşmeleri davranış kanıtı sayılmadı.; Legacy analytics.js'in Google tarafında hâlâ veri kabul edip etmediği bir dış servis durumu; kaynak koddan kanıtlanamaz.; KVKK uyumu, veri aktarım kararı ve production davranışı kaynak koddan kanıtlanamaz.; ERPNext/HRMS kurulu değil ve değerlendirilmedi. suite/headless_provider yerel pilot koddur; upstream'den ayrı tutuldu.
+
+Temporal workflow: `saas-recheck-20261015t073528z-026`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### analytics-3 — UTM (Urchin Tracking Module — kampanya kaynağı etiketleme sistemi) kod yönetimi.
 
@@ -4700,27 +6396,73 @@ Mevcut birincil görev: `analytics-event-spec--implementation`. Kaynak: `frappe/
 
 #### analytics-6 — İzin durumuna göre etiket çalıştırma; hassas veriyi ölçümden çıkarma.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Kabul ölçütü net: izin yokken sıfır istek, geri çekmede durdurma, hassas alanlar payload dışında. Basic ve advanced consent ayrımı da doğru konmuş. İncelenen kaynakta bir izin kaydı ya da consent modülü yok. Ayrıca sunucu tarafı monitor logları istemci IP'sini kaydediyor; ön yüzdeki izin kontrolü bu sunucu telemetrisini kapsamaz, ama talimatta bu ayrım yok.
+Upstream-native Frappe kaynağında şu primitifler var. (1) Site düzeyindeki System Settings.enable_telemetry anahtarı Pulse capture'ı açıp kapatıyor (frappe/frappe/utils/telemetry/pulse/client.py is_enabled). Anahtar kurulum sihirbazında kapatılabiliyor. Sentry DSN de aynı ayara bağlı: frappe/frappe/www/desk.py ve suite/suite/www/suite.py:42. (2) Pulse kullanıcıyı anonimleştiriyor (anonymize_user). Guest için boot_config user=null dönüyor. (3) frappe/ui/src/telemetry/telemetry.ts içinde disable() var; isEnabled=false yapıp client.stop() çağırıyor. Rota varsayılan olarak PII-safe desen yoluna indiriliyor (scrubRoute). anonymousMode için cookieless/client seçenekleri var. (4) Desk tarafında TelemetryManager.disable() sağlayıcıları boşaltıyor (frappe/frappe/public/js/telemetry/index.js). (5) Website view tracking navigator.doNotTrack değerine uyuyor. Suite headless_provider (LOCAL PILOT; api.py, local_fixture.py) içinde consent, telemetri ya da analitik kodu yok. Suite'in Vue frontend'i yalnız Sentry DSN'ini site ayarına bağlıyor.
 
-Eksik: İzin kaydının nerede tutulacağı, hukuki dayanak ve sürüm/kanıt alanları tanımsız.; Basic consent mi advanced consent mi seçileceği karara bağlanmamış; yalnız koşullu anlatılmış.; İzin geri çekmenin Tauri, PWA ve eklenti kabuklarına nasıl yayılacağı yazılmamış.; Hassas alan listesinin Frappe alan düzeyi izinleri ve tenant verisiyle bağı kurulmamış.; Sunucu monitor/IP saklama politikası ön yüz izin kapsamından ayrılmamış.
+Eksik: Kullanıcı ya da ziyaretçi bazında consent kaydı yok: model, hukuki dayanak, sürüm ve kanıt alanları bulunmuyor. enable_telemetry yöneticinin site/tenant genelinde verdiği bir ayar; son kullanıcı rızası değil.; Google Analytics (www/website_script.js, templates/includes/app_analytics/google_analytics.html) google_analytics_id tanımlıysa rıza kontrolü olmadan yükleniyor ve pageview gönderiyor. Google Consent Mode basic/advanced desteği yok. İzin yokken sıfır istek kriteri karşılanmıyor.; Opt-out yeni capture'ı durduruyor ama kuyruktaki Pulse eventleri yine gönderiliyor (Consent gates capture, not delivery). Bu, geri çekmede durdurma kriteriyle çelişiyor.; Geri çekmenin Tauri, PWA ve WXT kabuklarına yayılması için kod yok. React/AntD headless frontend için consent sağlayıcı sözleşmesi de yok.; Hassas alan yasak listesi yok: payload'u Frappe alan izinleri, permlevel ya da tenant verisiyle süzen bir mekanizma bulunmuyor. Yalnız rota scrub ve user anonimleştirme var.; Sunucu monitor/request IP kaydı ön yüz rızasının kapsamı dışında. Ayrı bir saklama maddesi olarak kalıyor.
 
-Sonraki adım önerisi: analytics-consent--implementation görevinde şunlar netleştirilmeli: sıfır istek hedefi için basic consent; izin kaydı modeli; geri çekme yayılımı; hassas alan yasak listesi. Monitor IP logu ayrı bir veri saklama maddesi olarak not edilmeli, bu görevin kapsamına alınmamalı.
+Sonraki somut adım: En küçük adım ve sırası: (1) analytics-consent--contract tamamlanmalı. Bunun için headless_provider'da salt-okuma bir consent durum sözleşmesi tanımlanmalı: kategori, sürüm, zaman damgası, kaynak. (2) Consent kaydı için tek bir DocType ve whitelisted get/set API'si eklenmeli. Önce RED testi yazılmalı: izin yokken etiket yapılandırması dönmemeli. (3) React frontend'de basic blocking uygulanmalı: GA/Pulse yükleyicisi consent=granted olmadan hiç çağrılmamalı. (4) Geri çekmede client.stop() çağrılmalı ve kullanıcının kuyruğu temizlenmeli. Bunun için send_queued_events davranışı ayrıca kararlaştırılmalı. (5) Hassas alan denylist'i Frappe meta/permlevel ile payload filtresine bağlanmalı. Tauri/PWA/WXT yayılımı bu adımlardan sonra gelir.
 
-Mevcut birincil görev: `analytics-consent--implementation`. Kaynak: `frappe/frappe/monitor.py:73`.
+Önerilen bağımlılık/sıra: analytics-consent--contract; kernel-envelope--contract; native-user-policy--contract; capability-definition--contract; native-doctype-schema--contract; outbox--contract; audit-envelope--contract. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `analytics-consent--implementation`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/utils/telemetry/pulse/client.py:20` — `return bool(not frappe.conf.get("developer_mode", 0) and frappe.get_system_settings("enable_telemetry"))`
+- `frappe/frappe/utils/telemetry/pulse/client.py:144` — `# Consent gates capture, not delivery: events queued while telemetry was on`
+- `frappe/ui/src/telemetry/telemetry.ts:24` — `client?.stop();`
+- `frappe/ui/src/telemetry/telemetry.ts:46` — `// Route → PII-safe string. Defaults to the matched path pattern (e.g. "/orders/:id").`
+- `frappe/frappe/www/website_script.js:4` — `{% if google_analytics_id -%}`
+- `suite/suite/www/suite.py:42` — `if frappe.get_system_settings("enable_telemetry"):`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- source (frappe+suite tümü); arama `(?i)(consent|gtag|google_analytics|posthog|telemetry|track_event|capture_event)`: Eşleşmeler frappe telemetry/pulse, website_script, system_settings, setup_wizard, sentry ve locale dosyalarında. Consent DocType yok.
+- suite; arama `(?i)(consent|gtag|google_analytics|analytics|posthog|telemetry|cookie_consent|track) (locale hariç)`: Eşleşmelerin çoğu build edilmiş public/frontend asset'leri. Kaynakta analitik consent kodu yok.
+- source (locale ve public/frontend hariç); arama `(?i)(cookie.?consent|consent|enable_telemetry|google_analytics|do.?not.?track|opt.?out)`: Gerçek kontrol yalnız site düzeyindeki enable_telemetry ve doNotTrack. Suite'teki consent eşleşmeleri meet caption/STT test korpusu rızasıyla ilgili, analitikle değil.
+- suite/suite/headless_provider; arama `(?i)(consent|analytics|telemetry|tracking|pii|redact|sensitive)`: Eşleşme yok.
+- frappe/ui/src/telemetry/pulse.ts; arama `(?i)(anonymousMode|stop\(|scrub|anon_|redact|sensitive|pii)`: anonymousMode cookieless/client ve stop() arayüzü var.
+
+Sınır: Yalnız kaynak okundu. Hiçbir komut ya da test çalıştırılmadı; functionalAcceptance not_run.; Bu ölçüt dağıtılmış ağ davranışını, gerçek istek sayısını veya KVKK/GDPR uyumunu kanıtlayamaz.; Build edilmiş asset ve sourcemap içerikleri satır satır incelenmedi.; Pulse istemci JS'i harici host'tan yükleniyor (client_url); bu kod kapsam dışında.; ERPNext/HRMS kurulu değil, değerlendirilmedi. Suite commit bilinmiyor.
+
+Temporal workflow: `saas-recheck-20261015t073528z-027`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### analytics-7 — Deney yönetimi: kullanıcı gruplarına ayırma, karşılaştırma ve sonuç izleme.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Kabul ölçütü (kalıcı grup ataması, iki grupta aynı metrik ve pencere) anlamlı, ama yalnız sonuç düzeyinde. İncelenen kaynakta deney ataması ya da sonuç ürünü yok. Rapor ve sorgu ilkel parçaları sadece sayım yapıyor.
+Upstream Frappe'de yalnız pazarlama atfı düzeyinde bir varyant karşılaştırma ilkel parçası var. Desk'teki UTM izleme URL'si üreticisinin 'content' alanı, açıklamasında A/B testi için reklam varyantlarını ayırmak amacıyla tanımlanıyor (utils.js:2178). Guest erişimli make_view_log; source, campaign, medium, content ve istemcinin verdiği visitor_id değerlerini 'Web Page View' DocType'ına deferred_insert ile yazıyor. Bu yalnız site izleme ayarı açıkken yapılıyor (is_tracking_enabled). 'Website Analytics' raporu group_by=content seçeneğiyle her varyant için toplam ve tekil görüntülenme sayısını aynı from_date–to_date penceresinde hesaplıyor. Varyantlar dışarıdan, el ile URL etiketiyle belirleniyor. Sistem kullanıcıyı gruba atamıyor ve atamayı saklamıyor. Suite'te yalnız Sheets/collab için ön yüz özellik bayrakları bulundu; bunlar deney değil. Suite'in Vue ön yüzü bu maddeyle ilgisiz. Yerel pilot suite/headless_provider (session, metadata, create_field, preview_edit, apply_edit) yalnız şema düzenleme sözleşmesi sunuyor; deney ya da analitik sözleşmesi yok.
 
-Eksik: Atama anahtarı (kullanıcı mı tenant mı), hash/seed kuralı ve atamanın saklanacağı yer tanımsız.; İstatistik yöntemi, örneklem ve guardrail metrikleri yok.; Deneyin izin durumuna (analytics-6) ve olay kataloğuna (analytics-4) bağımlılığı yazılmamış.; Deney ve özellik bayrağı (feature flag) ayrımı ile sunucu tarafı yetki sınırı belirsiz.
+Eksik: Deney/Varyant DocType'ı ve yaşam döngüsü yok (taslak, çalışıyor, durdu); hedef kitle, trafik oranı ve başlangıç/bitiş alanları da yok.; Deterministik ve kalıcı grup ataması yok: atama anahtarı (kullanıcı/tenant/visitor), hash/seed ve atama kaydı tanımsız. Mevcut visitor_id istemciden geliyor ve doğrulanmıyor.; Sayfa görüntülenmesi dışındaki iş metrikleri ve dönüşüm olayları yok; guardrail metriği, istatistiksel karşılaştırma (anlamlılık/güven aralığı) ve örneklem kuralı yok.; İzin durumuna (analytics-6) ve olay kataloğuna (analytics-4) bağlantı yok. Mevcut tek kapı, site genelindeki izleme ayarı.; Deney ile özellik bayrağı ayrımı ve sunucu tarafında varyant yetkisi yok; atamanın tenant izolasyonu da yok.; Headless provider'da varyant çözümleme/atama ve sonuç sorgusu için bir API sözleşmesi yok (React/AntDesign ve GenUI tüketicileri için).
 
-Sonraki adım önerisi: experiment--implementation görevi analytics-4 ve analytics-6'ya bağımlı olarak işaretlenmeli. Deterministik atama anahtarı ve tek metrik/pencere sözleşmesi yazılmalı. Analiz yöntemi seçilene kadar görev koşullu kalmalı.
+Sonraki somut adım: Mevcut experiment--contract → experiment--schema → experiment--implementation sırası ve bağımlılıkları korunsun. 1) experiment--contract tek bir sözleşme olarak yazılsın: atama anahtarı (oturumlu kullanıcı + tenant), deney anahtarı ve seed'i hash'leyen deterministik kova, tek birincil metrik ve tek zaman penceresi. Sözleşme analytics-4 olay kataloğuna ve analytics-6 izin durumuna bağımlı olarak işaretlensin. 2) experiment--schema: Experiment ve Experiment Assignment DocType'ları eklensin; (experiment, subject) benzersiz olsun. 3) experiment--implementation: tek bir sunucu tarafı whitelist get_or_assign_variant çağrısı yazılsın. Önce aynı kullanıcının tekrar çağrıda aynı grupta kaldığını gösteren gerçek bir RED/GREEN testi gelsin, ardından iki grubu aynı metrik ve pencereyle hesaplayan sonuç sorgusu eklensin. Sorgu Website Analytics'teki frappe.qb group-by/pencere kalıbını yeniden kullanabilir. UTM 'content' alanı yalnız pazarlama atfı için kalsın, atama kaynağı yapılmasın.
 
-Mevcut birincil görev: `experiment--implementation`. Kaynak: `frappe/frappe/website/report/website_analytics/website_analytics.py:57`.
+Önerilen bağımlılık/sıra: experiment--contract; experiment--schema; kernel-envelope--contract; native-user-policy--contract; capability-definition--contract; native-doctype-schema--contract; outbox--contract; audit-envelope--contract; analytics-4 (olay kataloğu, öneri); analytics-6 (izin durumu, öneri). Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `experiment--implementation`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/public/js/frappe/utils/utils.js:2178` — `description: "Use to differentiate ad variants (e.g. A/B testing)",`
+- `frappe/frappe/website/doctype/web_page_view/web_page_view.py:46` — `@frappe.whitelist(allow_guest=True)`
+- `frappe/frappe/website/doctype/web_page_view/web_page_view.py:94` — `view.content = content`
+- `frappe/frappe/website/report/website_analytics/website_analytics.js:41` — `{ value: "content", label: __("Content") },`
+- `frappe/frappe/website/report/website_analytics/website_analytics.py:68` — `.groupby(self.group_by)`
+- `suite/suite/sheets/tests/test_boot.py:3` — `"""Boot info plumbing — the frontend feature flags ride on these keys."""`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- source/ (frappe + suite, tümü); arama `(?i)(a/?b[ _-]?test|split[ _-]?test|experiment|variant[ _-]?assign|cohort|treatment[ _-]?group|control[ _-]?group|feature[ _-]?flag|bucketing)`: Eşleşmelerin çoğu locale, dist bundle'ları, testlerdeki 'tabTest' kalıntıları ve 'experimental' ifadeleri; deney ürünü değil.
+- source/ (locale ve dist hariç); arama `(?i)(a/?b[ _-]?test|split[ _-]?test|experiment[^a]|experiments|variant[ _-]?assign|cohort|treatment[ _-]?group|control[ _-]?group|feature[ _-]?flag|bucketing|holdout)`: Tek ilgili sonuç utils.js:2178'deki UTM 'content' A/B açıklaması. Suite'te Sheets collab ve boot için özellik bayrakları, stt_accuracy deney etiketi CLI'ı ve tarih kovalama çıktı; bunlar deney ataması değil.
+- suite/suite/headless_provider; arama `(?i)(experiment|variant|cohort|ab_test|assignment|bucket|metric|analytics)`: Eşleşme yok. API yalnız şema düzenleme uç noktaları sunuyor (session, metadata, create_field, preview_edit, apply_edit).
+- frappe/frappe/website (*.py, *.json); arama `(?i)(utm_content|utm_campaign|campaign)`: Web Page View alanları ve make_view_log içindeki source/campaign/medium/content kaydı, UTM Campaign DocType'ı.
+- frappe/frappe/website/report/website_analytics/; arama `(?i)(group_by|options|campaign|source|medium)`: Rapor content'e göre gruplayabiliyor; aynı tarih penceresinde toplam ve tekil sayım veriyor.
+
+Sınır: Yalnız yerel kaynak anlık görüntüsü okundu (frappe adf1fd0c, suite commit bilinmiyor). Hiçbir komut ya da test çalıştırılmadı; functionalAcceptance=not_run.; ERPNext, HRMS ve harici deney platformları kurulu değil, değerlendirilmedi.; İzlemenin etkin olup olmadığı ve gerçek veri gibi çalışma zamanı site ayarları görülmedi; dağıtım ve uyum iddiası yok.; Derlenmiş dist/asset bundle'ları ve locale dosyaları davranış kanıtı sayılmadı.; headless_provider yerel pilot ek koddur, upstream'e ait değildir.
+
+Temporal workflow: `saas-recheck-20261015t073528z-028`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### reports-1 — Her modül/özellik için raporlama; muhasebe, CRM ve diğer alan raporları.
 
@@ -4748,15 +6490,57 @@ Mevcut birincil görev: `bi-embedding--implementation`. Kaynak: `suite/pyproject
 
 #### reports-3 — Metabase adaptörü ve gömülü raporlar.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **YOK**. İşlevsel kabul: `not_run`.
 
-Kabul ölçütü güçlü: URL veya parametre değiştirilerek başka tenant'ın verisi sorgulanamamalı. Ancak gömme türü (statik/imzalı, interactive, SDK) ve lisans koşulu seçilmemiş. Adaptörün token imzalama yeri ve secret saklama yöntemi de belirsiz. Görülen kaynakta Metabase adaptörü yok. Frappe'de PyJWT bağımlılığı ve has_permission gibi primitifler bulunuyor, ama bunlar adaptörün varlığını kanıtlamaz. Excerpt kapsamı dışı kaldığı için durum unknown.
+Kurulu frappe ve suite kaynaklarında Metabase (veya Superset/Redash) adaptörü, gömme token'ı üreten bir uç ya da kilitli tenant parametresi yok. Minified bundle'lardaki 'superset' eşleşmeleri ilgisiz: isSupersetOf, HTML entity ve highlight.js supersetOf. Yerel pilot suite/headless_provider (api.py, local_fixture.py) içinde rapor, dashboard veya embed sözleşmesi bulunmuyor. Adaptör olmasa da yeniden kullanılabilecek upstream-native primitifler var:
 
-Eksik: Gömme türü ve buna bağlı lisans (açık kaynak sürüm mü, ücretli sürüm mü) kararı yok; lisansın kullanıcıyla netleştirilmesi gerekiyor.; Kilitli parametreler tanımlı değil: tenant/site kimliği sunucu tarafında imzalanmalı, istemciden alınmamalı.; İmzalama secret'ının saklanması, rotasyonu ve süre sınırı tanımlı değil.; Metabase'in veri kaynağı yalıtımı (tenant başına salt-okur DB kullanıcısı veya görünüm) tanımlı değil.; Rapor erişiminin Frappe rol/izin kontrolüne bağlanacağı nokta belirtilmemiş.
+- query_report.run/get_report_doc rapor bazında rol kontrolü (Report.is_permitted) ve ref_doctype için 'report' izni uyguluyor.
+- validate_filters_permissions, Link filtre değerlerini kullanıcı izniyle doğruluyor.
+- Query Report, salt-okur transaction içinde check_safe_sql_query ile çalışıyor.
+- Suite Meet'te, site config secret'ıyla sunucu tarafında imzalanan kısa ömürlü HS256 JWT örneği var.
+- Web Form/Drive'da frame-ancestors başlığı yönetiliyor.
+  Bu primitifler Metabase entegrasyonunu kanıtlamaz. Tenant sınırı Frappe'de site/DB düzeyinde sağlanıyor; Metabase tarafında buna karşılık gelen bir yalıtım yok.
 
-Sonraki adım önerisi: reports-2 kararıyla birleştirin. Seçilirse yalnızca sunucuda imzalanan, tenant parametresi kilitli statik gömmeyi tanımlayın: Frappe tarafında izin kontrolünden sonra kısa ömürlü token üretilsin. Parametre kurcalama senaryosunu paylaşılan test bütçesinden aday olarak kaydedin.
+Eksik: Gömme türü (statik/imzalı, interactive, SDK) ve buna bağlı Metabase lisansı kararı; kullanıcıyla netleştirilmeli; Frappe tarafında izin kontrolünden sonra kısa ömürlü imzalı embed token'ı üreten whitelisted uç (headless provider sözleşmesi); Tenant/site kimliğini sunucuda kilitleyen parametreler (frappe.local.site); istemciden gelen tenant değerinin yok sayılması; Embedding secret'ının site config/secret store'da saklanması, rotasyonu ve süre sınırı; Metabase veri kaynağı yalıtımı: tenant başına salt-okur DB kullanıcısı veya görünüm; Rapor/dashboard ile Frappe rol/izin eşlemesi (hangi rol hangi Metabase kaynağını görür); React/AntDesign istemcisinde iframe/SDK tüketicisi ve frame-ancestors/CSP yapılandırması; Parametre kurcalamayla başka tenant'ı sorgulama senaryosu için regresyon testi
 
-Mevcut birincil görev: `bi-embedding--implementation`. Kaynak: `frappe/pyproject.toml:19`; `frappe/frappe/permissions.py:82`.
+Sonraki somut adım: Sıra şöyle olmalı:
+
+1. bi-embedding--contract içinde gömme türünü ve Metabase lisansını kullanıcıyla kesinleştirin; önerilen başlangıç statik/imzalı gömmedir.
+2. suite/headless_provider/api.py'ye tek bir whitelisted metot ekleyin (yerel pilot, ek kod). Metot sırasıyla:
+   - Frappe rol/izin kontrolü yapar; Report.is_permitted ve frappe.has_permission desenini yeniden kullanır.
+   - Secret'ı yalnızca frappe.conf'tan okur.
+   - Tenant parametresini sunucuda frappe.local.site değerine kilitler.
+   - Kısa exp süreli HS256 JWT imzalar; suite/meet/api/meeting.py desenini izler.
+3. Kodu yazmadan önce iki RED test yazın: istemciden gelen tenant/params değerinin yok sayıldığını ve yetkisiz kullanıcının PermissionError aldığını kanıtlasınlar. Sonra GREEN'e geçin.
+4. Ardından React/AntD tüketicisini ve CSP frame-ancestors ayarını ekleyin.
+5. Son olarak Metabase tarafında tenant başına salt-okur DB kullanıcısını tanımlayın. Bu altyapı işi Hüseyin Cengiz'indir.
+
+Önerilen bağımlılık/sıra: bi-embedding--contract; kernel-envelope--contract; native-user-policy--contract; native-doctype-schema--contract; outbox--contract. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `bi-embedding--implementation`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/desk/query_report.py:49` — `if not doc.is_permitted():`
+- `frappe/frappe/desk/query_report.py:301` — `if not frappe.has_permission(report.ref_doctype, "report"):`
+- `frappe/frappe/desk/query_report.py:1194` — `def validate_filters_permissions(report_name, filters=None, user=None, js_filters=None):`
+- `frappe/frappe/core/doctype/report/report.py:190` — `frappe.db.begin(read_only=True)`
+- `suite/suite/meet/api/meeting.py:84` — `return jwt.encode(payload, secret, algorithm="HS256")`
+- `frappe/frappe/website/page_renderers/web_form.py:22` — `self.headers = {"Content-Security-Policy": f"frame-ancestors 'self' {allowed_embedding_domains}"}`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- source/ (frappe + suite, tüm dosyalar); arama `(?i)metabase|superset|redash|embed_token|signed.?embed|embedding_secret|METABASE_SECRET`: Kaynak kodda eşleşme yok. Eşleşmeler yalnız minified bundle/map dosyalarında ve frappe/model/**init**.py içindeki set.issuperset çağrısında; hepsi ilgisiz.
+- source/ (_.py,_.ts,_.tsx,_.vue,_.json,_.toml,_.md,_.js); arama `(?i)metabase|\bsuperset\b|redash|signed.?embed|embed.?token|iframe.?token`: Yalnız 6 minified dist/asset JS dosyası eşleşti; -o kontrolüyle isSupersetOf, HTML entity ve highlight.js supersetOf olduğu doğrulandı. BI adaptörü yok.
+- source/ (*.py); arama `(?i)jwt\.encode|import jwt|jwt\.decode`: JWT kullanımı yalnız frappe OAuth/OIDC ile suite Meet SFU/recorder grant ve callback akışlarında. BI embed token'ı yok.
+- suite/suite/headless_provider/; arama `(?i)report|dashboard|chart|embed|iframe`: Tek eşleşme bir docstring ('reporting success'). Rapor veya embed sözleşmesi yok.
+- frappe/frappe/desk/query_report.py; arama `^def (run|get_script|export_query|get_report_doc)|frappe.has_permission\(|check_permission|is_permitted|ignore_prepared_report`: Native rapor çalıştırma yolunda rol ve doctype 'report' izin kontrolleri ile filtre izin doğrulaması var (satır 29-59, 260-305, 1194+ okundu).
+- frappe/frappe/core/doctype/report/report.py; arama `def is_permitted|def execute_query_report|def execute_script_report|safe_exec|frappe.db.sql\(`: Has Role tabanlı is_permitted ve salt-okur transaction içinde check_safe_sql_query ile Query Report çalıştırma (satır 149-193 okundu).
+- source/ (*.py); arama `(?i)X-Frame-Options|frame-ancestors|allow_embed|embed_url`: Web Form ve suite Drive'da frame-ancestors yönetimi ile frappe cloud_settings embed URL'si var; Metabase iframe/CSP entegrasyonu yok.
+
+Sınır: Kapsam: yalnız sourceRoot altındaki kurulu frappe ve suite app kaynakları. ERPNext/HRMS kurulu değil, değerlendirilmedi. Global ekosistemdeki Metabase eklentileri kapsam dışı.; suiteCommit bilinmiyor. headless_provider yerel pilot ek kodudur, upstream-native değildir.; Site config, secret değerleri, müşteri DB'si ve çalışan Metabase örneği incelenmedi. Tenant yalıtımı runtime'da doğrulanmadı.; Testler yalnız okunabilir kaynak olarak ele alındı; hiçbir test yazılmadı veya çalıştırılmadı. functionalAcceptance: not_run.; Minified bundle içerikleri yalnız eşleşme bağlamıyla kontrol edildi.; Lisans ve gömme türü kararı kaynak kodla belirlenemez; kullanıcı kararı gerekir.
+
+Temporal workflow: `saas-recheck-20261015t073528z-052`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### reports-4 — Filtre, tarih aralığı, kaydedilmiş rapor ve zamanlanmış gönderim.
 
@@ -4796,15 +6580,41 @@ Mevcut birincil görev: `reporting-read-model--implementation`. Kaynak: `frappe/
 
 #### reports-7 — Metrik tanımı, veri güncelliği ve hesaplama tutarlılığı.
 
-Yönerge: **Kısmi**. Kaynak temeli: **Belirlenemedi**. İşlevsel kabul: `not_run`.
+Yönerge: **Kısmi**. İkinci tur kaynak sonucu: **KISMİ**. İşlevsel kabul: `not_run`.
 
-Kabul ölçütü somut: iki panoda aynı metrik aynı tanım ve değeri vermeli, geciken veri görünür uyarı üretmeli. Ancak metrik sözleşmesinin içeriği tanımlı değil. Kesitte yalnızca sayım için get_count gibi yapı taşları görülüyor; Report, Number Card ve Dashboard Chart kaynakları sunulmadığı için yerel yetenek bilinmiyor.
+Upstream Frappe'de somut yapı taşları var. (1) Number Card kayıtlı bir tanımdır (function, aggregate_function_based_on, document_type, filtreler, stats_time_interval). Değerini tek bir sunucu fonksiyonu hesaplar: number_card.get_result, frappe.get_list üzerinden yetkiye göre filtrelenmiş SQL aggregate çalıştırır. Önceki dönem karşılaştırması da aynı fonksiyonu to_date ile kullanır. (2) Dashboard Chart da kayıtlı bir tanımdır ve değerini dashboard_chart.get hesaplar. @cache_source sonucu Redis'te chart-data:{chart_name} anahtarıyla saklar; refresh=1 verilince yeniden hesaplar ve last_synced_on alanını günceller. Masaüstü chart_widget bunu 'Last synced {0}' alt başlığı olarak gösterir. (3) Dashboard, grafik ve kartları Dashboard Chart Link ve Number Card Link alt tablolarıyla referans olarak bağlar. Aynı kart veya grafik iki panoya eklenirse tanım ortak kalır ve hesaplamayı aynı sunucu fonksiyonu yapar. Suite'in Vue arayüzü ve yerel pilot suite/headless_provider bu yapı taşlarına bağlanmıyor; ikisinde de metrik veya tazelik sözleşmesi yok. headless_provider'daki 'stale' yalnız base_revision kilidiyle ilgili.
 
-Eksik: Metrik sözleşmesi tanımlı değil: kimlik, formül, kaynak DocType/okuma modeli, filtre, zaman dilimi, sürüm ve sahip alanları yok.; Tazelik eşiği ve uyarının hangi kaynaktan (okuma modeli lag'i veya son hesaplama zamanı) üretileceği belirtilmemiş; reports-6'ya bağımlılık yazılmamış.; Birincil görev native-report--implementation; ancak metrik tanım ve sürüm yönetimi bir rapor görüntüleme işi değil, bu eşleme belirsiz.; Panoların metriği yeniden hesaplamak yerine ortak tanımı nasıl tüketeceği (tek hesaplama noktası) yazılmamış.
+Eksik: Sürümlü ve sahibi belli ortak bir metrik sözleşmesi yok: metrik kimliği, formül sürümü, sahip, zaman dilimi, kaynak okuma modeli ve hesaplama sürümü tanımlı değil.; Number Card ile Dashboard Chart aynı kavram için iki ayrı ve birbirinden bağımsız tanım üretebiliyor. İki panoda aynı metriğin tanımının ve değerinin eşleştiğini garanti eden ya da doğrulayan bir mekanizma yok.; Tazelik eşiği ve geciken veri uyarısı yok: last_synced_on yalnız bilgi olarak gösteriliyor; eşik, uyarı durumu veya bildirim bulunmuyor.; Number Card'da tazelik alanı hiç yok; Redis önbelleği yalnız grafiklerde var.; Okuma modeli gecikmesi (reports-6) ile bir entegrasyon kurulmamış.; Headless/React (Ant Design) tüketicisi için metrik ve tazelik sağlayıcı sözleşmesi yok. Suite headless_provider'da bu kapsamda bir endpoint bulunmuyor.; Çalışma zamanı kabulü (functionalAcceptance) not_run durumunda.
 
-Sonraki adım önerisi: Mevcut görev eşlemesi korunmalı. native-report--implementation görevine 'metrik sözleşmesi' alt başlığı eklenmeli: metrik kimliği, formül, kaynak, sürüm, tazelik eşiği. reports-6 açıkça bağımlılık olarak yazılmalı. Number Card/Dashboard Chart kaynakları v17'de okunup mevcut bileşenlerle eşlenmeli.
+Sonraki somut adım: Mevcut görev eşlemesi (native-report--implementation) ve bağımlılıklar korunur. Önerilen sıra: (1) native-report--contract içinde metrik sözleşmesini tanımla: metric_id, sürüm, sahip, kaynak DocType, filtre, zaman dilimi ve freshness_threshold. Bu sözleşmeyi Number Card ve Dashboard Chart kayıtlarına referansla eşle, yeni bir hesaplama motoru yazma. reports-6'yı tazelik kaynağı olarak açıkça bağımlılık listesine ekle. (2) Tek ve dar bir davranış uygula: bir metriğin değerini number_card.get_result veya dashboard_chart.get üzerinden tek noktadan dönen bir headless sağlayıcı okuma ucu yaz. Bu uç değeri, tanım sürümünü ve last_synced_on/computed_at alanlarını döndürsün ve eşik aşılınca stale=true işaretlesin. (3) RED/GREEN regresyon testi: aynı metric_id'yi kullanan iki pano tüketimi aynı tanımı ve değeri döndürmeli; eşiği aşan last_synced_on uyarı alanı üretmeli. (4) Bundan sonra React/AntD pano yüzeyinde uyarıyı göster. Suite'in Vue arayüzüne dokunma.
 
-Mevcut birincil görev: `native-report--implementation`. Kaynak: `frappe/frappe/client.py:78`; `frappe/frappe/api/v2.py:193`.
+Önerilen bağımlılık/sıra: native-report--contract; kernel-envelope--contract; native-user-policy--contract; native-doctype-schema--contract; outbox--contract; reports-6. Kanonik bağımlılık kaydı JSON’daki `developmentSequence.existingDependencies` alanında korunur.
+
+Mevcut birincil görev: `native-report--implementation`.
+
+Kaynak kanıtı:
+
+- `frappe/frappe/desk/doctype/number_card/number_card.py:127` — `def get_result(`
+- `frappe/frappe/desk/doctype/number_card/number_card.py:159` — `res = frappe.get_list(`
+- `frappe/frappe/utils/dashboard.py:25` — `cache_key = f"chart-data:{chart_name}"`
+- `frappe/frappe/utils/dashboard.py:73` — `"last_synced_on",`
+- `frappe/frappe/public/js/frappe/widgets/chart_widget.js:960` — `let last_synced_text = __("Last synced {0}", [`
+- `frappe/frappe/desk/doctype/number_card_link/number_card_link.json:16` — `"options": "Number Card"`
+
+Aranan yollar ve terimler (YOK yalnız bu kapsama aittir):
+
+- frappe/frappe/desk/doctype/number_card/number_card.py; arama `def get_result|def calculate_cumulative|last_synced_on|time_interval|based_on`: get_result (satır 127) tek hesaplama noktası; stats_time_interval ile önceki dönem hesaplanıyor; last_synced_on alanı yok.
+- suite; arama `(?i)(metric|freshness|stale|staleness|last_synced|last_updated|data_lag|refresh_interval|kpi) glob *.{py,json,ts,tsx,js,vue}`: Eşleşmeler yalnız derlenmiş frontend asset'leri, mail/calendar/drive Vue bileşenleri ve headless_provider/api.py'deki base_revision 'stale' notunda. Metrik veya tazelik sözleşmesi yok.
+- suite/suite/headless_provider; arama `(?i)(metric|freshness|stale|last_synced|report|dashboard|number_card|chart)`: Yalnız api.py:349 (stale base_revision) ve api.py:784 eşleşti; rapor/metrik sağlayıcı ucu yok.
+- frappe/frappe/desk/doctype/dashboard_chart, frappe/frappe/utils/dashboard.py; arama `last_synced_on|def get\(|@cache_source|def cache_source|refresh`: cache_source Redis önbelleği, refresh=1 ile yeniden hesaplama ve last_synced_on güncellemesi var; dashboard_chart.json'da last_synced_on alanı tanımlı.
+- frappe/frappe/public/js/frappe/widgets; arama `last_synced_on|Last synced|stale|cache_source|refresh`: Yalnız chart_widget.js'de 'Last synced' bilgi metni var; number_card_widget'ta tazelik yok; eşik veya uyarı yok.
+- frappe/frappe/desk/doctype/{dashboard,dashboard_chart_link,number_card_link}; arama `"(fieldname|options)": "(chart|card|charts|cards|Dashboard Chart|Number Card)"`: Dashboard, kart ve grafikleri Link ile referanslıyor; tanımlar panolar arasında paylaşılabiliyor.
+- frappe/frappe; arama `(?i)(metric_definition|metric_version|calculation_version|freshness_threshold|staleness|data_lag|max_age|stale_after) glob *.{py,json,js}`: 14 dosya eşleşti (caching, auth, translate, search, event vb.); dosya bağlamlarına göre bunlar genel önbellek max_age türü eşleşmeler, metrik sözleşmesi veya tazelik eşiği değil.
+- suite; arama `Number Card|Dashboard Chart|query_report|number_card|dashboard_chart glob *.{py,json,ts,vue}`: Yalnız drive workspace JSON'u ve bir drive testi eşleşti; Suite metrik/pano tüketimi kurmuyor.
+
+Sınır: Yalnız sourceRoot altındaki frappe ve suite uygulama kaynakları okundu; hiçbir komut veya test çalıştırılmadı; functionalAcceptance not_run.; frappe/frappe genelindeki max_age/staleness eşleşmeleri tek tek açılmadı; ilgisiz oldukları dosya bağlamından çıkarıldı.; dashboard_chart.py'nin get gövdesi ve number_card_widget.js ayrıntıları tamamen okunmadı; tazelik yokluğu widget dizini grep'ine dayanıyor.; Frappe Insights, ERPNext ve HRMS kurulu değil; değerlendirilmedi.; Kaynak kodu bir davranışın varlığını gösterir; dağıtılmış ortamdaki önbellek/Redis davranışını veya iki panonun çalışma zamanında eşitliğini kanıtlamaz.; suiteCommit bilinmiyor; headless_provider yerel pilot (eklemeli) kod olarak ayrıca ele alındı.
+
+Temporal workflow: `saas-recheck-20261015t073528z-053`. Gerçek Grep girdileri ve okunan dosyalar JSON ikinci tur kaydındadır.
 
 #### reports-8 — SaaS iş metrikleri: MRR, ARR, müşteri/gelir kaybı ve LTV; tanım, dönem ve kaynak uzlaştırması.
 
