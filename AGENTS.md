@@ -1,5 +1,9 @@
 # SaaS Atlas çalışma kuralları
 
+## Güncel belge yayın kapsamı — 2026-10-15
+
+- Kullanıcının GitHub Pages'i güncel tutma talimatıyla yalnız `docs/frappe-roadmap-analysis.json`, `.md`, `docs/frappe-roadmap-contracts/README.md`, analizdeki `executionBacklog.packets[].contractPath` güvenli JSON yolları ve `docs/temporal-proposal-agents.md` yayın allowlist'ine eklenmiştir. Önceki kaynak çalışma belgelerini paketlememe kuralının bu açık istisnası bütün `docs/` veya devir klasörünü yayımlama yetkisi değildir. Build bu dosyaları byte'ları korunarak kopyalar; mevcut `verify-build.mjs` kaynak eşitliğini, benzersiz yolları ve tam yayın allowlist'ini doğrular. Arayüz, ürün kodu, kanonik gereksinimler, test sayıları ve performans bütçeleri değişmez.
+
 ## Zorunlu teslim ve doğrulama sınırı — 2026-10-14
 
 Amaç istenen davranışı teslim etmektir. Test, inceleme veya orkestrasyon bağımsız ve sürekli büyüyen bir projeye dönüşemez. Bu güncel kullanıcı sınırı, önceki geniş yerel doğrulama önerilerine göre önceliklidir; mevcut zorunlu CI/yayın kapıları korunur.

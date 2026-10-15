@@ -133,6 +133,29 @@ const projectPaths = [
   'operations',
   'traceability',
 ].map((name) => `data/project/${name}.json`);
+const analysis = JSON.parse(
+  await readFile('docs/frappe-roadmap-analysis.json', 'utf8'),
+);
+const documentationPaths = [
+  'docs/frappe-roadmap-analysis.json',
+  'docs/frappe-roadmap-analysis.md',
+  'docs/frappe-roadmap-contracts/README.md',
+  'docs/temporal-proposal-agents.md',
+  ...analysis.executionBacklog.packets.map(({ contractPath }) => {
+    assert.match(
+      contractPath,
+      /^docs\/frappe-roadmap-contracts\/[a-z0-9-]+\.json$/,
+      'Publish only roadmap contract JSON paths.',
+    );
+    return contractPath;
+  }),
+];
+for (const path of documentationPaths)
+  assert.deepEqual(
+    await readFile(`dist/${path}`),
+    await readFile(path),
+    `Published documentation must match its source: ${path}`,
+  );
 for (const path of [...contentPaths, ...projectPaths])
   assert.deepEqual(
     JSON.parse(await readFile(`dist/${path}`, 'utf8')),
@@ -186,6 +209,7 @@ const expected = [
   ),
   ...assetPaths.map((path) => `dist/${path}`),
   ...[...contentPaths, ...projectPaths].map((path) => `dist/${path}`),
+  ...documentationPaths.map((path) => `dist/${path}`),
   ...clusterRoutes.map((path) => `dist/${path}`),
   ...project.tasks.flatMap((task) =>
     ['index.html', 'task.json', 'task.md'].map(

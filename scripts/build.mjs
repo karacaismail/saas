@@ -151,6 +151,30 @@ for (const path of [...contentFiles, ...projectFiles]) {
   );
 }
 
+// Publish the requested guides explicitly; never copy the whole docs or handoff tree.
+const analysis = JSON.parse(
+  await readFile('docs/frappe-roadmap-analysis.json', 'utf8'),
+);
+const documentationPaths = [
+  'docs/frappe-roadmap-analysis.json',
+  'docs/frappe-roadmap-analysis.md',
+  'docs/frappe-roadmap-contracts/README.md',
+  'docs/temporal-proposal-agents.md',
+  ...analysis.executionBacklog.packets.map(({ contractPath }) => {
+    if (
+      typeof contractPath !== 'string' ||
+      !/^docs\/frappe-roadmap-contracts\/[a-z0-9-]+\.json$/.test(contractPath)
+    )
+      throw new TypeError('Invalid public documentation path');
+    return contractPath;
+  }),
+];
+for (const path of documentationPaths) {
+  const target = `dist/${path}`;
+  await mkdir(dirname(target), { recursive: true });
+  await cp(path, target);
+}
+
 for (const cluster of project.clusters)
   await write(
     `dist/clusters/${routeId(cluster.id)}/index.html`,
