@@ -125,3 +125,13 @@ Amaç istenen davranışı teslim etmektir. Test, inceleme veya orkestrasyon ba�
 - Satıcı, lisans, tarife/faturalama, saklama süresi, veri yerleşimi ve açık Keycloak/grid kararları kullanıcıya aittir; rehber bunları seçim yapılmış gibi yazmaz.
 - Belge yazarı yalnız kendi sözleşme dosyasını önerir; entegrasyon seri yapılır. Geçmiş ürün kodu/commit/yerel site teslimleri bu planın kanıtı değildir. Ürün değişiklikleri envanteri özel handoff kaydıdır; değiştirilmez veya public kaynaklara kopyalanmaz.
 - Yeni test yazılmaz. Mevcut doküman kaynak/format/check/build/CI ve yayın kapıları korunur; başarılı kontroller yeni değişiklik veya somut hata olmadan tekrarlanmaz.
+
+## 2026-10-15 — Temporal altında Claude CLI ve Hermes önerileri
+
+- Kapsam yalnız SaaS dokümantasyonudur. Belge önerileri `saas-doc-guides-providers-20261015-v2` Temporal kuyruğunda üretilir; giriş noktası `dispatchDocumentation`, varsayılan motor `claude`dur (`provider-dispatch.mjs:31`). Bu atıf yönlendirme kaynağını gösterir; ürün uygulaması veya runtimeAcceptance kanıtı değildir.
+- Yazarlar ayrık dosya sahipliğiyle yalnız kendi dosyalarına öneri üretir; entegrasyon seridir. Bitmiş 175 sözleşme havuzu doldurmak için yeniden açılmaz.
+- Hermes komutu yalnız `-z <istem> --usage-file <iş JSON'u> -t bot_room --ignore-rules` biçimindedir; model/provider override ve `--yolo` eklenmez. `bot_room` boş araç grubudur; kaynak/config yazımı sandbox ile engellenir. Native `-z` otomatik onay geçişi güvenlik sınırı sayılmaz.
+- Hermes konfigürasyonu, auth/pool, gateway, kanban ve cron değiştirilmez.
+- Claude 429/`usage_limit` tamamlanamayan paketi ve sonraki hazır işleri Hermes native zincirine yönlendirir; Claude taşıyıcısına kör tekrar yapılmaz. Retry-After korunur, bilinmeyen reset zamanı tahmin edilmez, kör tekrar yapılmaz.
+- usage-file içindeki final provider/model kaydı ile görülemeyen iç fallback denemeleri ayrı raporlanır; final kayıt iç denemelerin kanıtı sayılmaz.
+- Ortak şema, digest, CAS, kaynak dosya:satır alıntısı ve bağımsız inceleme kapısı motor değişse de aynı kalır. Yeni test veya fixture açılmaz.
