@@ -146,6 +146,16 @@ Bu rapor yerel hazırlık teslimidir. Statik build allowlist’i çalışma rapo
 
 Makineyle okunabilir birleşik tablo: [frappe-roadmap-analysis.json](./frappe-roadmap-analysis.json). Bu JSON kaynak değerlendirmesidir; mevcut görev registry’sini çoğaltmaz.
 
+## Sonraki yerel pilot teslimi — 15 Ekim 2026
+
+Yukarıdaki kaynak değerlendirmesi uygulama başlamadan alınan snapshot’tır; madde satırlarındaki `not_run` bu tarihsel kapsamı anlatır. Sonraki kullanıcı kararıyla `/Users/w6x/Developer/genui-saas-panel` referans tüketici seçildi. Yerel Frappe sağlayıcısı → bağımsız TS adapter → React/Ant Design/TanStack tüketicisi uygulandı; GenUI motoruna dokunulmadı.
+
+Dar kabul üç davranışı kanıtladı: uyumlu taslağı/odağı koruyan izinli metadata yenilemesi; yetkili native Custom Field **Data** ekleme; yazmasız önizleme ardından etiket/açıklama ve saf custom taban alan sırası düzenleme. Somut giriş-script ve gecikmiş metadata/taslak kaybı kusurları da birer gerçek RED regresyonuyla giderildi. Tek dosyada **3 ana + 2 gerçek kusur = 5 senaryo**; Chromium **5/5, 27,3 saniye**. Tip/lint/build/Python derleme geçti. Yeni matris veya fixture ailesi açılmadı.
+
+Kod entegrasyonu `85c2eee611f6dfe3468c58a0c591635b85b64cea`; sağlayıcı çekirdeği `9af95e8`; kaynak detayları tüketicide `docs/headless-schema-delivery.md`, makine kanıtı bu raporun JSON’undaki `localPilot` alanındadır. Gerçek RED/GREEN logları yerel devir klasöründedir. Bu kanıt 387 gereksinimi, R kartlarını veya 52 headless kontrolünü topluca PASS/DONE yapmaz; üçüncü görev registry’si oluşturulmadı.
+
+Yerel kimlik native Frappe cookie/CSRF’dir; Keycloak, genel kayıt CRUD’u, diğer alan tipleri, kırıcı migration, karma Custom Field sırası, gerçek Safari/cihaz/native paket ve uzak production kabulü kaldı. Tam SaaS ürün baseline’ı dondurulmadı; Suite kaynak commit’i hâlâ unknown. Servis restart’ı, yeni app/ERPNext/HRMS, cron/otomasyon ve Pages yayını yapılmadı.
+
 ## Madde bazında kaynak değerlendirmesi
 
 Bu ek 387 mevcut kimliğin analizidir; görev durumu, atama veya yeni görev kimliği üretmez. “Eksik” önerileri, ilgili mevcut görev içinde incelenip tek ortak sözleşmeye bağlanmalıdır. Paketlerdeki öneriler kanonik kayıtlara otomatik uygulanmadı. “Kaynak temeli” yalnız bu yerel site/snapshot için geçerlidir.
