@@ -163,7 +163,7 @@
       "1. Hedef sürüm kararından sonra workflow.py, workflow DocType ve workflow_action kesitlerini hedef sürümde yeniden oku ve R-00 satır eşlemesini yaz.",
       "2. apply_workflow ile get_transitions'ın whitelist durumunu ve /api/v2/method üzerinden çağrılabilirliğini kaynakta doğrula. Sonucu yalnız belgeye yaz.",
       "3. Önerilen adaptör yolunda tek bir geçiş metodunu tanımla: native izin kontrolü, expected_state ve expected_modified karşılaştırması, ardından native apply_workflow çağrısı. ORM kopyalanmaz.",
-      "4. Liste metodunu tanımla: native get_transitions çıktısı değiştirilmeden action ve next_state olarak döner.",
+      "Liste için get_transitions çıktısı geçiş adaylarıdır; izinli action diye değişmeden sunulmaz. Hedef sürümde native has_approval_access dahil onay denetiminden geçenler izinli listede gösterilir. Uygulama anında native apply_workflow kontrolleri yeniden çalışır; aday görünmesi öz-onay/yürütme yetkisi vermez.",
       "5. Hata eşlemesini api-middleware--contract zarfına bağla. Audit ve outbox kaydını ilgili sözleşmelere bağla.",
       "6. Durum alanının tek yazım yolu kuralını ve doğrudan yazım envanterini belgeye yaz (workflow-7).",
       "7. UI ailesi, kanban ve izin sağlayıcısı yalnız sunucu yanıtını yansıtır. Kaynak registry kaydı ortak registry.ts üzerinden, entegrasyon sahibinin seri birleştirmesiyle yapılır.",

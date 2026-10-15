@@ -86,7 +86,7 @@
     "admission": "Uygulama durumu: uygulanmadı. Giriş için T-00 hedef taban çizgisi ve R-00 yeniden kullanım eşlemesi kabul edilmeli; izinli veri tükettiği için R-01 de gerekir. decisionsPending içindeki API sürümü, oturum bağlama ve servis biçimi kararları verilmeden üretim kiralaması açılmaz. Tek dar davranış gerçek RED/GREEN kanıtıyla uygulanır. Kaynak alıntıları önceki salt okunur Frappe/Suite kaynak anlık görüntülerinden gelir; canlı site veya ürün kabulü değildir.",
     "steps": [
       "T-00 sırasında hedef Frappe sürümünde v1 kaynak okuma rotasının (GET /resource/<doctype>/<name>) read_doc'a eşlendiğini ve /api önekini doğrulayın; seçili alıntı yalnız POST create_doc kuralını ve read_doc içindeki izin denetimini gösterir.",
-      "API sürüm kararı gelene kadar kabuğun veri katmanını tek bir istemci modülü arkasında tanımlayın; v2 iç uygulaması değişebileceği için v2'ye doğrudan bağlanmayın.",
+      "Python api/v2.py iç fonksiyonlarına doğrudan bağımlı olmama uyarısını HTTP API sürüm seçimiyle karıştırmayın. HTTP v1/v2 kararı hedef sürümün kamu API sözleşmesine göre açık bırakılır; seçilen istemci tek modül arkasında tanımlanır.",
       "Rota tanımını frontend/apps/web/src/routes.tsx paylaşılan entegrasyon dosyasına entegrasyon sahibi seri olarak ekler; davranış bileşeni planlanan web_build_mvp.tsx yolunda kalır.",
       "Görünüm ui-family-01 sözleşmesindeki onaylı AntD bileşenlerini ve semantik tokenları kullanır: Outfit, en az 14 CSS px metin, 320 CSS px öncelikli yerleşim, çevreleyen odak halkası olmayan görünür klavye odağı, merkezi simetrik Cubic hareket tokenları.",
       "İzin reddi, kayıt yok, oturum yok ve sunucu hatası durumlarını ayrı durum bileşenleri olarak tanımlayın; hover tek erişim yolu olmasın.",

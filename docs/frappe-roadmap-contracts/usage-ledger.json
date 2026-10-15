@@ -1,0 +1,659 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "usage-ledger",
+  "canonicalTaskIds": [
+    "ui-family-35--implementation",
+    "usage-ledger--implementation",
+    "usage-reservation--implementation"
+  ],
+  "requirementIds": [
+    "usage-1",
+    "usage-2",
+    "usage-3",
+    "usage-4",
+    "usage-5",
+    "usage-6",
+    "usage-7",
+    "usage-8"
+  ],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "usage-1": "post_mvp",
+    "usage-2": "post_mvp",
+    "usage-3": "post_mvp",
+    "usage-4": "post_mvp",
+    "usage-5": "post_mvp",
+    "usage-6": "post_mvp",
+    "usage-7": "post_mvp",
+    "usage-8": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Kiracı kapsamlı kullanım ve kredi defteri: idempotent rezervasyon, tüketim ve iade. Uygulama durumu: uygulanmadı.",
+    "trigger": "Sunucu tarafı bir servis yolu, ölçülen bir özelliği (AI kredisi, API çağrısı, arka plan işi, bildirim, depolama, koltuk/kayıt) tüketmeden önce kiracı, özellik, miktar ve işlem anahtarıyla rezervasyon ister; işlem sonunda tüketimi kesinleştirir veya rezervasyonu iade eder.",
+    "expected": "Kiracının kota/bakiye satırı aynı transaction içinde kilit altında okunur; limit içindeyse tek defter satırı eklenir ve kalan değer döner. Aynı işlem anahtarı ikinci satır üretmez, mevcut sonucu döndürür. Başarısız işlemin rezervasyonu yalnız bir kez serbest bırakılır. Eşik aşımı dönem başına bir kez olay üretir. Bir kiracının tüketimi başka kiracının kotasını veya bakiyesini değiştirmez.",
+    "denied": "Limit aşımında veya kiracının durdurma bayrağı açıkken yeni rezervasyon reddedilir ve defter değişmez. Yetkisiz kullanıcının veya genel /api/resource create/update yolunun defter yazımı native DocType izinleriyle reddedilir; kayıt değişmez. ignore_permissions, SQL ile yetki atlatma veya istemciden gelen flags ile izin aşımı yoktur."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native parçalar yalnız yapı taşıdır, defter değildir: Frappe RateLimiter ve rate_limit Redis TTL sayaçları (trafik koruması), concurrent_limit Redis semaforu (yalnız HTTP isteğinde çalışır), get_doc(for_update=True) satır kilidi, Suite Rate Limit içindeki frappe.db.add_unique kompozit benzersizlik deseni, Integration Request ham dış istek kaydı ve Suite File override yaptırım noktası adayı. Kalıcı kiracı defteri, rezervasyon durum makinesi, harcama tavanı ve kredi yükleme uzlaştırması incelenen kaynakta görülmedi. Suite Mail Quota sanal ve salt okunur dış veridir. useQuota.ts bir Vue composable'dır; React/Ant Design uygulama kanıtı değildir. cloud_billing.py hosting sağlayıcısının site cüzdanı yüklemesini harici billing API'ye ileten System Manager'a özel proxy'dir; kiracı kredi defteri olarak yeniden kullanılmaz. Yokluk tespitleri yalnız searchedPaths kapsamındadır; kapsamlı yokluk iddiası değildir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/rate_limiter.py",
+        "line": 55,
+        "quote": "self.key = frappe.cache.make_key(f\"rate-limit-counter-{self.window_number}\")"
+      },
+      {
+        "path": "frappe/frappe/rate_limiter.py",
+        "line": 182,
+        "quote": "value = frappe.cache.incrby(cache_key, 1)"
+      },
+      {
+        "path": "frappe/frappe/rate_limiter.py",
+        "line": 180,
+        "quote": "frappe.cache.setex(cache_key, seconds, 0)"
+      },
+      {
+        "path": "frappe/frappe/concurrency_limiter.py",
+        "line": 100,
+        "quote": "if getattr(frappe.local, \"request\", None) is None:"
+      },
+      {
+        "path": "frappe/frappe/concurrency_limiter.py",
+        "line": 109,
+        "quote": "sem = RedisSemaphore(key, _limit, wait_timeout, shared=True)"
+      },
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 56,
+        "quote": "doc = frappe.get_doc(doctype, name, for_update=True)"
+      },
+      {
+        "path": "suite/suite/suite_core/doctype/rate_limit/rate_limit.py",
+        "line": 149,
+        "quote": "frappe.db.add_unique("
+      },
+      {
+        "path": "suite/suite/suite_core/doctype/rate_limit/rate_limit.py",
+        "line": 105,
+        "quote": "doc.insert(ignore_permissions=True)"
+      },
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 196,
+        "quote": "\"File\": \"suite.drive.overrides.file.File\","
+      },
+      {
+        "path": "suite/suite/mail/doctype/quota/quota.json",
+        "line": 142,
+        "quote": "\"is_virtual\": 1,"
+      },
+      {
+        "path": "frappe/frappe/integrations/doctype/integration_request/integration_request.json",
+        "line": 90,
+        "quote": "\"fieldname\": \"request_id\","
+      },
+      {
+        "path": "frappe/frappe/integrations/frappe_providers/cloud_billing.py",
+        "line": 73,
+        "quote": "def create_topup_checkout(client, amount, redirect_url: str) -> dict:"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "frappe/frappe/concurrency_limiter.py",
+      "frappe/frappe/core/report/database_storage_usage_by_tables/database_storage_usage_by_tables.py",
+      "frappe/frappe/integrations/doctype/integration_request/integration_request.json",
+      "frappe/frappe/integrations/frappe_providers/cloud_billing.py",
+      "frappe/frappe/integrations/frappe_providers/cloud_settings.py",
+      "frappe/frappe/rate_limiter.py",
+      "suite/frontend/src/apps/mail/composables/useQuota.ts",
+      "suite/pyproject.toml",
+      "suite/suite/hooks.py",
+      "suite/suite/mail/doctype/quota/quota.json",
+      "suite/suite/mail/doctype/quota/quota.py",
+      "suite/suite/suite_core/doctype/rate_limit/rate_limit.json",
+      "suite/suite/suite_core/doctype/rate_limit/rate_limit.py",
+      "suite/suite/utils/rate_limiter.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/usage-ledger.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/commercial/doctype/usage_ledger/usage_ledger.py",
+      "backend/saas_platform/saas_platform/commercial/doctype/usage_reservation/usage_reservation.py",
+      "frontend/packages/ui/src/components/ui-family-35/index.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "tenant (tenant-registry--contract kimliği), feature (capability-definition--contract anahtarı), quantity (Decimal; birim karara bağlı), operation_key (çağıranın ürettiği idempotency anahtarı), entry_type (reserve, consume, release, grant, expire, clawback), event_time, source_ref ve kredi hareketlerinde expires_at. Bu alanlar kernel-envelope--contract zarfı içinde taşınır.",
+    "output": "Defter satırı kimliği, entry_type, dönem, kalan kota veya bakiye. Tekrarlanan anahtar için ilk sonucun aynısı döner. Eşik aşımı outbox--contract üzerinden tek olay olarak yayımlanır.",
+    "authorization": "Defter yalnız sunucu tarafı servis yolundan yazılır. DocType izinleri native-user-policy--contract ve explicitPermissionFlags ortak kaynağıyla tanımlanır. Genel REST create/update yazımı izinle kapalıdır. Okuma kiracı kapsamlıdır. Suite Rate Limit içindeki ignore_permissions kullanan yardımcı dışa açılmaz ve yeni yardımcılar bu deseni kopyalamaz.",
+    "persistence": "Önerilen UsageLedger DocType'ı (canonicalArtifact: proposed) append-only tutulur; tenant, feature, operation_key ve entry_type üzerinde frappe.db.add_unique ile kompozit benzersizlik kurulur. Kota/bakiye satırı get_doc(for_update=True) ile aynı transaction içinde kilitlenir. Native insert/save/hook zinciri korunur. Denetim audit-envelope--contract ile yapılır. Redis rate limit sayaçları fatura veya kredi kaynağı değildir.",
+    "failure": "Limit aşımı reddedilir ve defter değişmez; HTTP durum kodu ile Retry-After/Reset başlık sözleşmesi karara bağlıdır. Tekrarlanan anahtar hata değildir, mevcut sonucu döndürür. Geçersiz durum geçişi reddedilir. Transaction geri alınırsa defter değişmez. Süresi dolan rezervasyon tek kez release edilir; TTL değeri karara bağlıdır."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "audit-envelope--contract",
+      "capability-definition--contract",
+      "client-rule-parity--contract",
+      "entitlement-grant--contract",
+      "kernel-envelope--contract",
+      "native-user-policy--contract",
+      "outbox--contract",
+      "plan-definition--contract",
+      "subscription--contract",
+      "tenant-registry--contract",
+      "ui-family-35--contract",
+      "usage-ledger--contract",
+      "usage-ledger--schema",
+      "usage-reservation--contract",
+      "usage-reservation--schema"
+    ],
+    "admission": {
+      "statement": "Uygulama durumu: uygulanmadı. Bu sözleşme hiçbir servis, production ortamı, şema veya veri değişikliği yetkisi vermez. Sıralama yetkisi mevcut görev bağımlılıkları ve aşamadır; küme sırası yeni bir seri bağımlılık zinciri değildir.",
+      "prerequisites": [
+        "T-00 hedef temel ve R-00 yeniden kullanım eşlemesi; izinli veri tüketicileri için R-01.",
+        "usage-ledger--contract ve usage-ledger--schema kabulü; rezervasyon kapsamı için usage-reservation--contract ve usage-reservation--schema kabulü.",
+        "tenant-registry--contract kiracı kimliği ve decisionsPending içindeki kiracı topolojisi kararı.",
+        "İzin tanımı explicitPermissionFlags ortak kaynağına bağlanmış olmalı; kabulde yetkisiz yazmanın reddedildiği ve kaydın değişmediği kanıtlanmalı.",
+        "Tek dar davranış için gerçek RED/GREEN kanıtı."
+      ]
+    },
+    "steps": [
+      "usage-ledger--contract: birim, dönem, entry_type listesi ve durum geçiş tablosunu tek sayfada yaz.",
+      "usage-ledger--schema: UsageLedger alanlarını, add_unique kısıtını ve explicitPermissionFlags ile izinleri tanımla; genel REST yazımını kapat.",
+      "Tek bir sunucu servis fonksiyonu tasarla: reserve, consume ve release işlemlerini kota satırını for_update kilidi altında tutarak çalıştırır; istek bağlamından bağımsızdır.",
+      "Tüketicileri bağla: AI Assist harcama guard'ı, API kotası, enqueue kabulü, kayıt/koltuk kotası, dosya/depolama ve kredi yükleme. Her biri kendi dar kabulüyle ilerler ve birbirine seri bağımlılık eklemez.",
+      "ui-family-35 yalnız backend okuma ucu kabul edildikten sonra ele alınır: kiracı kapsamlı kullanım/bakiye görünümü React ve Ant Design ile kurulur, TanStack Query ile okunur. Bu bir GenUI capability registry kaydı değildir; JSON model sınırı yerel ReactNode/callback'ten ayrı tutulur. Mevcut kalıcı UI kuralları uygulanır.",
+      "Trafik ölçüm noktası ve worker/kuyruk topolojisi gereksinimleri Hüseyin Cengiz'e teknik devir olarak yazılır; altyapı değişikliği bu sözleşmenin kapsamı dışındadır."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Aynı kiracı ve aynı operation_key ile consume iki kez çağrıldığında defterde tek consume satırı kalır ve kalan bakiye yalnız bir kez azalır.",
+      "red": "Kabul edilmiş UsageLedger şeması ve servis iskeleti hazırken, aynı anahtarla yapılan ikinci çağrının ikinci satır oluşturduğunu veya bakiyeyi ikinci kez düşürdüğünü gösteren davranış iddiası başarısız olur. Import hatası, eksik tablo, eksik altyapı veya native save davranışını bozmak RED sayılmaz.",
+      "green": "Kompozit add_unique kısıtı ve kilit altında mevcut satırı döndüren servis yolu eklendiğinde iddia geçer; native izin ve save zinciri değişmez. Bu turda test yazılmaz ve koşulmaz."
+    },
+    "rollback": "Bu tur yalnız belgedir; geri alma, bu sözleşme dosyasının entegrasyon sahibince önceki sürüme döndürülmesidir. Gelecekteki deploy ve rollback işlerinin teknik sahibi Hüseyin Cengiz'dir. Defter append-only olduğu için uygulama sonrası geri alma veri silerek değil, servis yolunu devre dışı bırakıp ters kayıt yazarak yapılır. Şema geri alma ayrı onay gerektirir."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "usage-1",
+      "sourceStage": "post_mvp",
+      "existing": "Frappe RateLimiter, istek süresini site genelinde zaman pencereli bir Redis sayacında biriktirir; kiracı veya plan bazında tutmaz. Suite'te Sheets AI Assist için anthropic bağımlılığı ücretli maliyet kaynağıdır. Suite File override'ı dosya yaptırım noktası adayıdır. Çekirdek max_file_size sınırının kaynağı alıntılarda yok; bu yüzden bilinmiyor.",
+      "gap": "AI kredi birimi, rezervasyon, iade ve idempotency yok. Bayt bazlı trafik sayacı ve ölçüm noktası tanımsız. Dosya yaptırım noktası seçilmemiş. Önce okuyup sonra karar veren sayaç eşzamanlı aşıma açık. Redis sayacı kalıcı değil. Frappe 16 ile 17-dev eşlemesi yapılmamış.",
+      "completionSteps": [
+        "AI çağrısını usage-6 yoluna bağla: ücretli çağrıdan önce reserve, başarıda consume, hatada release.",
+        "RateLimiter yalnız trafik koruması olarak kalsın; tüketim yalnız kalıcı defterden okunsun.",
+        "Hedef sürüm kararından sonra dosya sınırının Suite File override'ında mı çekirdekte mi uygulanacağını kaynakta doğrula; depolama kotasını aynı kilitle kontrol et.",
+        "Bayt trafiği ölçüm noktasını Hüseyin Cengiz'e teknik gereksinim olarak devret; faturalama tüketimi defterden ayrı tutulur."
+      ],
+      "dependencies": [
+        "usage-ledger--contract",
+        "usage-ledger--schema",
+        "usage-reservation--contract",
+        "tenant-registry--contract"
+      ],
+      "acceptance": "Dosya sınırı aşımı reddedilir; AI veya trafik limitine eşzamanlı erişim kotayı aşamaz.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/rate_limiter.py",
+          "line": 55,
+          "quote": "self.key = frappe.cache.make_key(f\"rate-limit-counter-{self.window_number}\")"
+        },
+        {
+          "path": "frappe/frappe/rate_limiter.py",
+          "line": 79,
+          "quote": "frappe.cache.incrby(self.key, self.duration)"
+        },
+        {
+          "path": "suite/pyproject.toml",
+          "line": 32,
+          "quote": "\"anthropic>=0.40\","
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 196,
+          "quote": "\"File\": \"suite.drive.overrides.file.File\","
+        },
+        {
+          "path": "suite/pyproject.toml",
+          "line": 45,
+          "quote": "frappe = \">=16.0.0,<18.0.0\""
+        }
+      ]
+    },
+    {
+      "requirementId": "usage-2",
+      "sourceStage": "post_mvp",
+      "existing": "Site DB boyut raporu (System Manager), Mail'in sanal ve salt okunur JMAP Quota'sı, Vue tabanlı depolama göstergesi ve satır kilitli get_doc mevcut. ERPNext bu sitede kurulu değil; Company varlığı kullanılamaz.",
+      "gap": "Kiracı ve çalışma alanı modeli, koltuk sayım kuralı, yaptırım noktası ve kilit stratejisi tanımsız. Depolama için tek ölçüm sözleşmesi yok. ignore_permissions yolunun kapalı kalacağı yazılmamış.",
+      "completionSteps": [
+        "Kiracı topolojisi kararından sonra koltuk, kayıt ve çalışma alanını capability-definition--contract anahtarlarına eşle.",
+        "Sayılan DocType'ın before_insert aşamasında kota satırını get_doc(for_update=True) ile kilitle; sayaç aynı transaction içinde artsın.",
+        "File ve Drive boyut kaynağından tek depolama ölçüm sözleşmesi yaz; Mail JMAP kotası salt okunur dış veri olarak kalsın.",
+        "Yetkiyi native DocType izinlerine bırak; ignore_permissions yolu açma."
+      ],
+      "dependencies": [
+        "tenant-registry--contract",
+        "capability-definition--contract",
+        "native-user-policy--contract",
+        "usage-ledger--schema"
+      ],
+      "acceptance": "Son koltuk veya kota için iki eşzamanlı istekte yalnız izin verilen sayıda kayıt oluşur; reddedilen ekleme kayıt üretmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/core/report/database_storage_usage_by_tables/database_storage_usage_by_tables.py",
+          "line": 25,
+          "quote": "WHERE table_schema = DATABASE()"
+        },
+        {
+          "path": "suite/suite/mail/doctype/quota/quota.json",
+          "line": 142,
+          "quote": "\"is_virtual\": 1,"
+        },
+        {
+          "path": "suite/suite/mail/doctype/quota/quota.py",
+          "line": 107,
+          "quote": "if quotas := _fetch_quota_objects(account, [id]):"
+        },
+        {
+          "path": "suite/frontend/src/apps/mail/composables/useQuota.ts",
+          "line": 28,
+          "quote": "const isLimited = computed(() => (quota.data?.disk_quota ?? 0) > 0)"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 56,
+          "quote": "doc = frappe.get_doc(doctype, name, for_update=True)"
+        }
+      ]
+    },
+    {
+      "requirementId": "usage-3",
+      "sourceStage": "post_mvp",
+      "existing": "Çekirdek site süre bütçesi 429 döndürür. rate_limit dekoratörü çağrı adedini atomik incrby ile sayar. Suite Rate Limit DocType'ı metot bazlı limit sağlar. Genel v1 create yolunda adet limiti görülmedi. Anahtarlar IP, kullanıcı veya alan değeridir; kiracı ya da plan değildir.",
+      "gap": "Hangi uçların sayılacağı belirsiz. Kota kimliği ve plan eşlemesi yok. Suite Rate Limit'in yeniden kullanılıp kullanılmayacağına karar verilmemiş. Reddedilen çağrının sayılması ve TTL ile dönem sıfırlama sorun yaratıyor. 429/Retry-After sözleşmesi yazılmamış.",
+      "completionSteps": [
+        "Sayılacak uçları karara bağla: v1/v2 resource, method, webhook ve giden entegrasyon.",
+        "Kota anahtarı kiracı ve API key olsun; plan eşlemesi plan-definition--contract ve entitlement-grant--contract üzerinden yapılsın.",
+        "Reddedilen çağrının sayılmayacağını ve sıfırlamanın takvim dönemiyle yapılacağını yaz; TTL penceresi fatura dönemi değildir.",
+        "429 ile Retry-After/Reset başlık sözleşmesini api-middleware--contract ile hizala; create_rate_limit dışa açılmaz."
+      ],
+      "dependencies": [
+        "api-middleware--contract",
+        "plan-definition--contract",
+        "entitlement-grant--contract",
+        "tenant-registry--contract",
+        "usage-ledger--contract"
+      ],
+      "acceptance": "Süre bütçesi ile çağrı adedi ayrı ölçülür; 429 ve dönem sıfırlaması doğru kiracıya uygulanır.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/rate_limiter.py",
+          "line": 101,
+          "quote": "return Response(_(\"Too Many Requests\"), status=429)"
+        },
+        {
+          "path": "frappe/frappe/rate_limiter.py",
+          "line": 182,
+          "quote": "value = frappe.cache.incrby(cache_key, 1)"
+        },
+        {
+          "path": "suite/suite/suite_core/doctype/rate_limit/rate_limit.py",
+          "line": 126,
+          "quote": ".where((RATE_LIMIT.enabled == 1) & (RATE_LIMIT.method_path == method_path))"
+        },
+        {
+          "path": "suite/suite/suite_core/doctype/rate_limit/rate_limit.py",
+          "line": 105,
+          "quote": "doc.insert(ignore_permissions=True)"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 50,
+          "quote": "return frappe.new_doc(doctype, **data).insert()"
+        }
+      ]
+    },
+    {
+      "requirementId": "usage-4",
+      "sourceStage": "post_mvp",
+      "existing": "concurrent_limit fonksiyon başına Redis semaforu kullanır, HTTP dışında atlanır ve 503 döndürür. enqueue kuyruk seçimini ve deduplicate'i destekler. Suite Rate Limit değer bazlı limit sunar. Worker ve scheduler kaynağı alıntılarda yok; bu yüzden bilinmiyor.",
+      "gap": "Kiracı kuyruk izolasyonu yok. Eşzamanlılık anahtarı kiracıyı içermiyor. İşlem süresinin ölçüm noktası ve hata sözleşmesi, bildirim kanalları ve dönem tanımsız. v16 eşlemesi doğrulanmamış.",
+      "completionSteps": [
+        "Kiracı başına enqueue kabul kontrolünü istek bağlamından bağımsız servis guard'ı olarak tanımla.",
+        "İş süresini iş bitiminde consume satırı olarak yaz; reddi açık hata olarak döndür, hata kodu karara bağlı.",
+        "Bildirim gönderimi için değer bazlı Rate Limit desenini kiracı anahtarıyla değerlendir; kalıcı tüketim defterde tutulsun.",
+        "Worker ve kuyruk topolojisini Hüseyin Cengiz'e teknik devir olarak ayır."
+      ],
+      "dependencies": [
+        "usage-reservation--contract",
+        "outbox--contract",
+        "tenant-registry--contract",
+        "usage-ledger--contract"
+      ],
+      "acceptance": "Bir kiracının yoğun işi diğer kiracıyı aç bırakmaz; görev ve bildirim sınırı aşımı açık hata üretir.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/concurrency_limiter.py",
+          "line": 100,
+          "quote": "if getattr(frappe.local, \"request\", None) is None:"
+        },
+        {
+          "path": "frappe/frappe/concurrency_limiter.py",
+          "line": 107,
+          "quote": "key = f\"concurrency:{fn.__module__}.{fn.__qualname__}\""
+        },
+        {
+          "path": "frappe/frappe/concurrency_limiter.py",
+          "line": 115,
+          "quote": "exc = ServiceUnavailableError(frappe._(\"Server is busy. Please try again in a few seconds.\"))"
+        },
+        {
+          "path": "frappe/frappe/core/report/database_storage_usage_by_tables/database_storage_usage_by_tables.py",
+          "line": 74,
+          "quote": "queue=\"long\","
+        },
+        {
+          "path": "suite/suite/suite_core/doctype/rate_limit/rate_limit.json",
+          "line": 105,
+          "quote": "Enables per-value limits (e.g. a separate limit per email priority)."
+        }
+      ]
+    },
+    {
+      "requirementId": "usage-5",
+      "sourceStage": "post_mvp",
+      "existing": "Kaynakta yalnız Redis TTL hız sayaçları var. Mail Quota'daki warn_limit alanı harici JMAP verisidir. Ön yüzdeki yüzde 80 eşiği yalnız görsel bir uyarıdır ve Vue kaynağıdır.",
+      "gap": "Ölçüm olayı sözleşmesi, dönem tanımı, gecikmiş olayın dönem ataması, aşım politikası ve eşik uyarısının tekilliği yok. ERPNext Subscription kurulu değil; varsayılamaz.",
+      "completionSteps": [
+        "Ölçüm olayını tenant, feature, quantity, idempotency_key, event_time ve period alanlarıyla tanımla; tenant, feature ve idempotency_key üzerinde add_unique kur.",
+        "Dönemi subscription--contract ile karara bağla; gecikmiş olay event_time'a göre ilgili döneme yazılsın; kapanmış dönem davranışı karara bağlı.",
+        "Eşik uyarısı için tenant, feature, period ve eşik üzerinde benzersiz kayıt tut; olay outbox--contract ile tek kez yayımlansın.",
+        "Redis rate limit sayaçlarının fatura tüketimi olarak kullanılmayacağını sözleşmeye yaz."
+      ],
+      "dependencies": [
+        "subscription--contract",
+        "outbox--contract",
+        "usage-ledger--schema"
+      ],
+      "acceptance": "Dönem sınırı, gecikmiş olay ve aynı ölçümün tekrarı toplamı bozmaz; eşik uyarısı bir kez oluşur.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/rate_limiter.py",
+          "line": 180,
+          "quote": "frappe.cache.setex(cache_key, seconds, 0)"
+        },
+        {
+          "path": "frappe/frappe/rate_limiter.py",
+          "line": 182,
+          "quote": "value = frappe.cache.incrby(cache_key, 1)"
+        },
+        {
+          "path": "suite/suite/mail/doctype/quota/quota.json",
+          "line": 142,
+          "quote": "\"is_virtual\": 1,"
+        },
+        {
+          "path": "suite/suite/mail/doctype/quota/quota.py",
+          "line": 35,
+          "quote": "warn_limit: DF.Int"
+        },
+        {
+          "path": "suite/frontend/src/apps/mail/composables/useQuota.ts",
+          "line": 48,
+          "quote": "const CRITICAL_FROM = 80"
+        }
+      ]
+    },
+    {
+      "requirementId": "usage-6",
+      "sourceStage": "post_mvp",
+      "existing": "Yalnız yapı taşları var: for_update satır kilidi, add_unique kompozit benzersizlik ve Redis semaforu. Reserve, consume ve refund durumlu bir defter görülmedi.",
+      "gap": "Durum makinesi, çöken iş veya zaman aşımında serbest bırakma, append-only ile bakiye satırı ayrımı ve usage-reservation ile usage-ledger arasındaki sorumluluk sınırı tanımsız. Mutasyonun yalnız servis yolundan yapılacağı yazılmamış.",
+      "completionSteps": [
+        "Geçiş tablosunu yaz: reserve sonrası consume veya release; diğer geçişler reddedilir.",
+        "Tenant, operation_key ve entry_type üzerinde add_unique kur; tekrar eden istek mevcut satırı döndürsün.",
+        "Bakiyeyi for_update kilidi altında hesapla; rezervasyon TTL'i dolunca kaydı tek kez release eden zamanlanmış iş tanımla.",
+        "usage-reservation--implementation açık rezervasyonu, usage-ledger--implementation kesinleşen satırı sahiplenir; sınır usage-reservation--contract ile kesinleşir.",
+        "Genel /api/resource yazımını DocType izinleriyle kapat."
+      ],
+      "dependencies": [
+        "usage-reservation--contract",
+        "usage-reservation--schema",
+        "usage-ledger--schema",
+        "audit-envelope--contract"
+      ],
+      "acceptance": "Aynı işlem anahtarı ikinci tüketim yaratmaz; başarısız işlemin rezervasyonu yalnız bir kez iade edilir.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 56,
+          "quote": "doc = frappe.get_doc(doctype, name, for_update=True)"
+        },
+        {
+          "path": "suite/suite/suite_core/doctype/rate_limit/rate_limit.py",
+          "line": 149,
+          "quote": "frappe.db.add_unique("
+        },
+        {
+          "path": "frappe/frappe/concurrency_limiter.py",
+          "line": 109,
+          "quote": "sem = RedisSemaphore(key, _limit, wait_timeout, shared=True)"
+        },
+        {
+          "path": "suite/suite/suite_core/doctype/rate_limit/rate_limit.py",
+          "line": 105,
+          "quote": "doc.insert(ignore_permissions=True)"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 50,
+          "quote": "return frappe.new_doc(doctype, **data).insert()"
+        }
+      ]
+    },
+    {
+      "requirementId": "usage-7",
+      "sourceStage": "post_mvp",
+      "existing": "Kaynaktaki tüm limiter'lar HTTP isteği yokken devre dışı kalıyor; bu yüzden harcama durdurucu olarak kullanılamazlar. AI Assist için anthropic bağımlılığı gerçek bir ücretli maliyet kaynağıdır.",
+      "gap": "Uygulama noktası, maliyet birimi ve fiyat eşlemesi, kiracı modeli, durdurma bayrağının atomik okunması ve eşzamanlı aşım toleransı tanımsız.",
+      "completionSteps": [
+        "Enqueue'dan ve ücretli harici çağrıdan önce, istek bağlamından bağımsız çalışan tek bir guard tanımla; guard usage-6 rezervasyonunu kullansın.",
+        "İlk kapsamı Sheets AI Assist ile sınırla; maliyet birimi tarife kararına bağlı.",
+        "Durdurma bayrağı kiracının kota satırında tutulsun ve aynı kilit altında okunsun; önbellek kullanılırsa geçersizleştirme sözleşmesi yazılsın.",
+        "Gecikmeli maliyet ayrı bir düzeltme satırıyla yazılsın."
+      ],
+      "dependencies": [
+        "usage-reservation--contract",
+        "tenant-registry--contract",
+        "capability-definition--contract",
+        "usage-ledger--contract"
+      ],
+      "acceptance": "Gecikmeli maliyet kaydı ve eşzamanlı çağrıda tavan politikası uygulanır; durdurma yeni ücretli işi engeller.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/rate_limiter.py",
+          "line": 142,
+          "quote": "if not frappe.request or ("
+        },
+        {
+          "path": "suite/suite/utils/rate_limiter.py",
+          "line": 25,
+          "quote": "if not getattr(frappe.local, \"request\", None):"
+        },
+        {
+          "path": "frappe/frappe/concurrency_limiter.py",
+          "line": 100,
+          "quote": "if getattr(frappe.local, \"request\", None) is None:"
+        },
+        {
+          "path": "suite/pyproject.toml",
+          "line": 32,
+          "quote": "\"anthropic>=0.40\","
+        }
+      ]
+    },
+    {
+      "requirementId": "usage-8",
+      "sourceStage": "post_mvp",
+      "existing": "cloud_billing.py, hosting sağlayıcısının site cüzdanı yüklemesini harici billing API'ye ileten, System Manager'a özel ve site düzeyinde bir proxy'dir; SaaS kiracı kredi defteri değildir. Integration Request dış istek kaydını tutar ama request_id benzersiz değildir. add_unique kompozit benzersizlik deseni yeniden kullanılabilir. Suite Python kodunda kredi, cüzdan veya iade uygulaması görülmedi.",
+      "gap": "Grant, expire ve clawback hareketleri ile bakiye türetimi yok. Webhook alıcısı, imza doğrulaması ve replay koruması yok. provider_event_id benzersizliği, son kullanma takibi ve düşüm sırası, iade uzlaştırması, para birimi ve hassasiyet ile kiracı kapsamlı bakiye okuma API sözleşmesi yok.",
+      "completionSteps": [
+        "Aynı defterde grant, expire ve clawback hareketlerini tenant, amount (Decimal), currency/unit, source_ref ve expires_at alanlarıyla tanımla.",
+        "Tenant, provider ve provider_event_id üzerinde add_unique kur; bu maddenin ilk dar davranışı aynı bildirimin ikinci bakiye artışı üretmemesidir ve ayrı RED/GREEN kabulü ister.",
+        "Kiracı kapsamlı bakiye ve hareket okuma API sözleşmesini yaz; başka kiracının verisi görünmesin.",
+        "Expire işi, düşüm sırası, clawback, iade kuralı ve webhook imza doğrulaması sağlayıcı ile iade politikası kararından sonra gelir. Ham kayıt için Integration Request kullanılabilir; cloud_billing proxy'si kullanılmaz."
+      ],
+      "dependencies": [
+        "usage-ledger--contract",
+        "usage-ledger--schema",
+        "subscription--contract",
+        "tenant-registry--contract",
+        "audit-envelope--contract",
+        "outbox--contract"
+      ],
+      "acceptance": "Aynı ödeme bildirimi tek bakiye artışı üretir; kredi kaynağı ve son kullanım tarihi izlenir; ödeme iadesi ile tüketilmiş kredi kuralı tutarlı çalışır; bir kiracının bakiyesi başka kiracıyı etkilemez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/integrations/frappe_providers/cloud_billing.py",
+          "line": 73,
+          "quote": "def create_topup_checkout(client, amount, redirect_url: str) -> dict:"
+        },
+        {
+          "path": "frappe/frappe/integrations/frappe_providers/cloud_settings.py",
+          "line": 12,
+          "quote": "CLOUD_SETTINGS_ROLE = \"System Manager\""
+        },
+        {
+          "path": "frappe/frappe/integrations/doctype/integration_request/integration_request.json",
+          "line": 90,
+          "quote": "\"fieldname\": \"request_id\","
+        },
+        {
+          "path": "suite/suite/suite_core/doctype/rate_limit/rate_limit.py",
+          "line": 149,
+          "quote": "frappe.db.add_unique("
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Kalıcı kiracı kullanım ve kredi defteri, rezervasyon durum makinesi ve harcama guard'ı kaynakta yok.",
+    "Mevcut limiter'lar HTTP dışında çalışmıyor ve kiracı anahtarı taşımıyor.",
+    "Eşik uyarısı tekilliği, dönem tanımı ve aşım politikası tanımsız.",
+    "Kredi yükleme, webhook doğrulaması ve iade uzlaştırması yok.",
+    "ui-family-35 için React/Ant Design kaynak kanıtı yok; mevcut gösterge Vue kaynağıdır.",
+    "Frappe 16 ile 17-dev eşlemesi doğrulanmamış."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Kiracı topolojisi: site başına mı, site içi mi",
+      "requirementIds": [
+        "usage-1",
+        "usage-2",
+        "usage-3",
+        "usage-4",
+        "usage-7",
+        "usage-8"
+      ],
+      "blocks": "Defter ve kota anahtarının kiracı alanı ile izin kapsamı",
+      "docStepUntilDecision": "Alanları tenant-registry--contract kimliğine soyut referansla yaz."
+    },
+    {
+      "decision": "Hedef Frappe sürümü ve Suite eşlemesi",
+      "requirementIds": ["usage-1", "usage-4"],
+      "blocks": "concurrent_limit ve dosya sınırı yaptırım noktasının doğrulanması",
+      "docStepUntilDecision": "Sürüme bağlı noktaları doğrulanmadı olarak işaretle."
+    },
+    {
+      "decision": "AI kredi birimi ve tarife/fiyat eşlemesi",
+      "requirementIds": ["usage-1", "usage-7"],
+      "blocks": "consume miktarının ve maliyetin hesaplanması",
+      "docStepUntilDecision": "quantity alanını birimden bağımsız Decimal olarak tanımla."
+    },
+    {
+      "decision": "Aşım politikası: engelleme, yumuşak limit veya ücretlendirme; eşzamanlı aşım toleransı",
+      "requirementIds": ["usage-5", "usage-7"],
+      "blocks": "Limit aşımında red veya kayıt davranışı",
+      "docStepUntilDecision": "Varsayılan belge davranışı olarak reddi yaz; politika alanını açık bırak."
+    },
+    {
+      "decision": "Dönem tanımı (takvim ayı veya abonelik başlangıcı) ve kapanmış dönemdeki gecikmiş olay davranışı",
+      "requirementIds": ["usage-3", "usage-5"],
+      "blocks": "Dönem sıfırlama ve period alanının hesaplanması",
+      "docStepUntilDecision": "event_time ve period alanlarını ayrı tanımla."
+    },
+    {
+      "decision": "Koltuk sayım kuralı ve çalışma alanı varlığı",
+      "requirementIds": ["usage-2"],
+      "blocks": "before_insert kota yaptırımı",
+      "docStepUntilDecision": "Aday kullanıcı türlerini karar sorusu olarak listele."
+    },
+    {
+      "decision": "Sayılacak API uçları, Suite Rate Limit'in yeniden kullanımı ve 429/503 hata ile başlık sözleşmesi",
+      "requirementIds": ["usage-3", "usage-4"],
+      "blocks": "API ve iş kotası yaptırımı",
+      "docStepUntilDecision": "Uç envanterini api-middleware--contract ile birlikte belgele."
+    },
+    {
+      "decision": "Trafik ölçüm noktası (proxy/CDN veya Frappe) ve worker/kuyruk topolojisi; teknik sahibi Hüseyin Cengiz",
+      "requirementIds": ["usage-1", "usage-4"],
+      "blocks": "Bayt trafiği ölçümü ve kiracı kuyruk izolasyonu",
+      "docStepUntilDecision": "Hüseyin Cengiz için teknik gereksinim ve kabul ölçütü yaz."
+    },
+    {
+      "decision": "Rezervasyon TTL değeri",
+      "requirementIds": ["usage-6", "usage-7"],
+      "blocks": "Süresi dolan rezervasyonun release edilmesi",
+      "docStepUntilDecision": "TTL'i parametre olarak belgele."
+    },
+    {
+      "decision": "Ödeme sağlayıcısı ve tüketilmiş kredi iade politikası",
+      "requirementIds": ["usage-8"],
+      "blocks": "Webhook imza doğrulaması, clawback ve iade kuralı",
+      "docStepUntilDecision": "Sağlayıcıdan bağımsız provider ve provider_event_id alanlarını yaz."
+    },
+    {
+      "decision": "Para birimi, ondalık hassasiyet, kredi dönüşümü ve düşüm sırası",
+      "requirementIds": ["usage-8"],
+      "blocks": "Bakiye türetimi ve expire işi",
+      "docStepUntilDecision": "Decimal tutar ve currency/unit alanlarını tanımla."
+    },
+    {
+      "decision": "Defter ve ölçüm olaylarının saklama süresi",
+      "requirementIds": ["usage-5", "usage-8"],
+      "blocks": "Arşivleme ve temizlik işleri",
+      "docStepUntilDecision": "Append-only kuralını yaz; silme işlemi tanımlama."
+    },
+    {
+      "decision": "Depolama ölçüm kaynağı ve dosya yaptırım noktası (File veya Drive override)",
+      "requirementIds": ["usage-1", "usage-2"],
+      "blocks": "Depolama kotası yaptırımı",
+      "docStepUntilDecision": "Aday noktaları kaynak kanıtıyla listele."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

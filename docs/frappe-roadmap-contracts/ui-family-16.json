@@ -1,54 +1,50 @@
 {
   "schemaVersion": "saas-existing-work-contract.v1",
   "canonicalUnitId": "ui-family-16",
-  "canonicalTaskIds": ["ui-family-16--implementation"],
-  "requirementIds": ["forms-1", "forms-2", "forms-6"],
+  "canonicalTaskIds": [
+    "ui-family-16--implementation",
+    "ui-family-16--implementation-post-mvp",
+    "ui-family-17--implementation-mvp",
+    "ui-family-19--implementation-mvp",
+    "ui-family-23--implementation",
+    "ui-family-38--implementation-mvp",
+    "ui-provider-metadata--implementation-mvp"
+  ],
+  "requirementIds": ["forms-1", "forms-2", "forms-3", "forms-4", "forms-6"],
   "stage": "mvp",
+  "sourceStages": {
+    "forms-1": "mvp",
+    "forms-2": "mvp",
+    "forms-3": "post_mvp",
+    "forms-4": "post_mvp",
+    "forms-6": "mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
-    "title": "Mevcut kayıt formunda izinli headless-metadata.v1 Data alanları için depends_on/mandatory_depends_on yalnız tavsiye niteliğinde görünürlük ve zorunlu işareti olarak gösterilir",
-    "trigger": "Kullanıcı mevcut kaydı suite.headless_provider.records.read_record ile açar ve izinli bir Data alanını değiştirir.",
-    "expected": "Koşul güvenli alt kümedeyse yerelde eval/Function kullanılmadan yorumlanır: yalın alan adı, eval:doc.<alan>, eval:doc.<alan>=='<metin>' veya !=. Koşul yalnız aynı yanıttaki izinli Data alanlarına başvurmalıdır. Sonuçta alan gizlenir ya da gösterilir; mandatory_depends_on doğruysa 'zorunlu' işareti görünür. Gizleme değeri silmez, kayıt yükünü değiştirmez. Yük yalnız writableFields içindeki değişmiş alanlardır. Nihai karar save_record ve native Document.save'dedir.",
-    "denied": "Ham v2 get_meta kullanılmaz; izinli projeksiyon değildir. Alt küme dışı ya da projeksiyon dışı alana başvuran ifade çalıştırılmaz; alan görünür kalır, zorunlu işareti çıkmaz. İstemci işareti kaydı engellemez veya yetki vermez. Alan/özellik oluşturulmaz; make_property_setter çağrılmaz."
+    "title": "Uygulama durumu: uygulanmadı. Mevcut kayıt formunda, izinli metadata projeksiyonundaki Data alanları için depends_on ve mandatory_depends_on yalnız görünürlük ve tavsiye niteliğinde zorunlu işareti olarak gösterilir",
+    "trigger": "Yetkili kullanıcı, mevcut bir kaydı izinli metadata projeksiyonu ve okuma izni uygulanmış kayıt değerleriyle açar ve izinli bir Data alanını değiştirir.",
+    "expected": "Koşul güvenli alt kümedeyse eval veya new Function kullanılmadan yorumlanır. Alt küme şu biçimlerden oluşur: yalın alan adı, eval:doc.<alan>, eval:doc.<alan>=='<metin>' ve eval:doc.<alan>!='<metin>'. Koşul yalnız aynı yanıttaki izinli Data alanlarına başvurabilir. Sonuca göre alan gizlenir ya da gösterilir; mandatory_depends_on doğru çıkarsa 'zorunlu' işareti görünür. Gizleme değeri silmez ve kayıt yükünü değiştirmez. Yük yalnız yazılabilir ve değişmiş alanları taşır. Zorunluluk ve yetki konusunda son karar native kaydetme yolundadır.",
+    "denied": "Ham v2 get_meta kaynak alınmaz: giriş yapmış her kullanıcıya meta döndürdüğü için izinli projeksiyon sayılmaz. Alt küme dışındaki veya projeksiyon dışı bir alana başvuran ifade çalıştırılmaz; alan görünür kalır ve zorunlu işareti çıkmaz. İstemci işareti kaydı engellemez ve yetki vermez. Bu davranış alan veya özellik oluşturmaz; make_property_setter çağrılmaz."
   },
   "reuse": {
-    "mechanism": "Mevcut headless-metadata.v1 sağlayıcısı (api._snapshot izinli projeksiyonu) ve records modülü yeniden kullanılır. Yeni endpoint, DocType, form motoru veya RecordForm kopyası yok. Mevcut kayıt tüketicisine küçük, saf bir koşul yorumlayıcısı eklenir. Projeksiyonun depends_on/mandatory_depends_on taşıdığı sağlanan kaynakta görünmüyor (unknown). Taşımıyorsa uzantı ui-provider-metadata--implementation-mvp bağımlılığıdır; API uydurulmaz.",
+    "status": "KISMI",
+    "mechanism": "Native parçalar: Meta oluşturulurken Custom Field ve Property Setter birleştirmesi, v1 kayıt okumasında alan düzeyi okuma izni, DocField depends_on/mandatory_depends_on özellikleri ve v1 güncellemede for_update ile kayıt yükleme. Bu parçaların bulunması davranışın tamamının var olduğunu göstermez. İzinli metadata projeksiyonu ui-provider-metadata--implementation bağımlılığıdır. Güvenli koşul yorumlayıcısı ve React/Ant Design tüketicisi yoktur. Yeni endpoint, DocType, form motoru, ORM veya CRUD katmanı tasarlanmaz.",
     "evidence": [
       {
-        "path": "frappe_provider/headless_provider/records.py",
-        "line": 4,
-        "quote": "Metadata is the permissioned ``api._snapshot`` projection",
-        "repository": "genui-saas-panel@6ea301c"
+        "path": "frappe/frappe/api/v2.py",
+        "line": 246,
+        "quote": "frappe.only_for(\"All\")"
       },
       {
-        "path": "frappe_provider/headless_provider/records.py",
-        "line": 83,
-        "quote": "snapshot = api._snapshot(cleaned, user)",
-        "repository": "genui-saas-panel@6ea301c"
+        "path": "frappe/frappe/model/meta.py",
+        "line": 174,
+        "quote": "self.apply_property_setters()"
       },
       {
-        "path": "frappe_provider/headless_provider/records.py",
-        "line": 105,
-        "quote": "for df in snapshot.permitted",
-        "repository": "genui-saas-panel@6ea301c"
-      },
-      {
-        "path": "frappe_provider/headless_provider/records.py",
-        "line": 106,
-        "quote": "if df.fieldtype in RECORD_FIELD_TYPES",
-        "repository": "genui-saas-panel@6ea301c"
-      },
-      {
-        "path": "frappe_provider/headless_provider/records.py",
-        "line": 130,
-        "quote": "doc.apply_fieldlevel_read_permissions()",
-        "repository": "genui-saas-panel@6ea301c"
-      },
-      {
-        "path": "frappe_provider/headless_provider/records.py",
-        "line": 63,
-        "quote": "doc.save()",
-        "repository": "genui-saas-panel@6ea301c"
+        "path": "frappe/frappe/api/v1.py",
+        "line": 84,
+        "quote": "doc.apply_fieldlevel_read_permissions()"
       },
       {
         "path": "frappe/frappe/custom/doctype/customize_form_field/customize_form_field.py",
@@ -59,70 +55,358 @@
         "path": "frappe/frappe/custom/doctype/customize_form_field/customize_form_field.py",
         "line": 98,
         "quote": "mandatory_depends_on: DF.Code | None"
+      },
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 56,
+        "quote": "doc = frappe.get_doc(doctype, name, for_update=True)"
+      },
+      {
+        "path": "frappe/frappe/custom/doctype/property_setter/property_setter.py",
+        "line": 87,
+        "quote": "# WARNING: Ignores Permissions"
       }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "frappe/frappe/api/v2.py",
+      "frappe/frappe/core/doctype/doctype_layout/doctype_layout.json",
+      "frappe/frappe/custom/doctype/custom_field/custom_field.py",
+      "frappe/frappe/custom/doctype/customize_form/customize_form.js",
+      "frappe/frappe/custom/doctype/customize_form/customize_form.py",
+      "frappe/frappe/custom/doctype/customize_form_field/customize_form_field.json",
+      "frappe/frappe/custom/doctype/customize_form_field/customize_form_field.py",
+      "frappe/frappe/custom/doctype/property_setter/property_setter.json",
+      "frappe/frappe/custom/doctype/property_setter/property_setter.py",
+      "frappe/frappe/model/meta.py"
     ]
   },
   "ownership": {
     "activeContractFile": "docs/frappe-roadmap-contracts/ui-family-16.json",
     "plannedProduction": [
-      "frontend/packages/ui/src/components/ui-family-16/index.tsx"
+      "frontend/packages/ui/src/components/ui-family-16/index.tsx",
+      "frontend/packages/ui/src/components/ui-family-16/post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-family-17/mvp.tsx",
+      "frontend/packages/ui/src/components/ui-family-19/mvp.tsx",
+      "frontend/packages/ui/src/components/ui-family-23/index.tsx",
+      "frontend/packages/ui/src/components/ui-family-38/mvp.tsx",
+      "frontend/packages/ui/src/components/ui-provider-metadata/mvp.tsx"
     ],
-    "plannedTestFile": "frontend/packages/ui/src/components/ui-family-16/index.test.tsx",
+    "plannedTestFile": null,
     "sharedIntegrationFiles": [
-      "frontend/packages/ui/src/index.ts",
-      "frontend/packages/ui/src/registry.ts",
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
       "frontend/apps/web/src/routes.tsx",
       "frontend/package.json",
-      "integration/fragments/ui-family-16--integration.json"
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "read_record(doctype, name: str ≤140). save_record(doctype, name, base_modified: str ≤64, values: {fieldname: string}); alan sayısı ≤ api.MAX_FIELDS, değeri unknown. Koşul metni yalnız metadata alanında varsa okunur; 200 karakteri aşan koşul desteklenmez.",
-    "output": "Yanıt değişmez: {metadata, record{name, modified, values}, canWrite, writableFields}, headless-metadata.v1. İstemci görünüm modeli alan başına {visible, advisoryRequired, conditionStatus: evaluated|unsupported|none} üretir; bu model sunucuya gönderilmez.",
-    "authorization": "Native cookie/CSRF oturumu kullanılır; Keycloak not_run. Sunucu denetimleri: _require_user, has_permission('read'), get_permitted_fieldnames(write), maskeleme ve apply_fieldlevel_read_permissions. Koşul yalnız izinli Data alanlarına bakar. Projeksiyon dışı alan adı içeren koşul metninin dışarı verilmemesi metadata uzantısının sorumluluğudur (unknown).",
-    "persistence": "Yeni kalıcılık eklenmez. save_record native for_update kilidi, modified karşılaştırması ve Document.save ile çalışır; transaction HTTP katmanındadır. DDL, Custom Field veya Property Setter yok.",
-    "failure": "Kaydetme yolu değişmez. api._forbidden: Yetki yok mesajı. TimestampMismatchError: kayıt değişti, yeniden yükleyin. Native zorunlu alan veya doğrulama hatası: alan adı çözülürse alana, çözülmezse forma bağlanır. Tüm durumlarda girilen veri korunur, otomatik yeniden gönderim yapılmaz. HTTP durum kodu eşlemesi unknown."
+    "input": "İki girdi kullanılır: ui-provider-metadata--implementation sözleşmesinin tanımlayacağı izinli metadata yanıtı (alan başına fieldname, fieldtype ve varsa depends_on/mandatory_depends_on) ile native okuma izni ve alan düzeyi okuma izni uygulanmış kayıt değerleri. 200 karakteri aşan koşul desteklenmez. Yanıttaki kesin alan adlarını ve sınırları o sözleşme belirler; bu rehber bunları uydurmaz. Kaynak registry ile GenUI capability registry ayrıdır. JSON model sınırı yerel ReactNode ve callback'lerden ayrı tutulur.",
+    "output": "Sunucu yanıtı değişmez. İstemci görünüm modeli her alan için {visible, advisoryRequired, conditionStatus: evaluated|unsupported|none} üretir. Bu model sunucuya gönderilmez ve kalıcı olarak yazılmaz.",
+    "authorization": "Oturum ve istek zarfı kernel-envelope--contract ile api-middleware--contract üzerinden gelir. Sunucuda okuma sınırını native check_permission('read') ve apply_fieldlevel_read_permissions belirler; yazma, native kaydetme yolunun izin denetimiyle yapılır. ignore_permissions, SQL veya make_property_setter ile yetki atlanmaz. Koşul yalnız izinli Data alanlarına bakar. Projeksiyon dışı alan adı içeren koşul metninin istemciye verilmemesi metadata sözleşmesinin sorumluluğundadır (unknown). Bu davranış rol veya izin üretmez; izin gerektiren adımlar explicitPermissionFlags ortak kaynağına bağlanır.",
+    "persistence": "Yeni kalıcılık eklenmez. Kaydetme native Document kaydetme yolunu kullanır; v1 güncelleme kaydı for_update ile yükler. modified tabanlı eşzamanlılık denetimi sağlanan alıntıda görülmedi (unknown). DDL, Custom Field, Property Setter veya şema değişikliği yapılmaz.",
+    "failure": "Desteklenmeyen koşul: conditionStatus=unsupported olur, alan görünür kalır, zorunlu işareti çıkmaz. Yetki reddi: yetki yok mesajı gösterilir, kayıt değişmez. Eşzamanlı değişiklik hatası: 'kayıt değişti, yeniden yükleyin' mesajı gösterilir. Native zorunlu alan veya doğrulama hatası: alan adı çözülebiliyorsa hata alana, çözülemiyorsa forma bağlanır. Tüm durumlarda girilen veri korunur ve otomatik yeniden gönderim yapılmaz. HTTP durum kodu eşlemesi unknown."
   },
   "development": {
     "dependencies": [
-      "ui-family-16--contract",
-      "kernel-envelope--contract",
       "api-middleware--contract",
       "client-rule-parity--contract",
-      "ui-family-19--contract",
-      "ui-family-07--contract",
+      "device-grant--contract",
+      "kernel-envelope--contract",
+      "native-doctype-schema--contract",
+      "sync-receipt--contract",
       "ui-family-06--contract",
-      "ui-provider-metadata--implementation-mvp",
-      "local pilot f926e9b",
-      "local pilot 6ea301c"
+      "ui-family-07--contract",
+      "ui-family-16--contract",
+      "ui-family-16--implementation",
+      "ui-family-17--contract",
+      "ui-family-17--implementation",
+      "ui-family-19--contract",
+      "ui-family-19--implementation",
+      "ui-family-23--contract",
+      "ui-family-38--contract",
+      "ui-family-38--implementation",
+      "ui-provider-metadata--contract",
+      "ui-provider-metadata--implementation"
     ],
-    "admission": "T-00, R-00, R-01 gereklidir. Ön koşul: 6ea301c read_record yanıtının metadata alanlarında depends_on/mandatory_depends_on bulunduğu yerelde gözlenmeli; yoksa uygulama başlamaz ve uzantı beklenir. Mevcut kayıt tüketicisinin yolu, canonical index.tsx ile eşlemesi ve test komutu (vitest run) yerelde doğrulanmalıdır (unknown). Kanıt yalnız Frappe17-dev/suite.localhost içindir; uzak baseline ve Suite HEAD unknown.",
+    "admission": "Uygulama durumu: uygulanmadı. Ortak ön koşullar: T-00 hedef baseline, R-00 yeniden kullanım eşlemesi ve izinli veri tüketicisi olduğu için R-01. Özel ön koşullar: (1) ui-provider-metadata--implementation izinli projeksiyonunun depends_on/mandatory_depends_on taşıdığı hedef ortamda gözlenmeli; gözlenmezse uygulamaya başlanmaz. (2) Hedef Frappe sürümü kararı verilmeli (decisionsPending). (3) Tüketici bileşen yolu ve test komutu ana entegrasyon sahibince doğrulanmalı (unknown). Kaynak alıntılar salt okunur Frappe kaynak anlık görüntüsünden alınmıştır; canlı site veya ürün kabulü değildir. Bu sözleşme hiçbir servis, production ortamı, şema veya veri için değişiklik yetkisi vermez.",
     "steps": [
-      "Mevcut tüketiciye saf evaluateCondition(expr, values, permittedFieldnames) eklenir; eval veya new Function kullanılmaz.",
-      "Görünürlük ve tavsiye zorunlu işareti mevcut AntD Form.Item ve tokenlarla gösterilir: Outfit, en az 14px, 320 px öncelikli, çevreleyen odak halkası yok, simetrik pozitif cubic-bezier(.65,0,.35,1)."
+      "Tüketiciye saf bir evaluateCondition(ifade, değerler, izinliAlanAdları) yardımcı fonksiyonu eklenir. eval, new Function, client script veya dinamik kod yüklemesi kullanılmaz.",
+      "Ayrıştırıcı yalnız davranışta tanımlanan dört biçimi tanır; diğer her biçim için unsupported döner.",
+      "Görünürlük ve tavsiye niteliğindeki zorunlu işareti mevcut Ant Design Form.Item ve semantik tokenlarla gösterilir: Outfit fontu, en az 14 CSS px metin, 320 px öncelikli yerleşim, çevreleyen odak halkası olmadan görünür klavye odağı. Geçişlerde iki yönde pozitif süre ve cubic-bezier(.65,0,.35,1) kullanılır; reduced-motion istisnası uygulanır.",
+      "Kaydetme yükü yalnız yazılabilir ve değişmiş alanlardan kurulur; gizli alanın değeri silinmez.",
+      "Sunucu doğrulama hatası alana ya da forma eşlenir ve girilen veri korunur."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "6ea301c yanıt şeklindeki fikstürde reason alanının depends_on ve mandatory_depends_on değeri eval:doc.status_text=='Red'; note alanının depends_on değeri eval:frappe.user.has_role('X'). status_text boşken reason gizlidir; note görünür, zorunlu işareti yoktur. status_text 'Red' yapılınca reason görünür ve zorunlu işareti çıkar. globalThis.Function çağrılmaz.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Uygulamadan sonra aynı test aynı vitest komutuyla geçer."
+      "oneScenario": "İzinli metadata yanıtı biçimindeki girdide reason alanının depends_on ve mandatory_depends_on değeri eval:doc.status_text=='Red', note alanının depends_on değeri ise eval:frappe.user.has_role('X') olsun. status_text boşken reason gizlidir; note görünür ve zorunlu işareti taşımaz. status_text 'Red' yapıldığında reason görünür ve zorunlu işareti çıkar. Hiçbir adımda globalThis.Function veya eval çağrılmaz.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. RED davranışsal bir assertion başarısızlığı olmalıdır; örneğin koşul yorumlayıcısı yokken status_text boşken reason alanının görünür kalması. Import hatası, altyapı hatası veya native davranışı bozmak RED sayılmaz. Bu turda test yazılmaz ve çalıştırılmaz.",
+      "green": "Uygulamadan sonra aynı senaryo, değiştirilmemiş assertion'larla ve aynı komutla geçmelidir. Şu anda durum not_run'dır; bu sözleşme veya biçim kontrolü ürün GREEN'i sayılmaz."
     },
-    "rollback": "Yalnız tüketici değişikliği ve planlanan test yerelde geri alınır. Production, izin, servis veya veri değişikliği yapılmaz."
+    "rollback": "Gelecekte yalnız tüketici bileşen değişikliği ve ilgili test geri alınır. Production, izin, servis, şema veya veri değişikliği yapılmaz. Dağıtılmış bir derleme varsa CI/deploy/rollback işlerinin teknik sahibi Hüseyin Cengiz'dir."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "forms-1",
+      "sourceStage": "mvp",
+      "existing": "Native: Meta oluşturulurken Custom Field ve Property Setter birleştirilir. v2 get_meta, only_for('All') nedeniyle giriş yapmış her kullanıcıya meta döndürür. v1 kayıt okumasında alan düzeyi okuma izni uygulanır. Customize Form yalnız standart DocType'ları kabul eder. make_property_setter izinleri yok sayar. Web Form kaynağı sağlanan alıntılarda yoktur.",
+      "gap": "Form manager'ın üç yolu (Customize Form/Custom Field, custom DocType düzenleme, DocType Layout) birbirinden ayrılmamış. Renderer'ın desteklediği fieldtype alt kümesi, bilinmeyen tipteki davranış, izin dışı alan oluşturmanın hangi native izne bağlanacağı ve v1/v2 sürüm eşlemesi tanımlı değil.",
+      "completionSteps": [
+        "ui-provider-metadata--implementation sözleşmesine şu not eklenir: metadata kaynağı ham v2 get_meta değil, izinli projeksiyondur; kayıt okumasında apply_fieldlevel_read_permissions korunur.",
+        "Desteklenen fieldtype alt kümesi tablo olarak yazılır; ilk dilim Data'dır. Bilinmeyen tip için düzenlenebilir girdi üretilmez; alan 'desteklenmiyor' durumuyla gösterilir ve değeri yüke eklenmez.",
+        "Özelleştirme yalnız native Customize Form ve Custom Field izinleriyle yapılır. make_property_setter hiçbir endpoint'e açılmaz ve ignore_permissions kullanılmaz. İzin bayrakları explicitPermissionFlags ortak kaynağına bağlanır.",
+        "Customize Form'un yalnız standart DocType'lar için geçerli olduğu yazılır. Custom DocType düzenleme ayrı bir yol olarak işaretlenir ve kapsam kararını bekler.",
+        "DocType Layout yalnız sunum katmanı olarak ayrı tutulur; yetki veya veri doğrulaması taşımaz.",
+        "Hedef sürüm kararından sonra v2 meta ile v1 resource uç noktalarının eşleme tablosu yazılır."
+      ],
+      "dependencies": [
+        "ui-provider-metadata--contract",
+        "ui-provider-metadata--implementation",
+        "native-doctype-schema--contract",
+        "api-middleware--contract",
+        "ui-family-16--contract"
+      ],
+      "acceptance": "Form yalnız izinli metadata'dan render edilir ve bilinmeyen tip düzenlenemez. Gelecekteki tek kabul: yetkisiz kullanıcının alan oluşturma veya yazma isteği native izinle reddedilir; kayıt ve şema değişmeden kalır.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 246,
+          "quote": "frappe.only_for(\"All\")"
+        },
+        {
+          "path": "frappe/frappe/model/meta.py",
+          "line": 174,
+          "quote": "self.apply_property_setters()"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 84,
+          "quote": "doc.apply_fieldlevel_read_permissions()"
+        },
+        {
+          "path": "frappe/frappe/custom/doctype/customize_form/customize_form.py",
+          "line": 135,
+          "quote": "frappe.throw(_(\"Only standard DocTypes are allowed to be customized from Customize Form.\"))"
+        },
+        {
+          "path": "frappe/frappe/custom/doctype/property_setter/property_setter.py",
+          "line": 87,
+          "quote": "# WARNING: Ignores Permissions"
+        }
+      ]
+    },
+    {
+      "requirementId": "forms-2",
+      "sourceStage": "mvp",
+      "existing": "Native DocField depends_on ve mandatory_depends_on özellikleri Code alanlarıdır; native formlarda eval: biçiminde JavaScript ifadesi olarak kullanılır. DocType Layout condition alanı JavaScript seçeneklidir.",
+      "gap": "Headless tarafta güvenli bir değerlendirme alt kümesi yok; keyfi JS ve client script yasağı açıkça yazılmamış. mandatory_depends_on kuralının v17 sunucusunda uygulandığı doğrulanmadı. Çapraz alan kurallarının controller validate içindeki yeri ve sunucu hatasının forma nasıl eşleneceği tanımlı değil.",
+      "completionSteps": [
+        "Davranıştaki dört biçimli güvenli alt küme ui-family-17 sözleşmesine yazılır; eval, new Function ve client script açıkça yasaklanır.",
+        "UI koşullarının yalnız sunum için olduğu, zorunluluk ve yetkinin sunucuda kaldığı yazılır.",
+        "Hedef sürüm kaynağında Document zorunluluk doğrulaması salt okunur incelenir. Koşullu zorunluluğun sunucuda reddedildiği path, line ve alıntıyla kanıtlanana kadar durum unknown kalır.",
+        "Çapraz alan kuralları native controller validate içinde yaşar. İstemcideki aynası client-rule-parity--contract'a bağlanır; istemci kuralı yetki vermez.",
+        "Sunucu hata yanıtı alan adına eşlenir; eşlenemezse form düzeyinde mesaj gösterilir."
+      ],
+      "dependencies": [
+        "ui-family-17--contract",
+        "ui-family-17--implementation",
+        "client-rule-parity--contract",
+        "ui-provider-metadata--implementation"
+      ],
+      "acceptance": "UI atlanarak gönderilen ve koşullu zorunlu alanı boş bırakan istek backend'de reddedilir; kayıt değişmez. Alt küme dışındaki ifade hiçbir durumda çalıştırılmaz.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/custom/doctype/customize_form_field/customize_form_field.py",
+          "line": 28,
+          "quote": "depends_on: DF.Code | None"
+        },
+        {
+          "path": "frappe/frappe/custom/doctype/customize_form_field/customize_form_field.py",
+          "line": 98,
+          "quote": "mandatory_depends_on: DF.Code | None"
+        },
+        {
+          "path": "frappe/frappe/custom/doctype/customize_form_field/customize_form_field.json",
+          "line": 417,
+          "quote": "\"depends_on\": \"eval:!['Tab Break', 'Table', 'Attachment Gallery'].includes(doc.fieldtype)\","
+        },
+        {
+          "path": "frappe/frappe/core/doctype/doctype_layout/doctype_layout.json",
+          "line": 134,
+          "quote": "\"options\": \"JavaScript\""
+        }
+      ]
+    },
+    {
+      "requirementId": "forms-3",
+      "sourceStage": "post_mvp",
+      "existing": "Native Tab Break alan tipi, formu adımlara bölmek için kullanılabilecek bir düzen primitifidir. v1 create_doc, new_doc(...).insert() ile doğrudan tam kayıt oluşturur.",
+      "gap": "Taslağın nerede tutulacağı (hedef DocType'ta docstatus=0 mı, ayrı bir depo mu) ve bunun zorunlu alan doğrulamasıyla çatışması, adım tanımının kaynağı, taslak sahipliği ve final submit'te eksik adımın reddedilmesi tanımlı değil.",
+      "completionSteps": [
+        "Depolama modeli kararı beklenir. Karar gelene kadar iki seçeneğin zorunlu alan doğrulamasına etkisi belgelenir.",
+        "Adım tanımı önce native Tab Break'ten türetilir. Ayrı adım metadata'sı gerekirse ui-provider-metadata sözleşmesine eklenmesi önerilir.",
+        "Taslak sahiplik anahtarı kullanıcı ve tenant kimliğidir. Tenant kimliği kernel-envelope--contract'tan gelir; tenant topolojisi bu rehberde seçilmez. Taslak yeniden açılırken sahiplik sunucuda doğrulanır.",
+        "Final submit native insert/save doğrulamasıyla yapılır; eksik zorunlu alan sunucuda reddedilir.",
+        "Taslak anahtarı ve sahiplik kuralı forms-6 ile ortak tutulur."
+      ],
+      "dependencies": [
+        "ui-family-16--implementation",
+        "kernel-envelope--contract",
+        "api-middleware--contract",
+        "native-doctype-schema--contract"
+      ],
+      "acceptance": "Sayfa veya oturum yenilendiğinde taslak yalnız sahibi olan kullanıcıya döner. Eksik adım final submit'i sunucuda engeller ve hedef kayıt oluşmaz.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 50,
+          "quote": "return frappe.new_doc(doctype, **data).insert()"
+        },
+        {
+          "path": "frappe/frappe/custom/doctype/customize_form_field/customize_form_field.py",
+          "line": 72,
+          "quote": "\"Tab Break\","
+        }
+      ]
+    },
+    {
+      "requirementId": "forms-4",
+      "sourceStage": "post_mvp",
+      "existing": "Custom Field kaydı updatedb ile şemayı hemen uygular. Property Setter fieldtype değişimini yalnız korunan alanlarda engeller. Customize Form sütun silinirken geri dönüşsüz veri kaybı uyarısı verir. Property Setter, track_changes ile denetim izi tutar. Yayınlanmış form sürümü kavramı yoktur.",
+      "gap": "Form sürüm kimliği, kırıcı değişiklik sınıfları ve yayın öncesi engelleme kuralı, eski taslağı yeni sürüme taşıyacak deterministik eşleme ve önizleme/onay sınırı tanımlı değil.",
+      "completionSteps": [
+        "Form sürüm kimliği efektif metadata ile layout özetinden türetilir. Özet yöntemi ve kimliğin taslağa damgalanma biçimi karar listesindedir.",
+        "Kırıcı değişiklik sınıfları yazılır: fieldtype değişimi, alan silme ve reqd ekleme. Bunlar önizleme ve onay olmadan uygulanmaz.",
+        "Native kayıt şemayı hemen uyguladığı için önizleme native kayıttan önce yapılır; native akış atlanmaz veya değiştirilmez.",
+        "Eski taslak için deterministik eşleme kuralı yazılır: fieldname'i aynı kalan alan korunur, silinen alanın değeri kaybolmadan ayrı gösterilir, tipi değişen alan kullanıcı onayına bırakılır.",
+        "Şema değişikliğini uygulamak bu sözleşmenin yetkisi dışındadır. Migration ve deploy için ayrı onay gerekir; teknik sahibi Hüseyin Cengiz'dir."
+      ],
+      "dependencies": [
+        "ui-family-16--implementation",
+        "native-doctype-schema--contract",
+        "ui-provider-metadata--implementation"
+      ],
+      "acceptance": "Eski taslak yeni sürümle açıldığında aynı girdi her seferinde aynı dönüşümü üretir. Kırıcı değişim yayından önce yakalanır ve onay olmadan uygulanmaz.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/custom/doctype/custom_field/custom_field.py",
+          "line": 229,
+          "quote": "frappe.db.updatedb(self.dt)"
+        },
+        {
+          "path": "frappe/frappe/custom/doctype/property_setter/property_setter.py",
+          "line": 54,
+          "quote": "if self.property == \"fieldtype\" and self.field_name in not_allowed_fieldtype_change:"
+        },
+        {
+          "path": "frappe/frappe/custom/doctype/customize_form/customize_form.js",
+          "line": 230,
+          "quote": "\"Warning: DATA LOSS IMMINENT! Proceeding will permanently delete following database columns from doctype {0}:\","
+        },
+        {
+          "path": "frappe/frappe/custom/doctype/property_setter/property_setter.json",
+          "line": 163,
+          "quote": "\"track_changes\": 1"
+        }
+      ]
+    },
+    {
+      "requirementId": "forms-6",
+      "sourceStage": "mvp",
+      "existing": "Alıntılarda native bir otomatik taslak primitifi görülmedi; Customize Form localStorage'a yalnız DocType adını yazar. v1 güncelleme kaydı for_update ile yükler; modified karşılaştırması alıntıda görülmedi.",
+      "gap": "Saklama yeri (IndexedDB, sunucu taslağı veya ikisi), saklama süresi, hassas alanların dışlanması, şifreleme, Tauri2 ve WXT/MV3 depolama eşdeğerliği, eşzamanlı değişiklik çakışmasının nasıl tespit edileceği ve koşullu kapsam ile MVP eşlemesi arasındaki tutarsızlık açık.",
+      "completionSteps": [
+        "Taslak anahtarı tenant + kullanıcı + doctype + form sürümü olarak belgelenir; tenant ve kullanıcı kimliği kernel-envelope--contract'tan gelir.",
+        "Logout veya hesap/tenant değişiminde taslak temizlenir ya da erişilemez hale gelir; temizleme politikası yazılır.",
+        "Yerel taslak arayüzde sunucu kaydından ayrı etiketlenir ve sunucu kaydıymış gibi gösterilmez.",
+        "Yerel saklama hatası (kota, tahliye) kullanıcıya açıkça bildirilir; kalıcılık garantisi verilmez.",
+        "Token, secret ve parola türündeki alanlar taslağa yazılmaz; hassas alanların tam listesi karar bekler.",
+        "Çakışma tespiti, sunucu kaydının modified değeri ile taslağın baz modified değeri karşılaştırılarak belgelenir. Native davranış hedef sürümde doğrulanana kadar unknown kalır. Çözümde iki taraftaki değerler de kaybolmadan gösterilir.",
+        "Tauri2 ve WXT/MV3 depolama eşdeğerliği device-grant--contract ve sync-receipt--contract ile ilişkilendirilir; saklama ortamı seçimi karar listesindedir."
+      ],
+      "dependencies": [
+        "ui-family-16--contract",
+        "kernel-envelope--contract",
+        "device-grant--contract",
+        "sync-receipt--contract",
+        "api-middleware--contract"
+      ],
+      "acceptance": "Sayfa yenilendiğinde veya form yeniden açıldığında yetkili kullanıcının aynı form/sürüm taslağı geri gelir. Yerel saklama hatası açıkça bildirilir. Şema ve eşzamanlı değişiklik çakışmaları veri kaybı olmadan çözülür. Hesap/tenant değişiminde taslak sızmaz; logout ve temizleme davranışı doğrulanır. Yerel taslak sunucu kaydı gibi sunulmaz.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/custom/doctype/customize_form/customize_form.js",
+          "line": 11,
+          "quote": "localStorage[\"customize_doctype\"] = frm.doc.doc_type;"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 56,
+          "quote": "doc = frappe.get_doc(doctype, name, for_update=True)"
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "Düzeltme: önceki öneri ham v2 get_meta'yı kaynak alıyordu. Bu yol izinli projeksiyon değildir (only_for All) ve kaldırıldı.",
-    "forms-1: Şemada 11 tip var, records modülü yalnız Data okuyup güncelliyor. Diğer tipler, yeni kayıt, Customize Form/Custom Field, custom DocType ve DocType Layout yolları ile Web Form açık. make_property_setter ignore_permissions kullandığı için dışarı açılmamalı.",
-    "forms-2: Koşulların metadata projeksiyonundaki yeri, v17'de mandatory_depends_on'un sunucuda uygulanması ve çapraz alan kuralları doğrulanmadı. Destekleyici görev: ui-family-17--implementation-mvp.",
-    "forms-6: Taslak saklama yeri, şifreleme, hassas alanların dışlanması, Tauri2/WXT eşdeğerliği, logout'ta temizleme, saklama süresi ve kapsam-MVP tutarsızlığı açık."
+    "Uygulama durumu: uygulanmadı. Hiçbir madde ürün koduyla teslim edilmiş değildir.",
+    "Önceki öneri ham v2 get_meta'yı kaynak alıyordu. only_for('All') nedeniyle bu yol izinli projeksiyon değildir ve kaldırıldı.",
+    "İzinli metadata projeksiyonunun depends_on/mandatory_depends_on taşıyıp taşımadığı unknown; bu, ui-provider-metadata--implementation bağımlılığıdır.",
+    "forms-1: Data dışındaki tipler, yeni kayıt oluşturma, custom DocType düzenleme, DocType Layout ve Web Form yolları açık.",
+    "forms-2: v17 sunucusunda koşullu zorunluluğun uygulanması ve çapraz alan kurallarının yeri doğrulanmadı.",
+    "forms-3 ve forms-6: taslak depolama, sahiplik, şifreleme, saklama süresi ve Tauri2/WXT eşdeğerliği açık.",
+    "forms-4: sürüm kimliği, kırıcı değişiklik engeli ve taslak dönüşümü yok.",
+    "modified tabanlı eşzamanlılık denetimi ve HTTP durum kodu eşlemesi unknown."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Form manager kapsamı: Customize Form/Custom Field, custom DocType düzenleme ve DocType Layout yollarından hangilerinin destekleneceği.",
+      "requirementIds": ["forms-1"],
+      "blocks": "Form manager yazma ve özelleştirme adımları.",
+      "interimDocStep": "Üç yolu ve her birinin native izin sınırını ayrı bir tabloda belgele."
+    },
+    {
+      "decision": "Hedef Frappe sürümü ve v1/v2 uç nokta eşlemesi.",
+      "requirementIds": ["forms-1", "forms-2"],
+      "blocks": "Uç nokta eşlemesi ve sunucu tarafı zorunluluk doğrulamasının kanıtlanması.",
+      "interimDocStep": "Mevcut alıntıları sürümü doğrulanmamış salt okunur kaynak anlık görüntüsü olarak işaretle."
+    },
+    {
+      "decision": "Taslak depolama modeli: hedef kayıtta docstatus=0, ayrı sunucu taslak deposu, yerel depo veya bunların birleşimi.",
+      "requirementIds": ["forms-3", "forms-6"],
+      "blocks": "Taslak kaydetme, devam etme ve final submit adımları.",
+      "interimDocStep": "Seçeneklerin zorunlu alan doğrulaması, sahiplik ve çakışma üzerindeki etkisini karşılaştır."
+    },
+    {
+      "decision": "Yerel taslak saklama ortamı, şifreleme gereği ve Tauri2 ile WXT/MV3 eşdeğerliği.",
+      "requirementIds": ["forms-6"],
+      "blocks": "İstemci tarafı otomatik taslak uygulaması.",
+      "interimDocStep": "Taslak anahtarını, logout temizliğini ve yerel/sunucu ayrımı etiketini belgele."
+    },
+    {
+      "decision": "Taslak saklama süresi ve taslağa yazılmayacak hassas alan listesi.",
+      "requirementIds": ["forms-3", "forms-6"],
+      "blocks": "Temizleme politikası ve taslak içeriği filtresi.",
+      "interimDocStep": "Token, secret ve parola türündeki alanların hiçbir koşulda yazılmayacağını belgele."
+    },
+    {
+      "decision": "Form sürüm kimliği yöntemi ile yayın önizleme ve onay sorumlusu.",
+      "requirementIds": ["forms-4"],
+      "blocks": "Yayınlama akışı ve eski taslak dönüşümü.",
+      "interimDocStep": "Kırıcı değişiklik sınıflarını ve deterministik alan eşleme kurallarını yaz."
+    },
+    {
+      "decision": "forms-6'nın koşullu kapsamının MVP görev eşlemesiyle uyumlu hale getirilmesi.",
+      "requirementIds": ["forms-6"],
+      "blocks": "forms-6 adımlarının aşamaya alınması.",
+      "interimDocStep": "sourceStages değerini değiştirmeden tutarsızlığı açık eksik olarak kaydet."
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "forms-1": "mvp",
-    "forms-2": "mvp",
-    "forms-6": "mvp"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,

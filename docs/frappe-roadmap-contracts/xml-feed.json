@@ -1,0 +1,223 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "xml-feed",
+  "canonicalTaskIds": [
+    "ui-family-36--implementation-post-mvp",
+    "xml-feed--implementation"
+  ],
+  "requirementIds": ["integration-12"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "integration-12": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "XML besleme ile tenant kapsamlı, checkpoint tabanlı artımlı ve çift yönlü HTTP eşitleme. Uygulama durumu: uygulanmadı.",
+    "trigger": "Pull yönü: karar verilecek zamanlama kaynağından (scheduler_events veya Scheduled Job Type) tetiklenen besleme çekme işi. Push alımı: api-middleware sözleşmesinden geçen, kimliği doğrulanmış HTTP isteği. Push gönderimi: outbox sözleşmesine düşen yerel değişiklik olayı. XML yalnız veri biçimidir, taşıma protokolü değildir.",
+    "expected": "Tenant, besleme ve yön için saklanan checkpoint sonrasındaki öğeler güvenli parser ile ayrıştırılır, tek örnek XSD ile doğrulanır, field-mapping sözleşmesiyle hedef DocType alanlarına eşlenir ve native izin/save/transaction yoluyla uygulanır. Silme işareti taşıyan öğe karar verilen silme politikasıyla işlenir. Checkpoint yalnız aynı transaction içindeki başarılı uygulamadan sonra ilerler. Aynı öğe tekrar geldiğinde idempotency anahtarı nedeniyle ikinci yazma oluşmaz. Gecikme, karar verilecek sayısal hedefe göre ölçülür.",
+    "denied": "Kimliği doğrulanmamış veya imzası geçersiz push, izin dışı tenant/DocType yazması, allowlist dışındaki ya da özel/loopback adrese çözümlenen hedef, boyut sınırını aşan gövde, DTD/external entity içeren veya bozuk XML, XSD'ye uymayan belge ve hız sınırını aşan istek reddedilir. Reddedilen işlemde hedef kayıt ve checkpoint değişmez. ignore_permissions veya ham SQL ile yetki atlanmaz."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Kaynakta yalnız primitifler görüldü: Suite hooks.py içindeki scheduler_events sözlüğü (zamanlama kaydı kalıbı), frappe bağımlılıklarında requests (HTTP istemcisi), suite bağımlılıklarında lxml (XML parser). Bu kanıtlar besleme çekme/itme, checkpoint, silme işareti, çakışma çözümü veya güvenli parser yapılandırmasının var olduğunu göstermez. lxml suite paketinin bağımlılığıdır; saas_platform için ayrı bağımlılık bildirimi ve hedef sürüm T-00 ile doğrulanmalıdır. Native parça davranışın tamamı sayılmaz.",
+    "evidence": [
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 289,
+        "quote": "scheduler_events = {"
+      },
+      {
+        "path": "frappe/pyproject.toml",
+        "line": 68,
+        "quote": "\"requests~=2.34.2\","
+      },
+      {
+        "path": "suite/pyproject.toml",
+        "line": 17,
+        "quote": "\"lxml~=6.1\",  # drive: WebDAV XML (previously only a transitive dep via frappe)"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/pyproject.toml",
+      "suite/pyproject.toml",
+      "suite/suite/hooks.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/xml-feed.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/adapters/integration_hub/xml_feed_post_mvp.py",
+      "frontend/packages/ui/src/components/ui-family-36/post_mvp.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Pull: tenant kimliği, besleme anahtarı, allowlist'teki hedef URL kaydına referans (secret değeri değil), son checkpoint. Push alımı: api-middleware'den geçmiş kimlik bağlamı, kernel-envelope zarfında XML gövdesi, idempotency anahtarı, XML içerik türü. Push gönderimi: outbox olayı ve field-mapping çıktısı. Her öğede kararlı dış kimlik, cursor (değişiklik zamanı veya sıra numarası) ve isteğe bağlı silme işareti bulunur; biçim tek örnek XSD ile sabitlenir.",
+    "output": "Eşitleme sonucu: uygulanan, idempotent tekrar nedeniyle atlanan, çakışan ve reddedilen öğe sayıları; yeni checkpoint değeri; gecikme ölçümü; reddedilen öğeler için makine okunur hata kodu. Push alımında kernel-envelope uyumlu yanıt. ui-family-36 post_mvp yüzeyi yalnız salt okunur besleme durumunu (son checkpoint, son başarı zamanı, son hata kodu, gecikme) gösterir; bu sözleşmede mutation yüzeyi yoktur.",
+    "authorization": "Yazma, native-user-policy sözleşmesindeki entegrasyon kullanıcısı bağlamında native Frappe izinleriyle yapılır; tenant sınırı tenant-registry sözleşmesinden gelir. Rol ve izin bayrakları bu rehberde tanımlanmaz, explicitPermissionFlags ortak kaynağına bağlanır. Push alımında kimlik doğrulama, 429 ve boyut sınırı api-middleware sözleşmesi üzerinden uygulanır (integration-8 bağlantısı kurulacak). ignore_permissions, ham SQL veya izin kontrolünü atlayan toplu yazma yasaktır.",
+    "persistence": "Checkpoint ve silme işareti izi için native-doctype-schema sözleşmesine önerilecek tek DocType. Alan önerisi: tenant, besleme anahtarı, yön, cursor türü, cursor değeri, son başarılı çalışma zamanı, son hata kodu, işlenmiş idempotency anahtarı referansı. Ad, alanlar ve saklama süresi karar ve şema sözleşmesi onayı bekler. Hedef kayıt yazımı ile checkpoint ilerletmesi aynı native transaction içinde yapılır. Ayrı ORM, CRUD katmanı veya kuyruk motoru tasarlanmaz; giden push outbox sözleşmesini kullanır.",
+    "failure": "Ağ hatası, zaman aşımı, 5xx veya 429 yanıtında checkpoint ilerlemez; yeniden deneme native arka plan işi ve outbox kurallarıyla sınırlı yapılır. Bozuk XML, XSD ihlali, boyut aşımı, DTD/external entity, allowlist dışı hedef veya allowlist dışına yönlendirme reddedilir ve hata kodu kaydedilir; kısmi belge uygulanmaz. Çakışan öğe, karar verilen kurala göre çözülene kadar kayıt değiştirilmeden çakışma olarak raporlanır. Hata çıktısında secret, token veya ham gövde bulunmaz."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "capability-definition--contract",
+      "client-rule-parity--contract",
+      "field-mapping--contract",
+      "graphql-api--contract",
+      "kernel-envelope--contract",
+      "mcp-api--contract",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "outbox--contract",
+      "soap-api--contract",
+      "tenant-registry--contract",
+      "ui-family-36--contract",
+      "ui-family-36--implementation",
+      "xml-feed--contract"
+    ],
+    "admission": "T-00 hedef sürüm tabanı ve R-00 yeniden kullanım eşlemesi tamamlanmadan başlanmaz. İzinli veri tüketicisi olduğu için R-01 de gerekir. xml-feed, kernel-envelope, tenant-registry, native-user-policy, capability-definition, native-doctype-schema, outbox ve api-middleware sözleşmeleri kabul edilmiş olmalıdır. Çakışma kuralı, gecikme hedefi, push kimlik doğrulaması ve egress sahibi kararları gelmeden davranış kodu yazılmaz. Tek dar davranış, gerçek RED/GREEN kanıtıyla uygulanır. Sıralama otoritesi mevcut görev bağımlılıkları ve aşamadır; küme sırası yeni bir seri DAG değildir.",
+    "steps": [
+      "Bu sözleşmeyi xml-feed--contract ve canonicalArtifact (adapter, custom_proposed) ile hizala; yeni kanonik görev veya kimlik ekleme.",
+      "Tek örnek XSD taslağını belge olarak yaz: ad alanı, şema sürümü, öğe dış kimliği, cursor alanı, değişiklik zamanı ve silme işareti.",
+      "Checkpoint DocType alan önerisini native-doctype-schema sözleşmesine öneri olarak ilet; bu sözleşmeyle şema değişikliği yapılmaz.",
+      "Güvenli parser profilini tanımla: DTD yükleme, entity çözümleme ve parser ağ erişimi kapalı, aşırı büyük ağaç desteği kapalı; parse öncesinde bayt sınırı. lxml seçenekleri T-00 hedef sürümünde doğrulanır.",
+      "Egress politikasını tanımla: yalnız allowlist'teki şema/host/port, her yönlendirmede yeniden kontrol, özel/loopback/link-local adrese çözümlenmenin reddi, bağlantı ve okuma zaman aşımı. Altyapı tarafı Hüseyin Cengiz ile doğrulanır.",
+      "Pull akışını sırayla belgele: zamanlanmış iş, checkpoint okuma, HTTP isteği, akış halinde boyut sınırı, güvenli parse, XSD doğrulama, field-mapping, native izinli save, aynı transaction içinde checkpoint ilerletme.",
+      "Push alımını api-middleware zinciri arkasında belgele: kimlik doğrulama, 429 ve boyut sınırı integration-8'e bağlanır; idempotency anahtarı tekrarında ikinci yazma oluşmaz.",
+      "Giden push için outbox olayından XML üretimini, teslim ve yeniden deneme kuralını outbox ve kernel-envelope sözleşmelerine bağla.",
+      "Çakışma kuralı kararı geldikten sonra yerel yazma ile uzak değişikliğin aynı kayda denk geldiği durumu ve sonucunu sözleşmeye ekle.",
+      "ui-family-36 post_mvp yüzeyini salt okunur durum görünümü olarak tanımla: React/Ant Design, okuma için TanStack Query; 320 CSS px öncelikli, en az 14 CSS px metin, çevreleyen odak halkası yok, tablo kendi kapsayıcısında yatay kayar. registry.ts kaydı GenUI capability registry ile karıştırılmaz; JSON model sınırı ile yerel ReactNode/callback ayrımı korunur. Sahte ilerleme veya canlı mutation gösterilmez.",
+      "Kabul senaryolarını belge olarak yaz; bu turda test yazılmaz ve koşulmaz."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Checkpoint'i belirli bir cursor'da olan bir tenant için çekilen geçerli XML beslemesindeki checkpoint sonrası tek öğe, hedef kayda native izinli save ile uygulanır ve checkpoint o öğenin cursor değerine ilerler.",
+      "red": "Gelecekte, giriş noktası çağrıldığında hedef kaydın oluşmadığı veya checkpoint'in ilerlemediği davranış iddiasıyla başarısız olmalıdır. Import, fixture, ağ veya altyapı hatası RED sayılmaz; native Frappe izin/save davranışı bozularak RED üretilmez. Bu turda yazılmaz ve koşulmaz.",
+      "green": "Aynı test, native izinli save ve tek transaction içinde checkpoint ilerletmesiyle geçer; ignore_permissions veya SQL kullanılmaz. Ayrı kabul satırında yetkisiz push reddedilir; hedef kayıt ve checkpoint değişmez."
+    },
+    "rollback": "Bu tur yalnız belgedir: entegrasyon sahibi bu dosyayı seri birleştirmeden çıkararak geri alır; başkalarının değişiklikleri geri alınmaz. Gelecekteki runtime geri alma: zamanlanmış iş ve push uç noktası devre dışı bırakılır; checkpoint ve hedef kayıtlar silinmez veya sıfırlanmaz. Deploy ve rollback teknik sahibi Hüseyin Cengiz'dir. Bu sözleşme hiçbir servis, production, şema veya veri değişikliği yetkisi vermez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "integration-12",
+      "sourceStage": "post_mvp",
+      "existing": "Kaynakta yalnız primitifler görüldü: Suite hooks.py zamanlama sözlüğü, frappe bağımlılığı olarak requests, suite bağımlılığı olarak lxml. Mevcut talimat (data/clusters/09.json, /groups/0/items/11) XML'in canlı taşıma protokolü değil veri biçimi olduğunu ve cursor, silme işareti, XXE ve SSRF kabulünü tanımlar. Besleme çekme/itme ve eşitleme mantığı kaynakta yok.",
+      "gap": "Checkpoint ve silme işareti için saklama DocType'ı tanımsız; çift yönlü çakışma çözümü ve yazma idempotency'si tanımsız; push alımı için imza/token doğrulaması, 429 ve boyut sınırı integration-8'e bağlanmamış; zamanlama kaynağı (scheduler_events veya Scheduled Job Type) ve sayısal gecikme hedefi belirsiz; egress allowlist ve parser yapılandırmasının sahibi atanmamış.",
+      "completionSteps": [
+        "Tek örnek XSD ile öğe kimliği, cursor ve silme işaretini sabitle.",
+        "Checkpoint DocType alanlarını native-doctype-schema sözleşmesine öneri olarak ekle; checkpoint ilerletmesini hedef yazmayla aynı transaction'a bağla.",
+        "Dış kimlik ve cursor'dan türetilen idempotency anahtarını tanımla; tekrar gelen öğede ikinci yazma olmamasını kabul satırına yaz.",
+        "Çakışma kuralını karar geldikten sonra ekle; o zamana kadar çakışan öğe değiştirilmeden raporlanır.",
+        "Push alımında kimlik doğrulama, 429 ve boyut sınırını api-middleware sözleşmesi üzerinden integration-8'e bağla.",
+        "Güvenli parser profilini ve egress allowlist kuralını yaz; altyapı doğrulaması için Hüseyin Cengiz'e teknik devir hazırla.",
+        "Zamanlama kaynağı ve sayısal gecikme hedefi kararlarını sözleşmeye işle; gecikme ölçümünü sonuç çıktısına ekle.",
+        "ui-family-36 post_mvp yüzeyini salt okunur besleme durumu ile sınırla."
+      ],
+      "dependencies": [
+        "xml-feed--contract",
+        "kernel-envelope--contract",
+        "tenant-registry--contract",
+        "native-user-policy--contract",
+        "capability-definition--contract",
+        "native-doctype-schema--contract",
+        "outbox--contract",
+        "api-middleware--contract",
+        "field-mapping--contract",
+        "ui-family-36--contract"
+      ],
+      "acceptance": "Artımlı cursor/checkpoint, silme işareti ve sayısal gecikme hedefi sınanır. Parser DTD ve external entity açmaz. SSRF/çıkış politikası, boyut sınırı ve bozuk XML reddi doğrulanır. Aynı öğe iki kez geldiğinde tek yazma oluşur. Yetkisiz push reddedilir; hedef kayıt ve checkpoint değişmez. Çakışma, karar verilen kurala göre sonuçlanır. Bu turda hiçbiri koşulmadı.",
+      "evidence": [
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 289,
+          "quote": "scheduler_events = {"
+        },
+        {
+          "path": "frappe/pyproject.toml",
+          "line": 68,
+          "quote": "\"requests~=2.34.2\","
+        },
+        {
+          "path": "suite/pyproject.toml",
+          "line": 17,
+          "quote": "\"lxml~=6.1\",  # drive: WebDAV XML (previously only a transitive dep via frappe)"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Checkpoint ve silme işareti DocType'ı yalnız öneri; native-doctype-schema onayı yok.",
+    "Çift yönlü çakışma kuralı ve yazma idempotency sözleşmesi karar bekliyor.",
+    "Push kimlik doğrulaması, 429 ve boyut sınırının integration-8 ile bağlantısı kurulmadı.",
+    "Zamanlama kaynağı ve sayısal gecikme hedefi belirsiz.",
+    "Egress allowlist ve parser yapılandırma sahibi atanmadı.",
+    "saas_platform için lxml ve requests bağımlılık bildirimi ve hedef sürümleri T-00 ile doğrulanmadı.",
+    "Örnek XSD yazılmadı.",
+    "ui-family-36 post_mvp salt okunur yüzeyinin veri sözleşmesi yalnız taslak."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Çift yönlü eşitlemede çakışma kuralı: kaynak öncelikli, zaman damgası öncelikli veya alan bazlı kural.",
+      "requirementIds": ["integration-12"],
+      "blocks": "Çift yönlü yazma ve çakışma kabul satırı.",
+      "untilDecided": "Seçenekleri ve her birinin silme işaretiyle etkileşimini belgele; çakışan öğenin değiştirilmeden raporlanacağını yaz."
+    },
+    {
+      "decision": "Sayısal gecikme hedefi ve çekme sıklığı.",
+      "requirementIds": ["integration-12"],
+      "blocks": "Gecikme kabul ölçütü ve zamanlama yapılandırması.",
+      "untilDecided": "Gecikmenin nasıl ölçüleceğini (öğe değişiklik zamanından uygulamaya kadar) belgele."
+    },
+    {
+      "decision": "Zamanlama kaynağı: scheduler_events kaydı veya Scheduled Job Type.",
+      "requirementIds": ["integration-12"],
+      "blocks": "Pull tetikleyicisinin backend/saas_platform hooks.py üzerindeki paylaşılan entegrasyon kaydı.",
+      "untilDecided": "İki seçeneğin tetik ve gözlemlenebilirlik farkını T-00 hedef sürümüne göre belgele."
+    },
+    {
+      "decision": "Push alımı kimlik doğrulama yöntemi (imza veya token), 429 eşiği ve azami gövde boyutu.",
+      "requirementIds": ["integration-12"],
+      "blocks": "Push alım uç noktası ve reddedilen yazma kabulü.",
+      "untilDecided": "api-middleware sözleşmesindeki ortak alanlara referans ver; secret değeri yazma."
+    },
+    {
+      "decision": "Egress allowlist ve parser yapılandırmasının uygulama içi sahibi; altyapı tarafı Hüseyin Cengiz kapsamında.",
+      "requirementIds": ["integration-12"],
+      "blocks": "Pull isteği ve giden push teslimi.",
+      "untilDecided": "Allowlist kural biçimini ve reddedilecek adres sınıflarını belgele."
+    },
+    {
+      "decision": "Checkpoint, silme işareti izi ve idempotency kayıtlarının saklama süresi ile tenant başına kapsamı (tenant topolojisi).",
+      "requirementIds": ["integration-12"],
+      "blocks": "Checkpoint DocType önerisinin kesinleşmesi.",
+      "untilDecided": "Alan önerisini tenant-registry sözleşmesine referansla taslak olarak tut."
+    },
+    {
+      "decision": "İlk besleme karşı tarafı ve örnek XSD'nin kaynağı; Frappe, lxml ve requests hedef sürümleri.",
+      "requirementIds": ["integration-12"],
+      "blocks": "XSD sabitleme ve parser seçeneklerinin doğrulanması.",
+      "untilDecided": "Satıcıdan bağımsız, genel bir örnek XSD taslağı belgele."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

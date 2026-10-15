@@ -19,12 +19,12 @@
   "behavior": {
     "title": "AutomationRule: olay-koşul-eylem kuralı ve yan etkisiz deneme. Uygulama durumu: uygulanmadı.",
     "trigger": "Kapsamdaki bir DocType kaydında native doc event veya zamanlayıcı tabanlı olay oluşur; ya da yetkili kullanıcı bir kuralı örnek kayıt adıyla deneme isteği gönderir.",
-    "expected": "Etkin, geçerlilik aralığında ve kotası dolmamış kurallar (priority, name) sırasıyla değerlendirilir. Filters koşulu sağlanırsa katalogdaki eylem native izinle denetlenir ve dış etki commit sonrasında outbox üzerinden bir kez çalışır. Deneme isteği her koşul ve eylem için yapılandırılmış JSON açıklama döndürür; kalıcı kayıt veya dış etki bırakmaz.",
+    "expected": "Etkin, geçerlilik aralığında ve kotası dolmamış kurallar (priority, name) sırasıyla değerlendirilir. Filters koşulu sağlanırsa eylem native izinle denetlenir ve commit sonrasında outbox üzerinden teslim edilir. Yinelenen teslimde ek etkiyi önleme idempotent tüketici sözleşmesine bağlıdır; outbox tek başına exactly-once dış etki garantisi değildir. Deneme kalıcı kayıt veya dış etki bırakmadan yapılandırılmış açıklama döndürür.",
     "denied": "İzinsiz eylem, zaman aralığı dışı, kota üstü, derinlik sınırı aşımı veya aynı idempotency anahtarlı tekrar olay yan etkisiz durur: hedef kayıt değişmez, outbox'a yeni dış etki girmez, red nedeni audit zarfına yazılır. ignore_permissions, ham SQL veya Server Script ile yetki atlanmaz."
   },
   "reuse": {
     "status": "KISMI",
-    "mechanism": "Uygulama durumu: uygulanmadı. Native parçalar: Notification DocType olay + koşul (Python/Filters) + sabit kanallı eylem modeli; whitelisted preview_meets_condition ve preview_message; evaluate_filters; frappe.permissions.has_permission; API v2 is_whitelisted denetimi; safe_exec içinde doc event commit/rollback kaldırma ve Server Script'in yalnız common_site_config ile açılması; Suite Drive içinde uygulamaya özgü exists tabanlı tekilleştirme. Bu parçalar bütün ECA davranışının var olduğunu göstermez: genel eylem kataloğu, öncelik, döngü/idempotency koruması, yapılandırılmış deneme açıklaması ve sürüm/zaman/kota bütüncül olarak bulunmadı. Kanıtlar önceki salt okunur Frappe/Suite kaynak anlık görüntülerinden alınmıştır; canlı site veya ürün kabulü değildir. searchedPaths yalnız aranan yollardır; listelenmeyen parçalar için kapsamlı yokluk iddiası değildir. Vue/Frappe UI kaynağı React/Ant Design uygulaması kanıtı sayılmaz.",
+    "mechanism": "Native Automation Flow ve automation_engine kaynak snapshot’ında VAR: trigger/filter/action modeli, yürütme kimliği doğrulaması, kayıt write denetimi, kalıcı kuyruğa depth taşıma, commit sonrası drainer ve trial hedef izinleri mevcut. Notification yalnız bildirim parçasıdır. Kanonik AutomationRule birimi bu native modele R-00 eşlemesiyle bağlanır; yeni ECA motoru, kuyruk veya aynı amaçlı DocType kopyası tasarlanmaz. Headless izinli projection, onaylı action parametreleri, ürün öncelik/kota/sürüm politikası ve trial yan etkisizlik sınırı hâlâ hedef sürüm/ürün kabulü gerektirir. Native kaynağın varlığı runtime/ürün teslimi değildir.",
     "evidence": [
       {
         "path": "frappe/frappe/email/doctype/notification/notification.py",
@@ -105,6 +105,46 @@
         "path": "frappe/frappe/client.py",
         "line": 246,
         "quote": "frappe.throw(_(\"Only 200 inserts allowed in one request\"))"
+      },
+      {
+        "path": "frappe/frappe/automation/doctype/automation_flow/automation_flow.py",
+        "line": 128,
+        "quote": "def validate_execution_identity(self):"
+      },
+      {
+        "path": "frappe/frappe/automation/doctype/automation_flow/automation_flow.py",
+        "line": 14,
+        "quote": "class AutomationFlow(Document):"
+      },
+      {
+        "path": "frappe/frappe/automation_engine/dispatch.py",
+        "line": 49,
+        "quote": "queue_trigger(rule.name, doc.doctype, doc.name, depth=depth)"
+      },
+      {
+        "path": "frappe/frappe/automation_engine/dispatch.py",
+        "line": 50,
+        "quote": "frappe.db.after_commit.add(kick_drainer)"
+      },
+      {
+        "path": "frappe/frappe/automation_engine/runner.py",
+        "line": 63,
+        "quote": "frappe.flags.automation_depth = cint(row.depth)"
+      },
+      {
+        "path": "frappe/frappe/automation_engine/runner.py",
+        "line": 380,
+        "quote": "target = _target_doc(step, doc, context, permission_type=\"write\")"
+      },
+      {
+        "path": "frappe/frappe/automation_engine/api.py",
+        "line": 267,
+        "quote": "def _trial_target(automation: str, docname: str | None):"
+      },
+      {
+        "path": "frappe/frappe/automation_engine/queue.py",
+        "line": 35,
+        "quote": "def mark_effects_delivered(row_name: str):"
       }
     ],
     "searchedPaths": [
@@ -171,12 +211,12 @@
       ]
     },
     "steps": [
-      "Hedef release kaynağında Automation Flow ve Test Run envanteri dosya yolu ve satırla çıkarılır; belge URL'si release kanıtı sayılmaz.",
-      "automation-rule--schema kapsamında AutomationRule native DocType alanları tanımlanır: document_type, event, condition_type, filters, action_key, action_params, priority, enabled, valid_from, valid_to ve kararla gelecek kota alanları.",
-      "Eylem kataloğu yalnız whitelisted metot + ptype eşlemesinden oluşur; GenUI capability registry'den ve kaynak registry'den ayrıdır, ortak tanımlayıcı paylaşmaz.",
-      "Değerlendirme tek giriş noktasıdır; hooks.py doc_events kaydı ortak entegrasyon sahibince seri birleştirilir. Sıra (priority, name); Filters için evaluate_filters yeniden kullanılır.",
+      "Kaynak snapshot’ında mevcut Automation Flow/automation_engine parçalarını hedef sürümle eşle; native kayıt, action registry, yürütme kimliği ve trial API sınırını R-00’a yaz. Yeni motor veya aynı amaçlı AutomationRule tablosu açma.",
+      "automation-rule--schema görevini mevcut Automation Flow alanlarına eşleme rehberi olarak kullan. Gerçek ürün açığı kaynakla belirlenirse yalnız gereken dar metadata/policy extension önerilir; mevcut alanları ve çalışma kuyruğunu kopyalama.",
+      "Native AutomationAction/action registry girdilerini izinli seri JSON projection’a eşle; keyfi metot adı veya kod yürütme kabul etme. Native action registry, kaynak registry ve GenUI capability registry ayrı kalır.",
+      "Mevcut dispatch/runner doc event ve queue akışını yeniden kullan; native çalıştırıcıyı hooks.py ile ikinci kez bağlama. Öncelik ve ürün Filters alt kümesinin eksikleri ayrı öneri olarak belgelenir.",
       "Dış etkiler outbox--contract üzerinden commit sonrasına bırakılır; sonuçlar audit-envelope--contract zarfıyla yazılır.",
-      "Derinlik sayacı ve idempotency anahtarı rules-3 rehberine göre eklenir.",
+      "Native dispatch’in kalıcı depth ve runner’ın aynı depth’i devralması kaynakla mevcut; bunu yeniden yazma. Ürün sınırı/değerleri ve job zincirinin tüm girişleri hedef sürümde doğrulanır; varsayılan sınır kullanıcı kararı sayılmaz.",
       "Yan etkisiz deneme metodu ve JSON yanıt şeması rules-4 rehberine göre eklenir; ardından ui-family-38 yüzeyi bağlanır.",
       "Sürüm, zaman aralığı ve kota adımları rules-5 kararları kapandıktan sonra eklenir.",
       "AutomationRule process-definition--contract kapsamındaki süreç tanımı değildir; iki sözleşme arasındaki sınır belgede korunur."
@@ -184,7 +224,7 @@
     "tdd": {
       "status": "not_run",
       "oneScenario": "Tetikleyen kullanıcının hedef DocType üzerinde write izni yokken, Filters koşulu sağlanan bir AutomationRule değer atayan bir katalog eylemine ulaşır: eylem reddedilir, hedef kayıt değişmez (alan değeri ve modified aynı kalır), outbox'a dış etki girmez, red nedeni audit zarfına yazılır.",
-      "red": "Ön koşul: AutomationRule DocType ve tek değerlendirme giriş noktası automation-rule--schema ile mevcuttur. RED, izin denetimi olmayan giriş noktası eylemi uyguladığı için 'kayıt değişmemeli' assertion'ıyla düşmelidir. Import hatası, eksik fixture, altyapı hatası veya native Notification ya da izin davranışını bozarak elde edilen başarısızlık RED sayılmaz. Bu turda test yazılmaz ve koşulmaz.",
+      "red": "Native runner write denetimi kaynakta mevcut. Gelecekte aynı izin reddi kontrolü zaten geçerse native yeniden kullanım diye kaydedilir; RED üretmek için runner bozulmaz. Yalnız ürün projection/admission eksiği gerçek davranış başarısızlığı doğuruyorsa aynı tek kabul uygulanır. Bu tur test yazılmaz veya koşulmaz.",
       "green": "Eylemden önce frappe.permissions.has_permission ile katalogdaki ptype denetlenir; red durumunda eylem atlanır ve audit kaydı yazılır. ignore_permissions, SQL veya Server Script kullanılmaz; native Notification, save ve transaction akışı değişmez."
     },
     "rollback": "Bu turda geri alınacak üretim değişikliği yoktur. Gelecekte kural bazında durdurma enabled=0 ile yapılır. Uygulama sürümü ve migrasyon geri dönüşü, CI/deploy/rollback teknik sahibi Hüseyin Cengiz'in sürecinde yürür. Bekleyen outbox dış etkileri iptalden önce audit ile listelenir; veri silinmez."
@@ -196,7 +236,7 @@
       "existing": "Notification DocType olay + koşul (Python/Filters) + eylem üçlüsünü sunar; eylem kanalları Email, Slack, System Notification ve SMS ile sınırlıdır. Server Script doc event bağlamında commit/rollback kısıtıyla çalışır ve yalnız common_site_config ile açılır. Automation Flow yerel kaynakta doğrulanmadı.",
       "gap": "Genel eylem tipi, commit sonrası çalışma mekanizması, Automation Flow envanteri, Notification/Server Script ile app tabanlı motor arasındaki seçim ölçütü ve GenUI kayıtlarından ayrım sınırı yazılı değil.",
       "completionSteps": [
-        "Hedef release kaynağında Automation Flow DocType envanteri çıkarılır; bulunmazsa ona bağımlılık kurulmaz.",
+        "Automation Flow ve automation_engine kaynakta mevcut; kanonik AutomationRule birimini bu native kayda eşle, ikinci motor/DocType üretme.",
         "Seçim ölçütü belgelenir: yalnız bildirim gereken kural native Notification ile kalır; kanal dışı eylem gereken kural AutomationRule ile çalışır; Server Script'in açık olduğu varsayılmaz.",
         "AutomationRule olay ve koşul alanları Notification modelini örnek alır; Notification yeniden yazılmaz veya değiştirilmez.",
         "Eylemler doc event içinde doğrudan çalışmaz; outbox--contract üzerinden commit sonrasına bırakılır ve doc event içinde commit/rollback çağrılmaz.",
@@ -230,6 +270,46 @@
           "path": "frappe/frappe/utils/safe_exec.py",
           "line": 115,
           "quote": "# prevent user from using these in docevents"
+        },
+        {
+          "path": "frappe/frappe/automation/doctype/automation_flow/automation_flow.py",
+          "line": 128,
+          "quote": "def validate_execution_identity(self):"
+        },
+        {
+          "path": "frappe/frappe/automation/doctype/automation_flow/automation_flow.py",
+          "line": 14,
+          "quote": "class AutomationFlow(Document):"
+        },
+        {
+          "path": "frappe/frappe/automation_engine/dispatch.py",
+          "line": 49,
+          "quote": "queue_trigger(rule.name, doc.doctype, doc.name, depth=depth)"
+        },
+        {
+          "path": "frappe/frappe/automation_engine/dispatch.py",
+          "line": 50,
+          "quote": "frappe.db.after_commit.add(kick_drainer)"
+        },
+        {
+          "path": "frappe/frappe/automation_engine/runner.py",
+          "line": 63,
+          "quote": "frappe.flags.automation_depth = cint(row.depth)"
+        },
+        {
+          "path": "frappe/frappe/automation_engine/runner.py",
+          "line": 380,
+          "quote": "target = _target_doc(step, doc, context, permission_type=\"write\")"
+        },
+        {
+          "path": "frappe/frappe/automation_engine/api.py",
+          "line": 267,
+          "quote": "def _trial_target(automation: str, docname: str | None):"
+        },
+        {
+          "path": "frappe/frappe/automation_engine/queue.py",
+          "line": 35,
+          "quote": "def mark_effects_delivered(row_name: str):"
         }
       ]
     },
@@ -267,6 +347,46 @@
           "path": "frappe/frappe/api/v2.py",
           "line": 68,
           "quote": "is_whitelisted(method)"
+        },
+        {
+          "path": "frappe/frappe/automation/doctype/automation_flow/automation_flow.py",
+          "line": 128,
+          "quote": "def validate_execution_identity(self):"
+        },
+        {
+          "path": "frappe/frappe/automation/doctype/automation_flow/automation_flow.py",
+          "line": 14,
+          "quote": "class AutomationFlow(Document):"
+        },
+        {
+          "path": "frappe/frappe/automation_engine/dispatch.py",
+          "line": 49,
+          "quote": "queue_trigger(rule.name, doc.doctype, doc.name, depth=depth)"
+        },
+        {
+          "path": "frappe/frappe/automation_engine/dispatch.py",
+          "line": 50,
+          "quote": "frappe.db.after_commit.add(kick_drainer)"
+        },
+        {
+          "path": "frappe/frappe/automation_engine/runner.py",
+          "line": 63,
+          "quote": "frappe.flags.automation_depth = cint(row.depth)"
+        },
+        {
+          "path": "frappe/frappe/automation_engine/runner.py",
+          "line": 380,
+          "quote": "target = _target_doc(step, doc, context, permission_type=\"write\")"
+        },
+        {
+          "path": "frappe/frappe/automation_engine/api.py",
+          "line": 267,
+          "quote": "def _trial_target(automation: str, docname: str | None):"
+        },
+        {
+          "path": "frappe/frappe/automation_engine/queue.py",
+          "line": 35,
+          "quote": "def mark_effects_delivered(row_name: str):"
         }
       ]
     },
@@ -276,11 +396,11 @@
       "existing": "safe_exec içinde iç içe çağrı sayacı (in_safe_exec), doc event bağlamında commit/rollback kaldırma ve Suite Drive'da frappe.db.exists ile uygulamaya özgü tekilleştirme vardır.",
       "gap": "Genel derinlik limiti, aşım davranışı, dış etki idempotency anahtarı ve sorumlu katman tanımsız. in_safe_exec yeniden giriş sayacıdır, döngü koruması değildir.",
       "completionSteps": [
-        "İstek/job kapsamlı, motora özgü adla ayrı bir derinlik sayacı tanımlanır; in_safe_exec yeniden kullanılmaz.",
+        "Native dispatch queue_trigger depth değerini kalıcı kuyruğa taşır, runner onu devralır. Bu mevcut davranış yeniden yazılmaz; farklı giriş yollarında ürün causal zincir sınırı doğrulanır.",
         "Sınır aşıldığında zincir yan etkisiz durur ve audit kaydı yazılır; sınır değeri ve hata/sessiz durma seçimi decisionsPending'dedir.",
-        "Idempotency anahtarı (rule, doctype, docname, event, modified) outbox kaydında tekil tutulur; ikinci giriş dış etki üretmez.",
+        "Olay/eylem tekrar anahtarı kalıcı tüketici makbuzuna bağlanır; modified değişmesi nedensel zinciri sıfırlamaz. Joblar arası derinlik taşınması, tekrar koruması ve idempotent tüketici sözleşmesi doğrulanmadan döngü/tek dış etki garantisi verilmez.",
         "Drive exists deseni yalnız örnek olarak anılır; motor Drive koduna bağımlı olmaz.",
-        "Birbirini tetikleyen iki kural ve aynı olayın iki kez gelmesi, ortak insan bütçesindeki üç senaryodan birine aday olarak işaretlenir; bu turda yazılmaz."
+        "Joblar arası iki kural döngüsü bu rehberde açık bir gelecekteki kabul koşuludur; mevcut tek izin reddi senaryosu genişletilmez. Yeni test veya paket ancak ayrı uygulama kapsamıyla yetkilendirilir."
       ],
       "dependencies": [
         "outbox--contract",
@@ -303,6 +423,46 @@
           "path": "suite/suite/drive/api/notifications.py",
           "line": 124,
           "quote": "notif = frappe.db.exists(\"Drive Notification\", details)"
+        },
+        {
+          "path": "frappe/frappe/automation/doctype/automation_flow/automation_flow.py",
+          "line": 128,
+          "quote": "def validate_execution_identity(self):"
+        },
+        {
+          "path": "frappe/frappe/automation/doctype/automation_flow/automation_flow.py",
+          "line": 14,
+          "quote": "class AutomationFlow(Document):"
+        },
+        {
+          "path": "frappe/frappe/automation_engine/dispatch.py",
+          "line": 49,
+          "quote": "queue_trigger(rule.name, doc.doctype, doc.name, depth=depth)"
+        },
+        {
+          "path": "frappe/frappe/automation_engine/dispatch.py",
+          "line": 50,
+          "quote": "frappe.db.after_commit.add(kick_drainer)"
+        },
+        {
+          "path": "frappe/frappe/automation_engine/runner.py",
+          "line": 63,
+          "quote": "frappe.flags.automation_depth = cint(row.depth)"
+        },
+        {
+          "path": "frappe/frappe/automation_engine/runner.py",
+          "line": 380,
+          "quote": "target = _target_doc(step, doc, context, permission_type=\"write\")"
+        },
+        {
+          "path": "frappe/frappe/automation_engine/api.py",
+          "line": 267,
+          "quote": "def _trial_target(automation: str, docname: str | None):"
+        },
+        {
+          "path": "frappe/frappe/automation_engine/queue.py",
+          "line": 35,
+          "quote": "def mark_effects_delivered(row_name: str):"
         }
       ]
     },
@@ -341,20 +501,60 @@
           "path": "frappe/frappe/email/doctype/notification/notification.py",
           "line": 105,
           "quote": "return _(\"Yes\") if frappe.safe_eval(self.condition, eval_locals=context) else _(\"No\")"
+        },
+        {
+          "path": "frappe/frappe/automation/doctype/automation_flow/automation_flow.py",
+          "line": 128,
+          "quote": "def validate_execution_identity(self):"
+        },
+        {
+          "path": "frappe/frappe/automation/doctype/automation_flow/automation_flow.py",
+          "line": 14,
+          "quote": "class AutomationFlow(Document):"
+        },
+        {
+          "path": "frappe/frappe/automation_engine/dispatch.py",
+          "line": 49,
+          "quote": "queue_trigger(rule.name, doc.doctype, doc.name, depth=depth)"
+        },
+        {
+          "path": "frappe/frappe/automation_engine/dispatch.py",
+          "line": 50,
+          "quote": "frappe.db.after_commit.add(kick_drainer)"
+        },
+        {
+          "path": "frappe/frappe/automation_engine/runner.py",
+          "line": 63,
+          "quote": "frappe.flags.automation_depth = cint(row.depth)"
+        },
+        {
+          "path": "frappe/frappe/automation_engine/runner.py",
+          "line": 380,
+          "quote": "target = _target_doc(step, doc, context, permission_type=\"write\")"
+        },
+        {
+          "path": "frappe/frappe/automation_engine/api.py",
+          "line": 267,
+          "quote": "def _trial_target(automation: str, docname: str | None):"
+        },
+        {
+          "path": "frappe/frappe/automation_engine/queue.py",
+          "line": 35,
+          "quote": "def mark_effects_delivered(row_name: str):"
         }
       ]
     },
     {
       "requirementId": "rules-5",
       "sourceStage": "post_mvp",
-      "existing": "Notification zamanlayıcı olayları için datetime_last_run alanı ve en az 10 dakikalık zamanlayıcı aralığı doğrulaması vardır; frappe/client.py istek başına 200 ekleme sınırı uygular; rol tabanlı izin has_permission ile denetlenir.",
+      "existing": "Notification.minutes_offset için <10 doğrulaması vardır; bu genel scheduler aralığı değildir. Ayrı native Automation Flow Date Based/Scheduled kaynakları mevcuttur; ürün sürüm/kota ve öncelik politikası bunlarla aynı kabul edilmez.",
       "gap": "Kural sürümünün kapsamı, zaman aralığı alanları ve saat dilimi semantiği, kota birimi ve süresi ile yetki öznesi tanımsız.",
       "completionSteps": [
         "Sürüm: kararla native değişiklik izleme (Version) kullanılır; çalışma ve deneme kaydı kural sürüm bilgisini taşır.",
         "valid_from/valid_to alanları eklenir; aralık dışında kural yan etkisiz atlanır ve neden kaydedilir (erteleme seçeneği karar bekliyor).",
         "Kural başına çalışma sayacı eklenir; birim ve sınır kararla belirlenir, aşımda yan etkisiz durma audit zarfına yazılır.",
         "Yetki öznesi kararı gelene kadar tetikleyen kullanıcının izni öneri olarak belgelenir; uygulanmaz.",
-        "Zamanlayıcı tabanlı kurallar native 10 dakikalık zamanlayıcı aralığı sınırına uyar; yeni görev kaydı açılmaz."
+        "Notification.minutes_offset < 10 kontrolü yalnız ilgili Notification alanının native doğrulamasıdır; AutomationRule veya genel scheduler sıklığına uygulanmaz. AutomationRule çalışma aralığı ve sınırı karar bekler; yeni zamanlanmış iş açılmaz."
       ],
       "dependencies": [
         "automation-rule--schema",
@@ -377,6 +577,46 @@
           "path": "frappe/frappe/client.py",
           "line": 246,
           "quote": "frappe.throw(_(\"Only 200 inserts allowed in one request\"))"
+        },
+        {
+          "path": "frappe/frappe/automation/doctype/automation_flow/automation_flow.py",
+          "line": 128,
+          "quote": "def validate_execution_identity(self):"
+        },
+        {
+          "path": "frappe/frappe/automation/doctype/automation_flow/automation_flow.py",
+          "line": 14,
+          "quote": "class AutomationFlow(Document):"
+        },
+        {
+          "path": "frappe/frappe/automation_engine/dispatch.py",
+          "line": 49,
+          "quote": "queue_trigger(rule.name, doc.doctype, doc.name, depth=depth)"
+        },
+        {
+          "path": "frappe/frappe/automation_engine/dispatch.py",
+          "line": 50,
+          "quote": "frappe.db.after_commit.add(kick_drainer)"
+        },
+        {
+          "path": "frappe/frappe/automation_engine/runner.py",
+          "line": 63,
+          "quote": "frappe.flags.automation_depth = cint(row.depth)"
+        },
+        {
+          "path": "frappe/frappe/automation_engine/runner.py",
+          "line": 380,
+          "quote": "target = _target_doc(step, doc, context, permission_type=\"write\")"
+        },
+        {
+          "path": "frappe/frappe/automation_engine/api.py",
+          "line": 267,
+          "quote": "def _trial_target(automation: str, docname: str | None):"
+        },
+        {
+          "path": "frappe/frappe/automation_engine/queue.py",
+          "line": 35,
+          "quote": "def mark_effects_delivered(row_name: str):"
         }
       ]
     }

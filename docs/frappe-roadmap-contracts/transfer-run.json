@@ -1,7 +1,14 @@
 {
   "schemaVersion": "saas-existing-work-contract.v1",
   "canonicalUnitId": "transfer-run",
-  "canonicalTaskIds": ["transfer-run--implementation"],
+  "canonicalTaskIds": [
+    "field-mapping-rule--implementation",
+    "transfer-row-result--implementation",
+    "transfer-run--implementation",
+    "ui-family-14--implementation",
+    "ui-family-30--implementation",
+    "ui-family-31--implementation"
+  ],
   "requirementIds": [
     "transfer-1",
     "transfer-2",
@@ -12,15 +19,26 @@
     "transfer-7"
   ],
   "stage": "mvp",
+  "sourceStages": {
+    "transfer-1": "mvp",
+    "transfer-2": "mvp",
+    "transfer-3": "mvp",
+    "transfer-4": "mvp",
+    "transfer-5": "mvp",
+    "transfer-6": "mvp",
+    "transfer-7": "mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
-    "title": "Transfer Run kaydından yerel Data Import önizlemesi; onaydan önce yazım yok",
-    "trigger": "Yetkili kullanıcı, yerel Data Import kaydına bağlı bir Transfer Run için yerel execute_doc_method ucu (POST /api/resource/Transfer Run/<name>/) üzerinden whitelisted get_import_preview metodunu çağırır.",
-    "expected": "Metot bağlı Data Import üzerinde yerel get_preview_from_template sonucunu değiştirmeden döndürür (en fazla MAX_ROWS_IN_PREVIEW=10 satır, kolon ve uyarılar). reference_doctype tablosuna kayıt yazılmaz, Data Import status Pending kalır, start_import ve kuyruk çağrılmaz.",
-    "denied": "Transfer Run veya Data Import okuma izni ya da reference_doctype import izni yoksa yerel frappe.PermissionError döner; BLOCKED_DOCTYPES veya allow_import=0 ise yerel ValidationError döner. Hiçbir önizleme verisi dönmez."
+    "title": "Transfer Run kaydından native Data Import önizlemesi; kullanıcı onayından önce yazım yok",
+    "trigger": "Yetkili kullanıcı, native Data Import kaydına bağlı bir Transfer Run için native execute_doc_method ucu (POST /api/resource/Transfer Run/<name>/) üzerinden gelecekte eklenecek whitelisted get_import_preview metodunu çağırır.",
+    "expected": "Metot, bağlı Data Import üzerinde native get_preview_from_template sonucunu değiştirmeden döndürür (MAX_ROWS_IN_PREVIEW=10 satıra kadar; kolonlar ve uyarılar). reference_doctype tablosuna kayıt yazılmaz, Data Import status Pending kalır, import başlatma ve kuyruk çağrılmaz.",
+    "denied": "Transfer Run veya Data Import okuma izni ya da reference_doctype için import izni yoksa native frappe.PermissionError döner. DocType BLOCKED_DOCTYPES içindeyse veya allow_import=0 ise native doğrulama hatası döner. Önizleme verisi dönmez ve hiçbir kayıt değişmez."
   },
   "reuse": {
-    "mechanism": "En küçük adaptör: yalnız transfer_run.py içinde tek doc metodu. Data Import kaydı yerel /api/resource/Data Import ile oluşur; önizleme, eşleme, log ve importer kopyalanmaz. Adaptörün gerekçesi: kanonik görev tek yetkili çalışma kaydı ister, Transfer Run ile Data Import arasında yerel bağ yoktur. get_preview_from_template gövdesinde izin kontrolü görünmediği için (185-196) adaptör önce yerel validate_doctype() çağırır.",
+    "status": "KISMI",
+    "mechanism": "En küçük adaptör: gelecekte yalnız transfer_run.py içinde tek doc metodu. Data Import kaydı native /api/resource/Data Import ile oluşur; önizleme, değer eşleme, log ve importer kopyalanmaz. Adaptörün gerekçesi: kanonik görev tek yetkili çalışma kaydı ister ve Transfer Run ile Data Import arasında native bağ yoktur. İncelenen kesitte get_preview_from_template gövdesinde izin kontrolü görünmediği için adaptör önce native okuma izinlerini, ardından import izni, allow_import ve BLOCKED_DOCTYPES denetimini yapan native doğrulamayı çağırır. Bu doğrulamanın metot adı mevcut sözleşmede validate_doctype olarak geçer ama hedef sürüm kaynağında doğrulanmalıdır. Kanıtlar native parçaları gösterir; yedi maddenin tamamının var olduğunu göstermez. Desk tarafındaki Vue/Frappe UI kaynağı (data_import.js, data_export.js) React/Ant Design uygulaması için kanıt değildir.",
     "evidence": [
       {
         "path": "frappe/frappe/core/doctype/data_import/data_import.py",
@@ -33,6 +51,16 @@
         "quote": "if not frappe.has_permission(self.reference_doctype, \"import\"):"
       },
       {
+        "path": "frappe/frappe/core/doctype/data_import/data_import.py",
+        "line": 159,
+        "quote": "if not cint(meta.allow_import):"
+      },
+      {
+        "path": "frappe/frappe/core/doctype/data_import/data_import.py",
+        "line": 23,
+        "quote": "BLOCKED_DOCTYPES = CORE_DOCTYPES - {\"User\", \"Role\", \"Print Format\"}"
+      },
+      {
         "path": "frappe/frappe/api/v1.py",
         "line": 158,
         "quote": "Rule(\"/resource/<doctype>/<path:name>/\", methods=[\"POST\", \"QUERY\"], endpoint=execute_doc_method),"
@@ -42,69 +70,492 @@
         "line": 27,
         "quote": "MAX_ROWS_IN_PREVIEW = 10"
       }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "frappe/frappe/client.py",
+      "frappe/frappe/core/doctype/data_export/data_export.js",
+      "frappe/frappe/core/doctype/data_export/data_export.json",
+      "frappe/frappe/core/doctype/data_export/exporter.py",
+      "frappe/frappe/core/doctype/data_import/data_import.js",
+      "frappe/frappe/core/doctype/data_import/data_import.json",
+      "frappe/frappe/core/doctype/data_import/data_import.py",
+      "frappe/frappe/core/doctype/data_import/exporter.py",
+      "frappe/frappe/core/doctype/data_import/import_provider.py",
+      "frappe/frappe/core/doctype/data_import/importer.py",
+      "frappe/frappe/core/doctype/data_import/value_mapping.py",
+      "frappe/frappe/core/doctype/data_import_log/data_import_log.json",
+      "frappe/frappe/permissions.py",
+      "frappe/frappe/utils/csvutils.py",
+      "frappe/pyproject.toml"
     ]
   },
   "ownership": {
     "activeContractFile": "docs/frappe-roadmap-contracts/transfer-run.json",
     "plannedProduction": [
-      "backend/saas_platform/saas_platform/integration_hub/doctype/transfer_run/transfer_run.py"
+      "backend/saas_platform/saas_platform/integration_hub/doctype/field_mapping_rule/field_mapping_rule.py",
+      "backend/saas_platform/saas_platform/integration_hub/doctype/transfer_row_result/transfer_row_result.py",
+      "backend/saas_platform/saas_platform/integration_hub/doctype/transfer_run/transfer_run.py",
+      "frontend/packages/ui/src/components/ui-family-14/index.tsx",
+      "frontend/packages/ui/src/components/ui-family-30/index.tsx",
+      "frontend/packages/ui/src/components/ui-family-31/index.tsx"
     ],
-    "plannedTestFile": "backend/saas_platform/saas_platform/integration_hub/doctype/transfer_run/test_transfer_run.py",
+    "plannedTestFile": null,
     "sharedIntegrationFiles": [
-      "integration/fragments/transfer-run--integration.json",
-      "backend/saas_platform/saas_platform/hooks.py"
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "Yol parametresi: Transfer Run adı (string). Gövde yok; dosya Data Import.import_file üzerinde (.csv/.xls/.xlsx). Transfer Run içindeki Data Import Link alanının adı transfer-run--schema'ya bağlı ve unknown. execute_doc_method'un metot adı parametresi yerel kaynakta doğrulanmadı.",
-    "output": "Yerel get_preview_from_template yanıtı aynen döner; ek olarak transfer_run, data_import ve contractRef contract-transfer-run v1. Önizlemede permlevel ve maskeleme süzmesi doğrulanmadı (unknown).",
-    "authorization": "Yerel cookie/CSRF oturumu; sınır yalnız yerel site (suite.localhost, yalnız yerel kanıt). Sıra: self.check_permission(read), Data Import check_permission(read), yerel validate_doctype() (import izni, allow_import, BLOCKED_DOCTYPES). Ret durumunda veri sızmaz. Tenant ve kota bu davranışın kapsamı dışında.",
-    "persistence": "Önizleme salt okunurdur; Transfer Run ve Data Import save edilmez, commit edilecek yazım üretilmez. Data Import oluşturma ayrı istekte yerel Document.insert ile yapılır. DDL garantisi yok; şema transfer-run--schema'nın sorumluluğundadır.",
-    "failure": "PermissionError 403: consumer yetki mesajı gösterir, yeniden denemez. ValidationError: yerel mesaj gösterilir. Bağlı Data Import yoksa DoesNotExistError 404. Dosya yoksa yerel yanıt None olur ve consumer boş önizleme durumu gösterir. Ham dosya içeriği loglanmaz."
+    "input": "Yol parametresi: Transfer Run adı (string). Gövde yok; dosya Data Import.import_file üzerindedir (desk yükleme kısıtı .csv/.xls/.xlsx). Transfer Run içindeki Data Import Link alanının adı transfer-run--schema sözleşmesine bağlıdır ve şu an bilinmiyor. execute_doc_method ucunun metot adı parametresi kaynakta doğrulanmadı.",
+    "output": "Native get_preview_from_template yanıtı aynen döner; ek alan olarak yalnız transfer_run, data_import ve contractRef eklenir. Yanıt kernel-envelope--contract zarfına sarılır. JSON model sınırı: yanıt yalnız serileştirilebilir veri taşır; ReactNode veya callback taşımaz, render istemcideki yerel UI bileşenindedir. Önizlemede permlevel ve maskeleme süzmesi doğrulanmadı (unknown).",
+    "authorization": "Native oturum ve CSRF kuralları ile api-middleware--contract geçerlidir. Kontrol sırası: Transfer Run okuma izni, Data Import okuma izni, native import doğrulaması (import izni, allow_import, BLOCKED_DOCTYPES). ignore_permissions, ham SQL veya flag ile yetki bypass yasaktır. Rol ve izin bayrakları ortak explicitPermissionFlags kaynağından gelir (sharedExecutionPolicy altında; tam işaretçiyi entegrasyon sahibi doğrular); bu sözleşme rol üretmez. Tenant ve kota bu tek davranışın kapsamı dışındadır, transfer-5 rehberinde ele alınır.",
+    "persistence": "Önizleme salt okunurdur: Transfer Run ve Data Import save edilmez, commit edilecek yazım üretilmez. Data Import oluşturma ayrı bir istekte native Document insert yoluyla yapılır. Şema transfer-run--schema sorumluluğundadır. Bu sözleşme hiçbir servisi, production ortamını, şemayı veya veriyi değiştirme yetkisi vermez.",
+    "failure": "PermissionError 403: istemci yetki mesajı gösterir, otomatik yeniden denemez. Doğrulama hatası: native mesaj gösterilir. Bağlı Data Import yoksa DoesNotExistError 404 döner. Dosya yoksa istemci boş önizleme durumu gösterir; native dönüş değeri hedef sürümde doğrulanmalıdır. Ham dosya içeriği ve hücre değerleri loglanmaz."
   },
   "development": {
     "dependencies": [
+      "api-middleware--contract",
+      "capability-definition--contract",
+      "client-rule-parity--contract",
+      "field-mapping-rule--contract",
+      "field-mapping-rule--schema",
+      "kernel-envelope--contract",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "outbox--contract",
+      "record-integrity--contract",
+      "tenant-registry--contract",
+      "transfer-row-result--contract",
+      "transfer-row-result--schema",
       "transfer-run--contract",
       "transfer-run--schema",
-      "native-user-policy--contract",
-      "api-middleware--contract",
-      "kernel-envelope--contract",
-      "yerel pilot: Frappe adf1fd0c2d6215ad4cac9976251198b2a35fbda6, suite.localhost"
+      "ui-family-14--contract",
+      "ui-family-30--contract",
+      "ui-family-31--contract"
     ],
-    "admission": "transfer_run.json içinde Data Import Link alanı bulunmalı (şu an unknown). T-00, R-00 ve R-01 kabul edilmiş olmalı. Suite HEAD ve uzak ürün tabanı unknown; yerel kanıt uzak baseline yerine geçmez. Kuyruk ve scheduler gerekmez, etkinleştirilmez.",
+    "admission": "Uygulama durumu: uygulanmadı. Kabul önkoşulları: T-00 hedef baseline ve R-00 yeniden kullanım eşlemesi; izinli veri tüketicisi olduğu için R-01. transfer_run.json içinde Data Import Link alanı transfer-run--schema ile tanımlanmış olmalıdır. Hedef Frappe sürümü kararı verilmeden uç eşlemesi sabitlenmez. Bu davranış kuyruk veya scheduler gerektirmez ve bunları etkinleştirmez. Kaynak alıntıları salt okunur kaynak anlık görüntülerinden alınmıştır; çalışan bir site veya ürün kabulü değildir.",
     "steps": [
-      "transfer_run.py'ye @frappe.whitelist() get_import_preview ekle: izin kontrolleri, ardından validate_doctype ve get_preview_from_template; save/start/commit yok.",
-      "Uç eşlemesini v17 adf1fd0'a sabitle.",
-      "Consumer önizlemesi (ui-family-30, entegrasyon sahibi) mevcut AntD tablosuyla; Outfit, en az 14px, 320 öncelikli, çevreleyen odak halkası yok, simetrik pozitif Cubic hareket."
+      "Hedef sürüm kararından sonra uç eşlemesini o sürümün kaynağına sabitle: dosya yükleme, POST /api/resource/Data Import, execute_doc_method ile önizleme.",
+      "transfer_run.py içine whitelisted get_import_preview ekle: izin kontrolleri, native import doğrulaması, ardından get_preview_from_template; save, import başlatma veya commit yok.",
+      "Yanıtı kernel-envelope--contract zarfına sar; ek alanları transfer_run, data_import ve contractRef ile sınırla.",
+      "İstemci önizlemesini ilgili UI ailesinden tüket (mevcut sözleşmeye göre ui-family-30): React, Ant Design/Pro tablo bileşeni, TanStack Query ile salt okuma, mutation yok. Açık grid kararına bağlanmaz. Outfit, en az 14 CSS px metin, 320 CSS px öncelikli yerleşim, çevreleyen odak halkası yok, simetrik pozitif süreli Cubic hareket.",
+      "Bileşeni yalnız kaynak registry dosyasına (registry.ts) kaydet; GenUI capability registry ayrı projedir ve bu kapsama girmez."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "allow_import=1 bir test DocType'ı ve import izinli kullanıcıyla 3 satırlık CSV'li Data Import ve bağlı Transfer Run oluştur; get_import_preview 3 satırlık önizleme döndürmeli, reference_doctype kayıt sayısı değişmemeli, Data Import status Pending kalmalı.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Aynı test aynı komutla geçer: bench --site suite.localhost run-tests --module saas_platform.integration_hub.doctype.transfer_run.test_transfer_run (komutu entegrasyon sahibi doğrular)."
+      "oneScenario": "allow_import=1 olan bir test DocType'ı ve import izinli kullanıcıyla 3 satırlık CSV içeren Data Import ve bağlı Transfer Run oluştur. get_import_preview 3 satırlık önizleme döndürmeli, reference_doctype kayıt sayısı değişmemeli, Data Import status Pending kalmalı. Aynı davranışın ret kolunda import izni olmayan kullanıcı PermissionError almalı ve kayıt sayısı değişmemeli.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. RED, get_import_preview davranışının yokluğunu assertion düzeyinde göstermelidir. Import veya altyapı hatası ya da native davranışı bozmak RED sayılmaz. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "Uygulamadan sonra aynı senaryo, değişmeyen assertion ve komutla geçmelidir. Test komutunu ve hedef ortamı entegrasyon sahibi belirler. Şu an not_run; bu sözleşme veya biçim kontrolü ürün GREEN'i sayılmaz."
     },
-    "rollback": "Metot ve test yerelde geri alınır; patch/migration yok. Production izni yok; deploy gereksinimi Hüseyin Cengiz bağımlılığıdır."
+    "rollback": "Gelecekte eklenecek metot ve test geri alınır; patch veya migration öngörülmez. Production değişikliği yetkisi yoktur. CI, deploy ve rollback işlerinin teknik sahibi Hüseyin Cengiz'dir. Bu davranış GoDaddy veya DNS işlemi gerektirmez; gerekirse uygulama sahibi Asistan Hüseyin'dir."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "transfer-1",
+      "sourceStage": "mvp",
+      "existing": "Native Data Import import izni kontrolü, whitelisted önizleme metodu ve doc metodu çağırma ucu var. Export tarafında desk open_url_post akışı var.",
+      "gap": "Bağımsız istemci için yükleme, kayıt, önizleme, başlatma ve indirme uç eşlemesi yok. Export için ikili yanıt ve dosya adı sözleşmesi yok. İki exporter yolu arasında seçim yapılmamış. Kaynak bağlantıları version-15'e, incelenen kaynak 17.0.0-dev'e işaret ediyor.",
+      "completionSteps": [
+        "Hedef sürüm kararından sonra tek uç eşleme tablosu yaz: yükleme, POST /api/resource/Data Import, execute_doc_method ile önizleme, başlatma, indirme.",
+        "upload_file ucunu hedef sürüm kaynağında doğrula; doğrulanana kadar unknown işaretle.",
+        "Exporter kararından sonra indirme için ikili yanıt, Content-Disposition dosya adı ve kernel-envelope hata zarfını yaz.",
+        "Önizlemeyi bu sözleşmenin behavior bölümüne bağla; başlatma ve indirme ayrı tek davranış rehberleri olarak kalsın."
+      ],
+      "dependencies": [
+        "transfer-run--contract",
+        "transfer-run--schema",
+        "api-middleware--contract",
+        "kernel-envelope--contract",
+        "ui-family-14--contract",
+        "ui-family-30--contract",
+        "ui-family-31--contract"
+      ],
+      "acceptance": "CSV/XLSX örneği izinli kullanıcıyla içe alınmalı; seçilen alanlar doğru encoding ve kayıtlarla dışa çıkmalı. İzinsiz kullanıcının yükleme veya başlatma isteği reddedilmeli ve kayıt sayısı değişmemeli.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/core/doctype/data_import/data_import.py",
+          "line": 166,
+          "quote": "if not frappe.has_permission(self.reference_doctype, \"import\"):"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/data_import/data_import.py",
+          "line": 185,
+          "quote": "def get_preview_from_template(self, import_file: str | None = None, google_sheets_url: str | None = None):"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/data_export/data_export.js",
+          "line": 70,
+          "quote": "open_url_post(get_template_url, export_params());"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 158,
+          "quote": "Rule(\"/resource/<doctype>/<path:name>/\", methods=[\"POST\", \"QUERY\"], endpoint=execute_doc_method),"
+        },
+        {
+          "path": "frappe/pyproject.toml",
+          "line": 7,
+          "quote": "requires-python = \">=3.14,<3.15\""
+        }
+      ]
+    },
+    {
+      "requirementId": "transfer-2",
+      "sourceStage": "mvp",
+      "existing": "Şablon indirme alanı, en fazla 10 satırlık önizleme, Data Import Value Mapping alt tablosu ve import provider alan şeması var.",
+      "gap": "Kolon eşlemesi template_options içinde JSON olarak tutuluyor; sürümleme ve yeniden kullanılabilir şablon yok. field-mapping-rule ile native value_mappings arasındaki sınır belirsiz. Onay ekranında kaç satır gösterileceği tanımsız.",
+      "completionSteps": [
+        "field-mapping-rule--contract içine sınır notu ekle: kolon ve değer eşlemesi native template_options, value_mappings ve skipped_rows alanlarında kalır. Field Mapping Rule yalnız şablon kimliği ve sürüm alanı taşır; ikinci bir eşleme kayıt sistemi kurulmaz.",
+        "Önizleme ile başlatmayı ayrı isteklere ayır; başlatma yalnız açık kullanıcı onayından sonra.",
+        "Onay ekranında native 10 satır sınırını mevcut davranış olarak belgele; farklı sayı karar listesinde.",
+        "value_mappings ve skipped_rows davranışının hedef sürümde bulunduğunu doğrula."
+      ],
+      "dependencies": [
+        "field-mapping-rule--contract",
+        "field-mapping-rule--schema",
+        "transfer-run--contract",
+        "ui-family-30--contract"
+      ],
+      "acceptance": "Eksik veya yeniden adlandırılmış kolon eşlenmeli; kullanıcı onayından önce reference_doctype'a kayıt yazılmamalı.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/core/doctype/data_import/importer.py",
+          "line": 27,
+          "quote": "MAX_ROWS_IN_PREVIEW = 10"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/data_import/value_mapping.py",
+          "line": 4,
+          "quote": "\"\"\"Value mapping for Data Import: child-table storage and O(1) lookup during import.\"\"\""
+        },
+        {
+          "path": "frappe/frappe/core/doctype/data_import/data_import.py",
+          "line": 83,
+          "quote": "value_mappings: DF.Table[DataImportValueMapping]"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/data_import/data_import.json",
+          "line": 13,
+          "quote": "\"download_template\","
+        },
+        {
+          "path": "frappe/frappe/core/doctype/data_import/import_provider.py",
+          "line": 15,
+          "quote": "def get_import_fields(self) -> dict | None:"
+        }
+      ]
+    },
+    {
+      "requirementId": "transfer-3",
+      "sourceStage": "mvp",
+      "existing": "Data Import Log satır indekslerini tutuyor. İlki dışındaki yinelenen ID'ler atlandığında uyarı engelleyici olmuyor. Upsert modu var.",
+      "gap": "İş anahtarına göre tekilleştirme yok. Hata dosyasının biçimi tanımsız. Data Import Log MyISAM olduğundan kayıt yazımıyla aynı transaction içinde değil.",
+      "completionSteps": [
+        "transfer-row-result--contract içinde Data Import Log alanlarını satır sonucu kaynağı olarak tanımla; Transfer Row Result log içeriğini kopyalamaz, yalnız referans verir.",
+        "İş anahtarını yalnız unique alan veya import provider ile tanımla; yeni kural motoru kurma.",
+        "Hata dosyası biçimi kararına kadar kolon listesini belgele: satır numarası, kolon, mesaj.",
+        "MyISAM log ile kayıt yazımının transaction dışında kalmasını ve tutarlılık varsayımını record-integrity--contract içinde belgele."
+      ],
+      "dependencies": [
+        "transfer-row-result--contract",
+        "transfer-row-result--schema",
+        "record-integrity--contract",
+        "transfer-run--contract"
+      ],
+      "acceptance": "Geçerli ve hatalı satırların karıştığı dosyada her satırın sonucu izlenebilmeli; aynı dosyanın tekrar importu mükerrer iş kaydı üretmemeli.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/core/doctype/data_import_log/data_import_log.json",
+          "line": 36,
+          "quote": "\"fieldname\": \"row_indexes\","
+        },
+        {
+          "path": "frappe/frappe/core/doctype/data_import_log/data_import_log.json",
+          "line": 6,
+          "quote": "\"engine\": \"MyISAM\","
+        },
+        {
+          "path": "frappe/frappe/core/doctype/data_import/value_mapping.py",
+          "line": 186,
+          "quote": "# Duplicate IDs are non-blocking when every duplicate but the first is skipped."
+        },
+        {
+          "path": "frappe/frappe/core/doctype/data_import/importer.py",
+          "line": 30,
+          "quote": "UPSERT = \"Insert or Update Records\""
+        }
+      ]
+    },
+    {
+      "requirementId": "transfer-4",
+      "sourceStage": "mvp",
+      "existing": "Kuyruk tek job_id kullanıyor. Realtime data_import_progress olayı var. Tekrar denemede önceki status okunuyor. rq stop komutu içe aktarılmış.",
+      "gap": "Status listesinde iptal değeri yok. send_stop_job_command'ın kullanıldığı yer doğrulanmadı. Web, Tauri2 ve WXT/MV3 istemcileri için ilerleme kanalı yok. Devam semantiği tanımsız; timeout ve satır sınırları sayısal olarak verilmemiş.",
+      "completionSteps": [
+        "Native status değerleri üzerinden durum geçiş tablosu yaz: Pending, In Progress, Success, Partial Success, Error, Timed Out. İptalin hangi değere karşılık geleceğini karar olarak işaretle.",
+        "send_stop_job_command'ın kullanıldığı yeri hedef sürüm kaynağında oku; doğrulanmadan iptal ucu tanımlama.",
+        "Devamı native retry purge yoluna bağla: başarılı satırlar log üzerinden atlanır; ayrı checkpoint deposu kurma.",
+        "İlerleme kanalı kararını outbox--contract ve api-middleware--contract ile hizala."
+      ],
+      "dependencies": [
+        "transfer-run--contract",
+        "transfer-row-result--contract",
+        "outbox--contract",
+        "api-middleware--contract"
+      ],
+      "acceptance": "Büyük bir iş kesilip devam ettiğinde başarılı satırlar yeniden yazılmamalı. İptal durumu işin gerçek sonucunu yansıtmalı. İzinsiz iptal isteği reddedilmeli ve iş durumu değişmemeli.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/core/doctype/data_import/data_import.py",
+          "line": 77,
+          "quote": "status: DF.Literal[\"Pending\", \"In Progress\", \"Success\", \"Partial Success\", \"Error\", \"Timed Out\"]"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/data_import/data_import.py",
+          "line": 7,
+          "quote": "from rq.command import send_stop_job_command"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/data_import/data_import.py",
+          "line": 205,
+          "quote": "job_id = f\"data_import||{self.name}\""
+        },
+        {
+          "path": "frappe/frappe/core/doctype/data_import/importer.py",
+          "line": 202,
+          "quote": "# Read previous status before 'In Progress' overwrites it; retry purge needs it."
+        },
+        {
+          "path": "frappe/frappe/core/doctype/data_import/data_import.js",
+          "line": 797,
+          "quote": "listen(\"data_import_progress\", (data) => {"
+        }
+      ]
+    },
+    {
+      "requirementId": "transfer-5",
+      "sourceStage": "mvp",
+      "existing": "Native BLOCKED_DOCTYPES, allow_import ve import izni denetimleri var. Import sırasında in_import bayrağı açılıyor. Import provider doğrulamayı ve kayıt oluşturmayı devralabiliyor.",
+      "gap": "Tenant sınırı ve kota kaynağı tanımsız. in_import ile atlanan doğrulama dallarının envanteri yok. Kayıt yazan provider'larda izin ve kota zorunluluğu belgelenmemiş.",
+      "completionSteps": [
+        "in_import bayrağıyla koşullanan validate dallarını hedef sürüm kaynağında listele; zorunlu iş kurallarını client-rule-parity--contract ile eşle.",
+        "Kayıt yazan import provider'larda native izin kontrolünün zorunlu kaldığını yaz; ignore_permissions ve SQL ile bypass yasak.",
+        "Tenant ve kota kararlarından sonra kotayı mevcut usage rezervasyon sözleşmesine bağlı atomik rezervasyon olarak tanımla: önce rezerve et, gerçekleşen tüketimi kesinleştir, kullanılmayanı iade et. Ön sayım tek başına eşzamanlı yaptırım sayılmaz.",
+        "Tenant sınırını tenant-registry--contract'tan al; bu rehber topoloji seçmez."
+      ],
+      "dependencies": [
+        "tenant-registry--contract",
+        "native-user-policy--contract",
+        "capability-definition--contract",
+        "client-rule-parity--contract",
+        "record-integrity--contract"
+      ],
+      "acceptance": "Import ile zorunlu iş kuralı, tenant sınırı veya paket kotası atlanamamalı. Kotayı aşan import reddedilmeli ve reference_doctype kayıt sayısı değişmemeli.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/core/doctype/data_import/data_import.py",
+          "line": 23,
+          "quote": "BLOCKED_DOCTYPES = CORE_DOCTYPES - {\"User\", \"Role\", \"Print Format\"}"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/data_import/data_import.py",
+          "line": 159,
+          "quote": "if not cint(meta.allow_import):"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/data_import/importer.py",
+          "line": 123,
+          "quote": "frappe.flags.in_import = True"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/data_import/import_provider.py",
+          "line": 3,
+          "quote": "\"\"\"An import provider is an app class that takes over validation and record creation for one"
+        },
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 26,
+          "quote": "\"import\","
+        }
+      ]
+    },
+    {
+      "requirementId": "transfer-6",
+      "sourceStage": "mvp",
+      "existing": "Export erişim logu ve permlevel okuma süzmesi var. Desk ekranında yalnız istemci tarafında can_export süzmesi var. İzin listesinde export hakkı bulunuyor.",
+      "gap": "Sunucu tarafında export izin kontrolü incelenen kesitte görünmüyor. Maskelemenin var olup olmadığı bilinmiyor. Süreli indirme mekanizması yok. Raw SQL ve rapor export yollarının kapsamı belirsiz.",
+      "completionSteps": [
+        "Hedef sürümde export_data gövdesini oku. Sunucu tarafında export izni kontrol edilmiyorsa uç bunu native has_permission ile yapmalı; istemci süzmesi yetki sayılmaz.",
+        "Maskelemenin hedef sürümde bulunup bulunmadığını ve raw SQL sınırını doğrula; doğrulanana kadar unknown.",
+        "Süreli teslim için private File ve access log üzerine tek bir TTL kararını bekle; bu rehber saklama süresi seçmez.",
+        "Rapor ve raw SQL export yollarını kapsam envanterine ekle."
+      ],
+      "dependencies": [
+        "native-user-policy--contract",
+        "api-middleware--contract",
+        "kernel-envelope--contract",
+        "transfer-run--contract"
+      ],
+      "acceptance": "Hedef sürümde export gizli alanı maskelemeli veya dışarıda bırakmalı. Raw SQL sonuçları denetlenmeli. Teslim linki süresi dolunca erişilemez olmalı. Export izni olmayan kullanıcı dosya alamamalı.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/core/doctype/data_export/exporter.py",
+          "line": 47,
+          "quote": "make_access_log("
+        },
+        {
+          "path": "frappe/frappe/core/doctype/data_import/exporter.py",
+          "line": 69,
+          "quote": "permitted_levels = set(self.meta.get_permlevel_access(\"read\"))"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/data_export/data_export.js",
+          "line": 17,
+          "quote": "name: [\"in\", frappe.boot.user.can_export],"
+        },
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 27,
+          "quote": "\"export\","
+        }
+      ]
+    },
+    {
+      "requirementId": "transfer-7",
+      "sourceStage": "mvp",
+      "existing": "Desk yükleme kısıtı .csv/.xls/.xlsx. Export seçenekleri Excel ve CSV. CSV yazıcısında formül enjeksiyonu kaçışı var. Sayılar kullanıcının sayı biçimine göre ayrıştırılıyor. insert_many 200 kayıtla sınırlı ve dosya aktarımı değil.",
+      "gap": "JSON dosya şeması ve okuyucusu yok. XLSX'te formül ve makro koruması doğrulanmadı. Boyut ve satır sınırları sayısal olarak verilmemiş.",
+      "completionSteps": [
+        "JSON dosya şeması taslağı yaz: üst ve alt tablo yapısı, ID/null/tarih gösterimi, şema sürümü alanı; exporter'ın satır yapısına eşle.",
+        "JSON okumanın mevcut importer akışına tek okuyucu olarak eklenmesini öner (ImportFile/Importer sınıf adları kaynakta doğrulanmalı). insert_many veya ayrı CRUD yolu kullanılmaz.",
+        "XLSX çıktısında formül ve makro korumasını hedef sürümde doğrula; CSV kaçışını referans al.",
+        "Boyut ve satır sınırını max_file_size ile ilişkilendirerek karar listesine taşı."
+      ],
+      "dependencies": [
+        "transfer-run--schema",
+        "native-doctype-schema--contract",
+        "client-rule-parity--contract",
+        "transfer-run--contract"
+      ],
+      "acceptance": "Üç format ayrı import/export kabulünü geçmeli: UTF-8, ayırıcı/tırnak, tarih/ondalık/null/ID, iç içe JSON eşleme, worksheet seçimi, boyut/satır sınırı, formül/makro koruması, tip/satır hatası ve sınırlı arka plan işi.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/core/doctype/data_import/data_import.js",
+          "line": 915,
+          "quote": "allowed_file_types: [\".csv\", \".xls\", \".xlsx\"],"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/data_export/data_export.json",
+          "line": 35,
+          "quote": "\"options\": \"Excel\\nCSV\","
+        },
+        {
+          "path": "frappe/frappe/utils/csvutils.py",
+          "line": 169,
+          "quote": "self.writer.writerow([escape_formula_injection(v) for v in row])"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/data_import/importer.py",
+          "line": 43,
+          "quote": "def _parse_number(value: str, number_format: NumberFormat) -> float | None:"
+        },
+        {
+          "path": "frappe/frappe/client.py",
+          "line": 245,
+          "quote": "if len(docs) > 200:"
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "transfer-1/7: tek exporter seçimi (data_import/exporter veya data_export/exporter), headless ikili yanıt ve dosya adı sözleşmesi, JSON dosya şeması ve okuyucusu yok; upload_file ucu yerel kaynakta doğrulanmadı.",
-    "transfer-2: template_options sürümlemesi, field-mapping-rule sınırı ve onayda gösterilecek satır sayısı tanımsız.",
-    "transfer-3: iş anahtarı tekilleştirmesi, hata dosyası biçimi ve MyISAM Data Import Log'un transaction dışı kalması.",
-    "transfer-4: Cancelled durumu yok; send_stop_job_command kullanım noktası unknown; headless ilerleme (polling ya da abonelik), devam semantiği ve timeout sınırları tanımsız.",
-    "transfer-5: tenant sınırı ve atomik kota rezervasyonu (tenant-registry), in_import ile atlanan kuralların envanteri, import_provider için izin zorunluluğu.",
-    "transfer-6: maskeleme unknown, süreli link mekanizması yok, sunucu taraflı export izin kontrolü excerpt'te görünmüyor."
+    "transfer-1: uç eşlemesi, ikili indirme yanıtı ve dosya adı sözleşmesi yok; upload_file ucu kaynakta doğrulanmadı.",
+    "transfer-2: template_options sürümlemesi yok, field-mapping-rule sınırı ve onay ekranındaki satır sayısı tanımsız.",
+    "transfer-3: iş anahtarı tekilleştirmesi ve hata dosyası biçimi yok; MyISAM Data Import Log transaction dışında kalıyor.",
+    "transfer-4: iptal durumu yok, send_stop_job_command'ın kullanıldığı yer bilinmiyor; ilerleme kanalı, devam semantiği ve timeout sınırları tanımsız.",
+    "transfer-5: tenant sınırı ve atomik kota rezervasyonu yok; in_import ile atlanan kuralların envanteri ve provider izin zorunluluğu belgelenmedi.",
+    "transfer-6: maskeleme bilinmiyor, süreli link yok; sunucu tarafı export izin kontrolü incelenen kesitte görünmüyor.",
+    "transfer-7: JSON şeması ve okuyucusu yok; XLSX formül/makro koruması ve sayısal boyut/satır sınırları belirlenmedi."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Hedef Frappe sürümü (version-15 kaynak bağlantıları mı, incelenen 17.0.0-dev anlık görüntüsü mü)",
+      "requirementIds": [
+        "transfer-1",
+        "transfer-2",
+        "transfer-3",
+        "transfer-4",
+        "transfer-5",
+        "transfer-6",
+        "transfer-7"
+      ],
+      "blockedStep": "Uç eşlemesinin sabitlenmesi; value_mappings, skipped_rows ve maskeleme davranışına dayanan adımlar",
+      "docStepUntilDecided": "Bu sözleşmede kullanılan native parçaların iki sürüm arasındaki farklarını listele"
+    },
+    {
+      "decision": "Tek export yolu: data_import/exporter mı data_export/exporter mı",
+      "requirementIds": ["transfer-1", "transfer-6", "transfer-7"],
+      "blockedStep": "İndirme ucu ve ikili yanıt sözleşmesi",
+      "docStepUntilDecided": "İki yolun izin, permlevel ve access log davranışlarını yan yana belgele"
+    },
+    {
+      "decision": "Tenant topolojisi (site başına tenant mı, site içi izolasyon mu)",
+      "requirementIds": ["transfer-5"],
+      "blockedStep": "Import yolunda tenant sınırı kontrolü",
+      "docStepUntilDecided": "tenant-registry--contract için import yolunun ihtiyaç duyduğu soruları yaz"
+    },
+    {
+      "decision": "Paket kotasının kaynağı ve tarife sınırları",
+      "requirementIds": ["transfer-5"],
+      "blockedStep": "Atomik kota rezervasyonu ve iadesi",
+      "docStepUntilDecided": "Rezervasyon, kesinleştirme ve iade akışını değer seçmeden belgele"
+    },
+    {
+      "decision": "Süreli teslim mekanizması ve saklama süresi (TTL)",
+      "requirementIds": ["transfer-6"],
+      "blockedStep": "Süreli indirme linki",
+      "docStepUntilDecided": "private File ve access log tabanlı seçeneğin gereksinimlerini yaz"
+    },
+    {
+      "decision": "Hedef sürüme göre hassas alan maskeleme yaklaşımı",
+      "requirementIds": ["transfer-6"],
+      "blockedStep": "Hassas alan export kabulü",
+      "docStepUntilDecided": "Maskelenecek alan sınıflarını ve raw SQL istisnasını belgele"
+    },
+    {
+      "decision": "İptalin durum karşılığı ve ilerleme kanalı (polling mi abonelik mi)",
+      "requirementIds": ["transfer-4"],
+      "blockedStep": "İptal ve ilerleme uçları",
+      "docStepUntilDecided": "Native status değerleriyle durum geçiş tablosu taslağı yaz"
+    },
+    {
+      "decision": "Hata dosyası biçimi (CSV, XLSX veya JSON)",
+      "requirementIds": ["transfer-3"],
+      "blockedStep": "Hata dosyası indirme",
+      "docStepUntilDecided": "Satır numarası, kolon ve mesaj kolonlarını belgele"
+    },
+    {
+      "decision": "JSON genişletme yolu (okuyucu mu import provider mı), şema sürümü ve sayısal boyut/satır sınırları",
+      "requirementIds": ["transfer-4", "transfer-7"],
+      "blockedStep": "JSON okuyucu ve sınır doğrulaması",
+      "docStepUntilDecided": "JSON dosya şeması taslağını exporter satır yapısına eşleyerek yaz"
+    },
+    {
+      "decision": "Onay ekranında gösterilecek önizleme satır sayısı",
+      "requirementIds": ["transfer-2"],
+      "blockedStep": "Onay ekranının kabulü",
+      "docStepUntilDecided": "Native 10 satır sınırını mevcut davranış olarak belgele"
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "transfer-1": "mvp",
-    "transfer-2": "mvp",
-    "transfer-3": "mvp",
-    "transfer-4": "mvp",
-    "transfer-5": "mvp",
-    "transfer-6": "mvp",
-    "transfer-7": "mvp"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,

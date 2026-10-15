@@ -22,8 +22,8 @@
   "behavior": {
     "title": "Odeme denemesi (Payment Attempt) durumunun yalniz dogrulanmis, idempotent ve monotonik gecislerle ilerlemesi; yanlis Paid olusmamasi. Uygulama durumu: uygulanmadı.",
     "trigger": "Tenant kapsamli tahsilat istegi (idempotency anahtariyla), imzasi dogrulanacak saglayici bildirimi veya askidaki deneme icin uzlastirma sorgusunun sonucu.",
-    "expected": "Ayni tenant ve idempotency anahtari tek Payment Attempt ve tek saglayici tahsilat cagrisi uretir. Durum yalniz izinli gecis tablosuna gore ilerler; Paid yalniz dogrulanmis saglayici sonucu veya uzlastirma ile olusur. Iade ve itiraz ayri kayitlarla izlenir; bakiye ve hak etkisi tek esleme kuralindan turetilir. Backend, log ve export icinde yalniz saglayici referansi ve izinli metadata bulunur.",
-    "denied": "Imzasi gecersiz veya zaman toleransi disindaki bildirim, yinelenen provider_event_id, Paid kaydini geri ceviren eski veya sirasiz olay, baska tenant'in anahtariyla istek, PAN/CVV benzeri girdi, yakalanan tutari asan kismi iade toplami ve native izni olmayan kullanici yazimi reddedilir; reddedilen islemde mevcut kayit degismez."
+    "expected": "Aynı tenant ve idempotency anahtarı tek yerel Payment Attempt kaydına bağlanır. Yerel transaction/benzersizlik dış sağlayıcı çağrısının tekilliğini garanti etmez. Sağlayıcı idempotency anahtarı, belirsiz sonuç ve uzlaştırma sözleşmesi seçilmeden tek dış tahsilat garantisi verilmez. Paid yalnız doğrulanmış başarı veya uzlaştırma sonucu izinli geçiş tablosuna göre oluşur; timeout/istemci varsayımı başarı sayılmaz. İade/itiraz ve kart verisi sınırları ilgili madde rehberlerinde kalır.",
+    "denied": "Imzasi gecersiz veya zaman toleransi disindaki bildirim, yinelenen provider_event_id, Paid kaydini geri ceviren eski veya sirasiz olay, baska tenant'in deneme kaydini veya saglayici referansini hedefleyen istek, PAN/CVV benzeri girdi, yakalanan tutari asan kismi iade toplami ve native izni olmayan kullanici yazimi reddedilir; reddedilen islemde mevcut kayit degismez."
   },
   "reuse": {
     "status": "KISMI",
@@ -133,9 +133,9 @@
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "Ayni tenant ve ayni idempotency_key ile gelen ikinci tahsilat istegi yeni Payment Attempt olusturmaz, ilk kaydi dondurur ve saglayici tahsilat adaptoru yalniz bir kez cagrilir; baska tenant'tan ayni anahtarla gelen istek reddedilir ve mevcut kayit degismez.",
-      "red": "Gelecekte yazilacak test, saglayici adaptorunu test cifti ile degistirip ayni istegi iki kez gonderir; tek kayit ve tek adaptor cagrisi bekler. Idempotency kontrolu yokken ikinci kayit veya ikinci cagri olustugu icin davranis iddiasi basarisiz olur. RED import hatasi, eksik altyapi veya native davranisi bozarak uretilmez. Bu turda test yazilmaz ve kosulmaz.",
-      "green": "Controller native save ve transaction icinde (tenant, idempotency_key) benzersizligine dayanarak mevcut kaydi dondurur ve adaptoru cagirmaz; tenant uyusmazliginda native izin hatasi verir. ignore_permissions veya SQL ile yetki atlama kullanilmaz."
+      "oneScenario": "Aynı yetkili tenant ve idempotency_key ile ikinci istek ikinci yerel Payment Attempt kaydı oluşturmaz, aynı yerel denemeye bağlanır. Başka tenant’a ait deneme veya sağlayıcı referansını hedefleyen istek reddedilir ve mevcut kayıt değişmez. Aynı anahtar metninin farklı yetkili tenant kapsamında kullanılması çapraz erişim değildir. Bu tek kabul dış sağlayıcı çağrısının exactly-once kanıtı değildir.",
+      "red": "Gelecekteki tek kontrol yinelenen isteğin ikinci yerel deneme üretmesi veya başka tenant denemesine erişebilmesi nedeniyle başarısız olmalıdır. Dış sağlayıcı tekilliği bu kontrolün garantisi değildir; altyapı/import hatası veya native davranış bozma RED sayılmaz. Bu turda test yazılmaz veya koşulmaz.",
+      "green": "Aynı yerel kayıt ve çapraz erişim reddi koşulları değişmeden geçer. Sağlayıcı başarılı olduktan sonra yerel transaction geri alınabileceği için yerel unique index tek dış çağrı garantisi değildir; sağlayıcı idempotency ve uzlaştırma kararına kadar belirsiz sonuç otomatik yeni tahsilata çevrilmez."
     },
     "rollback": "Bu sozlesme hicbir seyi degistirmez; geri alinacak uretim degisikligi yoktur. Gelecekteki her dilim tek davranis olarak ayri geri alinabilir tutulur; sema ve deploy geri alma plani Hüseyin Cengiz tarafindan onaylanir. Mevcut Paid, iade ve audit kayitlari silinmez veya geri cevrilmez. Bildirim alicisi geri alinirsa kacan olaylar uzlastirma isiyle telafi edilir; saglayicinin yeniden teslim davranisi saglayici kararina baglidir."
   },
@@ -146,7 +146,7 @@
       "existing": "Native Frappe core Server Script olay listesinde odeme olay adlari (On Payment Authorization, On Payment Failed, On Payment Paid) tanimlidir. Bu olaylari tetikleyen PaymentController kurulu olmayan Frappe Payments uygulamasindadir; On Payment Failed yalniz hata mesajini tasir. Tekrar deneme ve basarisiz tahsilat takibi kaynakta gorulmedi.",
       "gap": "Durum makinesi (pending, authorized, requires_action, paid, failed, timeout) tanimsiz; retry politikasi (aralik, ust sinir, dunning) ve zaman asimi sozlesmesi yok; olayin hangi uygulamadan tetiklenecegi ve izin siniri belirsiz; Server Script odeme olaylarinin kisayol olarak kullanilmayacagi yazilmamis.",
       "completionSteps": [
-        "payment-attempt--contract icinde durumlar ve izinli gecisler tek tabloya yazilir; requires_action ve timeout hicbir yoldan dogrudan Paid uretmez.",
+        "Durum geçiş tablosunda yalnız requires_action veya timeout görüldüğü için Paid üretilmez. Daha sonra doğrulanmış sağlayıcı başarı/uzlaştırma sonucu gelirse tabloya uygun Paid geçişi değerlendirilir; gecikmiş başarı sırf önce timeout oldu diye reddedilmez.",
         "Retry ve dunning alanlari (aralik, ust sinir, adimlar) tabloya parametre olarak eklenir; degerler decisionsPending kararindan gelir.",
         "Basarisiz tahsilat takibi icin failed ve timeout denemelerinde maskelenmis hata nedeni ve deneme sayisi tutulur; yeni deneme ayni idempotency kuralina tabidir.",
         "Olay isleme Server Script olaylarina degil, Payment Attempt controller'ina ve native DocType izinlerine baglanir; yasak talimata acikca yazilir.",
@@ -242,7 +242,7 @@
       "completionSteps": [
         "payment-attempt--contract icinde (tenant, idempotency_key) birlesik anahtari, provider_event_id tekilligi ve uzlastirma catisma kurali yazilir: saglayici sonucu yerel gecis tablosunda izinliyse uygulanir, degilse audit'e catisma yazilir ve Paid geri cevrilmez.",
         "payment-attempt--schema icinde bu iki anahtar icin benzersiz index; Integration Request yalniz ham istek/yanit gunlugu olarak kalir.",
-        "Ilk dilim: ayni anahtarla ikinci istek mevcut denemeyi dondurur, ikinci tahsilat cagrisi yapilmaz (tdd.oneScenario).",
+        "İlk dilimde aynı tenant/anahtar ikinci yerel deneme üretmez. Dış tahsilat tekilliği sağlayıcı idempotency ve belirsiz sonuç uzlaştırmasına bağlı açık eksiktir; yerel index/queue dedup bu garantiyi vermez.",
         "Sonraki dilim: yinelenen webhook provider_event_id tekillestirmesi.",
         "Son dilim: askidaki denemeler icin enqueue deduplicate ve job_id ile uzlastirma isi; sonuclar outbox ve audit sozlesmelerine baglanir."
       ],
@@ -254,7 +254,7 @@
         "outbox--contract",
         "audit-envelope--contract"
       ],
-      "acceptance": "Ayni istek ve yinelenen webhook tek tahsilat uretmeli; baglanti kopunca saglayici durumu uzlastirilmali.",
+      "acceptance": "Yerel tekrar aynı denemeye bağlanmalı; çapraz tenant referansı reddedilmeli. Dış tahsilat tekilliği ve bağlantı kopması sonrası uzlaştırma sağlayıcı sözleşmesi doğrulanmadan tamamlandı sayılamaz.",
       "evidence": [
         {
           "path": "frappe/frappe/integrations/doctype/integration_request/integration_request.py",
@@ -381,7 +381,8 @@
     "Kalici idempotency, olay tekillestirme, imza dogrulamali bildirim alicisi ve uzlastirma isi yok.",
     "Iade, itiraz ve ters ibraz kayitlari ile bakiye/hak eslemesi yok.",
     "Kart verisi korumasi ve Integration Request, Error Log, export maskeleme kurali yok.",
-    "Istemcilerde saglayicinin guvenli toplama yuzeyi entegrasyonu ve odeme API sozlesmesi yok."
+    "Istemcilerde saglayicinin guvenli toplama yuzeyi entegrasyonu ve odeme API sozlesmesi yok.",
+    "Dış sağlayıcı başarıdan sonra yerel transaction rollback olduğunda sonuç belirsizliği, sağlayıcı tarafı idempotency süresi/anahtarı ve uzlaştırma yolu karara bağlanmadı; tek dış çağrı garantisi yok."
   ],
   "decisionsPending": [
     {

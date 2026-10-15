@@ -12,7 +12,7 @@
   "behavior": {
     "title": "Düşen kullanım ve yaklaşan yenilemeden açıklanabilir hesap sağlığı risk puanı",
     "trigger": "Yenileme tarihi tanımlı bir hesap sağlığı kaydı için, kayıtta yazma yetkisi olan kullanıcı veya native zamanlanmış çalıştırma değerlendirme ister. Girdiler kayıttaki yenileme tarihi ile account-health--contract içinde sabitlenecek iki ardışık kullanım penceresindeki olay sayılarıdır.",
-    "expected": "Önceki pencereye göre kullanımı eşik oranından fazla düşmüş ve yenilemesine eşik gün sayısından az kalmış örnek hesap için deterministik bir risk puanı, eşik bandı ve her kural için kural adı, ağırlık, girdi değeri ve puan katkısını içeren gerekçe listesi üretilir. Sonuç aynı hesap kaydına native belge kaydetme akışıyla yazılır. Yaklaşan yenileme görevi yeni kodla değil, native Automation Flow Date Based tetikleyicisi ile CreateDocument ve AssignToUser eylemlerinin yapılandırılmasıyla oluşur.",
+    "expected": "Önceki pencereye göre kullanımı eşik oranından fazla düşmüş ve yenilemesine eşik gün sayısından az kalmış örnek hesap için deterministik bir risk puanı, eşik bandı ve her kural için kural adı, ağırlık, girdi değeri ve puan katkısını içeren gerekçe listesi üretilir. Sonuç aynı hesap kaydına native belge kaydetme akışıyla yazılır.  Yenileme görevi için Automation Flow/Date Based/CreateDocument/AssignToUser yalnız aday yeniden kullanım desenidir. Bu öğelerin hedef kaynak/sürümde varlığı ve yetki davranışı doğrulanmadığından kesin native tetikleyici veya eylem garantisi yoktur; doğrulanmadan bağımlılık kurulmaz. Bu native parçalar aynı kaynak snapshot’ında dosya:satır ile görülmüştür; hedef ürün sürümüne eşleme ve izinli yapılandırma kabulü yine not_run kalır.",
     "denied": "Hesap kaydında yazma izni olmayan kullanıcı, başka tenant kapsamındaki kayıt veya sözleşme dışı girdi için değerlendirme native izin ve doğrulama katmanında reddedilir; puan, gerekçe ve puan geçmişi değişmez, görev oluşmaz. ignore_permissions, doğrudan SQL veya izin atlayan yardımcı kullanılmaz."
   },
   "reuse": {
@@ -186,7 +186,7 @@
     "Kullanım olayı kaynağı, zaman penceresi ve kullanım düşüşü hesabı yok.",
     "Açıklanabilir puan motoru (formül, eşikler, kural katkıları), puan alanı ve puan geçmişi yok.",
     "Kullanım düşüşü ile yenileme yakınlığını tek puanda birleştiren mantık yok; Automation Flow koşulları zaman serisi toplamaz.",
-    "crm-6 görev üretimine bağlanan sözleşme yok; bu bağlantı bu sözleşmenin kapsamına alınmaz, görev üretimi native Automation Flow ile sınırlıdır.",
+    "crm-6 görev üretimine bağlanan sözleşme yok; bu bağlantı bu sözleşmenin kapsamına alınmaz, native Automation Flow kaynak dayanağı yalnız hedef sürüm eşlemesi ve yetki kabulünden sonra tüketilebilir.",
     "Salt okunur puan ve gerekçe projeksiyonu sözleşmesi yok.",
     "Scheduled tetikleyici ve SendNotification, SetFieldValue, IncrementFieldValue eylemleri için doğrulanmış kaynak alıntısı yok."
   ],

@@ -13,7 +13,7 @@
     "title": "Aktif hukuki saklama kilidindeki kaydın silinmesini sunucu tarafında, silme kancasında reddetme. Uygulama durumu: uygulanmadı.",
     "trigger": "Kapsamdaki bir DocType kaydı için herhangi bir silme yolu (REST v1/v2 delete, frappe.client.delete_doc, toplu silme, Drive after_delete zinciri, patch veya scheduler işi, kişisel veri silme talebi işleme) native frappe.delete_doc akışını başlatır ve on_trash aşamasına ulaşır.",
     "expected": "Kayıt aktif bir LegalHold kapsamındaysa doc_events on_trash işleyicisi native frappe.throw ile silmeyi durdurur; işlem native transaction ile geri alınır; kayıt ve aynı işlemde zincirle silinmek istenen üst veya alt kayıtlar değişmeden kalır. Kilitsiz kayıtların silme davranışı ve native izin kontrolleri değişmez. Kilit açma yalnız yetkili rolle, zorunlu gerekçeyle ve denetlenebilir izle yapılır; açılan kilit kaydı silinmez, yalnız durumu değişir.",
-    "denied": "ignore_permissions=True ile yapılan zincirleme silme kilitli kayıtta da reddedilir. Kilit kontrolü has_permission veya izin katmanına konmaz; ignore_permissions veya ham SQL ile atlanamaz. Yetkisiz kullanıcının kilit açma ya da LegalHold kaydını silme denemesi reddedilir ve LegalHold kaydı değişmez."
+    "denied": "on_trash çalıştıran native silme yollarında ignore_permissions=True olsa da aktif kilit önerilen hook tarafından reddedilmelidir. Bu izin katmanı değildir. Doğrudan SQL, frappe.db.delete veya hook’u atlayan yollar için aynı garanti verilmez; bunlar açık kapsam/güvenlik eksiğidir. Yetkisiz kilit açma veya LegalHold kaydını silme reddedilir; kayıt değişmez."
   },
   "reuse": {
     "status": "KISMI",

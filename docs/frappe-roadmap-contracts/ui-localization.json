@@ -1,0 +1,380 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "ui-localization",
+  "canonicalTaskIds": [
+    "ui-family-33--implementation-post-mvp",
+    "ui-localization--implementation"
+  ],
+  "requirementIds": ["locale-1", "locale-2", "locale-3", "locale-5"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "locale-1": "post_mvp",
+    "locale-2": "post_mvp",
+    "locale-3": "post_mvp",
+    "locale-5": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "React/Ant Design istemcisinde etkin dilin Frappe'den çözülmesi ve çeviri kataloğunun bu dile göre yüklenmesi",
+    "trigger": "Oturum açmış kullanıcı istemciyi açar ya da kullanıcının native User.language değeri değişir. İstemci etkin dili ve çeviri kataloğunu Frappe'den ister.",
+    "expected": "Etkin dil Frappe get_language önceliğiyle belirlenir: oturum açmış kullanıcıda frappe.local.lang (User.language, yoksa System Settings); _lang yalnız açık istek override'ıdır. Katalog get_boot_translations ile alınır. React arayüz metinleri, Ant Design ConfigProvider locale ve direction değeri ile sunucuda _() ile çevrilen API hata metinleri aynı dil tercihini izler. translation_version değişince istemci eski kataloğu kullanmaz.",
+    "denied": "Desteklenen dil listesinde olmayan kod etkin dil olamaz; get_boot_translations geçersiz lang değerini yok sayar. _lang override'ı User kaydını yazmaz. İstemci dil seçimi için kullanıcı adına kayıt değiştirmez; kalıcı dil değişimi native User formu ve native izinlerle yapılır. ignore_permissions, ham SQL veya yeni yetki atlatma yolu yoktur."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native Frappe parçaları yeniden kullanılır: translate.get_language dil önceliği, whitelist'li ve http_cache ile sunulan get_boot_translations, üst dil ardından alt dil ve kullanıcı çevirisi birleştirmesi, translation_version önbellek anahtarı, Babel tabanlı gettext hattı ve Language DocType. Bu parçalar bütün davranışın var olduğunu göstermez; React katalog tüketimi, ConfigProvider eşlemesi, çoğul sözleşmesi, RTL yönü, kayda özel çok dilli içerik ve transliterasyon kaynakta yoktur ya da doğrulanmamıştır. Suite Vue/Frappe UI kaynağı React/Ant Design uygulaması kanıtı değildir. Alıntılar önceki salt okunur Frappe/Suite kaynak anlık görüntüsündendir; canlı site veya ürün kabulü değildir. searchedPaths yalnız taranan yolları listeler; kapsamlı yokluk iddiası değildir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/translate.py",
+        "line": 49,
+        "quote": "if frappe.form_dict._lang:"
+      },
+      {
+        "path": "frappe/frappe/translate.py",
+        "line": 55,
+        "quote": "if is_logged_in:"
+      },
+      {
+        "path": "frappe/frappe/translate.py",
+        "line": 139,
+        "quote": "@http_cache(max_age=31536000)"
+      },
+      {
+        "path": "frappe/frappe/translate.py",
+        "line": 140,
+        "quote": "def get_boot_translations(lang: str | None = None) -> dict[str, str]:"
+      },
+      {
+        "path": "frappe/frappe/translate.py",
+        "line": 33,
+        "quote": "TRANSLATION_VERSION_KEY = \"translation_version\""
+      },
+      {
+        "path": "frappe/frappe/translate.py",
+        "line": 165,
+        "quote": "all_translations.update(get_translations_from_apps(lang))"
+      },
+      {
+        "path": "frappe/frappe/translate.py",
+        "line": 171,
+        "quote": "all_translations.update(get_user_translations(lang))"
+      },
+      {
+        "path": "frappe/frappe/api/v2.py",
+        "line": 178,
+        "quote": "\"Custom get_list method for {0} must return a QueryBuilder object or None, got {1}\""
+      },
+      {
+        "path": "frappe/frappe/core/doctype/language/language.json",
+        "line": 46,
+        "quote": "\"fieldname\": \"based_on\","
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v2.py",
+      "frappe/frappe/core/doctype/language/language.json",
+      "frappe/frappe/core/doctype/language/language.py",
+      "frappe/frappe/desk/search.py",
+      "frappe/frappe/gettext/translate.py",
+      "frappe/frappe/public/js/frappe/ui/toolbar/fuzzy_match.js",
+      "frappe/frappe/search/sqlite_search.py",
+      "frappe/frappe/translate.py",
+      "frappe/pyproject.toml",
+      "suite/suite/drive/utils/files.py",
+      "suite/suite/utils/__init__.py",
+      "suite/suite/writer/search.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/ui-localization.json",
+    "plannedProduction": [
+      "frontend/packages/ui/src/components/ui-family-33/post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-localization/index.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Mevcut Frappe oturumu (kimlik doğrulama bu birimin kapsamı dışındadır); isteğe bağlı açık override için _lang parametresi; katalog için get_boot_translations(lang) GET çağrısı; önbellek tazeleme için translation_version değeri. Bu değerin istemciye hangi native yoldan taşındığı hedef sürümde doğrulanacaktır.",
+    "output": "Etkin dil kodu; düz dict[str, str] çeviri kataloğu; dil kodundan tek kuralla türetilen yön (ltr veya rtl); Frappe dil kodundan Ant Design ConfigProvider locale ve direction eşlemesi. API hata metinleri sunucuda _() ile aynı dilde döner. Kaynak registry ile GenUI capability registry ayrıdır; bu birim JSON model sınırında yalnız dil kodu ve katalog verisi taşır, ReactNode veya callback taşımaz.",
+    "authorization": "Yeni rol, izin veya izin atlatma yoktur. get_boot_translations native whitelist kuralıyla çağrılır. Kayıt verisi okuyan tüketiciler native izin kontrolünü ve R-01'i kullanır. ignore_permissions veya SQL ile yetki atlanmaz. Bu birim rol/izin üretmez; ileride kayda özel içerik alanı (locale-5) izin seviyesi gerektirirse explicitPermissionFlags ortak kaynağına bağlanır ve o adımın tek kabulünde reddedilen yazma ile değişmeyen kayıt gösterilir.",
+    "persistence": "Bu sözleşme kalıcı veri, şema, Custom Field veya indeks oluşturmaz ve hiçbir servis, production ortamı, şema ya da veriyi değiştirme yetkisi vermez. Dil tercihi native User.language ve System Settings alanlarında kalır. Kayda özel içerik ve transliterasyon alanı karar bekler; karar sonrası native Custom Field veya alt tablo, native save, transaction ve hook ile yapılır; ORM veya CRUD motoru kopyalanmaz.",
+    "failure": "Katalog alınamazsa istemci kaynak metni gösterir ve hatayı görünür bildirir; bilinmeyen dil kodu sistem varsayılanına döner; eksik anahtar kaynak metne döner (hedef sürümde doğrulanacak). Sahte çeviri veya sahte ilerleme gösterilmez."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "client-rule-parity--contract",
+      "kernel-envelope--contract",
+      "ui-family-33--contract",
+      "ui-family-33--implementation",
+      "ui-localization--contract"
+    ],
+    "admission": {
+      "note": "Uygulama durumu: uygulanmadı",
+      "prerequisites": [
+        "T-00 hedef temel çizgisi ve R-00 yeniden kullanım eşlemesi tamamlanmış olmalı.",
+        "İzinli veri tüketen adımlar (locale-5 içerik alanları, locale-2 araması) ayrıca R-01'i kullanır.",
+        "Hedef Frappe sürümü kararı verilmiş ve buradaki alıntılar o sürümde yeniden okunmuş olmalı; yerel kaynak v17.0.0.dev0, kaynak dokümanlar v16'dır.",
+        "İlgili madde için decisionsPending kararı verilmiş olmalı; karar yoksa yalnız belge adımı yapılır.",
+        "Bir seferde tek dar davranış, gerçek RED/GREEN kanıtıyla."
+      ],
+      "orderAuthority": "Mevcut görev bağımlılıkları ve post_mvp aşaması; küme sırası sunumdur, yeni seri DAG değildir."
+    },
+    "steps": [
+      "1. ui-localization--contract içine kısa dil sözleşmesi yaz: desteklenen diller (karar), öncelik User.language ardından System Settings, _lang yalnız açık override, katalog kaynağı get_boot_translations. Yeni registry açma.",
+      "2. Hedef sürümde get_language ve get_boot_translations kodunu yeniden oku; token tabanlı oturumda frappe.local.lang değerinin nereden atandığını kaynakta doğrula ve satır alıntısıyla belgeye ekle.",
+      "3. Katalog yükleyiciyi TanStack Query ile dil kodu ve translation_version anahtarlı tek sorgu olarak tanımla; yanıt bir yıllık http_cache ile döndüğü için sürüm değeri istek URL'sinde ya da önbellek anahtarında taşınmalı.",
+      "4. Frappe dil kodundan Ant Design locale paketine ve yöne giden tek eşleme tablosunu yaz; ConfigProvider ve belge kökündeki dir aynı kaynaktan beslenir. Ant Design Pro, X ve X Cards yüzeyleri aynı ConfigProvider altında kalır.",
+      "5. locale-3 için eksik anahtar, üst dile geri dönüş ve sürüm değişince katalog yenileme adlı üç kontrolü tanımla.",
+      "6. RTL ve kayda özel içerik (locale-5) ile transliterasyon (locale-2), ilgili kararlardan sonra ayrı dar davranışlar olarak kabule girer."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "User.language değeri ikinci dile ayarlı, oturum açmış kullanıcı istemciyi açtığında katalogda çevirisi bulunan tek bir arayüz etiketi o dilde görünür ve ConfigProvider locale aynı dile eşlenir.",
+      "red": "Test, etiketin get_boot_translations kataloğundaki çeviriye eşit olduğunu doğrular. İstemci henüz kataloğu yüklemediği için etiket kaynak metinde kalır ve doğrulama değer uyuşmazlığıyla başarısız olur. RED, import veya altyapı hatasıyla ya da native Frappe davranışını bozarak elde edilmez.",
+      "green": "Katalog yükleyici ve ConfigProvider eşlemesi eklendikten sonra aynı test etiketi çeviriyle ve locale'i ikinci dille gösterir; Türkçe kullanıcı için aynı kontrol değişmeden geçer. Bu turda test yazılmaz ve koşulmaz."
+    },
+    "rollback": "Bu turda geri alınacak üretim değişikliği yoktur. Gelecek uygulamada geri alma, istemci katalog yükleyicisinin ve eşleme tablosunun kaldırılmasıdır; şema veya veri değişikliği içermediği için veri geri alımı gerekmez. CI, deploy ve rollback teknik sahibi Hüseyin Cengiz'dir; bu birim GoDaddy/DNS işlemi gerektirmez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "locale-1",
+      "sourceStage": "post_mvp",
+      "existing": "Native parçalar: get_language içinde _lang override'ı ve oturum açmış kullanıcıda frappe.local.lang dönüşü; Accept-Language ve çerez yalnız Guest için okunur. get_boot_translations katalog uç noktası mevcuttur. API v2 hata metinleri _() ile çevrilir.",
+      "gap": "Desteklenen dil listesi ve ikinci dil seçilmedi. React istemcisinin dili iletme kanalı ve token oturumunda frappe.local.lang kaynağı doğrulanmadı. React katalog tüketimi ve ConfigProvider locale eşlemesi yok. Kaynak dokümanlar v16, yerel kaynak v17.0.0.dev0; eşleme yapılmadı.",
+      "completionSteps": [
+        "Dil sözleşmesini ui-localization--contract içine yaz; Türkçe sabit, ikinci dil karar gelene kadar açık alan olarak kalır.",
+        "Öncelik kuralını belgeye işle: User.language, sonra System Settings; _lang yalnız tek istek için açık override.",
+        "Token oturumunda frappe.local.lang atamasını hedef sürüm kaynağında bul ve alıntıla; bulunamazsa açık eksik olarak kaydet. Kimlik sağlayıcı claim'i bu birimin kapsamına alınmaz.",
+        "Katalog yükleyici ve ConfigProvider eşlemesini development.steps 3-4'e göre tek davranış olarak uygula.",
+        "Tarih, sayı ve saat biçimlerinin native kullanıcı varsayılanlarından geldiğini aynı kabulde kontrol et."
+      ],
+      "dependencies": [
+        "ui-localization--contract",
+        "api-middleware--contract",
+        "kernel-envelope--contract"
+      ],
+      "acceptance": "Türkçe ve seçilen ikinci dilde aynı kullanıcı için arayüz etiketi, API hata metni ve tarih/sayı biçimi aynı dil tercihine uyar; _lang override yalnız o isteği etkiler ve User kaydını değiştirmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/translate.py",
+          "line": 49,
+          "quote": "if frappe.form_dict._lang:"
+        },
+        {
+          "path": "frappe/frappe/translate.py",
+          "line": 55,
+          "quote": "if is_logged_in:"
+        },
+        {
+          "path": "frappe/frappe/translate.py",
+          "line": 140,
+          "quote": "def get_boot_translations(lang: str | None = None) -> dict[str, str]:"
+        },
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 178,
+          "quote": "\"Custom get_list method for {0} must return a QueryBuilder object or None, got {1}\""
+        }
+      ]
+    },
+    {
+      "requirementId": "locale-2",
+      "sourceStage": "post_mvp",
+      "existing": "Alfabe dönüştüren servis, API, DocType veya hook bulunmadı. Yalnız komşu primitifler var: Desk fuzzy_match.js NFD ve aksan silme (istemci araç çubuğu); SQLiteSearch varsayılan unicode61 remove_diacritics 2 tokenizer'ı ve Suite writer aramasında aynı tokenizer; desk search_widget düz like filtresi; Suite drive indirme adında NFKD ve ascii ignore (dönüştürmez, siler; özgün ad filename* ile korunur); Suite clean_text NFKC ve boşluk sadeleştirme. Bunlar Latin aksan katlama veya normalizasyondur, transliterasyon değildir.",
+      "gap": "Dönüşüm kütüphanesi ve lisansı seçilmedi; özgün metni koruyup dönüştürülmüş biçimi tutan alan veya indeks yok; link ve global aramada transliterasyonlu eşleme yok; istemcinin okuyacağı sözleşme alanı yok; alfabe çifti ve 3-5 örneklik kabul veri seti yok.",
+      "completionSteps": [
+        "Kararla kapsamı daralt: tek alfabe çifti (örneğin Kiril'den Latin'e), tek senaryo (link veya global arama); kütüphane ve lisans kullanıcı onayıyla seçilir.",
+        "3-5 örneklik kabul tablosunu belgeye yaz: girdi, beklenen çıktı, özgün metnin korunduğu alan.",
+        "Saf transliterate(text, source_script, target) yardımcı fonksiyonu için önce tek birim RED/GREEN kur.",
+        "Fonksiyonu özgün metni değiştirmeden SQLiteSearch alt sınıfının indekslediği metne ek alan olarak ya da search_widget or_filters listesine ikinci aday terim olarak bağla; native izin filtreleri korunur.",
+        "Okunur alanı api-middleware ve kernel-envelope sözleşmeleri üzerinden istemciye aç; yeni registry açma. Karar yoksa madde post_mvp'de ertelenmiş kalır."
+      ],
+      "dependencies": [
+        "ui-localization--contract",
+        "api-middleware--contract",
+        "kernel-envelope--contract"
+      ],
+      "acceptance": "Seçilen alfabe çiftinde 3-5 örnek beklenen çıktıyı verir; kayıttaki özgün metin değişmez; dönüştürülmüş terimle arama yalnız kullanıcının native olarak okuyabildiği kayıtları döndürür.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/public/js/frappe/ui/toolbar/fuzzy_match.js",
+          "line": 87,
+          "quote": ".replace(/[\\u0300-\\u036f]/g, \"\")"
+        },
+        {
+          "path": "frappe/frappe/search/sqlite_search.py",
+          "line": 224,
+          "quote": "schema.setdefault(\"tokenizer\", \"unicode61 remove_diacritics 2\")"
+        },
+        {
+          "path": "frappe/frappe/desk/search.py",
+          "line": 251,
+          "quote": "or_filters.append([doctype, f.strip(), \"like\", f\"%{txt}%\"])"
+        },
+        {
+          "path": "suite/suite/drive/utils/files.py",
+          "line": 582,
+          "quote": "simple = unicodedata.normalize(\"NFKD\", download_name).encode(\"ascii\", \"ignore\").decode(\"ascii\")"
+        },
+        {
+          "path": "suite/suite/writer/search.py",
+          "line": 12,
+          "quote": "\"tokenizer\": \"unicode61 remove_diacritics 2 tokenchars '-_'\","
+        },
+        {
+          "path": "suite/suite/utils/__init__.py",
+          "line": 148,
+          "quote": "text = unicodedata.normalize(\"NFKC\", text)"
+        }
+      ]
+    },
+    {
+      "requirementId": "locale-3",
+      "sourceStage": "post_mvp",
+      "existing": "Babel bağımlılığı ve gettext hattı (_lt ve N_ anahtar sözcükleri) var. Katalog önce uygulama çevirilerini, sonra alt dil çevirilerini üstüne yazarak birleştirir. translation_version önbellek anahtarı var. get_boot_translations düz dict[str, str] döner ve bir yıllık http_cache ile sunulur.",
+      "gap": "Çoğul biçimlerin istemciye taşınma sözleşmesi yok. Eksik anahtarda kaynak metne dönüş ve Language.based_on alanının geri dönüşteki rolü doğrulanmadı. İstemcinin translation_version ile kataloğu tazeleme yolu tanımlı değil. CSV ile PO/MO yollarından hangisinin hedef sürümde geçerli olduğu seçilmedi.",
+      "completionSteps": [
+        "Hedef sürüm kararından sonra bu maddedeki alıntıları o sürümde yeniden oku.",
+        "Üç adlandırılmış kontrol tanımla: eksik anahtar kaynak metne döner; üst dile geri dönüş (örneğin zh-TW için zh) alt dil çevirisiyle ezilir; translation_version değişince katalog yenilenir.",
+        "translation_version değerinin istemciye taşındığı mevcut native yolu kaynakta ara; yeni uç nokta önermeden önce bu aramanın sonucunu belgeye yaz.",
+        "Çoğul kararı verilene kadar çoğul gerektiren metinlerin envanterini çıkar; karar sonrası tek yol (Frappe kataloğu veya istemci ICU) uygulanır.",
+        "Hedef sürümde CSV ve PO/MO yollarından geçerli olanı tek satırla belgele."
+      ],
+      "dependencies": [
+        "ui-localization--contract",
+        "client-rule-parity--contract"
+      ],
+      "acceptance": "Seçilen sürümde eksik anahtar kaynak metni gösterir; alt dil çevirisi üst dil çevirisini ezer; translation_version değişince istemci eski kataloğu kullanmaz; 0, 1, 2 ve çok sayılar kararlaştırılan çoğul yoluyla doğru biçimlenir.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/translate.py",
+          "line": 33,
+          "quote": "TRANSLATION_VERSION_KEY = \"translation_version\""
+        },
+        {
+          "path": "frappe/frappe/translate.py",
+          "line": 139,
+          "quote": "@http_cache(max_age=31536000)"
+        },
+        {
+          "path": "frappe/frappe/translate.py",
+          "line": 165,
+          "quote": "all_translations.update(get_translations_from_apps(lang))"
+        },
+        {
+          "path": "frappe/frappe/gettext/translate.py",
+          "line": 19,
+          "quote": "PYTHON_KEYWORDS = DEFAULT_KEYWORDS | {\"_lt\": None, \"N_\": None}"
+        },
+        {
+          "path": "frappe/pyproject.toml",
+          "line": 12,
+          "quote": "\"Babel~=2.16.0\","
+        }
+      ]
+    },
+    {
+      "requirementId": "locale-5",
+      "sourceStage": "post_mvp",
+      "existing": "Language DocType based_on Link alanı var. update_user_defaults, dil ayarı değişince ilgili kullanıcıların tarih, saat ve sayı varsayılanlarını günceller. Kullanıcı çevirileri kataloğa genel metin eşlemesi olarak eklenir. Alıntılarda Language için yazım yönü alanı görülmedi; kayda özel çok dilli içerik alanı yok.",
+      "gap": "Kayda özel içerik modeli (dil başına Custom Field, alt tablo veya ayrı DocType) ve izin sınırı seçilmedi. İçerik dili bulunmadığında geri dönüş ve arama indeksi davranışı tanımlı değil. Yön bilgisinin kaynağı, ConfigProvider direction ve mantıksal CSS sözleşmesi yok. RTL klavye ve odak kabulü WCAG 2.2 AA ve tarayıcı matrisine bağlanmadı.",
+      "completionSteps": [
+        "İçerik modeli kararını al; native DocType veya Custom Field kullanılır, ORM kopyalanmaz. İzin seviyesi gerekirse explicitPermissionFlags ortak kaynağına bağlanır.",
+        "Yön kuralını tek yerde tanımla: dil kodundan türetilen RTL listesi; ConfigProvider direction ve belge kökündeki dir aynı kaynaktan beslenir. Bileşenlerde mantıksal CSS özellikleri ve semantik tokenlar kullanılır.",
+        "İçerik dili geri dönüş sırasını ve arama indeksine etkisini karar sonrası belgeye yaz.",
+        "Arapça kabulünü bu iki karardan sonra planla: 320 CSS px ile başla; Chromium, Firefox ve WebKit; Tab, Shift+Tab, ok tuşları, Enter, Escape; çevrelemeyen görünür odak göstergesi; en az 14 CSS px metin."
+      ],
+      "dependencies": [
+        "ui-localization--contract",
+        "ui-family-33--contract",
+        "client-rule-parity--contract",
+        "api-middleware--contract"
+      ],
+      "acceptance": "Arapça seçildiğinde yön rtl olur; gezinme ve klavye odağı mantıksal sırada çalışır; aynı kaydın iki dildeki içerik alanları birbirini ezmez; yazma yetkisi olmayan kullanıcının içerik çevirisi yazması reddedilir ve kayıt değişmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/translate.py",
+          "line": 171,
+          "quote": "all_translations.update(get_user_translations(lang))"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/language/language.json",
+          "line": 46,
+          "quote": "\"fieldname\": \"based_on\","
+        },
+        {
+          "path": "frappe/frappe/core/doctype/language/language.py",
+          "line": 61,
+          "quote": "def update_user_defaults(self):"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "React katalog yükleyicisi ve Ant Design ConfigProvider locale/direction eşlemesi yok (locale-1, locale-5).",
+    "Token oturumunda frappe.local.lang atamasının kaynağı doğrulanmadı (locale-1).",
+    "translation_version değerinin istemciye taşınma yolu ve çoğul sözleşmesi yok (locale-3).",
+    "Transliterasyon fonksiyonu, saklama alanı, arama eşlemesi ve kabul veri seti yok (locale-2).",
+    "Kayda özel çok dilli içerik modeli ve RTL kabul matrisi yok (locale-5).",
+    "Alıntılar yerel v17.0.0.dev0 anlık görüntüsünden; hedef sürümde yeniden doğrulanmadı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Desteklenen dil listesi ve ikinci dil",
+      "requirementIds": ["locale-1", "locale-3", "locale-5"],
+      "blocks": "Eşleme tablosu ve iki dilli kabul testi",
+      "untilDecided": "Türkçe sabit kaynak dil olarak belgelenir; ikinci dil alanı açık bırakılır."
+    },
+    {
+      "decision": "Hedef Frappe sürümü (v16 dokümanları ile yerel v17.0.0.dev0 arasında)",
+      "requirementIds": ["locale-1", "locale-2", "locale-3", "locale-5"],
+      "blocks": "Alıntıların yeniden doğrulanması ve kabul",
+      "untilDecided": "Alıntılar sürüm etiketiyle anlık görüntü kanıtı olarak işaretli kalır."
+    },
+    {
+      "decision": "React istemcisinin dil iletme kanalı (oturumdaki User.language ile _lang override sınırı)",
+      "requirementIds": ["locale-1"],
+      "blocks": "development.steps 2-3",
+      "untilDecided": "Hedef sürüm kaynağında frappe.local.lang atamasını okuyup belgeye alıntı ekle."
+    },
+    {
+      "decision": "Transliterasyon alfabe çifti, senaryo, kütüphane ve lisansı",
+      "requirementIds": ["locale-2"],
+      "blocks": "transliterate fonksiyonu, indeks alanı ve arama bağlantısı",
+      "untilDecided": "Lisans seçmeden 3-5 örneklik kabul tablosu şablonu yazılır."
+    },
+    {
+      "decision": "Çoğul çözüm yeri (Frappe gettext kataloğu veya istemci ICU)",
+      "requirementIds": ["locale-3"],
+      "blocks": "Çoğul kontrolü",
+      "untilDecided": "Çoğul gerektiren metin envanteri çıkarılır."
+    },
+    {
+      "decision": "Kayda özel çok dilli içerik modeli ve içerik dili geri dönüş sırası",
+      "requirementIds": ["locale-5"],
+      "blocks": "İçerik alanları, arama davranışı ve Arapça kabulü",
+      "untilDecided": "Aday modellerin native izin ve arama etkilerini karşılaştıran kısa belge yazılır."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

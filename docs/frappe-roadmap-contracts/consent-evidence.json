@@ -24,7 +24,7 @@
   },
   "reuse": {
     "status": "KISMI",
-    "mechanism": "Native önce: Document.insert/validate/on_trash controller hook'ları, DocPerm if_owner okuma ve alan düzeyi okuma izni. Yeni ORM, olay motoru veya CRUD kopyası yok. Yalnız sahip olunan controller'da en küçük guard eklenir, çünkü native yetki Administrator için güncelleme ve silmeyi engellemez. Şema submittable seçilip cancel/amend/delete izni kapatılırsa değişmezlik native olur; bu durumda controller guard'ı yalnız withdrawal hedef doğrulaması için kalır. Kanıtlar native yapı taşlarını gösterir; ayrı aydınlatma/rıza/sözleşme olay akışının var olduğunu göstermez.",
+    "mechanism": "Native önce: Document.insert/validate/on_trash hook’ları ve DocPerm/alan izinleri yeniden kullanılır. Submittable seçmek veya cancel/amend/delete bayraklarını kapatmak tüm durumlarda Administrator dahil değişmezliği tek başına kanıtlamaz. Güncelleme ve silme reddi, önerilen controller koşulu olarak korunur; native yeterlilik hedef sürümde doğrulanmadan guard kaldırılmaz. Kaynak parçaları ürün uygulaması değildir.",
     "evidence": [
       {
         "path": "frappe/frappe/website/doctype/personal_data_download_request/personal_data_download_request.json",
@@ -79,7 +79,7 @@
   "contract": {
     "input": "Şema görevinden beklenen alanlar (öneri, karar değil): subject_user Link User zorunlu; event_type Select {notice_presented, explicit_consent, withdrawal, contract_acceptance} zorunlu; purpose Data <=140; channel Select {email, sms, push, web}; text_version Data <=140 zorunlu; source Data <=140; occurred_at Datetime zorunlu; withdraws_event Link Consent Evidence (yalnız withdrawal için zorunlu). text_version alanının Consent Policy Reference kaydına bağlanıp bağlanmayacağı consent-policy-reference--contract ve policy-document--contract kararına bırakılır; bu sözleşme o DocType'ın alanlarını tanımlamaz.",
     "output": "Native /api/resource okuma yanıtı; check_permission(read) sonrası apply_fieldlevel_read_permissions ile filtrelenmiş alanlar. Sözleşme sürümü contract-consent-evidence v1. JSON model sınırı yalnız bu yanıt verisidir; gelecekteki React istemcideki ReactNode/callback'ler sözleşmenin parçası değildir. Kaynak registry ile GenUI capability registry ayrıdır; bu birim GenUI capability üretmez.",
-    "authorization": "Native Frappe site sınırı; tenant/site topolojisi tenant-registry--contract kararına bağlıdır, burada seçilmez. DocPerm önerisi explicitPermissionFlags ortak kaynağına (../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy içindeki explicitPermissionFlags) bağlanır: kullanıcı yalnız kendi olayını if_owner ile okur ve create yapar; hiçbir rolde write/delete/cancel/amend yok. Yetkisiz okuma native frappe.PermissionError. Administrator için controller guard'ı geçerlidir. ignore_permissions, ham SQL veya izin kontrolünü atlayan başka bir yazma yolu kullanılmaz.",
+    "authorization": "Native Frappe site sınırı; tenant/site topolojisi tenant-registry--contract kararına bağlıdır, burada seçilmez. DocPerm önerisi explicitPermissionFlags ortak kaynağına (../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy içindeki explicitPermissionFlags) bağlanır: kullanıcı yalnız kendi olayını if_owner ile okur ve create yapar; hiçbir rolde write/delete/cancel/amend yok. Yetkisiz okuma native frappe.PermissionError. Administrator için controller guard'ı geçerlidir. ignore_permissions, ham SQL veya izin kontrolünü atlayan başka bir yazma yolu kullanılmaz. Kendi adına olay oluşturmada subject_user sunucuda oturum kullanıcısından türetilir; istemcinin farklı subject_user göndermesi reddedilir. Withdrawal hedefi aynı yetkili özneye ait olmalıdır. if_owner yalnız owner okumasıdır; subject_user bağını kendiliğinden kurmaz. Başkası adına olay üretimi ayrı kullanıcı yetki kararıdır ve karar gelmeden kabul edilmez.",
     "persistence": "Native istek transaction'ı içinde Document.insert; validate hook'unda belge yeni değilse ve alan değişmişse reddet; on_trash hook'unda her zaman reddet. Hata transaction'ı native rollback eder. DDL/migrate şema görevine aittir; bu sözleşme DDL garantisi vermez ve hiçbir servis, production ortamı, şema veya veriyi değiştirme yetkisi taşımaz.",
     "failure": "Güncelleme, silme veya geçersiz withdrawal hedefi native frappe.ValidationError ile reddedilir (çevrilebilir mesaj, kayıt verisi içermez). Yetki hatası frappe.PermissionError. Gelecekteki React/Ant Design tüketicisi hatayı Ant Design mesaj bileşeniyle gösterir ve iyimser güncellemeyi geri alır; bu tüketici bu görevde yoktur. UI kuralları korunur: Outfit, en az 14 CSS px, 320 öncelikli, çevreleyen odak halkası yok, simetrik pozitif Cubic hareket."
   },
@@ -95,7 +95,7 @@
       "policy-document--contract",
       "tenant-registry--contract"
     ],
-    "admission": "Uygulama durumu: uygulanmadı. Kabul önkoşulları: T-00 hedef baseline ve R-00 reuse eşlemesi; izinli veri tüketicileri için R-01; consent_evidence şemasının şema görevi tarafından migrate edilmiş olması; tek dar davranışın gerçek RED/GREEN kanıtı. Şemanın submittable olup olmadığı bilinmiyor; submittable ve değişmezlik native ise güncelleme senaryosu RED üretemez ve test withdrawal hedef reddine daraltılır. Kaynak alıntıları salt okunur Frappe/Suite kaynak anlık görüntülerindendir; canlı site veya ürün kabulü değildir. Deploy ve rollback teknik sahibi Hüseyin Cengiz'dir.",
+    "admission": "Uygulama durumu: uygulanmadı. T-00/R-00/R-01 ve native şema eşlemesi gerekir. Submittable bayrağı tek başına Administrator dahil değişmezlik kanıtı değildir. Native yeterlilik bütün ilgili yollar için doğrulanırsa yeniden kullanım kaydedilir; yapay RED veya gereksiz guard yazılmaz. Farklı özne adına olay üretimi karar gelmeden reddedilir.",
     "steps": [
       "Şema meta verisini salt okunur oku; submittable ve DocPerm durumunu belgeye kaydet.",
       "consent_evidence.py içinde validate: kayıtlı belgede alan değişikliği varsa ValidationError; withdrawal için withdraws_event aynı subject_user ve explicit_consent türünde olmalı.",
@@ -349,6 +349,12 @@
       "requirementIds": ["legal-7"],
       "blocks": "Eşitleme işinin çalıştırılması",
       "documentStepUntilDecision": "Yalnız site config/secret deposu kuralını yaz; teknik karar Hüseyin Cengiz'de, değer yazılmaz."
+    },
+    {
+      "decision": "Başka bir özne adına olay üretilebilecek yetkili rol ve denetlenebilir temsil sınırı",
+      "requirementIds": ["legal-1", "legal-4", "legal-5", "legal-7"],
+      "blocks": "Temsilci/servis kimliğiyle subject_user seçimi",
+      "docStepUntilDecided": "Kendi adına üretimde subject_user oturumdan gelir; farklı özne seçimi reddedilir."
     }
   ],
   "status": "integrated_contract_only",

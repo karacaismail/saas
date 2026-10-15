@@ -1,18 +1,26 @@
 {
   "schemaVersion": "saas-existing-work-contract.v1",
   "canonicalUnitId": "ui-family-33",
-  "canonicalTaskIds": ["ui-family-33--implementation"],
+  "canonicalTaskIds": [
+    "ui-family-04--implementation-mvp",
+    "ui-family-33--implementation"
+  ],
   "requirementIds": ["shell-7"],
   "stage": "mvp",
+  "sourceStages": {
+    "shell-7": "mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
-    "title": "time_zone icin kullanici override'i kaldirilinca System Settings degerine geri donus (yerel site ici kanit)",
-    "trigger": "Oturumdaki kullanici kendi time_zone override'ini kaldirir, ardindan cozumlenmis tercih okunur.",
-    "expected": "Yanit {key:'time_zone', value:System Settings.time_zone, sourceLayer:'site', contractVersion:1} doner; System Settings kaydi ve baska kullanicinin override'i degismez.",
-    "denied": "Guest, baska kullaniciyi hedefleme ve allowlist disi anahtar reddedilir; site_config degerleri yanita ve boot'a hic girmez."
+    "title": "Uygulama durumu: uygulanmadı. time_zone için kullanıcı override'ı kaldırılınca site katmanı (System Settings) değerine geri dönüş",
+    "trigger": "Oturumdaki kullanıcı kendi time_zone override'ını kaldırır (clear_override), ardından çözümlenmiş tercih okunur (get).",
+    "expected": "Yanıt {key:'time_zone', value:System Settings.time_zone, sourceLayer:'site', contractVersion:1} döner; System Settings kaydı ve başka kullanıcının override'ı değişmez. Override zaten yoksa işlem idempotenttir ve aynı yanıt döner.",
+    "denied": "Guest isteği, başka kullanıcıyı hedefleme girişimi ve allowlist dışı anahtar reddedilir; reddedilen istekte hiçbir kayıt değişmez. site_config/common_site_config değerleri yanıta ve boot'a girmez."
   },
   "reuse": {
-    "mechanism": "Once native: site katmani frappe.get_single('System Settings') ile okunur; frappe.conf yalniz sunucu tarafinda kalir. Kullanici katmani icin yeni DocType/ORM kopyasi yok; native kullanici varsayilani mekanizmasi bu kesitte gorulmedi, admission'da dogrulanip yeniden kullanilir. Eksik olan yalniz tek anahtarli cozumleme sirasi ve allowlist oldugundan en kucuk adapter: tek whitelisted okuma/temizleme metodu.",
+    "status": "KISMI",
+    "mechanism": "Native parçalar: site katmanı frappe.get_single('System Settings') ile okunur (setup_wizard.py:146); frappe.conf yalnız sunucu tarafında okunur (api/v2.py:32). suite/sheets/boot.py:19 bir site_config değerinin bootinfo'ya aktarılabildiğini gösterir; bu allowlist gereğinin kanıtıdır, ayar mirasının kanıtı değildir. Kullanıcı katmanının native kaynağı (kullanıcı varsayılanı veya User kaydı alanı) verilen kesitte görülmedi; admission'da hedef baseline kaynağında doğrulanıp yeniden kullanılır. Yeni DocType, ORM kopyası veya ayar motoru tasarlanmaz; eksik olan yalnız tek anahtarlı çözümleme sırası ve allowlist'tir. Kanıtlar tekil native parçaları gösterir; platform-kiracı-kullanıcı öncelik zincirinin var olduğunu göstermez. searchedPaths kapsamlı bir yokluk iddiası değildir.",
     "evidence": [
       {
         "path": "frappe/frappe/desk/page/setup_wizard/setup_wizard.py",
@@ -29,72 +37,146 @@
         "line": 19,
         "quote": "bootinfo.collab_v2 = bool(frappe.conf.get(\"collab_v2\") or False)"
       }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v2.py",
+      "frappe/frappe/desk/page/setup_wizard/setup_wizard.py",
+      "suite/suite/sheets/boot.py"
     ]
   },
   "ownership": {
     "activeContractFile": "docs/frappe-roadmap-contracts/ui-family-33.json",
     "plannedProduction": [
-      "backend/saas_platform/saas_platform/api/settings_preference.py (planlanan adapter; yolu entegrasyon sahibi onaylar)",
+      "frontend/packages/ui/src/components/ui-family-04/mvp.tsx",
       "frontend/packages/ui/src/components/ui-family-33/index.tsx"
     ],
-    "plannedTestFile": "backend/saas_platform/saas_platform/tests/test_settings_preference.py",
+    "plannedTestFile": null,
     "sharedIntegrationFiles": [
       "backend/saas_platform/saas_platform/hooks.py",
-      "frontend/packages/ui/src/index.ts",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
       "frontend/packages/ui/src/registry.ts",
-      "integration/fragments/ui-family-33--integration.json"
+      "package-lock.json"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "get(key:str) ve clear_override(key:str); allowlist yalniz ['time_zone'], en fazla 64 karakter. user parametresi yok; hedef daima frappe.session.user.",
-    "output": "{key, value:str|null, sourceLayer:'user'|'site'|'unset', contractVersion:1}. site_config/common_site_config degerleri ve baska kullanici verisi donmez.",
-    "authorization": "Native cookie/CSRF oturumu; Guest reddedilir (frappe.PermissionError). Kapsam mevcut site ve oturum kullanicisi. Bu davranista System Settings'e yazma yok; site katmanini kimin yazacagi acik gap.",
-    "persistence": "clear_override native kullanici varsayilani mekanizmasiyla tek istek transaction'inda silinir; Frappe istek sonu commit, hatada rollback. DDL/migration yok ve garanti verilmez.",
-    "failure": "Allowlist disi anahtar: frappe.ValidationError; tuketici alan altinda satir ici hata gosterir, tekrar denemez. Guest/yetkisiz: frappe.PermissionError; tuketici yetki yok durumu gosterir. Override yoksa idempotent, 'site' degeri doner. Ag/sunucu hatasi: TanStack sorgu hata durumu, son gecerli deger korunur. HTTP kodlari yerelde dogrulanacak."
+    "input": "get(key:str) ve clear_override(key:str). Allowlist yalnız ['time_zone']; anahtar en fazla 64 karakter. user parametresi yoktur; hedef daima frappe.session.user. Metot adları ve backend modül yolu öneridir; admission'da ana entegrasyon sahibi onaylar.",
+    "output": "{key:str, value:str|null, sourceLayer:'user'|'site'|'unset', contractVersion:1}. Çözümleme sırası: kullanıcı override'ı, sonra System Settings, yoksa unset. site_config/common_site_config değerleri ve başka kullanıcı verisi dönmez. Yanıt JSON modelidir; ReactNode veya callback taşımaz, bunlar yalnız yerel bileşen tarafında kalır.",
+    "authorization": "Native Frappe oturumu (cookie + CSRF) ve native izin denetimi; Guest frappe.PermissionError ile reddedilir. Kapsam mevcut site ve oturum kullanıcısıdır. ignore_permissions, ham SQL veya başka izin bypass'ı yok. Bu davranış System Settings'e yazmaz; katman yazma yetkileri tanımlandığında explicitPermissionFlags ortak kaynağına bağlanır, bu sözleşme kendi rol/izin tanımı üretmez.",
+    "persistence": "clear_override yalnız oturum kullanıcısının native kullanıcı katmanı kaydını native kayıt/save/hook yoluyla kaldırır; Frappe istek sonu commit, hata halinde rollback uygular. Manuel commit, DDL veya migration yok. Bu sözleşme hiçbir servis, production ortamı, şema veya veriyi değiştirme yetkisi vermez.",
+    "failure": "Allowlist dışı veya uzun anahtar: frappe.ValidationError; tüketici alan altında satır içi hata gösterir, otomatik tekrar denemez. Guest/yetkisiz: frappe.PermissionError; tüketici yetki yok durumunu gösterir. Override yoksa idempotent 'site' yanıtı. Ağ/sunucu hatası: TanStack Query hata durumu, son geçerli değer korunur, sahte ilerleme gösterilmez. HTTP durum kodları admission'da hedef baseline kaynağında doğrulanır."
   },
   "development": {
     "dependencies": [
-      "ui-family-33--contract",
-      "kernel-envelope--contract",
       "api-middleware--contract",
       "client-rule-parity--contract",
+      "kernel-envelope--contract",
+      "membership--contract",
+      "organization-unit--contract",
       "page-profile--contract",
+      "ui-family-04--contract",
+      "ui-family-04--implementation",
       "ui-family-17--contract",
-      "ui-family-04--implementation-mvp",
-      "T-00 target baseline",
-      "R-00 reuse mapping",
-      "R-01 permissioned data"
+      "ui-family-33--contract"
     ],
-    "admission": "T-00/R-00/R-01 hazir olmali. Yerel Frappe17-dev (frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6) kaynaginda native kullanici varsayilani mekanizmasi ve System Settings time_zone okumasi dogrulanmali; dogrulanamazsa uygulama baslamaz. Suite HEAD ve uzak urun baseline bilinmiyor; suite.localhost yalniz yerel kanittir.",
+    "admission": "Uygulama durumu: uygulanmadı. Ortak ön koşullar: T-00 target baseline ve R-00 reuse mapping; izinli veri tüketicisi olduğu için R-01. Özgül ön koşullar: (1) hedef baseline Frappe kaynağında kullanıcı katmanının native mekanizması ve System Settings time_zone okuması path/line/quote kanıtıyla doğrulanır; doğrulanamazsa uygulama başlamaz. (2) ui-family-04--implementation shell bağlama noktası hazırdır. (3) Backend adapter yolu ana entegrasyon sahibince onaylanır; plannedProduction yalnız frontend yollarını içerir. Tek dar davranış gerçek RED/GREEN kanıtıyla uygulanır. Bu sözleşme admission veya production lease vermez.",
     "steps": [
-      "Native kullanici varsayilani mekanizmasini yerel kaynakta dogrula; adapter onu yeniden kullanir.",
-      "Adapter'a tek anahtarli allowlist ve user->site cozumleme sirasi ekle; frappe.conf istemciye cikmaz.",
-      "index.tsx mevcut AntD6/TanStack tuketicisiyle deger, kaynak katmani ve 'Varsayilana don' eylemini gosterir; Outfit, en az 14px, 320-first, cevreleyen odak halkasi yok, simetrik pozitif sureli cubic-bezier(.65,0,.35,1).",
-      "hooks/registry baglantisi fragment olarak entegrasyon sahibine (Codex) devredilir."
+      "Hedef baseline kaynağında kullanıcı katmanının native mekanizmasını ve System Settings time_zone alanını doğrula; kanıtı R-00 eşlemesine path/line/quote olarak ekle.",
+      "Önce tek senaryolu testi yaz ve gerçek RED'i kaydet (tdd alanı).",
+      "Backend adapter: whitelisted get/clear_override; allowlist ['time_zone'], 64 karakter sınırı, hedef frappe.session.user; çözümleme kullanıcı, System Settings, unset sırasıyla; frappe.conf değerleri yanıta veya boot'a konmaz; ignore_permissions ve SQL yok.",
+      "frontend/packages/ui/src/components/ui-family-33/index.tsx: SettingsPreference bileşeni React + Ant Design ile değeri, kaynak katmanını ve 'Varsayılana dön' eylemini gösterir; veri TanStack Query ile okunur, temizleme sonrası ilgili sorgu geçersiz kılınır. Semantik tokenlar, Outfit, en az 14 CSS px, 320 CSS px önce, çevreleyen odak halkası yok (çevrelemeyen tek görünür gösterge), hareket simetrik cubic-bezier(.65, 0, .35, 1) ve pozitif süre, reduced-motion istisnası.",
+      "frontend/packages/ui/src/components/ui-family-04/mvp.tsx: shell içinde ayar yüzeyinin bağlama noktası; iş kuralı içermez.",
+      "Paylaşılan dosyalar (hooks.py, registry.ts, routes.tsx) için değişiklik fragment olarak ana entegrasyon sahibine seri birleştirmeye devredilir; registry.ts kaynak/bileşen registry'sidir, GenUI capability registry ile karıştırılmaz. Tauri, WXT ve paket manifest dosyalarında bu davranış için değişiklik beklenmez.",
+      "Aynı testle GREEN; UI tarayıcı/viewport/giriş matrisi ve bağımsız QA ayrı kanıt olarak pass/fail/not_run durumuyla raporlanır."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "suite.localhost'ta yalniz test fixture kullanicilari: A ve B icin farkli time_zone override'lari yazilir; A clear_override cagirir; get A icin System Settings.time_zone ve sourceLayer 'site' donmeli, B override'i ve System Settings.time_zone degismemeli.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Ayni test ayni komutla (bench --site suite.localhost run-tests, modul yolu yerelde dogrulanacak) adapter sonrasi gecer. Native calisan System Settings okumasi RED uretmek icin kullanilmaz."
+      "oneScenario": "Test sitesinde (site adı T-00'da belirlenir) yalnız test fixture kullanıcıları A ve B için System Settings.time_zone'dan ve birbirinden farklı time_zone override'ları native yolla yazılır; A oturumunda clear_override('time_zone') çağrılır; A için get('time_zone') value=System Settings.time_zone ve sourceLayer='site' döner; B'nin override'ı ve System Settings.time_zone değişmez.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. RED, adapter davranışı yokken oneScenario'daki davranış assertion'ının (değer, sourceLayer veya B'nin değişmezliği) başarısız olmasıdır; import/modül bulunamadı veya altyapı hatası RED sayılmaz, native System Settings okuması bozularak RED üretilmez. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "Adapter sonrasında aynı senaryo, değişmeyen assertion ve aynı komutla (bench run-tests; site ve modül yolu admission'da doğrulanır) geçmelidir. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN'i değildir."
     },
-    "rollback": "Adapter ve index.tsx degisikligi yerelde geri alinir; sema degismedigi icin migration geri alimi yok. Production izni yok."
+    "rollback": "Gelecekte adapter ve bileşen değişikliği tek değişiklik olarak geri alınır; şema değişmediği için migration geri alımı yoktur. Kullanıcının temizlediği override geri alma kapsamında değildir; kullanıcı yeniden ayarlar. Ortam, CI, deploy ve rollback işlemlerinin teknik sahibi Hüseyin Cengiz'dir; bu sözleşme production veya servis yetkisi vermez."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "shell-7",
+      "sourceStage": "mvp",
+      "existing": "Native parçalar: System Settings singleton okuması (frappe.get_single) ve sunucu tarafı frappe.conf okuması kaynakta görülüyor; Suite boot uzantısı site_config bayraklarını bootinfo'ya aktarıyor. Bunlar katman parçalarıdır; platform-kiracı-kullanıcı öncelik zinciri ve izolasyon sözleşmesi yoktur.",
+      "gap": "Tenant tanımı kararsız; anahtar kataloğu ve katman/izin tablosu yok; boot allowlist sözleşmesi yok; kullanıcı katmanının native kaynağı görülmedi; katman yazma yetkisi tanımsız.",
+      "completionSteps": [
+        "Bu davranışta yalnız site içi kullanıcıdan site katmanına (System Settings) geri dönüşü time_zone için uygula; platform ve kiracı katmanı kapsam dışı.",
+        "Anahtar katalog şablonunu belgele: anahtar, izinli katmanlar (common_site_config, site_config, System Settings, kullanıcı), istemciye açılabilirlik, yazma izni bayrağı; ilk satır time_zone.",
+        "Boot ve API yanıtı için varsayılan-ret ilkesi belgele: katalogda istemciye açık işaretlenmemiş hiçbir frappe.conf anahtarı bootinfo'ya veya yanıta girmez.",
+        "Kullanıcı katmanının native mekanizmasını admission'da doğrula ve yeniden kullan; yeni DocType yok.",
+        "Katman yazma yetkilerini explicitPermissionFlags ortak kaynağına bağla; o davranışın kabulünde reddedilen yazma ve değişmeyen kayıt kontrolü bulunur.",
+        "Tenant topolojisi kararı geldikten sonra kiracı katmanını ve kiracılar arası izolasyon kabulünü ayrı davranış olarak ekle."
+      ],
+      "dependencies": [
+        "ui-family-33--contract",
+        "kernel-envelope--contract",
+        "api-middleware--contract",
+        "client-rule-parity--contract",
+        "page-profile--contract",
+        "ui-family-17--contract",
+        "ui-family-04--implementation"
+      ],
+      "acceptance": "Bu davranış için: A override'ı kaldırınca System Settings değeri ve sourceLayer='site' döner; B'nin override'ı ve System Settings değişmez; Guest, başka kullanıcıyı hedefleme ve allowlist dışı anahtar reddedilir ve kayıt değişmez; frappe.conf değeri yanıtta yoktur. 'Başka tenant ayarı değişmemeli' kabulü tenant kararından sonra ayrı doğrulanır.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/desk/page/setup_wizard/setup_wizard.py",
+          "line": 146,
+          "quote": "system_settings = frappe.get_single(\"System Settings\")"
+        },
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 32,
+          "quote": "conf = frappe.conf.get(\"bulk_operation_async_threshold\", 20)"
+        },
+        {
+          "path": "suite/suite/sheets/boot.py",
+          "line": 19,
+          "quote": "bootinfo.collab_v2 = bool(frappe.conf.get(\"collab_v2\") or False)"
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "Tenant = site mi, site ici kapsam mi kararsiz; kiraciler arasi izolasyon kaniti bu davranista yok, yalniz site ici kullanici izolasyonu.",
-    "Anahtar katalogu ve katman/izin tablosu (common_site_config, site_config, System Settings, kullanici) yazilmadi; time_zone disi anahtarlar kapsam disi.",
-    "Platform katmani ve boot allowlist sozlesmesi yok; gizli site_config degerleri icin ayri karar gerekir.",
-    "Native kullanici varsayilani kaynagi verilen kesitte gorulmedi; bilinmiyor.",
-    "Katman yazma yetkisi tanimsiz; Keycloak e-posta/kimlik akisi karar bekliyor, haric.",
-    "UI tarayici/viewport matrisi ve bagimsiz QA not_run.",
-    "Uzak deploy gereksinimi bagimlilik: teknik sahip Huseyin Cengiz."
+    "Tenant topolojisi kararsız; kiracılar arası izolasyon bu davranışta kanıtlanmaz, yalnız site içi kullanıcı izolasyonu kapsanır.",
+    "Anahtar kataloğu ve katman/izin tablosu yazılmadı; time_zone dışı anahtarlar kapsam dışı.",
+    "Platform katmanı (common_site_config) ve boot allowlist sözleşmesi yok.",
+    "Kullanıcı katmanının native kaynağı verilen kesitte görülmedi; bilinmiyor.",
+    "Katman yazma yetkisi tanımsız; System Settings yazımı bu davranışta yok.",
+    "Backend adapter yolu plannedProduction içinde değil; ana entegrasyon sahibi belirler.",
+    "HTTP durum kodları ve test komutunun site/modül yolu doğrulanmadı.",
+    "UI tarayıcı/viewport/giriş matrisi ve bağımsız QA not_run.",
+    "Ortam/deploy gereksinimleri bağımlılıktır; teknik sahip Hüseyin Cengiz, bu sözleşme yetki vermez."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Tenant topolojisi: tenant bir Frappe site mi, yoksa site içi bir kapsam mı.",
+      "requirementIds": ["shell-7"],
+      "blocks": "Kiracı katmanı, platform-kiracı-kullanıcı öncelik zinciri ve 'başka tenant ayarı değişmemeli' kabulü.",
+      "interimDocStep": "Site içi kullanıcıdan site katmanına geri dönüş davranışı ve her iki seçenekte izolasyon sınırının nerede doğrulanacağı belge olarak hazırlanır; seçim yapılmaz."
+    },
+    {
+      "decision": "Anahtar kataloğu ve katman başına yazma yetkisi sahipliği.",
+      "requirementIds": ["shell-7"],
+      "blocks": "time_zone dışı anahtarlar ve herhangi bir katmana yazma davranışı.",
+      "interimDocStep": "Katalog tablo şablonu ve explicitPermissionFlags ortak kaynağına bağlama kuralı belgelenir; satırlar karar sahibince doldurulur."
+    },
+    {
+      "decision": "Hangi site_config/common_site_config anahtarlarının istemciye açılabilir sayılacağı sınıflandırması.",
+      "requirementIds": ["shell-7"],
+      "blocks": "Boot uzantısında ayar değeri aktarımı ve allowlist genişletilmesi.",
+      "interimDocStep": "Varsayılan-ret ilkesi belgelenir; karar gelene kadar hiçbir frappe.conf değeri bu davranışın yanıtına veya boot'a eklenmez."
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "shell-7": "mvp"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,

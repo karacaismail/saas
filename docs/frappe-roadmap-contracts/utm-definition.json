@@ -1,0 +1,194 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "utm-definition",
+  "canonicalTaskIds": ["utm-definition--implementation"],
+  "requirementIds": ["analytics-3"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "analytics-3": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "UTM tanımı: zorunlu alanları doğrulanmış kampanya URL'si üretimi. Uygulama durumu: uygulanmadı.",
+    "trigger": "Yazma izni olan kullanıcı native Desk formu veya native REST kaynak uç noktası üzerinden UTMDefinition kaydı oluşturur ya da günceller.",
+    "expected": "Native save akışında controller validate adımı base_url ile utm_source, utm_medium ve utm_campaign alanlarını doğrular, onaylandıktan sonra normalizasyon kuralını uygular ve opsiyonel utm_content/utm_term ile birlikte izlenebilir kampanya URL'sini üretip aynı belgede saklar. Üretilen değerler Website Analytics raporundaki source/medium/campaign gruplamasında aynı biçimde görünecek şekilde tanımlanır.",
+    "denied": "Zorunlu UTM alanı eksikse, base_url geçersizse veya base_url zaten utm_ önekli sorgu parametresi taşıyorsa kayıt frappe.ValidationError ile reddedilir; kayıt oluşmaz veya önceki sürümü değişmeden kalır. Yazma izni olmayan kullanıcı native izin kontrolünde reddedilir. ignore_permissions, ham SQL veya başka izin atlatma yolu yoktur."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native parçalar: Website Analytics raporu source, campaign ve medium boyutlarında gruplama seçeneği sunar (yalnız rapor tüketimi). Website Route Redirect DocType'ındaki forward_query_parameters alanı, hosted yönlendirmede sorgu parametrelerinin hedefe taşınmasını açan bir onay kutusudur. Bu parçalar kampanya kod yönetimi, URL üretimi, izinli değer sözlüğü, normalizasyon veya headless SPA yakalaması sağlamaz; kanıtın bir native parçayı göstermesi bütün davranışın var olduğu anlamına gelmez. Kampanya kaydı yeni ORM ile değil, standart DocType (önerilen UTMDefinition), native izinler ve Document validate/save yaşam döngüsüyle tutulur. Kanıtlar önceki salt okunur Frappe kaynak anlık görüntülerindendir; canlı site veya ürün kabulü yoktur. Vue/Frappe UI kaynağı React/Ant Design uygulaması kanıtı değildir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/website/report/website_analytics/website_analytics.js",
+        "line": 39,
+        "quote": "{ value: \"campaign\", label: __(\"Campaign\") },"
+      },
+      {
+        "path": "frappe/frappe/website/report/website_analytics/website_analytics.js",
+        "line": 40,
+        "quote": "{ value: \"medium\", label: __(\"Medium\") },"
+      },
+      {
+        "path": "frappe/frappe/website/doctype/website_route_redirect/website_route_redirect.json",
+        "line": 41,
+        "quote": "\"fieldname\": \"forward_query_parameters\","
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/website/doctype/website_route_redirect/website_route_redirect.json",
+      "frappe/frappe/website/report/website_analytics/website_analytics.js"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/utm-definition.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/content_growth/doctype/utmdefinition/utmdefinition.py"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "UTMDefinition alanları; kesin ad ve tipler utm-definition--schema görevinin onaylı şemasından gelir, buradakiler öneridir: base_url (zorunlu), utm_source, utm_medium, utm_campaign (zorunlu), utm_content ve utm_term (opsiyonel). Değer sözlüğü ve büyük/küçük harf normalizasyonu D-3 kararına tabidir. Headless SPA tarafında giriş, gelen sayfa URL'sindeki utm_ önekli sorgu parametreleridir; yakalama, saklama ve atıf kuralı D-1/D-2 kararına bağlıdır ve bu tek davranışın kapsamında değildir.",
+    "output": "Kaydedilmiş UTMDefinition belgesi ve aynı belgede saklanan üretilmiş kampanya URL'si (önerilen alan: tracking_url). Native REST yanıtı Frappe'nin standart belge yanıtıdır. Özel uç nokta gerekirse yanıt kernel-envelope--contract zarfına uyar; bu davranış özel uç nokta gerektirmez.",
+    "authorization": "Yalnız native DocType izinleri ve frappe.has_permission. Roller ile create/read/write/delete bayrakları explicitPermissionFlags ortak kaynağı ve native-user-policy--contract üzerinden tanımlanır; rol adı burada seçilmez (D-4). ignore_permissions, ham SQL ile yazma veya izin atlatma yasaktır. React/Ant Design Pro yüzeyi yetki kararı vermez, yalnız native yanıtı gösterir.",
+    "persistence": "Native Document.insert/save transaction'ı; doğrulama ve URL üretimi controller validate adımında aynı transaction içinde yapılır. Ham SQL, ayrı tablo veya özel ORM yoktur. Değişikliğin dış tüketiciye yayılması gerekirse outbox--contract ve audit-envelope--contract uygulanır; bu davranış yeni olay veya denetim şeması tanımlamaz.",
+    "failure": "Doğrulama hatası frappe.throw ile frappe.ValidationError olarak döner; transaction geri alınır, kayıt oluşmaz veya önceki sürüm değişmez. İzin hatası frappe.PermissionError olarak döner. Hata mesajları çevrilebilir ve reddedilen alanı belirtir; secret veya kişisel veri içermez."
+  },
+  "development": {
+    "dependencies": [
+      "audit-envelope--contract",
+      "capability-definition--contract",
+      "kernel-envelope--contract",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "outbox--contract",
+      "utm-definition--contract",
+      "utm-definition--schema"
+    ],
+    "admission": "T-00 hedef sürüm tabanı ve R-00 yeniden kullanım eşlemesi tamamlanmış olmalı; izinli veri tüketimi nedeniyle R-01 de uygulanır. utm-definition--contract ve utm-definition--schema (UTMDefinition DocType JSON) hazır olmalı. D-3 ve D-4 karara bağlanmadan sözlük, normalizasyon ve rol adımları başlamaz. Tek dar davranış gerçek RED/GREEN kanıtıyla uygulanır. Bu sözleşme hiçbir servis, production ortamı, şema veya veriyi değiştirme yetkisi vermez.",
+    "steps": [
+      "T-00/R-00 sırasında hedef Frappe sürümünde Website Analytics raporunun source/campaign/medium gruplamasının dayandığı Web Page View alanlarını ve Website Route Redirect forward_query_parameters davranışını salt okunur doğrula; sonucu R-00 eşlemesine yaz.",
+      "utm-definition--schema çıktısındaki UTMDefinition alan adlarını bu sözleşmenin input bölümüyle eşle; uyuşmazlıkta şema görevi esas alınır ve bu rehber güncellenir.",
+      "plannedProduction controller'ında validate içinde base_url sorgu dizesini Python standart kütüphanesiyle ayrıştır ve utm_ önekli anahtar varsa frappe.throw ile reddet (tdd.oneScenario).",
+      "Aynı validate akışında mevcut sorgu parametrelerini koruyarak zorunlu ve dolu opsiyonel UTM alanlarını URL kodlamasıyla ekleyip tracking_url üret; ayrı RED/GREEN adımı olarak ekle.",
+      "D-3 kararı geldikten sonra normalizasyon ve sözlük doğrulamasını ayrı dar adımlar olarak ekle; her biri kendi RED/GREEN kanıtına sahip olsun.",
+      "D-4 kararıyla izinleri explicitPermissionFlags ortak kaynağına bağla; DocType JSON izinleri schema görevinde değişir, bu controller izin kararı vermez.",
+      "D-1/D-2 kararı sonrası headless yakalamayı ayrı alt görev olarak planla: TanStack Router arama parametrelerinden utm_ değerlerini okuma; kayıt hedefi D-1'e, saklama ve atıf D-2'ye bağlıdır.",
+      "Arayüz gerekirse Ant Design Pro formunu capability-definition--contract üzerinden capability registry'ye bağla; kaynak registry ile karıştırma, model çıktısı JSON sınırında kalsın, yerel ReactNode ve callback'ler registry'ye konmaz. Grid kararı bu birimin kapsamında değildir."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "base_url zaten utm_source sorgu parametresi içeren UTMDefinition kaydı native insert ile reddedilir ve veritabanında kayıt oluşmaz.",
+      "red": "UTMDefinition DocType'ı schema görevinden mevcutken çakışma kuralı yokken insert başarılı olur; frappe.ValidationError beklentisi ve kayıt sayısının değişmediği assertion başarısız olur. Import veya altyapı hatası RED sayılmaz; native save veya izin davranışı bozulmaz. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "validate base_url sorgu dizesinde utm_ önekli anahtar bulduğunda frappe.throw ile reddeder; insert ValidationError verir ve kayıt sayısı değişmez. utm_ parametresi taşımayan geçerli base_url ile insert başarılı kalır."
+    },
+    "rollback": "Değişiklik controller kodundan ibarettir ve veri göçü gerektirmez; kod değişikliği geri alınarak eski davranışa dönülür. CI, deploy ve rollback teknik sahibi Hüseyin Cengiz'dir. Bu davranış DNS veya GoDaddy değişikliği gerektirmez; ileride kampanya alan adı gerekirse Hüseyin Cengiz kayıt gereksinimini hazırlar, Asistan Hüseyin GoDaddy tarafında uygular."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "analytics-3",
+      "sourceStage": "post_mvp",
+      "existing": "Mevcut talimat data/clusters/10.json satır 317 (/groups/1/items/2): support=absent, action=build, sahip Pazarlama ölçüm; isimlendirme ve URL üretimi yapılacak; kabul: üretilen URL zorunlu UTM alanlarını doğrulasın, raporda kaynak/medium/kampanya aynı biçimde görünsün. Kaynak değerlendirmesi partial_source: native Website Analytics raporu source/campaign/medium gruplaması ve Website Route Redirect forward_query_parameters alanı mevcut; ortak kampanya kod yönetimi yok.",
+      "gap": "Web Page View source/campaign/medium alanlarının headless akışta yeniden kullanımı veya hosted sayfalarla sınırlanması kararsız; headless SPA yakalama, saklama ve atıf kuralı (ilk/son dokunuş, süre) tanımsız; zorunlu alanlar, izinli değer sözlüğü ve normalizasyon tanımsız; kampanya kaydının DocType'ı ve izin rolleri belirsiz.",
+      "completionSteps": [
+        "Kampanya kaydını standart DocType olarak UTMDefinition adıyla utm-definition--schema görevine bağla; yeni ORM veya CRUD katmanı yazma.",
+        "Zorunlu alanları utm_source, utm_medium, utm_campaign ve base_url olarak öner; kesinleşmesini Pazarlama ölçüm onayına bırak.",
+        "Controller validate içinde utm_ çakışma reddi ve tracking_url üretimini tek tek RED/GREEN adımlarıyla ekle.",
+        "D-3 sonrası sözlük ve normalizasyon kuralını aynı validate akışına ekle; rapordaki source/medium/campaign değerleriyle biçim eşitliğini kabul ölçütüne bağla.",
+        "forward_query_parameters alanının rolünü belgeye yaz: yalnız hosted Website Route Redirect yönlendirmesinde sorgu parametrelerini taşır; headless SPA yakalamasının yerini tutmaz.",
+        "D-1/D-2 sonrası headless yakalama alt görevini ayrı sözleşme adımı olarak tanımla."
+      ],
+      "dependencies": [
+        "utm-definition--contract",
+        "utm-definition--schema",
+        "native-doctype-schema--contract",
+        "native-user-policy--contract",
+        "capability-definition--contract",
+        "kernel-envelope--contract",
+        "outbox--contract",
+        "audit-envelope--contract"
+      ],
+      "acceptance": "Gelecekteki tek kabul: base_url zaten utm_ parametresi taşıyorsa veya zorunlu UTM alanı eksikse native insert reddedilir ve kayıt oluşmaz; yazma izni olmayan kullanıcının güncellemesi PermissionError ile reddedilir ve kayıt değişmez. Geçerli kayıtta üretilen URL zorunlu UTM alanlarını içerir ve D-3 sonrası değerler raporda source/medium/campaign olarak aynı biçimde görünür.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/website/report/website_analytics/website_analytics.js",
+          "line": 39,
+          "quote": "{ value: \"campaign\", label: __(\"Campaign\") },"
+        },
+        {
+          "path": "frappe/frappe/website/report/website_analytics/website_analytics.js",
+          "line": 40,
+          "quote": "{ value: \"medium\", label: __(\"Medium\") },"
+        },
+        {
+          "path": "frappe/frappe/website/doctype/website_route_redirect/website_route_redirect.json",
+          "line": 41,
+          "quote": "\"fieldname\": \"forward_query_parameters\","
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Web Page View alanlarının şeması bu turda doğrudan alıntılanmadı; rapor seçenekleri yalnız gruplama boyutlarını gösterir, T-00/R-00'da doğrulanacak.",
+    "Headless SPA yakalama, saklama ve atıf kuralı tanımsız.",
+    "İzinli değer sözlüğü ve normalizasyon kuralı tanımsız.",
+    "UTMDefinition izin rolleri tanımsız.",
+    "forward_query_parameters davranışı hedef sürümde doğrulanmadı."
+  ],
+  "decisionsPending": [
+    {
+      "id": "D-1",
+      "decision": "Web Page View source/campaign/medium alanları headless akışta yeniden kullanılacak mı, yoksa yalnız hosted sayfalarla mı sınırlı kalacak.",
+      "requirementIds": ["analytics-3"],
+      "blocks": "Headless yakalama alt görevinde kayıt hedefinin belirlenmesi.",
+      "documentationStepUntilDecision": "Hosted ve headless akış için yakalama noktası ile kayıt hedefi seçeneklerini karşılaştıran eşleme tablosunu R-00 notuna yaz."
+    },
+    {
+      "id": "D-2",
+      "decision": "Atıf modeli (ilk dokunuş veya son dokunuş), atıf penceresi süresi ve istemci tarafı saklama için rıza gereksinimi.",
+      "requirementIds": ["analytics-3"],
+      "blocks": "Headless SPA'da utm_ değerlerinin saklanması ve atfedilmesi.",
+      "documentationStepUntilDecision": "Karar sorularını ve her seçeneğin rapor tutarlılığına etkisini belgele; süre veya saklama değeri seçme."
+    },
+    {
+      "id": "D-3",
+      "decision": "Asgari UTM sözlüğü (izinli source/medium değerleri) ve büyük/küçük harf ile boşluk normalizasyon kuralı; sahip Pazarlama ölçüm.",
+      "requirementIds": ["analytics-3"],
+      "blocks": "Sözlük ve normalizasyon doğrulama adımları ile rapor biçim eşitliği kabulü.",
+      "documentationStepUntilDecision": "Zorunlu alan listesini ve karar şablonunu hazırla; utm_ çakışma reddi adımı bu karardan bağımsız ilerleyebilir."
+    },
+    {
+      "id": "D-4",
+      "decision": "UTMDefinition için create/read/write/delete yetkisi alacak roller.",
+      "requirementIds": ["analytics-3"],
+      "blocks": "DocType izinlerinin explicitPermissionFlags kaynağına bağlanması.",
+      "documentationStepUntilDecision": "Gerekli izin bayraklarını rol adı vermeden explicitPermissionFlags ortak kaynağına taslak olarak işaretle."
+    },
+    {
+      "id": "D-5",
+      "decision": "Hedef Frappe sürümü (T-00 kapsamında).",
+      "requirementIds": ["analytics-3"],
+      "blocks": "Native kanıtların hedef sürümde doğrulanması ve uygulama kabulü.",
+      "documentationStepUntilDecision": "Kanıtların salt okunur anlık görüntüden geldiğini koru; sürüme bağlı iddia ekleme."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

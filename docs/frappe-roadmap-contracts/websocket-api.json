@@ -1,0 +1,297 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "websocket-api",
+  "canonicalTaskIds": [
+    "ui-provider-realtime--implementation-post-mvp",
+    "websocket-api--implementation"
+  ],
+  "requirementIds": ["realtime-1", "realtime-3"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "realtime-1": "post_mvp",
+    "realtime-3": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Yetkili istemciye commit sonrası kayıt geçersizleştirme sinyali; yetkisiz oda aboneliği reddi ve yeniden bağlanmada REST ile tamamlama",
+    "trigger": "Native Frappe kaydı native transaction içinde kaydedilip commit olduğunda sunucu tarafı frappe.publish_realtime çağrısı doctype, docname ve after_commit=True ile yapılır. İstemci tarafında tetikler: Socket.IO bağlantısının açılması, doc veya doctype odasına abonelik ve kesinti sonrası yeniden bağlanma.",
+    "expected": "Native can_subscribe_doc / can_subscribe_doctype kontrolünden geçerek odaya abone olan istemci yalnız commit sonrası yayınlanan, kayıt alan verisi taşımayan bir geçersizleştirme sinyali alır (doctype, name, modified). React istemcisi TanStack Query ile ilgili /api/v2 kaynağını native izin kontrolünden geçen REST okumasıyla yeniden çeker. Yeniden bağlanmada istemci odalara yeniden abone olur ve etkin sorguları son bilinen modified/cursor değerinden itibaren yeniden okur; kaçırılan sinyal veri kaybına yol açmaz.",
+    "denied": "Native izin kontrolünden geçmeyen kullanıcının oda aboneliği reddedilir ve o oda için sinyal almaz. İzni iptal edilen kullanıcı yeniden okumada native REST yetki hatası alır; istemci ilgili önbelleği temizler ve aboneliği bırakır. Rollback olan transaction sinyal üretmez. Socket kanalı üzerinden yazma kabul edilmez; reddedilen istekte kayıt değişmeden kalır."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native Frappe realtime: Python Socket.IO sunucusu (Socket.IO v5 / Engine.IO v4) ve httpx tabanlı connect/auth yolu; doctype/docname ve after_commit=True ile frappe.publish_realtime yayını; Suite hooks listesinde adı geçen frappe.realtime.get_user_info, can_subscribe_doc, can_subscribe_doctype ve has_permission uç noktaları; native frappe.has_permission. Kanıt bu native parçaların varlığını gösterir, bütün davranışın var olduğunu göstermez: React/Ant Design istemcisi, cookie'siz köken kimliği, yeniden bağlanmada tamamlama ve izin iptalinde abonelik düşürme eksiktir. frappe/realtime.py kaynağı bu pakette okunmadı. Suite istemci dosyaları Vue/Frappe UI kaynağıdır; yalnız desen kanıtıdır, React/Ant Design uygulaması kanıtı değildir.",
+    "evidence": [
+      {
+        "path": "frappe/pyproject.toml",
+        "line": 94,
+        "quote": "realtime (Python Socket.IO server) — speaks Socket.IO v5 / Engine.IO v4"
+      },
+      {
+        "path": "frappe/pyproject.toml",
+        "line": 102,
+        "quote": "# async HTTP client for the realtime connect/auth path."
+      },
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 411,
+        "quote": "\"/api/method/frappe.realtime.can_subscribe_doc\","
+      },
+      {
+        "path": "suite/suite/meet/doctype/meet_room/meet_room.py",
+        "line": 188,
+        "quote": "doctype=self.doctype,"
+      },
+      {
+        "path": "suite/frontend/src/apps/sheets/collab/frappe-realtime-init.js",
+        "line": 62,
+        "quote": "withCredentials: true,"
+      },
+      {
+        "path": "suite/frontend/src/apps/sheets/collab/hocuspocus-client.js",
+        "line": 8,
+        "quote": "(no replay, no resync hook on reconnect)"
+      },
+      {
+        "path": "suite/frontend/src/apps/sheets/collab/frappe-realtime-init.js",
+        "line": 63,
+        "quote": "reconnectionAttempts: 5,"
+      },
+      {
+        "path": "suite/frontend/src/apps/meet/composables/useGuestRealtime.ts",
+        "line": 28,
+        "quote": "const GUEST_SUBSCRIPTION_MAX_RETRIES = 4;"
+      },
+      {
+        "path": "suite/suite/sheets/collab.py",
+        "line": 54,
+        "quote": "can_read = bool(frappe.has_permission(\"Sheet\", doc=name, ptype=\"read\", throw=False))"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/pyproject.toml",
+      "suite/frontend/src/apps/meet/composables/useGuestRealtime.ts",
+      "suite/frontend/src/apps/sheets/collab/frappe-realtime-init.js",
+      "suite/frontend/src/apps/sheets/collab/hocuspocus-client.js",
+      "suite/suite/hooks.py",
+      "suite/suite/meet/doctype/meet_room/meet_room.py",
+      "suite/suite/sheets/collab.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/websocket-api.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/adapters/integration_hub/websocket_api_post_mvp.py",
+      "frontend/packages/ui/src/components/ui-provider-realtime/post_mvp.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Bağlantı: Socket.IO v5 / Engine.IO v4 tel protokolü; polling ile başlayıp websocket yükseltmesi. Düz WebSocket istemcisi Socket.IO ile uyumsuz olduğu için kullanılmaz. Aynı kökenli tarayıcıda kimlik taşıyıcısı native Frappe oturum çerezidir (withCredentials). Cookie'siz kökenler (Tauri2, WXT/MV3) için taşıyıcı decisionsPending içindedir; karar gelene kadar bu kökenler realtime'a bağlanmaz ve yalnız REST yeniden okuma kullanır. Abonelik: doc odası (doctype + name), doctype odası ve kullanıcı odası. Oda ve olay adları hedef sürümdeki frappe/realtime.py okunduktan sonra native adlarla birebir yazılır; yeni ad uydurulmaz. Sunucu yayını: native frappe.publish_realtime(olay, doctype, docname, message, after_commit=True).",
+    "output": "Sinyal yükü yalnız doctype, name ve modified alanlarını, ayrıca kernel-envelope--contract zarfının zorunlu alanlarını taşır; kayıt alan verisi taşımaz. İstemci çıktısı ilgili TanStack Query anahtarının geçersizleştirilmesi ve native REST yeniden okumasıdır. Kullanıcıya görünen bağlantı durumu (bağlı, yeniden bağlanıyor, yetkisiz, REST'e düştü) Ant Design bileşenleriyle gösterilir. Sinyal JSON model sınırında kalır; ReactNode veya callback taşımaz. Kaynak registry ile GenUI capability registry ayrıdır; bu sözleşme GenUI capability tanımlamaz.",
+    "authorization": "Abonelik izni native can_subscribe_doc / can_subscribe_doctype ve has_permission ile verilir; veri izni REST okumasında native izinle verilir. ignore_permissions, doğrudan SQL veya socket sunucusunda özel yetki kısayolu yoktur. Bağlantı anındaki kontrol tek başına yeterli sayılmaz: yeniden bağlanma, yeniden abonelik ve her yeniden okuma native kontrolden yeniden geçer. Bu rehber rol veya izin üretmez; ileride rol veya izin gerekirse explicitPermissionFlags ortak kaynağına bağlanır. Tenant ayrımı tenant-registry--contract topolojisine bağlıdır; oda adına tenant kodu bu karar olmadan eklenmez.",
+    "persistence": "Yeni DocType, şema, tablo veya veri değişikliği yoktur. Yayın native transaction commit'ine bağlıdır (after_commit=True). Kaçırılan olaylar için bu adımda kalıcı günlük kurulmaz; doğruluk kaynağı native kayıt ve REST okumasıdır. Kalıcı sıra günlüğü gerekirse outbox--contract ve sync-receipt--contract üzerinden ayrı kararla gelir.",
+    "failure": "Bağlantı kurulamaz veya sınırlı yeniden bağlanma denemeleri tükenir: istemci REST yeniden okumaya düşer, veri kaybı olmaz. Abonelik reddi sessiz geçmez; istemci durumu yetkisiz olarak işaretlenir ve aynı oda için tekrar denenmez. Yeniden okumada yetki hatası: önbellek temizlenir, abonelik bırakılır. Transaction rollback: sinyal yayınlanmaz. Sürüm uyumsuz handshake: bağlantı açılmaz, hata kayda geçer. Sürümü seçilmemiş deneysel handler kullanılmaz."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "capability-definition--contract",
+      "device-grant--contract",
+      "kernel-envelope--contract",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "outbox--contract",
+      "sync-receipt--contract",
+      "tenant-registry--contract",
+      "ui-provider-realtime--contract",
+      "ui-provider-realtime--implementation",
+      "websocket-api--contract"
+    ],
+    "admission": {
+      "statusNote": "Uygulama durumu: uygulanmadı",
+      "prerequisites": [
+        "T-00 hedef sürüm temeli ve R-00 yeniden kullanım eşlemesi tamamlanmış olmalı; izinli veri tüketicisi olduğu için R-01 de uygulanır.",
+        "Hedef sürümdeki frappe/realtime.py ve realtime sunucusunun connect/auth yolu salt okunur incelenmiş, imzalar bu sözleşmeye birebir yazılmış olmalı.",
+        "development.dependencies içindeki sözleşmeler kabul edilmiş olmalı.",
+        "Tek dar davranış için gerçek RED/GREEN kanıtı üretilecek ortam hazır olmalı; bu sözleşme ortam veya servis değiştirme yetkisi vermez."
+      ],
+      "blockedByDecisions": [
+        "hedef-frappe-surumu",
+        "cookiesiz-koken-kimlik-tasiyicisi"
+      ]
+    },
+    "steps": [
+      "1. Hedef sürümde frappe/realtime.py okunur; can_subscribe_doc, can_subscribe_doctype, get_user_info ve has_permission çağrılarının bağlantı ve abonelikteki yeri, oda ve olay adları tek sayfalık bağlantı sözleşmesi olarak contract bölümüne yazılır.",
+      "2. Kimlik taşıyıcısı sabitlenir: aynı köken için native oturum çerezi. Keycloak kimliğinin Frappe oturumuna eşlenmesi native-user-policy--contract'ta kalır; socket yalnız Frappe oturumunu tüketir, yeni protokol adaptörü açılmaz.",
+      "3. Backend önerisi: plannedProduction içindeki adaptör yalnız native frappe.publish_realtime'ı after_commit=True ve yalnız geçersizleştirme yüküyle çağıran ince yardımcıdır. hooks.py kaydı entegrasyon sahibinin seri birleştirmesine bırakılır.",
+      "4. Frontend önerisi: plannedProduction içindeki provider socket.io-client ile bağlanır, odalara abone olur, sinyalde ilgili TanStack Query anahtarını geçersizleştirir, yeniden bağlanmada yeniden abone olup etkin sorguları modified/cursor ile yeniden okur.",
+      "5. İzin iptali: yeniden okumada yetki hatası alınınca abonelik bırakılır ve önbellek temizlenir; yeniden abonelik her zaman native kontrolden geçer.",
+      "6. Sınırlı yeniden deneme: deneme sayısı ve gecikme provider yapılandırmasıdır; tükenince REST yeniden okumaya düşülür.",
+      "7. Tek davranış için tdd.oneScenario ile RED, ardından en küçük GREEN; kabul kanıtı kayda geçmeden madde kapatılmaz."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Doküman odasına native kontrolle abone olan yetkili kullanıcı, kayıt kaydedilip commit olduktan sonra kayıt verisi içermeyen tek bir geçersizleştirme sinyali alır; aynı odaya abone olmak isteyen yetkisiz kullanıcının aboneliği reddedilir, sinyal almaz ve kayıt değişmeden kalır.",
+      "red": "İnce adaptör henüz commit sonrası yayın yapmadığında, testin davranış iddiası başarısız olur: yetkili abone commit sonrasında beklenen sinyali gözlemez. RED import veya altyapı hatası olamaz; native abonelik reddini bozarak da üretilemez.",
+      "green": "Adaptör native frappe.publish_realtime'ı after_commit=True ve yalnız doctype, name, modified yüküyle çağırır; yetkili abone sinyali alır, yetkisiz abonelik native kontrolle reddedilmeye devam eder, rollback senaryosunda sinyal yoktur."
+    },
+    "rollback": "Adaptör kaydını hooks.py'den kaldıran ve istemci provider'ını devre dışı bırakan tek bir geri alma değişikliği; istemci REST yeniden okumaya döner, veri veya şema geri alması gerekmez. Teknik CI, deploy ve rollback sahibi Hüseyin Cengiz'dir; DNS veya alan adı gerekirse teknik gereksinimi Hüseyin Cengiz hazırlar, GoDaddy uygulamasını Asistan Hüseyin yapar. Bu sözleşme servis, production, şema veya veri değiştirme yetkisi vermez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "realtime-1",
+      "sourceStage": "post_mvp",
+      "existing": "Native parça: Python Socket.IO sunucusu (Socket.IO v5 / Engine.IO v4) ve httpx tabanlı connect/auth yolu; doctype/docname ile ve after_commit=True ile publish_realtime kullanımı; Suite hooks listesinde frappe.realtime.can_subscribe_doc ve ilgili uç noktaların adları; Suite Vue istemcisinde çerezli (withCredentials) bağlantı deseni.",
+      "gap": "v17-dev realtime auth yolu ile belgelerdeki sürüm arasında eşleme yok; Keycloak kimliği, Frappe oturumu ve socket handshake bağı tanımsız; Tauri2/WXT gibi cookie'siz kökenlerde bağlantı kimliği tanımsız; oda ve olay adı sözleşmesi ile after_commit kuralı yazılmamış; frappe/realtime.py okunmadı; React/Ant Design istemcisi yok.",
+      "completionSteps": [
+        "Hedef sürümde frappe/realtime.py okunur; can_subscribe_doc ve can_subscribe_doctype'ın abonelikte, get_user_info'nun bağlantıda nerede çağrıldığı contract.input'a yazılır. Okunmadan imza yazılmaz.",
+        "Handshake Socket.IO v5 / Engine.IO v4 olarak sabitlenir; polling ile başlayıp websocket yükseltmesi; düz WebSocket istemcisi kullanılmaz.",
+        "Aynı köken için kimlik taşıyıcısı native oturum çerezidir; Keycloak eşlemesi native-user-policy--contract'a bağlanır, socket için ayrı token protokolü açılmaz.",
+        "Cookie'siz kökenler için taşıyıcı kararı gelene kadar bu istemciler yalnız REST yeniden okuma kullanır; device-grant--contract bağımlılığı not edilir.",
+        "Doc, doctype ve kullanıcı odaları native adlarla yazılır; her yayın after_commit=True ile ve yalnız geçersizleştirme yüküyle yapılır.",
+        "Provider sinyalde TanStack Query anahtarını geçersizleştirir ve veriyi native izinli /api/v2 okumasıyla alır."
+      ],
+      "dependencies": [
+        "websocket-api--contract",
+        "native-user-policy--contract",
+        "device-grant--contract",
+        "kernel-envelope--contract",
+        "native-doctype-schema--contract",
+        "tenant-registry--contract",
+        "ui-provider-realtime--contract"
+      ],
+      "acceptance": "Yetkili istemci kayıt güncellemesini commit sonrası geçersizleştirme sinyali ve native izinli REST yeniden okuması ile alır; yetkisiz oda aboneliği reddedilir, sinyal gelmez ve kayıt değişmeden kalır.",
+      "evidence": [
+        {
+          "path": "frappe/pyproject.toml",
+          "line": 94,
+          "quote": "realtime (Python Socket.IO server) — speaks Socket.IO v5 / Engine.IO v4"
+        },
+        {
+          "path": "frappe/pyproject.toml",
+          "line": 102,
+          "quote": "# async HTTP client for the realtime connect/auth path."
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 411,
+          "quote": "\"/api/method/frappe.realtime.can_subscribe_doc\","
+        },
+        {
+          "path": "suite/suite/meet/doctype/meet_room/meet_room.py",
+          "line": 188,
+          "quote": "doctype=self.doctype,"
+        },
+        {
+          "path": "suite/frontend/src/apps/sheets/collab/frappe-realtime-init.js",
+          "line": 62,
+          "quote": "withCredentials: true,"
+        }
+      ]
+    },
+    {
+      "requirementId": "realtime-3",
+      "sourceStage": "post_mvp",
+      "existing": "Native ve desen parçaları: Suite Vue istemcisinde sınırlı yeniden bağlanma (reconnectionAttempts) ve sınırlı abonelik yeniden denemesi; native frappe.has_permission ile bağlantı anında okuma kontrolü. Suite kodu Frappe realtime relay'inde replay veya yeniden bağlanmada resync olmadığını açıkça belirtir.",
+      "gap": "Sıra numarası veya cursor kaynağı (kalıcı günlük mü, REST yeniden okuma mı) tanımsız; izin iptalinde açık aboneliğin düşürülmesi tanımsız, mevcut desen yalnız bağlantı anında kontrol ediyor; deneysel handlerlar için sürüm ve ad yok; Keycloak token yenilemesinin socket oturumuna yansıması tanımsız.",
+      "completionSteps": [
+        "Realtime yalnız geçersizleştirme sinyali sayılır; kaçırılan olay tamamlama kaynağı yeniden bağlanmada /api/v2 kaynaklarının modified/cursor ile yeniden okunmasıdır.",
+        "Yeniden bağlanmada provider etkin doc ve doctype odalarına yeniden abone olur; her abonelik native can_subscribe_* kontrolünden tekrar geçer, ardından etkin sorgular yeniden okunur.",
+        "Yeniden deneme sayısı ve gecikmesi sınırlı ve yapılandırılabilir olur; tükenince REST yeniden okumaya düşülür ve durum Ant Design bileşeniyle gösterilir.",
+        "İzin iptali: yeniden okumadaki native yetki hatası aboneliği bırakır ve önbelleği temizler. Hedef sürümde açık aboneliği sunucuda düşüren native mekanizma varsa o kullanılır; yoksa remainingGaps'te kalır, yeni mekanizma uydurulmaz.",
+        "Oturum yenilenince bağlantı yeniden kurulur; Keycloak yenilemesinin Frappe oturumuna yansıması native-user-policy--contract'ta tanımlanır.",
+        "Sürümü seçilmemiş deneysel handler kullanılmaz; kalıcı sıra numarası seçilirse outbox--contract ve sync-receipt--contract üzerinden eklenir."
+      ],
+      "dependencies": [
+        "websocket-api--contract",
+        "native-user-policy--contract",
+        "api-middleware--contract",
+        "outbox--contract",
+        "sync-receipt--contract",
+        "ui-provider-realtime--implementation"
+      ],
+      "acceptance": "İzin iptali en geç sonraki yeniden okuma veya yeniden abonelikte aboneliği durdurur ve veri gösterimini kaldırır; bağlantı kesintisinde kaçırılan değişiklikler yeniden bağlanmada cursor/modified tabanlı yeniden okuma ile tamamlanır. Kalıcı sıra numarası kararı verilirse aynı kabul sıra numarasıyla doğrulanır.",
+      "evidence": [
+        {
+          "path": "suite/frontend/src/apps/sheets/collab/hocuspocus-client.js",
+          "line": 8,
+          "quote": "(no replay, no resync hook on reconnect)"
+        },
+        {
+          "path": "suite/frontend/src/apps/sheets/collab/frappe-realtime-init.js",
+          "line": 63,
+          "quote": "reconnectionAttempts: 5,"
+        },
+        {
+          "path": "suite/frontend/src/apps/meet/composables/useGuestRealtime.ts",
+          "line": 28,
+          "quote": "const GUEST_SUBSCRIPTION_MAX_RETRIES = 4;"
+        },
+        {
+          "path": "suite/suite/sheets/collab.py",
+          "line": 54,
+          "quote": "can_read = bool(frappe.has_permission(\"Sheet\", doc=name, ptype=\"read\", throw=False))"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Hedef sürümdeki frappe/realtime.py okunmadı; can_subscribe_* ve get_user_info imzaları ile oda ve olay adları doğrulanmadı.",
+    "Cookie'siz kökenler (Tauri2, WXT/MV3) için socket kimlik taşıyıcısı tanımsız.",
+    "Açık aboneliğin izin iptalinde sunucu tarafında düşürülmesi için native mekanizma doğrulanmadı.",
+    "Kalıcı sıra numarası kaynağı tanımsız; şimdilik REST yeniden okuma ile tamamlama öneriliyor.",
+    "Keycloak token yenilemesinin Frappe oturumu ve socket bağlantısına yansıması native-user-policy--contract'a bağlı ve tanımsız.",
+    "React/Ant Design istemci provider'ı yok; Suite Vue kaynağı yalnız desen kanıtıdır."
+  ],
+  "decisionsPending": [
+    {
+      "id": "hedef-frappe-surumu",
+      "decision": "Realtime handshake ve auth sözleşmesinin eşleneceği hedef Frappe sürümü.",
+      "requirementIds": ["realtime-1", "realtime-3"],
+      "blocks": "development.steps 1 ve native imzaların contract bölümüne yazılması; deneysel handler değerlendirmesi.",
+      "documentStepUntilDecision": "Okunacak kaynak listesi ve sürüme göre doğrulanacak soru listesi (auth yolu, oda adları, abonelik kontrol noktaları) bu sözleşmede tutulur."
+    },
+    {
+      "id": "cookiesiz-koken-kimlik-tasiyicisi",
+      "decision": "Tauri2 ve WXT/MV3 istemcilerinin socket bağlantısında kimliği nasıl taşıyacağı.",
+      "requirementIds": ["realtime-1", "realtime-3"],
+      "blocks": "Bu kökenlerden realtime bağlantısı ve yeniden bağlanmada oturum yenileme.",
+      "documentStepUntilDecision": "Bu kökenler için yalnız REST yeniden okuma akışı ve device-grant--contract bağımlılığı yazılır."
+    },
+    {
+      "id": "kacirilan-olay-kaynagi",
+      "decision": "Kaçırılan olay tamamlamanın REST yeniden okuma ile mi yoksa kalıcı sıra günlüğü ile mi yapılacağı; günlük seçilirse saklama süresi.",
+      "requirementIds": ["realtime-3"],
+      "blocks": "Sıra numarası ile tamamlama kabulü.",
+      "documentStepUntilDecision": "Geçersizleştirme sinyali ve modified/cursor tabanlı REST yeniden okuma kabulü yazılır."
+    },
+    {
+      "id": "tenant-topolojisi",
+      "decision": "Tenant topolojisi ve bunun oda adlandırmasına etkisi.",
+      "requirementIds": ["realtime-1"],
+      "blocks": "Çok tenantlı oda adı ve yayın kapsamı.",
+      "documentStepUntilDecision": "Native site kapsamlı oda adları korunur; tenant-registry--contract bağımlılığı not edilir."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}
