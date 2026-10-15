@@ -50916,10 +50916,10 @@
     "at": "2026-10-15T07:27:30.624321+00:00",
     "consumerRepository": "/Users/w6x/Developer/genui-saas-panel",
     "consumerBaseCommit": "aed0ea2",
-    "codeIntegrationCommit": "85c2eee611f6dfe3468c58a0c591635b85b64cea",
+    "codeIntegrationCommit": "f926e9ba37e360a58457b43a69c735b9d45c6e6c",
     "providerCoreCommit": "9af95e8",
-    "providerModule": "suite.headless_provider.api",
-    "providerSha256": "4101a39a88b5350a18213ff451e1164808ba1f75e2200ea90ba2bb13a3c670c3",
+    "providerModule": "suite.headless_provider.field_types",
+    "providerSha256": "763c2d6126eba59180aec709f9324dec814d5c17c3c04eb527ffeb9e6a693fc5",
     "contractVersion": "headless-metadata.v1",
     "site": "suite.localhost",
     "frappeHead": "adf1fd0c2d6215ad4cac9976251198b2a35fbda6",
@@ -50933,7 +50933,7 @@
       },
       {
         "name": "Authorized native Custom Field creation and duplicate/denial handling",
-        "status": "pass_local_additive_Data_only"
+        "status": "pass_local_additive_11_types"
       },
       {
         "name": "Non-mutating preview and confirmed label/description/pure-base-order editing",
@@ -50944,13 +50944,13 @@
       "browser": "Playwright Chromium",
       "originalScenarios": 3,
       "realizedDefectRegressionScenarios": 2,
-      "totalScenarios": 5,
+      "totalScenarios": 6,
       "testFilesBefore": 0,
       "testFilesAfter": 1,
-      "testSha256": "7e9b9d3d60d4986ec2093242ac9e8046066df6cc09624a3b6c545078dace0eca",
-      "green": "5 passed (27.3s)",
+      "testSha256": "7233b02e908fa8b5f6dd8251e78a3a1d9f45f3e1c2b7a2762be7fc13a6bd5672",
+      "green": "6 passed (35.8s)",
       "redLog": "/Users/w6x/Developer/saas-handoff-2026-10-14/execution-headless/schema-delivery-20261015T062019Z/red.log",
-      "greenLog": "/Users/w6x/Developer/saas-handoff-2026-10-14/execution-headless/schema-delivery-20261015T062019Z/green-final.log",
+      "greenLog": "/Users/w6x/Developer/saas-handoff-2026-10-14/execution-headless/field-types-20261015T074744Z/existing-gate-fix-20261015T081234Z/green-six.log",
       "loginRegressionRed": "/Users/w6x/Developer/saas-handoff-2026-10-14/execution-headless/schema-delivery-20261015T062019Z/login-link-red.log",
       "metadataRaceRed": "/Users/w6x/Developer/saas-handoff-2026-10-14/execution-headless/schema-delivery-20261015T062019Z/metadata-race-red.log",
       "typecheck": "pass",
@@ -50959,7 +50959,10 @@
       "pythonCompile": "pass",
       "independentReviews": 2,
       "reviewFindingsResolved": 9,
-      "additionalSourceIsolationGuard": "local REPEATABLE-READ observed; native read-only snapshot reset under session advisory lock"
+      "additionalSourceIsolationGuard": "local REPEATABLE-READ observed; native read-only snapshot reset under session advisory lock",
+      "typedFieldScenarios": 1,
+      "fullGateRedLog": "/Users/w6x/Developer/saas-handoff-2026-10-14/execution-headless/field-types-20261015T074744Z/full-six-once.log",
+      "existingGateLocatorFix": "Immediate count/fallback replaced by exact-one awaited expected-field check; no timeout, scenario or assertion weakening."
     },
     "workflowIds": [
       "saas-schema-adapter-20261015-01",
@@ -50972,23 +50975,199 @@
       "saas-schema-ui-20261015-01",
       "saas-schema-ui-integration-fix-20261015-01",
       "saas-schema-ui-qa-20261015-01",
-      "saas-schema-ui-qa-fix-20261015-01"
+      "saas-schema-ui-qa-fix-20261015-01",
+      "saas-fields-20261015t074744z-backend",
+      "saas-fields-20261015t074744z-adapter",
+      "saas-fields-20261015t074744z-ui",
+      "saas-fields-20261015t074744z-standards-review"
     ],
     "limits": [
       "Native local Frappe cookie/CSRF; Keycloak SSO not_run",
-      "Only additive Data custom fields",
       "Label/description and pure custom-base ordering; mixed CustomField order disabled",
       "Type/delete/mandatory/unique/index migration not supported",
       "General business-record CRUD/persistence not delivered by draft form",
       "Physical Safari/mobile, other browsers/native packages and remote production not_run",
       "No universal DDL atomic rollback or lock coverage for unrelated Desk writers",
       "GenUI engine/renderer/model/capability registry unchanged",
-      "Canonical full SaaS baseline/R cards/52 headless checks not promoted"
+      "Canonical full SaaS baseline/R cards/52 headless checks not promoted",
+      "Only 11 listed scalar/link/select field types; type/delete/options-target changes after creation remain rejected"
     ],
     "serviceRestarts": 0,
     "newAppsInstalled": 0,
     "newAutomationOrCron": false,
-    "pagesPublication": "not_performed"
+    "pagesPublication": "not_performed",
+    "initialDataPilot": {
+      "status": "PASS_LOCAL_DEFINED_SCOPE",
+      "at": "2026-10-15T07:27:30.624321+00:00",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel",
+      "consumerBaseCommit": "aed0ea2",
+      "codeIntegrationCommit": "85c2eee611f6dfe3468c58a0c591635b85b64cea",
+      "providerCoreCommit": "9af95e8",
+      "providerModule": "suite.headless_provider.api",
+      "providerSha256": "4101a39a88b5350a18213ff451e1164808ba1f75e2200ea90ba2bb13a3c670c3",
+      "contractVersion": "headless-metadata.v1",
+      "site": "suite.localhost",
+      "frappeHead": "adf1fd0c2d6215ad4cac9976251198b2a35fbda6",
+      "frappeVersion": "17.0.0-dev",
+      "suiteVersion": "0.0.1",
+      "suiteSourceHead": "unknown",
+      "behaviors": [
+        {
+          "name": "Permissioned live metadata refresh with compatible draft/focus preserved",
+          "status": "pass_local_Data_pilot"
+        },
+        {
+          "name": "Authorized native Custom Field creation and duplicate/denial handling",
+          "status": "pass_local_additive_Data_only"
+        },
+        {
+          "name": "Non-mutating preview and confirmed label/description/pure-base-order editing",
+          "status": "pass_local_safe_presentation_only"
+        }
+      ],
+      "verification": {
+        "browser": "Playwright Chromium",
+        "originalScenarios": 3,
+        "realizedDefectRegressionScenarios": 2,
+        "totalScenarios": 5,
+        "testFilesBefore": 0,
+        "testFilesAfter": 1,
+        "testSha256": "7e9b9d3d60d4986ec2093242ac9e8046066df6cc09624a3b6c545078dace0eca",
+        "green": "5 passed (27.3s)",
+        "redLog": "/Users/w6x/Developer/saas-handoff-2026-10-14/execution-headless/schema-delivery-20261015T062019Z/red.log",
+        "greenLog": "/Users/w6x/Developer/saas-handoff-2026-10-14/execution-headless/schema-delivery-20261015T062019Z/green-final.log",
+        "loginRegressionRed": "/Users/w6x/Developer/saas-handoff-2026-10-14/execution-headless/schema-delivery-20261015T062019Z/login-link-red.log",
+        "metadataRaceRed": "/Users/w6x/Developer/saas-handoff-2026-10-14/execution-headless/schema-delivery-20261015T062019Z/metadata-race-red.log",
+        "typecheck": "pass",
+        "lint": "pass",
+        "build": "pass",
+        "pythonCompile": "pass",
+        "independentReviews": 2,
+        "reviewFindingsResolved": 9,
+        "additionalSourceIsolationGuard": "local REPEATABLE-READ observed; native read-only snapshot reset under session advisory lock"
+      },
+      "workflowIds": [
+        "saas-schema-adapter-20261015-01",
+        "saas-schema-backend-20261015-01",
+        "saas-schema-backend-lock-fix-20261015-01",
+        "saas-schema-backend-native-fix-20261015-01",
+        "saas-schema-backend-standards-20261015-01",
+        "saas-schema-isolation-guard-20261015-01",
+        "saas-schema-tests-20261015-01",
+        "saas-schema-ui-20261015-01",
+        "saas-schema-ui-integration-fix-20261015-01",
+        "saas-schema-ui-qa-20261015-01",
+        "saas-schema-ui-qa-fix-20261015-01"
+      ],
+      "limits": [
+        "Native local Frappe cookie/CSRF; Keycloak SSO not_run",
+        "Only additive Data custom fields",
+        "Label/description and pure custom-base ordering; mixed CustomField order disabled",
+        "Type/delete/mandatory/unique/index migration not supported",
+        "General business-record CRUD/persistence not delivered by draft form",
+        "Physical Safari/mobile, other browsers/native packages and remote production not_run",
+        "No universal DDL atomic rollback or lock coverage for unrelated Desk writers",
+        "GenUI engine/renderer/model/capability registry unchanged",
+        "Canonical full SaaS baseline/R cards/52 headless checks not promoted"
+      ],
+      "serviceRestarts": 0,
+      "newAppsInstalled": 0,
+      "newAutomationOrCron": false,
+      "pagesPublication": "not_performed"
+    },
+    "supportedCustomFieldTypes": [
+      "Data",
+      "Int",
+      "Float",
+      "Currency",
+      "Check",
+      "Date",
+      "Datetime",
+      "Select",
+      "Link",
+      "Small Text",
+      "Text"
+    ],
+    "recordFlowProof": {
+      "status": "PASS_LOCAL_DEFINED_SCOPE",
+      "site": "suite.localhost",
+      "doctype": "Headless Schema Pilot",
+      "record": "headless-record-local",
+      "consumerRepository": "/Users/w6x/Developer/genui-saas-panel",
+      "testFirstCommit": "16cebac",
+      "integrationCommit": "6ea301cbcc7f8091fe39b834ba9763f303748308",
+      "providerModule": "suite.headless_provider.records",
+      "contractVersion": "headless-metadata.v1",
+      "sharedControlledField": {
+        "source": "src/components/ControlledTextField.tsx:13",
+        "configSource": "src/features/records/RecordWorkspace.tsx:18",
+        "configs": ["base_notes", "restricted_notes"],
+        "consumers": [
+          "src/features/records/RecordWorkspace.tsx",
+          "src/features/schema/SchemaWorkspace.tsx"
+        ],
+        "ownsNetworkOrDomainRules": false
+      },
+      "permissionScopes": [
+        "System Manager: native read/write of both Data fields",
+        "Headless Schema Reader: native read of base_notes only; no write"
+      ],
+      "behaviors": [
+        "Two independent controlled field configs preserve Unicode and empty values without auto-persisting",
+        "Native permissioned page-Frappe-page read/update/reload; forbidden fields/user writes and stale modified rejected"
+      ],
+      "verification": {
+        "testFile": "tests/headless-schema.spec.ts",
+        "filesBefore": 1,
+        "filesAfter": 1,
+        "scenariosBefore": 6,
+        "scenariosAfter": 8,
+        "newScenarios": 2,
+        "reason": "User-authorized local R-02 two configs and T-08 two-scope read/update",
+        "green": "8 passed (48.7s)",
+        "redLog": "/Users/w6x/Developer/saas-handoff-2026-10-14/execution-headless/local-record-and-pages-20261015T082134Z/records-red.log",
+        "firstFullGateFailure": "/Users/w6x/Developer/saas-handoff-2026-10-14/execution-headless/local-record-and-pages-20261015T082134Z/records-green-eight.log",
+        "greenLog": "/Users/w6x/Developer/saas-handoff-2026-10-14/execution-headless/local-record-and-pages-20261015T082134Z/records-green-eight-reviewed.log",
+        "fixtureDiagnosis": "Native DocPerm.write defaults to 1; synthetic reader fixture omitted explicit write:0. Corrected only guarded local fixture via native save/cache; application permission checks/assertions/timeouts unchanged.",
+        "typecheck": "pass",
+        "lint": "pass",
+        "build": "pass",
+        "pythonCompile": "pass",
+        "browser": "Playwright Chromium320; workers1/retries0",
+        "physicalDevicesOtherBrowsers": "not_run",
+        "testSha256": "137b65fd1c1cd9b1e50bc5742328ab18d094732e3bf612dcf476b76be2a4bd13",
+        "independentReview": {
+          "workflowId": "saas-records-20261015t082134z-review",
+          "confirmedFindings": 2,
+          "resolved": 2,
+          "reviewDefectsTestFirstCommit": "34b23f4",
+          "redLogs": [
+            "/Users/w6x/Developer/saas-handoff-2026-10-14/execution-headless/local-record-and-pages-20261015T082134Z/records-review-defects-red.log",
+            "/Users/w6x/Developer/saas-handoff-2026-10-14/execution-headless/local-record-and-pages-20261015T082134Z/records-cache-red.log"
+          ],
+          "newScenarios": 0,
+          "newTestFiles": 0,
+          "fix": "Scoped private mutation lifecycle and central accessible Input boundary; existing two scenarios contain targeted defect checks; no matrix or assertion weakening."
+        }
+      },
+      "workflowIds": [
+        "saas-records-20261015t082134z-backend",
+        "saas-records-20261015t082134z-ui",
+        "saas-records-20261015t082134z-fixture-permission-fix",
+        "saas-records-20261015t082134z-review",
+        "saas-records-20261015t082134z-input-contrast-fix",
+        "saas-records-20261015t082134z-cache-lifecycle-fix"
+      ],
+      "limits": [
+        "Only existing Data record read/update; no create/delete/submit",
+        "Native local cookie/CSRF; Keycloak and remote product baseline not delivered",
+        "Global canonical R-02/T-08 and 52 headless checks not promoted",
+        "GenUI engine unchanged"
+      ],
+      "serviceRestarts": 0,
+      "newAppsInstalled": 0,
+      "newAutomationOrCron": false
+    }
   },
   "expandedSourceReview": {
     "asOf": "2026-10-15T07:42:05.536312+00:00",
@@ -51581,5 +51760,19 @@
       "nextStep": "business-metric--implementation görevi önce bir kaynak kararı almalı (sağlayıcı veya ürüne ait abonelik modeli). Ardından reports-7 sözleşme biçiminde 4 metrik için formül tablosu ve küçük bir örnek abonelik veri seti tanımlanmalı. Bu adım yalnız tekrarlayan gelir modeli seçilirse yapılmalı.",
       "canonicalTaskStateChanged": false
     }
-  ]
+  ],
+  "localPublicationCorrection": {
+    "status": "LOCAL_GATES_PASS",
+    "sourceCommit": "73e2537",
+    "previousFailedRun": 38636349411,
+    "realRedLog": "/Users/w6x/Developer/saas-handoff-2026-10-14/execution-headless/local-record-and-pages-20261015T082134Z/pages-red-ci.log",
+    "nodeControls": 79,
+    "browserPasses": 481,
+    "existingConditionalBaseProjectSkips": 2,
+    "build": "pass",
+    "pipeline": ".github/workflows/pages.yml",
+    "gateOrScenarioChanged": false,
+    "scope": "Three display values shortened/spaced; exact source URLs and all other canonical data unchanged",
+    "publicationEvidenceBoundary": "Remote CI/deploy result belongs to GitHub Actions run for the pushed commit; local PASS alone is not publication proof."
+  }
 }

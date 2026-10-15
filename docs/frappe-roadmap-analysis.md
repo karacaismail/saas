@@ -268,23 +268,40 @@ Güncel kullanıcı master talimatıyla analizde test yazılmaz; açık paketler
 
 ## Ne bitti, ne kaldı?
 
-**Bitti:** gerçek yerel Frappe/Suite kurulumunun bulunması, sürüm ve kurulu app ayrımı, 12 başlığın 387 maddesine kaynak temelli ön değerlendirme, üç yeni ihtiyacın native mekanizmalarla eşlenmiş geliştirme sözleşmesi ve sıralaması.
+**Bitti:** gerçek yerel Frappe/Suite kurulumunun bulunması, 12 başlığın 387 maddesine kaynak değerlendirmesi, belirsiz 64 maddenin ikinci tur doğrulaması ve yerel headless şema pilotu. Pilot, metadata yenileme/taslak koruma, 11 tipte Custom Field ekleme ve güvenli etiket/açıklama düzenlemeyi kapsar; `f926e9b` kapanışında mevcut altı senaryo 6/6 geçti. Sonraki yerel R-02/T-08 dilimi iki config’i ve tek gerçek DocType’ta iki yetkiyle kayıt okuma/güncellemeyi ekledi; `6ea301c` kapanışında mevcut dosya 8/8 geçti.
 
-**Kaldı:** hedef ürün baseline’ını kesinleştirmek, gerçek site metadata/izinlerini okumak, ortak sözleşmeleri mevcut kanonik kayıtlara inceleyerek işlemek ve ilk çalışan headless pilotu uygulamak. Üç istenen kullanıcı davranışı bu belgeyle uygulanmış değildir. GenUI, Keycloak entegrasyonu, finans/CRM modülleri, mobil/masaüstü paketler ve diğer SaaS davranışları hazır diye işaretlenmedi.
+**Kaldı:** yerel pilotun ötesindeki hedef ürün baseline’ını ve uzak deployment eşlemesini kesinleştirmek; ortak sözleşmeleri tüm ilgili kanonik tüketicilere uygulamak; Keycloak, domain app kapsamı, liste/grid ve platform paketlerini kendi kabul kanıtlarıyla tamamlamak. Yerel pilot ve kaynak değerlendirmesi bütün SaaS’ın tamamlandığını göstermez. GenUI motorunu kullanıcı geliştirir.
 
-Bu rapor yerel hazırlık teslimidir. Statik build allowlist’i çalışma raporlarını yayımlamaz; raporun Git’te bulunması Pages arayüzüne işlendiği anlamına gelmez. Önceki kaynak keşfi yayınının 320 px link taşması nedeniyle başarısız CI’ı bu kaynak incelemesiyle çözülmüş sayılmaz. Güncel kullanıcı master talimatı önceki bütçe nedeniyle bekleme kaydını kaldırmıştır; başarısız yayın kapısı yine korunur. Canlı Pages’in güncellendiği iddia edilmez.
+Statik build allowlist’i bu çalışma raporlarını Pages’e kopyalamaz; raporlar Git kaynağında, planın arayüz verisi Pages’te bulunur. Önceki 320 px taşmasının kaynağındaki üç uzun kaynak açıklaması düzeltildi: görünen commit 7 karakter, repo yolu doğal boşluklu; tam commit/URL kanıtı link hedefinde korunur. Kelime ortası bölme, metin küçültme veya yatay sayfa taşmasını gizleme kullanılmadı. Yerelde mevcut kapılar geçti: 79 Node kontrolü, build, 478 Chromium/WebKit ve 3 dokunma/hibrit testi. İki temel proje skip’i mevcut koşuldur; ilgili testler dokunma/hibrit projelerinde geçti. CI/yayın akışı, assertion ve test kapsamı değiştirilmedi. Bu commit’in uzak CI/yayın sonucu mevcut GitHub Actions kaydından ayrıca doğrulanır; yerel PASS uzak yayın kanıtı yerine geçmez.
 
 Makineyle okunabilir birleşik tablo: [frappe-roadmap-analysis.json](./frappe-roadmap-analysis.json). Bu JSON kaynak değerlendirmesidir; mevcut görev registry’sini çoğaltmaz.
 
-## Sonraki yerel pilot teslimi — 15 Ekim 2026
+## Kullanıcı kararı gereken tek liste
 
-Yukarıdaki kaynak değerlendirmesi uygulama başlamadan alınan snapshot’tır; madde satırlarındaki `not_run` bu tarihsel kapsamı anlatır. Sonraki kullanıcı kararıyla `/Users/w6x/Developer/genui-saas-panel` referans tüketici seçildi. Yerel Frappe sağlayıcısı → bağımsız TS adapter → React/Ant Design/TanStack tüketicisi uygulandı; GenUI motoruna dokunulmadı.
+1. **Kurulu olmayan app kapsamı:** yukarıda kimlikleri verilen 29 madde için gereken ERPNext/CRM/Helpdesk/Payments ve diğer domain yeteneklerinin ürün kapsamı, app/sağlayıcı ve sürümü. 29 sayısı app değil, gereksinim sayısıdır; bu karar gelmeden kurulum yapılmaz.
+2. **Keycloak:** hedef realm/client ve Frappe kullanıcı/rol/site eşlemesi. Keycloak seçimi kesindir; açık konu uygulanacak kimlik sözleşmesidir. Yerel native cookie/CSRF pilotu SSO kabulü değildir.
+3. **Grid:** React/Ant Design/TanStack kararları içinde kullanılacak liste/grid seçimi; ortak alan ve kayıt pilotunu engellemez.
+4. **Suite / ürün baseline’ı:** kurulu Suite kaynak commit’i ve `egitim.metaframer.net` deployment’ının repo/build/site eşlemesi. Teknik deployment kanıtının sahibi **Hüseyin Cengiz**; kaynak incelemesi uzak deployment kanıtı yerine geçmez.
 
-Dar kabul üç davranışı kanıtladı: uyumlu taslağı/odağı koruyan izinli metadata yenilemesi; yetkili native Custom Field **Data** ekleme; yazmasız önizleme ardından etiket/açıklama ve saf custom taban alan sırası düzenleme. Somut giriş-script ve gecikmiş metadata/taslak kaybı kusurları da birer gerçek RED regresyonuyla giderildi. Tek dosyada **3 ana + 2 gerçek kusur = 5 senaryo**; Chromium **5/5, 27,3 saniye**. Tip/lint/build/Python derleme geçti. Yeni matris veya fixture ailesi açılmadı.
+Bu kararlar, hazır yerel işlerin ve mevcut yayın düzeltmesinin ilerlemesini durdurmaz.
 
-Kod entegrasyonu `85c2eee611f6dfe3468c58a0c591635b85b64cea`; sağlayıcı çekirdeği `9af95e8`; kaynak detayları tüketicide `docs/headless-schema-delivery.md`, makine kanıtı bu raporun JSON’undaki `localPilot` alanındadır. Gerçek RED/GREEN logları yerel devir klasöründedir. Bu kanıt 387 gereksinimi, R kartlarını veya 52 headless kontrolünü topluca PASS/DONE yapmaz; üçüncü görev registry’si oluşturulmadı.
+## Güncel yerel pilot teslimi — 15 Ekim 2026
 
-Yerel kimlik native Frappe cookie/CSRF’dir; Keycloak, genel kayıt CRUD’u, diğer alan tipleri, kırıcı migration, karma Custom Field sırası, gerçek Safari/cihaz/native paket ve uzak production kabulü kaldı. Tam SaaS ürün baseline’ı dondurulmadı; Suite kaynak commit’i hâlâ unknown. Servis restart’ı, yeni app/ERPNext/HRMS, cron/otomasyon ve Pages yayını yapılmadı.
+Referans React/Ant Design/TanStack tüketicisinde **11 alan tipi** native Custom Field yoluyla ekleniyor: Data, Int, Float, Currency, Check, Date, Datetime, Select, Link, Small Text, Text. Select seçenekleri doğrulanır; Link hedefi native okuma izniyle süzülür. Her tip doğru form kontrolüyle görünür; etiket/açıklama düzenlemesi tipleri ve uyumlu taslağı korur. Tip değiştirme, alan silme ve oluşturma sonrası options/hedef değişikliği açıkça reddedilir.
+
+Güncel kod/test kapanış commit’i **`f926e9b`**, tip uygulaması `4065c75`; mevcut altı senaryo **6/6 PASS, 35,8 saniye**. İlk tam koşudaki alan seçicisi hatası trace ile test zamanlaması olarak ayrıldı; beklenen tek alanı await eden kontrolle düzeltildi. Timeout veya assertion gevşetilmedi, yeni senaryo/tarayıcı eklenmedi. Yerel modül `suite.headless_provider.field_types`, mevcut `api` çekirdeğini kullanır. Kaynak detayları tüketicide `docs/headless-schema-delivery.md`, makine kanıtı JSON `localPilot` alanındadır; ilk Data pilotunun tarihsel kanıtı ayrıca korunur.
+
+Yerel kimlik native Frappe cookie/CSRF’dir. Keycloak, genel iş kaydı CRUD’u, 11 tip dışındaki alanlar, kırıcı migration, karma Custom Field sırası, gerçek Safari/cihaz/native paket ve uzak production kabulü bu alan tipi teslimiyle tamamlanmış sayılmaz. Yerel R-02/T-08 kayıt okuma/yazma dilimi ayrı kanıtlanır. Suite kaynak commit’i ve uzak ürün deployment eşlemesi hâlâ bilinmiyor; ürün baseline’ı dondurulmadı. Bu kanıt 387 maddeyi, R kartlarını veya 52 headless kontrolünü topluca DONE yapmaz.
+
+### Yerel R-02 / T-08: iki config ve gerçek kayıt turu
+
+`genui-saas-panel` ana dalında `f045dcd`, son inceleme düzeltmesi `6ea301c` ile aynı `ControlledTextField` iki config’i tüketiyor (`src/components/ControlledTextField.tsx:13`, `src/features/records/RecordWorkspace.tsx:18`); mevcut şema ekranının Data alanı da aynı bileşeni kullanır. Alanın içinde ağ veya Frappe iş kuralı yoktur. Boş/Unicode değerler ve bağımsız iki config 320px akışında doğrulandı; taslak yazmak kayıt mutasyonu değildir.
+
+`/settings?workspace=records` → `suite.headless_provider.records` → native `Headless Schema Pilot` kaydı → yeniden okuma çalıştı. Admin iki Data alanını okur/yazar; okuyucu yalnız açık alanı görür ve yazamaz. Native session/CSRF, alan/kayıt izinleri, row lock ve `Document.save()` korunur; eski `modified` ve yetkisiz alan payload’ı reddedilir. Kaynak: `frappe_provider/headless_provider/records.py:28`, `:37`; bağımsız istemci `shared/frappe/client.ts:563`, `:577`.
+
+Aynı mevcut dosyada iki yeni davranış için test-first `16cebac`; dosya **1→1**, senaryo **6→8**. İlk RED ekran/RPC yokluğu; ilk uygulama koşusunda fixture’ın native `DocPerm.write=1` varsayılanı görüldü ve yalnız exact yerel reader rolü `write=0` ile düzeltildi. Assertion/timeout değişmedi. Son tam kapı **8/8 PASS, 48,7 saniye**; typecheck/lint/build/Python derleme geçti. Bağımsız kaynak/UI incelemesindeki iki somut kusur da kapandı: özel kayıt mutation cache’i scoped lifecycle/reset ile temizlenir; Input kenarlığı merkezi token ile en az3:1 kontrast sağlar. İki dar regresyon assertion’ı mevcut iki yeni senaryoda kaldı; dosya/senaryo sayısı değişmedi, gerçek RED logları korundu. Makine kanıtı `localPilot.recordFlowProof` içindedir. İnceleme ve paralel düzeltmeler aynı sonlu Temporal havuzunda çalıştı.
+
+Bu kanıt yalnız yerel mevcut Data kaydının okuma/güncellemesidir; genel CRUD, 11 tipte kayıt kaydetme, Keycloak, uzak baseline veya bütün kanonik R-02/T-08 kabulü değildir. Kaynak değerlendirmesi **340 kısmi / 7 native temel / 11 yerelde bulunamayan / 29 kurulu olmayan app dayanağı** olarak korunur; görev durumları topluca DONE yapılmaz. Servis yeniden başlatma, app kurulumu veya GenUI motoru değişikliği yoktur.
 
 ## Madde bazında kaynak değerlendirmesi
 
@@ -6639,3 +6656,12 @@ Eksik: Şablon sürümü: Print Format'ın hangi sürümüyle önizleme ve nihai
 Sonraki adım önerisi: document-template--implementation görevine şunlar eklenmeli: printview/print_utils/print_format.py uç noktalarının headless eşlemesi, printpreview izin akışının v17'de doğrulanması, şablon sürümünü sabitleme kararı, toplu PDF dosyasının saklama süresi ve kiracı bağlaması, tekrarlanan isteğe karşı anahtar. Renderer seçimi (chrome önerisi) hedef ortamda bağımlılık kontrolüyle kesinleştirilmeli.
 
 Mevcut birincil görev: `document-template--implementation`. Kaynak: `frappe/frappe/www/printview.py:92`; `frappe/frappe/www/printpreview.py:19`; `frappe/frappe/utils/print_format.py:99`; `frappe/frappe/utils/print_format.py:109`; `frappe/frappe/utils/print_format_generator.py:18`; `frappe/frappe/printing/doctype/print_settings/print_settings.py:31`.
+
+## Kullanıcı kararı gerekenler — tek liste
+
+1. **Kurulu olmayan app dayanağı olan 29 madde:** aşağıdaki mevcut karar tablosundaki app/harici hizmet/dar adapter seçimi ve sürüm/lisans uygunluğu. ERPNext/HRMS/CRM/Helpdesk/Payments otomatik kurulmaz. Kimlikler: `service-4`, `catalog-1`, `catalog-4`, `catalog-5`, `subscriptions-1`, `subscriptions-2`, `subscriptions-4`, `subscriptions-6`, `campaigns-1`, `campaigns-2`, `campaigns-3`, `campaigns-4`, `campaigns-5`, `payments-1`, `crm-1`, `crm-2`, `releases-5`, `integrity-9`, `finance-1`, `finance-2`, `finance-4`, `finance-5`, `finance-6`, `finance-7`, `finance-9`, `support-1`, `support-4`, `reports-2`, `reports-8`.
+2. **Keycloak entegrasyonu:** teknoloji seçimi kesin; hedef kurulum/sürüm, realm/client, kullanıcı–rol eşlemesi ve erişim sınırı netleşmeli. Native yerel cookie/CSRF pilotu bu kararı beklemez.
+3. **Grid:** mevcut açık grid kararı netleşmeli; kontrollü alan ve tek kayıt okuma/yazma için grid seçimi gerekmez.
+4. **Suite/ürün baseline’ı:** kurulu Suite kaynak commit’i, gerçek ürün repo/commit/build ve `egitim.metaframer.net` deployment eşlemesi kanıtlanmalı. Deployment/build/çalışan sürüm kanıtının teknik sahibi **Hüseyin Cengiz**. Yerel inceleme commit’i veya `/saas` dokümantasyon commit’i ürün baseline’ı yerine yazılmaz.
+
+Bu liste karar gerektirmeyen yerel R-02 iki config ve T-08 tek DocType/iki yetki kapsamı dilimini durdurmaz. Üçüncü görev registry’si açılmaz; kanonik kartların genel BLOCKED durumu dar yerel kanıtla sessizce kaldırılmaz.
