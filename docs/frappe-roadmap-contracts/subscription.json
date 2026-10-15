@@ -1,0 +1,261 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "subscription",
+  "canonicalTaskIds": [
+    "subscription--implementation",
+    "ui-family-35--implementation"
+  ],
+  "requirementIds": ["subscriptions-3", "subscriptions-5"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "subscriptions-3": "post_mvp",
+    "subscriptions-5": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Abonelik paket değişikliği (hemen veya dönem sonu) ve müşteri self-servis abonelik/fatura/ödeme yöntemi portalı. Uygulama durumu: uygulanmadı.",
+    "trigger": "Yetkili müşteri kullanıcısı kendi aboneliği için yürürlük biçimini (hemen veya dönem sonu) seçerek paket yükseltme/düşürme talebi gönderir ya da portalda kendi abonelik, fatura ve ödeme yöntemi bilgisini açar veya ödeme yöntemi değişikliği başlatır.",
+    "expected": "Hemen değişiklikte yeni plan tek transaction içinde etkinleşir; değişim kaydı önceki/yeni plan, yürürlük biçimi ve yürürlük tarihini tutar. Dönem sonu değişikliği bekleyen (scheduled) kayıt olarak saklanır, mevcut plan dönem sınırına kadar değişmez. Düşürmede kotayı aşan veri silinmez; karar verilecek kota aşımı politikasına göre işlenir ve aşan kaynaklar yanıtta listelenir. Portal yalnız çağıranın müşteri kapsamındaki abonelik ve faturaları native izinle döndürür; ödeme yöntemi değişikliği yalnız seçilecek sağlayıcının hosted akışına yönlendirilir ve sağlayıcının doğrulanmış dönüşüyle tamamlanır.",
+    "denied": "Başka müşterinin aboneliği/faturası için okuma veya değişiklik talebi, yetkisiz rol, geçersiz hedef plan, geçmiş yürürlük tarihi veya kota politikası kararı yokken düşürme talebi PermissionError/ValidationError ile reddedilir; Subscription ve değişim kaydı değişmez. Kart verisi Frappe tarafında alınmaz ve saklanmaz; doğrulanamayan sağlayıcı dönüşü ödeme yöntemini değiştirmez."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native Frappe parçaları: frappe.has_permission ile DocType düzeyinde izin denetimi (frappe/frappe/client.py) ve frappe.only_for ile rol sınırı (frappecloud_billing.py). cloud_billing.py içindeki change_plan ve create_payment_method_checkout yalnız Frappe Cloud Central billing API'sine istek ileten istemci fonksiyonlarıdır; iş mantığı Central tarafındadır ve kendi barındırdığımız SaaS için paket değişim kaydı, yürürlük politikası, kota aşımı veya son müşteri portalı davranışı sağlamaz. Bu fonksiyonlar yalnız akış örneği olarak okunur; yeniden kullanılacak iş mantığı sayılmaz. Kanıtın bir native parçayı göstermesi bütün davranışın var olduğu anlamına gelmez. Arama yalnız searchedPaths içindeki yollarla sınırlıdır; kapsamlı yokluk iddiası değildir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/integrations/frappe_providers/cloud_billing.py",
+        "line": 22,
+        "quote": "def change_plan(client, plan: str) -> dict:"
+      },
+      {
+        "path": "frappe/frappe/integrations/frappe_providers/cloud_billing.py",
+        "line": 4,
+        "quote": "credential. Formatting and business logic live in Central."
+      },
+      {
+        "path": "frappe/frappe/integrations/frappe_providers/cloud_billing.py",
+        "line": 56,
+        "quote": "def create_payment_method_checkout(client, redirect_url: str, gateway: str | None = None) -> dict:"
+      },
+      {
+        "path": "frappe/frappe/integrations/frappe_providers/frappecloud_billing.py",
+        "line": 88,
+        "quote": "frappe.only_for(\"System Manager\")"
+      },
+      {
+        "path": "frappe/frappe/client.py",
+        "line": 176,
+        "quote": "if not frappe.has_permission(doctype):"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/client.py",
+      "frappe/frappe/integrations/frappe_providers/cloud_billing.py",
+      "frappe/frappe/integrations/frappe_providers/frappecloud_billing.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/subscription.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/commercial/doctype/subscription/subscription.py",
+      "frontend/packages/ui/src/components/ui-family-35/index.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Paket değişimi: subscription (Subscription belge adı), targetPlan (plan-definition--contract kaynağındaki plan), effectiveMode ('immediate' veya 'period_end'), api-middleware--contract kapsamındaki idempotency anahtarı. Portal: oturumdaki native User; okuma için filtre/sayfalama parametreleri; ödeme yöntemi değişikliği için allowlist içindeki dönüş URL'si.",
+    "output": "Paket değişimi: değişim kaydı kimliği, previousPlan, newPlan, effectiveMode, effectiveDate, durum ('applied' veya 'scheduled') ve kota aşımı varsa aşan kaynak listesi (veri silinmez). Portal: çağıranın müşteri kapsamındaki abonelik ve fatura alanları native izin filtreli; ödeme yöntemi için yalnız sağlayıcı hosted checkout URL'si ve sağlayıcının döndürdüğü maskeli gösterim alanları. Yanıtlar kernel-envelope--contract zarfını kullanır.",
+    "authorization": "Native DocType izinleri, User Permission ve gerekirse has_permission/permission_query_conditions hook'u kullanılır; rol ve izin bayrakları explicitPermissionFlags ortak kaynağından gelir (native-user-policy--contract). ignore_permissions, izin bayraklarıyla atlama veya ham SQL ile yetki filtresi kurmak yasaktır. Paket değişimi capability-definition--contract ve entitlement-grant--contract denetiminden geçer. frappe.only_for('System Manager') sınırı son müşteri portalı için model alınmaz; müşteri rolü native-user-policy--contract'tan tanımlanır. client-rule-parity--contract gereği istemci kuralı yalnız sunucu kuralının yansımasıdır.",
+    "persistence": "Subscription (önerilen custom DocType) ve subscription--schema içinde tanımlanacak değişim kaydı; native doc.insert/doc.save, validate/on_update ve transaction kullanılır. Değişim ve dönem sonu uygulama olayları outbox--contract ile yayımlanır, audit-envelope--contract zarfı yazılır; kullanım ve kota karşılaştırması usage-ledger--contract'tan okunur. Tenant kapsamı tenant-registry--contract'tan gelir. Bu sözleşme hiçbir şemayı, veriyi, servisi veya production ortamını değiştirme yetkisi vermez.",
+    "failure": "Validation veya izin hatasında transaction geri alınır, kısmi değişim kaydı kalmaz. Yinelenen idempotency anahtarı ilk sonucu döndürür, ikinci kayıt üretmez. Dönem sonu uygulamasında hata kaydı 'scheduled' durumunda bırakır ve audit'e yazar. Sağlayıcı dönüşü doğrulanamazsa ödeme yöntemi değişmiş sayılmaz. Hata mesajları başka müşterinin kayıt varlığını sızdırmaz."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "audit-envelope--contract",
+      "capability-definition--contract",
+      "client-rule-parity--contract",
+      "entitlement-grant--contract",
+      "kernel-envelope--contract",
+      "native-user-policy--contract",
+      "outbox--contract",
+      "plan-definition--contract",
+      "subscription--contract",
+      "subscription--schema",
+      "tenant-registry--contract",
+      "ui-family-35--contract",
+      "usage-ledger--contract"
+    ],
+    "admission": "T-00 hedef sürüm tabanı ve R-00 yeniden kullanım eşlemesi tamamlanmadan başlanmaz; izinli veri tüketen portal okuması R-01'i de kullanır. subscription--contract ve subscription--schema hazır olmalı, ilgili adımı engelleyen decisionsPending kararları kapanmış olmalıdır. Sıralama mevcut görev bağımlılıkları ve aşamaya göre belirlenir; küme sırası yalnız sunumdur. Her seferde tek dar davranış gerçek RED/GREEN kanıtıyla uygulanır. Uygulama durumu: uygulanmadı; bu sözleşme üretim kiralaması vermez.",
+    "steps": [
+      "R-00 eşlemesinde cloud_billing.py change_plan ve create_payment_method_checkout fonksiyonlarını 'Central istemcisi; kendi barındırdığımız SaaS için iş mantığı değil' olarak işaretle.",
+      "subscription--schema ile değişim kaydı alanlarını (önceki plan, yeni plan, effectiveMode, effectiveDate, durum, talep eden) belgele; yeni ORM, CRUD veya kural motoru tasarlanmaz.",
+      "Paket değişim metodunu native whitelist, has_permission ve doc.save/insert üzerine tarif et; idempotency api-middleware--contract'tan alınır.",
+      "Dönem sonu uygulamayı native scheduler olayı ve outbox--contract üzerinden tarif et; kesin olay türü T-00 hedef sürümü doğrulandıktan sonra yazılır.",
+      "Kota aşımı kontrolünü usage-ledger--contract ve entitlement-grant--contract okuması olarak tanımla; politika kararı gelene kadar yalnız 'veri silinmez' değişmezini yaz.",
+      "Portal okumasını native DocType izinleri ve User Permission ile müşteri kapsamına sınırla; API yüzeyi seçimi decisionsPending'deki karara bağlıdır.",
+      "Ödeme yöntemi değişimini sağlayıcı hosted akışına bırak; dönüş ve uzlaşma adımları sağlayıcı kararından sonra yazılır.",
+      "UI'yi ui-family-35--contract ile React/Ant Design/Pro ve TanStack Router/Query üzerinde tanımla; web (Vite/PWA), Tauri2 ve WXT/MV3 kabukları aynı sunucu API'sini kullanır. Kaynak registry ile GenUI capability registry ayrı tutulur; JSON model sınırı yerel ReactNode/callback'ten ayrıdır."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Yetkili müşteri kullanıcısı kendi aboneliği için dönem sonu (period_end) düşürme talebi gönderir: Subscription'ın mevcut planı değişmez ve önceki/yeni planı, dönem bitiş tarihini taşıyan 'scheduled' durumunda tek bir değişim kaydı oluşur.",
+      "red": "Senaryo, talep sonrasında Subscription planının aynı kaldığını ve 'scheduled' değişim kaydının bulunduğunu doğrular; davranış yokken kayıt oluşmadığı için doğrulama assertion ile başarısız olur. Import veya altyapı hatası ya da native davranışı bozmak RED sayılmaz.",
+      "green": "En küçük native uygulama: whitelist metot has_permission ile yetkiyi doğrular, değişim kaydını doc.insert ile 'scheduled' durumunda yazar, Subscription'a dokunmaz. Aynı kabulde başka müşterinin aboneliği için talep PermissionError ile reddedilir ve Subscription ile değişim kayıtları değişmeden kalır."
+    },
+    "rollback": "Bu turda yalnız belge geri alınabilir: before=null olduğundan dosyanın kaldırılmasıyla önceki duruma dönülür. Gelecekteki uygulamada CI, deploy ve rollback teknik sahibi Hüseyin Cengiz'dir; bekleyen dönem sonu değişim kayıtları silinmeden iptal durumuna alınır. Bu sözleşme production geri alma veya veri değiştirme yetkisi vermez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "subscriptions-3",
+      "sourceStage": "post_mvp",
+      "existing": "Ekosistem: ERPNext Subscription ve Subscription Plan belgeli (data/clusters/02.json:355 değerlendirmesi, action=extend). Yerel kaynakta change_plan yalnız Central billing API'sine plan adını iletir; iş mantığı Central'dadır. Yürürlük zamanı ve düşürme sonrası kota aşımı yerel kaynakta yoktur.",
+      "gap": "Değişim kaydı modeli (önceki/yeni plan, yürürlük tarihi) tanımsız; düşürmede kota aşan verinin salt okunur mu kalacağı yoksa düşürmenin engellenip engellenmeyeceği belirsiz; Central yönlendirmesinin kendi barındırdığımız SaaS için geçerli olmadığı yazılmamış.",
+      "completionSteps": [
+        "Değişim kaydını subscription--schema içinde önceki plan, yeni plan, effectiveMode, effectiveDate, durum ve talep eden alanlarıyla tanımla.",
+        "Hemen değişimi tek transaction içinde Subscription doc.save ve değişim kaydı doc.insert olarak tarif et; plan geçerliliğini validate içinde plan-definition--contract'tan doğrula.",
+        "Dönem sonu değişimini 'scheduled' kayıt olarak sakla; dönem sınırında native scheduler olayıyla uygula, outbox--contract olayı ve audit-envelope--contract kaydı üret.",
+        "Düşürmede usage-ledger--contract kullanımını yeni planın entitlement-grant--contract hakkıyla karşılaştır; aşımda veriyi silme, karar verilen politikayı uygula ve aşan kaynakları yanıtta listele.",
+        "change_plan çağrısını kendi barındırdığımız akışta kullanma; Central bağımlılığı olmadığını R-00 eşlemesinde belgele.",
+        "Değişiklik ekranını ui-family-35--contract ile bağla; yürürlük seçimi ve kota aşımı uyarısı sunucu yanıtından gelir, istemci kuralı client-rule-parity--contract'a uyar."
+      ],
+      "dependencies": [
+        "subscription--contract",
+        "subscription--schema",
+        "plan-definition--contract",
+        "entitlement-grant--contract",
+        "usage-ledger--contract",
+        "outbox--contract",
+        "audit-envelope--contract",
+        "client-rule-parity--contract",
+        "ui-family-35--contract"
+      ],
+      "acceptance": "Hemen ve dönem sonu değişim ayrı senaryolarla denenir; dönem sonu talebinde plan dönem sınırına kadar değişmez; düşürmede fazla veri sessizce silinmez; yetkisiz kullanıcının değişim talebi reddedilir ve Subscription ile değişim kaydı değişmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/integrations/frappe_providers/cloud_billing.py",
+          "line": 22,
+          "quote": "def change_plan(client, plan: str) -> dict:"
+        },
+        {
+          "path": "frappe/frappe/integrations/frappe_providers/cloud_billing.py",
+          "line": 4,
+          "quote": "credential. Formatting and business logic live in Central."
+        }
+      ]
+    },
+    {
+      "requirementId": "subscriptions-5",
+      "sourceStage": "post_mvp",
+      "existing": "Native parçalar: frappe.has_permission ile DocType izin denetimi (client.py:176) ve frappe.only_for ile rol sınırı (frappecloud_billing.py:88). create_payment_method_checkout hosted setup checkout URL'si için Central'a istek iletir ve System Manager sınırlı akıştadır. ERPNext müşteri portalı belgeli (data/clusters/02.json:399, action=build) ancak kurulu değil; son müşteri için headless portal yok.",
+      "gap": "Yalnız kendi faturaları okuma kuralı için DocType izni, User Permission veya has_permission hook seçimi tanımsız; ödeme sağlayıcısı ve hosted checkout dönüş/uzlaşma akışı seçilmemiş; headless API yüzeyi belirtilmemiş.",
+      "completionSteps": [
+        "Müşteri ile native User eşlemesini User Permission veya has_permission/permission_query_conditions hook'u ile tanımla; izin bayraklarını explicitPermissionFlags ortak kaynağından al.",
+        "Portal okuma yüzeyini native izin filtreli liste/get olarak tanımla; ignore_permissions veya ham SQL filtresi kullanma; yüzey biçimi karar sonrası yazılır.",
+        "Ödeme yöntemi değişimini seçilecek sağlayıcının hosted akışına yönlendir; kart verisi Frappe'de alınmaz; dönüş allowlist URL ve sağlayıcı doğrulamasıyla uzlaştırılır, sonuç audit-envelope--contract ile kaydedilir.",
+        "System Manager sınırını müşteri portalı için model alma; müşteri rolünü native-user-policy--contract'tan tanımla, tenant kapsamını tenant-registry--contract'tan al.",
+        "Portal UI'yi ui-family-35--contract ile React/Ant Design/Pro ve TanStack Query üzerinde tanımla; yanıtlar kernel-envelope--contract zarfında, istek sınırı api-middleware--contract'ta."
+      ],
+      "dependencies": [
+        "subscription--contract",
+        "native-user-policy--contract",
+        "tenant-registry--contract",
+        "api-middleware--contract",
+        "kernel-envelope--contract",
+        "client-rule-parity--contract",
+        "audit-envelope--contract",
+        "ui-family-35--contract"
+      ],
+      "acceptance": "Müşteri yalnız kendi abonelik ve faturalarını görür; başka müşterinin faturası istendiğinde PermissionError döner, varlık sızdırılmaz ve kayıt değişmez; ödeme yöntemi değişimi yalnız sağlayıcı akışının doğrulanmış dönüşüyle tamamlanır.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/integrations/frappe_providers/cloud_billing.py",
+          "line": 56,
+          "quote": "def create_payment_method_checkout(client, redirect_url: str, gateway: str | None = None) -> dict:"
+        },
+        {
+          "path": "frappe/frappe/integrations/frappe_providers/frappecloud_billing.py",
+          "line": 88,
+          "quote": "frappe.only_for(\"System Manager\")"
+        },
+        {
+          "path": "frappe/frappe/client.py",
+          "line": 176,
+          "quote": "if not frappe.has_permission(doctype):"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Değişim kaydı alanları subscription--schema'da henüz tanımlı değil.",
+    "Kota aşımı politikası ve kota aşan verinin saklama süresi karara bağlı.",
+    "Müşteri kapsamlı okuma için native izin mekanizması seçimi ve müşteri-User eşlemesi yazılmadı.",
+    "Ödeme sağlayıcısı ve dönüş/uzlaşma akışı seçilmedi.",
+    "Headless API yüzeyi seçilmedi; Keycloak oturum eşlemesi bu sözleşmenin kapsamı dışındadır ve ilgili kimlik kararına bırakılır.",
+    "Uygulama, test ve runtime kabulü yapılmadı; uygulanmadı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Ödeme sağlayıcısı ve hosted checkout dönüş/uzlaşma akışı",
+      "requirementIds": ["subscriptions-5"],
+      "blocks": "Ödeme yöntemi değişim adımı ve kabulü",
+      "interimDocStep": "Sağlayıcıdan bağımsız değişmezleri belgele: kart verisi Frappe'de alınmaz, dönüş allowlist URL ile sınırlı, doğrulanmamış dönüş değişiklik sayılmaz."
+    },
+    {
+      "decision": "Düşürmede kota aşımı politikası (salt okunur bırakma, yeni yazmayı engelleme veya düşürmeyi reddetme)",
+      "requirementIds": ["subscriptions-3"],
+      "blocks": "Kota aşımı adımı ve düşürme kabulü",
+      "interimDocStep": "'Veri sessizce silinmez' değişmezini ve aşan kaynak listesi çıktısını belgele."
+    },
+    {
+      "decision": "Hemen değişimde oransal ücret ve tarife etkisi",
+      "requirementIds": ["subscriptions-3"],
+      "blocks": "Hemen değişimin fatura etkisi",
+      "interimDocStep": "Değişim kaydını ücret hesaplamasından bağımsız tanımla."
+    },
+    {
+      "decision": "Kota aşan verinin saklama süresi",
+      "requirementIds": ["subscriptions-3"],
+      "blocks": "Kota aşımı sonrası veri yaşam döngüsü",
+      "interimDocStep": "Saklama süresi alanını belirsiz olarak işaretle; silme adımı yazma."
+    },
+    {
+      "decision": "Headless API yüzeyi (/api/v2 kaynak veya whitelist metot)",
+      "requirementIds": ["subscriptions-3", "subscriptions-5"],
+      "blocks": "Portal ve değişim API imzası",
+      "interimDocStep": "Girdi/çıktı alanlarını ve izin değişmezlerini yüzeyden bağımsız belgele."
+    },
+    {
+      "decision": "Müşteri kapsamı ile tenant topolojisi ilişkisi",
+      "requirementIds": ["subscriptions-3", "subscriptions-5"],
+      "blocks": "Müşteri-User eşlemesi ve izin kapsamı",
+      "interimDocStep": "Kapsamın tenant-registry--contract'tan geleceğini ve başka kapsamın reddedileceğini belgele."
+    },
+    {
+      "decision": "Hedef Frappe/ERPNext sürümü (T-00)",
+      "requirementIds": ["subscriptions-3", "subscriptions-5"],
+      "blocks": "Scheduler olay türü, hook ve API ayrıntıları",
+      "interimDocStep": "Sürüme bağlı ayrıntıları açık bırak; yalnız native mekanizma adlarını kaydet."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

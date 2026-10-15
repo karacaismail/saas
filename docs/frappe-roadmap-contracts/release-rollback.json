@@ -4,15 +4,24 @@
   "canonicalTaskIds": ["release-rollback--implementation"],
   "requirementIds": ["releases-3", "releases-6", "releases-9", "releases-10"],
   "stage": "mvp",
+  "sourceStages": {
+    "releases-3": "mvp",
+    "releases-6": "mvp",
+    "releases-9": "mvp",
+    "releases-10": "mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "note": "Uygulama durumu: uygulanmadı. Bu dosya yalnız gelecekteki geliştirme rehberidir. Kaynak alıntıları önceki salt-okur Frappe/Suite kaynak anlık görüntülerinden alınmıştır; canlı site, ürün kabulü veya test geçişi değildir. Bu sözleşme hiçbir servis, production ortamı, şema veya veriyi değiştirme yetkisi vermez.",
   "behavior": {
-    "title": "Geri alinamaz patch kaydi varsa yalniz-kod rollback'i reddeden preflight kapisi (releases-3)",
-    "trigger": "Huseyin Cengiz yerel pilot sitede (suite.localhost) onceki surume yalniz-kod geri donus preflight'ini calistirir; girdi hedef surum ve snapshot kimligidir.",
-    "expected": "Preflight native Patch Log kayitlarini salt okur; envanterdeki geri alinamaz patch'lerden biri kayitliysa karar restore_required olur ve eslesen patch adlari listelenir; yalniz-kod geri donus adimi baslamaz.",
-    "denied": "Envanterdeki patch kaydi varken yalniz-kod geri donus reddedilir. Patch Log okunamazsa karar preflight_unavailable olur ve yine reddedilir (fail-closed). Kayit silme, restore calistirma veya servis yeniden baslatma yapilmaz."
+    "title": "Geri alınamaz patch kaydı varsa yalnız-kod rollback'ini reddeden preflight kapısı (releases-3)",
+    "trigger": "Hüseyin Cengiz, T-00 hedef tabanında belirlenen test sitesinde önceki sürüme yalnız-kod geri dönüş preflight'ını çalıştırır; girdi hedef sürüm etiketi ve snapshot kimliğidir.",
+    "expected": "Preflight native Patch Log kayıtlarını izin kontrollü olarak salt okur. Ops yml'deki geri alınamaz patch envanterinden biri kayıtlıysa karar restore_required olur ve eşleşen patch adları listelenir; yalnız-kod geri dönüş adımı başlamaz. Eşleşme yoksa karar code_only_allowed olur; snapshot kapsamındaki tanımsız kalemler ayrıca listelenir.",
+    "denied": "Envanterdeki patch kaydı varken yalnız-kod geri dönüş reddedilir. System Manager olmayan oturum PermissionError alır ve karar üretilmez. Patch Log okunamazsa karar preflight_unavailable olur ve yine reddedilir (fail-closed). Kayıt yazma veya silme, restore çalıştırma ya da servis yeniden başlatma yapılmaz."
   },
   "reuse": {
-    "mechanism": "Native Patch Log (patch adi kaydi, System Manager okuma izni) ve Bench restore yeniden kullanilir. Envanter ve snapshot kapsami, sahip olunan ops yml icinde config olarak tutulur. Patch Log listesini envanterle kesistiren yalniz en kucuk salt-okur adapter eklenir. Yeni DocType, hook, kuyruk veya zamanlama yoktur.",
+    "status": "KISMI",
+    "mechanism": "Native parçalar: Patch Log (uygulanan patch adı kaydı; okuma System Manager ve Administrator rolünde), Bench restore ve installer'ın restore sırasındaki set_as_patched davranışı. Eksik parçalar: geri alınamaz patch envanteri, snapshot kapsam listesi ve envanteri Patch Log ile kesiştiren en küçük salt-okur adapter. Envanter ve kapsam ops yml içinde config olarak tutulur. Yeni DocType, hook, kuyruk, zamanlama, rol veya izin eklenmez. Kanıtlar tek tek native parçaları gösterir; bütün rollback davranışının mevcut olduğu anlamına gelmez. Aranan yollar listesi kapsamlı bir yokluk iddiası değildir.",
     "evidence": [
       {
         "path": "suite/suite/drive/patches/integrate_with_framework.py",
@@ -39,65 +48,276 @@
         "line": 115,
         "quote": "install_app(app, verbose=verbose, set_as_patched=not source_sql, force=False)"
       }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/automation_engine/dispatch.py",
+      "frappe/frappe/core/doctype/patch_log/patch_log.json",
+      "frappe/frappe/installer.py",
+      "frappe/frappe/migrate.py",
+      "frappe/frappe/patches/v16_0/sidebar_archive.py",
+      "frappe/pyproject.toml",
+      "suite/pyproject.toml",
+      "suite/suite/drive/patches/integrate_with_framework.py",
+      "suite/suite/mail/patches/migrate_cache_to_mail_namespace.py",
+      "suite/suite/sheets/patches/v0_1/migrate_blob_to_cells.py"
     ]
   },
   "ownership": {
     "activeContractFile": "docs/frappe-roadmap-contracts/release-rollback.json",
     "plannedProduction": [
-      "operations/release-rollback/release_rollback_mvp.yml",
-      "operations/release-rollback/rollback_preflight.py (en kucuk adapter; canonical owns disinda, Codex entegrasyon onayi gerekir)"
+      "operations/release-rollback/release_rollback_mvp.yml"
     ],
-    "plannedTestFile": "operations/release-rollback/tests/test_rollback_preflight.py",
+    "plannedTestFile": null,
     "sharedIntegrationFiles": [
-      "integration/fragments/release-rollback--integration.json"
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "target_release: string (<=64, artifact etiketi); snapshot_id: string (<=128); site: string (yerel pilotta yalniz suite.localhost). yml: irreversible_patches: string[] (patches.txt satiriyla birebir); snapshot_scope: db, site_config anahtar referansi (deger degil), private/public files, mail data/blob/search dizinleri, Drive S3 (bilinmiyor isaretli).",
-    "output": "rollback-preflight.v1: decision (code_only_allowed | restore_required | preflight_unavailable), matched_patches: string[], snapshot_scope_missing: string[]. Traceback, kullanici verisi ve secret donmez.",
-    "authorization": "Patch Log okumasi yalniz Administrator/System Manager rolundedir. Adapter bench site baglaminda Administrator olarak salt okur. Headless son kullaniciya acilmaz; System Manager olmayan oturum frappe.PermissionError alir ve karar uretilmez.",
-    "persistence": "Salt okur; yazma, commit, DDL, hook veya kuyruk yoktur. installer set_as_patched davranisi nedeniyle SQL restore sonrasi Patch Log icerigi kaynak dump'a baglidir; kapi restore'dan once calisir.",
-    "failure": "Site/DB erisilemez veya Patch Log okunamaz: preflight_unavailable, cikis kodu 3; operator restore yolunu secer. Envanter eslesmesi: restore_required, cikis kodu 2. yml veya envanter eksik: config hatasi, cikis kodu 4, karar yok."
+    "input": "target_release: string (en çok 64 karakter, artifact etiketi); snapshot_id: string (en çok 128 karakter); site: string (T-00'da belirlenen test sitesi; production sitesi kabul edilmez). Ops yml: irreversible_patches: string[] (hedef uygulamanın patches.txt satırıyla birebir); snapshot_scope: db, site_config anahtar referansı (değer değil), private/public files, mail data/blob/search dizinleri, Drive dosya depolaması (S3 kapsamı karar bekliyor olarak işaretli).",
+    "output": "rollback-preflight.v1: decision (code_only_allowed | restore_required | preflight_unavailable), matched_patches: string[], snapshot_scope_missing: string[]. Traceback, kullanıcı verisi, site_config değeri veya secret dönmez.",
+    "authorization": "Adapter yalnız çağıran oturumun izniyle okur: önce frappe.has_permission ile Patch Log read izni denetlenir, sonra izin kontrollü frappe.get_list kullanılır. ignore_permissions, izin atlayan frappe.get_all veya doğrudan SQL kullanılmaz. Headless son kullanıcıya açılmaz. Bu rehber yeni rol veya izin üretmez; ileride üretilirse ortak explicitPermissionFlags kaynağına bağlanır.",
+    "persistence": "Salt okur; yazma, commit, DDL, hook veya kuyruk yoktur. Installer'ın set_as_patched=not source_sql davranışı nedeniyle SQL restore sonrasında Patch Log içeriği kaynak dump'a bağlıdır; kapı restore'dan önce çalışır, restore sonrası okunan kararı geçerli saymaz.",
+    "failure": "Site/DB erişilemez veya Patch Log okunamaz: preflight_unavailable, çıkış kodu 3; operatör restore yolunu seçer. Envanter eşleşmesi: restore_required, çıkış kodu 2. Ops yml veya envanter eksik: config hatası, çıkış kodu 4, karar yok. İzin reddi: PermissionError, çıkış kodu 5, karar yok."
   },
   "development": {
-    "dependencies": [
-      "release-rollback--contract",
-      "yerel pilot: frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6, suite.localhost, native admin/reader kapsami (t08)"
-    ],
-    "admission": "T-00 hedef taban ve R-00 eslemesi gerekir. Suite kaynak HEAD bilinmiyor; Drive ve mail patch'lerinin patches.txt icindeki birebir satiri uygulamadan once dogrulanmali. Calistirilacak test komutu bilinmiyor; admission'da dogrulanmali. Yerel kanit uzak urun tabani degildir.",
+    "dependencies": ["release-rollback--contract"],
+    "admission": "T-00 hedef taban ve R-00 yeniden kullanım eşlemesi gerekir; Patch Log izinli veri okuması olduğu için R-01 de uygulanır. Suite kaynak HEAD'i bilinmiyor; Drive integrate_with_framework ve mail migrate_cache_to_mail_namespace patch'lerinin patches.txt içindeki birebir satırı uygulamadan önce doğrulanmalı. Adapter dosya yolu ve test dosyası henüz yok; Hüseyin Cengiz ve entegrasyon sahibi admission'da belirler. Test komutu bilinmiyor; admission'da depo betikleri ve CI yapılandırmasından doğrulanmalı. Kaynak anlık görüntüsü ürün tabanı değildir.",
     "steps": [
-      "yml'e irreversible_patches envanterini (Drive integrate_with_framework, mail migrate_cache_to_mail_namespace) ve snapshot_scope'u ekle; Sheets blob'unu yalniz rollback artifact olarak not et.",
-      "Adapter: Patch Log patch alanini native get_all ile oku, envanterle kesistir, karari ve cikis kodunu dondur.",
-      "Runbook'ta restore_required icin Bench restore yolunu Huseyin Cengiz sahipliginde belgele; calistirma yok."
+      "Ops yml'e irreversible_patches envanterini (Drive integrate_with_framework, mail migrate_cache_to_mail_namespace) ve snapshot_scope listesini ekle; Sheets sheets_data blob'unu yalnız rollback artifact olarak not et, tam geri dönüş garantisi sayma.",
+      "Adapter: Patch Log read iznini native frappe.has_permission ile denetle, patch alanını frappe.get_list ile oku, envanterle kesiştir, kararı ve çıkış kodunu döndür.",
+      "Snapshot kapsamını yml'deki listeyle karşılaştır; tanımlanmamış veya karar bekleyen kalemleri snapshot_scope_missing içinde döndür.",
+      "Runbook'ta restore_required için Bench restore yolunu Hüseyin Cengiz sahipliğinde belgele; bu sözleşme kapsamında restore çalıştırılmaz."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "suite.localhost test baglaminda, envanterdeki Drive patch adiyla bir Patch Log satiri varken preflight decision=restore_required doner ve matched_patches bu adi icerir. Fixture test transaction'inda geri alinir; musteri kaydina dokunulmaz.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Ayni test ayni komutla, yml ve adapter eklendikten sonra gecer."
+      "oneScenario": "Test sitesinde, envanterdeki Drive patch adıyla bir Patch Log satırı varken System Manager oturumuyla çalışan preflight decision=restore_required döner ve matched_patches bu adı içerir. Satır test transaction'ında oluşturulup geri alınır; müşteri kaydına dokunulmaz.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. RED, adapter iskeleti ve boş envanterli yml varken assertion seviyesinde görülmeli: decision=code_only_allowed döner ve restore_required beklentisi başarısız olur. Import, bağlantı veya altyapı hatası RED sayılmaz; native geçen davranışa RED uydurulmaz.",
+      "green": "Envanter ve kesiştirme eklendikten sonra aynı senaryo, değişmeyen assertion ve aynı komutla geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN'i değildir."
     },
-    "rollback": "Yalniz yml ve adapter degisikligi yerelde geri alinir; Patch Log ve site verisine dokunulmaz; production izni yoktur."
+    "rollback": "Gelecekteki değişiklik yalnız ops yml ve adapter dosyalarının geri çevrilmesiyle geri alınır; Patch Log, site verisi, şema ve servislere dokunulmaz. Production, deploy veya veri değiştirme izni yoktur; CI/deploy/rollback teknik sahibi Hüseyin Cengiz'dir."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "releases-3",
+      "sourceStage": "mvp",
+      "existing": "Native: Bench restore, installer'ın restore sırasındaki set_as_patched davranışı ve Patch Log kaydı. Sheets göçünde sheets_data blob'u rollback artifact olarak korunur. Talimat, kod sürümünü düşürmenin şema ve veriyi geri döndürmediğini doğru belirtir.",
+      "gap": "Geri alınamaz patch envanteri ve bunlar için yalnız-restore politikası yok (Drive File doctype silinir, mail önbelleğinde rmtree çalışır). Snapshot kapsamı yalnız DB ve anahtarlar; mail LMDB/blob/search dizinleri, Drive dosyaları ve S3 belirtilmemiş. RPO/RTO, prova sıklığı ve restore sırasında set_as_patched açıklaması yok.",
+      "completionSteps": [
+        "Ops yml'deki irreversible_patches listesine Drive integrate_with_framework ve mail migrate_cache_to_mail_namespace patch'lerini patches.txt satırıyla birebir ekle; bu patch'ler için politika yalnız restore olsun.",
+        "snapshot_scope'u DB, site_config anahtar referansı, private/public files, mail data/blob/search dizinleri ve Drive dosya depolamasıyla birlikte tanımla; gerçek dizin yolları admission'da kaynak ve konfigürasyondan doğrulanmadan yazılmasın.",
+        "Runbook'a SQL restore sırasında installer'ın set_as_patched=not source_sql davranışını ve bunun Patch Log'u dump içeriğine bağladığını not et.",
+        "Prova kabulünü bu kapsamla eşle: artifact etiketi, DB snapshot'ı, dosya ve önbellek dizinleri ile anahtar referansları aynı snapshot_id altında doğrulansın.",
+        "Prova teknik sahibi Hüseyin Cengiz; RPO/RTO ve prova sıklığı karar gelene kadar boş kalır."
+      ],
+      "dependencies": ["release-rollback--contract"],
+      "acceptance": "Envanterdeki patch kaydı varken preflight restore_required döner ve yalnız-kod geri dönüş başlamaz. Prova kaydında artifact, DB snapshot'ı, dosya/önbellek dizinleri ve anahtar referansları aynı snapshot_id ile eşleşir ve sağlık koşulları geçer. Patch Log satır sayısı preflight öncesi ve sonrası aynıdır.",
+      "evidence": [
+        {
+          "path": "suite/suite/sheets/patches/v0_1/migrate_blob_to_cells.py",
+          "line": 6,
+          "quote": "parent doc as a rollback artifact; cut-over code in the v2 API reads from"
+        },
+        {
+          "path": "suite/suite/drive/patches/integrate_with_framework.py",
+          "line": 60,
+          "quote": "# The Drive File doctype is deleted by the time this runs, so its controller"
+        },
+        {
+          "path": "suite/suite/mail/patches/migrate_cache_to_mail_namespace.py",
+          "line": 51,
+          "quote": "shutil.rmtree(source, ignore_errors=True)"
+        },
+        {
+          "path": "frappe/frappe/installer.py",
+          "line": 115,
+          "quote": "install_app(app, verbose=verbose, set_as_patched=not source_sql, force=False)"
+        }
+      ]
+    },
+    {
+      "requirementId": "releases-6",
+      "sourceStage": "mvp",
+      "existing": "Native: Suite'in frappe-dependencies aralığı beyanı, migrate sırasında Installed Applications sürüm geçmişi senkronu, migrate sonunda version-update realtime yayını ve Patch Log (yalnız System Manager ve Administrator okur).",
+      "gap": "Paket imza/doğrulama yöntemi ve doğrulanmamış paketi reddeden kapı yok. Uyum matrisi required_apps ve frappe-dependencies aralığına bağlanmamış; kurulu frappe dağıtım sürümü bilinmiyor. Aşama bazlı ilerleme olayı yok (yalnız bitişte version-update). Patch Log'un headless sunumu için izin sınırı yazılmamış. Doğrulama ve ilerleme kısmı releases-3'ten ayrıştırılmamış.",
+      "completionSteps": [
+        "Bu kısmı release-rollback--implementation içinde releases-3 preflight'ından ayrı bir alt adım olarak yaz; schema-migration--implementation'ı destekleyici görev olarak bağla, yeni görev açma.",
+        "Uyum kuralını her uygulamanın pyproject frappe-dependencies aralığı, hooks required_apps beyanı ve kurulu sürümlerden türet; sonucu releases-10 destek matrisinin denenmiş sütununa bağla.",
+        "17.0.0.dev0 gibi prerelease sürümlerin aralığa dahil sayılıp sayılmadığını admission'da paketleme aracının gerçek davranışıyla doğrula; doğrulanmadan uyumlu sayma.",
+        "Doğrulama kapısını fail-closed tasarla: imza yöntemi karar bekledikçe doğrulanmamış veya aralık dışı paket dağıtım adımına geçemez.",
+        "İlerleme görünümünü native migrate'i değiştirmeden CI adım çıktısı, yeni Patch Log satırları ve Installed Applications sürüm geçmişinden türet; Patch Log yalnız System Manager oturumuyla okunur, headless son kullanıcıya açılmaz."
+      ],
+      "dependencies": [
+        "release-rollback--contract",
+        "releases-10",
+        "schema-migration--implementation"
+      ],
+      "acceptance": "Aralık dışı veya doğrulanmamış paket dağıtım adımına geçemez ve red nedeni görünür. Başarısız patch, Patch Log'daki skipped/traceback alanlarıyla yalnız yetkili rolde görülür. Kurulu uygulama sürümleri Installed Applications'tan okunur. System Manager olmayan oturum ilerleme verisini alamaz.",
+      "evidence": [
+        {
+          "path": "suite/pyproject.toml",
+          "line": 45,
+          "quote": "frappe = \">=16.0.0,<18.0.0\""
+        },
+        {
+          "path": "frappe/frappe/migrate.py",
+          "line": 162,
+          "quote": "* Sync Installed Applications Version History"
+        },
+        {
+          "path": "frappe/frappe/migrate.py",
+          "line": 108,
+          "quote": "frappe.publish_realtime(\"version-update\")"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/patch_log/patch_log.json",
+          "line": 60,
+          "quote": "\"role\": \"System Manager\""
+        }
+      ]
+    },
+    {
+      "requirementId": "releases-9",
+      "sourceStage": "mvp",
+      "existing": "Native: in_migrate bayrağı (otomasyon dispatch'i install/patch/migrate sırasında durur), bakım modunda deferred insert flush, migrate sonunda version-update yayını ve servisler çalışmıyorsa bench migrate'in reddedilmesi. site_config bakım modu resmî belgede tanımlı.",
+      "gap": "Headless/API istemcileri için bakım yanıt sözleşmesi (HTTP durum kodu, Retry-After, istemci davranışı) yok. Sağlık kontrolü kapsamı (worker, scheduler, realtime, Error Log artışı) tanımsız. Paylaşılan veritabanında canary için expand/contract şema kuralı yok; hata durumunda rollback tetiklensin ifadesi veri geri dönüşünden ayrılmamış; releases-7 ile çelişki riski var. Teknik sahip kişi olarak yazılmamış.",
+      "completionSteps": [
+        "Kural ekle: şema değiştiren sürümde canary yalnız geriye uyumlu expand fazında yapılır; contract fazı tüm trafik yeni sürüme geçip geri dönüş penceresi kapandıktan sonra ayrı sürümde uygulanır.",
+        "Otomatik rollback'i yalnız trafik ve kod geri çevirme olarak tanımla; şema veya veri geri dönüşü gerekiyorsa releases-3 preflight'ı restore_required kararıyla restore yoluna yönlendirir.",
+        "Bakım yanıt sözleşmesini (HTTP durum kodu, Retry-After, istemci yeniden deneme davranışı) Hüseyin Cengiz yazar; native site_config bakım modunun hedef sürümdeki yanıtı admission'da doğrulanmadan varsayılmaz.",
+        "Sağlık eşiğini worker, scheduler, realtime ve Error Log artışı kalemleriyle Hüseyin Cengiz yazar; Error Log okuması native izinle yapılır.",
+        "Canary kuralını releases-7 metniyle karşılaştır ve ayrımı not et; releases-7 bu birimin kapsamına alınmaz."
+      ],
+      "dependencies": ["release-rollback--contract", "releases-3"],
+      "acceptance": "Bakımda headless istemci tanımlı durum kodu ve Retry-After alır. Canary sağlık eşiğini geçmeden trafik artmaz. Eşik ihlalinde trafik ve kod geri çevrilir; şema geri dönüşü yalnız restore yoluna yönlendirilir. Canary sırasında contract fazı uygulanmaz.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/migrate.py",
+          "line": 108,
+          "quote": "frappe.publish_realtime(\"version-update\")"
+        },
+        {
+          "path": "frappe/frappe/migrate.py",
+          "line": 160,
+          "quote": "* Flush deferred inserts made during maintenance mode."
+        },
+        {
+          "path": "frappe/frappe/automation_engine/dispatch.py",
+          "line": 59,
+          "quote": "if flags.in_install or flags.in_patch or flags.in_migrate:"
+        },
+        {
+          "path": "frappe/frappe/migrate.py",
+          "line": 37,
+          "quote": "Cannot run bench migrate without the services running."
+        }
+      ]
+    },
+    {
+      "requirementId": "releases-10",
+      "sourceStage": "mvp",
+      "existing": "Native kaynakta: frappe requires-python >=3.14,<3.15; Suite'in frappe >=16.0.0,<18.0.0 beyanı; v16'dan v17'ye geçiş patch'leri. İncelenen taban yayımlanmış bir sürüm değil, commit'e sabitlenmiş 17.0.0.dev0 geliştirme dalıdır.",
+      "gap": "Dev commit adf1fd0'ın destekli sayılıp sayılmayacağı kararı yok. Suite aralık beyanı ile gerçekte denenmiş bileşim ayrılmamış. İstemci satırları ve EOL bildirim kanalı tanımsız; Keycloak satırı ayrı karara bağlı.",
+      "completionSteps": [
+        "Tek destek matrisi tablosu tanımla: satırlar Frappe commit/sürümü, Suite, Python, web istemcisi (React/Vite/PWA), Tauri2 masaüstü ve WXT/MV3 eklentisi; her satırda beyan edilen ve denenmiş ayrı sütunlar.",
+        "Beyan sütununu kaynak beyanlarından doldur (frappe requires-python, Suite frappe-dependencies); denenmiş sütunu yalnız kayıtlı geçiş ve geri dönüş provasıyla doldur, kayıt yoksa not_run yaz.",
+        "Hedef sürüme geçiş ve geri dönüş denemesini releases-3 prova kaydına bağla; teknik sahip Hüseyin Cengiz.",
+        "Güvenlik güncelleme dönemi ve EOL bildirim kanalı alanlarını karar bekliyor olarak bırak.",
+        "releases-6 uyum kapısını bu tablonun denenmiş sütununa bağla; yeni görev açma. Keycloak satırı ayrı karar gelene kadar kapsam dışıdır."
+      ],
+      "dependencies": ["release-rollback--contract", "releases-3"],
+      "acceptance": "Desteklenen bileşimler beyan/denenmiş ayrımıyla yayımlanır. Dev commit karar verilmeden destekli gösterilmez. Güvenlik güncellemesi ve EOL bildirimi izlenebilir. Hedef sürüme geçiş ve geri dönüş denemesi kayıtlıdır.",
+      "evidence": [
+        {
+          "path": "frappe/pyproject.toml",
+          "line": 7,
+          "quote": "requires-python = \">=3.14,<3.15\""
+        },
+        {
+          "path": "suite/pyproject.toml",
+          "line": 45,
+          "quote": "frappe = \">=16.0.0,<18.0.0\""
+        },
+        {
+          "path": "frappe/frappe/patches/v16_0/sidebar_archive.py",
+          "line": 1,
+          "quote": "Helpers for the patches that turn v16 sidebars into v17 ones."
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "releases-3: RPO/RTO, prova sikligi ve mail/search dizinlerinin gercek yollari bilinmiyor; Drive S3 kapsami belirsiz.",
-    "releases-6: paket imza/dogrulama kapisi, required_apps ile uyum matrisi ve asama bazli headless ilerleme yok; Patch Log izin siniri korunmali. 17.0.0.dev0 ile >=16,<18 araliginin prerelease yorumu dogrulanmadi.",
-    "releases-9: headless bakim yaniti (HTTP durum kodu, Retry-After), saglik esigi ve canary icin yalniz expand fazi kurali Huseyin Cengiz tarafindan yazilmali; canary/trafik altyapisi dagitim bagimliligidir.",
-    "releases-10: dev commit adf1fd0'in destekli sayilmasi, beyan/denenmis sutunlu destek matrisi, istemci satirlari ve EOL kanali karar bekliyor; Keycloak satiri karar bekledigi icin kapsam disi.",
-    "UI planlanmadi; ileride gerekirse mevcut AntD, Outfit 14px, 320-first, cevreleyen odak halkasi olmamasi ve simetrik pozitif Cubic hareket korunur."
+    "releases-3: RPO/RTO, prova sıklığı ve mail/search dizinlerinin gerçek yolları bilinmiyor; Drive S3 kapsamı belirsiz; patches.txt satırları doğrulanmadı.",
+    "releases-6: paket imza/doğrulama kapısı, required_apps ile uyum matrisi ve aşama bazlı ilerleme yok; 17.0.0.dev0 ile >=16,<18 aralığının prerelease yorumu doğrulanmadı.",
+    "releases-9: headless bakım yanıtı, sağlık eşiği ve canary trafik altyapısı yok; releases-7 ile çelişki kontrolü yapılmadı.",
+    "releases-10: beyan/denenmiş sütunlu destek matrisi, istemci satırları ve EOL kanalı yok; Keycloak satırı ayrı karar beklediği için kapsam dışı.",
+    "UI planlanmadı; ileride gerekirse mevcut Ant Design, Outfit, en az 14 CSS px metin, 320 öncelikli yerleşim, çevreleyen odak halkası olmaması ve simetrik pozitif Cubic hareket kuralları korunur."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Hedef Frappe sürümü ve dev commit adf1fd0 (17.0.0.dev0) tabanının destekli sayılıp sayılmayacağı",
+      "requirementIds": ["releases-10", "releases-6"],
+      "blocks": "Destek matrisinin beyan sütununun kesinleşmesi ve uyum kapısının kabul kuralı",
+      "interimDocStep": "Matris şablonunu satır ve sütunlarıyla yaz; hedef sürüm hücresini karar bekliyor olarak bırak."
+    },
+    {
+      "decision": "RPO/RTO değerleri ve geri dönüş provası sıklığı",
+      "requirementIds": ["releases-3"],
+      "blocks": "Prova kabul eşiklerinin sayısal tanımı",
+      "interimDocStep": "Geri alınamaz patch envanterini ve snapshot kapsam listesini yaz; eşik alanlarını boş bırak."
+    },
+    {
+      "decision": "Paket imza/doğrulama yöntemi ve anahtar yönetimi",
+      "requirementIds": ["releases-6"],
+      "blocks": "Doğrulama kapısının imza kontrolü adımı",
+      "interimDocStep": "Fail-closed red davranışını ve red nedeni çıktısını yöntemden bağımsız belgeleyin; secret veya anahtar değeri yazılmaz."
+    },
+    {
+      "decision": "Drive dosya depolaması ve S3 veri yerleşimi kapsamı",
+      "requirementIds": ["releases-3"],
+      "blocks": "snapshot_scope içindeki Drive kaleminin kesinleşmesi",
+      "interimDocStep": "Kalemi snapshot_scope_missing çıktısında görünür bırakan kuralı yaz."
+    },
+    {
+      "decision": "Güvenlik güncelleme dönemi süresi ve EOL bildirim kanalı",
+      "requirementIds": ["releases-10"],
+      "blocks": "Destek politikasının yayımlanması ve EOL bildiriminin izlenmesi",
+      "interimDocStep": "Matriste bakım bitişi ve bildirim kanalı sütunlarını karar bekliyor olarak tanımla."
+    },
+    {
+      "decision": "Headless bakım yanıtı (HTTP durum kodu, Retry-After) ve sağlık eşiği değerleri; teknik sahip Hüseyin Cengiz",
+      "requirementIds": ["releases-9"],
+      "blocks": "Bakım yanıt sözleşmesi ve canary trafik artış kararı",
+      "interimDocStep": "Sağlık kalemlerini (worker, scheduler, realtime, Error Log artışı) ve expand-only canary kuralını yaz; değerleri boş bırak."
+    },
+    {
+      "decision": "Tenant topolojisi ve canary trafik geçiş altyapısı (paylaşılan veya ayrı veritabanı)",
+      "requirementIds": ["releases-9"],
+      "blocks": "Canary dağıtım ve trafik geçiş adımları",
+      "interimDocStep": "Paylaşılan veritabanında eski ve yeni kodun aynı şemayı gördüğünü ve bu yüzden expand-only kuralının zorunlu olduğunu belgele."
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "releases-3": "mvp",
-    "releases-6": "mvp",
-    "releases-9": "mvp",
-    "releases-10": "mvp"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,
     "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
     "specificPrerequisitesRef": "#/development/admission"
+  },
+  "canonicalArtifact": {
+    "kind": "config",
+    "name": "release-rollback",
+    "status": "proposed",
+    "doctypeCount": 0,
+    "pageCount": 0,
+    "availability": "custom_proposed"
   }
 }

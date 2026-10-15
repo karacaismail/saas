@@ -4,15 +4,21 @@
   "canonicalTaskIds": ["rate-limit--implementation"],
   "requirementIds": ["security-4", "security-8"],
   "stage": "mvp",
+  "sourceStages": {
+    "security-4": "mvp",
+    "security-8": "mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
-    "title": "Suite Rate Limit kaydinda user_based=1 iken sayac oturum kullanicisina gore ayrilir",
-    "trigger": "Etkin Rate Limit kaydinin (ip_based=0, user_based=1, key_ bos, ignore_in_developer_mode=0) method_path ucuna iki farkli dogrulanmis kullanici ayni pencerede istek atar.",
-    "expected": "Limiti asan kullanici A RateLimitExceededError alir; ayni pencerede kullanici B'nin ilk istegi normal yanit doner.",
-    "denied": "A'nin limit+1. istegi reddedilir; key_ bos oldugu icin istemcinin form_dict degeri yeni sayac acamaz. Guest davranisi bu sozlesmede kabul edilmez."
+    "title": "Uygulama durumu: uygulanmadı. Suite Rate Limit kaydında user_based=1 iken sayaç oturum kullanıcısına göre ayrılır",
+    "trigger": "Etkin bir Rate Limit kaydının (ip_based=0, user_based=1, anahtar alanı boş, ignore_in_developer_mode=0) method_path ucuna iki farklı doğrulanmış kullanıcı aynı pencerede istek atar.",
+    "expected": "Limiti aşan kullanıcı A RateLimitExceededError alır; aynı pencerede kullanıcı B'nin ilk isteği ucun mevcut normal yanıtını alır.",
+    "denied": "A'nın limit+1. isteği reddedilir ve uç fonksiyonu çalışmaz; anahtar alanı boş olduğu için istemcinin gönderdiği form_dict değeri yeni sayaç açamaz. Guest istekleri bu sözleşmenin kabul kapsamı dışındadır."
   },
   "reuse": {
-    "mechanism": "Native frappe rate_limit dekoratorunun user_based parametresi yeniden kullanilir. Suite dynamic_rate_limit bu parametreyi gecirmedigi icin en kucuk adaptor: Rate Limit DocType'a user_based Check alani, get_rate_limits secimine eklenmesi ve rate_limit cagrisina gecirilmesi. CustomField secilmedi; okuyan sorgu Suite kodunda acik sutun sectiginden sema ve tuketici ayni sahipte kalir. security-4 global limiter yalniz site_config rate_limit yapilandirmasidir, kod degisikligi yok.",
+    "status": "KISMI",
+    "mechanism": "Native parçalar: (1) Frappe global limiter frappe.conf.rate_limit {limit, window} ile site önekli, sabit pencereli, istek süresine dayalı sayaç tutar; aşımda 429 ve Retry-After döner. (2) Frappe rate_limit dekoratörü user_based parametresine sahiptir ve aşımda RateLimitExceededError fırlatır. (3) Suite Rate Limit DocType'ı ve dynamic_rate_limit kayıt bazlı sınırı dekoratöre bağlar, ip_based değerini geçirir, ignore_in_developer_mode ile developer_mode açıkken kaydı atlar. Eksik parça: Suite yolu user_based değerini dekoratöre geçirmez. En küçük adaptör: Rate Limit DocType'a user_based Check alanı (varsayılan 0), get_rate_limits seçimine eklenmesi ve dekoratör çağrısına geçirilmesi. CustomField seçilmedi; okuyan sorgu Suite kodunda açık sütun seçtiğinden (hedef baseline'da doğrulanmalı) şema ve tüketici aynı sahipte kalır. security-4 global limiter yalnız site_config yapılandırmasıdır, kod değişikliği gerektirmez. Kanıtın bir native parçayı göstermesi bütün davranışın var olduğu anlamına gelmez.",
     "evidence": [
       {
         "path": "frappe/frappe/rate_limiter.py",
@@ -36,74 +42,230 @@
       },
       {
         "path": "frappe/frappe/rate_limiter.py",
+        "line": 16,
+        "quote": "rate_limit = frappe.conf.rate_limit"
+      },
+      {
+        "path": "frappe/frappe/rate_limiter.py",
         "line": 89,
         "quote": "headers[\"Retry-After\"] = self.reset"
+      },
+      {
+        "path": "frappe/frappe/rate_limiter.py",
+        "line": 101,
+        "quote": "return Response(_(\"Too Many Requests\"), status=429)"
       },
       {
         "path": "suite/suite/suite_core/doctype/rate_limit/rate_limit.py",
         "line": 105,
         "quote": "doc.insert(ignore_permissions=True)"
       }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/rate_limiter.py",
+      "suite/suite/drive/webdav/auth.py",
+      "suite/suite/suite_core/doctype/rate_limit/rate_limit.py",
+      "suite/suite/utils/rate_limiter.py"
     ]
   },
   "ownership": {
     "activeContractFile": "docs/frappe-roadmap-contracts/rate-limit.json",
-    "plannedProduction": [
-      "suite/suite/suite_core/doctype/rate_limit/rate_limit.json",
-      "suite/suite/suite_core/doctype/rate_limit/rate_limit.py",
-      "suite/suite/utils/rate_limiter.py",
-      "operations/rate-limit/rate_limit_mvp.yml"
-    ],
-    "plannedTestFile": "suite/suite/suite_core/doctype/rate_limit/test_rate_limit.py",
+    "plannedProduction": ["operations/rate-limit/rate_limit_mvp.yml"],
+    "plannedTestFile": null,
     "sharedIntegrationFiles": [
-      "integration/fragments/rate-limit--integration.json"
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "Rate Limit kaydi: method_path str, methods, limit int>0, seconds int>0, ip_based 0, user_based Check varsayilan 0, key_ bos, ignore_in_developer_mode 0. Istek: cookie/CSRF ile dogrulanmis kullanici.",
-    "output": "Izinli istekte ucun mevcut yaniti degismez; asimda RateLimitExceededError mesaji. Yeni yanit alani veya surum yok; user_based=0 mevcut davranisi korur.",
-    "authorization": "Kayit yalniz DocType'in native rol izinleriyle Desk'ten olusturulur (rol izinleri kaynakta saglanmadi, dogrulanmali). create_rate_limit ignore_permissions kullandigindan yalniz ic kurulum yardimcisi kalir, whitelist edilmez, headless API'ye acilmaz. Sayac site onekli cache anahtariyla site sinirinda kalir.",
-    "persistence": "Kayit Document.insert/save native transaction ile; yeni sutun yalniz bench migrate ile DocType JSON'dan olusur, ek DDL garantisi yok. Sayac Redis cache'te, veritabanina yazilmaz. get_rate_limits onbelleginin kayit degisince gecersizlesmesi dogrulanmali.",
-    "failure": "Asim: RateLimitExceededError; dekorator yolunda HTTP kodu ve Retry-After kaynakta gorulmedi. Tuketici (React19/AntD6/TanStack) hatayi otomatik yeniden denemeden mevcut AntD hata yuzeyinde gosterir; Outfit 14px, 320-first, cevreleyen odak halkasiz gosterge, simetrik pozitif Cubic hareket korunur. Redis baglanti hatasi limit asimi sayilmaz."
+    "input": "Rate Limit kaydı: method_path str, methods, limit int>0, seconds int>0, ip_based 0, user_based Check varsayılan 0, anahtar alanı boş (DocType'taki gerçek alan adı hedef baseline'da doğrulanmalı), ignore_in_developer_mode 0. İstek: Frappe native oturum (cookie/CSRF) ile doğrulanmış kullanıcı. Global limiter girdisi: site_config rate_limit {limit, window}; değerler karar bekliyor.",
+    "output": "İzinli istekte ucun mevcut yanıtı değişmez; aşımda RateLimitExceededError mesajı. Yeni yanıt alanı, uç veya API sürümü yok; user_based=0 mevcut davranışı korur. Global limiter aşımı native 429 ve Retry-After yanıtıdır.",
+    "authorization": "Rate Limit kaydı yalnız DocType'ın native rol izinleriyle Desk'ten oluşturulur veya değiştirilir; rol izinleri kaynakta sağlanmadı, uygulama öncesi doğrulanmalı. Bu rehber rol veya izin üretmez; izin değişikliği gerekirse explicitPermissionFlags ortak kaynağına bağlanır ve o değişikliğin kendi tek kabulü yetkisiz kullanıcının reddedilen yazmasını ve kaydın değişmediğini kanıtlar. create_rate_limit ignore_permissions kullandığından yalnız iç kurulum yardımcısı kalır; whitelist edilmez, headless API'ye veya istemcilere açılmaz. Yeni kodda ignore_permissions veya SQL ile yetki bypass'ı yoktur. Sayaç site önekli cache anahtarıyla site sınırında kalır.",
+    "persistence": "Kayıt native Document.insert/save transaction'ı ile yazılır; yeni sütun yalnız bench migrate ile DocType JSON'undan oluşur, ek DDL veya veri göçü yok. Sayaçlar Redis cache'tedir, veritabanına yazılmaz. get_rate_limits önbelleğinin kayıt değişince geçersizleştiği doğrulanmalı. Bu sözleşme hiçbir şema, veri, servis veya production ortamını değiştirme yetkisi vermez.",
+    "failure": "Aşım: RateLimitExceededError; dekoratör ve Suite yolunda HTTP durum kodu ve Retry-After kaynakta görülmedi, varsayılmaz. Tüketici (React, Ant Design, TanStack Query) bu hatayı otomatik yeniden denemeden mevcut Ant Design hata yüzeyinde gösterir; Retry-After yoksa geri sayım uydurmaz. Hata yüzeyi sunucu verisini JSON model sınırında taşır; yerel ReactNode/callback sözleşmeye girmez. UI kuralları korunur: Outfit, en az 14 CSS px, 320 CSS px öncelikli yerleşim, çevreleyen odak halkası olmayan tek görünür odak göstergesi, simetrik ve pozitif süreli Cubic hareket. Redis bağlantı hatası limit aşımı sayılmaz; fail-open veya fail-closed davranışı kaynakta doğrulanmadan varsayılmaz. developer_mode açık sitede Suite kaydının atlanması limit yokluğunun kanıtı değildir."
   },
   "development": {
-    "dependencies": [
-      "rate-limit--contract",
-      "local pilot: Frappe17-dev suite.localhost frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6, nativeAuth cookie/CSRF"
-    ],
-    "admission": "T-00 hedef baseline ve R-00 reuse eslemesi gerekir. frappe/frappe/rate_limiter.py 130-176 satirlarinda user_based anahtarinin oturum kullanicisiyla kuruldugu yerelde okunmali; dogrulanamazsa uygulama baslamaz. Suite HEAD bilinmiyor; Suite kaynagina yazma sahipligini entegrasyon sahibi Codex atar. Yerel kanit uzak urun baseline'i degildir.",
+    "dependencies": ["rate-limit--contract"],
+    "admission": "Uygulama durumu: uygulanmadı. Ön koşullar: T-00 hedef baseline ve R-00 reuse eşlemesi; izinli veri tüketicileri ayrıca R-01 kullanır. frappe/frappe/rate_limiter.py içinde user_based dalının anahtarı frappe.session.user ile kurduğu hedef baseline'da okunmalı; doğrulanamazsa uygulama başlamaz. Hedef Frappe ve Suite sürümü bu sözleşmede seçilmez. Suite kaynak dosyaları (Rate Limit DocType JSON ve py, suite/suite/utils/rate_limiter.py) plannedProduction içinde değildir; yazma sahipliği ana entegrasyon sahibince ayrıca atanmadan değiştirilmez. Tek dar davranış gerçek RED/GREEN kanıtıyla uygulanır; ortak politika ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy.",
     "steps": [
-      "Rate Limit DocType'a user_based Check alani (varsayilan 0) ekle.",
-      "get_rate_limits secimine user_based ekle ve bool'a cevir.",
-      "dynamic_rate_limit icinde rate_limit cagrisina user_based degerini gecir.",
-      "operations/rate-limit/rate_limit_mvp.yml icinde global site_config rate_limit {limit, window} ve Rate Limit kayit sablonunu degersiz yer tutucuyla belgele; esikler Huseyin Cengiz karari."
+      "Hedef baseline'da dekoratörün user_based dalını, Suite dynamic_rate_limit ve get_rate_limits akışını oku; DocType'taki anahtar alanının gerçek adını ve rol izinlerini kaydet.",
+      "Rate Limit DocType'a user_based Check alanı (varsayılan 0) ekle; bench migrate dışında DDL yok. Bu şema adımı RED'den önce yapılır, böylece RED alan yokluğu hatası olmaz.",
+      "tdd.oneScenario testini çalıştır ve tdd.red beklentisini gözle.",
+      "get_rate_limits seçimine user_based ekle ve bool'a çevir.",
+      "dynamic_rate_limit içinde rate_limit çağrısına user_based değerini geçir; ip_based ve diğer parametreler değişmez.",
+      "Aynı senaryoyu ve user_based=0 gerileme kontrolünü değişmeyen komutla koş (tdd.green).",
+      "operations/rate-limit/rate_limit_mvp.yml içinde global site_config rate_limit {limit, window} ve Rate Limit kayıt şablonunu değersiz yer tutucularla belgele; secret içermez, eşikler decisionsPending kararına bağlıdır."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "Yerel sitede test amacli whitelisted metot icin limit=2, seconds=60, ip_based=0, user_based=1, ignore_in_developer_mode=0 kaydi; kullanici A 3 HTTP cagrisi yapar ve 3.de RateLimitExceededError alir; ardindan kullanici B'nin 1. cagrisi basarili olur. Test kendi kaydini temizler.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Ayni test ayni bench run-tests komutuyla (modul yolu yerelde dogrulanacak) gecer; user_based=0 kaydi mevcut davranisi korur."
+      "oneScenario": "developer_mode kapalı bir test sitesinde test amaçlı whitelisted bir metot için limit=2, seconds=60, ip_based=0, user_based=1, ignore_in_developer_mode=0 Rate Limit kaydı oluşturulur; kullanıcı A üç HTTP çağrısı yapar ve üçüncüde RateLimitExceededError alır; ardından aynı pencerede kullanıcı B'nin ilk çağrısı başarılı olur. Test kendi kaydını ve sayaçlarını temizler.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. user_based alanı şemada varken Suite yolu değeri dekoratöre geçirmediği sürece beklenen RED, B'nin ilk çağrısının paylaşılan sayaç nedeniyle reddedilmesidir; bu beklenti kaynakta çalıştırılarak doğrulanmalı. Import, eksik alan veya altyapı hatası RED sayılmaz; native geçen davranışa RED uydurulmaz. Bu turda test yazılmaz veya koşulmaz.",
+      "green": "Uygulamadan sonra aynı senaryo, değişmeyen assertion ve aynı bench run-tests komutuyla geçmeli (modül yolu hedef baseline'da doğrulanır); user_based=0 kaydı mevcut davranışı korur. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN'i değildir."
     },
-    "rollback": "Uc Suite dosyasini yerelde geri al ve yerel bench migrate calistir; kalan sutun varsayilan 0 ile zararsizdir. Production izni yok; deploy/rollback Huseyin Cengiz sahipliginde bagimliliktir."
+    "rollback": "Suite değişiklikleri sahiplik atanmış dalda geri alınır ve test sitesinde bench migrate çalıştırılır; kalan user_based sütunu varsayılan 0 ile davranışı değiştirmez. site_config rate_limit kaldırılınca global limiter devre dışı kalır. Production değişikliği yetkisi yok; CI, deploy ve rollback teknik sahibi Hüseyin Cengiz'dir ve bu adımlar onun devrine bağımlıdır."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "security-4",
+      "sourceStage": "mvp",
+      "existing": "Native global limiter: frappe.conf.rate_limit {limit, window}, sabit pencere, istek süresine dayalı site önekli sayaç, aşımda 429 ve Retry-After. Native dekoratör aşımda RateLimitExceededError fırlatır. Suite Rate Limit DocType'ı kayıt bazlı sınır uygular; ignore_in_developer_mode ile developer_mode'da atlanabilir.",
+      "gap": "Kabul metni yalnız global limiter'a uyuyor; global, dekoratör ve Suite DocType mekanizmaları ayrılmamış. Dekoratör ve Suite yolunda Retry-After doğrulanmadı. Eşikler ve sınır alacak uçlar tanımsız. developer_mode'da Suite limitlerinin atlanabileceği yazılmamış. create_rate_limit ignore_permissions kullanıyor.",
+      "completionSteps": [
+        "Kabulü üç mekanizmaya böl: global (429 ve Retry-After), dekoratör (RateLimitExceededError; HTTP kodu ve başlık beklentisi ayrı, kaynakla doğrulanacak), Suite DocType (kayıt bazlı).",
+        "operations/rate-limit/rate_limit_mvp.yml içinde site_config rate_limit {limit, window} anahtarlarını değersiz yer tutucuyla belgele.",
+        "Sınır alacak uç envanterini Rate Limit kayıt şablonu olarak belgele: method_path, methods, limit, seconds, ip_based, user_based ve developer_mode notu.",
+        "create_rate_limit'in whitelist edilmediğini ve headless API'ye açılmadığını kabul kontrol listesine ekle.",
+        "Global limiter senaryosunu developer_mode kapalı sitede planla: eşik aşımında 429 ve Retry-After, pencere yenilenince isteğin yeniden kabulü."
+      ],
+      "dependencies": ["rate-limit--contract"],
+      "acceptance": "Global limiter: eşik aşılınca 429 ve Retry-After döner; pencere yenilenince istek yeniden kabul edilir. Dekoratör ve Suite: aşımda RateLimitExceededError; başlık beklentisi yalnız kaynakla doğrulanırsa eklenir. Senaryolar developer_mode kapalı ortamda koşulur. Uygulama durumu: uygulanmadı; runtimeAcceptance not_run.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/rate_limiter.py",
+          "line": 16,
+          "quote": "rate_limit = frappe.conf.rate_limit"
+        },
+        {
+          "path": "frappe/frappe/rate_limiter.py",
+          "line": 79,
+          "quote": "frappe.cache.incrby(self.key, self.duration)"
+        },
+        {
+          "path": "frappe/frappe/rate_limiter.py",
+          "line": 89,
+          "quote": "headers[\"Retry-After\"] = self.reset"
+        },
+        {
+          "path": "frappe/frappe/rate_limiter.py",
+          "line": 101,
+          "quote": "return Response(_(\"Too Many Requests\"), status=429)"
+        },
+        {
+          "path": "frappe/frappe/rate_limiter.py",
+          "line": 186,
+          "quote": "frappe.RateLimitExceededError,"
+        },
+        {
+          "path": "suite/suite/utils/rate_limiter.py",
+          "line": 37,
+          "quote": "if rl[\"ignore_in_developer_mode\"] and frappe.conf.developer_mode:"
+        },
+        {
+          "path": "suite/suite/suite_core/doctype/rate_limit/rate_limit.py",
+          "line": 105,
+          "quote": "doc.insert(ignore_permissions=True)"
+        }
+      ]
+    },
+    {
+      "requirementId": "security-8",
+      "sourceStage": "mvp",
+      "existing": "Native: site önekli sayaç anahtarı; dekoratörde ip_based, key ve user_based seçenekleri. Suite: Rate Limit DocType ile dinamik sınır, ip_based geçişi, allowed/blocked IP önek listesi. WebDAV lockout sayaçları ayrı anahtar alanında tutulur.",
+      "gap": "İş tenantı ile Frappe sitesi ayrımı tanımsız; site sayacı site içindeki iş tenantlarını ayırmaz. key değeri istemci kontrollü form_dict'ten okunur ve değiştirilmiş istemci kimliğiyle atlatılabilir. Suite yolu user_based geçirmez. IP eşleşmesi startswith ile yapılır, CIDR değildir ('10.1' öneki '10.10.x' ile de eşleşir). request_ip için güvenilen proxy başlığı görünmüyor. Kötüye kullanım sinyallerinin toplanacağı yer ve edge iş bölümü yazılmamış.",
+      "completionSteps": [
+        "Bu sözleşmenin tek davranışını uygula: Suite yolunda user_based geçişi (development.steps).",
+        "Kimlik anahtarı kuralını belgele: sınır kimliği form_dict key'inden türetilmez; Rate Limit kayıtlarında anahtar alanı boş kalır; kullanıcı anahtarı oturum kullanıcısından gelir.",
+        "Doğrulanmış kullanıcı, tenant ve istemci claim'inden türeyen anahtarı ilgili kararlar gelince ayrı genişletme olarak yaz; o zamana kadar kapsam dışı.",
+        "IP listesi için CIDR doğrulamasını genişletme olarak tanımla; önek eşleşmesi riskini gelecekteki gerileme senaryosu olarak yaz; bu sözleşmede uygulanmaz.",
+        "request_ip'nin güvendiği proxy başlığını Hüseyin Cengiz'in altyapı devrinde doğrulanacak açık soru olarak kaydet.",
+        "Kötüye kullanım sinyalleri (429 sayısı, lockout, auth failure) için toplama yeri ve edge iş bölümünü decisionsPending kararına bağla; WebDAV lockout'un ayrı anahtar alanı örüntüsünü referans al."
+      ],
+      "dependencies": ["rate-limit--contract"],
+      "acceptance": "Bu sözleşmenin kabulü: A'nın aşımı B'yi kilitlemez ve istemcinin gönderdiği form_dict değeri yeni sayaç açamaz. Tenantlar arası izolasyon ve doğrulanmış istemci claim'i kabulü ilgili kararlar gelene kadar not_run ve kapsam dışıdır. Uygulama durumu: uygulanmadı.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/rate_limiter.py",
+          "line": 55,
+          "quote": "self.key = frappe.cache.make_key(f\"rate-limit-counter-{self.window_number}\")"
+        },
+        {
+          "path": "frappe/frappe/rate_limiter.py",
+          "line": 150,
+          "quote": "user_key = frappe.form_dict.get(key, \"\") if key else None"
+        },
+        {
+          "path": "frappe/frappe/rate_limiter.py",
+          "line": 111,
+          "quote": "user_based: bool = False,"
+        },
+        {
+          "path": "suite/suite/utils/rate_limiter.py",
+          "line": 47,
+          "quote": "if any(request_ip.startswith(prefix) for prefix in rl[\"allowed_ips\"]):"
+        },
+        {
+          "path": "suite/suite/utils/rate_limiter.py",
+          "line": 62,
+          "quote": "ip_based=rl[\"ip_based\"],"
+        },
+        {
+          "path": "suite/suite/drive/webdav/auth.py",
+          "line": 31,
+          "quote": "LOCKOUT_KEY_NS = \"webdav:\""
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "Is tenanti ile Frappe sitesi ayrimi tanimsiz; site ici tenant anahtari tenant global model kararina bagli, kapsam disi.",
-    "Istemci kimligi dogrulanmis OAuth client_id veya Keycloak azp claim'inden turetilmeli; Keycloak karari bekliyor, not_run.",
-    "429 ve Retry-After yalniz global limiter icin kaynakla eslesiyor; dekorator ve Suite yolunda dogrulanmadi.",
-    "Global limiter kullanici basina degil site basina toplam sure sayacidir; esik ve pencere degerleri tanimsiz (Huseyin Cengiz).",
-    "key_ kullanan kayitlarda deger istemci kontrollu form_dict'ten okunur ve atlatilabilir.",
-    "allowed/blocked IP eslesmesi startswith, CIDR degil; request_ip icin guvenilen proxy basligi gorunmuyor.",
-    "Hangi uclarin Rate Limit kaydi alacagi tanimsiz.",
-    "Guest isteklerinde user_based davranisi dogrulanmadi.",
-    "Kotuye kullanim sinyallerinin (429 sayisi, lockout, auth failure) toplanacagi yer ve Cloudflare/edge is bolumu tanimsiz; edge degisikligi Huseyin Cengiz teknik, gerekirse GoDaddy DNS Asistan Huseyin."
+    "İş tenantı ile Frappe sitesi ayrımı tanımsız; site içi tenant anahtarı tenant topolojisi kararına bağlı, kapsam dışı.",
+    "İstemci kimliği doğrulanmış bir claim'den türetilmeli; claim kaynağı kararı bekliyor, not_run.",
+    "429 ve Retry-After yalnız global limiter için kaynakla eşleşiyor; dekoratör ve Suite yolunda doğrulanmadı.",
+    "Global limiter kullanıcı başına değil site başına toplam süre sayacıdır; eşik ve pencere değerleri tanımsız.",
+    "Anahtar alanı kullanan kayıtlarda değer istemci kontrollü form_dict'ten okunur ve atlatılabilir.",
+    "allowed/blocked IP eşleşmesi startswith ile yapılır, CIDR değildir; request_ip için güvenilen proxy başlığı görünmüyor.",
+    "Hangi uçların Rate Limit kaydı alacağı tanımsız.",
+    "Guest isteklerinde user_based davranışı doğrulanmadı.",
+    "get_rate_limits önbelleğinin geçersizleşmesi ve Redis hatasındaki davranış doğrulanmadı.",
+    "Rate Limit DocType rol izinleri kaynakta sağlanmadı.",
+    "Kötüye kullanım sinyallerinin toplanacağı yer ve edge iş bölümü tanımsız; edge değişikliğinin teknik sahibi Hüseyin Cengiz, gerekirse GoDaddy DNS uygulaması Asistan Hüseyin."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Global limiter limit/window ve Rate Limit kayıt eşikleri ile sınır alacak uç listesi (teknik öneri Hüseyin Cengiz).",
+      "requirementIds": ["security-4", "security-8"],
+      "blockedStep": "operations/rate-limit/rate_limit_mvp.yml değerleri ve global limiter kabul senaryosu.",
+      "interimDocumentationStep": "Değersiz yer tutucularla site_config ve kayıt şablonu ile uç envanteri belgelenir."
+    },
+    {
+      "decision": "İş tenantı topolojisi: tenant ile Frappe sitesi ilişkisi.",
+      "requirementIds": ["security-8"],
+      "blockedStep": "Tenant bazlı sayaç anahtarı ve tenantlar arası izolasyon kabulü.",
+      "interimDocumentationStep": "Mevcut site sınırlı sayaç izolasyonu belgelenir; tenant anahtarı yer tutucu kalır."
+    },
+    {
+      "decision": "Doğrulanmış istemci kimliği claim kaynağı (OAuth client_id veya kimlik sağlayıcı claim'i).",
+      "requirementIds": ["security-8"],
+      "blockedStep": "İstemci bazlı kota ve değiştirilmiş istemci kimliği kabulü.",
+      "interimDocumentationStep": "form_dict anahtarının kimlik olarak kullanılmayacağı kuralı belgelenir."
+    },
+    {
+      "decision": "Edge/WAF katmanının kullanılıp kullanılmayacağı, satıcısı ve uygulama ile iş bölümü.",
+      "requirementIds": ["security-8"],
+      "blockedStep": "Edge kuralları ve güvenilen proxy başlığı yapılandırması.",
+      "interimDocumentationStep": "Uygulama içi ve edge sorumlulukları satıcı seçmeden ayrı başlıklar olarak listelenir."
+    },
+    {
+      "decision": "Kötüye kullanım sinyallerinin toplanacağı yer ve saklama süresi.",
+      "requirementIds": ["security-8"],
+      "blockedStep": "429, lockout ve auth failure telemetrisinin toplanması.",
+      "interimDocumentationStep": "Toplanacak sinyal türleri ve kaynak noktaları süre ve hedef seçmeden belgelenir."
+    },
+    {
+      "decision": "Hedef Frappe ve Suite sürümü (T-00 baseline).",
+      "requirementIds": ["security-4", "security-8"],
+      "blockedStep": "Uygulama kabulü ve kaynak satırlarının hedefte doğrulanması.",
+      "interimDocumentationStep": "Kaynak alıntıları önceki salt okunur kaynak görüntüsüne ait olarak işaretlenir."
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "security-4": "mvp",
-    "security-8": "mvp"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,

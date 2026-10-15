@@ -1,97 +1,175 @@
 {
   "schemaVersion": "saas-existing-work-contract.v1",
   "canonicalUnitId": "ui-view-state",
-  "canonicalTaskIds": ["ui-view-state--implementation"],
+  "canonicalTaskIds": [
+    "ui-family-08--implementation",
+    "ui-provider-query--implementation-mvp",
+    "ui-provider-viewstate--implementation",
+    "ui-view-state--implementation"
+  ],
   "requirementIds": ["views-5"],
   "stage": "mvp",
+  "sourceStages": {
+    "views-5": "mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
-    "title": "Bir tüketicide kimlik kaybı algılanınca aynı QueryClient'taki diğer tüketicilerin önceki kimliğe ait verisi de düşer (yalnız eksik doğrulanırsa)",
-    "trigger": "RecordWorkspace isteği unauthenticated, forbidden, csrf veya identity_mismatch alır ve dropPrivateState çalışır. Bu anda aynı QueryClient'ta SchemaWorkspace'in önceki site/kullanıcıyla yüklenmiş metadata sorgusu bulunur.",
-    "expected": "Kimlik kaybından sonra QueryClient'ta önceki site/kullanıcıya ait hiçbir tüketici verisi (records ve şema metadata önekleri) kalmaz ve ekranda gösterilmez. Yeni kimlikle yalnız açık yeniden yükleme yapılır.",
-    "denied": "Önceki kimliğin metadata veya kayıt verisi yedek olarak gösterilmez. 401/403 yanıtı önbelleğe yazılmaz."
+    "title": "Site/kullanıcı bağlamı değişince veya kimlik kaybında önceki bağlama ait sunucu önbelleği tüm tüketicilerden düşer ve geç gelen yanıt yeni bağlama yazılmaz",
+    "trigger": "Aynı QueryClient'ı paylaşan kayıt ve şema metadata tüketicileri önceki site/kullanıcı bağlamıyla veri yüklemiştir ve en az bir istek sürmektedir. Bu sırada native oturumda 401, 403 veya CSRF hatası oluşur, sunucu zarfı bağlam uyuşmazlığı bildirir ya da kullanıcı site/bağlam değiştirir.",
+    "expected": "Önceki bağlamın tüm özel sorgu önekleri (kayıt ve metadata) önbellekten silinir. Devam eden istekler iptal edilir. İptal edilemeyen geç yanıt bağlam kontrolünde reddedilir ve önbelleğe yazılmaz. Ekranda önceki bağlama ait kayıt veya metadata gösterilmez. Yeni bağlam için yalnız açık yeniden yükleme yapılır.",
+    "denied": "Önceki bağlamın verisi yedek veya placeholder olarak gösterilmez. 401/403 yanıtı önbelleğe yazılmaz. Önbellek anahtarı yetki kararı yerine geçmez. ignore_permissions veya SQL ile yetki atlanmaz."
   },
   "reuse": {
-    "mechanism": "reuse_existing. views-5'in tüketici içi kısmı yerel pilotta zaten uygulanmış ve geçmiştir (recordCommit 6ea301c, 8/8): recordKey site, user, doctype ve name içerir; okuma isteğine AbortSignal iletilir; kaydetmeden önce cancelQueries çalışır; zarf kimliği uyuşmazsa identity_mismatch atılır; lifecycle sürümü geç kaydetmeyi düşürür; kimlik kaybında records öneki silinir. SchemaWorkspace metadata taslak yarışı da kapatılmıştır (kaynağı bu girdide yok). Bunlar için yeni kod, yeni sorgu anahtarı çekirdeği veya RED yazılmaz. Tek açık konu tüketiciler arası temizliktir: dropPrivateState yalnız RECORDS_KEY önekini siliyor. Eksik doğrulanırsa en küçük düzeltme, kimlik kaybında mevcut QueryClient.removeQueries ile diğer tüketicinin önekini de silmektir. Bunun için yeni çekirdek veya depo kurulmaz. frappe/ui yalnız referanstır: önbelleği doctype ile anahtarlar ve oturum boyunca tutar.",
+    "status": "partial_source",
+    "mechanism": "Uygulama durumu: uygulanmadı. Native parça: frappe/ui (Vue) içinde doctype başına meta önbelleği ve liste görünümü composable'ı referans desen olarak bulunur. Bu önbellek yalnız doctype ile anahtarlanır ve oturum boyunca tutulur. Bu nedenle tenant, site, kullanıcı ve meta revizyonu ayrımı ile bağlam değişiminde temizlik sağlamaz. Vue composable'ları React/TanStack yığınına kopyalanmaz, yalnız referans alınır. Bu kaynak React/Ant Design uygulaması kanıtı değildir. Eksik olanlar: TanStack Query anahtar şeması, bağlam değişiminde temizlik ve iptal kuralı, meta yenilemede taslak koruma sözleşmesi. Tamamlama, hedef TanStack Query sürümünde doğrulanacak mevcut QueryClient yetenekleriyle yapılır: queryKey, sorgu fonksiyonuna iletilen AbortSignal, cancelQueries, removeQueries. Yeni durum motoru, depo veya ORM kurulmaz.",
     "evidence": [
-      {
-        "path": "src/features/records/RecordWorkspace.tsx",
-        "line": 74,
-        "quote": "return ['records', 'record', session.site, session.user, target.doctype, target.name] as const;",
-        "repository": "genui-saas-panel@6ea301c"
-      },
-      {
-        "path": "src/features/records/RecordWorkspace.tsx",
-        "line": 108,
-        "quote": "throw new FrappeError(200, 'identity_mismatch');",
-        "repository": "genui-saas-panel@6ea301c"
-      },
-      {
-        "path": "src/features/records/RecordWorkspace.tsx",
-        "line": 159,
-        "quote": "queryClient.removeQueries({ queryKey: RECORDS_KEY });",
-        "repository": "genui-saas-panel@6ea301c"
-      },
       {
         "path": "frappe/ui/src/composables/useDoctypeMeta.ts",
         "line": 47,
         "quote": "/** Memoised per doctype: fetched once per session, shared by every caller. */"
+      },
+      {
+        "path": "frappe/ui/src/composables/useDoctypeMeta.ts",
+        "line": 85,
+        "quote": "cache: [\"Meta\", doctype],"
+      },
+      {
+        "path": "frappe/ui/src/components/ListView/useListView.ts",
+        "line": 1,
+        "quote": "import { computed } from \"vue\";"
       }
+    ],
+    "searchedPaths": [
+      "frappe/ui/src/components/ListView/useListView.ts",
+      "frappe/ui/src/composables/useDoctypeMeta.ts"
     ]
   },
   "ownership": {
     "activeContractFile": "docs/frappe-roadmap-contracts/ui-view-state.json",
-    "plannedProduction": [],
-    "plannedTestFile": null,
-    "sharedIntegrationFiles": [
-      "src/features/records/RecordWorkspace.tsx",
-      "SchemaWorkspace kaynağı (yolu bu girdide yok)",
+    "plannedProduction": [
+      "frontend/packages/ui/src/components/ui-family-08/index.tsx",
+      "frontend/packages/ui/src/components/ui-provider-query/mvp.tsx",
+      "frontend/packages/ui/src/components/ui-provider-viewstate/index.tsx",
       "frontend/packages/ui/src/components/ui-view-state/index.tsx"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "Girdi değişmez: native oturum (cookie/CSRF) ve Session{site,user}; mevcut AUTH_LOSS kodları. Yeni parametre, URL alanı veya depo eklenmez.",
-    "output": "Kimlik kaybından sonra QueryClient'ta önceki kimliğe ait sorgu kalmaz. Alanlar Frappe izinli zarfla sınırlıdır. Sözleşme sürümü contract-ui-view-state v1.",
-    "authorization": "Yetki kararı sunucudadır: native site sınırı, kullanıcı rolleri, kayıt ve alan izinleri. Önbellek anahtarı yetki vermez. Yerel kanıtta site sınırı kullanılır, global tenant modeli seçilmez. Keycloak kapsam dışıdır.",
-    "persistence": "Sunucuya yazım ve DDL yoktur. Document.save ve hook'lar değişmez. Önbellek yalnız bellekte tutulur, localStorage veya sessionStorage kullanılmaz.",
-    "failure": "AUTH_LOSS kodlarında tüm özel önekler silinir ve mevcut RECORD_MESSAGES uyarısı gösterilir. AbortError sessizce düşürülür. Diğer hatalar yalnız kendi tüketicisinde gösterilir."
+    "input": "Girdi native Frappe oturumu (cookie/CSRF) ve istemcinin bildiği bağlam {site, user} bilgisidir. Tenant kimliği yalnız tenant topolojisi kararından sonra eklenir. Sorgu anahtarı ui-provider-query sözleşmesinde tanımlanır: ortak özel önek, site, user, kaynak türü, doctype, ardından name veya meta revizyonu. Meta revizyonu segmenti hedef sürümde kaynağı doğrulanana kadar açık kalır. Yeni sunucu parametresi veya URL alanı eklenmez.",
+    "output": "Bağlam değişiminden sonra QueryClient'ta önceki bağlama ait özel sorgu kalmaz. Görünür veri Frappe izinli zarfla sınırlıdır. Sözleşme sürümü: contract-ui-view-state v1.",
+    "authorization": "Yetki kararı sunucudadır: native site sınırı, kullanıcı rolleri, kayıt ve alan izinleri. Önbellek anahtarı yetki vermez. İstemci önbelleği sunucunun reddettiği veriyi göstermez. Bu rehber rol veya izin üretmez; üretmesi gerekirse explicitPermissionFlags ortak kaynağına bağlanır. Global tenant modeli seçilmez. Keycloak ve grid kapsam dışıdır.",
+    "persistence": "Sunucuya yazım, DDL veya şema değişikliği yoktur. Document.save, transaction ve hook'lar değişmez. Bu davranış kapsamında önbellek yalnız bellekte tutulur ve localStorage veya sessionStorage'a özel veri yazılmaz. Taslak form durumu sunucu önbelleğinden ayrı, yerel durumda tutulur.",
+    "failure": "Kimlik kaybı kodlarında (401, 403, CSRF, bağlam uyuşmazlığı) tüm özel önekler silinir ve tek bir yerelleştirilmiş uyarı gösterilir. AbortError sessizce düşürülür. Diğer hatalar yalnız kendi tüketicisinde gösterilir ve diğer tüketicinin verisini silmez."
   },
   "development": {
     "dependencies": [
-      "ui-view-state--contract",
-      "kernel-envelope--contract",
       "api-middleware--contract",
       "client-rule-parity--contract",
-      "ui-provider-query--implementation-mvp",
-      "yerel pilot recordCommit 6ea301c (8/8)"
+      "device-grant--contract",
+      "kernel-envelope--contract",
+      "sync-receipt--contract",
+      "ui-family-06--contract",
+      "ui-family-08--contract",
+      "ui-provider-query--contract",
+      "ui-provider-query--implementation",
+      "ui-provider-viewstate--contract",
+      "ui-view-state--contract"
     ],
-    "admission": "Önce SchemaWorkspace kaynağında metadata sorgu anahtarı ve kimlik kaybı temizliği okunur. Bu veri zaten temizleniyorsa (ör. clearSession veya ortak önekle) davranış reuse_existing olarak kapanır ve kod yazılmaz. Sahiplik uyumsuzluğu vardır: görevin owns yolu frontend/packages/ui/... altındadır, yerel pilot ise src/features/... düzenindedir. Düzeltme sahip olunmayan dosyalara dokunacağı için kararı entegrasyon sahibi Codex verir. Suite HEAD ve uzak baz çizgisi bilinmiyor.",
+    "admission": "T-00 hedef taban çizgisi ve R-00 yeniden kullanım eşlemesi tamamlanmadan üretim yazımı başlamaz. İzinli veri tüketicileri R-01'i de kullanır. Bu dosyadaki tek dar davranış, gerçek RED/GREEN kanıtıyla uygulanır. Önkoşul: ui-provider-query anahtar şeması ve kernel-envelope bağlam alanları sözleşme düzeyinde netleşmiş olmalıdır. plannedProduction yolları yalnız gelecekteki öneridir. Gerçek frontend deposu gözlemlenip entegrasyon sahibi lease vermeden dosya açılmaz. Hedef Frappe ve TanStack Query sürümleri bilinmiyor.",
     "steps": [
-      "SchemaWorkspace sorgu anahtarını ve kimlik kaybı yolunu oku.",
-      "Eksik doğrulanırsa tek testi yaz ve RED gör.",
-      "Kimlik kaybı temizliğine mevcut removeQueries ile şema önekini ekle; yeni çekirdek kurma."
+      "Hedef frontend deposunda QueryClient kurulumunu, mevcut sorgu anahtarlarını ve kimlik kaybı/bağlam değişimi yolunu oku. Native ve eksik ayrımını R-00 eşlemesine yaz.",
+      "Tüm özel sorguların ui-provider-query sözleşmesindeki ortak bağlam önekini (site, user) taşıdığını doğrula. Taşımayan tüketicileri listele.",
+      "Tek senaryolu testi yaz. Davranışsal RED'i gör: önceki bağlam verisi kalıyor veya geç yanıt önbelleğe yazılıyor.",
+      "Bağlam değişimi ve kimlik kaybı için tek giriş noktası kur. Bu noktada önce ortak önekle cancelQueries, ardından removeQueries çalışsın. Sorgu fonksiyonları AbortSignal'i isteğe iletsin. Yanıt önbelleğe yazılmadan önce zarf bağlamı aktif bağlamla karşılaştırılsın.",
+      "Aynı test aynı komutla GREEN olmalı ve mevcut tüketici testleri bozulmadan geçmeli. UI değişikliği gerekirse ortak tokenlar ve mevcut AntD bileşenleri kullanılır."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "Şema ve kayıt tüketicileri aynı QueryClient ile site S ve kullanıcı A için yüklenir. Kayıt okuması identity_mismatch döner. Bundan sonra şema öneki altında A verisi kalmamalı ve şema ekranı A metadata'sını göstermemelidir.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Düzeltmeden sonra aynı test aynı komutla (vitest run) geçer ve mevcut 8/8 kayıt kapısı yeniden geçer."
+      "oneScenario": "Kayıt ve şema metadata tüketicileri aynı QueryClient ile site S ve kullanıcı A bağlamında yüklenir. Şema metadata isteği sürerken bağlam kullanıcı B'ye geçer veya kimlik kaybı oluşur, ardından A'ya ait geç yanıt döner. Bundan sonra QueryClient'ta A bağlamına ait hiçbir özel sorgu kalmamalı ve iki ekran da A verisini göstermemelidir.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. RED, düzeltmeden önce bu senaryonun davranış assertion'ının başarısız olmasıdır: A verisi kalır veya geç yanıt yazılır. Import hatası, altyapı hatası veya native davranışı bozarak üretilen hata RED sayılmaz. Senaryo native olarak zaten geçiyorsa RED uydurulmaz ve davranış yeniden kullanım olarak kapanır.",
+      "green": "Uygulamadan sonra aynı senaryo, değişmeyen assertion ve aynı komutla geçmeli. Şu anda not_run. Bu sözleşme veya biçim kontrolü ürün GREEN'i değildir."
     },
-    "rollback": "Yalnız yerel düzeltme ve test geri alınır. Production, servis veya veri değişikliği yetkisi yoktur."
+    "rollback": "Yalnız yerel kod ve test değişikliği geri alınır. Production, servis, şema veya veri değişikliği yetkisi yoktur. Uzak ortama dağıtım gerekirse CI/deploy/rollback teknik sahibi Hüseyin Cengiz'dir; şu an böyle bir eylem yoktur."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "views-5",
+      "sourceStage": "mvp",
+      "existing": "Kabul ölçütü (data/clusters/04.json satır 344): geri/ileri gezinme, tenant değişimi ve eşzamanlı yanıtlar yanlış kayıt durumunu göstermemeli. URL, sunucu önbelleği ve yerel form durumu birbirinden ayrılır. Kaynakta frappe/ui (Vue) içinde doctype başına meta önbelleği ve liste görünümü composable'ı referans olarak vardır. React/TanStack uygulaması yoktur.",
+      "gap": "TanStack Query anahtar şeması tanımsız; tenant, site, kullanıcı, doctype ve meta revizyonu anahtarda yer almalı. Tenant/bağlam değişiminde önbelleği temizleme ve devam eden isteği iptal etme kuralı yazılmamış. Meta yenilenince taslak form durumunun korunacağına dair sözleşme yok. Geri/ileri gezinmede URL ile sorgu durumunun eşleşmesi kanıtlanmamış.",
+      "completionSteps": [
+        "Anahtar şeması: ui-provider-query sözleşmesinde ortak özel önek, site, user, kaynak türü, doctype, ardından name veya meta revizyonu sırası yazılır. Tenant kararı gelene kadar site native sınır olarak kullanılır ve tenant segmenti eklenmez.",
+        "Meta revizyonu: hedef sürümde frappe.desk.form.load.getdoctype yanıtındaki revizyon/zaman damgası bilgisi doğrulanır. Doğrulanırsa anahtara eklenir. Doğrulanmazsa meta sorgusu bağlam değişiminde ve açık yenilemede geçersiz kılınır.",
+        "Temizlik ve iptal: bu dosyadaki davranış tek giriş noktasında uygulanır. Bu nokta cancelQueries, removeQueries ve AbortSignal kullanır.",
+        "Geç yanıt koruması: kernel-envelope zarfındaki bağlam aktif bağlamla eşleşmezse yanıt önbelleğe yazılmaz.",
+        "Taslak koruma (ayrı tek-davranış sözleşmesi): taslak form durumu sunucu önbelleği dışında tutulur. Meta yenilenince aynı bağlam ve doctype için taslak değerleri korunur. Kaldırılan veya izni olmayan alanlar gösterilmez ve kullanıcıya bildirilir. İstemci kuralları client-rule-parity ile yeniden değerlendirilir. Bağlam değişiminde taslak silinir.",
+        "URL durumu (ayrı tek-davranış sözleşmesi): filtre, sayfa ve kayıt hedefi TanStack Router arama parametrelerinde tutulur. Sorgu anahtarı URL'den türetilir, böylece geri/ileri gezinme doğru kaydı yükler. push/replace kuralı ui-provider-viewstate sözleşmesinde yazılır."
+      ],
+      "dependencies": [
+        "ui-view-state--contract",
+        "ui-provider-query--contract",
+        "ui-provider-query--implementation",
+        "ui-provider-viewstate--contract",
+        "kernel-envelope--contract",
+        "api-middleware--contract",
+        "client-rule-parity--contract"
+      ],
+      "acceptance": "Bu dosyanın tek kabulü: bağlam değişimi veya kimlik kaybından sonra önceki bağlamın kayıt ve metadata verisi önbellekte kalmaz, gösterilmez ve geç yanıt yazılmaz. Anahtar şeması, taslak koruma ve geri/ileri gezinme kendi tek-davranış testleriyle ayrıca kabul edilir. Hiçbiri yetki kararı vermez veya sunucu verisini değiştirmez.",
+      "evidence": [
+        {
+          "path": "frappe/ui/src/composables/useDoctypeMeta.ts",
+          "line": 47,
+          "quote": "/** Memoised per doctype: fetched once per session, shared by every caller. */"
+        },
+        {
+          "path": "frappe/ui/src/composables/useDoctypeMeta.ts",
+          "line": 85,
+          "quote": "cache: [\"Meta\", doctype],"
+        },
+        {
+          "path": "frappe/ui/src/components/ListView/useListView.ts",
+          "line": 1,
+          "quote": "import { computed } from \"vue\";"
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "Meta revizyonu (getdoctype cached_timestamp) sorgu anahtarında yok.",
-    "readTarget yalnız ilk yüklemede okunur ve URL replace ile yazılır. Bağlı kalan rotada geri/ileri gezinme kabulü kanıtlanmadı.",
-    "Global tenant modeli kullanıcı kararı bekliyor.",
-    "Uzak ortama dağıtım gerekirse teknik sahibi Hüseyin Cengiz'dir; şu an böyle bir eylem yok.",
-    "UI değişikliği planlanmadı. Korunacak kurallar: Outfit en az 14px, 320 öncelikli, çevreleyen odak halkası yok, simetrik pozitif Cubic hareket, mevcut AntD. Tarayıcı doğrulaması not_run."
+    "Uygulama durumu: uygulanmadı. Hiçbir madde ürün kodunda tamamlanmış sayılmaz.",
+    "Meta revizyonunun sorgu anahtarındaki kaynağı hedef sürümde doğrulanmadı.",
+    "Meta yenilemede taslak koruma ve URL tabanlı geri/ileri gezinme için tek-davranış sözleşmeleri henüz yazılmadı.",
+    "Global tenant modeli kullanıcı kararı bekliyor. O zamana kadar site native sınırdır.",
+    "Gerçek frontend deposu ve sahiplik eşlemesi gözlemlenmedi. plannedProduction yalnız öneridir.",
+    "UI değişikliği planlanmadı. Korunacak kurallar: Outfit, en az 14 CSS px metin, 320 öncelikli yerleşim, çevreleyen odak halkası yok, simetrik pozitif Cubic hareket, mevcut AntD. Tarayıcı doğrulaması not_run."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Global tenant topolojisi (tenant ile Frappe site ilişkisi)",
+      "requirementIds": ["views-5"],
+      "blockedStep": "Sorgu anahtarına tenant segmentinin eklenmesi ve tenant değişimi temizliğinin site sınırı ötesine genişletilmesi",
+      "interimDocumentStep": "Site native sınır olarak belgelenir. Anahtar şeması tenant segmenti olmadan yazılır ve karar notu bırakılır."
+    },
+    {
+      "decision": "Hedef Frappe ve TanStack Query sürümleri (T-00 taban çizgisi)",
+      "requirementIds": ["views-5"],
+      "blockedStep": "Meta revizyonu kaynağının ve QueryClient iptal/temizlik API davranışının doğrulanması",
+      "interimDocumentStep": "Sürümden bağımsız davranış kabulü yazılır. Kullanılacak API adları hedef sürüm doğrulaması bekliyor olarak işaretlenir."
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "views-5": "mvp"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,

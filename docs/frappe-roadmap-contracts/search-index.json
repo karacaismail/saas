@@ -1,0 +1,375 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "search-index",
+  "canonicalTaskIds": [
+    "search-index--implementation",
+    "ui-family-10--implementation-post-mvp"
+  ],
+  "requirementIds": ["search-1", "search-5", "search-7"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "search-1": "post_mvp",
+    "search-5": "post_mvp",
+    "search-7": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Seçili DocType alanlarının yerel tam metin indeksinde kaynak kayıtla tutarlı tutulması",
+    "trigger": "İndekslenmek üzere seçilmiş bir DocType kaydının oluşturulması, güncellenmesi, çöpe atılması veya yeniden adlandırılması; arama alanı seçiminin Global Search Settings / Property Setter yolundan değişmesi; zamanlanmış uzlaştırma çalışması.",
+    "expected": "Uygulama durumu: uygulanmadı. Gelecekte: yerel Frappe SQLiteSearch (FTS5) tabanlı tek sağlayıcı sqlite_search hook'u ile kaydedilir; kaynak olaydan sonra indeks girdisi eklenir, güncellenir veya kaldırılır; Türkçe kabul tablosundaki sorgular beklenen kayıtları döndürür; uzlaştırma kaynak modified damgasını indeks damgasıyla karşılaştırır, eksik/eski/yetim girdileri raporlar ve idempotent güvenli rebuild ile kapatır; tek gecikme eşiği aşıldığında alarm üretilir.",
+    "denied": "Okuma izni olmayan kullanıcıya kayıt sonucu dönmez; System Manager olmayan kullanıcının arama alanı değişikliği reddedilir ve Property Setter kaydı değişmeden kalır; indeks güncelleme hatası kaynak kaydı geri almaz veya değiştirmez; ignore_permissions veya ham SQL ile yetki atlanmaz."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native parça yeniden kullanımı: Frappe SQLiteSearch soyut sınıfı ve varsayılan FTS5 tokenizer ayarı; sqlite_search hook kaydı (Suite WriterSearch örnek kullanımı); global_search rebuild_for_doctype; Global Search Settings üzerinden Customize Form ile aynı Property Setter alan seçimi yolu. Suite SearchStore (Tantivy) silme ve şema sürümü desenleri yalnız referanstır, temel yol değildir. Kanıtlar tek tek native parçaların varlığını gösterir; davranışın bütünü (olay bağlama, Türkçe normalizasyon, uzlaştırma, gecikme alarmı) mevcut değildir. Meilisearch adaptörü kaynakta görülmedi. Aranan yollar listesi kapsamlı bir yokluk iddiası değildir. Native Frappe/Suite kaynak kanıtı React/Ant Design uygulama kanıtı değildir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/search/sqlite_search.py",
+        "line": 107,
+        "quote": "class SQLiteSearch(ABC):"
+      },
+      {
+        "path": "frappe/frappe/search/sqlite_search.py",
+        "line": 224,
+        "quote": "schema.setdefault(\"tokenizer\", \"unicode61 remove_diacritics 2\")"
+      },
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 38,
+        "quote": "sqlite_search = [\"suite.writer.search.WriterSearch\"]"
+      },
+      {
+        "path": "suite/pyproject.toml",
+        "line": 27,
+        "quote": "\"tantivy~=0.26.0\","
+      },
+      {
+        "path": "frappe/frappe/utils/global_search.py",
+        "line": 68,
+        "quote": "def rebuild_for_doctype(doctype):"
+      },
+      {
+        "path": "suite/suite/store/search_store.py",
+        "line": 163,
+        "quote": "def delete_documents(self, ids: list[str]) -> int:"
+      },
+      {
+        "path": "frappe/frappe/desk/doctype/global_search_settings/global_search_settings.py",
+        "line": 172,
+        "quote": "Apply global-search field selection via the same Property Setter path as Customize Form."
+      },
+      {
+        "path": "frappe/frappe/desk/doctype/global_search_settings/global_search_settings.py",
+        "line": 98,
+        "quote": "global_search_settings.save(ignore_permissions=True)"
+      },
+      {
+        "path": "suite/suite/store/search_store.py",
+        "line": 18,
+        "quote": "SCHEMA_VERSION_FILE = \"schema.version\""
+      },
+      {
+        "path": "suite/suite/store/search_store.py",
+        "line": 53,
+        "quote": "# Schema definition; changing it bumps the schema version and triggers a rebuild."
+      },
+      {
+        "path": "suite/suite/mail/patches/migrate_search_index_to_mail_namespace.py",
+        "line": 15,
+        "quote": "Best-effort: indexes rebuild lazily from cached data, so anything already migrated (or any"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/desk/doctype/global_search_settings/global_search_settings.py",
+      "frappe/frappe/search/sqlite_search.py",
+      "frappe/frappe/utils/global_search.py",
+      "suite/pyproject.toml",
+      "suite/suite/hooks.py",
+      "suite/suite/mail/patches/migrate_search_index_to_mail_namespace.py",
+      "suite/suite/store/search_store.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/search-index.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/adapters/search_discovery/search_index_post_mvp.py",
+      "frontend/packages/ui/src/components/ui-family-10/post_mvp.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": [
+      "İndekslenecek DocType ve alan listesi: yalnız Global Search Settings / Property Setter yolundan okunur; ayrı alan seçim kaydı tanımlanmaz.",
+      "Kaynak olay: doctype, name, modified; yeniden adlandırmada eski ve yeni name.",
+      "Doğrulama sorgusu: Türkçe metin ve sorgulayan kullanıcı bağlamı."
+    ],
+    "output": [
+      "İndeks girdisi: doctype, name, seçili alan metinleri ve kaynak modified damgası.",
+      "Uzlaştırma raporu: eksik, eski ve yetim girdi sayıları ile ölçülen en büyük gecikme; eşik aşımında alarm olayı.",
+      "Sorgu sonucu: yalnız kullanıcının native okuma izni olan kayıtlar."
+    ],
+    "authorization": [
+      "Arama alanı değişikliği native update_global_search_fields yolundan geçer; bu yol kaynakta System Manager ile sınırlıdır; yeni rol veya izin üretilmez.",
+      "Sorgu sonuçları native Frappe okuma izniyle süzülür (R-01, native-user-policy--contract).",
+      "Kaynaktaki iç save(ignore_permissions=True) kullanımı dışa açılmaz; yeni whitelist uç noktası veya SQL ile yetki atlama yoktur.",
+      "İleride rol/izin bayrağı gerekirse explicitPermissionFlags ortak kaynağına bağlanır; bu sözleşme bayrak tanımlamaz."
+    ],
+    "persistence": [
+      "İndeks türetilmiş veridir; kaynak DocType kayıtları, şeması ve verisi bu davranışla değişmez.",
+      "İndeks dosyasının yeri native SQLiteSearch davranışına göre hedef sürümde R-00 ile doğrulanır; tenant ayrımı karar bekliyor.",
+      "Bu sözleşme hiçbir servis, production ortamı, şema veya veriyi değiştirme yetkisi vermez."
+    ],
+    "failure": [
+      "İndeks güncellemesi kaynak transaction'ını başarısız kılmaz; commit sonrası işlenir ve hata outbox--contract olay kaydıyla yeniden denenir.",
+      "Aynı olayın tekrar işlenmesi idempotenttir (doctype + name + modified).",
+      "Rebuild hatasında önceki indeks bozulmadan korunur, sonuç raporlanır ve yeniden denenebilir.",
+      "Uzlaştırma kaçırılmış olayları eksik/eski olarak raporlar; sessizce yutmaz."
+    ]
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "client-rule-parity--contract",
+      "kernel-envelope--contract",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "outbox--contract",
+      "search-index--contract",
+      "search-query--contract",
+      "ui-family-10--contract",
+      "ui-family-10--implementation"
+    ],
+    "admission": {
+      "statusText": "Uygulama durumu: uygulanmadı.",
+      "prerequisites": [
+        "T-00 hedef sürüm tabanı: talimattaki v16 FullTextSearch dokümanı ile v17-dev SQLiteSearch farkı hedef sürümde netleşir.",
+        "R-00 yeniden kullanım eşlemesi: SQLiteSearch genişletme noktaları, rebuild_for_doctype ve update_global_search_fields hedef sürüm kaynağında okunur.",
+        "R-01: sorgu sonucunu tüketen her yüzey native izin denetimini kullanır.",
+        "decisionsPending içindeki ilgili engelleyici kararlar verilmiş olur.",
+        "Tek dar davranış seçilir ve gerçek RED/GREEN kanıtı üretilir."
+      ],
+      "orderAuthority": "Mevcut görev bağımlılıkları ve aşama; küme sırası sunumdur, yeni seri DAG değildir."
+    },
+    "steps": [
+      "1. R-00: hedef sürümde SQLiteSearch soyut sınıfının şema, meta veri alanı ve belge indeksleme/silme sözleşmesini oku; adaptör yalnız bu soyutlamayı genişletir, yeni arama arayüzü tanımlanmaz.",
+      "2. Planlanan search_index_post_mvp.py için tek SQLiteSearch alt sınıfı öner; kayıt, backend hooks.py içindeki sqlite_search listesine ortak entegrasyon dosyası üzerinden seri birleştirilir.",
+      "3. Alan seçimini Global Search Settings / Property Setter yolundan oku; ayrı yapılandırma kaydı açma.",
+      "4. doc_events bağlantısı: after_insert, on_update, on_trash, after_rename; child tablo değişiklikleri ebeveyn belgenin on_update olayıyla işlenir; commit sonrası işleme ve outbox ile yeniden deneme.",
+      "5. Property Setter alan değişikliğinden sonra ilgili DocType için idempotent yeniden indeksleme kuyruğa alınır; global_search için rebuild_for_doctype zaten vardır, FTS indeksi için eşdeğer yol SQLiteSearch üzerinden kurulur.",
+      "6. Türkçe kabul tablosunu yaz (i/ı/İ/I, ş, ğ, ç, ö, ü örnekleri); varsayılan tokenizer davranışını hedef sürümde ölç, yetersizse katlama kararı sonrası tokenizer ayarı veya indeksleme öncesi normalizasyon seç.",
+      "7. Mevcut Frappe scheduler ile modified damgası tabanlı uzlaştırma ve tek gecikme eşiği; alarm kanalı ve izleme kurulumu Hüseyin Cengiz sorumluluğundadır.",
+      "8. ui-family-10--implementation-post-mvp: planlanan post_mvp.tsx yalnız ui-family-10--contract ve search-query--contract kapsamında indeks/uzlaştırma özetini Ant Design ailesiyle salt okunur gösterebilir; bu sözleşme UI veya grid tasarlamaz. Kaynak registry ile GenUI capability registry ayrıdır; JSON model sınırı yerel ReactNode/callback'ten ayrıdır.",
+      "9. Meilisearch adımı yalnız ilgili karar sonrası, aynı girdi/çıktı sözleşmesini uygulayan opsiyonel adaptör olarak eklenir."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Türkçe başlıklı ve indekslenmiş bir kayıt çöpe atıldığında, yetkili kullanıcının aynı sorgusu artık o kaydı döndürmez.",
+      "red": "Kayıt on_trash ile silindikten sonra sorgu hâlâ silinen kaydı döndürür (davranış eksikliği); import veya altyapı hatası RED sayılmaz, native davranış bozulmaz.",
+      "green": "Silme yolu bağlandığında sorgu silinen kaydı döndürmez; diğer kayıtların sonuçları ve kaynak veriler değişmez; aynı olayın tekrar işlenmesi sonucu değiştirmez."
+    },
+    "rollback": "Sağlayıcı kaydı hooks.py içindeki sqlite_search listesinden kaldırılır ve türetilmiş indeks dosyası atılır; kaynak kayıtlar etkilenmez, native global_search davranışı sürer. Deploy ve rollback teknik sahibi Hüseyin Cengiz'dir; bu sözleşme rollback'i kendisi çalıştırma yetkisi vermez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "search-1",
+      "sourceStage": "post_mvp",
+      "existing": "Frappe v17-dev kaynağında SQLiteSearch (FTS5) soyut sınıfı ve varsayılan unicode61 remove_diacritics 2 tokenizer var; Suite sqlite_search hook'u ile WriterSearch kaydediyor; Suite Tantivy bağımlılığı Mail SearchStore yolunu gösteriyor. Meilisearch adaptörü kaynakta yok.",
+      "gap": [
+        "Adaptörün hangi yerel soyutlamayı genişleteceği tanımlı değil.",
+        "Türkçe i/ı/İ katlaması ve ş/ğ normalizasyonu için kabul örneği yok.",
+        "Alan seçiminde Global Search Settings / Property Setter yolunun yeniden kullanımı belirtilmemiş.",
+        "Meilisearch'ün koşullu mu varsayılan mı olacağı ve sürüm bağlaması kararı yok."
+      ],
+      "completionSteps": [
+        "Temel yolu yerel SQLiteSearch olarak belgele; adaptör sözleşmesini R-00 okumasıyla bu soyut sınıfa bağla.",
+        "Tek alt sınıfı sqlite_search hook'u ile kaydet; Suite WriterSearch yalnız kayıt deseni referansıdır.",
+        "İndekslenecek DocType/alanları Property Setter yolundan oku.",
+        "Türkçe kabul tablosu: İstanbul/istanbul/ISTANBUL, Işık/ışık/IŞIK, şişe/sise, dağ/dag sorguları ve beklenen eşleşme; beklenen sütun katlama kararından sonra kesinleşir.",
+        "Meilisearch'ü karar gelene kadar yalnız opsiyonel adaptör yeri olarak bırak; kod veya bağımlılık önerme."
+      ],
+      "dependencies": [
+        "search-index--contract",
+        "native-doctype-schema--contract",
+        "native-user-policy--contract"
+      ],
+      "acceptance": "Seçili alanlar indekslenir; Türkçe kabul tablosundaki sorgular beklenen kayıtları döndürür; silinen kayıt sonuçta görünmez; okuma izni olmayan kullanıcıya sonuç dönmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/search/sqlite_search.py",
+          "line": 107,
+          "quote": "class SQLiteSearch(ABC):"
+        },
+        {
+          "path": "frappe/frappe/search/sqlite_search.py",
+          "line": 224,
+          "quote": "schema.setdefault(\"tokenizer\", \"unicode61 remove_diacritics 2\")"
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 38,
+          "quote": "sqlite_search = [\"suite.writer.search.WriterSearch\"]"
+        },
+        {
+          "path": "suite/pyproject.toml",
+          "line": 27,
+          "quote": "\"tantivy~=0.26.0\","
+        }
+      ]
+    },
+    {
+      "requirementId": "search-5",
+      "sourceStage": "post_mvp",
+      "existing": "global_search tarafında DocType bazlı rebuild_for_doctype, Suite SearchStore tarafında delete_documents ve şema sürümüne bağlı rebuild var; arama alanı seçimi Customize Form ile aynı Property Setter yolundan geçiyor; Global Search Settings içinde iç save(ignore_permissions=True) kullanımı var.",
+      "gap": [
+        "İndeksi güncelleyecek doc_events listesi (rename ve child tablo dahil) yok.",
+        "Property Setter değişikliği sonrası yeniden indeksleme tetikleyicisi ve System Manager yetki kuralı yazılmamış.",
+        "Rebuild sırasında eski indeksin servis vermesi ve hata yeniden deneme sözleşmesi belirsiz.",
+        "İç ignore_permissions kullanımının dışa açılmaması belirtilmemiş."
+      ],
+      "completionSteps": [
+        "Olay listesi: after_insert ve on_update ekler/günceller, on_trash siler, after_rename eski girdiyi siler ve yeni adla ekler; child tablo değişikliği ebeveynin on_update olayıyla işlenir.",
+        "Olayları commit sonrası işle; hata outbox--contract kaydıyla yeniden denenir; idempotent anahtar doctype + name + modified.",
+        "update_global_search_fields sonrası ilgili DocType için yeniden indeksleme kuyruğa alınır; yetki native System Manager sınırında kalır.",
+        "Rebuild tamamlanana kadar önceki indeksin servis vermesini hedefle; hedef sürümde SQLiteSearch'ün bunu nasıl desteklediğini R-00'da doğrula, desteklemiyorsa boşluk olarak raporla.",
+        "İç save(ignore_permissions=True) çağrısını yeni uç noktaya taşıma veya sarmalama."
+      ],
+      "dependencies": [
+        "search-index--contract",
+        "outbox--contract",
+        "kernel-envelope--contract",
+        "native-doctype-schema--contract",
+        "native-user-policy--contract"
+      ],
+      "acceptance": "Insert, update, trash, rename ve tam rebuild sonrası indeks kaynak kayıtlarla uzlaşır; aynı rebuild iki kez çalıştığında sonuç değişmez; System Manager olmayan kullanıcının alan değişikliği reddedilir ve Property Setter kaydı değişmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/utils/global_search.py",
+          "line": 68,
+          "quote": "def rebuild_for_doctype(doctype):"
+        },
+        {
+          "path": "suite/suite/store/search_store.py",
+          "line": 163,
+          "quote": "def delete_documents(self, ids: list[str]) -> int:"
+        },
+        {
+          "path": "frappe/frappe/desk/doctype/global_search_settings/global_search_settings.py",
+          "line": 172,
+          "quote": "Apply global-search field selection via the same Property Setter path as Customize Form."
+        },
+        {
+          "path": "frappe/frappe/desk/doctype/global_search_settings/global_search_settings.py",
+          "line": 98,
+          "quote": "global_search_settings.save(ignore_permissions=True)"
+        }
+      ]
+    },
+    {
+      "requirementId": "search-7",
+      "sourceStage": "post_mvp",
+      "existing": "Suite SearchStore'da şema sürümü dosyası ve şema değişiminde rebuild, Mail geçiş yamasında best-effort tembel rebuild var. Kayıt sürümü ile indeks sürümü karşılaştırması, gecikme metriği ve alarm görülmedi.",
+      "gap": [
+        "Karşılaştırma anahtarı (doc.modified/name ve indeks damgası) tanımlı değil.",
+        "Gecikme eşiği ve ölçüm noktası yok.",
+        "Uzlaştırma işinin zamanlaması ve sahibi yok.",
+        "Tembel best-effort rebuild ile güvenli rebuild farkı yazılmamış."
+      ],
+      "completionSteps": [
+        "İndeks girdisine kaynak modified damgasını meta veri olarak yaz; hedef sürümde SQLiteSearch'ün ek meta veri alanını desteklediğini R-00'da doğrula.",
+        "Mevcut Frappe scheduler ile periyodik uzlaştırma: kaynaktaki (name, modified) ile indeksteki (name, damga) karşılaştırılır; eksik, eski, yetim sayıları ve en büyük gecikme raporlanır; yeni registry veya altyapı yok.",
+        "Gecikmeyi kaynak modified ile indeks damgası arasındaki fark olarak ölç; tek eşik değeri karar bekliyor.",
+        "Eşik aşımı veya eksik olay alarm üretir; alarm kanalı ve izleme teknik kurulumu Hüseyin Cengiz'e devredilir.",
+        "Güvenli rebuild'i tanımla: tamamlanma doğrulanır, önceki indeks bozulmaz, sonuç raporlanır; Suite best-effort tembel rebuild yalnız karşı örnektir."
+      ],
+      "dependencies": [
+        "search-index--contract",
+        "outbox--contract",
+        "kernel-envelope--contract"
+      ],
+      "acceptance": "Kayıt sürümü ile indeks sürümü karşılaştırılır; kasıtlı atlanmış bir olay uzlaştırmada eksik olarak raporlanır ve güvenli rebuild sonrası fark sıfırlanır; eşik aşımı alarm üretir.",
+      "evidence": [
+        {
+          "path": "suite/suite/store/search_store.py",
+          "line": 18,
+          "quote": "SCHEMA_VERSION_FILE = \"schema.version\""
+        },
+        {
+          "path": "suite/suite/store/search_store.py",
+          "line": 53,
+          "quote": "# Schema definition; changing it bumps the schema version and triggers a rebuild."
+        },
+        {
+          "path": "suite/suite/mail/patches/migrate_search_index_to_mail_namespace.py",
+          "line": 15,
+          "quote": "Best-effort: indexes rebuild lazily from cached data, so anything already migrated (or any"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "SQLiteSearch'ün hedef sürümdeki belge indeksleme/silme ve meta veri alanı sözleşmesi okunmadı (R-00).",
+    "Varsayılan tokenizer'ın Türkçe büyük/küçük harf ve noktalı/noktasız i davranışı ölçülmedi.",
+    "Rebuild sırasında önceki indeksin servis vermesinin native desteği doğrulanmadı.",
+    "Uzlaştırma için gecikme eşiği, alarm kanalı ve scheduler sıklığı tanımlı değil.",
+    "Meilisearch adaptörü kaynakta yok; yalnız karar sonrası opsiyonel adaptör yeri.",
+    "Hiçbir madde için runtime kabulü çalıştırılmadı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Hedef Frappe sürümü (v16 FullTextSearch dokümanı mı, v17 SQLiteSearch mi)",
+      "requirementIds": ["search-1", "search-5", "search-7"],
+      "blocks": "Adaptörün genişleteceği soyutlamanın kesinleşmesi ve R-00 eşlemesi",
+      "documentStepUntilDecision": "İki sürüm arasındaki farkı belgesel tablo olarak çıkar; SQLiteSearch temel yolunu öneri olarak işaretle."
+    },
+    {
+      "decision": "Meilisearch kullanılacak mı; kullanılacaksa sürüm, lisans ve barındırma",
+      "requirementIds": ["search-1"],
+      "blocks": "Opsiyonel harici adaptör adımı (development.steps 9)",
+      "documentStepUntilDecision": "Adaptörün uyması gereken girdi/çıktı/hata sözleşmesini motor bağımsız biçimde belgele."
+    },
+    {
+      "decision": "Türkçe katlama politikası (ş/s, ğ/g, ı/i eşleşmesi kabul edilir mi)",
+      "requirementIds": ["search-1"],
+      "blocks": "Türkçe kabul tablosundaki beklenen sonuç sütunu ve tokenizer/normalizasyon seçimi",
+      "documentStepUntilDecision": "Sorgu örneklerini ve iki alternatif beklenen sonucu yan yana yaz."
+    },
+    {
+      "decision": "Tek gecikme eşiği değeri ve ölçüm noktası",
+      "requirementIds": ["search-7"],
+      "blocks": "Alarm kabulü",
+      "documentStepUntilDecision": "Gecikme tanımını (kaynak modified ile indeks damgası farkı) ve rapor alanlarını belgele."
+    },
+    {
+      "decision": "İndeks dosyalarının saklama yeri, veri yerleşimi ve tenant başına ayrım",
+      "requirementIds": ["search-1", "search-7"],
+      "blocks": "Persistence sözleşmesinin kesinleşmesi ve rebuild/rollback adımları",
+      "documentStepUntilDecision": "Native SQLiteSearch'ün varsayılan dosya konumunu R-00'da belgele; tenant seçeneğini açık bırak."
+    },
+    {
+      "decision": "Alarm kanalı ve operasyonel izleme sahibi",
+      "requirementIds": ["search-7"],
+      "blocks": "Alarm teslim adımı",
+      "documentStepUntilDecision": "Alarm olayının içeriğini belgele; teknik kurulum devrini Hüseyin Cengiz'e hazırla."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

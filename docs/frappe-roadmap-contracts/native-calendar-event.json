@@ -1,0 +1,460 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "native-calendar-event",
+  "canonicalTaskIds": [
+    "native-calendar-event--implementation",
+    "ui-view-calendar--implementation-post-mvp",
+    "ui-view-gantt--implementation-post-mvp",
+    "ui-view-scheduler--implementation",
+    "ui-view-timeline--implementation-post-mvp"
+  ],
+  "requirementIds": ["calendar-1", "calendar-2", "calendar-3", "calendar-4"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "calendar-1": "post_mvp",
+    "calendar-2": "post_mvp",
+    "calendar-3": "post_mvp",
+    "calendar-4": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Native Suite takvim etkinliginin platform istemcisine izinli ve tenant kapsamli acilmasi",
+    "trigger": "Tenant baglami kernel-envelope ile cozulmus kullanici; takvim, scheduler, timeline veya gantt gorunumunden etkinlik olusturma, okuma, yeniden planlama, iptal, hatirlatma ayari veya davet yaniti istegi gonderir.",
+    "expected": "Istek yeni bir takvim motoru, ORM veya CRUD katmani kurulmadan Suite Calendar ve Calendar Event DocType yollarina iletilir. Kalicilik Suite'in JMAP'e yazan db_insert ve JMAP'ten okuyan load_from_db davranisinda kalir. Yanit kernel-envelope bicimde JSON model olarak doner; gorunumler yalniz bu modeli sunar.",
+    "denied": "Native has_permission reddinde istek ret zarfiyla doner ve JMAP tarafinda kayit olusmaz veya degismez. ignore_permissions, dogrudan SQL veya JMAP'e dogrudan yazma ile yetki atlanmaz."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Suite uygulamasindaki Calendar ve Calendar Event DocType'lari kaliciligi db_insert/load_from_db uzerinden JMAP sunucusuna devreder; izin hooks.py icindeki has_permission kancalariyla tanimlidir. Tekrar ve saat dilimi jmap_events.py, ICS ve iptal ics.py, RSVP api/rsvp.py, ICS alisverisi calendar_exchange.py, hatirlatma alanlari fields.py ve invites.py icinde gorulur. Kanitin bir native parcayi gostermesi butun davranisin var oldugu anlamina gelmez; madde bazinda eksikler requirementGuidance icindedir. searchedPaths yalniz incelenen yollardir, kapsamli yokluk iddiasi degildir. Kanitlar onceki salt okunur Frappe/Suite kaynak goruntulerinden alinmistir; canli site veya urun kabulu degildir.",
+    "evidence": [
+      {
+        "path": "suite/pyproject.toml",
+        "line": 6,
+        "quote": "Meet, Mail, Calendar in one app."
+      },
+      {
+        "path": "suite/suite/calendar/doctype/calendar_event/calendar_event.py",
+        "line": 175,
+        "quote": "self.id = add_calendar_event("
+      },
+      {
+        "path": "suite/suite/calendar/doctype/calendar/calendar.py",
+        "line": 75,
+        "quote": "def load_from_db(self) -> Calendar:"
+      },
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 177,
+        "quote": "\"Calendar Event\": \"suite.calendar.doctype.calendar_event.calendar_event.has_permission\","
+      },
+      {
+        "path": "suite/suite/calendar/jmap_events.py",
+        "line": 63,
+        "quote": "\"recurrenceRule\": event.get(\"recurrence_rule\") or None,"
+      },
+      {
+        "path": "suite/suite/calendar/api/rsvp.py",
+        "line": 120,
+        "quote": "def record_rsvp(account: str, event_id: str, response: str, recurrence_id: str | None = None) -> str:"
+      },
+      {
+        "path": "suite/suite/calendar/doctype/calendar_event/ics.py",
+        "line": 154,
+        "quote": "def _mark_cancelled(component) -> None:"
+      }
+    ],
+    "searchedPaths": [
+      "suite/pyproject.toml",
+      "suite/suite/calendar/api/invites.py",
+      "suite/suite/calendar/api/rsvp.py",
+      "suite/suite/calendar/doctype/calendar/calendar.json",
+      "suite/suite/calendar/doctype/calendar/calendar.py",
+      "suite/suite/calendar/doctype/calendar_event/calendar_event.json",
+      "suite/suite/calendar/doctype/calendar_event/calendar_event.py",
+      "suite/suite/calendar/doctype/calendar_event/fields.py",
+      "suite/suite/calendar/doctype/calendar_event/ics.py",
+      "suite/suite/calendar/doctype/calendar_event/mailing_lists.py",
+      "suite/suite/calendar/doctype/calendar_exchange/calendar_exchange.py",
+      "suite/suite/calendar/doctype/calendar_rights/calendar_rights.json",
+      "suite/suite/calendar/install.py",
+      "suite/suite/calendar/jmap_events.py",
+      "suite/suite/hooks.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/native-calendar-event.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/adapters/customer_success/event_post_mvp.py",
+      "frontend/packages/ui/src/components/ui-view-calendar/post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-view-gantt/post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-view-scheduler/index.tsx",
+      "frontend/packages/ui/src/components/ui-view-timeline/post_mvp.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "kernel-envelope icinde tenant kimligi, istek kimligi ve kullanici; Suite alanlarina birebir eslenen etkinlik yuku: account, calendar_ids, organizer, start, duration, time_zone, recurrence_rule, free_busy_status, katilimcilar ve alerts. RSVP icin account, event_id, response ve istege bagli recurrence_id. Bu adlar kaynak alintilarinda gorulen adlardir; T-00 hedef surumunde R-00 eslemesiyle dogrulanmadan kesin alan listesi sayilmaz.",
+    "output": "kernel-envelope sonuc zarfi: Suite tarafindan atanan etkinlik kimligi, saklanan start, duration ve time_zone ile istenen gorunum icin acilmis ornekler. Zarf yalniz JSON modeldir; ReactNode veya callback zarfa girmez. Ant Design/Pro gorunumleri modeli yerel bilesenlerde isler ve TanStack Query ile alir. Kaynak registry ile GenUI capability registry ayri tutulur; bu sozlesme GenUI gelistirmesi icermez.",
+    "authorization": "Calendar ve Calendar Event icin hooks.py has_permission kancalari yeniden kullanilir; platform adaptoru kendi izin mantigini yazmaz, ignore_permissions veya SQL kullanmaz. Tenant ayrimi tenant-registry ve native-user-policy sozlesmelerinden gelir. Yeni rol veya izin bayragi gerekirse explicitPermissionFlags ortak kaynagina baglanir ve o rehberin kabulunde reddedilen yazma ile degismeyen kayit bulunur. Girissiz imzali RSVP yolu yalniz Suite'in token dogrulamasina dayanir; oturumlu platform istemcisi bu yolu kullanmaz.",
+    "persistence": "Gercek kayit JMAP sunucusundadir. Frappe DB transaction ve satir kilidi bu kayitlari kapsamaz; JMAP davranisi dogrulanmadan atomiklik iddia edilmez. Platform yeni tablo, sema veya kopya etkinlik deposu olusturmaz. Davet, guncelleme ve iptal iletileri Suite tarafindan uretilir; outbox yalniz platform duzeyi olaylar icindir ve Suite iletilerini cogaltmaz.",
+    "failure": "Native PermissionError: ret zarfi, kayit degismez. Dogrulama hatasi: alan bazli hata zarfi. Suite rate limit (install.py icinde guncelleme ve silme icin tanimli): yeniden deneme bilgisi tasiyan sinir zarfi. JMAP erisilemezligi: gecici hata zarfi, kismi basari bildirilmez. Cakisma (calendar-2 karari sonrasi): tek kazanan, digeri cakisma hatasi."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "capability-definition--contract",
+      "client-rule-parity--contract",
+      "kernel-envelope--contract",
+      "native-calendar-event--contract",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "outbox--contract",
+      "tenant-registry--contract",
+      "ui-family-08--contract",
+      "ui-view-calendar--contract",
+      "ui-view-calendar--implementation",
+      "ui-view-gantt--contract",
+      "ui-view-gantt--implementation",
+      "ui-view-scheduler--contract",
+      "ui-view-timeline--contract",
+      "ui-view-timeline--implementation"
+    ],
+    "admission": {
+      "existingPrerequisite": "T-00 target baseline and R-00 reuse mapping; permissioned data consumers also use R-01; implement one narrow behavior with real RED/GREEN evidence",
+      "specificPrerequisites": [
+        "T-00 hedef Frappe ve Suite surumu belirlenmis olmali.",
+        "R-00 eslemesinde v15 Event ve Google Calendar referanslari Suite kaynak yollarina cevrilmis olmali.",
+        "Izinli veri tuketicisi oldugu icin R-01 kurallari uygulanmali.",
+        "decisionsPending icindeki etkinlik yeniden kullanim siniri karari alinmis olmali.",
+        "Yalniz tek dar davranis, gercek RED/GREEN kanitiyla kabule girer."
+      ],
+      "orderAuthority": "existing task dependencies and stage; cluster order is presentation, not a new serial DAG",
+      "authority": "Bu sozlesme servis, production, sema veya veri degistirme yetkisi vermez."
+    },
+    "steps": [
+      "T-00 ve R-00 tamamlanmadan uretim dilimi acma; bu turde yalniz belge adimlari yapilir.",
+      "Yeniden kullanim siniri karari gelince tdd.oneScenario icin tek adaptor dilimini planla: plannedProduction icindeki backend adaptoru Suite Calendar Event yolunu cagirir ve sonucu kernel-envelope'a esler.",
+      "Zarfi JSON model olarak tanimla; calendar, scheduler, timeline ve gantt gorunumleri ayni modeli tuketir, kendi tekrar veya cakisma hesabini yapmaz.",
+      "Web, Tauri2, Vite/PWA ve WXT/MV3 kabuklari ayni gorunumu kullanir; kabuga ozel takvim mantigi yazilmaz.",
+      "sharedIntegrationFiles (hooks.py, registry.ts, routes.tsx ve paket dosyalari) yalniz seri entegrasyon sahibi uzerinden degisir.",
+      "calendar-2, calendar-3 ve calendar-4 her biri kendi kararlari alindiktan sonra ayri dar davranis olarak sirayla kabule girer.",
+      "CI, deploy ve rollback teknik kurulumu Huseyin Cengiz'e aittir; DNS kaydi gerekirse teknik degeri Huseyin Cengiz hazirlar, GoDaddy uygulamasini Asistan Huseyin yapar."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Takvime yazma hakki olmayan kullanici platform adaptoru uzerinden Calendar Event olusturmak ister; native has_permission reddi kernel-envelope ret zarfina cevrilir ve JMAP tarafinda yeni etkinlik olusmaz.",
+      "red": "Adaptor dilimi izinli kullanici icin olusturmayi gecirirken, yetkisiz istekte beklenen ret kodu ve degismeyen etkinlik sayisi iddiasi basarisiz olur (ornegin zarf genel hata doner). RED import hatasi, eksik altyapi veya native has_permission'i devre disi birakarak uretilmez.",
+      "green": "Native PermissionError yutulmadan kernel-envelope ret koduna eslenir; ayni testte etkinlik sayisi degismez ve izinli kullanici senaryosu gecmeye devam eder. ignore_permissions veya SQL kullanilmaz."
+    },
+    "rollback": "Bu turde geri alinacak uretim degisikligi yoktur. Gelecekteki dilimde geri alma: adaptor kaydinin hooks.py ve registry.ts'ten, rotanin routes.tsx'ten kaldirilmasi. Platform kendi etkinlik deposu tutmadigi icin veri geri donusu gerekmez; deneme sirasinda olusan etkinlikler native silme yoluyla temizlenir ve bu yolun katilimcilara iptal iletisi gonderdigi dikkate alinir. Teknik geri alma sahibi Huseyin Cengiz'dir."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "calendar-1",
+      "sourceStage": "post_mvp",
+      "existing": "Suite, Calendar ve Calendar Event DocType'larini saglar; Calendar Event db_insert icinde add_calendar_event cagirir, Calendar load_from_db ile JMAP'ten okur; izinler hooks.py has_permission ile tanimlidir. /calendar rotasi Suite'in Vue/Frappe UI arayuzune gider; bu React/Ant Design uygulamasi kaniti degildir. Randevu/rezervasyon urunune ait kaynak gorulmedi.",
+      "gap": "Frappe core Event ile Suite Calendar Event arasindaki yeniden kullanim siniri karara baglanmadi; v15 referanslari yerel kaynaga eslenmedi; randevu modeli (hizmet, sure, slot, rezerve eden, misafir erisimi) tanimsiz; istemcinin cagiracagi Suite metotlari, rate limit etkisi ve JMAP bagimliligi belgelenmedi; mevcut kabul olculebilir degil.",
+      "completionSteps": [
+        "R-00 eslemesinde v15 Event ve Google Calendar referanslarini calendar_event.py, calendar.py, hooks.py ve jmap_events.py yollariyla degistir.",
+        "Yeniden kullanim siniri karari gelene kadar iki secenegin etkisini belge olarak yaz; ikinci bir paralel etkinlik yolu tasarlama.",
+        "Istemcinin cagiracagi her Suite metodu icin whitelist durumu, rate limit degeri ve gerekli izni T-00 kaynagindan okuyup tabloya yaz; kaynakta gorulmeyen metodu listeleme.",
+        "Randevuyu ayri ve kosullu kapsam olarak isaretle; randevu modeli karari gelmeden adaptor veya DocType tasarlama.",
+        "Kabulu olusturma, saat dilimiyle gosterim ve yetkisiz erisim reddi olarak uc senaryoya bol."
+      ],
+      "dependencies": [
+        "native-calendar-event--contract",
+        "native-user-policy--contract",
+        "tenant-registry--contract",
+        "kernel-envelope--contract",
+        "api-middleware--contract",
+        "capability-definition--contract",
+        "ui-view-calendar--contract"
+      ],
+      "acceptance": "(a) Yazma hakki olan kullanici etkinlik olusturur; Suite'in atadigi kimlik zarfta doner ve ayni kimlikle okuma ayni start, duration ve time_zone degerlerini verir. (b) time_zone Europe/Istanbul ve baslangic 10:00 olan etkinlik, farkli tarayici saat diliminde de etkinligin saat dilimi etiketiyle 10:00 gosterilir. (c) Takvime hakki olmayan kullanicinin okuma ve olusturma istekleri native has_permission ile reddedilir ve JMAP kaydi degismez.",
+      "evidence": [
+        {
+          "path": "suite/pyproject.toml",
+          "line": 6,
+          "quote": "Meet, Mail, Calendar in one app."
+        },
+        {
+          "path": "suite/suite/calendar/doctype/calendar_event/calendar_event.py",
+          "line": 175,
+          "quote": "self.id = add_calendar_event("
+        },
+        {
+          "path": "suite/suite/calendar/doctype/calendar/calendar.py",
+          "line": 75,
+          "quote": "def load_from_db(self) -> Calendar:"
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 177,
+          "quote": "\"Calendar Event\": \"suite.calendar.doctype.calendar_event.calendar_event.has_permission\","
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 61,
+          "quote": "{\"from_route\": \"/calendar\", \"to_route\": \"suite\"},"
+        }
+      ]
+    },
+    {
+      "requirementId": "calendar-2",
+      "sourceStage": "post_mvp",
+      "existing": "Calendar Event free_busy_status alani, Calendar include_in_availability ayari, Calendar Rights icinde may_read_free_busy (Principal/getAvailability) ve user/group/resource principal tanimi, mailing_lists.py ile grup uyelerinin katilimciya acilmasi kaynakta gorulur.",
+      "gap": "Kaynak kapasitesi ve atomik cakisma engeli kaynakta gorulmedi; Frappe DB satir kilidi JMAP kayitlarina uygulanamaz. Kaynak modeli, cakisma kontrolunun tek yazim noktasi, availability sorgusunun istemci erisim yolu ve tekrarlayan orneklerin hesaba katilmasi tanimsiz.",
+      "completionSteps": [
+        "Kaynak modeli kararini decisionsPending'e bagla; karar gelmeden kapasite alani veya DocType tasarlama.",
+        "Cakisma engelinin tek yazim noktasini ve atomiklik mekanizmasini karar sonrasi yaz; JMAP sunucusunun bu konudaki davranisi T-00 kaynaginda dogrulanmadan Frappe kilidi onerme.",
+        "Principal/getAvailability icin istemci erisim yolunu ve may_read_free_busy izin sinirini R-00 eslemesine ekle; dogrulanmayan API adi yazma.",
+        "free_busy_status ve include_in_availability degerlerinin uygunluga etkisini ayri senaryo olarak yaz.",
+        "Tekrarlayan etkinligin tek ornegiyle cakisan rezervasyon senaryosunu kabul listesine ekle."
+      ],
+      "dependencies": [
+        "native-calendar-event--contract",
+        "native-user-policy--contract",
+        "tenant-registry--contract",
+        "native-doctype-schema--contract",
+        "ui-view-scheduler--contract"
+      ],
+      "acceptance": "Ayni kaynak icin esanli iki cakisan rezervasyondan yalniz biri kabul edilir, digeri cakisma hatasi alir ve kaynakta tek kayit kalir. Tekrarlayan etkinligin bir ornegiyle cakisan rezervasyon da reddedilir. Mesgul saymayan free_busy_status degerli etkinlik uygunlugu dusurmez.",
+      "evidence": [
+        {
+          "path": "suite/suite/calendar/doctype/calendar_event/calendar_event.json",
+          "line": 190,
+          "quote": "\"description\": \"Indicates how the event affects the availability.\","
+        },
+        {
+          "path": "suite/suite/calendar/doctype/calendar/calendar.json",
+          "line": 122,
+          "quote": "What calendar's events be used as part of availability calculation?"
+        },
+        {
+          "path": "suite/suite/calendar/doctype/calendar_rights/calendar_rights.json",
+          "line": 89,
+          "quote": "principal (user, group, or resource)"
+        },
+        {
+          "path": "suite/suite/calendar/doctype/calendar_rights/calendar_rights.json",
+          "line": 26,
+          "quote": "Principal/getAvailability"
+        },
+        {
+          "path": "suite/suite/calendar/doctype/calendar_event/mailing_lists.py",
+          "line": 12,
+          "quote": "Adding one participant per member before the event is stored is what RFC 5546 asks the organizer"
+        }
+      ]
+    },
+    {
+      "requirementId": "calendar-3",
+      "sourceStage": "post_mvp",
+      "existing": "jmap_events.py timeZone ve recurrenceRule alanlarini JMAP'e yazar; ics.py add_missing_timezones ile VTIMEZONE ekler; rsvp.py record_rsvp oturumlu kullanicinin yanitini recurrence_id ile ornek bazinda kaydeder; imzali baglanti yolu girissiz calisir ve imzali token tek yetkidir. Fonksiyonel dogrulama yapilmadi.",
+      "gap": "Talimat Suite alanlarina eslenmedi; DST aciliminin hesap sahibi belirsiz; imzali RSVP baglantisinin sure ve tekrar kullanim siniri sozlesmede yok; seri ve ornek yanitlari icin ayri kabul yok.",
+      "completionSteps": [
+        "Kaynak eslemesini v15 Event'ten Suite'e cevir: jmap_events.py alanlari, rsvp.py record_rsvp ve imzali yol, ics.py.",
+        "DST ve tekrar aciliminin hesap sahibi kararini decisionsPending'e bagla; istemcide ikinci bir RRULE hesabi yazma.",
+        "Imzali RSVP token'inin sure ve tekrar kullanim davranisini T-00 kaynagindan oku ve sozlesmeye yaz; politika karari gelmeden degistirme.",
+        "Seri yaniti ile tek ornek yanitini ayri senaryo olarak yaz."
+      ],
+      "dependencies": [
+        "native-calendar-event--contract",
+        "native-user-policy--contract",
+        "kernel-envelope--contract",
+        "client-rule-parity--contract",
+        "ui-view-calendar--contract"
+      ],
+      "acceptance": "time_zone Europe/Berlin ve her hafta yerel 09:00 tekrarlanan etkinlik, 2027-03-28 yaz saati gecisinden sonraki ornekte de yerel 09:00 gorunur. Seri icin verilen kabul yaniti tum seriye, recurrence_id ile verilen ret yaniti yalniz secilen ornege yansir ve organizator kaydinda okunur.",
+      "evidence": [
+        {
+          "path": "suite/suite/calendar/jmap_events.py",
+          "line": 62,
+          "quote": "\"timeZone\": event.get(\"time_zone\"),"
+        },
+        {
+          "path": "suite/suite/calendar/jmap_events.py",
+          "line": 63,
+          "quote": "\"recurrenceRule\": event.get(\"recurrence_rule\") or None,"
+        },
+        {
+          "path": "suite/suite/calendar/doctype/calendar_event/ics.py",
+          "line": 66,
+          "quote": "cal.add_missing_timezones()"
+        },
+        {
+          "path": "suite/suite/calendar/api/rsvp.py",
+          "line": 120,
+          "quote": "def record_rsvp(account: str, event_id: str, response: str, recurrence_id: str | None = None) -> str:"
+        },
+        {
+          "path": "suite/suite/calendar/api/rsvp.py",
+          "line": 9,
+          "quote": "server, so we never require a login — the signed token is the only authorization."
+        }
+      ]
+    },
+    {
+      "requirementId": "calendar-4",
+      "sourceStage": "post_mvp",
+      "existing": "ics.py _mark_cancelled iptalde STATUS:CANCELLED zorlar; install.py surukleyerek yeniden planlama ile silme sirasinda iptal gonderimi icin rate limit tanimlar; fields.py display, email ve audio alert eylemlerini; invites.py useDefaultAlerts'u; calendar_exchange.py JSCalendar'dan iCalendar'a eslemeyi gosterir. Surekli cift yonlu dis senkron kaynakta gorulmedi; Google Calendar ve Frappe Notification icin v17 kaynagi gorulmedi.",
+      "gap": "Dis senkron yontemi secilmedi; erteleme ve iptalde iTIP guncellemesinin karsi takvime ulastigini gosteren kabul yok; tekil tekrar iptalinin telafi davranisi tanimsiz; JMAP alerts ile Frappe Notification arasinda sorumluluk ayrimi yok.",
+      "completionSteps": [
+        "Dis senkron kararini decisionsPending'e bagla; karar gelene kadar mevcut iTIP/ICS ve Calendar Exchange yolunu kaynak eslemesiyle belgele.",
+        "Erteleme icin update_calendar_event, iptal icin delete_calendar_events yolunu ve rate limit etkisini istemci sozlesmesine yaz; whitelist durumu T-00'da dogrulanir.",
+        "Tekil ornek iptali icin karara sunulacak beklentiyi yaz: yalniz secilen ornek iptal edilir, seri surer, katilimcilara yalniz o ornek icin iptal gider.",
+        "Hatirlatma sorumlulugu karari gelene kadar Frappe Notification ile ikinci bir hatirlatici tasarlama."
+      ],
+      "dependencies": [
+        "native-calendar-event--contract",
+        "outbox--contract",
+        "kernel-envelope--contract",
+        "ui-view-timeline--contract",
+        "ui-view-gantt--contract"
+      ],
+      "acceptance": "Ertelenen etkinlik icin katilimciya giden guncelleme yeni saati tasir ve karsi takvim istemcisinde yeni saate tasinir (SEQUENCE artisi T-00 kaynaginda dogrulanir). Tekil ornek iptalinde yalniz o ornek STATUS:CANCELLED ile gider, seri kalan orneklerle surer. Alert tanimi olmayan davet edilmis etkinlik varsayilan alertlerle kaydedilir.",
+      "evidence": [
+        {
+          "path": "suite/suite/calendar/doctype/calendar_event/ics.py",
+          "line": 154,
+          "quote": "def _mark_cancelled(component) -> None:"
+        },
+        {
+          "path": "suite/suite/calendar/install.py",
+          "line": 41,
+          "quote": "# Edits are the most frequent write (dragging an event reschedules it) and each one can"
+        },
+        {
+          "path": "suite/suite/calendar/install.py",
+          "line": 53,
+          "quote": "# Deleting sends a cancellation to every participant."
+        },
+        {
+          "path": "suite/suite/calendar/doctype/calendar_event/fields.py",
+          "line": 44,
+          "quote": "action: Annotated[Literal[\"display\", \"email\", \"audio\"], Lower]"
+        },
+        {
+          "path": "suite/suite/calendar/doctype/calendar_exchange/calendar_exchange.py",
+          "line": 69,
+          "quote": "# JSCalendar (RFC 8984) -> iCalendar (RFC 5545) value maps."
+        },
+        {
+          "path": "suite/suite/calendar/api/invites.py",
+          "line": 143,
+          "quote": "event[\"useDefaultAlerts\"] = True"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Uygulama durumu: uygulanmadı. Bu dosya yalniz gelecekteki gelistirme yonergesidir; uretim kodu, test veya servis degisikligi icermez.",
+    "Hicbir madde fonksiyonel olarak dogrulanmadi; runtimeAcceptance not_run.",
+    "Suite takvim arayuzu Vue/Frappe UI'dir; React/Ant Design calendar, scheduler, timeline ve gantt gorunumleri mevcut degildir ve ilgili ui-view sozlesmelerine baglidir.",
+    "Kanitlar onceki salt okunur kaynak goruntulerinden alinmistir; T-00 hedef surumunde yeniden okunmadan alan ve metot adlari kesin sayilmaz.",
+    "Randevu urunu, kaynak kapasitesi, atomik cakisma engeli ve surekli dis senkron icin native kaynak gorulmedi."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Etkinlik yeniden kullanim siniri: Frappe core Event veya Suite Calendar Event/JMAP.",
+      "requirementIds": [
+        "calendar-1",
+        "calendar-2",
+        "calendar-3",
+        "calendar-4"
+      ],
+      "blocks": "Adaptor tasarimi ve R-00 eslemesinin onayi.",
+      "allowedDocumentWork": "Suite yollarini eslemeye yaz, iki secenegin etkisini karsilastir."
+    },
+    {
+      "decision": "T-00 hedef Frappe ve Suite surumu.",
+      "requirementIds": [
+        "calendar-1",
+        "calendar-2",
+        "calendar-3",
+        "calendar-4"
+      ],
+      "blocks": "Alan, metot ve whitelist dogrulamasi.",
+      "allowedDocumentWork": "Kaynak alintilarini dogrulanacak olarak isaretli tut."
+    },
+    {
+      "decision": "Randevu urun kapsami ve misafir/harici kullanici erisim modeli.",
+      "requirementIds": ["calendar-1", "calendar-2"],
+      "blocks": "Randevu adaptoru ve kabul senaryolari.",
+      "allowedDocumentWork": "Hizmet, sure, slot ve rezerve eden kavramlari icin terim taslagi."
+    },
+    {
+      "decision": "Kaynak modeli (JMAP resource principal veya Frappe DocType) ve kapasite kurali.",
+      "requirementIds": ["calendar-2"],
+      "blocks": "Kapasite ve kaynak rezervasyonu adimlari.",
+      "allowedDocumentWork": "Mevcut principal ve free/busy alanlarinin eslemesi."
+    },
+    {
+      "decision": "Cakisma engelinin tek yazim noktasi ve atomiklik mekanizmasi.",
+      "requirementIds": ["calendar-2"],
+      "blocks": "Esanli rezervasyon kabulu.",
+      "allowedDocumentWork": "Cakisma senaryolarini tekrarlayan ornek dahil yaz."
+    },
+    {
+      "decision": "DST ve tekrar aciliminin hesap sahibi (JMAP sunucusu veya istemci).",
+      "requirementIds": ["calendar-3"],
+      "blocks": "Tekrar gorunumu ve DST kabulu.",
+      "allowedDocumentWork": "DST senaryosunu saat dilimi adi ve beklenen yerel saatle yaz."
+    },
+    {
+      "decision": "Imzali RSVP token'inin sure ve tekrar kullanim politikasi.",
+      "requirementIds": ["calendar-3"],
+      "blocks": "Girissiz RSVP yolunun sozlesmeye alinmasi.",
+      "allowedDocumentWork": "Mevcut davranisi kaynaktan okuyup belgele."
+    },
+    {
+      "decision": "Dis takvim senkron yontemi: mevcut iTIP/ICS yolu veya Google Calendar entegrasyonu.",
+      "requirementIds": ["calendar-4"],
+      "blocks": "Erteleme ve dis senkron kabulu.",
+      "allowedDocumentWork": "iTIP/ICS ve Calendar Exchange eslemesini belgele."
+    },
+    {
+      "decision": "Tekil tekrar iptalinin telafi davranisi.",
+      "requirementIds": ["calendar-4"],
+      "blocks": "Tekil iptal kabulu.",
+      "allowedDocumentWork": "Onerilen beklentiyi karar notu olarak yaz."
+    },
+    {
+      "decision": "Hatirlatma sorumlulugu: JMAP alerts veya Frappe Notification.",
+      "requirementIds": ["calendar-4"],
+      "blocks": "Hatirlatma adimlari.",
+      "allowedDocumentWork": "Mevcut alert alanlarini ve varsayilan alert davranisini belgele."
+    },
+    {
+      "decision": "JMAP sunucusunun barindirilmasi, veri yerlesimi ve tenant basina hesap topolojisi.",
+      "requirementIds": [
+        "calendar-1",
+        "calendar-2",
+        "calendar-3",
+        "calendar-4"
+      ],
+      "blocks": "Uretim kabulu ve tenant ayrimi dogrulamasi.",
+      "allowedDocumentWork": "Bagimliligi ve acik sorulari listele; satici veya topoloji secme."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

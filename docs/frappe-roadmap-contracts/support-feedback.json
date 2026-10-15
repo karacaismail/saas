@@ -1,0 +1,249 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "support-feedback",
+  "canonicalTaskIds": ["support-feedback--implementation"],
+  "requirementIds": ["support-3", "support-7"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "support-3": "post_mvp",
+    "support-7": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Müşteri ve tenant kapsamına bağlı geri bildirim kaydı: ticket memnuniyeti ile NPS ayrı tür, sunucu tarafı tekrar gösterim engeli ve müşteriler arası okuma/yazma yasağı. Uygulama durumu: uygulanmadı.",
+    "trigger": "Oturum açmış bir kullanıcı NPS yanıtı, genel anket yanıtı, özellik talebi veya oyu ya da Helpdesk kararı sonrasında ticket memnuniyeti kaydı oluşturmak veya kendi geri bildirim geçmişini listelemek ister.",
+    "expected": "Kayıt, önerilen tek SupportFeedback DocType'ında tür alanıyla ayrılarak native Document.insert yaşam döngüsü ve native izin denetimiyle oluşturulur. Kayıt tenant'a ve karar bekleyen müşteri kimlik anahtarına sunucuda bağlanır. Uygunluk, örnekleme ve bekleme kuralı sunucuda, kayıt öncesi doğrulamada değerlendirilir. Kullanıcı yalnız kendi müşteri kapsamındaki kayıtları listeler ve okur. NPS skoru yalnız yetkili rapor rolüne tenant kapsamında toplu değer olarak döner.",
+    "denied": "Uygun olmayan kullanıcının bekleme süresi içindeki ikinci NPS veya anket yanıtı sunucuda reddedilir ve yeni kayıt oluşmaz. Başka müşteriye ait kaydı listeleme, okuma veya güncelleme girişimi native izin hatasıyla reddedilir ve hedef kayıt değişmez. Yetki kararı ignore_permissions, ham SQL veya yalnız istemci tarafı gizleme ile verilmez."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native parça: Frappe REST v1 oluşturma yolu frappe.new_doc(...).insert() ile Document yaşam döngüsünü kullanır. frappe.permissions.has_permission, belge verildiğinde kullanıcı, paylaşım ve sahip izinlerini denetler. DocPerm if_owner bayrağı izin hesaplamasında değerlendirilir. Eksik olanlar: SupportFeedback DocType'ı, tür ayrımı, NPS puanlama ve raporlama, uygunluk/örnekleme/bekleme kuralı, müşteri kimlik eşlemesi, özellik talebi ve oy modeli, Helpdesk ticket memnuniyeti. Kanıtlar yalnız native yapı taşlarını gösterir; davranışın tamamının var olduğunu göstermez. Alıntılar önceki salt okunur Frappe/Suite kaynak anlık görüntülerinden alınmıştır; canlı site veya ürün kabulü yoktur. Native Frappe veya Vue/Frappe UI kaynağı, React/Ant Design uygulamasının kanıtı değildir. Aranan yollar sınırlıdır; Helpdesk, anket veya Web Form kullanımı için kapsamlı bir yokluk iddiası değildir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 50,
+        "quote": "return frappe.new_doc(doctype, **data).insert()"
+      },
+      {
+        "path": "frappe/frappe/permissions.py",
+        "line": 82,
+        "quote": "def has_permission("
+      },
+      {
+        "path": "frappe/frappe/permissions.py",
+        "line": 328,
+        "quote": "has_if_owner_enabled = any(p.get(\"if_owner\", 0) for p in applicable_permissions)"
+      },
+      {
+        "path": "frappe/frappe/permissions.py",
+        "line": 94,
+        "quote": "If `doc` is passed, also check user, share and owner permissions."
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "frappe/frappe/permissions.py",
+      "suite/pyproject.toml"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/support-feedback.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/customer_success/doctype/support_feedback/support_feedback.py"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Tür alanı için öneri: nps, survey_response, feature_request, feature_vote, ticket_satisfaction. Kesin liste support-feedback--schema görevinde belirlenir; ticket_satisfaction Helpdesk kararına kadar kapalıdır. NPS için 0-10 arası tam sayı puan girilir. Bunlara ek olarak isteğe bağlı serbest metin yorum, anket tanımlayıcısı, özellik talebi başlık/açıklaması ve oy için hedef talep referansı alınır. Tenant ve müşteri anahtarı istemciden güvenilerek alınmaz; oturum kullanıcısı ile tenant-registry--contract eşlemesinden sunucuda türetilir. İstek zarfı kernel-envelope--contract biçimine uyar.",
+    "output": "Başarılı oluşturmada kayıt adı, türü ve oluşturma zamanı döner. Uygunluk sorgusu yalnız kullanıcının kendi uygunluk sonucunu döndürür. Liste yalnız kendi müşteri kapsamındaki kayıtları içerir. NPS skoru (promoter yüzdesi eksi detractor yüzdesi) yalnız rapor rolüne, tenant kapsamında toplu değer olarak döner; ham yanıtlar başka müşteriye açılmaz. İstemci bu çıktıyı JSON model sınırında alır; yerel ReactNode veya callback sözleşmeye girmez.",
+    "authorization": "Rol ve DocPerm satırları explicitPermissionFlags ortak kaynağına bağlanır; bu rehber yeni bayrak veya rol tanımlamaz. Müşteri kapsamı, karar bekleyen if_owner veya User Permission seçeneğiyle native has_permission yolunda uygulanır. Tenant izolasyonu tenant-registry--contract ve native-user-policy--contract'a göre sağlanır. Rapor rolü yalnız toplu skoru okur. ignore_permissions, frappe.db.sql ile izin atlama ve Guest yazması yoktur. Web Form yalnız test yardımcısında görüldüğü için anonim anket yolu açılmaz.",
+    "persistence": "Önerilen tek SupportFeedback DocType'ı (canonicalArtifact: custom_proposed), native-doctype-schema--contract kurallarıyla support-feedback--schema görevinde tanımlanır. Yazma yalnız native Document insert/save transaction'ı içinde yapılır. Uygunluk kontrolü controller doğrulama aşamasında izinli okumayla yapılır. Eşzamanlı çift gönderimin benzersizlik kısıtı veya kilitle önlenmesi schema görevinin açık maddesidir. Olay yayımlamak gerekirse bu, outbox--contract'a göre aynı transaction içinde yapılır; bu rehber olay tipi tanımlamaz. Saklama süresi ve veri yerleşimi karar bekliyor. Bu sözleşme hiçbir şemayı, veriyi, servisi veya production ortamını değiştirme yetkisi vermez.",
+    "failure": "Uygun değil veya bekleme süresi dolmamış: doğrulama hatası döner, kayıt oluşmaz, transaction geri alınır. İzin yok: native PermissionError döner, hedef kayıt değişmez. NPS puanı 0-10 dışında veya tam sayı değil: doğrulama hatası. Helpdesk kararı yokken ticket_satisfaction türü: reddedilir. Tenant veya müşteri eşlemesi çözülemiyor: yazma reddedilir, varsayılan tenant'a düşülmez. Hata gövdesi kernel-envelope--contract hata biçimine uyar ve başka müşteriye ait kaydın varlığını sızdırmaz."
+  },
+  "development": {
+    "dependencies": [
+      "capability-definition--contract",
+      "kernel-envelope--contract",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "outbox--contract",
+      "support-feedback--contract",
+      "support-feedback--schema",
+      "tenant-registry--contract"
+    ],
+    "admission": {
+      "status": "NOT_ADMITTED",
+      "prerequisites": [
+        "T-00 hedef sürüm tabanı ve R-00 yeniden kullanım eşlemesi tamamlanmış olmalı; izinli veri tüketicisi olduğu için R-01 de uygulanır.",
+        "support-feedback--contract, support-feedback--schema ile kernel-envelope, tenant-registry, native-user-policy, capability-definition, native-doctype-schema ve outbox sözleşmeleri kabul edilmiş olmalı.",
+        "decisionsPending içindeki müşteri kimlik anahtarı, izin modeli ve tenant topolojisi kararları verilmiş olmalı. Helpdesk kararı yalnız ticket memnuniyeti adımlarını engeller.",
+        "Tek dar davranış gerçek RED/GREEN kanıtıyla uygulanır. Sıra yetkisi mevcut görev bağımlılıkları ve aşamadır; küme sırası yeni bir seri bağımlılık zinciri değildir."
+      ]
+    },
+    "steps": [
+      "Karar bekleyen maddeler için belge düzeyinde seçenek karşılaştırması hazırla; karar vermeden kod adımına geçme.",
+      "support-feedback--schema görevinde SupportFeedback alanlarını öner: tür, puan, yorum, tenant bağı, müşteri anahtarı, referans (ticket, özellik talebi veya oy hedefi). Oluşturan kullanıcı için native owner alanı kullanılır.",
+      "DocPerm ve rol satırlarını explicitPermissionFlags ortak kaynağına bağla; müşteri kapsamını seçilen if_owner veya User Permission ile kur.",
+      "Controller doğrulamasında tür bazlı kuralları, NPS aralığını ve uygunluk/bekleme kontrolünü izinli okumayla uygula; ignore_permissions kullanma.",
+      "Oluşturmayı native REST v1 yolu veya kernel-envelope--contract'a uyan bir uç nokta içinde frappe.new_doc(...).insert() ile, izin atlamadan yap. Uç nokta adı bu rehberde belirlenmez.",
+      "Liste ve okumayı native izin süzgecinden geçir; ayrı ham sorgu yazma.",
+      "NPS raporunu tenant kapsamında toplu hesapla ve yalnız rapor rolüne aç.",
+      "İstemci yüzeyini React/Ant Design ile, capability-definition--contract kaynak registry'si üzerinden planla. Uygunluk sonucunu sunucudan oku. GenUI capability registry bu kapsamın dışındadır ve ayrı tutulur.",
+      "Paylaşılan entegrasyon dosyalarına dokunan değişiklikleri ana entegrasyon sahibine seri birleştirme için devret."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Müşteri B kapsamındaki kullanıcı, müşteri A'ya ait mevcut bir nps türü SupportFeedback kaydını native API ile güncellemeye çalışır. İstek native izin hatasıyla reddedilir, kaydın puanı ve modified değeri değişmez, aynı kullanıcının listesinde A kaydı görünmez.",
+      "red": "Test, SupportFeedback DocType'ı ve rol yazma izni mevcutken müşteri kapsam kuralı henüz bağlanmamış durumda koşulur. B kullanıcısının güncellemesi başarılı olduğu için test başarısız olur. RED; import hatası, eksik fixture veya altyapı ya da native izin davranışını bozarak elde edilmez.",
+      "green": "Seçilen müşteri kapsam kuralı explicitPermissionFlags ortak kaynağına göre DocPerm ve if_owner veya User Permission ile bağlanır. Aynı test native has_permission yolundan PermissionError alır, kayıt değişmez ve liste boş kalır. Yeşil sonuç için ignore_permissions veya SQL kullanılmaz. Bu turda test yazılmaz ve koşulmaz."
+    },
+    "rollback": "Bu sözleşme yalnız belgedir; geri alma, belge sürümünü önceki hale döndürmektir. Gelecekteki uygulamada DocType, izin, migration ve deploy geri dönüşünün teknik sahibi Hüseyin Cengiz'dir. Mevcut geri bildirim verisini silmek veya taşımak ayrı ve açık bir karar gerektirir; saklama süresi kararı verilmeden veri silinmez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "support-3",
+      "sourceStage": "post_mvp",
+      "existing": "Native parçalar: REST v1 oluşturma yolu Document.insert yaşam döngüsünü kullanır; izin denetimi has_permission ile yapılır. Web Form yalnız test yardımcısında görünür ve uygulama kanıtı değildir. Ticket memnuniyeti Helpdesk'e bağlıdır ve Helpdesk kurulu değildir. Örnekleme, puanlama ve bekleme mantığı kaynakta yoktur.",
+      "gap": "NPS puanlama formülü ve raporlama tanımsız. Uygunluk, örnekleme ve bekleme kuralları ile bunların sunucuda uygulanacağı tanımsız. Yanıtların saklanacağı DocType ve tenant izolasyonu tanımsız. Ticket memnuniyeti Helpdesk kurulumuna bağımlı.",
+      "completionSteps": [
+        "Tür alanında nps ve ticket_satisfaction değerlerini ayrı tanımla; ikisini tek kayıtta birleştirme.",
+        "NPS puanını sunucuda 0-10 arası tam sayı olarak doğrula. Promoter 9-10, passive 7-8, detractor 0-6 ve skor = promoter yüzdesi eksi detractor yüzdesi önerisini ürün onayına sun.",
+        "Uygunluk ve bekleme kuralını controller doğrulamasında, aynı kullanıcı ve tenant kapsamındaki önceki kayıtları izinli okuyarak uygula. Süre değerlerini kararla doldur.",
+        "Örneklemeyi sunucuda hesapla; istemci yalnız sunucudan gelen uygunluk sonucunu gösterir.",
+        "Eşzamanlı çift gönderim için benzersizlik kısıtı veya kilit seçeneğini support-feedback--schema görevinde belgele.",
+        "Tenant bağını tenant-registry--contract eşlemesiyle sunucuda ata.",
+        "Ticket memnuniyetini Helpdesk kararına bağımlı işaretle; karar gelene kadar bu tür reddedilir."
+      ],
+      "dependencies": [
+        "support-feedback--contract",
+        "support-feedback--schema",
+        "tenant-registry--contract",
+        "native-user-policy--contract",
+        "native-doctype-schema--contract",
+        "kernel-envelope--contract"
+      ],
+      "acceptance": "Ticket memnuniyeti ve NPS ayrı türlerde kaydedilir. Bekleme süresi içindeki ikinci NPS gönderimi sunucuda reddedilir ve yeni kayıt oluşmaz. Uygun olmayan kullanıcıya anket uygunluğu olumsuz döner.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 50,
+          "quote": "return frappe.new_doc(doctype, **data).insert()"
+        },
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 82,
+          "quote": "def has_permission("
+        }
+      ]
+    },
+    {
+      "requirementId": "support-7",
+      "sourceStage": "post_mvp",
+      "existing": "Native parçalar: has_permission, belge verildiğinde kullanıcı, paylaşım ve sahip izinlerini denetler; DocPerm if_owner bayrağı izin hesaplamasında değerlendirilir. Helpdesk ticket geri bildirimi kurulu değil, özellik talebi ve oylama modeli yok, ERPNext Customer kurulu değil.",
+      "gap": "Müşteri kimliğinin neye eşleneceği tanımsız. Talep, oy ve memnuniyet kayıtları için DocType ve izin modeli seçilmemiş. Helpdesk feedback modelinin kurulumu ve sürümü belirsiz. Kiracılar arası izolasyon için negatif kabul senaryosu yok.",
+      "completionSteps": [
+        "Müşteri kimlik anahtarı kararını bekle. O zamana kadar satırda sayılan seçenekleri (Keycloak kullanıcısı, Contact, tenant) belge düzeyinde karşılaştır.",
+        "Özellik talebi ve oyu SupportFeedback içinde tür ve referans alanıyla mı yoksa ayrı DocType ile mi modelleyeceğini support-feedback--schema görevinde belgele. Aynı kullanıcının aynı talebe ikinci oyu reddedilir.",
+        "Müşteri kapsamını, explicitPermissionFlags ortak kaynağına bağlı if_owner veya User Permission ile kur.",
+        "Memnuniyet geçmişini native izin süzgecinden geçen listeyle sun; ham sorgu yazma.",
+        "Negatif kabulü ekle: başka müşterinin kullanıcısı liste, okuma ve güncelleme isteklerinde reddedilir ve hedef kayıt değişmez.",
+        "Helpdesk kurulum ve sürüm kararından sonra ticket geri bildiriminin bu geçmişe nasıl bağlanacağını ayrı belgele."
+      ],
+      "dependencies": [
+        "support-feedback--contract",
+        "support-feedback--schema",
+        "tenant-registry--contract",
+        "native-user-policy--contract",
+        "capability-definition--contract",
+        "kernel-envelope--contract"
+      ],
+      "acceptance": "Bir müşterinin talep, oy ve memnuniyet kayıtları aynı müşteri anahtarıyla ilişkilenir. Başka müşterinin kullanıcısı bu kayıtları API ile listeleyemez, okuyamaz ve güncelleyemez; hedef kayıt değişmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 328,
+          "quote": "has_if_owner_enabled = any(p.get(\"if_owner\", 0) for p in applicable_permissions)"
+        },
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 94,
+          "quote": "If `doc` is passed, also check user, share and owner permissions."
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Uygulama durumu: uygulanmadı. SupportFeedback DocType'ı, izin satırları, controller doğrulaması ve istemci yüzeyi yok.",
+    "Müşteri kimlik anahtarı ve buna bağlı izin modeli seçilmedi.",
+    "Uygunluk, örnekleme ve bekleme parametreleri ile NPS eşiklerinin ürün onayı yok.",
+    "Özellik talebi ve oy modelinin tek DocType içinde mi yoksa ayrı mı olacağı schema görevinde açık.",
+    "Eşzamanlı çift gönderim koruması tanımsız.",
+    "Ticket memnuniyeti Helpdesk kurulumuna ve sürümüne bağlı.",
+    "Saklama süresi ve veri yerleşimi tanımsız.",
+    "Çalışma zamanı kabulü koşulmadı (not_run)."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Müşteri kimlik anahtarı: Keycloak kullanıcısı, Contact veya tenant",
+      "requirementIds": ["support-7", "support-3"],
+      "blocks": "İzin modeli kurulumu, müşteri kapsamlı listeleme ve tek TDD senaryosunun GREEN adımı",
+      "untilDecided": "Seçenekleri izolasyon, native izin uyumu ve göç etkisi açısından belge düzeyinde karşılaştır."
+    },
+    {
+      "decision": "Müşteri kapsamı için izin modeli: if_owner veya User Permission",
+      "requirementIds": ["support-7", "support-3"],
+      "blocks": "DocPerm satırları ve negatif kabul senaryosu",
+      "untilDecided": "Her seçeneğin explicitPermissionFlags ortak kaynağıyla eşlemesini belgede taslak olarak hazırla."
+    },
+    {
+      "decision": "Tenant topolojisi",
+      "requirementIds": ["support-3", "support-7"],
+      "blocks": "Tenant bağının alan mı yoksa site düzeyinde mi sağlanacağı ve NPS raporunun kapsamı",
+      "untilDecided": "tenant-registry--contract ile uyumlu iki seçeneğin etkisini belgele."
+    },
+    {
+      "decision": "Helpdesk kurulumu ve hedef sürüm",
+      "requirementIds": ["support-3", "support-7"],
+      "blocks": "ticket_satisfaction türü ve ticket geri bildirim geçmişinin bağlanması",
+      "untilDecided": "Bu türü kapalı tut; NPS, anket ve özellik talebi adımlarını Helpdesk'ten bağımsız belgele."
+    },
+    {
+      "decision": "Uygunluk, örnekleme ve bekleme süresi parametreleri",
+      "requirementIds": ["support-3"],
+      "blocks": "Tekrar gösterim engelinin somut değerleri ve bunun kabul testi",
+      "untilDecided": "Kural yapısını parametre adlarıyla belgele; değer seçme."
+    },
+    {
+      "decision": "NPS eşikleri ve raporlama tanımının ürün onayı",
+      "requirementIds": ["support-3"],
+      "blocks": "Rapor çıktısı ve puan doğrulama kabulü",
+      "untilDecided": "Önerilen standart eşikleri onay bekleyen öneri olarak tut."
+    },
+    {
+      "decision": "Geri bildirim verisinin saklama süresi ve veri yerleşimi",
+      "requirementIds": ["support-3", "support-7"],
+      "blocks": "Production veri kabulü, temizleme işi ve geri alma sırasında veri silme",
+      "untilDecided": "Veri sınıflarını ve kişisel veri alanlarını belgede listele; süre veya bölge seçme."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

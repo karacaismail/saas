@@ -1,0 +1,206 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "tauri-desktop-package",
+  "canonicalTaskIds": ["tauri-desktop-package--implementation"],
+  "requirementIds": ["channels-13"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "channels-13": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Tauri 2 masaüstü kabuğunda ortak React/Ant Design web çıktısının gömülü paketlenmesi, Keycloak yönlendirmesi ve çevrimdışı kuyruğun yeniden başlatmada korunması. Uygulama durumu: uygulanmadı.",
+    "trigger": "Kullanıcı hedef işletim sistemi için imzalı masaüstü paketini kurar, uygulamayı açar, Keycloak yönlendirmesiyle oturum açar ve çevrimdışıyken kayıt oluşturur. Uygulama yeniden başlatılıp bağlantı döndüğünde kuyruk senkronu başlar.",
+    "expected": "Kabuk ortak Vite çıktısını gömülü olarak yükler. Oturum Keycloak yönlendirmesiyle açılır ve Frappe tarafında keycloak-login--contract içinde tanımlanacak token doğrulama sınırına göre kabul edilir. Bekleyen kuyruk öğeleri yeniden başlatma ve istemci güncellemesi sonrasında kaybolmaz. Öğeler native Frappe insert yoluyla gönderilir; toplu gönderimde istek başına en fazla 200 öğe bulunur. Yerel dosya erişimi Tauri capability ile beyan edilen kapsamla sınırlıdır. Kaldırma sonrasında uygulama dosyaları temizlenir; yerel veri için davranış karara bağlıdır.",
+    "denied": "Kullanıcının yetkisi olmayan DocType için kuyruktaki yazma isteği native izin denetiminde reddedilir. Sunucu kaydı oluşmaz veya değişmez. Kuyruk öğesi silinmez, 'reddedildi' durumuyla kullanıcıya gösterilir ve sonsuz yeniden denemeye girmez. Beyan dışı dosya yoluna erişim ile geçerli Keycloak oturumu olmadan yapılan API çağrısı da reddedilir."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native olarak yalnız sunucu yapı taşları görülüyor. frappe/api/v1.py tekil kayıt eklemede frappe.new_doc(...).insert() yolunu kullanıyor. frappe/client.py toplu eklemede istek başına 200 öğe sınırı uyguluyor. suite/hooks.py oauth2_logins yolunu ALLOWED_WILDCARD_PATHS listesinde tutuyor. Tauri paketleme, imza/notarizasyon, yerel kuyruk, yerel migration ve masaüstü Keycloak akışı Frappe dışında kalıyor ve aranan kaynaklarda bulunmuyor. Bu kanıtlar davranışın tamamının var olduğunu göstermez. oauth2_logins bir sosyal giriş yoludur; bearer token doğrulama sözleşmesinin yerine geçmez. Aranan yollar sınırlıdır; bu bir kapsamlı yokluk iddiası değildir.",
+    "evidence": [
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 440,
+        "quote": "\"/api/method/frappe.integrations.oauth2_logins.\","
+      },
+      {
+        "path": "frappe/frappe/client.py",
+        "line": 245,
+        "quote": "if len(docs) > 200:"
+      },
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 50,
+        "quote": "return frappe.new_doc(doctype, **data).insert()"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "frappe/frappe/client.py",
+      "suite/suite/hooks.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/tauri-desktop-package.json",
+    "plannedProduction": [
+      "frontend/packages/platform/src/tauri-desktop-package/tauri_desktop_package_post_mvp.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Ortak web build çıktısı (Vite). Keycloak yetkilendirme yanıtı: loopback veya deep link, PKCE ile; seçim karar bekliyor. Kullanıcının çevrimdışı oluşturduğu kayıt istekleri: DocType adı ve alan değerleri. Hedef işletim sistemi, paket formatı ve imza matrisi de karar bekliyor.",
+    "output": "Hedef başına imzalı veya notarize edilmiş kurulum paketi ve buna ait doğrulama kaydı. Senkron sonunda her kuyruk öğesi için sunucu kayıt adı ya da ret nedeni. Kuyruk öğesi durumu şunlardan biridir: bekliyor, gönderildi, reddedildi, çakışma.",
+    "authorization": "Yetkiyi yalnız Frappe'nin native izin denetimi belirler. İstemci rol veya izin üretmez; ignore_permissions ya da doğrudan SQL ile yazma yapılmaz. İstemci tarafı kural kontrolleri client-rule-parity--contract'a bağlıdır ve sunucu reddinin yerine geçmez. Bu sözleşme rol veya izin tanımlamaz; ileride böyle bir gereksinim doğarsa explicitPermissionFlags ortak kaynağına bağlanır. Tauri capability yapılandırması yalnız gereken komutları ve dosya kapsamlarını açar. Token, ön yüz kaynak koduna veya düz metin yerel dosyaya yazılmaz.",
+    "persistence": "Sunucu tarafında yalnız native insert/save transaction'ı kullanılır. İstemcide yerel kuyruk Tauri SQL eklentisinde, oturum sırları ise Stronghold'da veya karar verilecek güvenli saklama yönteminde tutulur. Yerel şema migrationı ve istemci güncellemesi bekleyen kuyruk öğelerini korur. Bu sözleşme hiçbir sunucu şemasını, verisini veya servisini değiştirmez.",
+    "failure": "Ağ yoksa öğe kuyrukta kalır. 401 veya oturum süresi dolarsa yeniden Keycloak yönlendirmesi yapılır ve kuyruk korunur. 403 ya da izin reddinde öğe 'reddedildi' olarak işaretlenir ve otomatik olarak yeniden denenmez. Toplu gönderimde istemci 200 öğelik sınırı aşmadan böler; sunucu da sınırı aşan isteği reddeder. Toplu istekte tek öğenin reddi bütün partiyi etkileyebilir; parti stratejisi bu ret davranışı doğrulanmadan kesinleşmez. Çakışmada sessiz üzerine yazma yapılmaz; karara bağlanacak kurala göre çakışma kullanıcıya gösterilir. İmza veya notarizasyon doğrulaması başarısız olursa yayın yapılmaz."
+  },
+  "development": {
+    "dependencies": [
+      "client-rule-parity--contract",
+      "keycloak-login--contract",
+      "tauri-desktop-package--contract",
+      "ui-family-01--contract"
+    ],
+    "admission": {
+      "prerequisites": [
+        "T-00 hedef baz çizgisi: Tauri 2, Vite ve eklenti sürümleri kayıt altında olmalı (sürüm seçimi decisionsPending'de).",
+        "R-00 yeniden kullanım eşlemesi: bu sözleşmedeki üç native yapı taşı, eksik kalan parçalarla birlikte eşlenmeli.",
+        "R-01: yetkili veri tüketen kuyruk senkronu bu adımı uygular.",
+        "keycloak-login--contract içinde Keycloak token'ından Frappe oturum/bearer kabulüne giden sınır tanımlanmış olmalı.",
+        "İlk hedef işletim sistemi ve paket formatı için karar verilmiş olmalı.",
+        "Gerçek RED/GREEN kanıtıyla yalnız tek dar davranış uygulanır."
+      ],
+      "gate": "implementationAdmission NOT_ADMITTED olduğu sürece üretim veya test yazılmaz; ortak politika ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy."
+    },
+    "steps": [
+      "Kaynak notundaki 'seçilen mobil yol Capacitor' cümlesini düzelt. Seçili yığında Capacitor yok; mobil paketleme bu sözleşmenin kapsamı dışında.",
+      "Karar verilen ilk tek hedef işletim sistemi ve format için Tauri kabuğunu ortak Vite çıktısına bağlayan yapılandırmayı tauri.conf.json ve Cargo.toml önerisi olarak belgele.",
+      "Tauri capability kapsamını listele: gereken komutlar, izinli dosya dizinleri ve reddedilecek diğer her şey.",
+      "Masaüstü Keycloak akışını (loopback veya deep link, PKCE) keycloak-login--contract'taki Frappe token doğrulama sınırına referansla bağla. oauth2_logins yolunu bearer doğrulaması olarak kullanma.",
+      "Yerel kuyruk şemasını ve durum geçişlerini (bekliyor, gönderildi, reddedildi, çakışma) tanımla. Migration kuralını ve bekleyen öğelerin korunacağını yaz.",
+      "Senkron gönderimini native insert yoluna bağla. Toplu yolda parti boyunu en fazla 200 tut ve tek öğe reddinin partiye etkisini RED testinde doğrula.",
+      "İmza/notarizasyon, yayın ve rollback adımlarını Hüseyin Cengiz'in CI devri olarak yaz. İstemci ekibi yalnız platform adaptörlerini sağlar.",
+      "Hedef başına kabul kaydı şablonu hazırla: kurulum, kaldırma, Keycloak yönlendirmesi, dosya/izin sınırı, çevrimdışı yeniden başlatma, imza kaydı ve kuyruğu koruyan güncelleme."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Çevrimdışıyken kuyruğa alınan kayıtlar, uygulama yeniden başlatıldıktan ve bağlantı döndükten sonra kaybolmadan native insert yoluna gönderilir.",
+      "red": "Kuyruğa öğe eklenir, uygulama süreci yeniden başlatılır ve bağlantı açılır. Bekleyen öğe sayısının korunduğu ve sunucuda kayıt oluştuğu doğrulaması, kuyruk kalıcı olmadığı için davranış düzeyinde başarısız olur. Import veya altyapı hatası RED sayılmaz; native Frappe davranışı bozulmaz.",
+      "green": "Kuyruk Tauri SQL üzerinde kalıcı tutulur. Yeniden başlatmadan sonra öğeler native insert ile gönderilir ve 'gönderildi' durumuna geçer. Toplu gönderimde hiçbir istek 200 öğeyi aşmaz."
+    },
+    "rollback": "Bu tur yalnız belge üretir; geri alma bu JSON dosyasının önceki sürüme döndürülmesidir. Gelecekte derleme, imza, yayın ve rollback sahibi Hüseyin Cengiz'dir. Rollback önceki imzalı sürümü yeniden yayınlar ve yerel kuyruğu silmez; yerel şema migrationı geri yönde de bekleyen öğeleri korur. Bu sözleşme hiçbir servisi, production ortamını, şemayı veya veriyi değiştirme yetkisi vermez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "channels-13",
+      "sourceStage": "post_mvp",
+      "existing": "Native sunucu parçaları: tekil kayıt ekleme native insert yolunu kullanıyor (frappe/api/v1.py:50). Toplu eklemede 200 sınırı var (frappe/client.py:245). Suite hooks oauth2_logins yolunu wildcard izinli yollar arasında listeliyor (suite/suite/hooks.py:440). Tauri paketleme ve istemci tarafının tamamı Frappe dışında; Vue/Frappe UI kaynağı React/AntD uygulamasının kanıtı sayılmaz.",
+      "gap": "İlk hedef işletim sistemi, paket formatı ve imza matrisi seçilmedi; Tauri SQL ve Stronghold sürümleri belirsiz. Masaüstü Keycloak akışı (loopback veya deep link, PKCE) ve Frappe'nin Keycloak token'ını nasıl kabul edeceği tanımsız. Çevrimdışı kuyruğun çakışma kuralı ile parti stratejisi yazılmadı. Nottaki eski Capacitor ifadesi temizlenmedi.",
+      "completionSteps": [
+        "Eski Capacitor cümlesini düzelt: mobil yol bu sözleşmenin kapsamı dışında ve seçili yığında Capacitor yok.",
+        "Tek ilk hedef işletim sistemi ve format kararı geldikten sonra yalnız o hedef için paketleme ve imza kaydını tanımla; diğer hedefleri ayrı satırlar olarak beklet.",
+        "Keycloak'tan Frappe'ye token doğrulama sınırını keycloak-login--contract'a referansla bağla; bu sözleşmede yeni doğrulama mekanizması tasarlama.",
+        "Kuyruk senkronunda parti boyunu 200 ile sınırla, çakışma kuralını karar gelene kadar 'sessiz üzerine yazma yok, kullanıcıya göster' olarak sabitle.",
+        "Ret senaryosunu yaz: izinsiz DocType yazması reddedilir, sunucu kaydı değişmez, kuyruk öğesi 'reddedildi' olarak kalır.",
+        "Hüseyin Cengiz için imza, yayın ve rollback devrini; istemci ekibi için platform adaptörü listesini yaz."
+      ],
+      "dependencies": [
+        "tauri-desktop-package--contract",
+        "ui-family-01--contract",
+        "client-rule-parity--contract",
+        "keycloak-login--contract"
+      ],
+      "acceptance": "Her hedef işletim sisteminde şunlar doğrulanır: kurulum ve kaldırma, Keycloak yönlendirmesi, yerel dosya/izin sınırı ve çevrimdışı yeniden başlatma. İmza/notarizasyon veya dağıtım doğrulaması hedefe göre kaydedilir. İstemci güncellemesi ve yerel veri migrationı bekleyen kuyruğu korur. İzinsiz yazma reddedilir ve sunucu kaydı değişmez. Hiçbir toplu istek 200 öğeyi aşmaz. Derleme, imza, yayın ve rollback sahibi Hüseyin Cengiz'dir. Bu turda kabul çalıştırılmadı (not_run).",
+      "evidence": [
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 440,
+          "quote": "\"/api/method/frappe.integrations.oauth2_logins.\","
+        },
+        {
+          "path": "frappe/frappe/client.py",
+          "line": 245,
+          "quote": "if len(docs) > 200:"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 50,
+          "quote": "return frappe.new_doc(doctype, **data).insert()"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Uygulama durumu: uygulanmadı.",
+    "İlk hedef işletim sistemi, paket formatı ve imza/notarizasyon matrisi seçilmedi.",
+    "Tauri 2, SQL ve Stronghold eklentilerinin hedef sürümleri belirsiz.",
+    "Masaüstü Keycloak akışı ile Frappe token kabul sınırı tanımsız; bu sınır keycloak-login--contract'a ait.",
+    "Kuyruk çakışma kuralı ve parti stratejisi (tekil insert veya 200 sınırlı toplu gönderim) kesinleşmedi; toplu istekte tek reddin partiye etkisi doğrulanmadı.",
+    "Kaldırma sonrası yerel veri ve sırların silinip silinmeyeceği tanımlanmadı.",
+    "İstemci güncelleme kanalı ve yerel migrationın geri yönü tanımlanmadı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "İlk hedef işletim sistemi ve paket formatı (Windows .exe/.msi, macOS .app/.dmg, Linux .AppImage/.deb/.rpm) ile imza matrisi",
+      "requirementIds": ["channels-13"],
+      "blocks": "Paketleme yapılandırması, imza kaydı ve hedef başına kabul",
+      "docStepUntilDecided": "Hedeften bağımsız kabul kaydı şablonunu ve capability kapsam listesini yaz."
+    },
+    {
+      "decision": "Tauri 2, SQL ve Stronghold eklentilerinin hedef sürümleri",
+      "requirementIds": ["channels-13"],
+      "blocks": "T-00 hedef baz çizgisi ve yerel kuyruk/saklama yapılandırması",
+      "docStepUntilDecided": "Sürüm alanlarını 'bilinmiyor' olarak işaretle; resmi Tauri 2 kaynaklarını referans listesinde tut."
+    },
+    {
+      "decision": "Masaüstü Keycloak akışı: loopback veya deep link (PKCE ile)",
+      "requirementIds": ["channels-13"],
+      "blocks": "Oturum açma adımı ve Frappe token kabulü",
+      "docStepUntilDecided": "keycloak-login--contract'a referans ver. oauth2_logins yolunun bearer doğrulaması olmadığını not et."
+    },
+    {
+      "decision": "Çevrimdışı kuyruk çakışma kuralı ve parti stratejisi",
+      "requirementIds": ["channels-13"],
+      "blocks": "Senkron davranışının GREEN tanımı ve ret/çakışma durumlarının arayüzü",
+      "docStepUntilDecided": "Geçici kural yaz: sessiz üzerine yazma yok, parti en fazla 200, izin reddi otomatik olarak yeniden denenmez."
+    },
+    {
+      "decision": "İmza sertifikası ve geliştirici hesabı sağlayıcısı, lisans ve ödeme",
+      "requirementIds": ["channels-13"],
+      "blocks": "İmza/notarizasyon ve yayın",
+      "docStepUntilDecided": "Hüseyin Cengiz için gereksinim listesi hazırla; secret değeri veya sağlayıcı seçimi yazma."
+    },
+    {
+      "decision": "İstemci güncelleme kanalı ve dağıtım uç noktası",
+      "requirementIds": ["channels-13"],
+      "blocks": "Güncelleme sırasında kuyruğun korunduğunun kabulü ve rollback",
+      "docStepUntilDecided": "DNS gerekirse kayıt türünü, adını ve değerini Hüseyin Cengiz hazırlar, Asistan Hüseyin GoDaddy'de uygular, Hüseyin Cengiz sonucu doğrular. Adım yalnız devir notu olarak yazılır."
+    },
+    {
+      "decision": "Yerel veri saklama süresi ve kaldırma sonrası yerel verinin akıbeti",
+      "requirementIds": ["channels-13"],
+      "blocks": "Kaldırma kabulü ve yerel migration kuralı",
+      "docStepUntilDecided": "Kabul şablonunda bu alanı karar bekliyor olarak tut."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

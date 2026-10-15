@@ -1,18 +1,29 @@
 {
   "schemaVersion": "saas-existing-work-contract.v1",
   "canonicalUnitId": "ui-family-02",
-  "canonicalTaskIds": ["ui-family-02--implementation"],
-  "requirementIds": ["shell-9"],
+  "canonicalTaskIds": [
+    "ui-family-02--implementation",
+    "ui-family-02--implementation-post-mvp",
+    "ui-family-10--implementation",
+    "ui-family-12--implementation"
+  ],
+  "requirementIds": ["shell-6", "shell-9"],
   "stage": "mvp",
+  "sourceStages": {
+    "shell-6": "post_mvp",
+    "shell-9": "mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
     "title": "Komut paleti yalnız sunucunun izinle döndürdüğü Workspace Sidebar gezinme girdilerini gösterir ve kapanınca odağı tetikleyiciye geri verir",
     "trigger": "Kullanıcı palet tetikleyicisini klavye veya işaretçiyle açar, arama metni yazar, Escape ile kapatır.",
-    "expected": "Sonuç listesi yalnız native liste yanıtındaki kayıtlardan kurulur; istemci kendi girdisini eklemez. Her girdi kind=navigate olarak işaretlenir. Escape sonrası odak tetikleyiciye döner, sayfa kaydırma konumu korunur.",
-    "denied": "Sunucu filtresinin döndürmediği kayıt hiçbir koşulda listede görünmez. Yürütülebilir eylem (kind=action) bu davranışta üretilmez."
+    "expected": "Sonuç listesi yalnız native liste yanıtındaki kayıtlardan kurulur; istemci kendi girdisini eklemez. Her girdi kind=navigate olarak işaretlenir. Escape veya seçim sonrası odak tetikleyiciye döner, sayfa kaydırma konumu korunur. Uygulama durumu: uygulanmadı.",
+    "denied": "Sunucu filtresinin döndürmediği kayıt hiçbir koşulda listede görünmez; önbellekten veya önceki oturumdan yetkisiz girdi gösterilmez. Yürütülebilir eylem (kind=action), favori/kısayol yazımı ve Route History yazımı bu davranışta üretilmez."
   },
   "reuse": {
-    "mechanism": "Native: GET /api/resource/Workspace Sidebar; satır filtresi sunucuda permission_query_conditions kancasıyla uygulanır. Yeni backend kodu, hook veya DocType yok. Adaptör yalnız sahip olunan bileşende yanıtı palet girdisine eşleyen saf fonksiyondur.",
+    "status": "KISMI",
+    "mechanism": "Native parça: /api/resource/<doctype> liste kuralı üzerinden Workspace Sidebar okuması; satır kapsamı sunucuda Workspace Sidebar için tanımlı permission_query_conditions kancasıyla (get_module_permission_query_conditions) uygulanır. Yeni backend kodu, hook, DocType veya tercih tablosu yok. Gelecekte sahip olunacak bileşen yalnız yanıtı palet girdisine eşleyen saf fonksiyon ve AntD palet yüzeyidir. Eksik parça: komut kataloğu şeması, eylem yürütme, gezinme geçmişi ve favori/kısayol okuma-yazma sözleşmesi. Kanıtın bir native parçayı göstermesi bütün davranışın var olduğu anlamına gelmez; aranan yollar kapsamlı bir yokluk iddiası değildir.",
     "evidence": [
       {
         "path": "frappe/frappe/hooks.py",
@@ -44,66 +55,215 @@
         "line": 483,
         "quote": "\"Route History\","
       }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "frappe/frappe/client.py",
+      "frappe/frappe/desk/page/workspace_restore/workspace_restore.py",
+      "frappe/frappe/hooks.py",
+      "frappe/frappe/patches/v13_0/rename_desk_page_to_workspace.py",
+      "frappe/frappe/patches/v16_0/backfill_workspace_module.py",
+      "frappe/frappe/permissions.py",
+      "suite/suite/hooks.py"
     ]
   },
   "ownership": {
     "activeContractFile": "docs/frappe-roadmap-contracts/ui-family-02.json",
     "plannedProduction": [
-      "frontend/packages/ui/src/components/ui-family-02/index.tsx"
+      "frontend/packages/ui/src/components/ui-family-02/index.tsx",
+      "frontend/packages/ui/src/components/ui-family-02/post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-family-10/index.tsx",
+      "frontend/packages/ui/src/components/ui-family-12/index.tsx"
     ],
-    "plannedTestFile": "frontend/packages/ui/src/components/ui-family-02/index.test.tsx",
+    "plannedTestFile": null,
     "sharedIntegrationFiles": [
-      "frontend/packages/ui/src/index.ts",
-      "frontend/packages/ui/src/navigation.ts",
-      "frontend/packages/ui/src/registry.ts",
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
       "frontend/apps/web/src/routes.tsx",
-      "frontend/package.json"
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "İstek: GET /api/resource/Workspace Sidebar, fields=[\"name\"], limit_page_length<=20, arama metni en fazla 140 karakter ve name alanında like filtresi. title/module/route alanlarının v17-dev adı doğrulanmadan kullanılmaz.",
-    "output": "Palet girdisi v1: {schemaVersion:1, kind:\"navigate\", id:\"workspace-sidebar:<name>\", label:<name>, source:\"Workspace Sidebar\"}. Yalnız sunucunun döndürdüğü alanlar; ek alan türetilmez.",
-    "authorization": "Native site oturumu (cookie/CSRF). Satır kapsamı sunucuda get_module_permission_query_conditions ile; istemci gizlemesi güvenlik sınırı sayılmaz. DocType okuma izni yoksa native PermissionError döner.",
-    "persistence": "Salt okunur; transaction, Document.save, hook veya Route History yazımı yok. DDL yok.",
+    "input": "İstek: GET /api/resource/Workspace Sidebar; fields yalnız name, limit_page_length en fazla 20, arama metni en fazla 140 karakter ve yalnız name alanında like filtresi. title/module/route gibi alanlar hedef sürümde adı doğrulanmadan kullanılmaz. Favori/kısayol (shell-6) bu davranışın girdisi değildir.",
+    "output": "Palet girdisi v1: {schemaVersion:1, kind:navigate, id:workspace-sidebar:<name>, label:<name>, source:Workspace Sidebar}. Yalnız sunucunun döndürdüğü alanlar kullanılır; ek alan türetilmez. Girdi modeli JSON'dur; ReactNode veya callback taşımaz.",
+    "authorization": "Native site oturumu (cookie/CSRF). Satır kapsamı sunucuda get_module_permission_query_conditions ile uygulanır; istemci gizlemesi güvenlik sınırı sayılmaz. DocType okuma izni yoksa native PermissionError döner. ignore_permissions, ham SQL veya başka yetki atlatma yok. Bu davranış rol veya izin üretmez; ileride gerekirse explicitPermissionFlags ortak kaynağına bağlanır.",
+    "persistence": "Salt okunur; transaction, Document.save, hook, Workspace veya Route History yazımı yok. DDL, şema veya veri değişikliği yok.",
     "failure": "403 PermissionError: liste boş, AntD uyarı metni, odak arama alanında kalır. 401/oturum düşmesi: mevcut tüketici giriş akışına devredilir, palet kapanır ve odak tetikleyiciye döner. Ağ hatası: tekrar dene eylemi; önbellekten yetkisiz girdi gösterilmez."
   },
   "development": {
     "dependencies": [
-      "ui-family-02--contract",
-      "kernel-envelope--contract",
       "api-middleware--contract",
+      "client-channel-continuity--contract",
       "client-rule-parity--contract",
-      "localPilot t08: native admin/reader kapsamları"
+      "kernel-envelope--contract",
+      "ui-family-02--contract",
+      "ui-family-02--implementation",
+      "ui-family-10--contract",
+      "ui-family-12--contract"
     ],
-    "admission": "T-00 hedef taban ve R-00/R-01 yeniden kullanım eşlemesi gerekli. v17-dev Workspace Sidebar alan adları yerel Frappe17-dev kaynağından doğrulanmalı. Test koşucusunun frontend/packages/ui altında varlığı bilinmiyor; yoksa ekleme entegrasyon sahibine aittir. Yerel kanıt uzak ürün tabanı değildir; Suite HEAD bilinmiyor.",
+    "admission": "Uygulama durumu: uygulanmadı. Ortak politika ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy geçerlidir. Özel önkoşullar: T-00 hedef taban ve R-00 yeniden kullanım eşlemesi; izinli veri tüketicisi olduğu için R-01. Hedef Frappe sürümü kararı gelmeden Workspace Sidebar alan adları ve Sidebar/Custom Workspace modeli kesinleşmez. Test koşucusunun frontend/packages/ui altındaki varlığı bilinmiyor; eklenmesi entegrasyon sahibine aittir. Kaynak alıntıları önceki salt okunur Frappe/Suite kaynak anlık görüntülerindendir; canlı site, React/AntD uygulaması veya ürün kabulü kanıtı değildir. ui-family-10--implementation ve ui-family-12--implementation yalnız kanonik kimlik olarak taşınır; bu sözleşmede onlara ait madde yoktur ve davranışları burada tanımlanmaz.",
     "steps": [
-      "Sahip olunan bileşende native liste çağrısı ve yanıtı palet girdisine eşleyen saf fonksiyon yaz.",
-      "Mevcut AntD6 bileşenleriyle palet kur: Outfit, en az 14px metin, 320px öncelikli yerleşim, çevreleyen odak halkası yok, merkezi tokenlarla simetrik pozitif Cubic hareket, reduced-motion istisnası.",
-      "Açılışta tetikleyici elemanı sakla; Escape ve seçim sonrası odağı ona geri ver.",
-      "Dışa aktarma ve rota bağlama entegrasyon sahibi tarafından ortak dosyalarda yapılır."
+      "Hedef sürümde Workspace Sidebar alanlarını ve liste okumasında permission_query_conditions uygulandığını salt okunur kaynak incelemesiyle doğrula; sonucu R-00 eşlemesine yaz.",
+      "Sahip olunan bileşende native liste çağrısını ve yanıtı palet girdisi v1'e eşleyen saf fonksiyonu yaz; istemci ek girdi üretmez.",
+      "Paleti mevcut AntD bileşenleriyle kur: Outfit, en az 14 CSS px metin, 320 CSS px öncelikli yerleşim, çevreleyen odak halkası yok ve tek görünür çevrelemeyen odak göstergesi, merkezi tokenlarla simetrik pozitif cubic-bezier(.65, 0, .35, 1) hareket, reduced-motion istisnası, markalı ve erişilebilir açılır liste.",
+      "Açılışta tetikleyici elemanı ve kaydırma konumunu sakla; Escape ve seçim sonrası ikisini de geri ver.",
+      "Dışa aktarma, registry ve rota bağlama entegrasyon sahibince ortak dosyalarda yapılır; kaynak registry ile GenUI capability registry birleştirilmez."
     ],
     "tdd": {
       "status": "not_run",
       "oneScenario": "Sahte native yanıt iki kayıt döndürür; palet açılır, arama yapılır, tam olarak bu iki kind=navigate girdisi görünür ve Escape sonrası document.activeElement tetikleyicidir.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Aynı test dosyası aynı komutla uygulama sonrası geçer; sunucu filtresi ayrıca reader oturumuyla yerel pilotta gözlemlenir ve ayrı kanıt olarak raporlanır."
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış oneScenario'dur. RED, bileşen yüklenebilirken assertion düzeyinde başarısızlıktır (odak tetikleyiciye dönmez veya yanıtta olmayan girdi görünür). Import/altyapı hatası veya native davranışı bozmak RED sayılmaz; native geçen davranışa RED uydurulmaz. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "Uygulamadan sonra aynı senaryo, değişmeyen assertion ve aynı komutla geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN'i değildir. Sunucu filtresi ayrıca okuma yetkisi kısıtlı bir oturumla native hedef tabanda gözlemlenir ve ayrı kanıt olarak raporlanır."
     },
-    "rollback": "Yalnız sahip olunan bileşen ve planlanan test dosyası yerelde geri alınır; üretim değişikliği veya izni yok."
+    "rollback": "Yalnız sahip olunan bileşen ve gelecekteki test dosyası geri alınır; ortak dosyalardaki bağlama entegrasyon sahibince geri alınır. Üretim, servis, şema veya veri değişikliği ya da izni yok. CI/deploy/rollback teknik sahibi Hüseyin Cengiz; DNS gerekirse GoDaddy uygulama sahibi Asistan Hüseyin. Bu sözleşme hiçbirini tetiklemez."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "shell-9",
+      "sourceStage": "mvp",
+      "existing": "Native parçalar: Workspace Sidebar için sunucu tarafı permission_query_conditions kancası; /api/resource/<doctype> liste kuralı; okunabilir DocType listesi için get_doctypes_with_read; client.py içinde search_widget içe aktarımı; belge yöntemi çağrısında check_permission; Route History adı kaynakta geçer. Headless komut kataloğu, eylem şeması ve palet yok.",
+      "gap": "Komut kataloğu şeması (navigate/action ayrımı, kimlik, sürüm) yok. get_doctypes_with_read ve search_widget'ın headless istemciye hangi whitelisted uç noktayla açıldığı kanıtta yok. Route History headless yazımı ve saklama kararsız. v16 ile v17-dev Workspace Sidebar/Desktop Icon eşlemesi yok. GenUI ve sunucu sorgu-eylem kayıtlarından ayrılık yazılmamış.",
+      "completionSteps": [
+        "Bu sözleşmenin tek davranışını (kind=navigate, kaynak Workspace Sidebar) uygula; başka kaynak ekleme.",
+        "Palet girdisi v1 şemasını belgele: schemaVersion, kind (navigate veya action), id, label, source; kind=action yalnız şema yer tutucusudur ve üretilmez.",
+        "get_doctypes_with_read ve search_widget için hedef sürümde mevcut whitelisted uç noktayı salt okunur doğrula; bulunamazsa yeni uç nokta yazma, boşluğu R-00 eşlemesine kaydet.",
+        "kind=action ileride eklendiğinde yürütme yalnız mevcut whitelisted yöntem ve belge check_permission yolundan geçer; istemci gizlemesi yetki sayılmaz.",
+        "Route History yazımını ilgili karar gelene kadar kapalı tut.",
+        "Katalog kaynağını GenUI capability registry ve sunucu sorgu-eylem kaydından ayrı tut."
+      ],
+      "dependencies": [
+        "ui-family-02--contract",
+        "kernel-envelope--contract",
+        "api-middleware--contract",
+        "client-rule-parity--contract"
+      ],
+      "acceptance": "Yetkisiz komut veya gezinme girdisi sonuçlarda görünmez (sunucu filtresi okuma yetkisi kısıtlı oturumla ayrıca gözlemlenir). Klavye araması Escape veya seçim sonrası odağı tetikleyiciye ve kaydırma konumunu geri verir. 320 CSS px'te metin en az 14 CSS px ve çevreleyen odak halkası yoktur.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/hooks.py",
+          "line": 153,
+          "quote": "\"Workspace Sidebar\": \"frappe.app_state.get_module_permission_query_conditions\","
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 153,
+          "quote": "Rule(\"/resource/<doctype>\", methods=[\"GET\", \"QUERY\"], endpoint=document_list),"
+        },
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 508,
+          "quote": "def get_doctypes_with_read(user: str | None = None):"
+        },
+        {
+          "path": "frappe/frappe/client.py",
+          "line": 11,
+          "quote": "from frappe.desk.search import PAGE_LENGTH_FOR_LINK_VALIDATION, search_widget"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 132,
+          "quote": "doc.check_permission(\"write\")"
+        },
+        {
+          "path": "frappe/frappe/hooks.py",
+          "line": 483,
+          "quote": "\"Route History\","
+        }
+      ]
+    },
+    {
+      "requirementId": "shell-6",
+      "sourceStage": "post_mvp",
+      "existing": "Native parçalar: Workspace Shortcut DocType'ı (Desk Shortcut yeniden adlandırma yaması); for_user alanıyla kullanıcıya özel Workspace; Custom Workspace modülü (workspace_restore içe aktarımı); sidebar öğesinin bağlantı olduğu ve sarkan öğenin sidebar çözümlenirken atlandığı yorumu; Suite içinde Drive Favourite adı. Headless favori/kısayol sözleşmesi ve UI yok.",
+      "gap": "Yeniden kullanım sınırı belirsiz (for_user Workspace, Workspace Shortcut veya Custom Workspace). Okumada izin yeniden kontrolü sözleşmede yok. Silinmiş veya yetkisi kalkmış kayıt davranışı tanımsız; kaynakta yalnız sarkan öğenin atlandığı görülür. v16/v17-dev eşlemesi yok. Drive Favourite ile genel favorilerin ilişkisi belirsiz.",
+      "completionSteps": [
+        "ui-family-02--implementation-post-mvp kapsamında kısa karar notu yaz: yeni tercih DocType'ı açılmaz; hedef sürüm kararından sonra kullanılacak native ilke R-00 eşlemesiyle belirlenir.",
+        "Ortak eksik palet ile aynıdır: favori girdileri sunucu filtreli gezinme okumasıyla ve palet girdisi v1 (kind=navigate) şemasıyla gösterilir; ayrı katalog motoru açılmaz.",
+        "Favori/kısayol listesini her okumada sunucu tarafında hedef kaydın native okuma izniyle filtrele; saklanmış listeyi doğrudan göstermek yeterli değildir.",
+        "Silinmiş veya yetkisi kalkmış hedefe ait girdi tamamen gizlenir; ad, başlık veya etiket istemciye gönderilmez.",
+        "Favori ekleme/kaldırma yalnız native Document kaydetme yolu ve kullanıcının kendi for_user kaydı üzerinden yapılır; ignore_permissions veya SQL yok. Başka kullanıcının kaydına yazma reddedilir.",
+        "Drive Favourite, ilişki kararı gelene kadar genel favorilere karıştırılmaz."
+      ],
+      "dependencies": [
+        "ui-family-02--contract",
+        "ui-family-02--implementation",
+        "kernel-envelope--contract",
+        "api-middleware--contract",
+        "client-rule-parity--contract",
+        "client-channel-continuity--contract"
+      ],
+      "acceptance": "Favoriler kullanıcıya özel kalır: başka kullanıcının favorisi okunamaz, ona yazma reddedilir ve kayıt değişmeden kalır. Yetkisi kalkmış veya silinmiş kayda işaret eden kısayol listede görünmez ve etiketi sızmaz.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/patches/v13_0/rename_desk_page_to_workspace.py",
+          "line": 16,
+          "quote": "rename_doc(\"DocType\", \"Desk Shortcut\", \"Workspace Shortcut\", ignore_if_exists=True)"
+        },
+        {
+          "path": "frappe/frappe/patches/v16_0/backfill_workspace_module.py",
+          "line": 29,
+          "quote": "PRIVATE_MODULE: [w.name for w in workspaces if w.for_user],"
+        },
+        {
+          "path": "frappe/frappe/desk/page/workspace_restore/workspace_restore.py",
+          "line": 16,
+          "quote": "from frappe.desk.doctype.custom_workspace.custom_workspace import ("
+        },
+        {
+          "path": "frappe/frappe/hooks.py",
+          "line": 488,
+          "quote": "# not belong to it, and a dangling item is already skipped when the sidebar resolves. Without"
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 378,
+          "quote": "\"Drive Favourite\","
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
     "Yürütülebilir eylem (kind=action) şeması ve yürütme yolu tanımsız; mevcut whitelist ve check_permission yolundan geçmesi zorunlu, bu sözleşmede uygulanmaz.",
     "get_doctypes_with_read ve search_widget fonksiyonlarının headless istemciye hangi whitelisted uç noktayla açıldığı sağlanan kanıtta yok; bilinmiyor.",
-    "Route History headless yazımı ile saklama/gizlilik süresi kullanıcı kararı bekliyor; seçilmedi.",
     "Desktop Icon ve v17-dev Workspace Sidebar alan eşlemesi doğrulanmadı.",
-    "Bu katalog GenUI kaydı ve sunucu sorgu-eylem kaydıyla birleştirilmez; GenUI kapsam dışıdır.",
-    "Uzak dağıtım gerekirse teknik sahibi Hüseyin Cengiz; DNS gerekirse Asistan Hüseyin. Bu sözleşme hiçbirini tetiklemez."
+    "shell-6 favori/kısayol okuma-yazma sözleşmesi post_mvp kapsamındadır; bu davranışta uygulanmaz.",
+    "ui-family-10--implementation ve ui-family-12--implementation için bu sözleşmede madde yok; davranışları ayrı sözleşmeye aittir.",
+    "frontend/packages/ui altında test koşucusu bilinmiyor.",
+    "GenUI ayrı kullanıcı projesidir; bu katalog GenUI kaydı ve sunucu sorgu-eylem kaydıyla birleştirilmez."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Hedef Frappe sürümü (v16 veya v17-dev) ve buna bağlı Workspace Sidebar/Sidebar/Custom Workspace/Desktop Icon modeli",
+      "requirementIds": ["shell-6", "shell-9"],
+      "blocks": "Workspace Sidebar alan adlarının kesinleşmesi (development.steps ilk adım) ve favori ilkesinin seçimi",
+      "documentationStepUntilDecided": "Her iki sürüm için doğrulanacak alan ve DocType listesini R-00 eşleme taslağına açık soru olarak yaz."
+    },
+    {
+      "decision": "Favori/kısayol için yeniden kullanılacak native ilke: for_user Workspace, Workspace Shortcut veya Custom Workspace",
+      "requirementIds": ["shell-6"],
+      "blocks": "shell-6 favori okuma ve yazma adımları",
+      "documentationStepUntilDecided": "Üç ilkenin izin, kullanıcı kapsamı ve silinmiş hedef davranışını karşılaştıran kısa karar notu taslağı yaz; yeni DocType önerme."
+    },
+    {
+      "decision": "Route History kaydının headless istemciden yazılıp yazılmayacağı ve saklama/gizlilik süresi",
+      "requirementIds": ["shell-9"],
+      "blocks": "Gezinme geçmişinin kaydedilmesi ve paletde gösterilmesi",
+      "documentationStepUntilDecided": "Palet salt okunur ve geçmişsiz kalır; karar için gizlilik ve saklama sorularını listele."
+    },
+    {
+      "decision": "Suite Drive Favourite ile genel favorilerin ilişkisi",
+      "requirementIds": ["shell-6"],
+      "blocks": "Birleşik favori listesi",
+      "documentationStepUntilDecided": "Drive Favourite'ı ayrı uygulama favorisi olarak not et; birleştirme önerme."
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "shell-9": "mvp"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,

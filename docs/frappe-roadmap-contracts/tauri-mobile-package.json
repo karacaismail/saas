@@ -1,0 +1,309 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "tauri-mobile-package",
+  "canonicalTaskIds": ["tauri-mobile-package--implementation"],
+  "requirementIds": ["channels-12", "channels-17"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "channels-12": "post_mvp",
+    "channels-17": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Ortak React/Ant Design ön yüz çıktısının Tauri 2 paketine gömülmesi ve ağsız soğuk açılışta tek okuma akışı kabuğunun gösterilmesi. Uygulama durumu: uygulanmadı.",
+    "trigger": "İlk çevrimiçi hazırlıktan sonra cihaz ağdan ayrılmışken (uçak modu) Tauri 2 uygulamasının soğuk açılışı.",
+    "expected": "Uygulama tauri.conf.json içindeki build.frontendDist ile gömülen Vite üretim varlıklarından açılır; uzak hosta istek atmadan tek okuma akışının kabuğunu ve açık bir çevrimdışı durumunu gösterir. Çevrimiçi okumada Frappe yalnız kendi native izin kontrolünden geçen kaydı döner. Cihazda yerel veri kopyası saklama, depolama kararı gelene kadar bu davranışın kapsamı dışındadır.",
+    "denied": "Uzak Frappe/Suite sayfasını WebView'da açmak offline kabul sayılmaz; Suite Vue PWA'sı paket kanıtı sayılmaz; gömülü origin allow_cors listesinde değilken CORS gevşetilmez; kayıtlı olmayan redirect URI ile oturum açılmaz; ignore_permissions veya SQL ile yetki atlanmaz. Reddedilen her girişimde sunucuya yazma olmaz ve mevcut kayıt değişmez."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Paketleme için yeniden kullanılacak native parça yoktur; Frappe ve Suite paketleme sağlamaz. Bitişik native Frappe primitifleri yalnız gelecekteki entegrasyon noktasıdır: site config allow_cors ile set_cors_headers origin allowlist'i, OAuth Client redirect_uris tam eşleşmesi, token_endpoint_auth_method 'None' olan public client için PKCE zorunluluğu ve Social Login Key içindeki Keycloak sağlayıcısı (sunucu yönlendirmesi; native PKCE akışı değildir). Suite ön yüzü Vue 3 + frappe-ui SPA'sı ve vite-plugin-pwa kullanır; React/Ant Design uygulaması veya mobil paket kanıtı değildir. Bir native parçanın varlığı bütün davranışın var olduğu anlamına gelmez. Arama yalnız searchedPaths listesindeki dosyalarla sınırlıdır ve kapsamlı yokluk iddiası değildir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/oauth.py",
+        "line": 33,
+        "quote": "return frappe.db.get_value(\"OAuth Client\", client_id, \"token_endpoint_auth_method\") == \"None\""
+      },
+      {
+        "path": "frappe/frappe/oauth.py",
+        "line": 45,
+        "quote": "if redirect_uri in redirect_uris:"
+      },
+      {
+        "path": "suite/frontend/vite.config.ts",
+        "line": 7,
+        "quote": "import { VitePWA } from 'vite-plugin-pwa'"
+      },
+      {
+        "path": "suite/frontend/src/router/index.ts",
+        "line": 333,
+        "quote": "appendPwaTag('link', { rel: 'manifest', href: `${assets}manifest.webmanifest` })"
+      },
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 440,
+        "quote": "\"/api/method/frappe.integrations.oauth2_logins.\","
+      },
+      {
+        "path": "suite/frontend/vite.config.ts",
+        "line": 84,
+        "quote": "base: mode === 'production' ? '/assets/suite/frontend/' : '/',"
+      },
+      {
+        "path": "suite/frontend/vite.config.ts",
+        "line": 100,
+        "quote": "indexHtmlPath: '../suite/www/suite.html',"
+      },
+      {
+        "path": "suite/frontend/package.json",
+        "line": 88,
+        "quote": "\"vue\": \"^3.5.38\","
+      },
+      {
+        "path": "frappe/frappe/app.py",
+        "line": 296,
+        "quote": "allowed_origins = frappe.conf.allow_cors"
+      },
+      {
+        "path": "frappe/frappe/oauth.py",
+        "line": 219,
+        "quote": "return redirect_uri in redirect_uris"
+      },
+      {
+        "path": "frappe/frappe/integrations/doctype/social_login_key/social_login_key.py",
+        "line": 234,
+        "quote": "providers[\"Keycloak\"] = {"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/app.py",
+      "frappe/frappe/integrations/doctype/social_login_key/social_login_key.py",
+      "frappe/frappe/oauth.py",
+      "suite/frontend/package.json",
+      "suite/frontend/src/router/index.ts",
+      "suite/frontend/vite.config.ts",
+      "suite/suite/hooks.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/tauri-mobile-package.json",
+    "plannedProduction": [
+      "frontend/packages/platform/src/tauri-mobile-package/tauri_mobile_package_post_mvp.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "ui-family-01--contract ile sabitlenecek ortak React + Ant Design/Pro/X + Vite istemcisinin üretim dist dizini (build.frontendDist) ve yalnız geliştirme için build.devUrl; tauri-mobile-package--contract ile sabitlenecek Tauri CLI, Android/iOS SDK, WebView minimum sürümleri ve gömülü origin listesi; keycloak-login--contract ile sabitlenecek RFC 8252 redirect yöntemi. Uzak site URL'si paket girdisi olarak kabul edilmez.",
+    "output": "Hedef başına ayrı paket: Android AAB/APK ve iOS IPA. İlk kabulde yalnız tek hedefte gömülü varlıklarla açılan geliştirme paketi; imzalı mağaza paketi Hüseyin Cengiz teknik devrinin çıktısıdır. Paket yalnız derlenmiş ön yüzü taşır; kaynak registry ve GenUI capability registry'ye kayıt eklemez, JSON model sınırı ile yerel ReactNode/callback ayrımını değiştirmez.",
+    "authorization": "Paket yeni rol, izin veya DocType üretmez; izin bayrağı gerekirse explicitPermissionFlags ortak kaynağına bağlanır. Veri erişimi Frappe native izin/transaction/save/hook yolundan geçer; ignore_permissions veya SQL ile atlama yoktur. Oturum modeli (çerez/CSRF ya da bearer) keycloak-login--contract kararına bağlıdır. Tauri 2 capability tanımları yalnız seçilen akışın gerektirdiği en az yerel yetkiyi açar.",
+    "persistence": "Bu sözleşmeyle Frappe tarafında şema, DocType, veri veya site config değişikliği yapılmaz. allow_cors girdisi ve redirect URI kaydı Hüseyin Cengiz'e ayrı teknik devirdir. Cihazda kalıcı yerel işlem ve depolama eklentisi seçimi karar bekler; ilk davranış yalnız gömülü varlıkla açılıştır.",
+    "failure": "Ağsız açılışta veri yoksa boş ekran yerine açık çevrimdışı durumu gösterilir. Gömülü origin preflight'ı reddedilirse görünür bağlantı/yetki hatası verilir, CORS gevşetilmez. Redirect URI kayıtlı değerle birebir eşleşmezse Frappe native kontrolü reddeder ve oturum açılmaz. WebView minimum sürümün altındaysa açılış desteklenmeyen sürüm mesajıyla durur (sürüm karar bekliyor). Hiçbir hata yolunda sunucuya yazma yapılmaz."
+  },
+  "development": {
+    "dependencies": [
+      "client-rule-parity--contract",
+      "keycloak-login--contract",
+      "tauri-mobile-package--contract",
+      "ui-family-01--contract"
+    ],
+    "admission": {
+      "status": "NOT_ADMITTED",
+      "prerequisites": [
+        "T-00 hedef temel çizgisi ve R-00 yeniden kullanım eşlemesi",
+        "İzinli veri okuyan akış için R-01",
+        "Dört bağımlı contract görevinin kapanması",
+        "decisionsPending içindeki sürüm, oturum modeli, RFC 8252 yöntemi ve ilk kabul hedefi kararlarının verilmesi",
+        "Tek dar davranış için gerçek RED/GREEN kanıtının ortak istemci reposunda tutulması"
+      ]
+    },
+    "steps": [
+      "channels-12 kimliğini ve bağımlılıklarını koruyarak 'tarihsel/superseded → channels-17' işaretle; tauri-mobile-package--implementation görevinin birincil sahibi channels-17'dir. Capacitor aktif bağımlılık değildir.",
+      "Bağımlı contract görevlerinin kapanmasını bekle; bu birim sürüm, origin veya redirect yöntemi seçmez.",
+      "Ortak istemci reposunda frontendDist'i Vite dist'e bağlayan en küçük src-tauri iskeletini kur. Vite base gömülü origin'de çalışacak biçimde belirlenir; Suite'teki Frappe '/assets/...' tabanı uzak site modelidir ve kullanılmaz.",
+      "İlk kabul hedefinde ağsız soğuk açılışı ve tek okuma akışını RED/GREEN ile kanıtla; gerçek cihaz sonucunu emülasyondan ayrı raporla.",
+      "Frappe tarafında kod yazma. Hüseyin Cengiz'e teknik devir: gömülü origin'in site config allow_cors'a eklenmesi ve Keycloak client redirect URI kaydı; kabul ölçütü gömülü origin preflight'ının Access-Control-Allow-Origin ile dönmesidir. Claimed https seçilir ve yeni DNS kaydı gerekirse kayıt türü/adı/değerini Hüseyin Cengiz hazırlar, GoDaddy uygulamasını Asistan Hüseyin yapar, sonucu Hüseyin Cengiz doğrular.",
+      "Ardından kalan mobil hedefler; imza, mağaza yayını, güncelleme ve rollback sahibi Hüseyin Cengiz, platform adaptörleri istemci ekibi.",
+      "Masaüstü dağıtımı channels-13 sınırında kalır; Suite Vue SPA'sı paketleme hedefi değildir."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Ağ kapalıyken soğuk açılan Tauri uygulaması, gömülü frontendDist varlıklarından tek okuma akışının kabuğunu uzak hosta istek atmadan gösterir.",
+      "red": "Gelecekte frontendDist bağlanmadan önce, uygulama yalnız uzak URL ya da devUrl ile yapılandırılmışken aynı senaryo koşulur; belge origin'inin gömülü origin olması ve uzak hosta istek olmaması iddiası davranış olarak başarısız olur. RED import, derleme veya altyapı hatasıyla ya da Frappe native davranışını bozarak üretilmez. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "frontendDist Vite dist'e bağlandıktan sonra aynı senaryo ağ kapalıyken kabuğun gömülü origin'den açıldığını ve uzak istek olmadığını gösterir; çevrimiçi okumada yetkisiz istek reddedilir, yazma olmaz ve kayıt değişmez."
+    },
+    "rollback": "Bu tur yalnız belgedir; geri alınacak üretim değişikliği yoktur. Gelecekte iskelet ayrı dalda kaldırılabilir; Frappe tarafında kod yoktur. allow_cors ve redirect URI kayıtlarının geri alınması ile mağaza yayınının durdurulması Hüseyin Cengiz'in teknik sorumluluğundadır."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "channels-12",
+      "sourceStage": "post_mvp",
+      "existing": "Capacitor veya Tauri ile gömülü mobil arayüz yok. Bitişik native parçalar: Frappe OAuth sağlayıcısında public client için PKCE zorunluluğu ve redirect_uri tam eşleşmesi; Suite Vue ön yüzünde vite-plugin-pwa ve manifest.webmanifest ile kurulabilir PWA; Suite hooks.py içinde oauth2_logins yolunun izinli wildcard listesi. Bunlar Keycloak mobil callback'i, React/Ant Design istemcisi veya yerel paket değildir.",
+      "gap": "Madde Capacitor'u hedefler, kullanıcı kararı Tauri 2'dir. Gömme yapılandırması; AAB/APK/IPA derleme, imza, güncelleme ve mağaza hattı; kamera, bildirim, dosya, güvenli anahtar saklama ve SQLite adaptörleri; uçak modunda soğuk açılış ve kalıcı yerel işlem; RFC 8252 callback yöntemi ve Frappe bearer doğrulama sınırı yok. channels-17 ile çift sayımı önleyen kural kaynakta yok; bu planlama verisidir.",
+      "completionSteps": [
+        "Madde kimliğini ve bağımlılıklarını koru; 'tarihsel/superseded → channels-17' olarak işaretle.",
+        "Capacitor kabul ölçütünü uygulama hedefi yapma; uçak modu, sistem izinleri, Keycloak callback, güvenli saklama, imza, güncelleme ve mağaza beklentilerini channels-17 kabulüne taşı.",
+        "Yerel adaptör ihtiyaçlarını Tauri 2 eklenti seçimi kararı olarak decisionsPending'e bağla; bu birimde eklenti seçme.",
+        "RFC 8252 yöntemi (claimed https, özel şema veya loopback; PKCE S256) ve issuer/audience doğrulama sınırını keycloak-login--contract'a bırak.",
+        "Suite Vue PWA'sını mobil paket kanıtı sayma."
+      ],
+      "dependencies": [
+        "keycloak-login--contract",
+        "tauri-mobile-package--contract",
+        "ui-family-01--contract",
+        "client-rule-parity--contract"
+      ],
+      "acceptance": "Belge düzeyinde madde channels-17'ye superseded işaretli, çift sayım yok ve Capacitor aktif bağımlılık değil. Uygulama kabulü channels-17 üzerinden ölçülür; web derlemesi mobil yayın kanıtı sayılmaz.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/oauth.py",
+          "line": 33,
+          "quote": "return frappe.db.get_value(\"OAuth Client\", client_id, \"token_endpoint_auth_method\") == \"None\""
+        },
+        {
+          "path": "frappe/frappe/oauth.py",
+          "line": 45,
+          "quote": "if redirect_uri in redirect_uris:"
+        },
+        {
+          "path": "suite/frontend/vite.config.ts",
+          "line": 7,
+          "quote": "import { VitePWA } from 'vite-plugin-pwa'"
+        },
+        {
+          "path": "suite/frontend/src/router/index.ts",
+          "line": 333,
+          "quote": "appendPwaTag('link', { rel: 'manifest', href: `${assets}manifest.webmanifest` })"
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 440,
+          "quote": "\"/api/method/frappe.integrations.oauth2_logins.\","
+        }
+      ]
+    },
+    {
+      "requirementId": "channels-17",
+      "sourceStage": "post_mvp",
+      "existing": "Tauri 2 paketlemesi ve paketlenecek React/Ant Design/X istemcisi yok. Suite ön yüzü Vue 3 SPA'sıdır; üretimde '/assets/suite/frontend/' tabanıyla suite.html üzerinden Frappe tarafından servis edilir (uzak site modeli). Entegrasyon noktası olabilecek native Frappe primitifleri: set_cors_headers içindeki allow_cors allowlist'i, OAuth Client redirect_uris tam eşleşmesi ve Social Login Key Keycloak sağlayıcısı (sunucu yönlendirmesi).",
+      "gap": "src-tauri, tauri.conf.json, frontendDist/devUrl ve mobil hedefler; ortak React istemcisi ve dist çıktısı; gömülü origin'in allow_cors içindeki yeri ve çerez/CSRF ya da token sözleşmesi; native, özel şema veya loopback PKCE redirect URI sözleşmesi; ağsız ilk açılış, imza ve mağaza paketleri; Tauri CLI, SDK ve WebView sürüm sabitlemesi yok.",
+      "completionSteps": [
+        "tauri-mobile-package--contract ile Tauri CLI, Android/iOS SDK, WebView minimum sürümleri ve gömülü origin listesini (ör. tauri://localhost, http://tauri.localhost) karar kaydına bağla.",
+        "ui-family-01--contract ile ortak React istemcisinin repo yolunu ve Vite dist yolunu sabitle; Frappe '/assets/...' tabanını kullanma.",
+        "Ortak istemci reposunda frontendDist'i Vite dist'e bağlayan en küçük src-tauri iskeletini kur; devUrl yalnız geliştirme içindir.",
+        "İlk kabul hedefinde gömülü varlıklarla ağsız açılışı ve tek okuma akışını RED/GREEN ile kanıtla.",
+        "Frappe tarafında kod yazma; allow_cors girdisi ve Keycloak redirect URI kaydını Hüseyin Cengiz'e teknik devir olarak ver, preflight Access-Control-Allow-Origin ile kabul et.",
+        "Ardından Android ve iOS hedefleri; imza, mağaza hesapları ve rollback sahibi Hüseyin Cengiz. Masaüstü dağıtımı channels-13 sınırında kalır."
+      ],
+      "dependencies": [
+        "tauri-mobile-package--contract",
+        "ui-family-01--contract",
+        "client-rule-parity--contract",
+        "keycloak-login--contract"
+      ],
+      "acceptance": "Aynı ortak frontend çıktısı gerçek Android ve iOS hedeflerinde gömülü varlıklarla açılır; ilk çevrimiçi hazırlık sonrası ağsız açılış doğrulanır. Ayrı imza/mağaza paketleri, sistem WebView uyumu ve masaüstü dağıtımı test edilir; uzak siteyi açmak offline kabul sayılmaz. Reddedilen kimlik/izin girişiminde yazma olmaz ve kayıt değişmez. Gerçek cihaz sonuçları emülasyondan ayrı raporlanır.",
+      "evidence": [
+        {
+          "path": "suite/frontend/vite.config.ts",
+          "line": 84,
+          "quote": "base: mode === 'production' ? '/assets/suite/frontend/' : '/',"
+        },
+        {
+          "path": "suite/frontend/vite.config.ts",
+          "line": 100,
+          "quote": "indexHtmlPath: '../suite/www/suite.html',"
+        },
+        {
+          "path": "suite/frontend/package.json",
+          "line": 88,
+          "quote": "\"vue\": \"^3.5.38\","
+        },
+        {
+          "path": "frappe/frappe/app.py",
+          "line": 296,
+          "quote": "allowed_origins = frappe.conf.allow_cors"
+        },
+        {
+          "path": "frappe/frappe/oauth.py",
+          "line": 219,
+          "quote": "return redirect_uri in redirect_uris"
+        },
+        {
+          "path": "frappe/frappe/integrations/doctype/social_login_key/social_login_key.py",
+          "line": 234,
+          "quote": "providers[\"Keycloak\"] = {"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Uygulama durumu: uygulanmadı. Tauri 2 projesi, ortak React/Ant Design istemcisi ve dist çıktısı yok.",
+    "Gömülü origin, oturum modeli ve RFC 8252 redirect sözleşmesi tanımlı değil.",
+    "Ağsız soğuk açılış, kalıcı yerel işlem ve yerel adaptörler yok.",
+    "AAB/APK/IPA imza, güncelleme ve mağaza dağıtım hattı yok.",
+    "Tauri CLI, SDK ve WebView sürümleri sabitlenmedi."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Tauri CLI, Android/iOS SDK ve WebView minimum sürümleri",
+      "requirementIds": ["channels-17"],
+      "blocks": "src-tauri iskeleti ve WebView uyum kabulü",
+      "docStepUntilDecided": "tauri-mobile-package--contract içinde sorulacak sürüm alanlarını ve kaynak bağlantılarını listele"
+    },
+    {
+      "decision": "Gömülü origin listesi ve oturum modeli (çerez/CSRF ya da bearer)",
+      "requirementIds": ["channels-17"],
+      "blocks": "allow_cors teknik devri ve çevrimiçi okuma akışı",
+      "docStepUntilDecided": "Her seçenek için gerekli preflight kabul ölçütünü ve native izin yolunu yaz"
+    },
+    {
+      "decision": "RFC 8252 redirect yöntemi (claimed https, özel şema veya loopback; PKCE S256) ve Frappe issuer/audience doğrulama sınırı",
+      "requirementIds": ["channels-12", "channels-17"],
+      "blocks": "Keycloak redirect URI kaydı ve mobil oturum açma",
+      "docStepUntilDecided": "keycloak-login--contract'a açık soru olarak bağla; bu birimde yöntem seçme"
+    },
+    {
+      "decision": "İlk kabul hedefi: yalnız Android mi tek masaüstü hedefi mi; channels-13 sınırı",
+      "requirementIds": ["channels-12", "channels-17"],
+      "blocks": "RED/GREEN senaryosunun koşulacağı hedef",
+      "docStepUntilDecided": "Senaryoyu hedeften bağımsız yaz; iki önerinin çelişkisini kayıtta tut"
+    },
+    {
+      "decision": "Kamera, bildirim, dosya, güvenli anahtar saklama ve SQLite/yerel depolama eklenti seçimi ile kalıcı yerel işlem kapsamı",
+      "requirementIds": ["channels-12"],
+      "blocks": "Yerel adaptörler ve uçak modunda kalıcı işlem kabulü",
+      "docStepUntilDecided": "İhtiyaç listesini ve client-rule-parity--contract bağlantısını yaz"
+    },
+    {
+      "decision": "İmza kimlikleri, mağaza hesaplarının sahibi ve güncelleme kanalı",
+      "requirementIds": ["channels-12", "channels-17"],
+      "blocks": "İmzalı paket ve mağaza yayını",
+      "docStepUntilDecided": "Hüseyin Cengiz için teknik devir başlıklarını hazırla; hesap veya ödeme kararı verme"
+    },
+    {
+      "decision": "Ortak React istemcisinin repo yolu ve Vite dist yolu",
+      "requirementIds": ["channels-17"],
+      "blocks": "frontendDist bağlantısı",
+      "docStepUntilDecided": "ui-family-01--contract'a bağımlılık olarak işaretle"
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

@@ -1,0 +1,187 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "ui-family-14",
+  "canonicalTaskIds": [
+    "ui-family-14--implementation-post-mvp",
+    "ui-provider-viewstate--implementation-post-mvp"
+  ],
+  "requirementIds": ["views-3"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "views-3": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "implementationNote": "Uygulama durumu: uygulanmadı. Bu dosya yalnız gelecekteki geliştirme için yönerge sözleşmesidir. Ürün kodu, test, servis, şema, production veya veri değişikliği yetkisi vermez. Kaynak değerlendirmesi önceki salt okunur Frappe kaynak kesitlerine dayanır; canlı site veya ürün kabulü yoktur.",
+  "behavior": {
+    "title": "Çoklu kayıt seçimi ve kayıt başına denetlenen toplu işlem (BulkAction)",
+    "trigger": "Kullanıcı bir liste görünümünde birden fazla kayıt seçer ve izinli bir toplu eylem başlatır. İlk kabul kapsamında eylem yalnız alan güncellemesidir; submit, cancel ve delete sonraki dar adımlardır.",
+    "expected": "Her seçili kayıt native Frappe izin, doğrulama, transaction ve save/hook yolundan ayrı ayrı geçer. Seçim native async eşiğinin altındaysa sonuç aynı yanıtta döner. Eşik aşılırsa iş referansı ve ilerleme üzerinden izlenir. Sonuç her kayıt için başarılı, reddedildi veya başarısız durumunu ve nedenini gösterir. Kısmi hatada işlenen ve işlenmeyen kayıtlar ayrı listelenir.",
+    "denied": "İzni olmayan kayıt değişmeden kalır ve sonuçta reddedildi olarak raporlanır; bu durum izinli kayıtların sonucunu gizlemez. ignore_permissions içeren yardımcılar, doğrudan SQL, yeni özel toplu API, native validation/hook atlama ve alt kayıt davranışı doğrulanmamış delete yolu reddedilir."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native parçalar: v2 API içinde doctype bazında yapılandırılabilen toplu işlem async eşiği; client insert_many içinde istek başına 200 kayıt sınırı; v1 delete_doc tek kayıt silme yolu, alt kayıt işleme TODO olarak açık. v2 toplu route'larının imzası ve yanıt şekli alıntılarda görünmez. Bu kanıtlar bütün davranışın var olduğunu göstermez. Headless seçim, kayıt başına sonuç şeması, async iş ilerleme sözleşmesi ve idempotency eksiktir. Vue/Frappe UI kaynağı React/Ant Design uygulaması kanıtı sayılmaz.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/api/v2.py",
+        "line": 32,
+        "quote": "conf = frappe.conf.get(\"bulk_operation_async_threshold\", 20)"
+      },
+      {
+        "path": "frappe/frappe/client.py",
+        "line": 246,
+        "quote": "frappe.throw(_(\"Only 200 inserts allowed in one request\"))"
+      },
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 71,
+        "quote": "# TODO: child doc handling"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "frappe/frappe/api/v2.py",
+      "frappe/frappe/client.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/ui-family-14.json",
+    "plannedProduction": [
+      "frontend/packages/ui/src/components/ui-family-14/post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-provider-viewstate/post_mvp.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Headless istek modeli JSON'dur: doctype; selection.names (seçili kayıt adları, sıra korunur); action (ilk kabulde yalnız update); payload (yalnız update için alan değerleri); clientRequestId (istemcinin ürettiği tekrar gönderim anahtarı). Seçim durumu ui-provider-viewstate içinde, grid seçiminden bağımsız bir ad listesi olarak tutulur; grid kararı bu birimin kapsamı değildir. ReactNode ve callback JSON modele girmez, yalnız yerel bileşen tarafında kalır.",
+    "output": "Senkron yanıt: results[] her kayıt için {name, outcome: succeeded | denied | failed | skipped, message} ve summary {total, succeeded, denied, failed}. Async yanıt (eşik aşıldı): job {id, state, progress {done, total}}; iş tamamlandığında aynı results[] şekli. Native yanıt alanlarıyla eşleme hedef baseline kaynağında doğrulanana kadar açıktır. Native'de karşılığı olmayan alan için yeni backend uç noktası yazılmaz; alan native yanıtlardan türetilir ya da remainingGaps içinde kalır.",
+    "authorization": "Yetki her kayıt için native izin denetimiyle ve eylem türüne göre ayrı ayrı (write, submit, cancel, delete) belirlenir. Arayüzde düğmeyi gizlemek güvenlik sınırı değildir; sunucu tarafı native denetim tek otoritedir. ignore_permissions veya SQL ile yetki atlama yasaktır. Bu birim yeni rol veya izin üretmez; ileride yeni izin bayrağı gerekirse explicitPermissionFlags ortak kaynağına bağlanır.",
+    "persistence": "Yeni DocType, tablo veya özel iş deposu yoktur. Kayıt değişiklikleri yalnız native save/transaction yolunda kalıcı olur. Seçim istemci tarafında geçicidir ve sunucuya yazılmaz. Async sonuçlarının saklanması saklama süresi kararına bağlıdır; karar gelene kadar sonuç yanıt ve iş durumu ile sınırlıdır.",
+    "failure": "Kısmi hatada işlenen kayıtlar geri alınmış gibi gösterilmez; her kaydın gerçek sonucu raporlanır. Native doğrulama veya eşzamanlı değişiklik hatası ilgili kayıtta failed olarak döner. İstek başına native sınırlar (insert_many için 200) aşılırsa istek bölünmez; kullanıcıya açık sınır hatası gösterilir. Async iş izlenirken bağlantı koparsa istek körlemesine yeniden gönderilmez; aynı clientRequestId ile iş durumu sorgulanır. Alt tabloları olan belgelerde delete, v1 TODO nedeniyle doğrulanana kadar kapsam dışıdır."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "client-channel-continuity--contract",
+      "client-rule-parity--contract",
+      "device-grant--contract",
+      "kernel-envelope--contract",
+      "sync-receipt--contract",
+      "ui-family-07--contract",
+      "ui-family-12--contract",
+      "ui-family-14--contract",
+      "ui-family-14--implementation",
+      "ui-provider-viewstate--contract",
+      "ui-provider-viewstate--implementation"
+    ],
+    "admission": "T-00 hedef baseline ve R-00 yeniden kullanım eşlemesi tamamlanmadan kabul yoktur. İzinli veri tüketicisi olduğundan R-01 de gerekir. development.dependencies içindeki kontrat ve uygulama görevleri kabul edilmiş olmalıdır. Kapsam tek dar davranıştır (karma yetkili seçimde toplu update) ve gerçek RED/GREEN kanıtı ister. Sıra mevcut görev bağımlılıkları ve aşama ile belirlenir; küme sırası yalnız sunumdur.",
+    "steps": [
+      "T-00 baseline kaynağında v2 toplu route'larını, imzalarını, async eşik fonksiyonunun çağrıldığı yeri ve senkron/async yanıt şeklini salt okunur doğrula; her bulguyu path, line ve quote ile kaydet.",
+      "R-00 eşlemesine native parça, eksik ve tamamlama yolunu ayrı yaz; doğrulanmayan route için tekil native REST/Document API çağrılarını yalnız aday olarak not et.",
+      "Kayıt başına sonuç ve async iş şemasını kernel-envelope ve api-middleware kontratlarındaki zarf ve hata biçimine bağla; yeni zarf tanımlama.",
+      "ui-provider-viewstate içinde seçim modelini tanımla: ad listesi, tümünü seç kapsamı (yalnız görünen sayfa veya filtrelenmiş tüm sonuç), filtre değişince seçimin sıfırlanması.",
+      "client-rule-parity kontratına göre istemci ön denetimini yalnız ipucu olarak kullan; nihai karar sunucu tarafı native denetimdir.",
+      "Tekrar gönderimde aynı clientRequestId ile ikinci yazma yapılmamasını sync-receipt ve client-channel-continuity kontratlarıyla hizala.",
+      "BulkAction bileşenini Ant Design/Pro üzerinde tasarla: seçim sayısını gösteren eylem çubuğu, sayılı onay adımı, kayıt başına sonuç paneli. Semantik token, minimum 14 CSS px metin, çevrelemeyen odak göstergesi, merkezi hareket tokenları ve 320 CSS px öncelikli yerleşim kuralları uygulanır.",
+      "Gelecekte BulkAction, frontend/packages/ui/src/registry.ts bileşen kaynak registry'sine önerilir; bu kayıt GenUI capability registry'si değildir ve GenUI ayrı kullanıcı projesidir."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Kullanıcının yalnız birinde yazma izni olduğu iki kayıtlık seçimde toplu alan güncellemesi: izinli kayıt güncellenir, izinsiz kayıt değişmeden kalır ve sonuçta denied olarak raporlanır; summary {total: 2, succeeded: 1, denied: 1, failed: 0} olur.",
+      "red": "Kayıt başına sonuç eşlemesi henüz olmadığı için test, izinsiz kaydın denied olarak raporlanması ve izinsiz kaydın alanının değişmemiş olması beklentilerinde davranış iddiasıyla başarısız olmalıdır. RED olarak import/altyapı hatası veya native izin davranışını bozma kabul edilmez.",
+      "green": "Native yanıtı kayıt başına results[] ve summary şekline eşleyen en küçük değişiklik yapılır. Yetki native denetimde kalır; ignore_permissions, SQL veya yeni toplu API eklenmez."
+    },
+    "rollback": "Bu tur yalnız belgedir; geri alma bu dosyanın önceki sürümüne dönmektir. Gelecekteki uygulamada arayüz, BulkAction registry kaydı ve route bağlantısı kaldırılarak geri çekilir. Native kayıtlarda yapılmış değişiklikler otomatik geri alınmaz; kayıt başına native cancel/amend veya düzeltici işlemle ele alınır. CI/deploy/rollback teknik sahibi Hüseyin Cengiz'dir; bu sözleşme hiçbir servis veya veri değişikliğine yetki vermez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "views-3",
+      "sourceStage": "post_mvp",
+      "existing": "Native parçalar: v2 API'de doctype bazlı toplu işlem async eşiği (varsayılan 20); client insert_many'de istek başına 200 kayıt sınırı; v1'de tek kayıt delete yolu (alt kayıt işleme TODO). Tek kayıt REST işlemleri temel sağlar.",
+      "gap": "v2 toplu route'larının hedef baseline imzası doğrulanmadı. Async iş kimliği, ilerleme ve sonuç sorgulama sözleşmesi yok. Kayıt başına başarı/hata şeması tanımsız. Tekrar gönderim idempotency'si ile submit/cancel/delete yetki ayrımı yazılmamış. Alt kayıtlı delete davranışı açık.",
+      "completionSteps": [
+        "Hedef baseline kaynağında v2 toplu route imzasını ve eşik aşımındaki async yanıtı doğrula, alıntıyla kaydet.",
+        "Senkron ve async yanıtları tek results[]/summary şemasına eşle; job {id, state, progress} alanlarını native karşılığa bağla, karşılığı yoksa gap olarak bırak.",
+        "Eylem türü başına native izin türünü (write, submit, cancel, delete) ayrı denetle ve sonuçta denied ile failed ayrımını koru.",
+        "clientRequestId ile tekrar gönderimde ikinci yazmayı engelle; bağlantı kopmasında iş durumunu sorgula.",
+        "İlk kabulü yalnız update ile sınırla; delete'i alt kayıt davranışı doğrulanana kadar kapsam dışı tut.",
+        "Seçim modelini ui-provider-viewstate içinde grid'den bağımsız ad listesi olarak tanımla."
+      ],
+      "dependencies": [
+        "ui-family-14--contract",
+        "ui-family-14--implementation",
+        "kernel-envelope--contract",
+        "api-middleware--contract",
+        "client-rule-parity--contract",
+        "ui-family-07--contract",
+        "ui-provider-viewstate--contract",
+        "sync-receipt--contract"
+      ],
+      "acceptance": "Yetkisi karışık seçimin her kaydı ayrı denetlenir. İzinsiz kayıt değişmeden kalır ve denied olarak raporlanır. Kısmi hatada hangi kayıtların işlendiği ve hangilerinin işlenmediği nedenleriyle görünür. Eşik altı ve üstü seçim aynı sonuç şemasını üretir. Aynı clientRequestId ile tekrar gönderim ikinci yazma üretmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 32,
+          "quote": "conf = frappe.conf.get(\"bulk_operation_async_threshold\", 20)"
+        },
+        {
+          "path": "frappe/frappe/client.py",
+          "line": 246,
+          "quote": "frappe.throw(_(\"Only 200 inserts allowed in one request\"))"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 71,
+          "quote": "# TODO: child doc handling"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Kullanılacak native toplu uç nokta ve hedef baseline'daki imzası doğrulanmadı.",
+    "Eşik aşımında async iş kimliği, ilerleme ve sonuç sorgulama sözleşmesi tanımlı değil.",
+    "Kayıt başına başarı/hata yanıt şemasının native yanıtla eşlemesi doğrulanmadı.",
+    "Tekrar gönderim idempotency'si ve submit/cancel/delete için eylem bazlı yetki ayrımı yazılmamış.",
+    "v1 delete içinde alt kayıt işleme TODO olarak açık; alt tablolu belgelerde toplu delete davranışı bilinmiyor."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Hedef Frappe sürümü ve kaynak baseline'ı (T-00).",
+      "requirementIds": ["views-3"],
+      "blocks": "Native toplu route imzasının doğrulanması ve yanıt eşlemesi.",
+      "allowedMeanwhile": "Doğrulama kontrol listesini ve sonuç şeması taslağını belge olarak hazırlamak."
+    },
+    {
+      "decision": "bulk_operation_async_threshold için site ve doctype bazlı değer.",
+      "requirementIds": ["views-3"],
+      "blocks": "Senkron/async sınır kabul senaryosunun sabitlenmesi.",
+      "allowedMeanwhile": "Eşiği belgede parametre olarak tutmak; 20 yalnız kaynaktaki varsayılan olarak anılır."
+    },
+    {
+      "decision": "Async toplu işlem sonuçlarının ve ilerleme kayıtlarının saklama süresi.",
+      "requirementIds": ["views-3"],
+      "blocks": "Sonuç sorgulama sözleşmesinin kalıcılık bölümü.",
+      "allowedMeanwhile": "Sonucu yanıt ve iş durumu ile sınırlı tanımlamak; ek depo tasarlamamak."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

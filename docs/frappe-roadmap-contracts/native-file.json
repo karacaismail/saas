@@ -1,0 +1,438 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "native-file",
+  "canonicalTaskIds": [
+    "native-file--implementation",
+    "ui-family-22--implementation-post-mvp",
+    "ui-view-gallery--implementation"
+  ],
+  "requirementIds": ["files-1", "files-5", "files-6", "files-8"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "files-1": "post_mvp",
+    "files-5": "post_mvp",
+    "files-6": "post_mvp",
+    "files-8": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Yetki ve tenant sınırlı dosya/medya kütüphanesi: doğrulanmış yükleme, güvenli indirme, denetlenebilir temizlik",
+    "trigger": "Yetkili kullanıcı veya istemci (React/Ant Design galeri görünümü, Tauri 2 masaüstü, WXT eklentisi) native Frappe File yolu üzerinden dosya yükler, arar, kayda bağlar, indirir ya da sahipsiz dosya raporu ister.",
+    "expected": "Uygulama durumu: uygulanmadı. Gelecekte: her yükleme tek doğrulama kapısından geçer (boyut, uzantı, bayt imzası, tarama durumu) ve temiz olmayan dosya erişime açılmaz. Erişim kararı kurulu Drive izin kancalarıyla verilir ve kararlaştırılacak tenant sınırını aşmaz. İndirme güvenli başlıklarla ya da ömrü belgelenmiş süreli bağlantıyla yapılır. Kullanımdaki dosya temizlenmez; sahipsiz dosya önce kuru çalıştırma raporunda görünür.",
+    "denied": "Yetkisiz kullanıcı veya başka tenant özel dosyayı listeleyemez ve indiremez. Boyut aşımı, uzantı/içerik uyuşmazlığı veya tarama hatası olan yükleme reddedilir ve erişilebilir File kaydı oluşmaz. Süresi geçen bağlantı geçersizdir. ignore_permissions veya ham SQL ile yetki atlayan dış indirme/temizlik yolu açılmaz."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native Frappe File DocType ve /api/v2 upload_file kuralı. Suite uygulaması File sınıfını override ediyor, framework File izinlerini ignore_file_permissions ile kapatıp yetkiyi Drive has_permission kancası ve sorgu filtresine devrediyor. WebDAV yolunda yükleme doğrulayıcı çağrısı, site ayarıyla boyut tavanı, indirmede aktif içerik nötrleştirme, bayrağa bağlı S3 presigned yönlendirmesi ve geri alınabilir çöp kutusu görülüyor. Bu parçalar DAM metadata'sını, bayt doğrulamasını, karantinayı, süreli bağlantı ömrünü, tenant sınırını ve retention temizliğini kanıtlamaz. Drive'ın Vue/Frappe UI arayüzü React/Ant Design galeri uygulaması kanıtı değildir.",
+    "evidence": [
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 117,
+        "quote": "ignore_file_permissions = True"
+      },
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 196,
+        "quote": "\"File\": \"suite.drive.overrides.file.File\","
+      },
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 156,
+        "quote": "\"File\": \"suite.drive.api.permissions.user_has_permission\","
+      },
+      {
+        "path": "suite/suite/drive/utils/overrides.py",
+        "line": 17,
+        "quote": "(file.is_private == 0)"
+      },
+      {
+        "path": "frappe/frappe/api/v2.py",
+        "line": 624,
+        "quote": "Rule(\"/method/upload_file\", endpoint=upload_file, methods=[\"POST\"]),"
+      },
+      {
+        "path": "suite/suite/drive/webdav/put.py",
+        "line": 153,
+        "quote": "_run_upload_validators(scratch, name, parent.name)"
+      },
+      {
+        "path": "suite/suite/drive/webdav/get.py",
+        "line": 88,
+        "quote": "return redirect(manager.presigned_url(key, row.file_name, row.mime_type), code=302)"
+      },
+      {
+        "path": "suite/suite/drive/webdav/structure.py",
+        "line": 87,
+        "quote": "# trash, not destruction: recoverable from the Drive web UI"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v2.py",
+      "frappe/pyproject.toml",
+      "suite/suite/drive/utils/overrides.py",
+      "suite/suite/drive/webdav/get.py",
+      "suite/suite/drive/webdav/locks.py",
+      "suite/suite/drive/webdav/pathmap.py",
+      "suite/suite/drive/webdav/perms.py",
+      "suite/suite/drive/webdav/put.py",
+      "suite/suite/drive/webdav/structure.py",
+      "suite/suite/hooks.py",
+      "suite/suite/sheets/patches/integrate_with_drive.py"
+    ],
+    "searchNote": "Kanıtlar önceki salt okunur Frappe/Suite kaynak anlık görüntülerinden alındı; canlı site ya da ürün kabulü yok. Aranan yollar listesi kapsamlı bir yokluk iddiası değildir."
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/native-file.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/adapters/assets/file_post_mvp.py",
+      "frontend/packages/ui/src/components/ui-family-22/post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-view-gallery/index.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Native File alanları (file_name, is_private, folder, attached_to_doctype/attached_to_name, content_doctype/content_docname, mime_type, file_size), yükleme gövdesi ve kernel-envelope--contract zarfındaki kullanıcı/tenant bağlamı. DAM metadata alanları native-doctype-schema--contract üzerinden Custom Field/Property Setter adayı olarak önerilir. Paralel dosya tablosu, yeni ORM veya CRUD motoru yok.",
+    "output": "Galeri ve kayıt eki için JSON görünüm modeli: ad, indirme tanıtıcısı, boyut, MIME, gizlilik, bağlı kayıt, tarama durumu, çöp durumu. Model kaynak registry'den gelir; GenUI capability registry ayrı kalır. JSON model sınırı ile yerel ReactNode/callback ayrı tutulur.",
+    "authorization": "Yetki otoritesi suite hooks has_permission File kaydı (user_has_permission) ve Drive sorgu filtresidir; framework File izinleri bu kurulumda kapalıdır. Gelecekteki adaptör native frappe.has_permission ve izinli liste çağrılarını tüketir. ignore_permissions, ham SQL veya kanca devre dışı bırakma kullanılmaz. Bu rehber yeni rol üretmez; ileride rol/izin bayrağı gerekirse ortak explicitPermissionFlags kaynağına bağlanır ve tek kabulünde reddedilen yazma ile değişmeyen kayıt gösterilir.",
+    "persistence": "Yalnız native File kaydı, Drive aktif/çöp durumu ve native transaction/save/kanca akışı. Karantina durumu ve DAM metadata'sı için şema değişikliğine bu sözleşme yetki vermez; native-doctype-schema--contract onayından sonra önerilir. Asenkron tarama ve temizlik olayları outbox--contract üzerinden yürür.",
+    "failure": "Fail-closed: tarayıcı hatası, zaman aşımı veya tanınmayan tür dosyayı erişime açmaz. Yetki reddi kaydın varlığını sızdırmaz. Yarım kalan yüklemede erişilebilir File kaydı ve sahipsiz bayt kalmaz. Kalıcı silme kuralı onaylanana kadar temizlik yalnız rapor üretir."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "asset-rendition--contract",
+      "client-rule-parity--contract",
+      "file-type-policy--contract",
+      "kernel-envelope--contract",
+      "malware-scan--contract",
+      "native-doctype-schema--contract",
+      "native-file--contract",
+      "native-user-policy--contract",
+      "object-storage--contract",
+      "outbox--contract",
+      "tauri-device-capability--contract",
+      "tenant-registry--contract",
+      "ui-family-08--contract",
+      "ui-family-22--contract",
+      "ui-family-22--implementation",
+      "ui-view-gallery--contract"
+    ],
+    "admission": {
+      "summary": "Uygulama durumu: uygulanmadı. Üretim kabulü verilmedi.",
+      "prerequisites": [
+        "T-00 hedef taban çizgisi ve R-00 yeniden kullanım eşlemesi; izinli veri tüketicileri için ayrıca R-01.",
+        "decisionsPending içindeki tenant topolojisi ve hedef sürüm kararları kayda geçmiş olmalı.",
+        "native-file--contract, kernel-envelope--contract, tenant-registry--contract, native-user-policy--contract, native-doctype-schema--contract ve outbox--contract hazır olmalı.",
+        "files-5 için file-type-policy--contract ve malware-scan--contract; files-6 için object-storage--contract hazır olmalı.",
+        "Her seferinde tek dar davranış, gerçek RED/GREEN kanıtıyla uygulanmalı."
+      ]
+    },
+    "steps": [
+      "Hedef sürümde File override'ını, has_permission kancasını ve sorgu filtresini yeniden oku; upstream v15 referansını yalnız bağlam olarak işaretleyen sürüm eşleme tablosu yaz.",
+      "Giriş yolu envanterini çıkar: /api/v2 upload_file, WebDAV PUT/LOCK-create ve posta eki yükleme. Her yol için ortak doğrulama noktasını belirle.",
+      "files-5 tek davranışıyla başla (development/tdd): içeriği uzantısıyla uyuşmayan yükleme reddedilir.",
+      "files-6 için yetki otoritesi ve süreli bağlantı sözleşmesini yaz, ui-view-gallery tüketicisine bildir.",
+      "files-8 için kullanım ilişkileri ve çöp yaşam döngüsü tablosunu yaz; yalnız kuru çalıştırma raporunu tanımla.",
+      "files-1 için metadata önerisini ve galeri JSON modelini tanımla. ui-view-gallery ve ui-family-22 bileşenleri yalnız adaptör çıktısını tüketir (Ant Design, TanStack Query/Router).",
+      "Paylaşılan entegrasyon dosyalarındaki (hooks.py, registry.ts, routes.tsx) değişiklikleri ana entegrasyon sahibine seri birleştirme için öner; teknik CI/deploy devri Hüseyin Cengiz'e yapılır."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "files-5: Yetkili kullanıcı, uzantısı .png olan ama baytları PNG imzası taşımayan bir dosyayı /api/v2/method/upload_file ile yükler; istek reddedilir, File kayıt sayısı değişmez ve depolamada bayt kalmaz.",
+      "red": "Hedef sürümde, Drive override'ı etkin bir test ortamında File kayıt sayısının değişmediğini doğrulayan iddia başarısız olur, çünkü kabul uzantıya dayanır. RED, import/altyapı hatasıyla veya native davranışı bozarak üretilmez. İddia baştan geçiyorsa davranış native kabul edilir, kod eklenmez ve bu sonuç eşleme tablosuna yazılır.",
+      "green": "Ortak doğrulama noktasında bayt imzası file-type-policy--contract izin listesiyle karşılaştırılır. Aynı test reddi ve değişmeyen kayıt sayısını gösterir; geçerli PNG yüklemesi regresyon kontrolü olarak kabul edilmeye devam eder. Bu turda test yazılmadı ve koşulmadı."
+    },
+    "rollback": "Gelecekteki değişiklikler plannedProduction içindeki adaptör ve UI bileşenleriyle sınırlı ve eklemeli olmalı; geri alma bu dosyalar ile hooks.py kaydı geri çekilerek yapılır. Bu sözleşme şema, veri, servis veya production değişikliğine yetki vermez; karantina ve metadata alanları ayrı onaylı şema adımında kendi geri dönüş planıyla gelir. Kalıcı silme geri alınamaz, bu yüzden retention kararı ve onaylı kuru çalıştırma raporu olmadan açılmaz. Teknik CI/deploy/rollback sahibi Hüseyin Cengiz'dir; bu kapsamda DNS/GoDaddy adımı yoktur, gerekirse Asistan Hüseyin uygular."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "files-1",
+      "sourceStage": "post_mvp",
+      "existing": "Native File DocType ve /api/v2 upload_file kaynakta görülüyor. Suite, File sınıfını override ediyor ve framework File izinlerini Drive modeliyle değiştiriyor. Drive filtresi is_private=0 dosyaları herkese açık bırakıyor.",
+      "gap": "DAM metadata'sı ve hakları, API kütüphane giriş yolu seçimi, tenant sınırı, is_private=0 görünürlüğünün tenant kabulüne eşlenmesi ve React/Ant Design galeri tüketicisi yok.",
+      "completionSteps": [
+        "Kaynak sistemin suite Drive olduğunu (File override ve ignore_file_permissions) sözleşmeye yaz; Desk File Manager referansını yalnız upstream bağlam olarak işaretle.",
+        "Liste/arama için izinli native File listesini Drive filtresiyle tüket. Yükleme yolu (upload_file veya Drive API) kararını decisionsPending'den al; iki yolu paralel açma.",
+        "Varlık metadata'sı (başlık, alternatif metin, hak notu, etiket) için Custom Field/Property Setter önerisini native-doctype-schema--contract'a gönder. Girdi notundaki Drive DAV Property'nin WebDAV istemci özelliği olarak ayrı kaldığını yaz.",
+        "Kayda bağlamayı attached_to_doctype/attached_to_name ile yap; bağlama yetkisini hedef kaydın native izniyle kontrol et.",
+        "Tenant kararı gelince, is_private=0 dosyaların görünürlüğünü 'başka tenant'a görünmez' kabulüne göre yeniden yaz.",
+        "ui-view-gallery ve ui-family-22 bileşenleri yalnız adaptörün JSON görünüm modelini tüketsin; kayıt kaynak registry'ye girer, GenUI capability registry'ye girmez."
+      ],
+      "dependencies": [
+        "native-file--contract",
+        "tenant-registry--contract",
+        "native-user-policy--contract",
+        "native-doctype-schema--contract",
+        "kernel-envelope--contract",
+        "api-middleware--contract",
+        "asset-rendition--contract",
+        "ui-view-gallery--contract",
+        "ui-family-22--contract"
+      ],
+      "acceptance": "Yetkili kullanıcı varlık arar, ekler ve kayda bağlar. Başka tenant'ın özel varlığı ne listede ne doğrudan istekte görünür. Tenant kararı verilene kadar bu kabul not_run kalır.",
+      "evidence": [
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 117,
+          "quote": "ignore_file_permissions = True"
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 196,
+          "quote": "\"File\": \"suite.drive.overrides.file.File\","
+        },
+        {
+          "path": "suite/suite/drive/utils/overrides.py",
+          "line": 17,
+          "quote": "(file.is_private == 0)"
+        },
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 624,
+          "quote": "Rule(\"/method/upload_file\", endpoint=upload_file, methods=[\"POST\"]),"
+        }
+      ]
+    },
+    {
+      "requirementId": "files-5",
+      "sourceStage": "post_mvp",
+      "existing": "WebDAV PUT yolunda yükleme doğrulayıcı çağrısı ve site ayarına bağlı boyut tavanı var. İndirmede nosniff ve CSP sandbox başlıkları uygulanıyor. Framework filetype bağımlılığını bildiriyor. WebDAV scratch dosyasında MIME tespiti uzantıya dayanıyor.",
+      "gap": "Tüm giriş yolları için tek doğrulama kapısı yok. _run_upload_validators gövdesi doğrulanmadı. Bayt/imza doğrulaması, karantina durum modeli ve tarayıcı çalışma/zaman aşımı sözleşmesi yok.",
+      "completionSteps": [
+        "_run_upload_validators gövdesini ve upload_file yolunun hangi doğrulayıcıyı çağırdığını hedef sürümde oku; sonucu eşleme tablosuna yaz. Okumadan davranış iddia etme.",
+        "Üç giriş yolunun (upload_file, WebDAV PUT/LOCK-create, posta eki) aynı doğrulama fonksiyonunu native save/kanca akışı içinde çağıracağı noktayı belirle.",
+        "Bayt imzası kontrolü için kurulu filetype bağımlılığının yeniden kullanımını değerlendir; izin verilen türleri file-type-policy--contract'tan al, yeni bağımlılık ekleme.",
+        "Karantina durumlarını tanımla (bekliyor, temiz, zararlı, hata). Varsayılan bekliyor ve erişim kapalı olsun; durum alanı native-doctype-schema--contract onayına tabidir.",
+        "Taramayı malware-scan--contract üzerinden bağla. Senkron/asenkron ve zaman aşımı kararı gelene kadar fail-closed çalış; asenkron sonucu outbox--contract olayıyla işle.",
+        "İstemci tarafı ön kontrolleri client-rule-parity--contract ile aynı kurala bağla; bu kontroller sunucu kontrolünün yerine geçmez."
+      ],
+      "dependencies": [
+        "native-file--contract",
+        "file-type-policy--contract",
+        "malware-scan--contract",
+        "client-rule-parity--contract",
+        "outbox--contract",
+        "native-doctype-schema--contract"
+      ],
+      "acceptance": "Boyut aşımı, uzantı/içerik uyuşmazlığı veya tarama hatası durumunda yükleme reddedilir ya da dosya karantinada kalır. Dosya erişime açılmaz ve indirme isteği reddedilir.",
+      "evidence": [
+        {
+          "path": "suite/suite/drive/webdav/put.py",
+          "line": 153,
+          "quote": "_run_upload_validators(scratch, name, parent.name)"
+        },
+        {
+          "path": "suite/suite/drive/webdav/put.py",
+          "line": 109,
+          "quote": "# keep the target's extension on the scratch name — mimemapper detects by it"
+        },
+        {
+          "path": "suite/suite/drive/webdav/put.py",
+          "line": 141,
+          "quote": "hard = frappe.conf.get(\"drive_webdav_max_upload_size\")"
+        },
+        {
+          "path": "frappe/pyproject.toml",
+          "line": 15,
+          "quote": "\"filetype~=1.2.0\","
+        },
+        {
+          "path": "suite/suite/drive/webdav/get.py",
+          "line": 60,
+          "quote": "headers[\"Content-Security-Policy\"] = \"sandbox\""
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 196,
+          "quote": "\"File\": \"suite.drive.overrides.file.File\","
+        },
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 624,
+          "quote": "Rule(\"/method/upload_file\", endpoint=upload_file, methods=[\"POST\"]),"
+        }
+      ]
+    },
+    {
+      "requirementId": "files-6",
+      "sourceStage": "post_mvp",
+      "existing": "Framework File izinleri kapalı; File yetkisi Drive user_has_permission kancasında ve sorgu filtresinde. S3 presigned yönlendirmesi bir site bayrağına bağlı. Doğrudan indirme yanıtı private/no-cache başlığı taşıyor ve aktif içeriği nötrleştiriyor.",
+      "gap": "Tenant tanımı yok (site mi, Drive takımı mı). Presigned URL ömrü ve iptali görünmüyor. Yerel disk için süreli bağlantı yok. Paylaşım linki, Guest ve GENERAL_USER semantiği tanımsız.",
+      "completionSteps": [
+        "Yetki otoritesini user_has_permission ve Drive sorgu filtresi olarak sözleşmeye sabitle; framework File izinlerine dayanan kural yazma.",
+        "Tenant kararı gelince 'başka tenant reddi' kabulünü seçilen sınıra göre yaz ve tenant-registry--contract ile eşle.",
+        "presigned_url süre parametresinin kaynağını hedef sürümde oku ve object-storage--contract'a kaydet; süre değeri seçme.",
+        "Yerel disk için hedef sürümde native süreli/imzalı bağlantı primitifi ara. Yoksa bunu decisionsPending'de açık bırak; var olmayan API'yi varmış gibi yazma.",
+        "Tüm indirme yollarında nosniff, CSP sandbox, Content-Disposition ve private/no-cache başlıklarını aynı tut.",
+        "Paylaşım linki, Guest ve GENERAL_USER davranışını tablo halinde yazıp ui-view-gallery tüketicisine bildir."
+      ],
+      "dependencies": [
+        "native-file--contract",
+        "native-user-policy--contract",
+        "tenant-registry--contract",
+        "object-storage--contract",
+        "api-middleware--contract",
+        "ui-view-gallery--contract"
+      ],
+      "acceptance": "Yetkisiz veya başka tenant'tan gelen istek özel dosyada reddedilir. Süreli bağlantı bitişten sonra reddedilir. Güvenli indirme başlıkları her yolda korunur.",
+      "evidence": [
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 117,
+          "quote": "ignore_file_permissions = True"
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 156,
+          "quote": "\"File\": \"suite.drive.api.permissions.user_has_permission\","
+        },
+        {
+          "path": "suite/suite/drive/utils/overrides.py",
+          "line": 17,
+          "quote": "(file.is_private == 0)"
+        },
+        {
+          "path": "suite/suite/drive/webdav/get.py",
+          "line": 87,
+          "quote": "if frappe.conf.get(\"drive_webdav_s3_redirect\"):"
+        },
+        {
+          "path": "suite/suite/drive/webdav/get.py",
+          "line": 88,
+          "quote": "return redirect(manager.presigned_url(key, row.file_name, row.mime_type), code=302)"
+        },
+        {
+          "path": "suite/suite/drive/webdav/get.py",
+          "line": 77,
+          "quote": "response.headers[\"Cache-Control\"] = \"private, no-cache\""
+        }
+      ]
+    },
+    {
+      "requirementId": "files-8",
+      "sourceStage": "post_mvp",
+      "existing": "File satırları iki ilişki çifti taşıyor: attached_to_* ve content_doctype/content_docname. WebDAV silmesi geri alınabilir çöpe gidiyor; Sheets yaması çöp durumunu File'a yansıtıyor. Saatlik zamanlayıcı yalnız kilit temizliği için görülüyor. İç kompanzasyon silmesi ignore_permissions kullanıyor. Benimsenen framework ekleri yetkiyi bağlı kayda devrediyor.",
+      "gap": "'Kullanılıyor' tanımı, retention süresi ve sahibi, çöpten kalıcı silme kuralı, temizlik denetim kaydı ve geri dönüş penceresi yok. İç silme yolunun dışa açılmayacağı yazılı değil.",
+      "completionSteps": [
+        "Kullanım ilişkileri tablosunu yaz: attached_to_*, content_doctype/content_docname, Drive klasör üyeliği, Writer/Sheet/Presentation bağları. Bunlardan herhangi biri varsa dosya 'kullanılıyor' sayılır.",
+        "Aynı tabloda aktif, çöp ve geri alma yaşam döngüsünü STATUS_TRASHED ile eşle.",
+        "İlk teslim yalnız kuru çalıştırma raporu olsun: aday dosya, sahipsiz sayılma nedeni, son değişiklik. Rapor hiçbir kaydı değiştirmez ve native izinle okunur.",
+        "Kalıcı silme retention kararı ve raporun onayından sonra eklenir; çağıranın izniyle native silme kullanılır. put.py'deki ignore_permissions kompanzasyon yolu temizleme API'si olarak dışa açılmaz.",
+        "Her temizlik adımı denetim kaydı ve outbox--contract olayı üretir; geri dönüş penceresi retention kararına bağlıdır.",
+        "Zamanlayıcı kaydını yalnız paylaşılan hooks.py için seri birleştirme önerisi olarak sun. Ham SQL DELETE kullanan kilit temizliğini File temizliğinde örnek alma."
+      ],
+      "dependencies": [
+        "native-file--contract",
+        "outbox--contract",
+        "tenant-registry--contract",
+        "native-doctype-schema--contract",
+        "native-user-policy--contract"
+      ],
+      "acceptance": "Herhangi bir ilişki türüyle kullanılan dosya ne raporda ne temizlikte yer alır. Kuru çalıştırmadan sonra kayıt sayısı değişmez. Retention'ı biten sahipsiz dosya denetim kaydıyla ve geri dönüş politikasına göre işlenir.",
+      "evidence": [
+        {
+          "path": "suite/suite/drive/webdav/pathmap.py",
+          "line": 30,
+          "quote": "content_hash, content_doctype, content_docname, attached_to_doctype, attached_to_name"
+        },
+        {
+          "path": "suite/suite/drive/webdav/structure.py",
+          "line": 87,
+          "quote": "# trash, not destruction: recoverable from the Drive web UI"
+        },
+        {
+          "path": "suite/suite/sheets/patches/integrate_with_drive.py",
+          "line": 39,
+          "quote": "frappe.db.set_value(\"File\", file.name, \"status\", STATUS_TRASHED, update_modified=False)"
+        },
+        {
+          "path": "suite/suite/drive/webdav/locks.py",
+          "line": 288,
+          "quote": "Hourly scheduler target; also run lazily before every read."
+        },
+        {
+          "path": "suite/suite/drive/webdav/put.py",
+          "line": 184,
+          "quote": "frappe.delete_doc(\"File\", drive_file.name, ignore_permissions=True, force=True)"
+        },
+        {
+          "path": "suite/suite/drive/webdav/perms.py",
+          "line": 46,
+          "quote": "# rare: adopted framework attachments delegate to their reference doc"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Hedef sürüm ile Suite Drive File override'ı arasındaki eşleme yazılmadı.",
+    "Tenant sınırı tanımsız; is_private=0 görünürlüğü tenant kabulüne eşlenmedi.",
+    "Tüm giriş yollarını kapsayan tek doğrulama kapısı, bayt doğrulaması ve karantina durum modeli yok.",
+    "Presigned URL ömrü/iptali ve yerel disk için süreli bağlantı sözleşmesi yok.",
+    "Kullanım tanımı, retention, kalıcı silme, denetim kaydı ve geri dönüş penceresi yok.",
+    "React/Ant Design galeri tüketicisi ve DAM metadata alanları tasarlanmadı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Tenant topolojisi: site sınırı mı, Drive takımı/principal mı?",
+      "requirementIds": ["files-1", "files-6", "files-8"],
+      "blocks": "Başka tenant reddi kabulü ve retention sahibinin belirlenmesi",
+      "interimDocStep": "İki adayın Drive filtresi ve DocShare üzerindeki etkisini seçim yapmadan tabloya yaz."
+    },
+    {
+      "decision": "Hedef Frappe/Suite sürümü",
+      "requirementIds": ["files-1", "files-5", "files-6", "files-8"],
+      "blocks": "Sürüm eşleme tablosu ve TDD RED adımı",
+      "interimDocStep": "v15 referansı ile kaynak anlık görüntüsü arasındaki farkı soru listesi olarak yaz."
+    },
+    {
+      "decision": "Kütüphane yükleme/liste giriş yolu: /api/v2 upload_file mi, Drive API mi?",
+      "requirementIds": ["files-1"],
+      "blocks": "Galeri adaptörünün çağrı sözleşmesi",
+      "interimDocStep": "Her iki yolun yetki ve doğrulama noktalarını envantere ekle."
+    },
+    {
+      "decision": "DAM metadata depolaması: Custom Field/Property Setter kapsamı ve Drive DAV Property ile ayrım",
+      "requirementIds": ["files-1"],
+      "blocks": "Metadata şema önerisi",
+      "interimDocStep": "Alan listesini şema değişikliği yapmadan aday olarak yaz."
+    },
+    {
+      "decision": "Zararlı içerik tarayıcı satıcısı/lisansı, senkron/asenkron çalışma ve zaman aşımı",
+      "requirementIds": ["files-5"],
+      "blocks": "Karantina geçişleri ve tarayıcı entegrasyonu",
+      "interimDocStep": "Fail-closed durum makinesini satıcıdan bağımsız biçimde yaz."
+    },
+    {
+      "decision": "Nesne depolama satıcısı, veri yerleşimi, presigned bağlantı ömrü ve yerel disk eşdeğeri",
+      "requirementIds": ["files-6"],
+      "blocks": "Süreli bağlantı kabulü",
+      "interimDocStep": "Mevcut S3 yönlendirme bayrağını ve doğrudan indirme başlıklarını sözleşmeye işle."
+    },
+    {
+      "decision": "Retention süresi, geri dönüş penceresi ve kalıcı silme onay sahibi",
+      "requirementIds": ["files-8"],
+      "blocks": "Kalıcı silme adımı",
+      "interimDocStep": "Yalnız kuru çalıştırma raporunun alanlarını ve kullanım ilişkileri tablosunu yaz."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

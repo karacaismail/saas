@@ -1,0 +1,191 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "ui-family-15",
+  "canonicalTaskIds": [
+    "page-record-detail--implementation-post-mvp",
+    "ui-family-15--implementation-post-mvp",
+    "ui-family-27--implementation-post-mvp",
+    "ui-view-matrix--implementation-post-mvp"
+  ],
+  "requirementIds": ["views-4"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "views-4": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Yalnız yetkili ortak alanlarla salt okunur kayıt karşılaştırma (önerilen RecordPreview bileşeni)",
+    "trigger": "Kullanıcı liste görünümünden veya kayıt detay sayfasından aynı DocType içindeki en az iki kaydı karşılaştırma için seçer.",
+    "expected": "Her kayıt sunucudan native tekil okuma yoluyla ayrı ayrı alınır. Karşılaştırma tablosunda yalnız seçilen tüm kayıtlar için sunucunun döndürdüğü izinli alanların kesişimi, DocType meta sırasıyla gösterilir. Değeri farklı olan alanlar işaretlenir. İşlem salt okunurdur; hiçbir kayıt, ayar veya izin değişmez.",
+    "denied": "Seçilen kayıtlardan biri okunamıyorsa karşılaştırma oluşturulmaz, hiçbir kaydın alan değeri gösterilmez ve kaydın yokluğunu izin reddinden ayırt ettirmeyen tek tip bir erişim mesajı döner. Kullanıcının permlevel erişimi olmayan alanın etiketi, değeri veya varlığı ekrana, ağ yanıtına, URL'ye ya da istemci önbelleğine girmez."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native Frappe parçası: REST v1 tekil kayıt okuması, yanıtı döndürmeden önce alan düzeyi okuma izinlerini uygular (frappe/frappe/api/v1.py:84). Meta katmanı, alan adlarını kullanıcının permlevel erişimine göre süzer (frappe/frappe/model/meta.py:746). Bu kanıtlar yalnız alan süzmesini gösterir. Karşılaştırma ekranı, kayıtlar arası alan kesişimi, kayıt sayısı sınırı ve child table/link karşılaştırması native olarak kanıtlanmadı. Vue/Frappe UI kaynağı React/Ant Design uygulaması kanıtı sayılmaz.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 84,
+        "quote": "doc.apply_fieldlevel_read_permissions()"
+      },
+      {
+        "path": "frappe/frappe/model/meta.py",
+        "line": 746,
+        "quote": "if df.permlevel in permlevel_access"
+      }
+    ],
+    "searchedPaths": ["frappe/frappe/api/v1.py", "frappe/frappe/model/meta.py"]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/ui-family-15.json",
+    "plannedProduction": [
+      "frontend/packages/ui/src/components/ui-family-15/post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-family-27/post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-view-matrix/post_mvp.tsx",
+      "frontend/packages/ui/src/pages/page-record-detail/post_mvp.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "JSON model: {doctype: string, names: string[]}. Tüm kayıtlar aynı DocType'a ait olmalı ve en az iki kayıt seçilmeli; üst sınır karar bekliyor. İlk dilimde doctype, kurulu frappe veya suite uygulamasındaki bir DocType ile sınırlıdır (karar bekliyor). Yalnız doctype ve names serileştirilir. Render fonksiyonları, ReactNode ve callback'ler yerel bileşen proplarıdır; JSON model sınırına girmez.",
+    "output": "Görünüm modeli: {doctype, fields: [{fieldname, label, fieldtype}], records: [{name, values}], differs: fieldname[]}. fields, her kayıt için sunucunun döndürdüğü alan anahtarlarının kesişimidir ve DocType meta sırasıyla dizilir. Gizli alan için yer tutucu, boş sütun veya 'gizli' etiketi üretilmez. ReactNode çıktısı yalnız yerel bileşen katmanındadır.",
+    "authorization": "Yetki tamamen native Frappe kayıt ve alan düzeyi okuma kontrolüne bırakılır. Her kayıt ayrı native okuma isteğiyle alınır. ignore_permissions, ham SQL, toplu özel uç nokta veya istemci tarafı alan süzmesi yetki sınırı olarak kullanılmaz. client-rule-parity kapsamındaki görünürlük kuralları yalnız sunum içindir, güvenlik sınırı sayılmaz. Bu rehber rol veya izin üretmez. İleride rol veya izin gerekirse explicitPermissionFlags ortak kaynağına bağlanmalı ve o rehberin kabulünde reddedilen yazma ile değişmeyen kayıt kanıtı bulunmalıdır.",
+    "persistence": "Kalıcı veri yok; işlem salt okunurdur. Sunucuda karşılaştırma durumu, şema veya DocType oluşturulmaz. URL durumu TanStack Router search parametrelerinde yalnız doctype ve names olarak tutulur. TanStack Query önbellek anahtarı, kernel-envelope sözleşmesindeki oturum ve kapsam bağlamını içerir; oturum kapanınca veya değişince temizlenir. Bu sözleşme hiçbir servisi, production ortamını, şemayı veya veriyi değiştirme yetkisi vermez.",
+    "failure": "Herhangi bir kayıtta okuma reddi veya kayıt bulunamaması: karşılaştırmanın tamamı reddedilir; kısmi tablo gösterilmez; yokluk ile izin reddi ayırt edilmez. Farklı DocType veya sınır aşımı: doğrulama hatası döner, istek gönderilmez. Kesişim boşsa 'karşılaştırılabilir ortak alan yok' mesajı gösterilir. Ağ hatasında yeniden deneme önerilir; önceki oturumdan kalan veri gösterilmez."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "client-rule-parity--contract",
+      "kernel-envelope--contract",
+      "native-report--contract",
+      "native-version--contract",
+      "page-record-detail--contract",
+      "page-record-detail--implementation",
+      "ui-family-07--contract",
+      "ui-family-15--contract",
+      "ui-family-15--implementation",
+      "ui-family-27--contract",
+      "ui-family-27--implementation",
+      "ui-view-matrix--contract",
+      "ui-view-matrix--implementation"
+    ],
+    "admission": {
+      "statusText": "Uygulama durumu: uygulanmadı",
+      "prerequisites": [
+        "T-00 hedef temel çizgisi ve R-00 yeniden kullanım eşlemesi kabul edilmiş olmalı.",
+        "Bu davranış izinli veri tükettiği için R-01 de kabul edilmiş olmalı.",
+        "decisionsPending içindeki ilk hedef DocType kararı verilmiş olmalı.",
+        "Tek dar davranış için gerçek RED ve GREEN kanıtı üretilmeli."
+      ],
+      "orderAuthority": "Mevcut görev bağımlılıkları ve aşama belirleyicidir; küme sırası yalnız sunumdur, yeni bir seri bağımlılık grafiği değildir."
+    },
+    "steps": [
+      "Bu sözleşmeyi ui-family-15, page-record-detail, ui-view-matrix ve ui-family-27 sözleşmeleriyle hizala. Yeni kanonik görev veya kimlik ekleme.",
+      "İlk hedef DocType kararını al. Çalışan (HRMS Employee) ve ürün (ERPNext) örneklerini belgede 'kurulum gerekir' diye etiketle; kurulu yetenek sayma.",
+      "Veri katmanı: api-middleware ve kernel-envelope sözleşmeleri üzerinden her kayıt için native REST v1 tekil okuma çağır. Toplu özel uç nokta, ignore_permissions veya SQL kullanma.",
+      "Kesişim: her yanıtın alan anahtarı kümelerinin kesişimini al ve DocType meta sırasıyla diz. Meta'dan gelen alan listesini, sunucu yanıtında bulunmayan alanları eklemek için kullanma.",
+      "Fark hesabı: kesişim üzerinde, saf istemci fonksiyonuyla değer eşitliği hesapla. Child table ve Link alanları, karar verilene kadar ilk dilimin dışında ve 'kapsam dışı' etiketiyle kalır.",
+      "UI: önerilen RecordPreview bileşenini Ant Design Descriptions veya Table ile kur. Veri grid kararına bağlanma. Tablo kendi kapsayıcısında yatay kaydırılsın. İlk sütundaki alan etiketleri kelime ortasından bölünmesin. Metin en az 14 CSS px olsun. Çevreleyen odak halkası kullanılmasın. Renk, boşluk ve hareket değerleri semantik tokenlardan gelsin. Kabul 320 CSS px'ten başlasın.",
+      "Kayıt: bileşen önerisini kaynak bileşen registry'sine (frontend/packages/ui/src/registry.ts önerisi) ekle. GenUI capability registry ayrı bir kullanıcı projesidir; bu davranış oraya eklenmez.",
+      "Rota: routes.tsx önerisinde karşılaştırma görünümüne yalnız doctype ve names search parametreleriyle gir. Girişler kayıt detay sayfasından ve liste görünümü seçiminden açılsın.",
+      "Gelecekteki tek TDD senaryosunu development.tdd'ye göre uygula. Veri sızıntısı riski nedeniyle bağımsız standards-reviewer ve UI QA incelemesi iste."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Aynı DocType'tan iki kayıt seçilir. Kullanıcının permlevel 0 okuma izni var, permlevel 1 alanı için okuma izni yok. Karşılaştırmada yalnız permlevel 0 ortak alanları görünür; permlevel 1 alanının etiketi ve değeri ne DOM'da ne istemci önbelleğinde bulunur; iki kaydın modified değeri değişmez.",
+      "red": "Kesişim yerine meta alan listesine veya alanların birleşimine dayanan bir karşılaştırma, permlevel 1 alan etiketini veya boş sütununu gösterdiği için davranış iddiası başarısız olur. RED; import, ortam veya altyapı hatasıyla ya da native izin davranışını bozarak üretilmez.",
+      "green": "Alan kümesi yalnız her kayıt için sunucunun döndürdüğü izinli alan anahtarlarının kesişiminden hesaplanınca senaryo geçer. Native izin kodu değiştirilmez. Bu turda test yazılmaz ve koşulmaz."
+    },
+    "rollback": "Davranış salt okunur olduğundan veri veya şema geri alımı gerekmez. Geri alma: rota girişini ve registry kaydını kaldır, önceki sürümü yeniden dağıt. Teknik CI, deploy ve rollback sahibi Hüseyin Cengiz'dir. Bu sözleşme rollback'i kendisi yürütme yetkisi vermez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "views-4",
+      "sourceStage": "post_mvp",
+      "existing": "Native Frappe, tekil kayıt okumasında alan düzeyi okuma izinlerini uygular (frappe/frappe/api/v1.py:84). Alan adlarını permlevel erişimine göre süzer (frappe/frappe/model/meta.py:746). Mevcut talimat (data/clusters/04.json:321) desteği external olarak değerlendirir: veri alanları API'den alınabilir, hazır bir genel karşılaştırma ekranı saptanmadı. HRMS ve ERPNext bu kaynakta kurulu değildir.",
+      "gap": "Karşılaştırma ekranı yok. Hedef DocType ve ilk örnek belirsiz. Farklı permlevel erişimli kayıtlarda alan kesişimi tanımsız. Kayıt sayısı sınırı yok. Child table ve Link karşılaştırması yazılmamış. Çalışan ve ürün örnekleri native kurulu yetenek değil.",
+      "completionSteps": [
+        "İlk örneği kurulu frappe veya suite içindeki tek bir DocType ile sınırla. HRMS ve ERPNext örneklerini 'kurulum gerekir' diye etiketle.",
+        "Her kaydı ayrı native okuma isteğiyle al. Alan kümesi = her kayıt için sunucunun döndürdüğü izinli alanların kesişimi.",
+        "Herhangi bir kayıt okunamazsa karşılaştırmanın tamamını reddet. Yokluk ile izin reddini ayırt etme.",
+        "Kayıt sayısı üst sınırını ve child table/link sunumunu karar gelene kadar ilk dilimin dışında tut; sınır aşımını istemcide doğrulama hatasıyla reddet.",
+        "Sonucu Ant Design tabanlı, salt okunur bir tabloda göster; kapsayıcı içi yatay kaydırma, 14 CSS px alt sınırı ve odak kuralları uygulanır."
+      ],
+      "dependencies": [
+        "ui-family-15--contract",
+        "ui-family-15--implementation",
+        "kernel-envelope--contract",
+        "api-middleware--contract",
+        "client-rule-parity--contract",
+        "ui-family-07--contract"
+      ],
+      "acceptance": "Yalnız ortak ve yetkili alanlar karşılaştırılır. Permlevel erişimi olmayan alan ekrana, ağ yanıtına, URL'ye veya önbelleğe girmez. Okunamayan bir kayıt karşılaştırmanın tamamını reddeder. Karşılaştırılan kayıtların hiçbiri değişmez. Çalışan ve ürün örnekleri kurulum kararı olmadan kabul kapsamına girmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 84,
+          "quote": "doc.apply_fieldlevel_read_permissions()"
+        },
+        {
+          "path": "frappe/frappe/model/meta.py",
+          "line": 746,
+          "quote": "if df.permlevel in permlevel_access"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Karşılaştırma ekranı ve kesişim hesabı uygulanmadı; native kanıt yalnız alan düzeyi süzmeyi gösterir.",
+    "Kayıt düzeyi okuma kontrolünün tekil okuma yolunda alan süzmesiyle birlikte çalıştığı, gelecekteki RED/GREEN kanıtıyla doğrulanmalı.",
+    "Kayıt sayısı üst sınırı, child table ve Link alanı sunumu tanımsız.",
+    "Çalışan ve ürün karşılaştırması için HRMS ve ERPNext kurulu değil.",
+    "Gerçek tarayıcı, cihaz ve CI kabulü çalıştırılmadı (not_run)."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "İlk hedef DocType: kurulu frappe veya suite içindeki hangi DocType ilk örnek olacak.",
+      "requirementIds": ["views-4"],
+      "blocks": "Uygulama kabulü ve gelecekteki TDD senaryosunun somut veri kurgusu.",
+      "interimDocStep": "Sözleşmeyi DocType'tan bağımsız tut. Aday DocType'ları, permlevel alanı içerip içermediğine göre belgede listele."
+    },
+    {
+      "decision": "HRMS ve ERPNext kurulumu ve hedef sürümü (çalışan ve ürün örnekleri için).",
+      "requirementIds": ["views-4"],
+      "blocks": "Çalışan ve ürün karşılaştırma örneklerinin kabul kapsamına alınması.",
+      "interimDocStep": "Bu örnekleri 'kurulum gerekir' etiketiyle tut. Kabul ölçütünü kurulu DocType üzerinden yaz."
+    },
+    {
+      "decision": "Bir karşılaştırmadaki kayıt sayısı üst sınırı.",
+      "requirementIds": ["views-4"],
+      "blocks": "Girdi doğrulaması ve dar ekran yerleşim kabulü.",
+      "interimDocStep": "Sınırı adlandırılmış, yapılandırılabilir bir sözleşme parametresi olarak tanımla; sayı seçme."
+    },
+    {
+      "decision": "Child table ve Link alanlarının karşılaştırmada nasıl sunulacağı.",
+      "requirementIds": ["views-4"],
+      "blocks": "Bu alan türlerinin ilk dilim dışından çıkarılması.",
+      "interimDocStep": "İlk dilimde bu alanları 'kapsam dışı' diye etiketle. Seçenekleri ui-view-matrix sözleşmesiyle hizalı biçimde belgele."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

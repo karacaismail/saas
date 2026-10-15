@@ -1,0 +1,300 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "plan-definition",
+  "canonicalTaskIds": [
+    "plan-definition--implementation",
+    "ui-family-35--implementation"
+  ],
+  "requirementIds": ["catalog-2", "catalog-3", "catalog-6"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "catalog-2": "post_mvp",
+    "catalog-3": "post_mvp",
+    "catalog-6": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Plan sürümünün yaşam döngüsü geçişi (yayın, satış durumu, fiyat sürümü) sunucuda doğrulanır; dış yüzeyler yalnız yayınlanmış sürümü görür",
+    "trigger": "Bir kullanıcının PlanDefinition kaydında yayınlama, satış durumu değiştirme veya yeni fiyat sürümü üretme isteği; yeni abonelik oluşturulurken plan sürümü seçilmesi; frontpage yüzeyinin Guest olarak yayınlanmış plan projeksiyonunu okuması.",
+    "expected": "Uygulama durumu: uygulanmadı. Gelecekteki uygulamada her geçiş native DocPerm ve doküman doğrulamasından geçer; yayınlanan sürüm değişmez bir sürüm kimliği taşır ve panel ile frontpage aynı sürüm kimliğini gösterir; yeni fiyat yalnız yeni aboneliğe uygulanır, mevcut abonelik bağlı olduğu fiyat sürümünde kalır; emekli plan yeni satışta seçilemez, gizli ve sözleşmeye özel planlar yalnız sunucu kuralının izin verdiği kapsamda seçilir.",
+    "denied": "İzin bayrağı olmayan rolün yayınlama veya satış durumu geçişi, taslak sürümün Guest tarafından okunması, emekli planla yeni abonelik oluşturma ve submit edilmiş fiyat sürümünün yerinde değiştirilmesi reddedilir. Reddedilen istekte plan kaydı, projeksiyon, abonelik bağı ve olay kaydı değişmez."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native Frappe parçaları yeniden kullanılır: izin kontrollü REST kaynak rotaları, doküman okumasında check_permission, DocPerm içindeki submit/cancel/amend hakları, belge erişim kararını veren has_permission ve modül görünürlüğünün güvenlik sınırı olmadığı ayrımı. Bu parçalar bütün davranışın var olduğunu göstermez: yayın durumu, herkese açık projeksiyon, fiyat sürümü bağı ve satış durumu kuralı incelenen kaynakta yoktur. Package Release içindeki publish alanı yalnız dosya dışa aktarımıdır ve major.minor.patch adlandırması modül paketine aittir; ikisi de web yayını veya fiyat sürümü olarak yeniden kullanılmaz.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 153,
+        "quote": "Rule(\"/resource/<doctype>\", methods=[\"GET\", \"QUERY\"], endpoint=document_list)"
+      },
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 83,
+        "quote": "doc.check_permission(\"read\")"
+      },
+      {
+        "path": "frappe/frappe/core/doctype/package_release/package_release.py",
+        "line": 76,
+        "quote": "if self.publish:"
+      },
+      {
+        "path": "frappe/frappe/permissions.py",
+        "line": 22,
+        "quote": "\"amend\","
+      },
+      {
+        "path": "frappe/frappe/core/doctype/package_release/package_release.py",
+        "line": 66,
+        "quote": "self.name = \"{}-{}.{}.{}\".format("
+      },
+      {
+        "path": "frappe/frappe/utils/modules.py",
+        "line": 50,
+        "quote": "This is navigation reach only. Never call it from `has_permission`."
+      },
+      {
+        "path": "frappe/frappe/permissions.py",
+        "line": 82,
+        "quote": "def has_permission("
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "frappe/frappe/core/doctype/package_release/package_release.py",
+      "frappe/frappe/permissions.py",
+      "frappe/frappe/utils/modules.py"
+    ],
+    "note": "Alıntılar önceki salt-okunur Frappe kaynak anlık görüntülerinden alınmıştır; canlı site veya ürün kabulü değildir. Aranan yolların listesi kapsamlı yokluk iddiası değildir."
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/plan-definition.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/commercial/doctype/plan_definition/plan_definition.py",
+      "frontend/packages/ui/src/components/ui-family-35/index.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Önerilen girdi (alan adları plan-definition--schema sözleşmesinde kesinleşir): PlanDefinition kaydında plan kodu, sürüm kimliği, yayın durumu (taslak, yayınlanmış), satış durumu (satışta, gizli, emekli, sözleşmeye özel) ve fiyat sürümü bağlantısı; yayınlama ve satış durumu geçişi istekleri; yeni abonelik oluşturma isteğinde seçilen plan ve fiyat sürümü.",
+    "output": "Yönetim yüzeyine native doküman yanıtı; frontpage yüzeyine yalnız yayınlanmış ve satışa açık sürümlerden oluşan, sürüm kimliği taşıyan salt-okunur projeksiyon. Projeksiyon taslakları, gizli ve sözleşmeye özel planları ve iç alanları içermez. ui-family-35 bileşeni projeksiyonu JSON model sınırından alır; ReactNode ve callback'ler yalnız yerel React/Ant Design katmanında kalır. Kaynak registry ile GenUI capability registry ayrı tutulur.",
+    "authorization": "Native DocPerm, has_permission ve doc.check_permission yeniden kullanılır; fiyat sürümü değişmezliği için submit/cancel/amend hakları kullanılır. Geçiş izinleri explicitPermissionFlags ortak kaynağına bağlanır; bu sözleşme rol adı veya izin bayrağı üretmez. Guest erişimi genel /api/resource rotası açılarak verilmez; yalnız yayınlanmış sürümü dönen tek dar whitelisted okuma metodu önerilir. ignore_permissions, ham SQL ile yetki atlama ve modül veya UI görünürlüğünü yetki sınırı saymak yasaktır.",
+    "persistence": "Geçişler native save/submit/amend akışında ve tek transaction içinde yapılır; durum kuralı doküman doğrulama aşamasında çalışır. Yayın ve durum değişikliği olayları audit-envelope--contract ve outbox--contract sözleşmelerine göre kaydedilir; frontpage önbellek temizleme bu olaydan türetilir. Bu sözleşme hiçbir servis, production ortamı, şema veya veriyi değiştirme yetkisi vermez.",
+    "failure": "Yetki ihlali PermissionError, kural ihlali doğrulama hatası olarak döner; kısmi yazma, yarım projeksiyon veya yetim olay kaydı kalmaz. Projeksiyon okunamazsa frontpage taslak veriye düşmez ve sürüm kimliği doğrulanamayan içeriği yayınlanmış gibi göstermez; hata durumu açıkça gösterilir."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "audit-envelope--contract",
+      "capability-definition--contract",
+      "client-rule-parity--contract",
+      "entitlement-grant--contract",
+      "kernel-envelope--contract",
+      "native-user-policy--contract",
+      "outbox--contract",
+      "plan-definition--contract",
+      "plan-definition--schema",
+      "subscription--contract",
+      "tenant-registry--contract",
+      "ui-family-35--contract",
+      "usage-ledger--contract"
+    ],
+    "admission": "Uygulama durumu: uygulanmadı. Kabul önkoşulları: T-00 hedef taban çizgisi ve R-00 yeniden kullanım eşlemesi; izinli veri tüketicileri için R-01; listedeki bağımlı sözleşmelerin çözülmesi; ilgili decisionsPending kararlarının insan tarafından verilmesi; tek dar davranış için gerçek RED/GREEN kanıtı. Sıra yetkisi mevcut görev bağımlılıkları ve aşamadır; küme sırası yalnız sunumdur.",
+    "steps": [
+      "R-00 eşlemesinde yeniden kullanılacak native parçaları (DocPerm, check_permission, has_permission, submit/cancel/amend) ve yeniden kullanılmayacak Package Release publish alanı ile adlandırmasını ayrı kaydet.",
+      "plan-definition--schema ile yayın durumu, satış durumu ve fiyat sürümü bağlantısı alanlarını öner.",
+      "Geçiş tablosunu (taslak -> yayınlanmış; satışta -> gizli -> emekli; sözleşmeye özel) yaz ve her geçişi explicitPermissionFlags ortak kaynağındaki bir izin bayrağına bağla.",
+      "Geçiş kuralını ve submit sonrası değişmezliği PlanDefinition doküman doğrulamasında native akışla planla.",
+      "subscription--contract ile yeni abonelik oluştururken plan seçimini sunucuda doğrula; mevcut aboneliğin fiyat sürümü bağına dokunma.",
+      "Yalnız yayınlanmış sürümü dönen tek dar whitelisted okuma metodunu ve sabit projeksiyon alan listesini tanımla.",
+      "Yayın olayını audit ve outbox sözleşmelerine, frontpage önbellek temizlemeyi bu olaya bağla.",
+      "ui-family-35 görünümünü React/Ant Design ile sürüm kimliğini gösterecek şekilde planla; registry.ts ve routes.tsx gibi paylaşılan dosya değişikliklerini ana entegrasyon sahibine seri birleştirme için bırak."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Satış durumu geçiş izin bayrağı olmayan bir kullanıcı yayınlanmış bir planı emekli durumuna geçirmeye çalıştığında istek sunucuda reddedilir; plan kaydı ve yayınlanmış projeksiyon değişmeden kalır.",
+      "red": "Gelecekte yazılacak test izinsiz kullanıcıyla geçiş ister, reddi ve kaydın değişmediğini doğrular; geçiş kuralı yokken istek kabul edildiği için davranış iddiası başarısız olur. RED import hatası, eksik altyapı veya native izin davranışını bozarak üretilmez.",
+      "green": "Geçiş kuralı native has_permission/check_permission ve doküman doğrulamasıyla eklendiğinde aynı test reddi ve değişmeyen kaydı doğrular; yetkili kullanıcının geçişi korunur. Bu turda test yazılmaz ve koşulmaz."
+    },
+    "rollback": "Bu sözleşme yalnız belgedir; geri alma belge revizyonudur. Gelecekteki kod değişikliğinde CI, deploy ve rollback teknik sahibi Hüseyin Cengiz'dir; geri alma eklenen doğrulama ve okuma metodunun kaldırılmasıyla yapılır, submit edilmiş fiyat sürümleri ve abonelik bağları silinmez veya yeniden yazılmaz. Frontpage için alan adı veya DNS kaydı gerekirse teknik gereksinimi Hüseyin Cengiz hazırlar, GoDaddy tarafında Asistan Hüseyin uygular, sonucu Hüseyin Cengiz doğrular."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "catalog-2",
+      "sourceStage": "post_mvp",
+      "existing": "Native parça: izin kontrollü REST kaynak rotaları ve doküman okumasında check_permission. Package Release publish alanı yalnız dosya dışa aktarır; web yayını değildir.",
+      "gap": "Taslak/yayınlanmış durum alanı ve yayınlamanın sunucu doğrulaması yok; frontpage'in Guest olarak okuyacağı dar uç nokta, salt-okunur projeksiyon ve önbellek temizleme kuralı yazılmamış; genel /api/resource yerine dar uç nokta gerekliliği belirtilmemiş.",
+      "completionSteps": [
+        "Yayın durumunu plan-definition--schema'da öner; yayınlamayı doküman doğrulaması ve izin bayrağıyla sunucuda kontrol et.",
+        "Yalnız yayınlanmış ve sürüm kimliği taşıyan kayıtları dönen tek dar whitelisted okuma metodu ve sabit alan listesi tanımla.",
+        "Guest'e genel /api/resource rotasını açma; ignore_permissions kullanma.",
+        "Yayın olayından frontpage önbellek temizlemeyi outbox sözleşmesiyle tanımla.",
+        "Panel ve frontpage'in aynı sürüm kimliğini göstermesini ui-family-35 görünümünde planla."
+      ],
+      "dependencies": [
+        "plan-definition--schema",
+        "native-user-policy--contract",
+        "api-middleware--contract",
+        "outbox--contract",
+        "audit-envelope--contract",
+        "ui-family-35--contract"
+      ],
+      "acceptance": "Taslak paket herkese açık olmamalı; yayınlanan paket sürümü iki yüzeyde birebir eşleşmeli.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 153,
+          "quote": "Rule(\"/resource/<doctype>\", methods=[\"GET\", \"QUERY\"], endpoint=document_list)"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 83,
+          "quote": "doc.check_permission(\"read\")"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/package_release/package_release.py",
+          "line": 76,
+          "quote": "if self.publish:"
+        }
+      ]
+    },
+    {
+      "requirementId": "catalog-3",
+      "sourceStage": "post_mvp",
+      "existing": "Native parça: DocPerm içindeki submit/cancel/amend hakları değişmez sürüm kaydı için kullanılabilir. Package Release major.minor.patch adlandırması modül paketine aittir ve fiyat sürümü için kullanılmaz. ERPNext kurulu değil.",
+      "gap": "Fiyat sürümünün submit sonrası değişmezliği ile yeni sürümün amend veya ayrı kayıtla üretilmesi kararı yok; aboneliğin hangi fiyat sürümüne bağlanacağı ve yenilemede geçerli sürüm kuralı yazılmamış; faturalama motoru belirsiz.",
+      "completionSteps": [
+        "Fiyat sürümünü submittable kayıt olarak öner ve submit sonrası değişmezliği native akışla koru.",
+        "Amend veya ayrı kayıt kararı gelene kadar iki seçeneğin izin ve denetim etkisini belgele.",
+        "Abonelikte fiyat sürümü Link'ini subscription--contract ile öner; 'yeni fiyat yalnız yeni aboneliğe uygulanır' kuralını yaz.",
+        "Yenilemede geçerli sürüm kuralını karar sonrası ekle.",
+        "Faturalama motoru kararı olmadan hesaplama planlama; kabul senaryosunu ortak insan bütçesinde tek senaryo olarak sonraya bırak."
+      ],
+      "dependencies": [
+        "plan-definition--schema",
+        "subscription--contract",
+        "entitlement-grant--contract",
+        "usage-ledger--contract",
+        "audit-envelope--contract"
+      ],
+      "acceptance": "Yeni fiyat yayınlanınca grandfathered müşteri eski koşulla, yeni müşteri yeni koşulla faturalanmalı.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 22,
+          "quote": "\"amend\","
+        },
+        {
+          "path": "frappe/frappe/core/doctype/package_release/package_release.py",
+          "line": 66,
+          "quote": "self.name = \"{}-{}.{}.{}\".format("
+        }
+      ]
+    },
+    {
+      "requirementId": "catalog-6",
+      "sourceStage": "post_mvp",
+      "existing": "Native parça: belge erişimi has_permission ile DocPerm üzerinden karar verilir; modül görünürlüğü yalnız gezinme erişimidir ve güvenlik sınırı değildir. Plan satış durumu kaynakta yok.",
+      "gap": "Durum geçişleri ve yetkili roller tanımsız; yeni satışta emekli plan seçimini engelleyen sunucu doğrulaması ile mevcut sözleşmenin korunması ayrımı yazılmamış; sözleşmeye özel planın müşteri kapsamı catalog-5 ile bağlanmamış. Yalnız UI'da gizlenen plan yeni satışta seçilebilir kalır.",
+      "completionSteps": [
+        "Satış durumu alanını (satışta, gizli, emekli, sözleşmeye özel) plan-definition--schema'da öner.",
+        "Geçiş tablosunu yaz; her geçişi explicitPermissionFlags kaynağındaki bayrağa bağla, rol adlarını karara bırak.",
+        "Yeni abonelikte emekli planı ve kapsam dışı sözleşmeye özel planı sunucu doğrulamasıyla reddet; UI gizlemeye güvenme.",
+        "Mevcut aboneliklerin durum değişikliğinden etkilenmediğini yenileme kararıyla birlikte yaz.",
+        "Sözleşmeye özel plan kapsamının catalog-5 ile bağını decisionsPending'de tut; bu sözleşmenin kapsamına ekleme."
+      ],
+      "dependencies": [
+        "plan-definition--schema",
+        "subscription--contract",
+        "native-user-policy--contract",
+        "client-rule-parity--contract",
+        "tenant-registry--contract",
+        "audit-envelope--contract"
+      ],
+      "acceptance": "Emekli plan yeni satışta seçilememeli; mevcut sözleşmedeki müşteri erişimini korumalı.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/utils/modules.py",
+          "line": 50,
+          "quote": "This is navigation reach only. Never call it from `has_permission`."
+        },
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 82,
+          "quote": "def has_permission("
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Yayın durumu, satış durumu ve fiyat sürümü bağı için şema önerisi plan-definition--schema'da kesinleşmedi.",
+    "Geçiş tablosu ve izin bayrağı eşlemesi yazılmadı.",
+    "Guest için dar okuma metodu, projeksiyon alan listesi ve önbellek temizleme kuralı tanımlanmadı.",
+    "Yeni abonelikte plan seçiminin sunucu doğrulaması subscription--contract ile bağlanmadı.",
+    "Kanıtlar hedef sürümde doğrulanmadı; runtime kabulü koşulmadı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Faturayı hesaplayacak motor (ERPNext veya özel)",
+      "requirementIds": ["catalog-3"],
+      "blocksStep": "Fatura hesaplama ve grandfathering kabul senaryosu",
+      "allowedDocumentWork": "Fiyat sürümü bağı ve değişmezlik kuralını motordan bağımsız belgele."
+    },
+    {
+      "decision": "Yeni fiyat sürümü amend ile mi ayrı kayıtla mı üretilecek",
+      "requirementIds": ["catalog-3"],
+      "blocksStep": "Fiyat sürümü şema önerisi",
+      "allowedDocumentWork": "İki seçeneğin izin, denetim ve sürüm kimliği etkisini karşılaştırmalı yaz."
+    },
+    {
+      "decision": "Yenilemede geçerli fiyat sürümü ve eski koşulların korunma süresi",
+      "requirementIds": ["catalog-3", "catalog-6"],
+      "blocksStep": "Abonelik yenileme doğrulaması",
+      "allowedDocumentWork": "Yenileme senaryolarını seçenekleriyle listele."
+    },
+    {
+      "decision": "Yayın ve satış durumu geçişlerini yapabilecek roller",
+      "requirementIds": ["catalog-2", "catalog-6"],
+      "blocksStep": "İzin bayrağı eşlemesi ve TDD senaryosunun rol kurulumu",
+      "allowedDocumentWork": "Geçiş tablosunu rol adı olmadan izin bayrağı yer tutucusuyla yaz."
+    },
+    {
+      "decision": "Sözleşmeye özel planın müşteri kapsamı ve catalog-5 ile bağı",
+      "requirementIds": ["catalog-6"],
+      "blocksStep": "Sözleşmeye özel plan seçim doğrulaması",
+      "allowedDocumentWork": "Kapsam bilgisinin gerekliliğini ve reddedilecek durumları not et."
+    },
+    {
+      "decision": "Frontpage önbellek temizleme ve yayın gecikmesi kuralı",
+      "requirementIds": ["catalog-2"],
+      "blocksStep": "Projeksiyon önbellek tasarımı",
+      "allowedDocumentWork": "Yayın olayından temizlemeye giden akışı outbox sözleşmesi üzerinden tarif et."
+    },
+    {
+      "decision": "Hedef Frappe sürümü (T-00 taban çizgisi)",
+      "requirementIds": ["catalog-2", "catalog-3", "catalog-6"],
+      "blocksStep": "Kanıtların hedef sürümde doğrulanması ve kabul",
+      "allowedDocumentWork": "Kanıtları önceki salt-okunur kaynak anlık görüntüsü olarak işaretli tut."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

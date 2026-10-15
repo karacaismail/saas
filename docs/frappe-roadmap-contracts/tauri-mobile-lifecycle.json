@@ -1,0 +1,265 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "tauri-mobile-lifecycle",
+  "canonicalTaskIds": [
+    "tauri-mobile-lifecycle--implementation",
+    "ui-family-07--implementation-post-mvp"
+  ],
+  "requirementIds": ["channels-19"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "channels-19": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Tauri 2 mobil istemcide yaşam döngüsü: sistem geri hareketi, sanal klavye, safe area, arka plan dönüşü ve işletim sistemi sonlandırması sonrası iş bağlamının korunması",
+    "trigger": "Android sistem geri hareketi veya tuşu; sanal klavyenin açılıp kapanması; yön veya pencere boyutu değişimi; uygulamanın arka plana alınması, gelen çağrı veya izin diyaloğuyla kesilmesi; arka planda işletim sistemince sonlandırılan sürecin yeniden açılması.",
+    "expected": "Back önce en üstteki açık katmanı (dialog, sheet, drawer, açılır panel) kapatır ve odağı katmanı açan kontrole döndürür; açık katman yoksa TanStack Router geri yığınında bir adım geri gider; kirli taslak içeren yüzeyden çıkışta onay ister. Sanal klavye odaklanan alanı ve ana eylemi örtmez. Safe area boşlukları merkezi semantik tokenlardan gelir. Arka plana geçişte kirli taslak yerel depoya yazılır; süreç sonlandırması sonrası yeniden açılışta URL ile seçilmiş iş bağlamı, taslak ve açık kaydetme eylemiyle oluşmuş outbox kayıtları bulunur. Görünür durum cihazda kaydetme ile merkez kabulünü ayırır.",
+    "denied": "Açık katman varken Back route değiştirmez; kirli taslak onaysız atılmaz; taslak kendiliğinden outbox kaydına dönüşmez; yerel kayıt merkez kabulü gibi gösterilmez; yeniden açılışta başka kullanıcı veya tenant kapsamındaki taslak gösterilmez; izin reddi akışı kilitlemez ve taslağı silmez; cihaz yeteneği ekran genişliğinden, user-agent bilgisinden veya tek bir isMobile bayrağından çıkarılmaz; yaşam döngüsü kodu native Frappe izinlerini atlayamaz."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Yalnız davranış referansı, kod taşıma yok. Kanıtlar upstream Suite Vue frontend'i ve Frappe Desk JS'indeki web/PWA tarayıcı primitiflerini gösterir: visualViewport resize/scroll ile klavye izleme, pinch-zoom ile klavyenin ayrılması, bileşene gömülü env(safe-area-inset-*) padding, popstate ile açık dialog kapatma, pagehide anında kirli taslağın en iyi çabayla yazılması ve görünümü URL'de tutup Back ile geri izleme. Vue/Frappe UI kaynağı React/Ant Design/TanStack Router/Tauri 2 uygulamasının kanıtı değildir. Bir native parçanın varlığı bütün davranışın var olduğu anlamına gelmez; Tauri 2 mobil geri olayı, pause/resume, süreç sonlandırması sonrası geri yükleme ve istemci outbox sınırı için aranan yollarda kanıt bulunmadı. Bu, kapsamlı bir yokluk iddiası değildir.",
+    "evidence": [
+      {
+        "path": "suite/frontend/src/composables/useKeyboardInsets.ts",
+        "line": 34,
+        "quote": "window.visualViewport?.addEventListener('resize', update)"
+      },
+      {
+        "path": "frappe/frappe/public/js/frappe/ui/components/bottom_sheet.js",
+        "line": 527,
+        "quote": "// an on-screen keyboard shrinks the visual viewport; the sheet sits above it"
+      },
+      {
+        "path": "suite/frontend/src/components/AdaptiveDropdown.vue",
+        "line": 12,
+        "quote": "<div class=\"px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]\">"
+      },
+      {
+        "path": "suite/frontend/src/apps/slides/pages/PresentationEditor.vue",
+        "line": 451,
+        "quote": "window.addEventListener('popstate', hideOpenDialogs)"
+      },
+      {
+        "path": "suite/frontend/src/apps/slides/pages/PresentationEditor.vue",
+        "line": 267,
+        "quote": "if (dirty.value) saveDraft()"
+      },
+      {
+        "path": "suite/frontend/src/apps/calendar/utils/mobileView.ts",
+        "line": 27,
+        "quote": "for which view is up — switching is a navigation, so Back retraces it — which"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/public/js/frappe/ui/components/bottom_sheet.js",
+      "suite/frontend/src/apps/calendar/utils/mobileView.ts",
+      "suite/frontend/src/apps/slides/pages/PresentationEditor.vue",
+      "suite/frontend/src/components/AdaptiveDropdown.vue",
+      "suite/frontend/src/composables/useKeyboardInsets.ts"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/tauri-mobile-lifecycle.json",
+    "plannedProduction": [
+      "frontend/packages/platform/src/tauri-mobile-lifecycle/tauri_mobile_lifecycle_post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-family-07/post_mvp.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Platform olayları: Tauri 2 mobil adapter üzerinden gelen sistem geri olayı ve ön plan/arka plan bildirimi. Kesin API veya plugin adı hedef Tauri 2 sürümü seçildikten sonra resmi dokümandan doğrulanır; bu sözleşme API adı belirlemez. WebView olayları: visualViewport resize ve scroll, pagehide, visibilitychange. Bunlara ek olarak TanStack Router konum durumu, ui-family-07 bileşenlerinin açık katman yığını, yüzeyin kirli taslak durumu ve kullanıcının açık kaydetme eylemi.",
+    "output": "Katman kapatma veya tek adım router geri gidişi; kirli çıkış onayı; klavye inset değeri (görünür yükseklik ve üst ofset); safe area semantik tokenlarıyla yerleşim; yerel taslak yazımı; açık kaydetmede istemci outbox kaydı; yeniden açılışta URL, taslak ve outbox geri yüklemesi; ekran okuyucuya duyurulan ayrık durumlar: cihazda kaydedildi, gönderim bekliyor, merkez kabul etti, reddedildi.",
+    "authorization": "Yaşam döngüsü katmanı yetki üretmez ve vermez. Outbox gönderimi kullanıcının mevcut oturumuyla native Frappe API, izin, transaction, save ve hook yolundan geçer (api-middleware--contract, kernel-envelope--contract); ignore_permissions veya SQL ile yetki bypass yapılmaz. Yerel taslak ve outbox anahtarları kullanıcı ve tenant kapsamını içerir; tenant anahtarının biçimi tenant topolojisi kararına bağlıdır. Oturum davranışı keycloak-login--contract sahipliğindedir ve bu sözleşmenin kapsamına alınmaz. Tauri native yetenekleri capability tanımında en dar izinle açılır. Bu rehber rol veya izin üretmez; ileride rol/izin üreten bir adım eklenirse explicitPermissionFlags ortak kaynağına bağlanır ve o adımın kabulünde reddedilen yazma ile değişmeyen kayıt kanıtlanır.",
+    "persistence": "Üç ayrı durum vardır. (1) URL/TanStack Router durumu görünür iş bağlamının tek kaynağıdır. (2) Yerel taslak her alan değişiminde ve pagehide ile visibilitychange=hidden anında cihazda saklanır; sunucu kaydı değildir. (3) İstemci outbox kaydı yalnız açık kaydetme eylemiyle oluşur ve idempotency anahtarı taşır. Merkez kabulü channels-15 kapsamındaki kabul sözleşmesine bırakılır; bu sözleşme o kabulü tanımlamaz. Yerel depo mekanizması, cihazda şifreleme ve saklama süresi decisionsPending içindedir. Sunucu şeması, DocType veya veri değişikliği yoktur; yeni motor, ORM veya CRUD tasarlanmaz.",
+    "failure": "Yerel yazım başarısızsa görünür ve erişilebilir bir uyarı verilir, taslak bellekte kalır ve çıkış onayı korunur; sessiz kayıp olmaz. Süreç pagehide tamamlanmadan sonlandırılırsa son başarılı alan bazlı yazım geri yüklenir. Reddedilen outbox gönderimi silinmez; gerekçesiyle reddedildi durumunda kalır. İzin reddinde alternatif yol sunulur ve taslak korunur. Bilinmeyen platform olayında veya desteklenmeyen WebView sürümünde web/PWA davranışına düşülür; bu durum kabul raporunda ayrıca işaretlenir."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "client-rule-parity--contract",
+      "kernel-envelope--contract",
+      "keycloak-login--contract",
+      "tauri-mobile-lifecycle--contract",
+      "ui-family-01--contract",
+      "ui-family-07--contract",
+      "ui-family-07--implementation"
+    ],
+    "admission": {
+      "prerequisites": [
+        "T-00 hedef taban: Tauri 2, Android/iOS ve WebView hedef sürümleri karara bağlanmadan üretim adımı başlamaz.",
+        "R-00 yeniden kullanım eşlemesi: bu sözleşmedeki altı kanıt davranış referansı olarak eşlenir; kod taşıma olarak eşlenmez.",
+        "R-01: outbox gönderimi izinli veri tükettiği için zorunludur.",
+        "ui-family-01--contract semantik token kaynağı ile ui-family-07--contract ve ui-family-07--implementation katman bileşenleri hazır olmalıdır.",
+        "Her adım tek dar davranıştır ve gerçek RED/GREEN kanıtı gerektirir."
+      ],
+      "note": "Uygulama durumu: uygulanmadı. Kabul, bu sözleşmenin entegrasyonu değil; ortak yürütme politikasının kabulüdür."
+    },
+    "steps": [
+      "Tek sayfalık yaşam döngüsü kuralını yaz: URL/TanStack Router durumu tek kaynaktır; Back önce en üstteki katmanı kapatır, ardından kirli taslakta onay ister. Calendar URL ve Slides popstate desenleri davranış referansıdır.",
+      "ui-family-07 katmanlarının açılışta ortak katman yığınına kaydolup kapanışta çıkmasını tanımla. Kapanışta odak açan kontrole döner; geçiş merkezi hareket tokenlarını ve reduced-motion istisnasını kullanır.",
+      "Tauri 2 Android geri olayını katman yığınına, yığın boşsa router geri adımına bağlayan tek adapter sözleşmesini yaz. Web/PWA'da eşdeğer giriş popstate'tir.",
+      "Kirli çıkış onayını, hedef sürümdeki TanStack Router navigasyon engelleme mekanizmasıyla tanımla. Mekanizma sürüm seçilince resmi dokümandan doğrulanır.",
+      "visualViewport resize ve scroll olaylarını izleyen tek klavye inset kaynağını tanımla; pinch-zoom klavye sayılmaz. Android yumuşak klavye ayarı ile visualViewport davranışı hedef WebView'da birlikte doğrulanır.",
+      "Safe area değerlerini ui-family-01 token kaynağında semantik token olarak tanımla; bileşenlere env() gömülmez.",
+      "Taslak yazımını (alan değişimi, pagehide, visibilitychange=hidden) ve kullanıcı ile tenant kapsamlı anahtarı tanımla.",
+      "Outbox kaydını yalnız açık kaydetme eylemine bağla. Gönderim native API yolundan geçer; kabul channels-15 sözleşmesine bırakılır.",
+      "Yeniden açılışta URL, taslak ve outbox geri yükleme sırasını ve görünür durum ayrımını tanımla.",
+      "İzin reddini ve çağrı kesintisini arka plan geçişiyle aynı taslak koruma yoluna bağla.",
+      "Kabul matrisini yaz: 320/360/375/390, kısa yatay, büyük metin, zoom, ekran okuyucu; gerçek Android ve iOS cihaz kontrolleri emülasyondan ayrı raporlanır."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Bir route'ta açık sheet varken Android sistem geri olayı geldiğinde yalnız sheet kapanır, odak açan kontrole döner ve router konumu değişmez.",
+      "red": "Gelecekteki test, açık sheet ile geri olayı üretir. Katman yığını geri olayını tüketmediği için route bir adım geri gider ve sheet açık kalır, bu yüzden test başarısız olur. Başarısızlık import veya altyapı hatası olmamalı; native davranış bozularak da üretilmemeli.",
+      "green": "En küçük değişiklik: geri olayı önce katman yığınına gider; yığın doluysa en üst katman kapanır ve olay tüketilir. Route değişmez ve odak döner. Bu turda test yazılmaz ve koşulmaz."
+    },
+    "rollback": "Bu sözleşme yalnız belgedir; geri alma, bu JSON dosyasının ana entegrasyon sahibince geri alınmasıdır. Gelecekteki uygulama tek dar davranış adımlarıyla birleşir ve her adım bağımsız geri alınabilir olmalıdır. Yerel taslak veya outbox biçimi değişirse eski kayıtları okuma yolu korunur; geri alma sırasında cihazdaki kullanıcı verisi silinmez. Teknik CI, deploy ve rollback sahibi Hüseyin Cengiz'dir. Bu sözleşme hiçbir servis, production, şema veya veri değişikliği yetkisi vermez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "channels-19",
+      "sourceStage": "post_mvp",
+      "existing": [
+        "Sanal klavye (native parça): Suite useKeyboardInsets görünür yüksekliği visualViewport resize ve scroll ile izler. Frappe Desk bottom_sheet.js klavyenin örttüğü yüksekliği ayırır ve pinch-zoom'u klavye saymaz. Kaynak Vue ve Desk JS'tir.",
+        "Safe area (native parça): Suite mobil bileşenlerinde env(safe-area-inset-bottom) bileşene gömülü padding olarak kullanılır; semantik token değildir.",
+        "Geri hareketi (native parça): Slides PresentationEditor popstate ile açık dialogları kapatır; Calendar görünümü URL'de tutar ve Back görünüm geçişini geri izler. Desen Vue Router'a özgüdür.",
+        "Arka plan ve kapanma (native parça): Slides pagehide anında kirli taslağı en iyi çabayla saveDraft ile yazar; uygulamaya özgüdür. Kaynak değerlendirmesinde bildirilen Mail Outbox sunucu taraflıdır ve istemci outbox kanıtı sayılmaz.",
+        "Tauri 2 mobil geri olayı, pause/resume, süreç sonlandırması sonrası geri yükleme ve istemci outbox için aranan yollarda kanıt bulunmadı (reuse.searchedPaths); bu, kapsamlı bir yokluk iddiası değildir."
+      ],
+      "gap": [
+        "İki app kökünde de Tauri 2 mobil entegrasyonu yok: Android sistem geri hareketi, pause/resume ve süreç sonlandırması sonrası geri yükleme tanımlı değil.",
+        "React + TanStack Router için geri yığını sözleşmesi yok: Back'in önce katmanı, sonra taslak çıkışını ele alması tanımlı değil.",
+        "Yerel taslak ile istemci outbox arasındaki sınır ve OS sonlandırması sonrası outbox'ın korunması tanımlı değil; channels-15 ile bağ kurulmamış.",
+        "Safe area ve klavye inset değerleri merkezi semantik token değil; hedef OS/WebView sürümleri, izin reddi ve çağrı kesintisi davranışları kaynakta yok.",
+        "Gerçek cihazda ve 320-390 px aralığında kabul çalıştırılmadı."
+      ],
+      "completionSteps": [
+        "Geri yığını: ortak katman yığını, Tauri 2 Android geri adapter'ı ve web popstate eşdeğeri; yığın boşsa tek router adımı; kirli çıkışta onay.",
+        "Klavye: visualViewport tabanlı tek inset kaynağı; pinch-zoom ayrımı; odaklanan alan ve ana eylem görünür kalır.",
+        "Safe area: ui-family-01 token kaynağında semantik tokenlar; bileşene gömülü env() kaldırılarak tüketim.",
+        "Arka plan ve sonlandırma: alan değişiminde, pagehide'da ve visibilitychange=hidden'da taslak yazımı; yeniden açılışta URL, taslak ve outbox geri yüklemesi.",
+        "Outbox sınırı: kayıt yalnız açık kaydetmeyle oluşur; idempotency anahtarı taşır; gönderim native izin yolundan geçer; kabul channels-15'e bırakılır.",
+        "İzin reddi ve çağrı kesintisi: arka plan geçişiyle aynı koruma yolu ve alternatif akış."
+      ],
+      "dependencies": [
+        "tauri-mobile-lifecycle--contract",
+        "ui-family-01--contract",
+        "ui-family-07--contract",
+        "ui-family-07--implementation",
+        "client-rule-parity--contract",
+        "api-middleware--contract",
+        "kernel-envelope--contract",
+        "keycloak-login--contract"
+      ],
+      "acceptance": [
+        "Açık katman varken Back yalnız katmanı kapatır, route değişmez ve odak açan kontrole döner; ekran okuyucu kapanışı algılar.",
+        "Kirli taslakta çıkış onay ister; onaysız kayıp olmaz.",
+        "320/360/375/390 px ve kısa yatay görünümde sanal klavye odaklanan alanı ve ana eylemi örtmez; büyük metin ve zoom işlevi bozmaz; metin 14 CSS px altına inmez.",
+        "Safe area boşlukları semantik tokenlardan gelir ve çentik veya hareket çubuğu içeriği örtmez.",
+        "Süreç sonlandırması sonrası yeniden açılışta URL bağlamı, taslak ve başarıyla oluşturulmuş outbox kayıtları bulunur; cihazda kaydedildi ile merkez kabul etti durumları ayrı görünür.",
+        "İzin reddi ve çağrı kesintisi taslağı silmez, akışı kilitlemez.",
+        "Gerçek Android ve iOS cihaz sonuçları emülasyondan ayrı ve pass/fail/not_run/not_applicable olarak raporlanır; şu an hepsi not_run."
+      ],
+      "evidence": [
+        {
+          "path": "suite/frontend/src/composables/useKeyboardInsets.ts",
+          "line": 34,
+          "quote": "window.visualViewport?.addEventListener('resize', update)"
+        },
+        {
+          "path": "frappe/frappe/public/js/frappe/ui/components/bottom_sheet.js",
+          "line": 527,
+          "quote": "// an on-screen keyboard shrinks the visual viewport; the sheet sits above it"
+        },
+        {
+          "path": "suite/frontend/src/components/AdaptiveDropdown.vue",
+          "line": 12,
+          "quote": "<div class=\"px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]\">"
+        },
+        {
+          "path": "suite/frontend/src/apps/slides/pages/PresentationEditor.vue",
+          "line": 451,
+          "quote": "window.addEventListener('popstate', hideOpenDialogs)"
+        },
+        {
+          "path": "suite/frontend/src/apps/slides/pages/PresentationEditor.vue",
+          "line": 267,
+          "quote": "if (dirty.value) saveDraft()"
+        },
+        {
+          "path": "suite/frontend/src/apps/calendar/utils/mobileView.ts",
+          "line": 27,
+          "quote": "for which view is up — switching is a navigation, so Back retraces it — which"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Uygulama durumu: uygulanmadı. Bu dosya yalnız gelecekteki geliştirme rehberidir.",
+    "Tauri 2 mobil geri olayı, pause/resume ve süreç sonlandırması sonrası geri yükleme kodlanmadı.",
+    "React + TanStack Router geri yığını ve katman yığını sözleşmesi kodlanmadı.",
+    "Yerel taslak ile istemci outbox sınırı ve channels-15 bağı kodlanmadı.",
+    "Safe area ve klavye inset semantik tokenları tanımlanmadı.",
+    "Gerçek cihaz ve 320-390 px kabulü çalıştırılmadı (not_run)."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Hedef Tauri 2, Android, iOS ve WebView sürüm tabanı.",
+      "requirementIds": ["channels-19"],
+      "blocks": "T-00 kabulü, geri olayı adapter API'sinin doğrulanması ve kabul matrisi.",
+      "interimDocStep": "Resmi Tauri 2 WebView sürümleri ve mobil adapter belgelerini kaynak olarak listele; sürüm seçmeden davranış kuralını yaz."
+    },
+    {
+      "decision": "Mobil platform kapsamı: Android ve iOS birlikte mi, sıralı mı ele alınacak?",
+      "requirementIds": ["channels-19"],
+      "blocks": "Geri hareketi adapter kapsamı ve gerçek cihaz kabul planı.",
+      "interimDocStep": "Platformdan bağımsız katman yığını kuralını ve platform başına giriş noktası tablosunu belge olarak hazırla."
+    },
+    {
+      "decision": "Yerel taslak ve outbox depo mekanizması ile cihazda şifreleme gereksinimi.",
+      "requirementIds": ["channels-19"],
+      "blocks": "Taslak yazımı ve outbox kalıcılığı adımları.",
+      "interimDocStep": "Depo mekanizmasından bağımsız taslak ve outbox durum geçişlerini ve anahtar kapsamını tanımla."
+    },
+    {
+      "decision": "Yerel taslak ve outbox saklama süresi ile temizleme koşulları.",
+      "requirementIds": ["channels-19"],
+      "blocks": "Geri yükleme ve temizleme kabul ölçütleri.",
+      "interimDocStep": "Saklama süresini açık parametre olarak işaretle; sessiz silme olmayacağını kural olarak yaz."
+    },
+    {
+      "decision": "Tenant topolojisine bağlı yerel anahtar kapsamı.",
+      "requirementIds": ["channels-19"],
+      "blocks": "Başka tenant taslağının gösterilmemesi kabulü.",
+      "interimDocStep": "Anahtarın kullanıcı ve tenant kapsamı içermesi gerektiğini biçim seçmeden yaz."
+    },
+    {
+      "decision": "Gerçek cihaz kabul ortamı ve cihaz listesi; ücretli servis kullanılacaksa satıcı ve tarife seçimi dahil.",
+      "requirementIds": ["channels-19"],
+      "blocks": "Sürüm öncesi gerçek cihaz kabulü.",
+      "interimDocStep": "Kabul senaryolarını ve raporlama durumlarını (pass/fail/not_run/not_applicable) cihaz seçmeden hazırla."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

@@ -1,0 +1,193 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "tenant-key",
+  "canonicalTaskIds": ["tenant-key--implementation"],
+  "requirementIds": ["security-10"],
+  "stage": "enterprise",
+  "sourceStages": {
+    "security-10": "enterprise"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Kiracıya özel veri anahtarı ve anahtar sürümü yaşam döngüsü: döndürme, iptal ve kurtarma",
+    "trigger": "Yetkili anahtar yöneticisi veya onaylı operasyon süreci, karar notuyla tanımlanmış bir kiracı için anahtar oluşturma, döndürme, iptal veya kurtarma işlemi başlatır; ya da kiracı anahtarı kapsamına alınmış bir veri sınıfı okunur veya yazılır.",
+    "expected": "Uygulama durumu: uygulanmadı. Gelecekteki hedef: her kiracının veri anahtarı ve anahtar sürümü yetki bakımından diğer kiracılardan ayrışır; yeni yazımlar etkin sürümle korunur ve sürüm etiketi kararlaştırılan yerde tutulur; döndürme sonrası eski sürümle korunmuş veri ve yetkili yedek okunabilir kalır; iptal o kiracının çözme erişimini keser; kurtarma yetkili ve izli biçimde erişimi geri getirir; her anahtar işlemi iz kaydı bırakır. Frappe'nin genel Fernet şifrelemesi genel koruma olarak yerinde kalır, kopyası yazılmaz.",
+    "denied": "İlgili kiracı için anahtar yetkisi olmayan kullanıcı veya servis anahtar işlemi başlatamaz ve o kiracının verisini çözemez; reddedilen istekte anahtar sürüm kaydı ve şifreli veri değişmez, yalnız ret iz kaydı oluşur. ignore_permissions, ham SQL veya doğrudan __Auth tablosu erişimiyle yetki atlatılmaz. İptal edilmiş sürümle çözme başarılı olmaz ve düz metne veya başka anahtara sessiz geri dönüş yapılmaz."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native parça: frappe/frappe/utils/password.py içinde Fernet tabanlı genel şifreleme; değer encrypt ile yazılıp decrypt ile okunuyor. Bu alıntılar kiracıya özel anahtar, anahtar sürümü, döndürme, iptal, kurtarma veya KMS entegrasyonunu kanıtlamaz; native parçanın varlığı bütün davranışın var olduğu anlamına gelmez. Arama yalnız searchedPaths içindeki yolla sınırlıdır; kapsamlı yokluk iddiası değildir. Kaynak alıntıları önceki salt okunur Frappe kaynak anlık görüntüsünden alınmıştır; canlı site veya ürün kabulü yoktur.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/utils/password.py",
+        "line": 4,
+        "quote": "from cryptography.fernet import Fernet, InvalidToken"
+      },
+      {
+        "path": "frappe/frappe/utils/password.py",
+        "line": 62,
+        "quote": "query = query.insert(doctype, name, fieldname, encrypt(pwd), 1).on_duplicate_key_update("
+      },
+      {
+        "path": "frappe/frappe/utils/password.py",
+        "line": 38,
+        "quote": "return decrypt(result[0][0], key=f\"{doctype}.{name}.{fieldname}\")"
+      }
+    ],
+    "searchedPaths": ["frappe/frappe/utils/password.py"]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/tenant-key.json",
+    "plannedProduction": ["operations/tenant-key/tenant_key_enterprise.yml"],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Karar notuyla sabitlenecek kiracı kimliği (site veya site içi iş tenantı; açık karar), veri sınıfı tanımlayıcısı, işlem türü (oluştur, döndür, iptal, kurtar, çöz), istek sahibinin kimliği ve gerekçe. Anahtar materyali istek gövdesinde, yapılandırma dosyasında, plannedProduction YAML içinde veya Git'te taşınmaz; yalnız sağlayıcı tarafındaki anahtar referansı kullanılır.",
+    "output": "İşlem sonucu, etkin anahtar sürüm etiketi, etkilenen veri sınıfı ve iz kaydı referansı. Yanıtlar, hata mesajları ve iz kayıtları anahtar materyali veya çözülmüş veri içermez.",
+    "authorization": "Native Frappe izin modeli ve explicitPermissionFlags ortak kaynağı kullanılır; bu rehber kendi rol veya izin bayrağını icat etmez. Anahtar yönetimi yetkisi ile veri okuma yetkisi ayrı tutulur ve kiracılar arasında ayrışır. ignore_permissions veya SQL ile yetki atlatma yasaktır. Gelecekteki tek kabul, reddedilen yazma isteğinde kaydın değişmediğini gösterir.",
+    "persistence": "Anahtar materyali yalnız seçilecek KMS veya eşdeğer sağlayıcıda kalır; uygulama tarafında yalnız sağlayıcı anahtar referansı, sürüm etiketi, durum ve iz meta verisi tutulması önerilir (yer ve şema kararı açık). Yazma yolu native save, transaction ve hook akışını kullanır; Frappe'nin genel şifrelemesinin yerine geçen kopya bir şifreleme katmanı yazılmaz. Bu sözleşme şema, veri, servis veya production değiştirme yetkisi vermez.",
+    "failure": "Sağlayıcıya erişilemezse veya sürüm iptal edilmişse çözme açık bir hatayla reddedilir; düz metne veya eski anahtara sessiz geri dönüş yapılmaz. Döndürme yarıda kalırsa önceki etkin sürüm geçerli kalır ve iz kaydı tutulur. Yetkisiz veya geçersiz istekte anahtar sürüm kaydı ve şifreli veri değişmez."
+  },
+  "development": {
+    "dependencies": ["tenant-key--contract"],
+    "admission": {
+      "status": "NOT_ADMITTED",
+      "note": "Uygulama durumu: uygulanmadı. Bu sözleşme üretim yazımı, test yazımı, servis, şema, veri veya production değişikliği yetkisi vermez.",
+      "prerequisites": [
+        "tenant-key--contract bağımlılığının tamamlanması",
+        "T-00 hedef ortam taban çizgisi ve R-00 yeniden kullanım eşlemesi",
+        "İzinli veri tüketicileri için R-01",
+        "decisionsPending içindeki kiracı tanımı, veri sınıfı kapsamı, KMS sağlayıcısı ve yedek çözme zinciri kararlarının yazılı olarak kapanması",
+        "Tek dar davranış için gerçek RED/GREEN kanıtı planı"
+      ],
+      "orderAuthority": "Sırayı mevcut görev bağımlılıkları ve aşama belirler; küme sırası yalnız sunumdur, yeni bir seri bağımlılık zinciri değildir."
+    },
+    "steps": [
+      "Karar notu taslağı: kiracı tanımının site mi site içi iş tenantı mı olacağını ve her seçeneğin anahtar kapsamına etkisini yaz; seçimi kullanıcı yapar.",
+      "Veri sınıfı envanteri taslağı: Password alanları, dosya veya Drive S3 nesneleri ve DB yedekleri için hangisinin kiracı anahtarı kapsamına alınacağını aday olarak listele; seçimi kullanıcı yapar.",
+      "Hüseyin Cengiz, kullanıcı kararı sonrasında hedef ortamda KMS veya eşdeğer sağlayıcının teknik gereksinimlerini, anahtar sürüm etiketinin tutulma yerini ve yedek çözme zincirini teknik devir notu olarak yazar.",
+      "Native sınırı belgele: frappe/frappe/utils/password.py Fernet şifrelemesi genel koruma olarak kalır; kiracı anahtarı yalnız seçilen veri sınıfları için ek katmandır ve genel mekanizmanın kopyası yazılmaz.",
+      "Yetki eşlemesini explicitPermissionFlags ortak kaynağına bağla: anahtar yönetimi ve veri okuma yetkisini ayır; yeni bayrak gerekiyorsa ortak kaynakta önerilir, bu rehberde tanımlanmaz.",
+      "plannedProduction YAML için içerik sınırı yaz: yalnız sağlayıcı anahtar referansı, sürüm politikası ve sahiplik; secret, anahtar materyali, tarife veya lisans bilgisi yok.",
+      "Kabul edildiğinde ilk dar davranışı uygula: yetkisiz döndürme reddi (tdd.oneScenario). Döndürme sonrası okuma, iptal, kurtarma ve yedek çözme ayrı sonraki davranışlar olarak ayrı kabul alır."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Kiracı A için anahtar yönetimi yetkisi olmayan bir kullanıcı veya servis, kiracı A'nın anahtar döndürme işlemini tetikler; istek native izin denetimiyle reddedilir ve kiracı A'nın anahtar sürüm kaydı ile şifreli verisi değişmez.",
+      "red": "Davranış henüz yokken senaryo, yetkisiz döndürme isteğinin reddedilmediğini veya anahtar sürüm kaydının değiştiğini gösteren gerçek bir doğrulama hatasıyla başarısız olmalıdır. Import hatası, eksik altyapı veya native Frappe şifrelemesini bozmak RED sayılmaz. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "Ret native izin denetiminden gelir; anahtar sürüm kaydı ve şifreli veri değişmez; ret iz kaydı oluşur; Frappe'nin genel Fernet şifrelemesiyle yazma ve okuma davranışı değişmeden çalışır. ignore_permissions veya SQL kullanılmaz."
+    },
+    "rollback": "Bu turda yalnız belge vardır; geri alma bu sözleşme dosyasının ana entegrasyon sahibi tarafından geri alınmasıdır. Gelecekteki uygulamada teknik rollback sahibi Hüseyin Cengiz'dir: anahtar sürümleri silinmez, önceki etkin sürüme dönülür, iptal geri alınacaksa kurtarma prosedürü izli biçimde uygulanır ve eski sürümle korunmuş verinin okunabildiği doğrulanır. Bu sözleşme rollback çalıştırma, servis veya production değişikliği yetkisi vermez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "security-10",
+      "sourceStage": "enterprise",
+      "existing": "Native parça: frappe/frappe/utils/password.py içinde Fernet tabanlı genel şifreleme (Fernet import, encrypt ile yazma, decrypt ile okuma). Mevcut yönerge data/clusters/11.json satır 229 (/groups/0/items/9): destek external, eylem integrate, sahip DevOps ekibi ve veri güvenliği, güven düzeyi design. Yönerge notu genel şifreleme ve gizli anahtar saklamanın kiracıya özel veri anahtarı yaşam döngüsünü kanıtlamadığını belirtir.",
+      "gap": "Kiracı tanımı (site mi, site içi iş tenantı mı) ve buna bağlı anahtar kapsamı belirsiz; kiracı anahtarıyla şifrelenecek veri sınıfları (Password alanları, dosya veya Drive S3 nesneleri, DB yedekleri) belirtilmemiş; KMS veya eşdeğer sağlayıcı, sürüm etiketinin tutulma yeri ve yedek çözme zinciri tanımsız; etkinleştirme koşulu ölçülebilir değil. Kiracıya özel anahtar, sürüm, döndürme, iptal ve kurtarma için doğrulanmış kaynak kanıtı yok.",
+      "completionSteps": [
+        "Kiracı tanımı ve veri sınıfı kapsamı için karar notu taslağını hazırla ve kullanıcı kararına sun.",
+        "Hüseyin Cengiz'den sağlayıcı, sürüm etiketi yeri ve yedek çözme zinciri için teknik devir notu al.",
+        "Native Fernet sınırını ve kopya katman yasağını uygulama notuna yaz.",
+        "Yetki eşlemesini explicitPermissionFlags ortak kaynağına bağla.",
+        "İlk dar davranış olarak yetkisiz döndürme reddini RED/GREEN kanıtıyla uygula; diğer yaşam döngüsü adımlarını ayrı kabullere böl."
+      ],
+      "dependencies": ["tenant-key--contract"],
+      "acceptance": "İki kiracının anahtar yetkileri ayrışır; döndürme sonrası eski veri ve yetkili yedek okunabilir; iptal erişimi keser; kurtarma ve işlem izi sınanır. Reddedilen yetkisiz yazma isteğinde anahtar sürüm kaydı ve şifreli veri değişmez. KMS veya eşdeğer anahtar yönetimiyle veri ve yedek çözme zinciri hedef ortamda Hüseyin Cengiz tarafından doğrulanır.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/utils/password.py",
+          "line": 4,
+          "quote": "from cryptography.fernet import Fernet, InvalidToken"
+        },
+        {
+          "path": "frappe/frappe/utils/password.py",
+          "line": 62,
+          "quote": "query = query.insert(doctype, name, fieldname, encrypt(pwd), 1).on_duplicate_key_update("
+        },
+        {
+          "path": "frappe/frappe/utils/password.py",
+          "line": 38,
+          "quote": "return decrypt(result[0][0], key=f\"{doctype}.{name}.{fieldname}\")"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Kiracıya özel anahtar, anahtar sürümü, döndürme, iptal ve kurtarma için uygulama yok; doğrulanmış kaynak kanıtı yalnız genel Fernet şifrelemesini gösteriyor.",
+    "KMS veya eşdeğer sağlayıcı entegrasyonu ve yedek çözme zinciri tanımsız.",
+    "Anahtar işlemleri için iz kaydı biçimi ve yeri tanımsız.",
+    "Kiracılar arası anahtar yetki ayrışmasının izin eşlemesi explicitPermissionFlags ortak kaynağında henüz karşılanmadı.",
+    "Gelecekteki test dosyası sahipliği yok; plannedTestFile null."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Kiracı tanımı (tenant topolojisi): site mi, site içi iş tenantı mı",
+      "requirementIds": ["security-10"],
+      "blockedStep": "Anahtar kapsamı, sürüm meta verisi ve tdd.oneScenario içindeki kiracı sınırı",
+      "allowedDocumentWork": "İki seçeneğin anahtar kapsamı ve yetki ayrışması etkilerini karşılaştıran karar notu taslağı"
+    },
+    {
+      "decision": "Kiracı anahtarıyla şifrelenecek veri sınıfları",
+      "requirementIds": ["security-10"],
+      "blockedStep": "Veri sınıfı başına şifreleme ve okuma yolu tasarımı",
+      "allowedDocumentWork": "Password alanları, dosya veya Drive S3 nesneleri ve DB yedekleri için aday envanter"
+    },
+    {
+      "decision": "KMS veya eşdeğer sağlayıcı seçimi (satıcı, lisans ve tarife)",
+      "requirementIds": ["security-10"],
+      "blockedStep": "Sağlayıcı entegrasyonu ve plannedProduction YAML içeriği",
+      "allowedDocumentWork": "Hüseyin Cengiz için sağlayıcıdan bağımsız teknik gereksinim listesi"
+    },
+    {
+      "decision": "Anahtar sürüm etiketinin tutulma yeri ve yedek çözme zinciri",
+      "requirementIds": ["security-10"],
+      "blockedStep": "Döndürme sonrası okuma ve yedekten çözme kabulü",
+      "allowedDocumentWork": "Seçenekleri ve doğrulama ölçütlerini listeleyen teknik devir notu taslağı"
+    },
+    {
+      "decision": "Anahtar materyali ve yedeklerin veri yerleşimi",
+      "requirementIds": ["security-10"],
+      "blockedStep": "Sağlayıcı bölge yapılandırması ve yedek konumu",
+      "allowedDocumentWork": "Yerleşim kararının etkilediği adımların listesi"
+    },
+    {
+      "decision": "Eski anahtar sürümleri ve anahtar iz kayıtları için saklama süresi",
+      "requirementIds": ["security-10"],
+      "blockedStep": "Sürüm emekliye ayırma ve iz kaydı temizleme kuralları",
+      "allowedDocumentWork": "Saklama süresine bağlı kurtarma senaryolarının tanımı"
+    },
+    {
+      "decision": "Etkinleştirme koşulu: hangi müşteri sözleşmesi veya veri hassasiyeti eşiği",
+      "requirementIds": ["security-10"],
+      "blockedStep": "Kiracı başına özelliği açma kuralı",
+      "allowedDocumentWork": "Ölçülebilir eşik adaylarını içeren karar notu taslağı"
+    },
+    {
+      "decision": "Hedef Frappe sürümü (T-00 taban çizgisi)",
+      "requirementIds": ["security-10"],
+      "blockedStep": "Native şifreleme sınırının hedef sürümde yeniden doğrulanması",
+      "allowedDocumentWork": "Hedef sürümde yeniden okunacak kaynak yollarının listesi"
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

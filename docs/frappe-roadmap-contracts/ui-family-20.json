@@ -1,0 +1,209 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "ui-family-20",
+  "canonicalTaskIds": ["ui-family-20--implementation-post-mvp"],
+  "requirementIds": ["views-17"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "views-17": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "statusNote": "Uygulama durumu: uygulanmadı. Bu dosya yalnız gelecekteki geliştirme için yönerge sözleşmesidir; ürün kodu, test, şema, veri, servis veya production değişikliği yetkisi vermez. Kaynak değerlendirmesi ile ürün uygulaması ayrıdır.",
+  "behavior": {
+    "title": "Şablondan oluşturma ve kontrollü çoğaltma önizlemesi (views-17)",
+    "trigger": "Yetkili kullanıcı bir kayıt görünümünde kaynak kaydı veya karar sonrası tanımlanacak bir şablonu seçip çoğaltma eylemini başlatır; sunucu kopya taslağını önizleme olarak döner; kullanıcı onaylarsa yeni kayıt standart oluşturma yolundan kaydedilir.",
+    "expected": "Önizleme kopyalanacak alanları, kopyalanmayacak alanları gerekçesiyle, child table satırlarını ve Link ilişkilerini kayıttan önce gösterir. Kaydetmede yeni kayıt yeni kimlik alır; kimlik, belge durumu, onay/iş akışı/kesinleşme durumu, secret ve ödeme bilgisi taşınmaz; kullanıcının okuyamadığı alanlar önizlemede ve yeni kayıtta yer almaz; tenant sınırı, ilişki izinleri ve yeni kayıt doğrulamaları sunucuda uygulanır.",
+    "denied": "Kaynak kaydı okuma veya hedef DocType için oluşturma izni olmayan kullanıcıda önizleme ya da kaydetme reddedilir; yeni kayıt oluşmaz, kaynak kayıt ve şablon değişmez. İstemcinin gönderdiği doctype, flags, kimlik veya dışlanmış alan değerleri sunucuda kabul edilmez; ignore_permissions veya SQL ile yetki atlanmaz."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Doğrulanmış native parça yalnız oluşturma ve istek temizliği temelidir: REST v1 create_doc istek verisinden doctype anahtarını çıkarır ve frappe.new_doc(...).insert() ile standart insert doğrulamasından geçirir; update yolunda istemciden gelen flags silinir. Frappe UI (Vue) form yerleşim eşlemesi alan meta verisinden default ve perm_denied bilgisini taşır; bu Vue kaynağı React/Ant Design uygulaması kanıtı değildir, yalnız bu meta alanlarının varlığını gösterir. Frappe yerel kopyalama politikası (no_copy alan özelliği ve copy_doc) aranan yollarda doğrulanmadı; kullanılmadan önce hedef baseline kaynağında satır kanıtıyla doğrulanmalıdır. Kanıtların bir native parçayı göstermesi şablon, önizleme ve güvenli çoğaltma davranışının bütününün var olduğu anlamına gelmez.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 49,
+        "quote": "data.pop(\"doctype\", None)"
+      },
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 57,
+        "quote": "if \"flags\" in data:"
+      },
+      {
+        "path": "frappe/ui/src/components/FormLayout/buildLayoutFromMeta.ts",
+        "line": 163,
+        "quote": "default: field.default,"
+      },
+      {
+        "path": "frappe/ui/src/components/FormLayout/buildLayoutFromMeta.ts",
+        "line": 173,
+        "quote": "permDenied: !!field.perm_denied,"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "frappe/ui/src/components/FormLayout/buildLayoutFromMeta.ts"
+    ],
+    "searchNote": "Aranan yollar yalnız bu iki dosyadır; no_copy, copy_doc, şablon saklama veya alan izin filtresi için kapsamlı bir yokluk iddiası değildir. Kaynak alıntıları önceki salt okunur Frappe/Suite kaynak anlık görüntülerindendir; canlı site veya ürün kabulü yoktur."
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/ui-family-20.json",
+    "plannedProduction": [
+      "frontend/packages/ui/src/components/ui-family-20/post_mvp.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok",
+    "canonicalArtifact": "RecordAction bileşeni; durum proposed, custom_proposed; DocType veya sayfa üretmez."
+  },
+  "contract": {
+    "input": "Önizleme isteği: kaynak DocType ve kaynak kayıt adı ya da karar sonrası belirlenecek şablon referansı; isteğe bağlı olarak kullanıcının, sunucunun izin verdiği kopyalanabilir küme içinden yaptığı alan ve child table seçimleri. Kaydetme isteği: aynı kaynak referansı ve onaylanan seçimler. İstemcinin gönderdiği taslak değerleri otoritatif değildir; sunucu taslağı yeniden türetir. doctype ve flags istemci verisinden kabul edilmez.",
+    "output": "Önizleme: hedef DocType; kopyalanacak alanlar (alan adı, etiket, değer); dışlanan alanlar (alan adı ve gerekçe sınıfı: no_copy, okuma izni yok, kimlik, belge/onay/iş akışı durumu, secret, ödeme); child table satır özetleri; Link referansları ve kullanıcının hedefi okuyup okuyamadığı. Okunamayan alanın değeri hiçbir çıktıda yer almaz. Kaydetme: yeni kayıt adı ve standart belge yanıtı; kaynak kayıt adı yalnız izlenebilirlik için döner.",
+    "authorization": "Kaynak kayıt için native okuma izni, okunacak her alan için permlevel okuma izni, hedef DocType için native oluşturma izni ve kopyalanan her Link hedefi için okuma izni sunucuda kontrol edilir; tenant sınırı karar verilen tenant topolojisine göre sunucuda uygulanır. Bu davranış yeni rol veya izin üretmez; ileride gerekirse explicitPermissionFlags ortak kaynağına bağlanır. ignore_permissions, doğrudan SQL veya istemci tarafında gizleme yetki kontrolü yerine geçmez.",
+    "persistence": "Önizleme kalıcı değildir ve veri yazmaz. Kaydetme yalnız frappe.new_doc(...).insert() standart yolundan yapılır; controller doğrulamaları ve hook'lar, adlandırma, zorunlu alan doğrulaması ve native transaction korunur. Yeni kayıt taslak belge durumuyla başlar; kaynak kayıt ve şablon değiştirilmez. Şablon saklama yeri karar beklemektedir; karar gelmeden yeni DocType veya şema eklenmez.",
+    "failure": "İzin yoksa istek reddedilir ve kayıt oluşmaz. Kaynak bulunamazsa veya önizleme sonrası değiştiyse kaydetme sunucuda yeniden türetilen taslakla yapılır ya da kullanıcıdan yeniden önizleme istenir; kullanıcıya gösterilenden sessizce farklı veri yazılmaz. Doğrulama hatası veya child table satırı hatasında native transaction geri alınır, kısmi kayıt kalmaz. Hata yanıtı okunamayan alan değerini veya secret içeriğini sızdırmaz."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "client-rule-parity--contract",
+      "kernel-envelope--contract",
+      "native-workflow--contract",
+      "record-integrity--contract",
+      "ui-family-20--contract",
+      "ui-family-20--implementation"
+    ],
+    "admission": {
+      "prerequisites": [
+        "T-00 hedef baseline: no_copy alan özelliği ve copy_doc davranışı hedef kaynakta satır alıntısıyla doğrulanmış olmalı.",
+        "R-00 yeniden kullanım eşlemesi: create_doc/new_doc+insert, flags temizliği ve doğrulanan kopyalama primitifleri eşlenmiş olmalı.",
+        "R-01: izinli veri tüketicisi olduğu için alan düzeyi okuma izni filtresinin native kaynağı eşlenmiş olmalı.",
+        "Tek dar davranış gerçek RED/GREEN kanıtıyla uygulanmalı."
+      ],
+      "orderAuthority": "Mevcut görev bağımlılıkları ve stage belirleyicidir; küme sırası (6) yalnız sunumdur, yeni seri DAG değildir.",
+      "blockedUntil": "decisionsPending içindeki şablon saklama ve hedef baseline kararları ile no_copy/copy_doc satır kanıtı."
+    },
+    "steps": [
+      "1. T-00/R-00/R-01 kanıtlarını tamamla; doğrulanamayan primitif kullanılmaz, adım durur ve remainingGaps güncellenir.",
+      "2. Sunucu tarafı önizlemeyi doğrulanan native kopyalama kuralı üzerine kur; ayrı bir kopyalama allowlist'i yazma.",
+      "3. Alan izin, hassas alan, child table ve Link kurallarını requirementGuidance adımlarına göre uygula.",
+      "4. Kaydetmeyi sunucuda yeniden türetilen taslakla standart insert yolundan yap.",
+      "5. React/Ant Design RecordAction önizleme yüzeyini kaynak registry üzerinden bağla; istemci kuralları yalnız ipucudur.",
+      "6. Kabul ölçütlerini gerçek tarayıcı ve sunucu kanıtıyla ayrı ayrı raporla."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Permlevel 1 alanı olan ve kullanıcının yalnız permlevel 0 okuma iznine sahip olduğu kaynak kayıt için önizleme istendiğinde permlevel 1 alanın değeri önizleme çıktısında yer almaz ve alan okuma izni yok gerekçesiyle dışlanan listede görünür.",
+      "red": "Önizleme isteği başarıyla yanıt döner ancak kısıtlı alanın değeri kopyalanacak alanlarda bulunduğu için davranış iddiası başarısız olur. Import, fixture veya altyapı hatası RED sayılmaz; native izin davranışı değiştirilerek RED üretilmez.",
+      "green": "Native alan izin kontrolüne dayalı filtreleme sonrası değer yanıtta yoktur, gerekçe sınıfı doğrudur ve kaynak kayıt değişmemiştir. Bu turda test yazılmaz ve koşulmaz."
+    },
+    "rollback": "Bu sözleşme yalnız belgedir; geri alma bu dosyanın önceki sürümüne dönmekle sınırlıdır. Gelecekteki ilk dilim şema değişikliği içermemeli ve eylem kaynak registry girdisinin kaldırılmasıyla devre dışı bırakılabilmelidir. Şablon saklama kararı sonrası olası migration, CI, deploy ve rollback teknik sahibi Hüseyin Cengiz'dir. Oluşturulmuş kopya kayıtlar otomatik silinmez; veri silme ayrı açık onay gerektirir. Bu davranış DNS/GoDaddy değişikliği gerektirmez; o alanın uygulama sahibi Asistan Hüseyin'dir."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "views-17",
+      "sourceStage": "post_mvp",
+      "existing": "Native parça: REST v1 create_doc doctype anahtarını istek verisinden çıkarıp new_doc+insert ile standart doğrulamadan geçirir; update yolu flags alanını siler. Frappe UI (Vue) yerleşim eşlemesi default ve perm_denied meta bilgisini taşır; React/Ant Design kanıtı değildir. Mevcut yönerge: data/clusters/04.json satır 624, /groups/1/items/16 (support partial, action extend).",
+      "gap": "no_copy/copy_doc doğrulanmadı ve yeniden kullanımı yazılı değil; ayrı allowlist'e kopyalanma riski var. Şablon saklama yeri tanımsız. Child table ve Link kopyalama kuralı eksik. Okunamayan alan sızıntısını önleyen önizleme yok. Destekleyici görev yok; ERPNext/HRMS kurulu olmadığından ödeme/onay örnekleri yalnız Frappe ve Suite DocType'larına göre eşlenmeli.",
+      "completionSteps": [
+        "Hedef baseline kaynağında no_copy alan özelliğini ve copy_doc davranışını satır alıntısıyla doğrula; sonucu R-00 eşlemesine ekle. Doğrulanmazsa önizleme tasarımı durur, yerine özel allowlist yazılmaz.",
+        "Sunucu önizlemesini doğrulanan native kopyalama kuralıyla üret; no_copy alanlarını, kimliği, belge durumunu ve onay/iş akışı durum alanlarını dışla ve gerekçe sınıfıyla listele.",
+        "Okuma iznini alan düzeyinde (permlevel) sunucuda uygula; okunamayan alanın değerini önizlemeden ve yeni kayıttan çıkar, yalnız alan adını ve gerekçeyi göster.",
+        "Secret (ör. Password alan tipi), ödeme ve onay sınıfındaki alanları karar verilen sınıflandırma politikasıyla dışla; politika gelene kadar bu sınıflar varsayılan olarak kopyalanmaz.",
+        "Child table satırlarını yeni üst kayda yeni satır kimliğiyle kopyala; satır alanlarına aynı no_copy, izin ve hassas alan filtresini uygula.",
+        "Link alanlarında yalnız referansı kopyala, hedef kaydı çoğaltma; kullanıcı hedefi okuyamıyorsa veya hedef tenant sınırı dışındaysa değeri düşür ve önizlemede gerekçeyi göster.",
+        "Kaydetmede istemci taslağını kullanma; sunucuda taslağı yeniden türet, doctype ve flags istemci verisini kabul etme ve new_doc+insert ile native doğrulama, hook ve transaction yolundan kaydet.",
+        "React/Ant Design RecordAction yüzeyinde önizlemeyi kopyalanacak, dışlanan, child table ve Link bölümleriyle göster; TanStack Query ile önizleme sorgusu ve kaydetme mutasyonu kur. Bileşeni kaynak registry'ye ekle; GenUI capability registry ayrı tutulur ve ReactNode/callback JSON modele girmez. Web, Tauri2 ve WXT yüzeyleri aynı sunucu sözleşmesini kullanır.",
+        "Arayüzde semantik tokenlar, en az 14 CSS px metin, çevrelemeyen görünür klavye odağı, markalı headless seçim bileşeni ve ortak hareket tokenları uygulanır; 320 CSS px'ten başlayarak doğrulanır.",
+        "client-rule-parity sözleşmesine göre istemci tarafı dışlama yalnız gösterim ipucudur; yetkili karar sunucudadır."
+      ],
+      "dependencies": [
+        "ui-family-20--contract",
+        "ui-family-20--implementation",
+        "kernel-envelope--contract",
+        "api-middleware--contract",
+        "client-rule-parity--contract",
+        "native-workflow--contract",
+        "record-integrity--contract"
+      ],
+      "acceptance": "Kopyalanacak alan ve ilişkiler uygulamadan önce görülsün; yeni kayıt yeni kimlik alsın. Secret, ödeme bilgisi, onay veya kesinleşme durumu taşınmasın; kullanıcının okuyamadığı alan kopyalanarak sızmasın; tenant sınırı, ilişki izinleri ve yeni kayıt doğrulamaları sunucuda uygulansın. Oluşturma izni olmayan kullanıcıda kaydetme reddedilsin, yeni kayıt oluşmasın ve kaynak kayıt değişmesin.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 49,
+          "quote": "data.pop(\"doctype\", None)"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 57,
+          "quote": "if \"flags\" in data:"
+        },
+        {
+          "path": "frappe/ui/src/components/FormLayout/buildLayoutFromMeta.ts",
+          "line": 163,
+          "quote": "default: field.default,"
+        },
+        {
+          "path": "frappe/ui/src/components/FormLayout/buildLayoutFromMeta.ts",
+          "line": 173,
+          "quote": "permDenied: !!field.perm_denied,"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "no_copy alan özelliği ve copy_doc hedef baseline kaynağında doğrulanmadı.",
+    "Şablon saklama yeri tanımsız; karar bekliyor.",
+    "Child table ve Link kopyalama kuralı bu rehberde yalnız öneri; native kaynak eşlemesi yok.",
+    "Alan düzeyi okuma izni filtresinin native kaynağı R-01 kapsamında eşlenmedi.",
+    "Secret, ödeme ve onay sınıfı alanların sınıflandırma politikası tanımsız.",
+    "Sunucu tarafı önizleme için üretim dosyası sahipliği R-00 eşlemesinde belirlenecek; bu sözleşme backend dosya yolu önermez.",
+    "React/Ant Design tarafında kaynak kanıtı yok; Vue/Frappe UI kaynağı yalnız meta alanlarını gösterir.",
+    "Destekleyici görev yok; ERPNext/HRMS kurulu değil, örnekler yalnız Frappe ve Suite DocType'larına eşlenmeli.",
+    "Runtime kabulü koşulmadı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Şablon saklama yeri: ayrı şablon DocType'ı mı, mevcut kayıttan çoğaltma mı, ikisi birden mi.",
+      "requirementIds": ["views-17"],
+      "blocks": "Şablondan oluşturma girdisi, olası şema/migration ve şablon izin modeli.",
+      "docStepUntilDecided": "Mevcut kayıttan önizleme sözleşmesini şablon referansından bağımsız belgele; şablon girdisini soyut referans olarak bırak."
+    },
+    {
+      "decision": "Hedef Frappe baseline sürümü (T-00); kaynak değerlendirmesi v17-dev'i anıyor ancak hedef seçimi bu sözleşmede yapılmaz.",
+      "requirementIds": ["views-17"],
+      "blocks": "no_copy/copy_doc doğrulaması ve R-00 eşlemesi.",
+      "docStepUntilDecided": "Doğrulanacak primitifleri ve gerekli satır kanıtı biçimini listele."
+    },
+    {
+      "decision": "Tenant topolojisi.",
+      "requirementIds": ["views-17"],
+      "blocks": "Tenant sınırının kaynak, şablon ve Link hedefleri için sunucu tarafı kontrolü.",
+      "docStepUntilDecided": "Tenant sınırı dışındaki Link değerinin düşürülmesi ve gerekçe gösterimini topolojiden bağımsız kabul ölçütü olarak yaz."
+    },
+    {
+      "decision": "Secret, ödeme ve onay sınıfı alanların belirlenme politikası (alan tipi/no_copy yeterli mi, ek DocType veya alan listesi mi).",
+      "requirementIds": ["views-17"],
+      "blocks": "Hassas alan dışlama kuralının kesinleştirilmesi.",
+      "docStepUntilDecided": "Bu sınıfları varsayılan olarak kopyalanmaz kabul eden kuralı ve Frappe/Suite DocType örnek eşlemesini belgele."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

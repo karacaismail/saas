@@ -1,0 +1,261 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "social-message-delivery",
+  "canonicalTaskIds": ["social-message-delivery--implementation"],
+  "requirementIds": ["notifications-4"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "notifications-4": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Sosyal kanal mesaj teslimi: Telegram Bot, Discord ve WhatsApp Business için tek kanal adaptörü sözleşmesi. Uygulama durumu: uygulanmadı.",
+    "trigger": "Yetkili bir iş akışı, outbox--contract üzerinden kuyruğa alınmış bir bildirim için doğrulanmış ve opt-in vermiş bir alıcı kaydına tek bir kanal üzerinden mesaj gönderimi ister.",
+    "expected": "Kanal adaptörü send(recipient_ref, message) çağrısını tek bir sonuçla tamamlar: status (Delivered, Failed veya Exhausted), provider_code, provider_error ve varsa provider_message_id. Sonuç, kanal ve alıcı semantiği taşıyan teslim kaydına native belge kaydetme yoluyla yazılır. Hata hiçbir durumda sessizce yutulmaz; native log_error kaydına ek olarak teslim kaydında görünür.",
+    "denied": "Alıcı doğrulanmamış veya opt-in vermemişse, çağıranın ilgili belge ve kanal için native izni yoksa ya da kanal credential'ı yapılandırılmamışsa sağlayıcıya HTTP isteği yapılmaz, alıcı ve teslim kayıtları değişmez ve çağırana açık bir ret hatası döner."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Kanıtlar yalnız native parçaları gösterir; üç kanalın hiçbiri için hazır adaptör yoktur. Yeniden kullanılacak native parçalar: (1) Notification DocType'ının Select tipindeki kanal alanı ve gönderim hatasında log_error kalıbı; (2) Slack Webhook URL entegrasyonunda başarısız yanıtı log_error ile kaydedip hata sonucu döndürme kalıbı; (3) Webhook DocType'ının istek sonucunu Delivered durumuyla log_request üzerinden kaydetmesi ve giden istekler için imza başlığı sabiti. notification.js içindeki WhatsApp dalı yalnız alıcı alanı filtresidir; kanal seçeneklerinde WhatsApp olmadığından gönderim kodu sayılmaz. Webhook Request Log genel HTTP kaydıdır, alıcı ve kanal semantiği taşımaz; durum adları ve yeniden deneme kalıbı örnek alınır, kaydın kendisi teslim kaydı yerine geçmez. searchedPaths yalnız bu sözleşmede aranan yollardır; kapsamlı yokluk iddiası değildir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/email/doctype/notification/notification.json",
+        "line": 76,
+        "quote": "\"options\": \"Email\\nSlack\\nSystem Notification\\nSMS\","
+      },
+      {
+        "path": "frappe/frappe/email/doctype/notification/notification.js",
+        "line": 96,
+        "quote": "} else if ([\"WhatsApp\", \"SMS\"].includes(frm.doc.channel)) {"
+      },
+      {
+        "path": "frappe/frappe/email/doctype/notification/notification.py",
+        "line": 449,
+        "quote": "self.log_error(\"Failed to send Notification\")"
+      },
+      {
+        "path": "frappe/frappe/integrations/doctype/slack_webhook_url/slack_webhook_url.py",
+        "line": 67,
+        "quote": "frappe.log_error(message, _(\"Slack Webhook Error\"))"
+      },
+      {
+        "path": "frappe/frappe/integrations/doctype/webhook/webhook.py",
+        "line": 176,
+        "quote": "log_request(webhook.name, doc.doctype, doc.name, request_url, headers, data, res, status=\"Delivered\")"
+      },
+      {
+        "path": "frappe/frappe/integrations/doctype/webhook/webhook.py",
+        "line": 20,
+        "quote": "WEBHOOK_SECRET_HEADER = \"X-Frappe-Webhook-Signature\""
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/email/doctype/notification/notification.js",
+      "frappe/frappe/email/doctype/notification/notification.json",
+      "frappe/frappe/email/doctype/notification/notification.py",
+      "frappe/frappe/integrations/doctype/slack_webhook_url/slack_webhook_url.py",
+      "frappe/frappe/integrations/doctype/webhook/webhook.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/social-message-delivery.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/adapters/notifications/social_message_delivery_post_mvp.py"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": {
+      "channel": "telegram, discord veya whatsapp; ilk uygulama kabulü yalnız telegram için açılır.",
+      "recipient_ref": "Doğrulanmış alıcı kaydının adı. Ham telefon numarası, chat_id veya Discord kanal kimliği çağrı girdisi olarak kabul edilmez; adaptör bunları yalnız doğrulanmış kayıttan okur.",
+      "message": "Düz metin veya email-template--contract kapsamındaki şablon referansı ile render bağlamı. WhatsApp için onaylı şablon adı ve dil sözleşmede zorunlu alan olarak tutulur.",
+      "envelope": "kernel-envelope--contract alanları: tenant, actor ve correlation kimliği.",
+      "idempotency_key": "outbox--contract kaydından gelir; aynı anahtarla ikinci çağrı yeni sağlayıcı isteği üretmez, mevcut teslim kaydının sonucunu döndürür."
+    },
+    "output": {
+      "status": "Delivered, Failed veya Exhausted. Kuyrukta bekleyen deneme için ara durum önerilir; kesin durum listesi social-message-delivery--contract görevinde sabitlenir.",
+      "provider_code": "Sağlayıcının HTTP durum kodu veya sağlayıcıya özgü hata kodu; yoksa boş.",
+      "provider_error": "Sağlayıcı hata metni; token veya secret içermeyecek biçimde maskelenir.",
+      "provider_message_id": "Başarılı gönderimde sağlayıcının mesaj kimliği; gelen durum geri bildirimlerini eşlemek için kullanılır.",
+      "attempts_next_retry": "Deneme sayısı ve bir sonraki deneme zamanı."
+    },
+    "authorization": "Native Frappe rol ve kullanıcı izinleri kullanılır; alıcı, teslim ve credential kayıtlarının okunması ve yazılması native izin kontrolünden geçer. ignore_permissions, ham SQL veya izin kontrolünü atlayan yazma yasaktır. Kanal gönderme ve alıcı doğrulama rolleri native-user-policy--contract içindeki explicitPermissionFlags ortak kaynağına bağlanır; bu sözleşme kendi rol veya bayrak adı üretmez. Gelecekteki tek kabulde en az bir reddedilen yazma ve değişmeyen kayıt bulunur.",
+    "persistence": "Teslim kaydı ile doğrulanmış alıcı ve opt-in kaydı ayrı uygulamada ek (additive) DocType olarak önerilir; adları ve alanları social-message-delivery--contract görevinde kesinleşir. Teslim kaydı en az kanal, recipient_ref, outbox referansı, durum, provider_code, provider_error, deneme sayısı ve next_retry alanlarını taşır. Yazma native belge insert/save ve transaction ile yapılır; native doc_events akışı atlanmaz. Credential değerleri yalnız Password tipi alanda veya site yapılandırmasında tutulur; kaynakta, fixture'da veya Git'te değer bulunmaz. Kurulu frappe uygulaması değiştirilmez.",
+    "failure": "Sağlayıcı 4xx yanıtı: teslim kaydı provider_code ve hata metniyle Failed olarak kalıcılaşır; hız sınırı yanıtı dışında yeniden denenmez. 5xx, zaman aşımı veya hız sınırı yanıtı: yeniden deneme takvimine göre denenir, takvim tükenince Exhausted olur. Her hata native log_error ile de kaydedilir. 'except: pass' veya hatayı yutan herhangi bir kalıp yasaktır. Sağlayıcıdan gelen durum geri bildirimleri imza doğrulaması ve hız sınırı olmadan kabul edilmez; imzasız veya geçersiz imzalı istek reddedilir ve teslim kaydını değiştirmez."
+  },
+  "development": {
+    "dependencies": [
+      "capability-definition--contract",
+      "email-template--contract",
+      "kernel-envelope--contract",
+      "native-user-policy--contract",
+      "outbox--contract",
+      "social-message-delivery--contract"
+    ],
+    "admission": {
+      "status": "NOT_ADMITTED",
+      "prerequisite": "T-00 target baseline and R-00 reuse mapping; permissioned data consumers also use R-01; implement one narrow behavior with real RED/GREEN evidence",
+      "specificPrerequisites": [
+        "social-message-delivery--contract görevinde adaptör arayüzü, alıcı ve opt-in kaydı, teslim kaydı alanları ve durum listesi kabul edilmiş olmalı.",
+        "outbox--contract, kernel-envelope--contract, native-user-policy--contract, capability-definition--contract ve email-template--contract bu davranışın girdi alanlarını sabitlemiş olmalı.",
+        "decisionsPending içindeki credential saklama ve tenant topolojisi kararı Telegram adımından önce verilmiş olmalı.",
+        "Notification kanal alanının uzatma yolu T-00 hedef Frappe sürümünün kaynağında doğrulanmış olmalı."
+      ],
+      "orderAuthority": "Mevcut görev bağımlılıkları ve post_mvp aşaması belirleyicidir; küme sırası yalnız sunumdur, yeni seri bağımlılık değildir."
+    },
+    "steps": [
+      "1. social-message-delivery--contract görevinde kanal adaptörü arayüzünü yaz: send(recipient_ref, message) tek sonuç döndürür (status, provider_code, provider_error, provider_message_id).",
+      "2. Aynı sözleşmeye şunları ekle: doğrulanmış alıcı ve opt-in kaydı; credential saklama kuralı (yalnız Password alanı veya site yapılandırması, kaynakta değer yok); Delivered, Failed, Exhausted ve next_retry alanlı teslim kaydı. Webhook log_request ve yeniden deneme kalıbını örnek al, ancak Webhook Request Log'u teslim kaydı olarak kullanma.",
+      "3. Kabul açıldıktan sonra social-message-delivery--implementation görevinde ilk kanalı ek uygulama kodu olarak yaz: Telegram Bot sendMessage çağrısı ve chat_id eşlemesi. Kurulu frappe değiştirilmez; planlanan yol yalnız öneridir.",
+      "4. development.tdd içindeki tek senaryoyu RED/GREEN olarak tamamla. İkinci davranışı (sağlayıcı 4xx yanıtının teslim kaydına Failed ve hata metniyle düşmesi) ayrı bir RED/GREEN döngüsüyle ekle.",
+      "5. Aynı arayüzle önce Discord'u, ardından onaylı şablon ve opt-in gerektiren WhatsApp Business'ı ekle. Hiçbir kanal ilgili bekleyen karar verilmeden başlamaz.",
+      "6. Sağlayıcı durum geri bildirimleri için gelen imza doğrulamasını ve hız sınırını ekle; teslim kaydını provider_message_id ile güncelle.",
+      "7. Notification bağlantısını en son değerlendir. Property Setter ile kanal seçeneği eklemek ve dağıtımı override veya doc_events ile yapmak doğrulanmamış seçeneklerdir; T-00 hedef sürüm kaynağında doğrulanmadan uygulanmaz. Kanal sonucu istemciye yalnız JSON sözleşmesiyle sunulur; yerel ReactNode veya callback bu sınırdan geçmez."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Doğrulanmamış alıcıya Telegram gönderimi reddedilir: sağlayıcıya HTTP isteği yapılmaz ve teslim kaydı sayısı değişmez.",
+      "red": "Adaptör iskeleti, alıcı kaydı ve teslim kaydı hazırken send doğrulanmamış bir alıcıyla çağrılır. Doğrulama kontrolü henüz olmadığından sahte HTTP istemcisine istek gider; test, 'istek yapılmadı' ve 'kayıt değişmedi' doğrulamalarında davranış nedeniyle başarısız olur. Import, kurulum veya altyapı hatası RED sayılmaz; native Notification davranışı bozularak RED üretilmez.",
+      "green": "send, HTTP çağrısından önce alıcının doğrulanmış olduğunu ve opt-in verdiğini native izinli okumayla kontrol eder ve ret hatası döndürür. Test geçer; native Notification kanalları ve mevcut kayıtlar değişmez."
+    },
+    "rollback": "Değişiklik ayrı uygulamada ek koddur. Geri almak için ilgili uygulama sürümü geri alınır ve Notification kanal seçeneği için eklenmiş bir Property Setter varsa kaldırılır. Kurulu frappe ve mevcut Notification kayıtları değişmediğinden native davranış etkilenmez. Teslim kayıtlarının ne kadar tutulacağı saklama süresi kararına bağlıdır. Teknik CI, deploy ve rollback sahibi Hüseyin Cengiz'dir. Gelen geri bildirim adresi için DNS kaydı gerekirse teknik değerleri Hüseyin Cengiz hazırlar, GoDaddy'de Asistan Hüseyin uygular, sonucu Hüseyin Cengiz doğrular. Bu sözleşme hiçbir servis, production, şema veya veri değişikliği için yetki vermez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "notifications-4",
+      "sourceStage": "post_mvp",
+      "existing": [
+        "Mevcut yönerge data/clusters/07.json#/groups/0/items/3: support=external, action=integrate. Üç kanal ayrı sağlayıcı entegrasyonudur; Notification kanalları bunların hazır adaptörü sayılmaz.",
+        "Notification kanal alanı Email, Slack, System Notification ve SMS seçeneklerini içerir; gönderim hatası log_error ile kaydedilir.",
+        "Slack Webhook URL başarısız yanıtı log_error ile kaydeder ve hata sonucu döndürür.",
+        "Webhook istek sonucunu Delivered durumuyla log_request üzerinden kaydeder ve giden istek imza başlığı sabitini tanımlar. Yapılandırmayla bir Discord gelen webhook adresine istek atılabilir; bu bir kanal adaptörü değildir.",
+        "notification.js içindeki WhatsApp dalı yalnız alıcı alanı filtresidir; gönderim kodu değildir."
+      ],
+      "gap": [
+        "Telegram: sendMessage çağrısı ve chat_id eşlemesi yok.",
+        "Discord: bot veya webhook adaptörü yok.",
+        "WhatsApp Business: mesaj ve şablon gönderimi ile wa_id eşlemesi yok.",
+        "Üç kanal için credential kaydı veya Password alanı yok.",
+        "Doğrulanmış alıcı eşlemesi ve opt-in sözleşmesi yok.",
+        "Gelen durum geri bildirimleri için imza doğrulaması ve hız sınırı yok.",
+        "Kanal ve alıcı semantiği ile sağlayıcı hata kodunu saklayan teslim kaydı yok.",
+        "Notification kanal alanının seçenekleri sabittir; yeni kanal için doğrulanmış bir uzatma noktası yok."
+      ],
+      "completionSteps": [
+        "Telegram: bot token'ı yalnız Password alanında veya site yapılandırmasında sakla; chat_id'yi doğrulanmış alıcı kaydında tut; sendMessage sonucunu teslim kaydına yaz.",
+        "Discord: bot veya gelen webhook yolu kararından sonra aynı arayüzle ekle; webhook adresini secret olarak sakla.",
+        "WhatsApp Business: erişim yolu kararından sonra onaylı şablon ve opt-in zorunlu olacak biçimde ekle; wa_id eşlemesini doğrulanmış alıcı kaydında tut.",
+        "Teslim kaydı: Delivered, Failed, Exhausted, provider_code, provider_error ve next_retry; log_request kalıbını örnek al.",
+        "Gelen geri bildirim: kanal başına imza doğrulaması, hız sınırı ve provider_message_id ile eşleme; geçersiz imza hiçbir kaydı değiştirmez.",
+        "Kanal gönderme yeteneğini capability-definition--contract kaynak registry'sinde tanımla; bu kaynak GenUI capability registry'sinden ayrıdır."
+      ],
+      "dependencies": [
+        "social-message-delivery--contract",
+        "kernel-envelope--contract",
+        "native-user-policy--contract",
+        "capability-definition--contract",
+        "outbox--contract",
+        "email-template--contract"
+      ],
+      "acceptance": "Her kanal için doğrulanmış alıcıya gönderim ve sağlayıcı hata dönüşü kaydedilsin. Gelecekteki ilk kabul yalnız Telegram içindir: doğrulanmamış alıcıya gönderim reddedilir ve kayıt değişmez; sağlayıcı 4xx yanıtı teslim kaydına Failed ve hata metniyle düşer. Discord ve WhatsApp aynı ölçütle ayrı ayrı kabul edilir.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/email/doctype/notification/notification.json",
+          "line": 76,
+          "quote": "\"options\": \"Email\\nSlack\\nSystem Notification\\nSMS\","
+        },
+        {
+          "path": "frappe/frappe/email/doctype/notification/notification.js",
+          "line": 96,
+          "quote": "} else if ([\"WhatsApp\", \"SMS\"].includes(frm.doc.channel)) {"
+        },
+        {
+          "path": "frappe/frappe/email/doctype/notification/notification.py",
+          "line": 449,
+          "quote": "self.log_error(\"Failed to send Notification\")"
+        },
+        {
+          "path": "frappe/frappe/integrations/doctype/slack_webhook_url/slack_webhook_url.py",
+          "line": 67,
+          "quote": "frappe.log_error(message, _(\"Slack Webhook Error\"))"
+        },
+        {
+          "path": "frappe/frappe/integrations/doctype/webhook/webhook.py",
+          "line": 176,
+          "quote": "log_request(webhook.name, doc.doctype, doc.name, request_url, headers, data, res, status=\"Delivered\")"
+        },
+        {
+          "path": "frappe/frappe/integrations/doctype/webhook/webhook.py",
+          "line": 20,
+          "quote": "WEBHOOK_SECRET_HEADER = \"X-Frappe-Webhook-Signature\""
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Üç kanalın adaptörü, alıcı ve opt-in kaydı, credential kaydı ve teslim kaydı yok; hepsi uygulanmadı.",
+    "Webhook imza başlığı yalnız giden istekler içindir; gelen sağlayıcı geri bildirimleri için imza doğrulaması ve hız sınırı yok.",
+    "Webhook yeniden deneme takvimi ve SMS Settings ile ilgili gözlemler bu sözleşmede alıntılanmış kanıt değildir; T-00 hedef sürüm kaynağında yeniden doğrulanmalı.",
+    "Önceki bir incelemede Suite Drive bildiriminde hatayı yutan 'except Exception: pass' kalıbı not edildi; bu sözleşmede bunun doğrulanmış kanıtı yok. Yeni kodda bu kalıp yasaktır.",
+    "Notification'a yeni kanal eklemek için doğrulanmış bir uzatma noktası yok.",
+    "Runtime kabulü yapılmadı; test yazılmadı ve koşulmadı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "WhatsApp Business erişim yolu (sağlayıcı doğrudan API veya aracı iş ortağı) ve buna bağlı tarife ile lisans koşulları.",
+      "requirementIds": ["notifications-4"],
+      "blocks": "development.steps 5 içindeki WhatsApp adaptörü adımı.",
+      "docStepUntilDecided": "Kanaldan bağımsız adaptör arayüzünü, şablon ve opt-in alanlarını sözleşmede belgele."
+    },
+    {
+      "decision": "Discord entegrasyon yolu: bot veya gelen webhook.",
+      "requirementIds": ["notifications-4"],
+      "blocks": "development.steps 5 içindeki Discord adaptörü adımı.",
+      "docStepUntilDecided": "Her iki yol için ortak sonuç alanlarını ve secret saklama kuralını belgele."
+    },
+    {
+      "decision": "Credential saklama yeri (Password alanı veya site yapılandırması) ve tenant topolojisi (credential'ın tenant başına mı site başına mı tutulacağı).",
+      "requirementIds": ["notifications-4"],
+      "blocks": "Credential kaydı ve development.steps 3 içindeki Telegram uygulaması.",
+      "docStepUntilDecided": "Kaynakta değer bulunmama kuralını ve envelope içindeki tenant alanıyla eşleme ihtiyacını belgele."
+    },
+    {
+      "decision": "Teslim kaydı ve mesaj içeriği için saklama süresi.",
+      "requirementIds": ["notifications-4"],
+      "blocks": "Teslim kaydı temizleme davranışı ve rollback sırasında kayıtların akıbeti.",
+      "docStepUntilDecided": "Teslim kaydı alanlarını, mesaj içeriğini değil yalnız referansını taşıyacak biçimde belgele."
+    },
+    {
+      "decision": "Sağlayıcıya aktarılan kişisel verinin (telefon numarası, chat_id, mesaj içeriği) veri yerleşimi.",
+      "requirementIds": ["notifications-4"],
+      "blocks": "Herhangi bir kanalın production ortamında etkinleştirilmesi.",
+      "docStepUntilDecided": "Kanal başına sağlayıcıya giden alanları listele."
+    },
+    {
+      "decision": "Hedef Frappe sürümü (T-00).",
+      "requirementIds": ["notifications-4"],
+      "blocks": "development.steps 7 içindeki Notification bağlantısı ve kanıtların yeniden doğrulanması.",
+      "docStepUntilDecided": "Notification bağlantısını doğrulanmamış seçenek olarak işaretli tut."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

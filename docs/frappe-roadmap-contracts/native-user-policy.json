@@ -1,18 +1,31 @@
 {
   "schemaVersion": "saas-existing-work-contract.v1",
   "canonicalUnitId": "native-user-policy",
-  "canonicalTaskIds": ["native-user-policy--implementation"],
+  "canonicalTaskIds": [
+    "native-user-policy--implementation",
+    "ui-family-05--implementation",
+    "ui-family-34--implementation",
+    "ui-provider-data--implementation",
+    "ui-provider-permission--implementation",
+    "ui-view-kanban--implementation"
+  ],
   "requirementIds": ["access-1", "access-3"],
   "stage": "poc",
+  "sourceStages": {
+    "access-1": "poc",
+    "access-3": "poc"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
     "title": "App-owned sunucu operasyonunda varsayılan red: haritada olmayan operasyon kimliği yan etkiden önce reddedilir",
-    "trigger": "App-owned bir sunucu işlemi user_poc adaptörünü operation, doctype ve name ile, frappe.session.user bağlamında çağırır.",
-    "expected": "operation adaptördeki sabit POLICY haritasında varsa (ör. pilot_record.read->read, pilot_record.update->write), belge native frappe.get_doc ile yüklenir ve doc.check_permission(ptype) çağrılır. İzin varsa belge çağırana döner; çıktı doc.apply_fieldlevel_read_permissions sonrası üretilir.",
-    "denied": "Haritada olmayan operation, kullanıcının rolü ne olursa olsun belge yüklenmeden ve hiçbir yazım yapılmadan reddedilir. Eşlenmiş operation'da native izin yoksa check_permission hatası olduğu gibi yükselir."
+    "trigger": "App-owned bir sunucu işlemi (özel whitelist ucu veya iç çağıran) user_poc adaptörünü operation, doctype ve name ile frappe.session.user bağlamında çağırır.",
+    "expected": "operation adaptördeki sabit POLICY haritasında varsa (operation -> native ptype: read, write, create veya delete), belge native frappe.get_doc ile yüklenir ve doc.check_permission(ptype) çağrılır. İzin varsa belge çağırana döner; çağıranın yanıtı doc.apply_fieldlevel_read_permissions sonrası üretilir. Harita anahtar adları rol matrisi kararından gelir; bu rehber anahtar adı seçmez.",
+    "denied": "Haritada olmayan operation, kullanıcının rolü (Administrator dahil) ne olursa olsun belge yüklenmeden ve hiçbir yazım yapılmadan reddedilir. Eşlenmiş operation'da native izin yoksa check_permission hatası değiştirilmeden yükselir. Yetki ignore_permissions, izinsiz frappe.get_all veya SQL ile atlanmaz."
   },
   "reuse": {
-    "mechanism": "Native önce: rol/belge yetkisi için doc.check_permission ve has_permission, alan düzeyi okuma için apply_fieldlevel_read_permissions kullanılır. Yeni olan tek şey operasyon->ptype haritası ve bilinmeyen operasyonu reddetmektir. Bunun nedeni, özel whitelist uçlarının kendi kontrolünü yapmadığında varsayılan reddin kanıtlanamamasıdır. Yeni DocType, CRUD/ORM kopyası, hook kaydı veya event motoru yoktur.",
+    "status": "KISMI",
+    "mechanism": "Native önce: rol ve belge yetkisi için doc.check_permission ve has_permission/get_role_permissions, alan düzeyi okuma için apply_fieldlevel_read_permissions kullanılır. Kanıtlar native parçaları gösterir (rol tabanlı izin, v2 HTTP metodu -> ptype eşlemesi, whitelist kontrolü); her özel uçta varsayılan reddin var olduğunu göstermez. Suite kaynaklarındaki allow_guest, izinsiz get_all, ignore_permissions, ignore_file_permissions ve override_whitelisted_methods kullanımları varsayılan reddin her uçta ayrıca doğrulanması gerektiğini gösterir. Vue/Frappe UI kaynağı (useDocPermissions) yalnız gösterim ile sunucu yaptırımı ayrımının kaynak kanıtıdır; React/AntD uygulaması kanıtı değildir. Yeni olan tek parça operasyon -> ptype haritası ve bilinmeyen operasyonun reddidir. Yeni DocType, CRUD/ORM kopyası, hook kaydı veya event motoru yoktur. searchedPaths yalnız okunan kaynak kesitleridir; kapsamlı yokluk iddiası değildir.",
     "evidence": [
       {
         "path": "frappe/frappe/api/v2.py",
@@ -23,6 +36,21 @@
         "path": "frappe/frappe/api/v2.py",
         "line": 24,
         "quote": "PERMISSION_MAP = {"
+      },
+      {
+        "path": "frappe/frappe/api/v2.py",
+        "line": 259,
+        "quote": "doc.is_whitelisted(method)"
+      },
+      {
+        "path": "frappe/frappe/permissions.py",
+        "line": 82,
+        "quote": "def has_permission("
+      },
+      {
+        "path": "frappe/frappe/permissions.py",
+        "line": 168,
+        "quote": "role_permissions = get_role_permissions(meta, user=user, debug=debug)"
       },
       {
         "path": "frappe/frappe/permissions.py",
@@ -39,66 +67,260 @@
         "line": 23,
         "quote": "enforcement stays server-side (`getdoc` applies field-level read permissions)."
       }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v2.py",
+      "frappe/frappe/permissions.py",
+      "frappe/frappe/realtime/auth.py",
+      "frappe/frappe/utils/oauth.py",
+      "frappe/ui/src/composables/useDocPermissions.ts",
+      "suite/suite/drive/api/permissions.py",
+      "suite/suite/drive/patches/switch_drive_roles_to_suite_roles.py",
+      "suite/suite/hooks.py",
+      "suite/suite/meet/recording/callback_auth.py",
+      "suite/suite/sheets/permissions.py"
     ]
   },
   "ownership": {
     "activeContractFile": "docs/frappe-roadmap-contracts/native-user-policy.json",
     "plannedProduction": [
-      "backend/saas_platform/saas_platform/adapters/authorization/user_poc.py"
+      "backend/saas_platform/saas_platform/adapters/authorization/user_poc.py",
+      "frontend/packages/ui/src/components/ui-family-05/index.tsx",
+      "frontend/packages/ui/src/components/ui-family-34/index.tsx",
+      "frontend/packages/ui/src/components/ui-provider-data/index.tsx",
+      "frontend/packages/ui/src/components/ui-provider-permission/index.tsx",
+      "frontend/packages/ui/src/components/ui-view-kanban/index.tsx"
     ],
-    "plannedTestFile": "backend/saas_platform/saas_platform/adapters/authorization/test_user_poc.py",
+    "plannedTestFile": null,
     "sharedIntegrationFiles": [
       "backend/saas_platform/saas_platform/hooks.py",
-      "integration/fragments/native-user-policy--integration.json"
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "operation: str, 64 karakterden kısa olmalı ve POLICY anahtarlarından biri olmalı. doctype: str, pilot Data kaydının DocType'ı. name: str, en fazla 140 karakter. user parametre olarak alınmaz, frappe.session.user kullanılır.",
-    "output": "İzin varsa Document döner. Çağıranın yanıtı yalnız alan düzeyi okuma izni uygulanmış as_dict ile oluşur ve policyVersion=1 taşır (contract-native-user-policy v1). İzin bilgisi React/AntD tarafında yalnız gösterim içindir.",
-    "authorization": "Kapsam yalnız yerel suite.localhost native site sınırıdır. Rol ve kayıt yetkisi native check_permission'dan gelir. Administrator native has_permission'ı atlar, ama haritada olmayan operasyon reddi ondan önce çalışır. Tenant kontrolü tenant-registry sözleşmesine bağlıdır ve bu davranışa dahil değildir.",
-    "persistence": "Adaptör hiçbir şey yazmaz ve DDL yapmaz. Red kararı Document.save veya başka bir yan etkiden önce verilir. Native istek rollback davranışı kanıt olarak kullanılmaz.",
-    "failure": "Haritada olmayan operasyonda adaptör native izin hatası yükseltir. Hata sınıfı ve HTTP kodu sağlanan kesitte görünmüyor (unknown); uygulama öncesinde native kaynaktan doğrulanmalı. Eşlenmiş operasyonda check_permission'ın kendi hatası değiştirilmeden geçirilir. Tüketici hata olduğunda veri göstermez ve yeniden denemez."
+    "input": "operation: str, 64 karakterden kısa ve POLICY anahtarlarından biri olmalı. doctype: str, native DocType adı. name: str, en fazla 140 karakter. user parametre olarak alınmaz; frappe.session.user kullanılır. Girdiler JSON model sınırında düz değerlerdir; yerel ReactNode veya callback sunucu sözleşmesine taşınmaz.",
+    "output": "İzin varsa Document döner. Çağıranın yanıtı yalnız alan düzeyi okuma izni uygulanmış as_dict ile oluşur ve policyVersion=1 taşır (contract-native-user-policy v1). React/AntD tüketicileri (ui-provider-permission, ui-provider-data, ui-view-kanban, ui-family-05, ui-family-34) izin bilgisini yalnız gösterim için kullanır; yaptırım kaynağı sunucudur.",
+    "authorization": "Rol ve kayıt yetkisi native check_permission/has_permission'dan gelir. Administrator native has_permission'ı atlar; haritada olmayan operasyon reddi ondan önce çalışır. System Manager, Suite User ve Suite Admin'in rol matrisindeki yeri karar beklemektedir. Tenant kontrolü tenant-registry--contract sözleşmesine bağlıdır ve bu davranışa dahil değildir; site kapsamı T-00 hedef temeliyle belirlenir. Rol veya izin üreten ya da atayan her adım ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/explicitPermissionFlags ortak kaynağına bağlanır. ignore_permissions veya SQL ile yetki bypass yoktur.",
+    "persistence": "Adaptör hiçbir şey yazmaz; DDL, şema veya veri değişikliği yapmaz. Red kararı Document.save veya başka bir yan etkiden önce verilir. Native istek rollback davranışı kanıt olarak kullanılmaz. Rol ataması veya Has Role yazımı bu davranışın parçası değildir.",
+    "failure": "Haritada olmayan operasyonda adaptör native izin hatası yükseltir; hata sınıfı ve HTTP kodu sağlanan kesitte görünmüyor (unknown) ve uygulama öncesinde hedef temeldeki native kaynaktan doğrulanmalıdır. Eşlenmiş operasyonda check_permission hatası değiştirilmeden geçirilir. Tüketici hata olduğunda veri göstermez ve otomatik yeniden denemez."
   },
   "development": {
     "dependencies": [
-      "native-user-policy--contract",
+      "api-middleware--contract",
+      "capability-definition--contract",
+      "client-rule-parity--contract",
+      "connection--contract",
+      "device-grant--contract",
       "kernel-envelope--contract",
+      "native-role-scope--contract",
+      "native-user-policy--contract",
+      "sync-receipt--contract",
       "tenant-registry--contract",
-      "yerel pilot t08: tek Data kaydı, native admin/reader kapsamı, recordCommit 6ea301c"
+      "ui-family-05--contract",
+      "ui-family-34--contract",
+      "ui-provider-data--contract",
+      "ui-provider-permission--contract",
+      "ui-view-kanban--contract"
     ],
-    "admission": "Önkoşullar T-00 hedef temeli ve R-00 yeniden kullanım eşlemesidir; Frappe 17.0.0.dev0 adf1fd0c yerel pilotunda t08 kaydı ve kullanıcıları erişilebilir olmalıdır. Suite HEAD ve uzak ürün temeli unknown; yerel kanıt uzak temel sayılmaz. Keycloak not_run ve kapsam dışıdır.",
+    "admission": "Uygulama durumu: uygulanmadı. Kabul NOT_ADMITTED; aktif üretim kiralaması yok. Önkoşullar T-00 hedef temeli ve R-00 yeniden kullanım eşlemesidir; izinli veri tüketicileri (ui-provider-data, ui-view-kanban, ui-family-05, ui-family-34) ayrıca R-01 kullanır. Hedef Frappe/Suite sürümü ve temel commit unknown; kaynak kesitlerindeki sürüm gözlemi hedef sürüm seçimi değildir. Rol/izin üreten adımlar explicitPermissionFlags ortak kaynağına bağlıdır. Keycloak eşlemesi bu davranışın kapsamı dışındadır. Tek dar davranış gerçek RED/GREEN kanıtıyla uygulanır.",
     "steps": [
-      "user_poc.py içine sabit POLICY haritası ve tek giriş fonksiyonu enforce(operation, doctype, name) yazılır.",
-      "Haritada olmayan operation için reddetme işlemi get_doc çağrısından önce yapılır.",
-      "Eşlenmiş operation için frappe.get_doc yapılır, ardından doc.check_permission(ptype) çağrılır ve belge döndürülür.",
-      "hooks.py veya uç bağlantısına dokunulmaz; bunlar entegrasyon sahibine (Codex) bırakılır."
+      "T-00 hedef temelinde permissions.py has_permission ve api/v2.py check_permission/PERMISSION_MAP kesitleri yeniden okunur; imza veya hata sınıfı farklıysa önce bu sözleşme güncellenir.",
+      "user_poc.py içine sabit POLICY haritası (operation -> ptype) ve tek giriş fonksiyonu enforce(operation, doctype, name) önerilir; harita anahtarları rol matrisi kararından gelir.",
+      "Haritada olmayan veya uzunluk sınırını aşan operation için ret frappe.get_doc çağrısından önce yapılır.",
+      "Eşlenmiş operation için frappe.get_doc, ardından doc.check_permission(ptype) çağrılır; okuma yanıtı apply_fieldlevel_read_permissions sonrası üretilir.",
+      "hooks.py, uç bağlantısı, registry.ts, routes.tsx ve diğer ortak entegrasyon dosyalarına dokunulmaz; bağlama ana entegrasyon sahibine seri birleştirme için bırakılır.",
+      "React/AntD tüketicileri izin verisini yalnız gösterim için okur; eylemi gizlemek veya devre dışı bırakmak yaptırım sayılmaz, sunucu reddi her durumda geçerlidir."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "Pilot kaydında write yetkisi olan, Administrator olmayan admin-scope kullanıcı haritada olmayan operation ile enforce çağırır. Beklenen sonuç: native izin hatası oluşur. Aynı senaryoda write izni olmayan, kimliği doğrulanmış reader-scope kullanıcı pilot_record.update ile enforce çağırır; native check_permission hatası Document.save veya başka bir yan etkiden önce oluşur. Her iki retten sonra kaydın modified ve kalıcı alan değeri değişmez.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Aynı test ve aynı komut (bench run-tests ile bu modül, yalnız yerel pilot sitede), adaptör uygulandıktan sonra geçer."
+      "oneScenario": "Hedef kayıtta native write yetkisi olan, Administrator olmayan, kimliği doğrulanmış bir kullanıcı haritada olmayan bir operation ile enforce çağırır. Beklenen: belge yüklenmeden native izin hatası oluşur ve ret sonrası kaydın modified ve kalıcı alan değerleri değişmez. Test verisi native izinli yollarla hazırlanır; ignore_permissions veya SQL kullanılmaz.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. RED import veya altyapı hatası ya da native check_permission davranışını bozmak değildir; giriş noktası varken haritasız operasyonun reddedilmemesi (belgenin yüklenip dönmesi) assertion başarısızlığı olarak gözlenmelidir. Native olarak zaten geçen davranışa RED uydurulmaz. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "Adaptör uygulandıktan sonra aynı senaryo, değişmeyen assertion ve aynı komutla geçmelidir; komut T-00 hedef temelinde belirlenir. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN'i değildir."
     },
-    "rollback": "Yalnız user_poc.py ve planlı test dosyası yerelde geri alınır. Production, hook, rol veya kayıt değişikliği yapılmaz."
+    "rollback": "Yalnız gelecekte yazılacak user_poc.py ve ona ait test geri alınır. Production, hook, rol, şema veya kayıt değişikliği yapılmaz. CI, dağıtım ve rollback teknik sahibi Hüseyin Cengiz'dir; bu davranış DNS/GoDaddy işlemi gerektirmez, gerekirse uygulayıcı Asistan Hüseyin'dir."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "access-1",
+      "sourceStage": "poc",
+      "existing": "Kaynakta rol tabanlı has_permission ve get_role_permissions, Administrator için erken izin dalı, v2 execute_doc_method içinde HTTP metodu -> ptype ile doc.check_permission, genel Social Login Key OAuth sağlayıcı okuması ve Suite rol eşleme patch'i (Drive User -> Suite User) görülür. Vue useDocPermissions yalnız gösterimdir, yaptırım sunucudadır. Bunlar kaynak gözlemidir; çalıştırılarak doğrulanmamıştır.",
+      "gap": "Keycloak claim/grup -> Frappe Role eşlemesi ve senkron zamanı tanımsız; kabulün geçerli olduğu uçlar (/api/v1/resource, /api/v2/document, /api/method) belirtilmemiş; Administrator, System Manager, Suite User ve Suite Admin rol matrisinde ele alınmamış; Has Role bulk insert rol atamaları için denetim izi talimatı yok.",
+      "completionSteps": [
+        "Tek rol matrisi belgesi yazılır: Role (Suite User, Suite Admin, System Manager, Administrator) x DocType x read/write/create/delete; her hücre native DocPerm kaynağına atıf verir, yeni izin motoru tasarlanmaz.",
+        "Administrator'ın native has_permission'ı atladığı matriste açık istisna olarak yazılır; varsayılan red haritasının bu dal öncesinde çalıştığı belirtilir.",
+        "Kabul uç kapsamı karar gelene kadar /api/v2/document aday olarak işaretlenir; /api/v1/resource ve /api/method durumu unknown kalır.",
+        "Keycloak eşleme satırı yalnız decisionsPending referansı olarak tutulur; bu birimde eşleme uygulanmaz.",
+        "Rol atama yolu için denetim izi gereksinimi explicitPermissionFlags ortak kaynağına bağlanır; bulk insert yerine native izinli atama önerisi karar sahibine sunulur.",
+        "ui-provider-permission sunucunun hesapladığı izinleri yalnız gösterir; istemci tarafında rol hesaplaması yapılmaz."
+      ],
+      "dependencies": [
+        "native-user-policy--contract",
+        "native-role-scope--contract",
+        "kernel-envelope--contract",
+        "tenant-registry--contract",
+        "ui-provider-permission--contract"
+      ],
+      "acceptance": "Gelecekte kabul kapsamına alınan uçlarda her rol için read/write/create/delete olumlu ve olumsuz senaryolar native izinle sonuçlanır; reddedilen yazmada kayıt değişmez. Bu birimin tek kabulü development.tdd.oneScenario'dur; matrisin tamamı not_run.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 82,
+          "quote": "def has_permission("
+        },
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 168,
+          "quote": "role_permissions = get_role_permissions(meta, user=user, debug=debug)"
+        },
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 109,
+          "quote": "if user == \"Administrator\":"
+        },
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 267,
+          "quote": "doc.check_permission(PERMISSION_MAP[frappe.request.method])"
+        },
+        {
+          "path": "frappe/ui/src/composables/useDocPermissions.ts",
+          "line": 23,
+          "quote": "enforcement stays server-side (`getdoc` applies field-level read permissions)."
+        },
+        {
+          "path": "frappe/frappe/utils/oauth.py",
+          "line": 107,
+          "quote": "providers = frappe.get_all(\"Social Login Key\", fields=[\"*\"])"
+        },
+        {
+          "path": "suite/suite/drive/patches/switch_drive_roles_to_suite_roles.py",
+          "line": 8,
+          "quote": "\"Drive User\": \"Suite User\","
+        }
+      ]
+    },
+    {
+      "requirementId": "access-3",
+      "sourceStage": "poc",
+      "existing": "v2 PERMISSION_MAP HTTP metodunu ptype'a eşler; execute_doc_method doc.is_whitelisted ve check_permission uygular. Realtime izin kontrolünü web sürecine devreder. Meet recorder callback'i jti replay koruması kullanır. Suite'te allow_guest whitelist ucu, frappe.get_all ile izinsiz okuma, ignore_permissions kullanan iç yazıcılar, ignore_file_permissions = True ve override_whitelisted_methods görülür.",
+      "gap": "Özel whitelist (allow_guest dahil), override_whitelisted_methods, website_redirects ve arka plan işleri envanteri yok; get_all/ignore_permissions kullanım kuralı yazılmamış; v1 insert/save/delete iç izin güvencesi unknown; job/enqueue kullanıcı ve tenant bağlamı tanımsız.",
+      "completionSteps": [
+        "hooks.py override_whitelisted_methods ve allow_guest uçlarından başlayan salt okunur uç envanteri belgesi yazılır; her uç için kimlik, tenant ve işlem kontrolü native, adaptör, eksik veya unknown olarak sınıflanır.",
+        "Kural metni: frappe.get_all ve ignore_permissions yalnız aynı istekte açık native izin kontrolü (check_permission veya has_permission) geçtikten sonra kullanılabilir; aksi durum envanterde eksik işaretlenir.",
+        "ignore_file_permissions = True nedeniyle File yetkisinin Drive mantığına devredildiği envanterde ayrı satır olur; framework File izni varsayılmaz.",
+        "Eksik işaretli uçlar enforce adaptörüne bağlanmak üzere ana entegrasyon sahibine aday liste olarak verilir; bağlama bu birimde yapılmaz.",
+        "v1 yolları ve job/enqueue bağlamı karar ve kaynak doğrulaması gelene kadar unknown kalır; zamanlanmış iş etkinleştirilmez."
+      ],
+      "dependencies": [
+        "native-user-policy--contract",
+        "kernel-envelope--contract",
+        "tenant-registry--contract",
+        "api-middleware--contract"
+      ],
+      "acceptance": "Envanterdeki her özel uçta kimlik, tenant ve işlem kontrolü sınıflanmıştır; paylaşılan test bütçesinden tek senaryo (development.tdd.oneScenario) yetkisiz isteğin yan etki üretmediğini kanıtlar. Bu turda not_run.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 24,
+          "quote": "PERMISSION_MAP = {"
+        },
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 259,
+          "quote": "doc.is_whitelisted(method)"
+        },
+        {
+          "path": "suite/suite/drive/api/permissions.py",
+          "line": 36,
+          "quote": "@frappe.whitelist(allow_guest=True)"
+        },
+        {
+          "path": "suite/suite/drive/api/permissions.py",
+          "line": 116,
+          "quote": "entity = frappe.get_all("
+        },
+        {
+          "path": "suite/suite/sheets/permissions.py",
+          "line": 74,
+          "quote": "the client API anyway (internal writers use `ignore_permissions=True`)."
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 117,
+          "quote": "ignore_file_permissions = True"
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 202,
+          "quote": "override_whitelisted_methods = {"
+        },
+        {
+          "path": "suite/suite/meet/recording/callback_auth.py",
+          "line": 399,
+          "quote": "if not frappe.cache.set(replay_key, \"1\", ex=40, nx=True):"
+        },
+        {
+          "path": "frappe/frappe/realtime/auth.py",
+          "line": 88,
+          "quote": "\"\"\"HTTP permission check against the web process (no DB in realtime).\"\"\""
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
+    "Uygulama durumu: uygulanmadı; ürün kodu, test ve runtime kabulü yok.",
     "Keycloak claim/grup -> Frappe Role eşlemesi ve senkron zamanı karar beklediği için kapsam dışı.",
-    "Kabulün geçerli olduğu uçlar (/api/v1/resource, /api/v2/document, /api/method) ve adaptörün HTTP uçlarına bağlanması entegrasyon sahibinde.",
-    "Rol matrisi (Suite User/Suite Admin, Administrator, System Manager x DocType x CRUD) tanımlı değil.",
+    "Kabulün geçerli olduğu uçlar ve adaptörün HTTP uçlarına bağlanması ana entegrasyon sahibinde.",
+    "Rol matrisi (Suite User, Suite Admin, Administrator, System Manager x DocType x CRUD) tanımlı değil.",
     "Has Role bulk insert ile yapılan rol atamaları için denetim izi yok.",
     "allow_guest, override_whitelisted_methods, website_redirects ve job uçlarının salt okunur envanteri çıkarılmadı.",
     "get_all/ignore_permissions kullanım kuralı yazılmadı.",
     "v1 insert/save/delete iç izin güvencesi unknown.",
     "Job/enqueue kullanıcı ve tenant bağlamı tanımsız; zamanlama etkinleştirilmez. Dağıtım gereksinimleri Hüseyin Cengiz'e bağımlıdır.",
-    "UI değişikliği yok; ileride yapılırsa Outfit 14px, 320-first, çevreleyen odak halkası olmadan, simetrik Cubic hareket ve mevcut AntD korunur."
+    "Hata sınıfı ve HTTP kodu unknown; hedef temelde doğrulanmalı.",
+    "UI değişikliği bu birimde yok; ileride ui-* bileşenleri yazılırsa Outfit, minimum 14 CSS px, 320 CSS px öncelikli yerleşim, çevreleyen halka olmadan görünür klavye odağı, simetrik Cubic hareket ve mevcut Ant Design ailesi korunur."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Keycloak claim/grup -> Frappe Role eşleme sözleşmesi ve senkron zamanı (girişte veya provisioning'de).",
+      "requirementIds": ["access-1"],
+      "blocks": "Rol matrisinin dış kimlik sütunu ve eşlemenin uygulanması.",
+      "documentStepUntilDecision": "Matriste Frappe Role tarafı native kaynağa atıfla doldurulur; Keycloak sütunu karar bekliyor olarak bırakılır."
+    },
+    {
+      "decision": "Kabul kapsamındaki API yüzeyi: /api/v1/resource, /api/v2/document, /api/method.",
+      "requirementIds": ["access-1", "access-3"],
+      "blocks": "Olumlu/olumsuz CRUD kabul setinin uç listesi ve envanterin kapsam sınırı.",
+      "documentStepUntilDecision": "v2 kaynak kanıtına dayanarak /api/v2/document aday olarak not edilir; diğer yüzeyler unknown kalır."
+    },
+    {
+      "decision": "Rol matrisi içeriği: Suite User, Suite Admin ve System Manager hakları ile POLICY harita anahtarları.",
+      "requirementIds": ["access-1"],
+      "blocks": "POLICY haritasının doldurulması ve enforce uygulaması.",
+      "documentStepUntilDecision": "Boş matris şablonu ve native DocPerm atıfları hazırlanır."
+    },
+    {
+      "decision": "Tenant topolojisi ile job/enqueue çalıştırma kullanıcısı ve site bağlamı.",
+      "requirementIds": ["access-3"],
+      "blocks": "Envanterde tenant sınıflaması ve job yollarının kabulü.",
+      "documentStepUntilDecision": "Job yolları envantere unknown olarak eklenir ve tenant-registry--contract'a referans verilir."
+    },
+    {
+      "decision": "Hedef Frappe/Suite sürümü ve temel commit (T-00).",
+      "requirementIds": ["access-1", "access-3"],
+      "blocks": "Hata sınıfı doğrulaması ve gelecekteki test komutu.",
+      "documentStepUntilDecision": "Kaynak kesitleri sürüm seçimi yapılmadan path/line/quote atfı olarak tutulur."
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "access-1": "poc",
-    "access-3": "poc"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,

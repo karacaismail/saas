@@ -1,0 +1,435 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "native-web-page",
+  "canonicalTaskIds": [
+    "native-web-page--implementation",
+    "ui-family-23--implementation-post-mvp",
+    "ui-family-37--implementation"
+  ],
+  "requirementIds": ["content-1", "content-2", "content-6", "content-7"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "content-1": "post_mvp",
+    "content-2": "post_mvp",
+    "content-6": "post_mvp",
+    "content-7": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Yayımlanmış Web Page içeriği için Guest okuma sözleşmesi. Uygulama durumu: uygulanmadı.",
+    "trigger": "Guest veya website kullanıcısı herkese açık bir rota için Web Page içeriğini (gövde, title, canonical, dil) ister. SEO metadata ve sitemap üretimi de aynı okuma sözleşmesini kaynak olarak kullanır.",
+    "expected": "Yalnız yayımlanmış ve yayın penceresi içinde olan Web Page kaydı döner. Kayıt, native belge düzeyi ve alan düzeyi okuma izni uygulanarak doğru rota ve dilde gelir. title ve canonical aynı kayıttan türetilir. Sitemap yalnız bu koşulu sağlayan canonical adresleri listeler.",
+    "denied": "Taslak, yayın zamanı gelmemiş veya yayın süresi bitmiş kayıt, izin dışı alan ve Guest yazma girişimi reddedilir. Yanıt gövdesinde taslak içerik bulunmaz ve kayıt değişmez. ignore_permissions veya ham SQL ile izin atlatma kabul edilmez."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native parçalar şunlardır: Frappe REST tekil okuma yolundaki belge düzeyi okuma izni ve alan düzeyi okuma izni; Frappe hook düzeyindeki website_route_rules, home_page ve website_redirects ilkeleri; Suite izin listesi ve '/api/' joker reddi; Suite Writer sürüm oluşturma ve listeleme. Kanıtlar yalnız bu parçaları gösterir, davranışın tamamının var olduğunu göstermez. Yayın filtresi, Guest okuma sözleşmesi, SEO render, sitemap, 301/410 yanıtları ve güvenli geri yükleme listelenen kesitlerde görülmedi. Arama yalnız searchedPaths içindeki yollarla sınırlıdır; görülmeyen parçalar için bu kapsamlı bir yokluk iddiası değildir. Suite kanıtı Vue Router tabanlı native SPA'yı gösterir; seçilen React/Ant Design uygulamasının kanıtı değildir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 83,
+        "quote": "doc.check_permission(\"read\")"
+      },
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 84,
+        "quote": "doc.apply_fieldlevel_read_permissions()"
+      },
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 466,
+        "quote": "\"/api/\","
+      },
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 419,
+        "quote": "\"/api/method/frappe.website.doctype.web_page_view.web_page_view.make_view_log\","
+      },
+      {
+        "path": "suite/suite/writer/api/docs.py",
+        "line": 142,
+        "quote": "If the blog app is installed, creates a blog"
+      },
+      {
+        "path": "suite/pyproject.toml",
+        "line": 45,
+        "quote": "frappe = \">=16.0.0,<18.0.0\""
+      },
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 44,
+        "quote": "# (www/suite.py -> suite.html); Vue Router takes over client-side. (plan D9)"
+      },
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 65,
+        "quote": "home_page = \"suite\""
+      },
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 47,
+        "quote": "website_route_rules = ["
+      },
+      {
+        "path": "suite/suite/writer/doctype/writer_document/writer_document.py",
+        "line": 40,
+        "quote": "def new_version(self, data: str, title: str | None = None):"
+      },
+      {
+        "path": "suite/suite/writer/api/general.py",
+        "line": 124,
+        "quote": "def get_versions(id: str):"
+      },
+      {
+        "path": "suite/suite/writer/doctype/writer_document/writer_document.py",
+        "line": 26,
+        "quote": "frappe.db.delete(\"Writer Version\", {\"doc\": self.name})"
+      },
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 68,
+        "quote": "website_redirects = ["
+      },
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 72,
+        "quote": "\"redirect_http_status\": 307,"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "suite/pyproject.toml",
+      "suite/suite/hooks.py",
+      "suite/suite/writer/api/docs.py",
+      "suite/suite/writer/api/general.py",
+      "suite/suite/writer/doctype/writer_document/writer_document.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/native-web-page.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/adapters/content_growth/web_page_post_mvp.py",
+      "frontend/packages/ui/src/components/ui-family-23/post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-family-37/index.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Girdi; rota yolu, istenen dil ve Guest dahil istek sahibinin oturum kimliğidir. Önizleme için ek olarak write izni olan bir oturum gerekir; önizleme token biçimi karar bekler. Geri yükleme isteği hedef Web Page adını ve seçilen Version kimliğini taşır.",
+    "output": "Kernel envelope içinde şunlar döner: rota, dil, title, canonical, yayımlanmış gövde ve indeksleme göstergesi (noindex). Sitemap çıktısı yalnız canonical adreslerden oluşan bir listedir. Envelope alan biçimini kernel-envelope--contract belirler; bu rehber yeni alan adı tanımlamaz. ui-family-23 ve ui-family-37 React/Ant Design bileşenleri kaynak registry'de kayıtlıdır ve bu çıktıyı yalnız tüketir. GenUI capability registry bunlardan ayrıdır. JSON model sınırından yerel ReactNode veya callback geçmez.",
+    "authorization": "Okumada native check_permission('read') ve apply_fieldlevel_read_permissions yeniden kullanılır. Guest'in yalnız yayımlanmış kaydı görmesi native izin kuralı veya permission_query_conditions ile sağlanır. Üretilen rol ve izin satırları explicitPermissionFlags ortak kaynağına bağlanır. Geri yükleme ve önizleme write izni gerektirir. Suite '/api/' joker reddi açık tutulur; joker izin açılmaz, yalnız karara bağlanmış tek tam yol değerlendirilir. ignore_permissions veya SQL ile izin atlatma yoktur.",
+    "persistence": "Okuma yolu kalıcı yazma yapmaz. Geri yükleme native transaction içinde belge save ile uygulanır ve yeni bir Version izi üretir. Önceki Version kayıtları değiştirilmez ve silinmez. Denetim ve olay kaydı audit-envelope--contract ile outbox--contract üzerinden yapılır. Doğrudan veritabanı yazımı yoktur. Bu sözleşme hiçbir servis, şema, veri veya production ortamını değiştirme yetkisi vermez.",
+    "failure": "Taslak, zamanı gelmemiş veya izin dışı kayıt 404 ile reddedilir. Bu yanıt, kaydın var olup olmadığını sızdırmaz. Kaldırılmış içerik için 404 mü 410 mu döneceği karar bekler. Yetkisiz yazma veya geri yükleme PermissionError döndürür ve kayıt değişmez. Geri yükleme hatasında transaction geri alınır ve yeni Version oluşmaz."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "audit-envelope--contract",
+      "capability-definition--contract",
+      "client-rule-parity--contract",
+      "kernel-envelope--contract",
+      "moderation-case--contract",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "native-web-page--contract",
+      "onboarding-checklist--contract",
+      "outbox--contract",
+      "ui-family-23--contract",
+      "ui-family-23--implementation",
+      "ui-family-37--contract"
+    ],
+    "admission": {
+      "statement": "Uygulama durumu: uygulanmadı. Kabul öncesinde T-00 hedef sürüm tabanı ve R-00 yeniden kullanım eşlemesi tamamlanmalıdır. İzinli veri tükettiği için R-01 de gereklidir. Ardından tek ve dar bir davranış gerçek RED/GREEN kanıtıyla uygulanır. implementationAdmission NOT_ADMITTED olduğu sürece üretim veya test dosyası yazılmaz.",
+      "prerequisites": [
+        "T-00 hedef sürüm tabanı",
+        "R-00 yeniden kullanım eşlemesi",
+        "R-01 izinli veri tüketimi",
+        "decisionsPending içindeki hedef sürüm ve /api/ izin listesi kararları"
+      ]
+    },
+    "steps": [
+      "Hedef sürümde Web Page alan eşleme tablosunu belgeleyin: published, route, dil ve yayın başlangıç/bitiş alanları. Version-15 kaynağı hedef sürüm kanıtı sayılmaz.",
+      "Ortak eksik olan Guest okuma sözleşmesini tanımlayın: yayın penceresi filtresi ile native belge ve alan düzeyi okuma izni. content-2, content-6 ve content-7 bu sözleşmeye bağlanır.",
+      "Guest için gereken izin satırlarını explicitPermissionFlags ortak kaynağına bağlayın. Kabul ölçütüne, reddedilen Guest yazma isteğini ve değişmeyen kaydı ekleyin.",
+      "Suite '/api/' joker reddi ile headless okuma yolu arasındaki ilişkiyi karar kaydına bağlayın. Seçenekler: izin listesine tek tam yol eklemek veya Frappe portal render kullanmak.",
+      "Rota sahipliği tablosunu ve home_page çakışmasını belgeleyin. Bu adımda content-7 ile content-2 birlikte ele alınır.",
+      "Write izniyle korunan tek bir whitelisted geri yükleme yöntemini yönerge olarak yazın. Yöntem native save kullanır ve yeni Version ile denetim kaydı üretir.",
+      "ui-family-23 ve ui-family-37 bileşenleri için yalnız sözleşme çıktısını tüketen bir arayüz sınırı belgeleyin. Bu adımda yeni motor, ORM veya CRUD tasarlanmaz."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Guest, published işaretli ama yayın başlangıcı gelecekte olan bir Web Page rotasını okuma sözleşmesiyle ister. Beklenen sonuç 404'tür ve yanıtta gövde bulunmaz. Yayın penceresi içindeki başka bir sayfa ise aynı sözleşmeyle döner.",
+      "red": "Okuma sözleşmesinin ilk hali yalnız published bayrağına bakar. Bu yüzden zamanı gelmemiş kayıt yanıtta yer alır ve davranış assertion'ı başarısız olur. Import hatası, eksik fixture, kurulmamış altyapı veya native Web Page ve izin davranışını bozmak RED sayılmaz.",
+      "green": "Yayın penceresi koşulu native izin veya sorgu koşuluna eklenir. Zamanı gelmemiş kayıt 404 döner. Yayın penceresindeki kayıt check_permission('read') ve alan düzeyi okuma izni uygulanarak döner. ignore_permissions kullanılmaz. Bu turda test yazılmaz ve koşulmaz."
+    },
+    "rollback": "Bu sözleşme yalnız belgedir; geri almak için dosyanın önceki sürümüne dönülür. İleride uygulanırsa geri alma şöyle yapılır: adaptör ve UI bileşenleri kaldırılır; izin listesine eklenen tam yol geri alınır; izin satırları explicitPermissionFlags kaynağı üzerinden geri çekilir. Web Page kayıtları ve Version geçmişi silinmez. Teknik CI, deploy ve rollback sahibi Hüseyin Cengiz'dir. Canonical alan adı için DNS kaydı gerekirse kayıt değerlerini Hüseyin Cengiz hazırlar, GoDaddy'de Asistan Hüseyin uygular, sonucu Hüseyin Cengiz doğrular."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "content-1",
+      "sourceStage": "post_mvp",
+      "existing": "Frappe REST tekil okuma yolu, belge düzeyi okuma iznini ve alan düzeyi okuma iznini uygular. Suite izin listesi Web Page görüntüleme log yöntemini içerir ve '/api/' joker yolunu reddeder. Writer blog dışa aktarma yalnız blog uygulaması kuruluysa çalışır. Helpdesk bilgi bankası kurulu değildir. Suite frappe bağımlılık aralığı 16 ile 18 arasındadır.",
+      "gap": "Hedef sürümde Web Page published, route ve dil alanları doğrulanmadı. Guest'in yalnız yayımlanmış kaydı görmesini sağlayan izin sözleşmesi yok. '/api/' reddi ile headless okuma yolu arasındaki ilişki belirsiz. Yardım bilgi bankasının hangi kaynağa dayanacağına karar verilmedi. Blog dışa aktarma CMS kaynağı sayılamaz.",
+      "completionSteps": [
+        "T-00 hedef sürümündeki Web Page şemasından published, route, dil ve yayın penceresi alanlarının karşılığını eşleme tablosuna yazın.",
+        "Guest'in yalnız yayımlanmış kaydı görmesi koşulunu native izin kuralı veya permission_query_conditions olarak tanımlayın ve explicitPermissionFlags ortak kaynağına bağlayın.",
+        "Headless okumanın '/api/' reddinden hangi yolla geçeceğini karar kaydına bağlayın. Joker izin açmayın.",
+        "Karar gelene kadar yardım içeriğini Web Page kaydı olarak sınıflandırın ve Helpdesk'i kurulu değil olarak işaretleyin.",
+        "Writer create_blog yolunu CMS kaynakları listesinden çıkarın."
+      ],
+      "dependencies": [
+        "native-web-page--contract",
+        "native-user-policy--contract",
+        "native-doctype-schema--contract",
+        "api-middleware--contract",
+        "kernel-envelope--contract"
+      ],
+      "acceptance": "Guest taslak bir Web Page rotasını istediğinde 404 alır ve yanıtta taslak içerik bulunmaz. Yayımlanmış yardım sayfası doğru dil ve rotada açılır. Guest yazma isteği reddedilir ve kayıt değişmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 83,
+          "quote": "doc.check_permission(\"read\")"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 84,
+          "quote": "doc.apply_fieldlevel_read_permissions()"
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 466,
+          "quote": "\"/api/\","
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 419,
+          "quote": "\"/api/method/frappe.website.doctype.web_page_view.web_page_view.make_view_log\","
+        },
+        {
+          "path": "suite/suite/writer/api/docs.py",
+          "line": 142,
+          "quote": "If the blog app is installed, creates a blog"
+        },
+        {
+          "path": "suite/pyproject.toml",
+          "line": 45,
+          "quote": "frappe = \">=16.0.0,<18.0.0\""
+        }
+      ]
+    },
+    {
+      "requirementId": "content-2",
+      "sourceStage": "post_mvp",
+      "existing": "Suite tüm önekleri tek bir native SPA girişine bağlar; istemci tarafındaki yönlendirmeyi Vue Router yapar. Kök rota için home_page='suite' tanımlıdır. Kaynakta rota kuralı ilkeleri görülür. Website Settings SEO alanları bu kesitlerde görülmedi.",
+      "gap": "SSR, prerender veya edge render kararı ve bu kararın sahibi tanımsız. Rota başına title ve canonical veri sözleşmesi yok. sitemap, robots, hreflang ve noindex kuralları yok. Herkese açık kök ile Suite home_page arasındaki sınır belirsiz. Görev eşlemesinde çelişki var. Website Settings için hedef sürüm eşlemesi yok.",
+      "completionSteps": [
+        "Herkese açık her rota için title, canonical, dil, alternatif dil ve noindex değerlerinin content-1 okuma sözleşmesinden türetileceğini belgeleyin.",
+        "Taslak, önizleme ve özel sayfalar için noindex kuralını robots ve sitemap ile tutarlı olacak şekilde tanımlayın.",
+        "home_page çakışmasını content-7 rota sahipliği tablosuna bağlayın.",
+        "Görev eşleme çelişkisini kaydedin: content-2 native-web-page--implementation altında kalır, yeni görev kimliği eklenmez. 'external/build' değerlendirmesi render kararına bağlı bir not olarak korunur.",
+        "Render kararı gelene kadar PWA istemci çıktısını tek başına kabul kanıtı saymayın."
+      ],
+      "dependencies": [
+        "native-web-page--contract",
+        "ui-family-23--contract",
+        "ui-family-37--contract",
+        "kernel-envelope--contract",
+        "capability-definition--contract"
+      ],
+      "acceptance": "Herkese açık her sayfanın sunucudan gelen ilk HTML yanıtında doğru title ve canonical bulunur. Taslak ve özel sayfalar noindex taşır veya hiç sunulmaz.",
+      "evidence": [
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 44,
+          "quote": "# (www/suite.py -> suite.html); Vue Router takes over client-side. (plan D9)"
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 65,
+          "quote": "home_page = \"suite\""
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 47,
+          "quote": "website_route_rules = ["
+        }
+      ]
+    },
+    {
+      "requirementId": "content-6",
+      "sourceStage": "post_mvp",
+      "existing": "Suite Writer, write izni kontrolüyle yeni sürüm oluşturur ve write erişimi olan kullanıcıya sürümleri listeler. Writer belgesi silindiğinde Writer Version kayıtları da silinir. Web Page yayın penceresi ve Frappe Version izi yalnız version-15 dış kaynağında belirtiliyor; bu kesitlerde doğrulanmadı.",
+      "gap": "Web Page ile Frappe Version'ın mı, Writer Version'ın mı kullanılacağı belirsiz. Geri yükleme yöntemi ve bunun ürettiği denetim kaydı tanımsız. Yayın zamanlaması ve headless önizleme yetkisi tanımsız. Belge silinince sürüm geçmişinin silinmesi denetim beklentisiyle çelişebilir.",
+      "completionSteps": [
+        "CMS sürüm geçmişi için native Frappe Version izini aday olarak yazın. Writer Version'ın yalnız Writer editörüne ait ve CMS kapsamı dışında olduğunu karar kaydına bağlayın.",
+        "Hedef sürümde Web Page için değişiklik izinin açık olup olmadığını doğrulayın. Kapalıysa şema önerisini native-doctype-schema--contract kararına taşıyın.",
+        "Yayın zamanlamasını okuma sözleşmesinin yayın penceresi filtresiyle karşılayın. Ayrı zamanlayıcı veya motor tasarlamayın.",
+        "Geri yüklemeyi, seçilen Version'dan alanları native save ile uygulayan, write izniyle korunan tek bir POST whitelisted yöntemi olarak tanımlayın. Yöntem yeni Version ve audit-envelope kaydı üretmelidir.",
+        "Önizleme yalnız write izni olan oturuma açık olmalı ve noindex taşımalıdır. Token biçimi karar bekler."
+      ],
+      "dependencies": [
+        "native-web-page--contract",
+        "audit-envelope--contract",
+        "outbox--contract",
+        "native-user-policy--contract",
+        "native-doctype-schema--contract"
+      ],
+      "acceptance": "Zamanı gelmeyen kayıt Guest okumasında görünmez. Seçilen sürüme dönüş yeni bir Version ve denetim kaydı oluşturur. Write izni olmayan kullanıcının geri yükleme isteği reddedilir ve kayıt değişmez.",
+      "evidence": [
+        {
+          "path": "suite/suite/writer/doctype/writer_document/writer_document.py",
+          "line": 40,
+          "quote": "def new_version(self, data: str, title: str | None = None):"
+        },
+        {
+          "path": "suite/suite/writer/api/general.py",
+          "line": 124,
+          "quote": "def get_versions(id: str):"
+        },
+        {
+          "path": "suite/suite/writer/doctype/writer_document/writer_document.py",
+          "line": 26,
+          "quote": "frappe.db.delete(\"Writer Version\", {\"doc\": self.name})"
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 419,
+          "quote": "frappe.website.doctype.web_page_view.web_page_view.make_view_log"
+        }
+      ]
+    },
+    {
+      "requirementId": "content-7",
+      "sourceStage": "post_mvp",
+      "existing": "Frappe hook düzeyinde website_route_rules ve website_redirects ilkeleri kullanılıyor. Mevcut Suite yönlendirme örneği 307 koduyla bir mail akışına aittir. home_page Suite SPA'sına bağlıdır.",
+      "gap": "Rota sahipliği belirsiz: React/TanStack Router frontend mi, Frappe portal mı? 301 ve kaldırılmış içerik yanıtı tanımsız. Sitemap için veri kaynağı yok. Guest erişimi '/api/' reddine takılabilir. Website Settings yalnız version-15 kaynağına dayanıyor.",
+      "completionSteps": [
+        "Her önek için sahibini, Suite önekleriyle çakışmayı ve home_page etkisini gösteren bir rota sahipliği tablosu yazın.",
+        "Kalıcı içerik taşımalarını website_redirects içinde 301 olarak tanımlayın. Mevcut 307 girdileri Suite mail akışına aittir; değiştirilmez.",
+        "Kaldırılmış içerik için 404 veya 410 kararını kaydedin. Karar gelene kadar kaldırılmış durumunu ayrı ve test edilebilir bir sonuç olarak tanımlayın.",
+        "Sitemap için content-1 okuma sözleşmesinden yalnız yayımlanmış, Guest'in okuyabildiği canonical adresleri dönen bir liste biçimi tanımlayın. '/api/' etkisini aynı karar kaydına bağlayın.",
+        "Website Settings robots alanını hedef sürümde doğrulayın."
+      ],
+      "dependencies": [
+        "native-web-page--contract",
+        "api-middleware--contract",
+        "kernel-envelope--contract"
+      ],
+      "acceptance": "Taşınan rota 301 ile yeni canonical adrese yönlenir. Kaldırılan içerik kararlaştırılan 404 veya 410 kodunu döner. Sitemap taslak veya yönlendirilen adres içermez.",
+      "evidence": [
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 47,
+          "quote": "website_route_rules = ["
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 68,
+          "quote": "website_redirects = ["
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 72,
+          "quote": "\"redirect_http_status\": 307,"
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 65,
+          "quote": "home_page = \"suite\""
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Hedef sürümde Web Page ve Website Settings alan eşlemesi doğrulanmadı.",
+    "Guest için yalnız yayımlanmış kaydı döndüren izin veya sorgu koşulu tanımlı değil.",
+    "Suite '/api/' joker reddi ile headless okuma ve sitemap yolu arasındaki ilişki çözülmedi.",
+    "Render stratejisi, rota sahipliği ve home_page çakışması açık.",
+    "Güvenli geri yükleme yöntemi, önizleme yetkisi ve Writer Version kapsam sınırı tanımsız.",
+    "301 ve kaldırılmış içerik yanıtları ile sitemap, robots, hreflang ve noindex kuralları tanımsız.",
+    "Bu sözleşmeye bağlı hiçbir runtime veya tarayıcı kabulü koşulmadı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Hedef Frappe sürüm tabanı (T-00)",
+      "requirementIds": ["content-1", "content-2", "content-6", "content-7"],
+      "blocks": "Web Page ve Website Settings alan eşlemesi ile okuma sözleşmesinin alan adları",
+      "interimDocStep": "Doğrulanacak alanları version-15 adlarıyla, doğrulanmamış olarak listeleyin."
+    },
+    {
+      "decision": "Herkese açık sayfalar için render stratejisi: SSR, prerender veya edge; karar sahibi",
+      "requirementIds": ["content-2", "content-7"],
+      "blocks": "Sunucu HTML'inde title ve canonical kabulü ile sitemap yayını",
+      "interimDocStep": "Render biçiminden bağımsız title, canonical ve noindex veri sözleşmesini yazın."
+    },
+    {
+      "decision": "Rota sahipliği ve herkese açık kök ile Suite home_page sınırı",
+      "requirementIds": ["content-2", "content-7"],
+      "blocks": "Yönlendirme tanımları ve canonical adres üretimi",
+      "interimDocStep": "Mevcut Suite öneklerini ve çakışma adaylarını tabloya yazın."
+    },
+    {
+      "decision": "Headless içerik yolunun Suite '/api/' reddinden nasıl geçeceği (tek tam yol izni veya portal render)",
+      "requirementIds": ["content-1", "content-7"],
+      "blocks": "Guest okuma ve sitemap uç noktası",
+      "interimDocStep": "İki seçeneğin güvenlik etkisini, joker izin açılmadan, karar kaydına yazın."
+    },
+    {
+      "decision": "Yardım bilgi bankası için Web Page mi, ayrı Helpdesk uygulaması mı",
+      "requirementIds": ["content-1"],
+      "blocks": "Yardım ekranlarının veri kaynağı",
+      "interimDocStep": "Yardım içeriğini Web Page kaydı olarak sınıflandırın; Helpdesk'i kurulu değil olarak işaretleyin."
+    },
+    {
+      "decision": "Writer Version'ın CMS kapsamı dışında olup olmadığı ve sürüm geçmişi saklama süresi",
+      "requirementIds": ["content-6"],
+      "blocks": "Geri yükleme yöntemi ve denetim beklentisi",
+      "interimDocStep": "Frappe Version izini aday olarak yazın; saklama süresini açık bırakın."
+    },
+    {
+      "decision": "Önizleme token biçimi ve geçerlilik sınırı",
+      "requirementIds": ["content-6"],
+      "blocks": "Headless önizleme",
+      "interimDocStep": "Önizlemeyi yalnız write izni olan ve noindex taşıyan oturuma sınırlayan yetki kuralını yazın."
+    },
+    {
+      "decision": "Kaldırılmış içerik için 404 mü 410 mu",
+      "requirementIds": ["content-7"],
+      "blocks": "Kaldırılmış rota kabulü",
+      "interimDocStep": "Kaldırılmış durumunu ayrı bir sonuç olarak tanımlayın."
+    },
+    {
+      "decision": "Canonical host ve tenant topolojisine bağlı alan adı yapısı",
+      "requirementIds": ["content-2", "content-7"],
+      "blocks": "Canonical adres ve sitemap adres biçimi",
+      "interimDocStep": "Canonical'ı host parametreli bir değer olarak tanımlayın."
+    },
+    {
+      "decision": "content-2 görev eşleme çelişkisinin çözümü (external/build ile native-web-page--implementation)",
+      "requirementIds": ["content-2"],
+      "blocks": "SEO işinin sahipliği",
+      "interimDocStep": "Yeni görev kimliği eklemeden çelişkiyi not edin."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

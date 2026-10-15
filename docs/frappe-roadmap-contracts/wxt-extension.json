@@ -1,0 +1,196 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "wxt-extension",
+  "canonicalTaskIds": ["wxt-extension--implementation"],
+  "requirementIds": ["channels-14"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "channels-14": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "implementationNote": "Uygulama durumu: uygulanmadı. Bu dosya yalnız gelecekteki geliştirme rehberidir; ürün kodu, test, mağaza kaydı, servis, şema, veri veya production değişikliği yetkisi vermez.",
+  "behavior": {
+    "title": "WXT/MV3 Chrome eklentisinden Frappe'ye paket içi kodla, kalıcı kuyruklu ve sunucuda yetkilendirilen tek iş isteği",
+    "trigger": "Kimliği doğrulanmış kullanıcı, karara bağlanacak tek kullanım senaryosundaki eylemi eklenti arayüzünden başlatır; istek kalıcı kuyruğa yazılır ve eklenti Service Worker'ı tarafından yalnız onaylı tenant origin'indeki Frappe REST/RPC uç noktasına iletilir.",
+    "expected": "Bütün çalıştırılabilir kod mağaza ZIP'i içinde gelir; uzaktan kod isteği oluşmaz. Service Worker askıya alınıp yeniden başlasa da bekleyen kuyruk öğesi kaybolmaz; öğe yalnız sunucunun başarılı yanıtından sonra kuyruktan kaldırılır. Kullanıcıya sunucunun döndürdüğü gerçek sonuç gösterilir; istemci tarafı kontrol sonucu sunucu kararının yerine geçmez.",
+    "denied": "Sunucudaki native izin kontrolü reddederse Frappe kaydı değişmez, kuyruk öğesi yeniden denenmeden 'reddedildi' durumuna geçer ve kullanıcıya yetki hatası gösterilir. Kullanıcı tarayıcı/host iznini vermezse ağ isteği yapılmaz ve izin gerekçesi gösterilir. Uzaktan kod yükleme, eval veya CSP gevşetme hiçbir hata durumunda yedek yol olarak kullanılmaz."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Sunucu tarafında native Frappe API v1 URL kuralları (RPC için method kuralı, resource kuralları) ve native izin denetimi (Document.check_permission, frappe.permissions.has_permission) yeniden kullanılır. Eklenti tarafı (WXT giriş noktaları, manifest, kalıcı kuyruk, kimlik akışı, ZIP yayını) verilen kaynaklarda yoktur ve bu rehberle tanımlanır. Kanıtın native parçaları göstermesi eklenti davranışının var olduğu anlamına gelmez.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 152,
+        "quote": "Rule(\"/method/<path:method>\", endpoint=handle_rpc_call),"
+      },
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 83,
+        "quote": "doc.check_permission(\"read\")"
+      },
+      {
+        "path": "frappe/frappe/permissions.py",
+        "line": 82,
+        "quote": "def has_permission("
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "frappe/frappe/permissions.py"
+    ],
+    "searchNote": "Aranan yollar yalnız önceki salt okunur Frappe kaynak anlık görüntüleridir; eklenti tarafı için kapsamlı yokluk iddiası değildir ve canlı site veya ürün kabulü içermez."
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/wxt-extension.json",
+    "plannedProduction": [
+      "frontend/packages/platform/src/wxt-extension/wxt_extension_post_mvp.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Seçilecek tek kullanım senaryosunun kullanıcı eylemi; keycloak-login--contract ile belirlenecek oturum kimliği; işlemin ait olduğu tenant origin'i. Kuyruk öğesi en az şu alanları taşır: istemci üretimi öğe kimliği, tenant origin'i, hedef uç nokta türü (method veya resource), yük, durum, deneme sayısı, oluşturulma zamanı, kuyruk şema sürümü. Token veya secret kuyruk öğesine yazılmaz.",
+    "output": "Frappe'nin native REST/RPC yanıtı ve buna göre kuyruk öğesi durumu: bekliyor, gönderiliyor, tamamlandı, reddedildi, hata. Arayüz yalnız sunucu yanıtını gösterir; sahte ilerleme gösterilmez.",
+    "authorization": "Yetki her zaman sunucuda doğrulanır: resource uçlarında native check_permission/has_permission, whitelisted method çağrılarında aynı native izin kontrolü açıkça çağrılır. ignore_permissions, doğrudan SQL veya istemci bayrağıyla yetki atlaması yasaktır. Eklenti izinleri (permissions, host kapsamı) yalnız tarayıcı erişim sınırıdır, iş yetkisi değildir. Bu rehber rol veya izin üretmez; ileride rol/izin gerekirse explicitPermissionFlags ortak kaynağına bağlanır.",
+    "persistence": "Eklentide yalnız kuyruk ve gerekli arayüz durumu, karara bağlanacak kalıcı depoda tutulur; global değişken veya bellek tek kaynak olamaz. Frappe tarafında yeni DocType, şema veya veri değişikliği öngörülmez; kayıtlar yalnız native save/transaction/hook akışıyla değişir. Saklama süresi açık karardır.",
+    "failure": "403/izin reddi: yeniden deneme yok, kayıt değişmez, öğe reddedildi. Ağ hatası veya Service Worker sonlanması: öğe kalıcı depoda bekler, sınırlı ve geri çekilmeli yeniden denenir. Oturum süresi dolması: gönderim durur, yeniden kimlik doğrulama istenir, öğe silinmez. Yanıt alınamadan kesilen yazma isteği çift kayıt riski taşır; yazma senaryosu seçilirse çift kayıt önleme yöntemi belgelenmeden kabul verilmez. Tenant origin'i uyuşmayan öğe gönderilmez. Uzaktan kod veya CSP ihlali gerektiren yol derleme kontrolünde reddedilir."
+  },
+  "development": {
+    "dependencies": [
+      "client-rule-parity--contract",
+      "keycloak-login--contract",
+      "ui-family-01--contract",
+      "wxt-extension--contract"
+    ],
+    "admission": [
+      "T-00 hedef temel sürüm kaydı ve R-00 yeniden kullanım eşlemesi tamamlanmış olmalı; izinli veri tüketimi olduğu için R-01 de uygulanır.",
+      "Bağımlılık sözleşmeleri (client-rule-parity--contract, keycloak-login--contract, ui-family-01--contract, wxt-extension--contract) kabul edilmiş olmalı.",
+      "decisionsPending içindeki kullanım senaryosu, host/tenant kapsamı, kimlik doğrulama yöntemi, kuyruk deposu ve hedef sürüm kararları verilmiş olmalı.",
+      "Tek dar davranış gerçek RED/GREEN kanıtıyla uygulanmalı; sıralama yalnız mevcut görev bağımlılıkları ve aşamadan gelir, küme sırası yeni seri bağımlılık değildir."
+    ],
+    "steps": [
+      "Bu turda hiçbir adım uygulanmaz; aşağıdakiler kabulden sonraki sıradır.",
+      "1. wxt-extension--implementation görevine üç satır ekle: tek kullanım senaryosu, en az yetkili host/izin listesi ile kimlik doğrulama yöntemi, kalıcı kuyruk deposu seçimi; yetkinin her zaman sunucuda doğrulanacağını yaz.",
+      "2. Manifest izinlerini en az yetkiyle listele: yalnız senaryonun gerektirdiği izinler; host kapsamı yalnız onaylı tenant origin'leri, joker origin yok; her izin için kullanıcıya gösterilecek gerekçe.",
+      "3. Kimlik akışını keycloak-login--contract'a bağla: callback adresi, token saklama yeri, yenileme, çıkış ve tenant ayrımı; token kuyruktan ayrı tutulur.",
+      "4. WXT giriş noktalarını tanımla: arka plan Service Worker'ı ve tek arayüz yüzeyi (popup veya yan panel, senaryoya göre). Ortak çekirdekten yalnız istek istemcisi, client-rule-parity kuralları ve ui-family-01 bileşenleri kullanılır.",
+      "5. Kalıcı kuyruğu seçilen depoda kur: Service Worker her başlangıçta bekleyen öğeleri depodan okur; zamanlama bellekteki zamanlayıcıya bağlı kalmaz; kuyruk şeması sürümlüdür.",
+      "6. Sunucu çağrısını native REST/RPC ile yap; çağrılan whitelisted method varsa native izin kontrolünü içerdiğini gözden geçir; yeni sunucu uç noktası gerekiyorsa ayrı sözleşme olmadan ekleme.",
+      "7. Paket ve CSP kontrolünü derleme akışına koy: ZIP içeriği denetlenir, uzaktan script/eval bulunmaz, manifest CSP gevşetilmez.",
+      "8. Arayüzde React/Ant Design ailesi, Outfit, en az 14 CSS px metin, çevrelemeyen klavye odağı ve merkezi hareket tokenları uygulanır; 320 CSS px'ten başlanır.",
+      "9. Mağaza gönderimi ayrı yayın kaydıdır: derleme, imza, yayın ve rollback sahibi Hüseyin Cengiz; istemci ekibi platform adaptörünü sağlar."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Kuyruğa yazılmış bekleyen bir istek, eklenti Service Worker'ı durdurulup yeniden başlatıldıktan sonra kaybolmaz ve yeniden başlangıçta sunucuya iletilir.",
+      "red": "Kuyruk yalnız bellekte tutulduğunda Service Worker yeniden başlatıldıktan sonra bekleyen öğe bulunamaz ve gönderim gerçekleşmez; başarısızlık davranış iddiasından gelir, import veya altyapı hatasından değil, native Frappe davranışı bozulmadan.",
+      "green": "Öğe seçilen kalıcı depodan okunur, gönderilir ve yalnız başarılı sunucu yanıtından sonra kuyruktan kaldırılır. Aynı kabulde sunucu izni reddeden kullanıcı için kayıt değişmez ve öğe reddedildi durumuna geçer. Bu tur test yazılmaz ve koşulmaz."
+    },
+    "rollback": "Bu sözleşme hiçbir sistemi değiştirmez. Gelecekteki uygulamada eklenti geri dönüşü, önceki onaylı kodun daha yüksek sürüm numarasıyla yeniden paketlenip yayınlanmasıdır; sahibi Hüseyin Cengiz. Frappe şeması değişmediğinden sunucu geri alımı öngörülmez. Eski sürüm yeni kuyruk şemasını okuyamazsa öğeler silinmez, bekletilir. Yeni origin için DNS gerekirse kayıt teknik gereksinimini Hüseyin Cengiz hazırlar, GoDaddy uygulamasını Asistan Hüseyin yapar, sonucu Hüseyin Cengiz doğrular."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "channels-14",
+      "sourceStage": "post_mvp",
+      "existing": "Native parça: Frappe API v1 RPC/resource URL kuralları ve sunucu tarafı izin denetimi (check_permission, has_permission) kaynakta mevcut. Mevcut talimat (data/clusters/04.json, /groups/4/items/13) MV3 risklerini tanımlar: paket içi kod, uzaktan kod yasağı, Service Worker yeniden başlamasında kuyruk korunması, izin reddi, CSP, ayrı mağaza kaydı.",
+      "gap": "Eklentinin kullanım senaryosu ve ortak çekirdekten kullanılacak parçalar tanımsız; host kapsamı için Frappe bulut origin'i, CORS ve kimlik doğrulama yöntemi tanımsız; kalıcı kuyruk deposu ile minimum Chrome ve WXT sürümleri seçilmemiş. Eklenti tarafı kod, manifest ve yayın akışı yok.",
+      "completionSteps": [
+        "Tek kullanım senaryosunu karar olarak görev kaydına ekle; okuma mı yazma mı olduğunu belirt.",
+        "Senaryonun gerektirdiği en az izin ve tenant origin listesini çıkar; joker host kullanma.",
+        "Kimlik akışını keycloak-login--contract kararına bağla; callback ve tenant ayrımını kabul ölçütüne yaz.",
+        "Kalıcı kuyruk deposunu seç ve öğe şemasını sürümle; Service Worker başlangıcında kuyruktan devam et.",
+        "Sunucu çağrısını native REST/RPC ve native izin kontrolüyle yap; ignore_permissions ve SQL atlaması yok.",
+        "ZIP içeriği ve CSP denetimini derleme akışına ekle; mağaza gönderimini ayrı kaydet."
+      ],
+      "dependencies": [
+        "client-rule-parity--contract",
+        "keycloak-login--contract",
+        "ui-family-01--contract",
+        "wxt-extension--contract"
+      ],
+      "acceptance": "ZIP açıldığında bütün çalıştırılabilir kod ve manifest hazırdır, uzaktaki kod isteği oluşmaz. Service Worker durdurulup yeniden başlayınca kuyruk korunur. Sunucu izni reddettiğinde yazma reddedilir ve kayıt değişmez. Tarayıcı izin reddi, Keycloak callback, tenant ayrımı (bir tenant'ın öğesi başka origin'e gitmez) ve CSP doğrulanır. Mağaza gönderimi ayrı kaydedilir. Kabul henüz koşulmadı (not_run).",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 152,
+          "quote": "Rule(\"/method/<path:method>\", endpoint=handle_rpc_call),"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 83,
+          "quote": "doc.check_permission(\"read\")"
+        },
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 82,
+          "quote": "def has_permission("
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Eklentinin tek kullanım senaryosu ve ortak çekirdekten kullanılacak parçalar tanımsız.",
+    "Host kapsamı için tenant origin'leri, CORS gereksinimi ve kimlik doğrulama yöntemi tanımsız.",
+    "Kalıcı kuyruk deposu, saklama süresi ve minimum Chrome/WXT hedef sürümleri seçilmemiş.",
+    "Yazma senaryosu seçilirse kesilen isteklerde çift kayıt önleme yöntemi tanımsız.",
+    "Eklenti kodu, manifest, ZIP yayın akışı ve mağaza kaydı yok; runtime kabulü koşulmadı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Eklentinin tek kullanım senaryosu (okuma veya yazma) ve kullanılacak ortak çekirdek parçaları",
+      "requirementIds": ["channels-14"],
+      "blocks": "development.steps 1, 4, 5 ve TDD senaryosunun yük tanımı",
+      "allowedMeanwhile": "Aday senaryoları okuma/yazma ayrımı ve gereken en az veri alanlarıyla belge olarak listelemek"
+    },
+    {
+      "decision": "Tenant topolojisi, buna bağlı host kapsamı (sabit veya çalışma anında istenen) ve CORS gereksinimi",
+      "requirementIds": ["channels-14"],
+      "blocks": "development.steps 2 ve 6, tenant ayrımı kabulü",
+      "allowedMeanwhile": "Joker origin yasağını ve kullanıcıya gösterilecek izin gerekçesi taslağını belgelemek"
+    },
+    {
+      "decision": "Eklenti kimlik doğrulama yöntemi; keycloak-login--contract kararına bağlıdır",
+      "requirementIds": ["channels-14"],
+      "blocks": "development.steps 3, Keycloak callback kabulü",
+      "allowedMeanwhile": "Token'ın kuyruktan ayrı tutulması, yenileme ve çıkış kurallarını belgelemek"
+    },
+    {
+      "decision": "Kalıcı kuyruk deposu (chrome.storage veya IndexedDB) ve kuyruk öğesi saklama süresi",
+      "requirementIds": ["channels-14"],
+      "blocks": "development.steps 5 ve TDD GREEN",
+      "allowedMeanwhile": "Depodan bağımsız, sürümlü kuyruk öğe şemasını belgelemek"
+    },
+    {
+      "decision": "Minimum Chrome ve WXT hedef sürümleri",
+      "requirementIds": ["channels-14"],
+      "blocks": "T-00 hedef temel sürüm kaydı ve uygulamaya kabul",
+      "allowedMeanwhile": "Kullanılması planlanan eklenti API'lerinin listesini çıkarmak"
+    },
+    {
+      "decision": "Chrome Web Store yayıncı hesabı, ücreti ve mağaza kaydı sahipliği",
+      "requirementIds": ["channels-14"],
+      "blocks": "development.steps 9, mağaza gönderimi kaydı",
+      "allowedMeanwhile": "Hüseyin Cengiz için derleme, imza, yayın ve geri dönüş kontrol listesi taslağı hazırlamak"
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

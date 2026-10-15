@@ -1,0 +1,352 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "native-workflow",
+  "canonicalTaskIds": [
+    "native-workflow--implementation",
+    "ui-family-20--implementation-post-mvp",
+    "ui-family-21--implementation",
+    "ui-provider-permission--implementation-post-mvp",
+    "ui-view-kanban--implementation-post-mvp"
+  ],
+  "requirementIds": ["workflow-1", "workflow-3", "workflow-7"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "workflow-1": "post_mvp",
+    "workflow-3": "post_mvp",
+    "workflow-7": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Native Frappe Workflow geçişinin, istemcinin beklediği durum denetimiyle headless olarak uygulanması",
+    "trigger": "Yetkili kullanıcı ya da job kimliği bir belge için doctype, name, action, expected_state ve expected_modified ile geçiş ister. UI yalnız sunucunun döndürdüğü izinli action listesini gösterir.",
+    "expected": "Sunucu belgeyi yeniden okur. expected_state ve expected_modified mevcut kayıtla eşleşirse, native geçiş süzgecinden geçen action native apply_workflow ile uygulanır. Durum alanı yalnız bu yoldan değişir ve controller doğrulamaları native save/submit yolunda çalışır. Yanıt yeni durumu, docstatus ve modified değerlerini ve sonraki izinli action listesini döner.",
+    "denied": "Şu istekler reddedilir: listede olmayan action, rol ya da koşul dışındaki geçiş, öz-onay, eski durum veya eski modified ile gelen istek, controller doğrulamasına takılan değişiklik ve gerekli okuma/yazma izni olmayan kullanıcı. Reddedilen istekte kayıt, durum alanı ve docstatus değişmez. Durum yazımı için ignore_permissions, frappe.db.set_value veya SQL kullanılmaz."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Uygulama durumu: uygulanmadı. Native parçalar: frappe.model.workflow içindeki geçiş süzgeci (mevcut durum, izinli rol ve koşul), geçersiz action reddi (WorkflowTransitionError), onay erişim denetimi (has_approval_access), Workflow DocType kaydındaki docstatus geri dönüş denetimi ve api/v2 doc method yolundaki check_permission. Eksik parçalar: istemcinin beklediği durum ve modified karşılaştırması headless yolda yok, yalnız workflow_action e-posta onay yolunda var. Headless uç ile hata eşlemesi tanımlı değil. Durum alanının yalnız apply_workflow ile değişeceği kuralı da yazılmamış. Kanıtlar önceki salt okunur Frappe/Suite kaynak kesitlerinden alınan kaynak değerlendirmesidir. React/Ant Design ürün uygulamasının kanıtı değildir. Bir native parçanın varlığı davranışın tamamının var olduğu anlamına gelmez. searchedPaths yalnız okunan kesitleri listeler; kapsamlı bir yokluk iddiası değildir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/model/workflow.py",
+        "line": 72,
+        "quote": "if transition.state == current_state and transition.allowed in roles:"
+      },
+      {
+        "path": "frappe/frappe/model/workflow.py",
+        "line": 134,
+        "quote": "frappe.throw(_(\"Not a valid Workflow Action\"), WorkflowTransitionError)"
+      },
+      {
+        "path": "frappe/frappe/model/workflow.py",
+        "line": 136,
+        "quote": "if not has_approval_access(user, doc, transition):"
+      },
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 466,
+        "quote": "\"/api/\","
+      },
+      {
+        "path": "frappe/frappe/workflow/doctype/workflow/workflow.py",
+        "line": 124,
+        "quote": "if state_docstatus == 1 and next_state_docstatus == 0:"
+      },
+      {
+        "path": "frappe/frappe/model/workflow.py",
+        "line": 122,
+        "quote": "doc.load_from_db()"
+      },
+      {
+        "path": "frappe/frappe/workflow/doctype/workflow_action/workflow_action.py",
+        "line": 147,
+        "quote": "if doc_workflow_state == current_state:"
+      },
+      {
+        "path": "frappe/frappe/workflow/doctype/workflow_action/workflow_action.py",
+        "line": 150,
+        "quote": "if not last_modified or get_datetime(doc.modified) == get_datetime(last_modified):"
+      },
+      {
+        "path": "frappe/frappe/model/workflow.py",
+        "line": 100,
+        "quote": "return frappe.safe_eval(transition.condition, get_workflow_safe_globals(), dict(doc=doc.as_dict()))"
+      },
+      {
+        "path": "suite/suite/writer/doctype/writer_document/writer_document.py",
+        "line": 32,
+        "quote": "frappe.db.set_value(\"Writer Document\", self.name, \"content\", data)"
+      },
+      {
+        "path": "frappe/frappe/api/v2.py",
+        "line": 267,
+        "quote": "doc.check_permission(PERMISSION_MAP[frappe.request.method])"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v2.py",
+      "frappe/frappe/model/workflow.py",
+      "frappe/frappe/workflow/doctype/workflow/workflow.py",
+      "frappe/frappe/workflow/doctype/workflow_action/workflow_action.py",
+      "suite/suite/hooks.py",
+      "suite/suite/writer/doctype/writer_document/writer_document.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/native-workflow.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/adapters/workflow_automation/workflow_post_mvp.py",
+      "frontend/packages/ui/src/components/ui-family-20/post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-family-21/index.tsx",
+      "frontend/packages/ui/src/components/ui-provider-permission/post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-view-kanban/post_mvp.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Gelecekteki saas_platform adaptör metodunun adı ve yolu T-00/R-00 sonrasında kesinleşir. Geçiş çağrısı kernel-envelope--contract zarfında doctype, name, action, expected_state, expected_modified ve isteğe bağlı request_id alır. Liste çağrısı doctype ve name alır. İstemci serbest bir durum değeri, docstatus veya alan yazımı gönderemez. Action, yalnız sunucunun döndürdüğü listedeki bir addır.",
+    "output": "Başarılı geçiş şunları döner: doctype, name, yeni workflow durumu, docstatus, modified, native get_transitions çıktısından türetilen sonraki action ve next_state listesi, audit ve outbox referansı. Liste çağrısı mevcut durumu, modified değerini ve izinli action listesini döner. Yanıt JSON model sınırında kalır, yani yalnız veridir. ReactNode ya da callback taşımaz. Yerel bileşen bağlama işi UI katmanında ve kaynak registry'sinde yapılır, GenUI capability registry ile karıştırılmaz.",
+    "authorization": "Oturum kullanıcısı korunur. Native rol süzgeci ve has_approval_access, frappe.session.user ile çalışır. Liste çağrısından önce read, geçiş çağrısından önce write için native check_permission uygulanır. ignore_permissions, flags ile izin atlama, frappe.db.set_value ve SQL bu yolda yasaktır. Bu sözleşme rol veya izin üretmez ya da atamaz. Gerekirse explicitPermissionFlags ortak kaynağına ve native-user-policy--contract'a bağlanır. Keycloak rol eşlemesi karar bekliyor. İstemcideki izin görünümü yetki sayılmaz.",
+    "persistence": "Yazım yalnız native apply_workflow ve onun çağırdığı Document save/submit/cancel yolu üzerinden, tek request transaction'ı içinde yapılır. Audit ve outbox kaydı audit-envelope--contract ile outbox--contract kurallarına göre aynı transaction'da yazılır ve commit'ten sonra tüketilir. Ayrı durum tablosu, motor, ORM kopyası ya da CRUD katmanı yazılmaz. Workflow tanımları, şema ve veri bu sözleşmeyle değişmez.",
+    "failure": "Önerilen hata kodları api-middleware--contract zarfına bağlanır; HTTP statüsü orada kesinleşir: WORKFLOW_ACTION_INVALID (WorkflowTransitionError), WORKFLOW_STATE_STALE (expected_state veya expected_modified uyuşmazlığı), WORKFLOW_APPROVAL_DENIED (has_approval_access reddi; native exception sınıfı hedef sürümde doğrulanır), PERMISSION_DENIED, VALIDATION_FAILED (controller doğrulaması), WORKFLOW_NOT_CONFIGURED. Her hatada transaction geri alınır ve kayıt değişmez. Yanıtta yığın izi ya da iç ayrıntı yer almaz."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "approval-chain--contract",
+      "approval-decision--contract",
+      "audit-envelope--contract",
+      "capability-definition--contract",
+      "client-rule-parity--contract",
+      "device-grant--contract",
+      "entitlement-grant--contract",
+      "kernel-envelope--contract",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "native-workflow--contract",
+      "outbox--contract",
+      "process-definition--contract",
+      "record-integrity--contract",
+      "sync-receipt--contract",
+      "ui-family-08--contract",
+      "ui-family-20--contract",
+      "ui-family-20--implementation",
+      "ui-family-21--contract",
+      "ui-provider-permission--contract",
+      "ui-provider-permission--implementation",
+      "ui-view-kanban--contract",
+      "ui-view-kanban--implementation"
+    ],
+    "admission": {
+      "statusNote": "Uygulama durumu: uygulanmadı",
+      "prerequisites": [
+        "T-00 hedef taban: version-15 kaynak bağlantısı ile yerel 17.0.0.dev0 arasındaki sürüm eşlemesi karara bağlanmış olmalı.",
+        "R-00 yeniden kullanım eşlemesi: get_transitions, apply_workflow (139. satırdan sonrası dahil), has_approval_access ve Workflow.validate hedef sürümde okunup satır eşlemesi yazılmış olmalı.",
+        "R-01: belge okuma ve yazma native izin kontrolüyle yapılır.",
+        "Mevcut bağımlılık sözleşmeleri: native-workflow--contract, kernel-envelope--contract, native-user-policy--contract, capability-definition--contract, native-doctype-schema--contract, outbox--contract, audit-envelope--contract.",
+        "Tek dar davranış, gerçek RED/GREEN kanıtıyla uygulanır."
+      ],
+      "orderAuthority": "Mevcut görev bağımlılıkları ve stage geçerlidir. Cluster sırası yalnız sunumdur, yeni bir seri DAG değildir."
+    },
+    "steps": [
+      "1. Hedef sürüm kararından sonra workflow.py, workflow DocType ve workflow_action kesitlerini hedef sürümde yeniden oku ve R-00 satır eşlemesini yaz.",
+      "2. apply_workflow ile get_transitions'ın whitelist durumunu ve /api/v2/method üzerinden çağrılabilirliğini kaynakta doğrula. Sonucu yalnız belgeye yaz.",
+      "3. Önerilen adaptör yolunda tek bir geçiş metodunu tanımla: native izin kontrolü, expected_state ve expected_modified karşılaştırması, ardından native apply_workflow çağrısı. ORM kopyalanmaz.",
+      "4. Liste metodunu tanımla: native get_transitions çıktısı değiştirilmeden action ve next_state olarak döner.",
+      "5. Hata eşlemesini api-middleware--contract zarfına bağla. Audit ve outbox kaydını ilgili sözleşmelere bağla.",
+      "6. Durum alanının tek yazım yolu kuralını ve doğrudan yazım envanterini belgeye yaz (workflow-7).",
+      "7. UI ailesi, kanban ve izin sağlayıcısı yalnız sunucu yanıtını yansıtır. Kaynak registry kaydı ortak registry.ts üzerinden, entegrasyon sahibinin seri birleştirmesiyle yapılır.",
+      "8. Suite '/api/' engel kuralı ile adaptör yolunun ilişkisini kaynakta oku. Değişiklik gerekirse karar ve teknik inceleme Hüseyin Cengiz'dedir."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Bu turda test yazılmaz ve koşulmaz. Tek senaryo: İki aşamalı onay workflow'unda 'Onay Bekliyor 1' durumundan 'Onayla' ile 'Onay Bekliyor 2' durumuna, oradan yine 'Onayla' ile 'Onaylandı' durumuna geçilir. Kullanıcı A belgeyi 'Onay Bekliyor 1' durumunda görür. Kullanıcı B aynı geçişi önce uygular. Ardından A, expected_state='Onay Bekliyor 1' ve eski modified ile 'Onayla' ister. İstek WORKFLOW_STATE_STALE ile reddedilmeli; workflow durumu, docstatus ve modified değişmemelidir.",
+      "red": "Beklenen durum denetimi olmadan aynı istek native apply_workflow'a ulaşır. Belge DB'den yeniden yüklendiği için ikinci aşama geçişi uygulanır ve test durumun değiştiğini gözleyerek başarısız olur. RED; import hatası, eksik altyapı ya da native davranışı bozmakla üretilmez.",
+      "green": "Adaptör, apply_workflow öncesinde mevcut durumu ve modified değerini karşılaştırır ve isteği reddeder. Test kaydın değişmediğini doğrular. Aynı ortamda izinli ve güncel bir geçişin native yoldan uygulanması bozulmaz."
+    },
+    "rollback": "Bu belge yalnız yönergedir. Geri alma, bu dosyanın entegrasyon sahibi tarafından önceki sürümüne döndürülmesidir. Gelecekteki uygulamada adaptör metodu ve UI registry kaydı kaldırılınca native Desk workflow davranışı aynen kalır. Şema ya da veri migrasyonu öngörülmediği için veri geri alma gerekmez. CI, deploy ve rollback teknik sahibi Hüseyin Cengiz'dir. Bu sözleşme hiçbir servisi, production ortamını, şemayı veya veriyi değiştirme yetkisi vermez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "workflow-1",
+      "sourceStage": "post_mvp",
+      "existing": "Native get_transitions, geçişleri mevcut duruma, izinli role ve koşula göre süzer. apply_workflow listede olmayan action'ı WorkflowTransitionError ile reddeder ve onay erişimini denetler. Suite hooks.py '/api/' önekini DENIED_WILDCARD_PATHS listesine koyuyor.",
+      "gap": "Kaynak bağlantısı version-15'i gösteriyor; yerel 17.0.0.dev0 ile eşleme yok. Headless uç ve hata kodu eşlemesi tanımsız. Keycloak rollerinin Frappe Role'üne eşlenmesi tanımsız. Suite'in yol izin listesinin workflow yolunu kapsayıp kapsamadığı görülmüyor.",
+      "completionSteps": [
+        "Hedef sürümde get_transitions, apply_workflow ve has_approval_access satırlarını yeniden okuyup R-00 eşlemesine yaz.",
+        "Whitelist durumunu doğrula. Beklenen durum denetimi workflow-3 için gerektiğinden doğrudan istemci çağrısı yerine adaptör metodunu öner.",
+        "Liste metodunda native get_transitions çıktısını değiştirmeden döndür. İstemci rolü ya da koşulu yeniden hesaplamaz.",
+        "WorkflowTransitionError ile PermissionError'ı api-middleware--contract zarfındaki kodlara eşle.",
+        "Suite DENIED_WILDCARD_PATHS kuralının adaptör yolunu etkileyip etkilemediğini kaynakta oku. Değişiklik önerisini kendin uygulama; karara bırak.",
+        "Keycloak eşlemesi karara bağlanana kadar senaryolarda doğrudan Frappe Role adlarını kullan; eşleme kodu yazma."
+      ],
+      "dependencies": [
+        "native-workflow--contract",
+        "api-middleware--contract",
+        "native-user-policy--contract",
+        "kernel-envelope--contract",
+        "client-rule-parity--contract"
+      ],
+      "acceptance": "İzinli geçiş uygulanır. İzin dışı action ve yanlış mevcut durum sunucuda reddedilir; reddedilen istekte kayıt değişmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/model/workflow.py",
+          "line": 72,
+          "quote": "if transition.state == current_state and transition.allowed in roles:"
+        },
+        {
+          "path": "frappe/frappe/model/workflow.py",
+          "line": 134,
+          "quote": "frappe.throw(_(\"Not a valid Workflow Action\"), WorkflowTransitionError)"
+        },
+        {
+          "path": "frappe/frappe/model/workflow.py",
+          "line": 136,
+          "quote": "if not has_approval_access(user, doc, transition):"
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 466,
+          "quote": "\"/api/\","
+        }
+      ]
+    },
+    {
+      "requirementId": "workflow-3",
+      "sourceStage": "post_mvp",
+      "existing": "Workflow tanımı kaydedilirken gönderilmiş belgenin taslağa dönmesi reddedilir. apply_workflow belgeyi DB'den yeniden yükler. workflow_action e-posta onay yolu current_state ve last_modified karşılaştırması yapar.",
+      "gap": "Headless yolda expected_state ve modified denetimi yok. Bu yüzden eski durumla gelen istek, action yeni durumda da geçerliyse uygulanabiliyor. Ayrıca v17 eşlemesi yok ve kanban ile UI durum sunumu bağlanmamış.",
+      "completionSteps": [
+        "Adaptörde expected_state ile expected_modified alanlarını zorunlu yap. workflow_action örüntüsündeki gibi apply_workflow öncesinde karşılaştır; uyuşmazlıkta WORKFLOW_STATE_STALE dön.",
+        "Karşılaştırma ile apply_workflow arasındaki yarış penceresi için hedef sürümde save yolundaki native modified denetimini ve satır kilidi seçeneğini oku. Yeterli değilse kararı record-integrity--contract'a bağla.",
+        "Durum tablosunu Workflow DocType'ında native validate ile yapılandır. Ayrı bir durum makinesi yazma.",
+        "Kanban ve ui-family-20/21 durumları ile action'ları sunucudaki liste metodundan alır. Sürükle-bırak yalnız izinli action'a eşlenir. Reddedilen bırakmada kart eski sütuna döner ve sunucu hatası gösterilir.",
+        "ui-provider-permission yalnız sunucu yanıtını yansıtır; istemci görünümü yetki sayılmaz."
+      ],
+      "dependencies": [
+        "native-workflow--contract",
+        "record-integrity--contract",
+        "ui-view-kanban--contract",
+        "ui-family-20--contract",
+        "ui-family-21--contract",
+        "ui-provider-permission--contract"
+      ],
+      "acceptance": "Geçersiz durum sıçraması da, eski durum veya eski modified ile gelen eşzamanlı istek de reddedilir; kayıt değişmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/workflow/doctype/workflow/workflow.py",
+          "line": 124,
+          "quote": "if state_docstatus == 1 and next_state_docstatus == 0:"
+        },
+        {
+          "path": "frappe/frappe/model/workflow.py",
+          "line": 122,
+          "quote": "doc.load_from_db()"
+        },
+        {
+          "path": "frappe/frappe/workflow/doctype/workflow_action/workflow_action.py",
+          "line": 147,
+          "quote": "if doc_workflow_state == current_state:"
+        },
+        {
+          "path": "frappe/frappe/workflow/doctype/workflow_action/workflow_action.py",
+          "line": 150,
+          "quote": "if not last_modified or get_datetime(doc.modified) == get_datetime(last_modified):"
+        }
+      ]
+    },
+    {
+      "requirementId": "workflow-7",
+      "sourceStage": "post_mvp",
+      "existing": "Geçiş koşulları safe_eval ile değerlendirilir. api/v2 doc method yolu check_permission uygular. Suite'te frappe.db.set_value ile controller'ı atlayan doğrudan yazım örüntüsü var; örnekteki alan içerik alanıdır, workflow alanı değildir.",
+      "gap": "Durum alanının yalnız apply_workflow ile değişeceği kural yazılmamış. Modüle özel kuralların yeri belirsiz. apply_workflow'un save/submit kısmı hedef sürümde doğrulanmadı. ERPNext/HRMS kurulu değil.",
+      "completionSteps": [
+        "Hedef sürümde apply_workflow'un 139. satırdan sonrasını oku ve controller doğrulamasına ulaştığını R-00 eşlemesine kanıtla.",
+        "Kuralı yaz: workflow durum alanı ve docstatus yalnız apply_workflow ile değişir. db.set_value, SQL ve ignore_permissions bu yolda yasaktır. Job geçişleri aynı adaptörü job kimliğiyle çağırır.",
+        "Frappe ve Suite controller'larında durum alanına doğrudan yazan yolları envantere çıkar. Envanterin kapsamını ve yokluk iddiasının sınırını belirt.",
+        "Kalıcı iş kuralları controller validate içinde yer alır. Transition condition yalnız yan etkisiz görünürlük için kullanılır. Hook yalnız çapraz modül gerekirse ve hook adı kaynakta doğrulanırsa kullanılır.",
+        "Kapsamı Frappe ve Suite controller'larıyla sınırla; ERPNext/HRMS kuralı yazma.",
+        "Audit ve outbox olayı yalnız başarılı commit'ten sonra tüketilir."
+      ],
+      "dependencies": [
+        "native-workflow--contract",
+        "native-doctype-schema--contract",
+        "audit-envelope--contract",
+        "outbox--contract",
+        "process-definition--contract",
+        "approval-decision--contract"
+      ],
+      "acceptance": "Headless ya da job geçişi aynı iş doğrulamasını tetikler; geçersiz değişiklik kaydedilmez. Durum alanına doğrudan yazan izinli bir yol kalmaz.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/model/workflow.py",
+          "line": 100,
+          "quote": "return frappe.safe_eval(transition.condition, get_workflow_safe_globals(), dict(doc=doc.as_dict()))"
+        },
+        {
+          "path": "suite/suite/writer/doctype/writer_document/writer_document.py",
+          "line": 32,
+          "quote": "frappe.db.set_value(\"Writer Document\", self.name, \"content\", data)"
+        },
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 267,
+          "quote": "doc.check_permission(PERMISSION_MAP[frappe.request.method])"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Hedef sürüm eşlemesi yok: version-15 kaynak bağlantısı ile yerel 17.0.0.dev0 arasında.",
+    "apply_workflow'un save/submit kısmı ve whitelist durumu hedef sürümde doğrulanmadı.",
+    "Beklenen durum karşılaştırması ile uygulama arasındaki yarış penceresinin kapatılma yöntemi belirlenmedi.",
+    "Durum alanına doğrudan yazım envanteri çıkarılmadı.",
+    "has_approval_access reddinin native exception sınıfı doğrulanmadı.",
+    "Suite '/api/' engel kuralı ile adaptör yolunun ilişkisi doğrulanmadı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Hedef Frappe sürümü (T-00)",
+      "requirementIds": ["workflow-1", "workflow-3", "workflow-7"],
+      "blocks": "R-00 satır eşlemesi ve adaptörün uygulanması",
+      "documentStepUntilDecision": "Her iki sürüm için okunacak kesitlerin listesini ve karşılaştırma tablosunun boş şablonunu belgeye yaz."
+    },
+    {
+      "decision": "Keycloak rollerinin Frappe Role'üne eşlenmesi",
+      "requirementIds": ["workflow-1"],
+      "blocks": "Kimlik sağlayıcı rolleriyle geçiş yetkisinin kabulü",
+      "documentStepUntilDecision": "Kabul senaryolarını doğrudan Frappe Role adlarıyla yaz."
+    },
+    {
+      "decision": "Suite '/api/' engel kuralı karşısında adaptör yolunun nasıl açılacağı",
+      "requirementIds": ["workflow-1"],
+      "blocks": "Headless istemcinin geçiş metoduna erişmesi",
+      "documentStepUntilDecision": "Kaynak okuma notunu hazırla. Teknik değerlendirmeyi Hüseyin Cengiz'e devretmek için gereksinimi (yol, yöntem, izin modeli) yaz."
+    },
+    {
+      "decision": "Eşzamanlılık kilit stratejisi: yalnız karşılaştırma mı, satır kilidi mi",
+      "requirementIds": ["workflow-3"],
+      "blocks": "Eski durum reddinin yarış koşulunda da garanti edilmesi",
+      "documentStepUntilDecision": "Save yolundaki native modified denetimini hedef sürümde oku ve bulguyu record-integrity--contract ile ilişkilendir."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

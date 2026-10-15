@@ -4,15 +4,21 @@
   "canonicalTaskIds": ["security-baseline--implementation"],
   "requirementIds": ["security-1", "security-7"],
   "stage": "mvp",
+  "sourceStages": {
+    "security-1": "mvp",
+    "security-7": "mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
-    "title": "Suite update_password override yoluyla tum oturumlar kapatilinca eski sid ile API okumasi reddedilir",
-    "trigger": "Sentetik kullanici iki ayri oturum (A, B) acar; A, override edilmis frappe.core.doctype.user.user.update_password metodunu dogru eski sifre, yeni sifre ve tum oturumlari kapatma istegiyle cagirir; ardindan B eski sid ile native v1 read_doc yolundan okuyabildigi bir kaydi ister.",
-    "expected": "Sifre degisikligi basarili doner; B istegi 401 veya 403 ile reddedilir, govdede kayit alani donmez.",
-    "denied": "B'nin eski sid ile 200 ve kayit verisi almasi. Yanlis eski sifreyle yapilan cagri native hatayla reddedilir ve hicbir oturum kapanmaz."
+    "title": "Suite update_password override yoluyla tüm oturumlar kapatılınca eski sid ile API okuması reddedilir",
+    "trigger": "Sentetik kullanıcı iki ayrı oturum (A, B) açar; A, Suite'in override ettiği frappe.core.doctype.user.user.update_password metodunu doğru eski şifre, yeni şifre ve tüm oturumları kapatma isteğiyle çağırır; ardından B eski sid ile native v1 doküman okuma yolundan, okuma izni olduğu sentetik bir kaydı ister.",
+    "expected": "Şifre değişikliği başarılı döner; B isteği 401 veya 403 ile reddedilir ve gövdede kayıt alanı dönmez.",
+    "denied": "B'nin eski sid ile 200 ve kayıt verisi alması kabul edilmez. Yanlış eski şifreyle yapılan çağrı native kimlik doğrulama hatasıyla reddedilir ve hiçbir oturum kapanmaz."
   },
   "reuse": {
-    "mechanism": "Native: password.update_password logout_all_sessions, native sid oturumu, read_doc check_permission + apply_fieldlevel_read_permissions. Yeni CRUD/ORM/hook kopyasi yok. Override native kapatmayi atliyorsa en kucuk duzeltme, override icinde bayragin native cagriya iletilmesidir. Bu duzeltme Suite sahibine aittir. Kontrol matrisi yalniz owns YAML'inde tutulur.",
+    "status": "KISMI",
+    "mechanism": "Native parçalar: frappe/frappe/utils/password.py update_password içindeki logout_all_sessions parametresi, native sid oturumu, v1 okuma yolunda check_permission('read') ardından apply_fieldlevel_read_permissions, permissions.py has_permission. Yeni CRUD/ORM/hook/izin motoru kopyası yok; ignore_permissions veya SQL ile yetki bypass yok. Suite override gövdesi kaynakta okunmadı; override native kapatmayı atlıyorsa en küçük düzeltme bayrağın native çağrıya iletilmesidir ve bu düzeltme Suite sahibine aittir. Kontrol matrisi yalnız plannedProduction YAML dosyasında tutulur. Kanıtlar native parçaların varlığını gösterir; davranışın uçtan uca çalıştığını göstermez.",
     "evidence": [
       {
         "path": "suite/suite/hooks.py",
@@ -39,6 +45,15 @@
         "line": 450,
         "quote": "\"/api/v2/method/suite.meet.api.test_helpers.\","
       }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "frappe/frappe/permissions.py",
+      "frappe/frappe/utils/password.py",
+      "frappe/frappe/utils/safe_exec.py",
+      "frappe/pyproject.toml",
+      "frappe/realtime/middlewares/authenticate.js",
+      "suite/suite/hooks.py"
     ]
   },
   "ownership": {
@@ -46,56 +61,184 @@
     "plannedProduction": [
       "operations/security-baseline/security_baseline_mvp.yml"
     ],
-    "plannedTestFile": "backend/saas_platform/saas_platform/tests/test_security_session_revocation.py",
+    "plannedTestFile": null,
     "sharedIntegrationFiles": [
-      "integration/fragments/security-baseline--integration.json"
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "old_password (str), new_password (str) ve tum oturumlari kapatma bayragi. Bayragin Suite override'daki adi unknown; native addaki adi logout_all_sessions'dir. Kimlik dogrulama native sid cerezi ve CSRF token ile yapilir. Okuma doctype/name ile yapilir; T-08 yerel pilotundaki reader kapsamli Data kaydi modeli kullanilir. Yalniz sentetik kullanici kullanilir; kisisel kayit kullanilmaz.",
-    "output": "Sifre yaniti Suite override govdesine baglidir (unknown). Gecerli oturumda read_doc alan duzeyinde filtrelenmis kaydi dondurur; iptalden sonra kayit alani donmez. Surum: Frappe adf1fd0c, Suite HEAD unknown.",
-    "authorization": "Native site siniri (suite.localhost) yalniz yerel kanit icindir. Kayit erisimi native has_permission/check_permission('read') ile, alan erisimi apply_fieldlevel_read_permissions ile denetlenir. Iptal edilmis sid gecersiz/Guest sayilir; 401 mi 403 mu donecegi gozlenecektir, ikisi de kabul edilir.",
-    "persistence": "Native sifre guncelleme ve oturum silme native transaction icinde kalir. DDL, yeni DocType ve CustomField yoktur. Matris veritabanina degil YAML'a yazilir.",
-    "failure": "Yanlis eski sifre native AuthenticationError ile reddedilir ve oturumlar korunur. Import hatasi, 5xx veya CSRF hatasi altyapi hatasidir, RED sayilmaz. Mevcut React/TanStack tuketicisinin 401/403 davranisi unknown; beklenen davranis sorgu onbellegini temizleyip girise donmesidir. Yeni UI yoktur."
+    "input": "old_password (str), new_password (str) ve tüm oturumları kapatma bayrağı. Bayrağın Suite override'daki adı unknown; native addaki adı logout_all_sessions'dır. Kimlik doğrulama native sid çerezi ve CSRF token ile yapılır. Okuma doctype/name ile yapılır; DocType ve okuma izni T-00/R-01 eşlemesinde seçilen sentetik kayıttan gelir. Yalnız sentetik kullanıcı ve sentetik kayıt kullanılır; kişisel veri kullanılmaz.",
+    "output": "Şifre yanıtı Suite override gövdesine bağlıdır (unknown). Geçerli oturumda v1 okuma yolu alan düzeyinde filtrelenmiş kaydı döndürür; iptalden sonra kayıt alanı dönmez. Frappe ve Suite hedef sürüm/commit eşlemesi T-00 ile kaydedilir; bu sözleşme sürüm seçmez.",
+    "authorization": "Kayıt erişimi native has_permission/check_permission('read'), alan erişimi apply_fieldlevel_read_permissions ile denetlenir. İptal edilmiş sid geçersiz/Guest sayılır; 401 veya 403 kabul edilir, hangisinin döndüğü gözlenip kaydedilir. ignore_permissions, doğrudan SQL veya özel izin kopyası kullanılmaz. Bu birim rol/DocPerm/Custom DocPerm üretmez; matristeki izin satırları ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/explicitPermissionFlags ortak kaynağına bağlanır. İleride bu birim rol/izin üretirse kendi tek kabulüne reddedilen yazma ve değişmeyen kayıt kontrolü eklenir.",
+    "persistence": "Native şifre güncelleme ve oturum silme native save/transaction içinde kalır. DDL, yeni DocType, CustomField veya veri göçü yoktur. Kontrol matrisi veritabanına değil YAML dosyasına yazılır. Bu sözleşme hiçbir servis, şema, veri veya production ortamını değiştirme yetkisi vermez.",
+    "failure": "Yanlış eski şifre native kimlik doğrulama hatasıyla reddedilir ve oturumlar korunur. Import hatası, 5xx veya CSRF hatası altyapı hatasıdır, RED sayılmaz. Gelecekteki React/TanStack Query tüketicisinin 401/403 yanıtında sorgu önbelleğini temizleyip girişe dönmesi beklenen davranıştır; bu sözleşmede UI yazılmaz."
   },
   "development": {
-    "dependencies": [
-      "security-baseline--contract",
-      "localPilot frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6",
-      "localPilot t08 native admin/reader kapsami"
-    ],
-    "admission": "T-00 hedef baz ve R-00 yeniden kullanim eslemesi gerekir; R-01 izinli tuketici icin gecerlidir. suite.localhost'taki Suite commit'i kaydedilmeli (su an unknown). Override govdesi ve parametre adlari okunmadan test yazilmaz. Yerel kanit uzak urun tabani degildir; Keycloak not_run.",
+    "dependencies": ["security-baseline--contract"],
+    "admission": "Uygulama durumu: uygulanmadı. Giriş için T-00 hedef baz ve R-00 yeniden kullanım eşlemesi gerekir; izinli veri tüketen adımlar R-01'i de kullanır. Frappe ve Suite commit'leri T-00 kapsamında kaydedilmeden, Suite update_password override gövdesi ve parametre adları okunmadan test yazılmaz. Keycloak bağlantısı bu davranışın parçası değildir ve not_run kalır. Tek dar davranış gerçek RED/GREEN kanıtıyla uygulanır; ortak yürütme politikası ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy geçerlidir.",
     "steps": [
-      "YAML matrisi yazilir: varlik, tehdit, kontrol ve sorumlu. Backend kontrolleri: has_permission ve alan okuma filtresi, update flags atma, SSRF validate_request_address, oturum kapatma. Hüseyin Cengiz kontrolleri: server script common_site_config kapisi, realtime origin kontrolu. Mevcut access-3 kontrolüyle birlikte, rol/DocPerm/Custom DocPerm üretiminde 13 bayrağın açık 0/1 matrisi ve native varsayılanların izin açma riski ortak explicitPermissionFlags politikasına bağlanır; ayrı doğrulama dalgası açılmaz.",
-      "Karar maddeleri eklenir: Suite update_password override, test_helpers wildcard oneki, baslik katmani, Keycloak iptal eslemesi.",
-      "Tek kritik dogrulama kosulu bu senaryodur; matristeki durumu not_run olarak yazilir.",
-      "RED gorulurse duzeltme Suite override sahibine devredilir; bu gorev suite dosyasi yazmaz."
+      "YAML kontrol matrisi (operations/security-baseline/security_baseline_mvp.yml, gelecekteki öneri) şu sütunlarla yazılır: varlık, tehdit, kontrol, kaynak kanıtı (path:line veya 'kanıt sağlanmadı'), sahip, doğrulama durumu.",
+      "Backend sahipli kontroller: has_permission ve alan okuma filtresi, native update yolunda flags alanının atılması, safe_exec iç ağ adresi engeli, logout_all_sessions ile oturum kapatma. Hüseyin Cengiz sahipli kontroller: server script'in yalnız common_site_config ile açılması, realtime origin kontrolü. Rate limit ve __Auth şifreleme satırları doğrulanmış alıntı sağlanana kadar 'kanıt sağlanmadı' olarak yazılır.",
+      "İzin satırları mevcut access-3 kontrolüyle birlikte ortak explicitPermissionFlags politikasına bağlanır (13 bayrağın açık 0/1 matrisi ve native varsayılanların izin açma riski); ayrı doğrulama dalgası açılmaz.",
+      "Karar maddeleri matrise eklenir: Suite update_password override, test_helpers wildcard öneki, başlık katmanı, Keycloak iptal eşlemesi, hedef sürüm eşlemesi (bkz. decisionsPending).",
+      "Tek kritik doğrulama koşulu behavior senaryosudur; matristeki durumu not_run olarak yazılır.",
+      "RED görülürse düzeltme Suite override sahibine devredilir; bu görev Suite dosyası yazmaz."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "A override yolundan tum oturumlari kapatarak sifre degistirir; B eski sid ile read_doc cagirir; 401/403 ve kayit alani olmamasi beklenir.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Override duzeltmesinden sonra ayni test ayni komutla 401/403 doner. Komut: bench --site suite.localhost run-tests --module ilgili test modulu; komut yerelde dogrulanacaktir."
+      "oneScenario": "A override yolundan tüm oturumları kapatarak şifre değiştirir; B eski sid ile v1 okuma yolunu çağırır; 401/403 ve kayıt alanı olmaması beklenir.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış oneScenario'dur. Gerçek RED yalnız override'ın oturumları kapatmadığı ve B'nin 200 ile kayıt aldığı durumdur. Import/altyapı hatası RED değildir; native geçen davranışa RED uydurulmaz ve native davranış bozularak RED üretilmez. Bu tur test yazılmaz ve koşulmaz.",
+      "green": "Düzeltmeden sonra aynı senaryo, değişmeyen assertion ve aynı komutla 401/403 döner. Test komutu ve hedef site T-00 ile belirlenir; native bench run-tests kullanımı o aşamada doğrulanır. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN'i değildir."
     },
-    "rollback": "YAML ve test dosyasi yerelde geri alinir. Yalniz testin olusturdugu sentetik kullanici teardown'da silinir; musteri kaydi silinmez. Servis yeniden baslatilmaz, production izni yoktur."
+    "rollback": "YAML ve gelecekteki test dosyası sürüm kontrolünde geri alınır. Yalnız testin oluşturduğu sentetik kullanıcı ve kayıt teardown'da silinir; müşteri kaydı silinmez. Servis yeniden başlatılmaz; production izni yoktur. CI, deploy ve rollback teknik sahibi Hüseyin Cengiz'dir; bu davranış DNS/GoDaddy değişikliği gerektirmez (gerekirse uygulama sahibi Asistan Hüseyin'dir)."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "security-1",
+      "sourceStage": "mvp",
+      "existing": "Kaynakta tekil native kontroller görülür: permissions.py has_permission, safe_exec'te server script'in yalnız common_site_config ile açılması, realtime middleware'de host/origin karşılaştırması. Suite çekirdek update_password metodunu override eder ve ALLOWED_WILDCARD_PATHS listesinde test_helpers öneki bulunur. Bunlar parça kanıtıdır; güvenlik yönetimi davranışının bütünü değildir.",
+      "gap": "Varlık/tehdit/kontrol matrisi ve kontrol sahipleri yazılmamış. Keycloak OIDC ile Frappe session/API key/OAuth bearer kimlik eşlemesi ve oturum iptali tanımsız. Suite update_password override ve test_helpers öneki güvenlik incelemesine bağlanmamış. Yerel v17.0.0.dev0 kaynak commit eşlemesi yok.",
+      "completionSteps": [
+        "Matriste her native kontrol bir tehdide eşlenir: has_permission için yetkisiz kayıt okuma/yazma; safe_exec config kapısı için site düzeyinde keyfi kod çalıştırma; realtime origin için başka origin'den socket bağlantısı; logout_all_sessions için ele geçirilmiş oturumun sürmesi.",
+        "Her satıra sahip yazılır: uygulama ve izin kontrolleri backend; site config, realtime ve ağ kontrolleri Hüseyin Cengiz.",
+        "Suite update_password override ve test_helpers öneki 'karar bekliyor' satırı olarak Suite sahibine bağlanır; bu birim Suite dosyası yazmaz.",
+        "Kanıtsız kontroller (rate limit, __Auth şifreleme) 'kanıt sağlanmadı' durumunda kalır; kanıtlı gibi yazılmaz.",
+        "Matris başlığına T-00 kaynak commit alanı açılır; değer T-00 kaydından gelir, bu birim sürüm seçmez.",
+        "Kritik kontrol doğrulaması olarak yalnız oturum iptali senaryosu seçilir (bütçe: 1 senaryo)."
+      ],
+      "dependencies": ["security-baseline--contract"],
+      "acceptance": "Varlık, tehdit, kontrol ve sorumlu listesi YAML'da eksiksizdir; her satır doğrulanmış kaynak alıntısına veya 'kanıt sağlanmadı' durumuna bağlıdır; Suite override ve test_helpers karar maddesidir; kritik kontrol için uygulanabilir doğrulama koşulu not_run olarak yazılıdır.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 82,
+          "quote": "def has_permission("
+        },
+        {
+          "path": "frappe/frappe/utils/safe_exec.py",
+          "line": 87,
+          "quote": "# server scripts can only be enabled via common_site_config.json"
+        },
+        {
+          "path": "frappe/realtime/middlewares/authenticate.js",
+          "line": 21,
+          "quote": "if (get_hostname(socket.request.headers.host) != get_hostname(socket.request.headers.origin)) {"
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 203,
+          "quote": "\"frappe.core.doctype.user.user.update_password\": \"suite.mail.events.update_password\","
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 450,
+          "quote": "\"/api/v2/method/suite.meet.api.test_helpers.\","
+        }
+      ]
+    },
+    {
+      "requirementId": "security-7",
+      "sourceStage": "mvp",
+      "existing": "v1 okuma yolunda check_permission('read') sonrası apply_fieldlevel_read_permissions; v1 update yolunda gelen veriden flags alanının silinmesi; safe_exec'te iç ağ adreslerine isteği reddeden BlockedRequest; realtime origin kontrolü; nh3 bağımlılığı; update_password'da logout_all_sessions parametresi. Başlık üreten kaynak, nh3 çağrı yeri ve özel metotlarda filtre zorunluluğu kanıtlanmadı.",
+      "gap": "Başlık politikası ve uygulayan katman tanımsız. Keycloak oturum/token iptalinin Frappe sid/OAuth Bearer Token iptaline yansıması yazılmamış. Özel /api/v2/method uçları için girdi şeması ve çıktı alan filtresi sözleşmesi yok; apply_fieldlevel_read_permissions özel metotlara otomatik uygulanmıyor. Frappe v17.0.0.dev0 ile kaynak commit adf1fd0c eşlemesi kabul metnine bağlanmamış.",
+      "completionSteps": [
+        "Başlık satırları (CSP, HSTS, CORS, frame koruması) matrise değer verilmeden eklenir; uygulayan katman (Frappe, edge, Vite/PWA, Tauri kabuğu, WXT eklentisi) karar bekliyor olarak işaretlenir; teknik bağımlılık sahibi Hüseyin Cengiz.",
+        "Özel /api/v2/method uçları için matris kuralı yazılır: girdi şeması doğrulanır, kayıt native check_permission ile denetlenir, dönen kayda apply_fieldlevel_read_permissions uygulanır, istemciden gelen flags alanı kabul edilmez; ignore_permissions ve SQL ile bypass yasaktır. Otomatik denetim kalan eksik olarak kalır.",
+        "Dış URL çağıran özel kod için safe_exec iç ağ adresi engeli SSRF kontrolü olarak matrise yazılır; aynı korumayı sağlamayan istek yolları inceleme maddesi olur.",
+        "Zararlı girdi/çıktı örnek seti taslağı yazılır (script etiketi, olay işleyici özniteliği, javascript: URL, iç ağ URL'si); nh3'ün hangi alanlarda çağrıldığı kaynakta doğrulanana kadar sanitize kontrolü 'kanıt sağlanmadı' kalır.",
+        "Oturum koruması için tek senaryo behavior'dır; Bearer token ve API key iptali bu senaryoda sınanmaz.",
+        "Keycloak logout ile Frappe sid/OAuth Bearer iptal eşlemesi decisionsPending'de kalır; bu birim Keycloak yapılandırmaz.",
+        "Frappe v17.0.0.dev0 ile kaynak commit eşlemesi T-00 kaydına bağlanır."
+      ],
+      "dependencies": ["security-baseline--contract"],
+      "acceptance": "Zararlı girdi/çıktı örnekleri engellenir; oturum iptali sonrası API erişimi 401/403 ile kesilir ve kayıt alanı dönmez; başlıklar katman kararından sonra doğrulanır. Bu turda tümü not_run.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 84,
+          "quote": "doc.apply_fieldlevel_read_permissions()"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 57,
+          "quote": "if \"flags\" in data:"
+        },
+        {
+          "path": "frappe/frappe/utils/safe_exec.py",
+          "line": 388,
+          "quote": "raise BlockedRequest(\"Requests to internal network addresses are not permitted\")"
+        },
+        {
+          "path": "frappe/realtime/middlewares/authenticate.js",
+          "line": 21,
+          "quote": "get_hostname(socket.request.headers.origin)"
+        },
+        {
+          "path": "frappe/pyproject.toml",
+          "line": 47,
+          "quote": "\"nh3~=0.3.2\","
+        },
+        {
+          "path": "frappe/frappe/utils/password.py",
+          "line": 143,
+          "quote": "def update_password(user, pwd, doctype=\"User\", fieldname=\"password\", logout_all_sessions=False):"
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "Baslik politikasi (CSP/HSTS/CORS/frame) ve hangi katmanda uygulanacagi unknown; baslik ureten kaynak saglanmadi. Teknik bagimlilik sahibi Hüseyin Cengiz.",
-    "Keycloak OIDC'nin Frappe sid/OAuth Bearer/API key eslemesi ve backchannel iptali karar bekliyor; kapsam disi.",
-    "Bearer token ve API key iptali bu senaryoda sinanmiyor.",
-    "Ozel /api/v2/method uclari icin girdi semasi ve izin/alan filtresi zorunlulugu yalniz matris kurali; otomatik dogrulamasi yok.",
-    "test_helpers wildcard oneki icin karar ve Suite sahibi bekleniyor.",
-    "Zararli girdi/cikti icin nh3 ornek seti secilmedi.",
-    "Suite HEAD ve uzak taban unknown.",
-    "UI degisikligi yok; ileride olursa Outfit 14px, 320 oncelik, cevreleyen odak halkasi olmamasi, simetrik pozitif Cubic hareket ve mevcut AntD korunur."
+    "Başlık politikası (CSP/HSTS/CORS/frame) ve uygulayan katman unknown; başlık üreten kaynak sağlanmadı. Teknik bağımlılık sahibi Hüseyin Cengiz.",
+    "Keycloak OIDC ile Frappe sid/OAuth Bearer/API key eşlemesi ve backchannel iptali karar bekliyor; bu davranışın kapsamı dışında.",
+    "Bearer token ve API key iptali bu senaryoda sınanmıyor.",
+    "Özel /api/v2/method uçları için girdi şeması ve izin/alan filtresi zorunluluğu yalnız matris kuralı; otomatik doğrulaması yok.",
+    "test_helpers wildcard öneki için karar ve Suite sahibi bekleniyor.",
+    "Zararlı girdi/çıktı için nh3 örnek seti seçilmedi; nh3 çağrı yeri doğrulanmadı.",
+    "Rate limit ve __Auth şifreleme kontrolleri için doğrulanmış kaynak alıntısı yok.",
+    "Suite override gövdesi, bayrak adı ve Suite/Frappe hedef commit'leri T-00 ile kaydedilmedi.",
+    "UI değişikliği yok; ileride olursa Outfit, 14 CSS px alt sınır, 320 CSS px önceliği, çevreleyen odak halkası olmaması, simetrik pozitif Cubic hareket ve mevcut Ant Design bileşenleri korunur."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Güvenlik başlıklarını (CSP/HSTS/CORS/frame) hangi katmanın uygulayacağı: Frappe, edge, Vite/PWA, Tauri kabuğu veya WXT eklentisi.",
+      "requirementIds": ["security-7"],
+      "blockedStep": "Başlık değerlerinin yazılması ve başlık doğrulama koşulu.",
+      "allowedDocumentStep": "Matrise değer içermeyen başlık satırları ve 'karar bekliyor' durumu yazılır."
+    },
+    {
+      "decision": "Keycloak OIDC ile Frappe sid/OAuth Bearer/API key kimlik eşlemesi ve logout/iptal yolu.",
+      "requirementIds": ["security-1", "security-7"],
+      "blockedStep": "Keycloak kaynaklı oturum/token iptal senaryosu ve ilgili matris satırının doğrulama koşulu.",
+      "allowedDocumentStep": "Matriste iptal eşleme satırı açılır; yalnız native sid iptali senaryosu belgelenir."
+    },
+    {
+      "decision": "Suite update_password override'ının native oturum kapatmayı koruyup korumadığı ve düzeltme sahibi.",
+      "requirementIds": ["security-1"],
+      "blockedStep": "Test yazımı ve RED sonrası düzeltme devri.",
+      "allowedDocumentStep": "Override satırı Suite sahibine bağlı karar maddesi olarak yazılır; senaryo not_run kalır."
+    },
+    {
+      "decision": "ALLOWED_WILDCARD_PATHS içindeki suite.meet.api.test_helpers önekinin hedef ortamlarda kalıp kalmayacağı.",
+      "requirementIds": ["security-1"],
+      "blockedStep": "İlgili matris satırının kontrol ve doğrulama koşulu.",
+      "allowedDocumentStep": "Önek, kaynak alıntısıyla 'karar bekliyor' satırı olarak yazılır."
+    },
+    {
+      "decision": "Frappe v17.0.0.dev0 ve Suite için hedef sürüm/commit eşlemesi (T-00).",
+      "requirementIds": ["security-1", "security-7"],
+      "blockedStep": "Uygulama girişi ve test komutunun sabitlenmesi.",
+      "allowedDocumentStep": "Matris başlığına boş T-00 commit alanı eklenir; kaynak alıntıları sürüm iddiası olmadan tutulur."
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "security-1": "mvp",
-    "security-7": "mvp"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,

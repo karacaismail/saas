@@ -1,19 +1,38 @@
 {
   "schemaVersion": "saas-existing-work-contract.v1",
   "canonicalUnitId": "ui-family-07",
-  "canonicalTaskIds": ["ui-family-07--implementation-mvp"],
-  "requirementIds": ["views-9"],
+  "canonicalTaskIds": [
+    "ui-family-07--implementation-mvp",
+    "ui-family-07--implementation-post-mvp",
+    "ui-family-14--implementation-post-mvp",
+    "ui-family-15--implementation-post-mvp",
+    "ui-family-16--implementation",
+    "ui-family-20--implementation",
+    "ui-family-39--implementation-post-mvp"
+  ],
+  "requirementIds": ["views-9", "views-15"],
   "stage": "mvp",
+  "sourceStages": {
+    "views-9": "mvp",
+    "views-15": "post_mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
-    "title": "Kirli yerel kayıttan native hard navigation ile ayrılma uyarısı; iptalde taslak korunur",
-    "trigger": "Kullanıcı kaydı değiştirir ve mevcut Şema düzenlemeye dön hard-navigation bağlantısını izler.",
-    "expected": "dirtyCount>0 iken native beforeunload çıkar; iptalde aynı sayfa ve taslak kalır, sunucuya yazılmaz. Temiz kayıtta/unmount sonrası listener kaldırılır.",
-    "denied": "Otomatik kaydetme, sessiz taslak kaybı veya genel SPA/silme/offline desteği iddiası yok."
+    "title": "Kirli kayıttan ayrılırken uyarı; iptalde taslak korunur ve sunucuya yazılmaz",
+    "trigger": "Kullanıcı bir kaydın alanlarını değiştirir (kirli alan sayısı > 0) ve kaydetmeden sayfadan ayrılmaya çalışır: sekmeyi kapatma, yeniden yükleme veya tam sayfa gezinme.",
+    "expected": "Uygulama durumu: uygulanmadı. Gelecekteki uygulamada kirli alan sayısı > 0 iken tarayıcının native beforeunload uyarısı tetiklenir. Kullanıcı iptal ederse aynı sayfa ve yerel taslak değişmeden kalır, hiçbir sunucu isteği gönderilmez. Kayıt temizlendiğinde (başarılı kayıt veya bilinçli vazgeçme) ya da bileşen ayrıldığında dinleyici kaldırılır.",
+    "denied": "Otomatik kaydetme, sessiz taslak kaybı, uyarısız ayrılma ve onay iptalinden sonra yazma yoktur. Bu dilim uygulama içi SPA rota engelleme, silme onayı, undo, çevrimdışı taslak saklama veya işlem etki önizlemesi desteği iddia etmez."
   },
   "reuse": {
-    "mechanism": "Native: silme Frappe v1 delete_doc (frappe.delete_doc) ile yapilir, yeni backend adaptoru veya ORM kopyasi yazilmaz. UI: mevcut AntD6 Modal/Popconfirm ve mevcut TanStack mutation. Yalniz istemci tarafi onay kapisi eklenir; sunucu tarafi onay gozlenen bosluk olarak kalir.",
+    "status": "KISMI",
+    "mechanism": "Native parçalar: kaydetme Frappe v1 update_doc içindeki doc.save() ile, kalıcı silme v1 delete_doc içindeki frappe.delete_doc ile yapılır; başarılı silme 202 döner. Yeni backend adaptörü, ORM kopyası veya CRUD motoru yazılmaz; native izin, transaction, save ve hook zinciri aynen kullanılır. Önizleme için yalnız yardımcı native parçalar var: yüksek permlevel alanlarını eleme, alan düzeyinde okuma izni uygulama ve v2 toplu işlem async eşiği. UI seçilmiş yığında React, Ant Design (Modal/Popconfirm) ve TanStack Query mutation ile kurulur; önerilen bileşen adı InteractionSurface yalnız öneridir. Bu Frappe backend alıntıları React/AntD uygulamasının varlığını kanıtlamaz. Kirli durum takibi, iki aşamalı sunucu onayı, undo ve dry-run/önizleme motoru alıntılarda görülmedi; bir native parçanın varlığı bütün davranışın var olduğu anlamına gelmez.",
     "evidence": [
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 61,
+        "quote": "doc.save()"
+      },
       {
         "path": "frappe/frappe/api/v1.py",
         "line": 72,
@@ -25,80 +44,251 @@
         "quote": "frappe.response.http_status_code = 202"
       },
       {
+        "path": "frappe/frappe/api/v2.py",
+        "line": 31,
+        "quote": "def get_bulk_operation_async_threshold(doctype: str | None = None) -> int:"
+      },
+      {
+        "path": "frappe/frappe/api/v2.py",
+        "line": 32,
+        "quote": "conf = frappe.conf.get(\"bulk_operation_async_threshold\", 20)"
+      },
+      {
+        "path": "frappe/frappe/desk/reportview.py",
+        "line": 180,
+        "quote": "if df.fieldname in [_df.fieldname for _df in meta.get_high_permlevel_fields()]:"
+      },
+      {
         "path": "frappe/frappe/api/v1.py",
-        "line": 61,
-        "quote": "doc.save()"
+        "line": 84,
+        "quote": "doc.apply_fieldlevel_read_permissions()"
       }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "frappe/frappe/api/v2.py",
+      "frappe/frappe/desk/reportview.py"
     ]
   },
   "ownership": {
     "activeContractFile": "docs/frappe-roadmap-contracts/ui-family-07.json",
-    "plannedProduction": ["src/features/records/RecordWorkspace.tsx"],
-    "plannedTestFile": "tests/headless-schema.spec.ts",
-    "sharedIntegrationFiles": [
-      "frontend/packages/ui/src/index.ts",
-      "integration/fragments/ui-family-07--integration-mvp.json"
+    "plannedProduction": [
+      "frontend/packages/genui/src/components/ui-family-39/post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-family-07/mvp.tsx",
+      "frontend/packages/ui/src/components/ui-family-07/post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-family-14/post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-family-15/post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-family-16/index.tsx",
+      "frontend/packages/ui/src/components/ui-family-20/index.tsx"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "doctype: string (bos olamaz), name: string (bos olamaz), label: string (onay metni), onConfirmed: mevcut TanStack mutation. Govde gonderilmez.",
-    "output": "Basari: HTTP 202, v1.py return degeri 'ok'; sarmalayici govde bicimi kaynakta gorulmedi, bilinmiyor. UI yalniz durum kodunu esas alir; kayit alani dondurulmez.",
-    "authorization": "Native site, cookie/CSRF oturumu (local pilot). Silme yetkisinin frappe.delete_doc icinde denetlendigi saglanan alintilarda gorulmuyor; yetki ve 403 eslemesi T-08 admin/reader kapsamlariyla yerelde dogrulanacak. Istemci kapisi yetki yerine gecmez.",
-    "persistence": "Tek native istek ve Frappe istek transaction'i; kalici silme. DDL garantisi yok. Child doc silme kaynakta TODO, kapsam disi.",
-    "failure": "Ag hatasi, 403 veya 404 (ignore_missing=False): pencere acik kalir, kayit listede kalir, AntD form hatasi gosterilir, tekrar deneme kullanicinin acik onayiyla yapilir. Kesin istisna adlari ve durum kodlari kaynakta gorulmedi; yerelde olculecek."
+    "input": "Kirli durum: views-12 durum modelinden okunan, kayıt başına kirli alan sayısı (tamsayı >= 0) ve kayıt kimliği (doctype ve name boş olamaz). Onay kapısı: doctype, name, kullanıcıya gösterilecek etiket ve onaylanınca çağrılacak mevcut TanStack Query mutation. Onaydan önce istek gövdesi oluşturulmaz ve gönderilmez. views-15 önizlemesinin girdisi (işlem türü, hedef kayıt kümesi, önerilen alan değerleri) post-MVP aşamasında ayrı sözleşmeyle tanımlanır.",
+    "output": "Ayrılma uyarısı yalnız istemci davranışıdır, sunucu çıktısı yoktur. Onaylı silmede native v1 başarı durum kodu 202, dönüş değeri 'ok' olur; sarmalayıcı yanıt gövdesinin biçimi alıntılarda görülmedi ve bilinmiyor, bu nedenle UI yalnız durum kodunu esas alır. Kaydetme native doc.save() üzerinden yapılır; yanıt biçimi hedef API kararına bağlıdır.",
+    "authorization": "Native Frappe oturumu ve CSRF korumalı istekler kullanılır. İstemcideki onay kapısı yetkinin yerine geçmez; kaydetme ve silme yetkisi native izin zincirinde kalır. Silme yetkisinin frappe.delete_doc içinde nerede denetlendiği alıntılarda görülmedi; R-01 kapsamında yetkili ve yetkisiz kullanıcıyla hedef kaynakta doğrulanacak. ignore_permissions, doğrudan SQL veya başka bir izin atlama yolu kullanılmaz. Bu sözleşme rol veya izin üretmez; ileride üretirse explicitPermissionFlags ortak kaynağına bağlanır ve kendi kabulünde reddedilen yazma ile değişmeden kalan kayıt gösterilir.",
+    "persistence": "Ayrılma uyarısı hiçbir şey yazmaz. Onaylı işlemde tek bir native istek ve Frappe istek transaction'ı kullanılır; silme kalıcıdır. Child doc silmesi kaynakta TODO olarak işaretli ve kapsam dışıdır. Taslağın sayfa yenileme veya uygulamanın yeniden açılmasından sonra saklanması views-12 durum modeline ve bekleyen saklama kararına bağlıdır; bu dilimde yalnız bellek içi taslak korunur.",
+    "failure": "Uyarı iptal edilirse taslak ve sayfa korunur. Kirli sayı bilinmiyorsa güvenli varsayılan uyarı göstermektir. Onaylı işlemde ağ hatası, yetki reddi veya kaydın bulunamaması (ignore_missing=False) durumunda onay penceresi açık kalır, kayıt listede kalır ve Ant Design form hatası gösterilir; yeniden deneme yalnız kullanıcının yeni ve açık onayıyla yapılır. Kesin istisna adları ve HTTP durum kodları alıntılarda görülmedi; hedef sürümde doğrulanacak."
   },
   "development": {
     "dependencies": [
+      "api-middleware--contract",
+      "capability-definition--contract",
+      "client-rule-parity--contract",
+      "kernel-envelope--contract",
+      "native-user-policy--contract",
+      "record-integrity--contract",
+      "tauri-mobile-lifecycle--contract",
+      "ui-family-01--contract",
+      "ui-family-06--contract",
       "ui-family-07--contract",
       "ui-family-07--implementation",
-      "kernel-envelope--contract",
-      "api-middleware--contract",
-      "client-rule-parity--contract",
-      "local pilot t08: tek Data kaydi native admin/reader kapsamlari"
+      "ui-family-14--contract",
+      "ui-family-14--implementation",
+      "ui-family-15--contract",
+      "ui-family-15--implementation",
+      "ui-family-16--contract",
+      "ui-family-19--contract",
+      "ui-family-20--contract",
+      "ui-family-39--contract",
+      "ui-family-39--implementation"
     ],
-    "admission": "T-00 hedef baz ve R-00 yeniden kullanim eslemesi gerekir. Local Frappe17-dev/suite.localhost (frappeHead adf1fd0c) yalniz yerel kanittir; uzak urun bazi ve Suite HEAD bilinmiyor. v1 rota eslemesi ve /api/v2 hedefi dogrulanmadi.",
+    "admission": "Ortak politika: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy. Özel önkoşullar: T-00 hedef baz (hedef Frappe sürümü ile v1/v2 API seçimi bekleyen kararlardandır) ve R-00 yeniden kullanım eşlemesi tamamlanmalı; izinli veri tüketen adımlar için R-01 de gereklidir. views-12 durum modeli referansı ve ui-family-07/16/20 arasındaki MVP kapsam ayrımı netleşmeden üretim kiralaması verilmez. Planlı test dosyası bu sözleşmede atanmadı; kabul sırasında belirlenecek. Bu sözleşme hiçbir servisi, production ortamını, şemayı veya veriyi değiştirme yetkisi vermez.",
     "steps": [
-      "Gerçek native beforeunload RED mevcut test dosyasında görüldü.",
-      "dirtyCount>0 için native beforeunload effect eklendi; clean/unmount cleanup korundu.",
-      "Aynı mevcut dosyanın10 senaryosu bir kez49s ile geçti; yeni dosya/tarayıcı yok."
+      "R-00 eşlemesinde doc.save(), frappe.delete_doc ve 202 yanıtını hedef sürüm kaynağıyla yeniden doğrula; v2 karşılıklarını API kararından sonra eşle.",
+      "views-12 durum modelinden kayıt başına kirli alan sayısını okuyan tek okuma sözleşmesini belgede tanımla; gelecekteki sahip önerisi ui-family-07/mvp.tsx.",
+      "Kabulde planlı test dosyası atandıktan sonra oneScenario için gerçek RED üret: kirli kayıtla ayrılma girişiminde uyarının çıkmadığını gösteren davranış assertion'ı.",
+      "Kirli sayı > 0 iken native beforeunload dinleyicisini ekle; kayıt temizlendiğinde veya bileşen ayrıldığında kaldır. Otomatik kaydetme ekleme.",
+      "Aynı senaryoyu, assertion'ı ve komutu değiştirmeden GREEN'e getir; iptal sonrası sıfır sunucu isteğini ağ kanıtıyla kaydet.",
+      "SPA rota engelleme (TanStack Router'ın engelleme yeteneği hedef sürümde doğrulanarak), silme onayı ve undo işlerini ayrı tek davranışlı dilimler olarak sırala; bu dilime ekleme."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "leaving a dirty native record warns and cancellation preserves the local draft",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Ayni test ayni komutla mvp.tsx uygulamasindan sonra gecer; ek olarak yerel pilotta tek onayli silme 202 ile gozlenir."
+      "oneScenario": "Kirli bir kayıttan ayrılmaya çalışılınca uyarı çıkar; iptal edildiğinde yerel taslak korunur ve sunucuya istek gitmez.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. RED, uygulamadan önce kirli kayıtla ayrılma girişiminde uyarının çıkmadığını gösteren davranış assertion'ının başarısız olmasıdır. Import hatası, eksik altyapı veya native davranışı bozarak üretilen başarısızlık RED sayılmaz. Bu turda test yazılmadı ve koşulmadı.",
+      "green": "Uygulamadan sonra aynı senaryo, değişmeyen assertion ve aynı komutla geçmelidir. Şu anda not_run; bu sözleşme veya JSON biçim kontrolü ürün GREEN'i sayılmaz."
     },
-    "rollback": "Yalniz mvp.tsx ve planli test dosyasi geri alinir; production izni yok, musteri kaydi silinmez."
+    "rollback": "Gelecekte yalnız bu dilimin mvp.tsx değişikliği ve ona ait test geri alınır; ortak entegrasyon dosyalarından yalnız bu dilimin satırları çıkarılır. Kayıt, şema veya müşteri verisi değiştirilmez ya da silinmez. CI, deploy ve rollback işlerinin teknik sahibi Hüseyin Cengiz'dir. Bu dilim DNS/GoDaddy adımı gerektirmez; gerekirse uygulama sahibi Asistan Hüseyin'dir."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "views-9",
+      "sourceStage": "mvp",
+      "existing": "Native kaydetme (v1 update_doc içinde doc.save()) ve kalıcı silme (frappe.delete_doc, başarıda 202) primitifleri var.",
+      "gap": "Kirli durum takibi, gezinme uyarısı, iki aşamalı onay sözleşmesi, sunucu tarafında onay ve ön doğrulama, DELETE/run_method idempotency, desteklenen undo işlem listesi ve native ters işlem eşlemesi yok. Deleted Document restore kaynağı alıntılarda görünmüyor. views-12 ile taslak saklama sözleşmesi ve hedef sürüm/API eşlemesi kurulmamış.",
+      "completionSteps": [
+        "Kirli kayıttan ayrılma uyarısını bu sözleşmenin tek davranışı olarak uygula (bkz. behavior ve development/tdd).",
+        "Onay kapısı: Ant Design Modal/Popconfirm iptal edilirse mutation çağrılmaz; ayrı dilimin kabulünde iptal sonrası sıfır yazma isteği doğrulanır.",
+        "Undo tablosu yaz: alan güncelleme için önceki değerlerle native save; silme için Deleted Document restore yalnız hedef kaynakta doğrulanırsa; gönderilmiş belgede amend/cancel yalnız doctype destekliyorsa. Ters işlemi doğrulanmayan işlemde undo sunulmaz, yalnız onay gösterilir.",
+        "Taslak koruması için views-12 durum modeline referans ekle; web, Tauri ve WXT saklama sınırları karar gelene kadar açık kalır.",
+        "Sunucu tarafında onay, ön doğrulama ve idempotency ihtiyacını api-middleware--contract ve kernel-envelope--contract ile eşle; yeni backend motoru yazma.",
+        "ui-family-07/16/20 arasındaki MVP kapsamını karar geldikten sonra görev bazında böl."
+      ],
+      "dependencies": [
+        "ui-family-07--contract",
+        "ui-family-07--implementation",
+        "kernel-envelope--contract",
+        "api-middleware--contract",
+        "client-rule-parity--contract"
+      ],
+      "acceptance": "Gezinmede taslak kaybolmamalı; iptal edilen onay yan etki üretmemeli (sıfır yazma isteği); undo yalnız ters işlemi doğrulanmış işlemde sunulmalı; yetkisiz kullanıcının silme isteği reddedilmeli ve kayıt değişmeden kalmalı.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 61,
+          "quote": "doc.save()"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 72,
+          "quote": "frappe.delete_doc(doctype, name, ignore_missing=False)"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 73,
+          "quote": "frappe.response.http_status_code = 202"
+        }
+      ]
+    },
+    {
+      "requirementId": "views-15",
+      "sourceStage": "post_mvp",
+      "existing": "v2 toplu işlem async eşiği (yapılandırmadan okunur, varsayılan 20), yetki yoksa yüksek permlevel alanlarını eleme (reportview) ve alan düzeyinde okuma izni uygulama (v1) var.",
+      "gap": "Dry-run veya önizleme motoru yok. Önizleme ile uygulama arasındaki bağ (token, kayıt sürümleri, izin anlık görüntüsü), sunucu tarafında yeniden doğrulama, v2 toplu uçları ile async eşiğinin önizleme sonrası eşlemesi, sahip görev ve bağımlılık sırası tanımlı değil.",
+      "completionSteps": [
+        "Salt okunur önizleme ucunun sözleşmesini yaz: native okuma izni ve apply_fieldlevel_read_permissions; yüksek permlevel alanları reportview'daki get_high_permlevel_fields eleme kalıbıyla çıkarılır; yazma, hook tetikleme veya dış etki olmaz.",
+        "Önizleme yanıtını tanımla: etkilenen kayıt sayısı, alan listesi, önce/sonra farkı, views-9 undo tablosundan geri alınabilirlik etiketi ve kayıt sürüm göstergeleri. Hangi native alanın sürüm göstergesi olacağı R-00'da kaynakla doğrulanır.",
+        "Uygulama ucunu tanımla: sürüm göstergelerini ve izinleri yeniden doğrular, uyuşmazlıkta yazmadan reddeder ve yeni önizleme ister.",
+        "Kayıt sayısı eşiği aşarsa get_bulk_operation_async_threshold ile mevcut yapılandırmadan okunan eşiği kullan; eşik değeri bu sözleşmede seçilmez.",
+        "ui-family-39 GenUI tarafı yalnız JSON önizleme modelini alır; ReactNode ve callback'ler yerel kalır. Kaynak registry ile GenUI capability registry ayrı tutulur.",
+        "ui-family-07/14/15/39 post-MVP görevleri arasında sahip görev ve sıra, karar geldikten sonra mevcut bağımlılıklarla yazılır."
+      ],
+      "dependencies": [
+        "ui-family-07--contract",
+        "ui-family-07--implementation",
+        "kernel-envelope--contract",
+        "api-middleware--contract",
+        "client-rule-parity--contract",
+        "tauri-mobile-lifecycle--contract"
+      ],
+      "acceptance": "Etkilenen kayıt sayısı, alanlar, önce/sonra farkı ve geri alınabilirlik görülmeli. Önizleme ile uygulama arasında veri veya izin değişirse yeniden doğrulama yapılmalı. Onay iptalinde yazma veya dış etki oluşmamalı. Yetkisiz alanlar önizlemeye sızmamalı. Eşzamanlılık kabulü hedef sürümde yapılmalı.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 31,
+          "quote": "def get_bulk_operation_async_threshold(doctype: str | None = None) -> int:"
+        },
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 32,
+          "quote": "conf = frappe.conf.get(\"bulk_operation_async_threshold\", 20)"
+        },
+        {
+          "path": "frappe/frappe/desk/reportview.py",
+          "line": 180,
+          "quote": "if df.fieldname in [_df.fieldname for _df in meta.get_high_permlevel_fields()]:"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 84,
+          "quote": "doc.apply_fieldlevel_read_permissions()"
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "Uygulama içi SPA rota blocker, silme onayı ve undo/işlem iptali bu beforeunload dilimine dahil değildir.",
-    "Kanonik görevin diğer gereksinimleri ve aşağıdaki kalan işler bu yerel dilimle DONE sayılmaz.",
-    "Undo sunulacak islem listesi ve native ters islem eslemesi (ters update, Deleted Document restore, amend/cancel) tanimsiz; restore kaynagi alintilarda yok.",
-    "Gezinmede taslak korumasi views-12 durum modeline baglanmadi; web/Tauri/WXT saklama sinirlari acik.",
-    "Sunucu tarafi onay, ön dogrulama ve DELETE/run_method idempotency yok.",
-    "v17-dev surum eslemesi ve /api/v2 hedefi kaynakla dogrulanmadi; v1 rota eslemesi gorulmedi.",
-    "ui-family-07/16/20 arasinda MVP kapsam ayrimi belirsiz.",
-    "Child doc silme davranisi kaynakta TODO."
+    "Uygulama içi SPA rota engelleme, silme onayı ve undo bu beforeunload dilimine dahil değil.",
+    "Undo sunulacak işlem listesi ve native ters işlem eşlemesi tanımsız; restore kaynağı alıntılarda yok.",
+    "Gezinmede taslak koruması views-12 durum modeline bağlanmadı; web, Tauri ve WXT saklama sınırları açık.",
+    "Sunucu tarafında onay, ön doğrulama ve DELETE/run_method idempotency yok.",
+    "Hedef sürüm eşlemesi ve v1/v2 API hedefi kaynakla doğrulanmadı.",
+    "ui-family-07/16/20 arasındaki MVP kapsam ayrımı belirsiz.",
+    "Child doc silme davranışı kaynakta TODO.",
+    "Önizleme motoru, önizleme ile uygulama arasındaki bağ ve sunucu tarafında yeniden doğrulama yok; backend sahipliği bu sözleşmede atanmadı.",
+    "Silme yetkisinin native denetim noktası alıntılarda görülmedi; R-01 ile doğrulanacak.",
+    "Planlı test dosyası atanmadı; bu sözleşmeyle hiçbir görev DONE sayılmaz."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Hedef Frappe sürümü ve API yüzeyi (/api/v1 veya /api/v2)",
+      "requirementIds": ["views-9", "views-15"],
+      "blocks": "T-00 hedef baz, R-00 eşlemesi, contract.output yanıt biçimi ve üretim kiralaması",
+      "docStepUntilDecision": "v1 ve v2 alıntılarını ayrı bir eşleme tablosunda listele; seçim yapmadan her iki yolun açık sorularını yaz."
+    },
+    {
+      "decision": "ui-family-07, ui-family-16 ve ui-family-20 arasındaki MVP kapsam ayrımı",
+      "requirementIds": ["views-9"],
+      "blocks": "MVP görevi için kabul ve üretim kiralaması",
+      "docStepUntilDecision": "Alt davranışları (ayrılma uyarısı, onay kapısı, undo) görevlere göre sınıflayan bir kapsam matrisi taslağı hazırla."
+    },
+    {
+      "decision": "Web, Tauri ve WXT için taslak saklama konumu ve saklama süresi",
+      "requirementIds": ["views-9"],
+      "blocks": "Bellek dışında taslak saklama ve yeniden açılışta geri yükleme",
+      "docStepUntilDecision": "views-12 durum modeline referans ver ve platform bazında seçenekleri seçim yapmadan listele."
+    },
+    {
+      "decision": "Undo desteklenen işlem listesi ve hedef sürümde Deleted Document restore ile amend/cancel kullanımı",
+      "requirementIds": ["views-9", "views-15"],
+      "blocks": "Undo arayüzü ve önizlemedeki geri alınabilirlik etiketi",
+      "docStepUntilDecision": "İşlem ve ters işlem tablosunu yaz; kaynakla doğrulanmayan satırları 'undo yok, yalnız onay' olarak işaretle."
+    },
+    {
+      "decision": "Sunucu tarafında onay, ön doğrulama ve idempotency mekanizması",
+      "requirementIds": ["views-9"],
+      "blocks": "Sunucu destekli onay ve güvenli yeniden deneme",
+      "docStepUntilDecision": "api-middleware--contract ve kernel-envelope--contract içindeki ilgili alanlara eşleme notu yaz."
+    },
+    {
+      "decision": "Önizleme ile uygulama arasındaki bağ: token biçimi, geçerlilik süresi ve izin anlık görüntüsü",
+      "requirementIds": ["views-15"],
+      "blocks": "Önizleme ve uygulama uçlarının sözleşmesi",
+      "docStepUntilDecision": "Gerekli bağ alanlarını ve uyuşmazlıkta red davranışını değer seçmeden tanımla."
+    },
+    {
+      "decision": "views-15 için ui-family-07/14/15/39 post-MVP görevleri arasında sahip görev ve sıra",
+      "requirementIds": ["views-15"],
+      "blocks": "views-15 uygulama kabulü",
+      "docStepUntilDecision": "Mevcut bağımlılıklarla bir sahiplik tablosu taslağı hazırla; yeni görev kimliği ekleme."
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "views-9": "mvp"
-  },
   "implementationAdmission": {
-    "status": "LOCAL_DEFINED_SLICE_VERIFIED",
+    "status": "NOT_ADMITTED",
     "activeProductionLease": false,
     "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
     "specificPrerequisitesRef": "#/development/admission"
-  },
-  "localDeliveryProof": {
-    "repository": "/Users/w6x/Developer/genui-saas-panel",
-    "commit": "16b0224b1da739d8bab4676dfc3ff11bba776698",
-    "testFile": "tests/headless-schema.spec.ts",
-    "wholeFileGate": "10/10,49.0s",
-    "finalFocusedAfterMinorCopy": "1/1,6.7s",
-    "rootProof": "../frappe-roadmap-analysis.json executionBacklog.localDelivery",
-    "canonicalWholeTaskDone": false
   }
 }

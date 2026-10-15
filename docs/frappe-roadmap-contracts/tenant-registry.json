@@ -3,19 +3,37 @@
   "canonicalUnitId": "tenant-registry",
   "canonicalTaskIds": [
     "tenant-registry--implementation",
-    "tenant-registry--implementation-mvp"
+    "tenant-registry--implementation-mvp",
+    "tenant-registry--implementation-post-mvp",
+    "tenant-registry--implementation-scale",
+    "ui-family-04--implementation"
   ],
-  "requirementIds": ["tenant-1", "tenant-3", "tenant-5"],
+  "requirementIds": [
+    "tenant-1",
+    "tenant-3",
+    "tenant-5",
+    "tenant-6",
+    "tenant-7"
+  ],
   "stage": "poc",
+  "sourceStages": {
+    "tenant-1": "poc",
+    "tenant-3": "mvp",
+    "tenant-5": "poc",
+    "tenant-6": "scale",
+    "tenant-7": "post_mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
     "title": "Aynı idempotency_key ile tekrarlanan kiracı kaydı isteği ikinci Tenant Registry kaydı açmaz",
-    "trigger": "Yetkili kullanıcı control-plane sitesinde register(idempotency_key, site_name) çağrısını aynı anahtarla ikinci kez yapar.",
-    "expected": "İlk çağrı tek kayıt ekler ve replayed=false döner. İkinci çağrı yeni satır eklemez, aynı name değerini replayed=true ile döner. Site açılmaz; new-site/bench çağrılmaz.",
-    "denied": "Create izni olmayan kullanıcı PermissionError alır, kayıt yazılmaz. Aynı anahtar farklı site_name ile gelirse ValidationError döner, mevcut kayıt değişmez."
+    "trigger": "Tenant Registry create izni olan kullanıcı, control-plane sitesinde register(idempotency_key, site_name) çağrısını aynı anahtarla ikinci kez yapar.",
+    "expected": "İlk çağrı tek kayıt ekler ve replayed=false döner. İkinci çağrı yeni satır eklemez; aynı name değerini replayed=true ile döner. Site açılmaz; new-site, bench veya installer çağrılmaz.",
+    "denied": "Create izni olmayan kullanıcı PermissionError alır; kayıt yazılmaz ve mevcut kayıtlar değişmez. Aynı anahtar farklı site_name ile gelirse ValidationError döner; mevcut kaydın alanları ve modified değeri değişmez."
   },
   "reuse": {
-    "mechanism": "Önce native: schema görevinin Tenant Registry DocType'ı üzerinde unique idempotency_key alanı, Document.insert ve DocType rol izinleri. Native tekrar koruması yalnız site dizini adına bakıyor; istemci anahtarına göre mevcut kaydı döndürmüyor. En küçük adapter: sahip olunan controller modülünde tek whitelisted fonksiyon. Document.insert, has_permission ve unique hata sınıfı için kaynak alıntısı sağlanmadı; Frappe adf1fd0c üzerinde doğrulanana kadar unknown.",
+    "status": "KISMI",
+    "mechanism": "Önce native: tenant-registry--schema görevinin önereceği Tenant Registry DocType'ı, unique idempotency_key alanı, native Document.insert, DocType rol izinleri ve istek transaction'ı. Kaynakta görülen native tekrar koruması yalnız site dizini varlığına bakar; istemci anahtarına göre mevcut kaydı döndürmez. En küçük adapter: planlanan controller modülünde tek whitelisted register fonksiyonu. Document.insert, has_permission, unique hata sınıfı ve savepoint için kaynak alıntısı sağlanmadı; hedef Frappe sürümünde doğrulanana kadar unknown. Alıntılar native parçaları gösterir, davranışın tamamının var olduğunu göstermez. searchedPaths yalnız bu değerlendirmede okunan yollardır; kapsamlı yokluk iddiası değildir.",
     "evidence": [
       {
         "path": "frappe/frappe/installer.py",
@@ -23,78 +41,377 @@
         "quote": "if not force and os.path.exists(site):"
       },
       {
-        "path": "suite/suite/hooks.py",
-        "line": 117,
-        "quote": "ignore_file_permissions = True"
+        "path": "frappe/frappe/website/utils.py",
+        "line": 212,
+        "quote": "\"sitename\": frappe.local.site,"
       },
       {
         "path": "suite/pyproject.toml",
         "line": 88,
         "quote": "# standalone services, each deployed and run outside the Frappe site"
       }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v2.py",
+      "frappe/frappe/app.py",
+      "frappe/frappe/commands/scheduler.py",
+      "frappe/frappe/commands/site.py",
+      "frappe/frappe/installer.py",
+      "frappe/frappe/integrations/frappe_providers/frappecloud.py",
+      "frappe/frappe/utils/backups.py",
+      "frappe/frappe/website/page_renderers/base_template_page.py",
+      "frappe/frappe/website/utils.py",
+      "frappe/frappe/website/website_components/metatags.py",
+      "frappe/frappe/website/website_generator.py",
+      "suite/pyproject.toml",
+      "suite/suite/hooks.py",
+      "suite/suite/store/__init__.py"
     ]
   },
   "ownership": {
     "activeContractFile": "docs/frappe-roadmap-contracts/tenant-registry.json",
     "plannedProduction": [
-      "backend/saas_platform/saas_platform/tenant_control/doctype/tenant_registry/tenant_registry.py"
+      "backend/saas_platform/saas_platform/services/tenant_registry_mvp.py",
+      "backend/saas_platform/saas_platform/services/tenant_registry_post_mvp.py",
+      "backend/saas_platform/saas_platform/services/tenant_registry_scale.py",
+      "backend/saas_platform/saas_platform/tenant_control/doctype/tenant_registry/tenant_registry.py",
+      "frontend/packages/ui/src/components/ui-family-04/index.tsx"
     ],
-    "plannedTestFile": "backend/saas_platform/saas_platform/tenant_control/doctype/tenant_registry/test_tenant_registry.py",
+    "plannedTestFile": null,
     "sharedIntegrationFiles": [
-      "backend/saas_platform/saas_platform/tenant_control/doctype/tenant_registry/tenant_registry.json",
-      "contracts/tenant-registry.v1.json",
-      "integration/fragments/tenant-registry--integration.json"
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "POST /api/method/saas_platform.tenant_control.doctype.tenant_registry.tenant_registry.register. idempotency_key: str, 16-140, [A-Za-z0-9_-]. site_name: str, en fazla 140, küçük harf hostname. Başka alan kabul edilmez. Native cookie/CSRF oturumu; Keycloak not_run.",
-    "output": "{name, site_name, idempotency_key, replayed: bool, contractVersion: 'tenant-registry.v1'}. Yalnız çağıranın okuma izni olan alanlar döner; müşteri iş verisi yok.",
-    "authorization": "Yalnız control-plane sitesi: yerelde Frappe17-dev/suite.localhost; uzak control-plane kimliği unknown. Tenant Registry create izni yoksa PermissionError döner. Replay yanıtında mevcut kayıt için read izni ayrıca kontrol edilir. ignore_permissions kullanılmaz. Rol adı schema görevine bağlı, unknown.",
-    "persistence": "Tek istek transaction'ı: önce idempotency_key ile okunur, kayıt yoksa doc.insert() çağrılır. Eşzamanlı yarışta unique index ikinci insert'i reddeder; savepoint'e dönülür ve mevcut kayıt yeniden okunur. Index native DocType senkronuyla oluşur; DDL garantisi verilmez. Manuel commit yok; site/DB oluşturma bu davranışta yok.",
-    "failure": "PermissionError: tüketici yetki mesajı gösterir, tekrar denemez. ValidationError (format hatası veya anahtar-site çakışması): alan hatası gösterilir, tekrar denenmez. Ağ hatası veya zaman aşımında aynı anahtarla güvenle tekrar denenir. HTTP kodları yerelde doğrulanacak. Mevcut React19/AntD6/TanStack tüketicisi replayed=true yanıtını başarı sayar. Bu sözleşmede yeni UI yok; ileride UI eklenirse Outfit 14px, 320-first, çevreleyen odak halkası yasağı ve simetrik pozitif Cubic hareket kuralları korunur."
+    "input": "Önerilen uç: POST /api/method/saas_platform.tenant_control.doctype.tenant_registry.tenant_registry.register. idempotency_key: str, 16-140 karakter, [A-Za-z0-9_-]. site_name: str, en fazla 140 karakter, küçük harf hostname. Başka alan kabul edilmez. Kimlik native Frappe oturumu ve CSRF ile doğrulanır; Keycloak eşlemesi bekleyen karar olduğundan bu davranışın kapsamında değildir.",
+    "output": "{name, site_name, idempotency_key, replayed: bool, contractVersion: 'tenant-registry.v1'}. Yalnız çağıranın okuma izni olan alanlar döner; müşteri iş verisi, secret veya site_config değeri dönmez.",
+    "authorization": "Yalnız control-plane sitesinde çalışır; control-plane konumu kiracılık topolojisi kararına bağlıdır. Tenant Registry create izni native izin kontrolüyle doğrulanır; izin yoksa PermissionError döner ve insert'e ulaşılmaz. Replay yanıtında mevcut kayıt için read izni ayrıca kontrol edilir. ignore_permissions, ham SQL ile yetki atlama veya Administrator'a özel kısa yol yoktur. Rol ve izin tanımı ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/explicitPermissionFlags ortak kaynağına bağlanır; rol adı schema görevine bağlıdır ve unknown.",
+    "persistence": "Tek istek transaction'ı: önce idempotency_key ile okunur; kayıt yoksa native doc.insert() çağrılır. Eşzamanlı yarışta unique index ikinci insert'i reddeder; savepoint'e dönülür ve mevcut kayıt yeniden okunur. Index native DocType senkronuyla oluşur; DDL garantisi verilmez. Manuel commit yok; site veya veritabanı oluşturma bu davranışta yok. Bu sözleşme şema, veri, servis veya production değiştirme yetkisi vermez.",
+    "failure": "PermissionError: tüketici yetki mesajı gösterir, tekrar denemez. ValidationError (format hatası veya anahtar-site çakışması): alan hatası gösterilir, tekrar denenmez. Ağ hatası veya zaman aşımında aynı anahtarla güvenle tekrar denenir. HTTP kodları hedef sürümde doğrulanacak. Gelecekteki React/Ant Design ve TanStack Query tüketicisi replayed=true yanıtını başarı sayar. Bu davranışta UI yok; ui-family-04 yüzeyi ileride eklenirse Ant Design ailesi, Outfit, en az 14 CSS px metin, 320 CSS px önceliği, çevreleyen odak halkası yasağı ve simetrik pozitif süreli Cubic hareket kuralları korunur; JSON model sınırı ile yerel ReactNode/callback ayrı tutulur ve kaynak registry ile GenUI capability registry karıştırılmaz."
   },
   "development": {
     "dependencies": [
-      "tenant-registry--contract",
-      "tenant-registry--schema",
+      "api-middleware--contract",
+      "client-rule-parity--contract",
       "kernel-envelope--contract",
-      "local pilot: frappeHead adf1fd0c, schemaCommit f926e9b, recordCommit 6ea301c"
+      "tenant-registry--contract",
+      "tenant-registry--implementation",
+      "tenant-registry--schema",
+      "ui-family-04--contract"
     ],
-    "admission": "T-00 hedef baseline ve R-00 reuse eşlemesi hazır olmalı. Schema görevi idempotency_key (unique) ve site_name alanlarını teslim etmiş olmalı; saas_platform yerel test sitesine kurulu olmalı (kurulu olup olmadığı unknown). Yerel kanıt uzak ürün baseline'ı değildir; Suite HEAD unknown.",
+    "admission": "Uygulama durumu: uygulanmadı. Kabul önkoşulları: T-00 hedef baseline ve R-00 reuse eşlemesi hazır; izinli veri tüketicileri için R-01 uygulanmış; tenant-registry--contract ve kernel-envelope--contract onaylı; tenant-registry--schema görevi idempotency_key (unique) ve site_name alanlarını sağlamış; rol ve izin bayrakları explicitPermissionFlags kaynağında tanımlı; hedef Frappe sürümü ve test sitesi kararlaştırılmış (şu an unknown). ui-family-04 çıktıları için ayrıca ui-family-04--contract, api-middleware--contract ve client-rule-parity--contract gerekir. Bu sözleşme üretim kirası vermez.",
     "steps": [
-      "tenant_registry.py içine register fonksiyonu eklenir: girdi doğrulanır, create izni kontrol edilir, anahtarla okunur; eşleşen kayıt varsa site_name karşılaştırılıp kayıt döndürülür, yoksa insert yapılır; unique yarışında kayıt yeniden okunur.",
-      "Kayıt yalnız site referansı tutar; provisioning ve bench çağrısı yoktur.",
-      "Çıktı alanları contracts/tenant-registry.v1.json dosyasına entegrasyon sahibi tarafından eklenir."
+      "tenant_registry.py içinde tek register fonksiyonu: girdi doğrulanır, native create izni kontrol edilir, anahtarla okunur; eşleşen kayıt varsa read izni kontrol edilip site_name karşılaştırılır ve kayıt döndürülür; yoksa doc.insert yapılır; unique yarışında kayıt yeniden okunur.",
+      "Kayıt yalnız site referansı tutar; provisioning, bench veya installer çağrısı bu davranışa eklenmez.",
+      "Çıktı alanları tenant-registry.v1 sözleşmesine entegrasyon sahibi tarafından seri birleştirmeyle eklenir; hooks.py, registry.ts ve routes.tsx gibi ortak dosyalar yalnız entegrasyon sahibince değiştirilir.",
+      "tenant-3, tenant-5, tenant-6 ve tenant-7 bu davranışa eklenmez; her biri requirementGuidance altında kendi tek davranışıyla ayrı kabul alır."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "Yerel test sitesinde Administrator aynı idempotency_key ile register fonksiyonunu iki kez çağırır. İki çağrı da aynı name değerini döndürür, ikinci çağrıda replayed=true olur ve o anahtar için kayıt sayısı 1 kalır. Aynı senaryoda Tenant Registry create izni olmayan, kimliği doğrulanmış kullanıcı yeni bir idempotency_key ile register çağırır; PermissionError native Document.insert ve başka bir yan etkiden önce oluşur, o anahtar için kayıt oluşmaz ve mevcut kaydın alanları ile modified değişmez.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Aynı test aynı komutla geçer: bench --site <yerel test sitesi> run-tests, hedef test_tenant_registry modülü. Komut ve site Frappe17-dev üzerinde doğrulanacak."
+      "oneScenario": "Test sitesinde create izni olan kullanıcı aynı idempotency_key ile register'ı iki kez çağırır: iki çağrı aynı name değerini döndürür, ikincide replayed=true olur ve o anahtar için kayıt sayısı 1 kalır. Aynı senaryoda create izni olmayan, kimliği doğrulanmış kullanıcı yeni bir anahtarla register çağırır: PermissionError insert'ten ve başka yan etkiden önce oluşur, o anahtar için kayıt oluşmaz, mevcut kaydın alanları ve modified değeri değişmez.",
+      "red": "Ortak kural: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. RED davranışsal olmalı: register yalnız native insert yolunu çalıştırırken ikinci çağrı ikinci kayıt açtığı veya duplicate hatası verdiği için kayıt sayısı=1 ve replayed=true assertion'ları başarısız olur. Import, kurulum veya altyapı hatası RED sayılmaz; native çalışan izin davranışı bozularak RED üretilmez. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "Uygulamadan sonra aynı senaryo, değişmeyen assertion'lar ve aynı komutla geçmeli (aday: bench --site <test sitesi> run-tests, planlanan test modülü hedeflenerek; test yolu henüz atanmadı, komut ve site hedef sürümde doğrulanacak). Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN'i değildir."
     },
-    "rollback": "Yalnız tenant_registry.py içindeki register fonksiyonu ve planlanan test geri alınır; yerel test kayıtları test transaction'ıyla silinir. Production, site, cron veya servis değişikliği yoktur."
+    "rollback": "Yalnız register fonksiyonu ve ona ait gelecekteki test geri alınır; test kayıtları test transaction'ıyla temizlenir. Production, site, şema, cron veya servis değişikliği yoktur. Teknik CI/deploy/rollback sahibi Hüseyin Cengiz'dir."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "tenant-1",
+      "sourceStage": "poc",
+      "existing": "Native site bağlamı var: frappe.local.site ve site config (frappe.local.conf) istek başına site üzerinden çözülür. Suite'in bazı servisleri site dışında çalışır. Bu, site başına kiracılık için yapı taşıdır; tek veritabanında satır kiracılığı primitive'i alıntılarda görülmedi.",
+      "gap": "Varsayılan model (site=kiracı veya site içinde kurum satırı) seçilmedi ve tenant-2 ile sınır çizilmedi; karma modelde host/site çözümleme ve Keycloak realm/organization eşlemesi tanımsız; hedef Frappe sürüm eşlemesi yok; sfu, recorder ve collab servisleri modele dahil değil.",
+      "completionSteps": [
+        "tenant-registry--implementation altında tek karar kaydı taslağı yaz: seçenekler site=kiracı ve satır kiracılığı; seçim decisionsPending içindeki topoloji kararına bırakılır.",
+        "Karma model için site, kimlik kapsamı ve harici servis uç noktası sütunlarından oluşan eşleme tablosunu kabul metnine ekle; değerleri karar gelene kadar boş bırak.",
+        "Site dışı servisleri (sfu, recorder, collab) envantere yaz ve her biri için kiracı doğrulama noktasını tanımsız olarak işaretle.",
+        "Sürümsüz kaynak URL'lerini hedef Frappe sürümü seçilene kadar unknown olarak işaretle."
+      ],
+      "dependencies": [
+        "tenant-registry--contract",
+        "tenant-registry--schema",
+        "kernel-envelope--contract"
+      ],
+      "acceptance": "İki site arasında veri sızıntısı olmaz; varsayılan model ile karma modelin taşıma ve yönlendirme sınırı onaylı karar kaydında belgelenir.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/website/utils.py",
+          "line": 212,
+          "quote": "\"sitename\": frappe.local.site,"
+        },
+        {
+          "path": "frappe/frappe/website/page_renderers/base_template_page.py",
+          "line": 16,
+          "quote": "self.context.update(frappe.local.conf.get(\"website_context\") or {})"
+        },
+        {
+          "path": "suite/pyproject.toml",
+          "line": 88,
+          "quote": "# standalone services, each deployed and run outside the Frappe site"
+        }
+      ]
+    },
+    {
+      "requirementId": "tenant-3",
+      "sourceStage": "mvp",
+      "existing": "Kaynak değerlendirmesine göre native site yaşam döngüsü CLI düzeyindedir: new-site, site dizini varsa durur (yalnız ad tabanlı tekrar koruması); set-maintenance-mode site_config'e maintenance_mode yazar ve istekler SessionStopped ile kesilir; drop-site önce scheduled_backup alır, sonra veritabanını ve kullanıcısını siler. Suite'te kiracı yaşam döngüsü kodu yok.",
+      "gap": "Durum makinesi (provisioning/active/suspended/closing/closed), geçiş API'si ve denetim kaydı yok; istemci idempotency anahtarı yok; ayrı aktivasyon adımı yok; maintenance_mode Administrator dahil tüm istekleri durdurur, kiracıya özel askı mesajı, oturum ve API token iptali yok; çıkışta taşınabilir export, teslim kabulü, saklama kararı ve silme kanıtı yok, drop-site arşivi süresiz kalır; Frappe HTTP API üzerinden yaşam döngüsü sözleşmesi yok.",
+      "completionSteps": [
+        "Schema görevine status alanı ve izinli geçiş tablosu öner; geçişler tek whitelisted fonksiyonda native izin kontrolü ve doc.save ile yapılır, izin dışı geçiş ValidationError ile reddedilir.",
+        "Provisioning adımını installer._new_site sarmalayıcısı olarak tanımla; yalnız provisioning durumundaki kayıt için çalışır. Sunucuda çalıştırma Hüseyin Cengiz'in onaylı deploy sürecine bağlıdır.",
+        "Aktivasyonu provisioning'den active'e ayrı bir geçiş olarak tanımla.",
+        "Askıya almayı maintenance_mode yerine kiracıya özel before_request kontrolü olarak tasarla; oturum ve API token iptali politikası karar listesindedir.",
+        "Çıkışı en son ekle: scheduled_backup çıktısını teslim kaydına bağla, teslim kabulü ve saklama kararını kaydet; drop-site eşdeğeri ancak bunlardan sonra çağrılır ve arşiv silme kanıtı kayda yazılır."
+      ],
+      "dependencies": [
+        "tenant-registry--contract",
+        "tenant-registry--schema",
+        "tenant-registry--implementation",
+        "kernel-envelope--contract"
+      ],
+      "acceptance": "Oluşturma tekrarında ikinci kiracı açılmaz; çıkıştan önce veri teslimi ve saklama kararı kaydedilir; yetkisiz geçiş isteği reddedilir ve kaydın durumu değişmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/installer.py",
+          "line": 66,
+          "quote": "if not force and os.path.exists(site):"
+        },
+        {
+          "path": "frappe/frappe/app.py",
+          "line": 207,
+          "quote": "raise frappe.SessionStopped(\"Session Stopped\")"
+        },
+        {
+          "path": "frappe/frappe/commands/scheduler.py",
+          "line": 124,
+          "quote": "update_site_config(\"maintenance_mode\", 1 if (state == \"on\") else 0)"
+        },
+        {
+          "path": "frappe/frappe/commands/site.py",
+          "line": 1170,
+          "quote": "odb = scheduled_backup(ignore_files=False, ignore_conf=True, force=True, verbose=True)"
+        },
+        {
+          "path": "frappe/frappe/commands/site.py",
+          "line": 1191,
+          "quote": "drop_user_and_database(frappe.conf.db_name, frappe.conf.db_user)"
+        }
+      ]
+    },
+    {
+      "requirementId": "tenant-5",
+      "sourceStage": "poc",
+      "existing": "Native site_cache dekoratörü, enqueue ve site başına veritabanı ile dosya alanı var. Suite, framework File iznini Drive mantığına devreder (ignore_file_permissions = True); yerel arama için tantivy, S3 için boto3 bağımlılığı vardır.",
+      "gap": "Dosya izolasyonunun Drive mantığına bağlı olduğu belgelenmedi; tantivy indeks yolu ile S3 bucket/prefix ayrımı tanımsız; site dışı collab/sfu servislerinde kiracı doğrulaması yok; global cache anahtarı ve job site bağlamı kontrol listesi yok; 1 test dosyası / 3 senaryo bütçesinde seçilecek çapraz erişimler belirsiz.",
+      "completionSteps": [
+        "İzolasyon envanteri tablosu yaz: DB, Drive File, S3 prefix, tantivy indeks, Redis anahtarı, RQ job ve harici servis; her satırda kaynak noktası, site bağlamının kaynağı ve beklenen ret davranışı.",
+        "Drive izin mantığını File erişiminde tek otorite olarak not et; ek izin katmanı tasarlama.",
+        "Ortak bütçe içindeki 3 çapraz erişim senaryosunu bu envanterden seç; bu turda test yazma.",
+        "S3 bucket/prefix ve harici servis doğrulamasını veri yerleşimi kararına bağlı tut."
+      ],
+      "dependencies": [
+        "tenant-registry--contract",
+        "tenant-registry--schema",
+        "kernel-envelope--contract"
+      ],
+      "acceptance": "İki kiracı için kayıt, özel dosya, cache anahtarı, arama sonucu ve job bağlamı çapraz erişimi reddedilir.",
+      "evidence": [
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 117,
+          "quote": "ignore_file_permissions = True"
+        },
+        {
+          "path": "suite/pyproject.toml",
+          "line": 27,
+          "quote": "\"tantivy~=0.26.0\","
+        },
+        {
+          "path": "suite/pyproject.toml",
+          "line": 15,
+          "quote": "\"boto3~=1.43.29\","
+        },
+        {
+          "path": "frappe/frappe/website/website_components/metatags.py",
+          "line": 73,
+          "quote": "@site_cache(ttl=10 * 60, maxsize=16)"
+        },
+        {
+          "path": "frappe/frappe/website/website_generator.py",
+          "line": 135,
+          "quote": "frappe.enqueue("
+        }
+      ]
+    },
+    {
+      "requirementId": "tenant-6",
+      "sourceStage": "scale",
+      "existing": "Kaynak değerlendirmesine göre bench backup veritabanını, site_config'i ve public/private dosya arşivlerini alır; restore SQL ve dosya arşivlerini geri yükler. Suite arama indeksi private/files/search-index altında olduğundan yedeğe dolaylı girer; blob-store site dizininde yeniden çekilebilir önbellek olarak tutulur. migrate-to yalnız Frappe Cloud uzak betiğidir. hooks.py izinli yollarında create-site-migration geçer, ancak bunu karşılayan uygulama bulunamadı.",
+      "gap": "Paylaşımlı ve ayrılmış kurulum arasında taşıma orkestrasyonu, topoloji alanı, taşıma durum makinesi ve deneme taşıması doğrulaması yok; geri dönüş tetik ölçütü ve RPO/RTO tanımsız; yedek S3 nesnelerini ve blob-store'u kapsamaz; site dışı servislerin taşıma sırası, hedefte kimlik eşlemesi ve tantivy tutarlılık kontrolü yok; DNS ve host değişikliği rol ayrımı kaynakta yok.",
+      "completionSteps": [
+        "Taşıma bileşen envanterini yaz: DB, site_config, public/private files (search-index ve data-store dahil), S3 öneki, blob-store, harici servisler ve kimlik eşlemesi.",
+        "bench backup --with-files ve bench restore --with-public-files --with-private-files komutlarını yeniden kullanan salt okunur taşıma öncesi/sonrası doğrulama fonksiyonu tasarla: kayıt sayıları, File kayıtlarına karşı S3 anahtar örneklemesi, tantivy belge sayısı ve kullanıcı-kimlik eşlemesi karşılaştırılır.",
+        "Geri dönüş tetik ölçütünü doğrulama çıktısına bağla; RPO/RTO değerleri karar listesindedir.",
+        "migrate-to ve create-site-migration yolunu kullanma; yeni altyapı önerme.",
+        "DNS değişikliğini kod dışı devir notu olarak tut: Hüseyin Cengiz kayıt gereksinimini hazırlar, Asistan Hüseyin GoDaddy'de uygular, Hüseyin Cengiz servis sonucunu doğrular."
+      ],
+      "dependencies": [
+        "tenant-registry--contract",
+        "tenant-registry--schema",
+        "tenant-registry--implementation",
+        "kernel-envelope--contract"
+      ],
+      "acceptance": "Deneme taşımasında dosya, kimlik eşlemesi ve indeks tutarlı kalır; geri dönüş denenir; doğrulama fonksiyonu kaynak siteyi değiştirmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/commands/site.py",
+          "line": 223,
+          "quote": "\"Restore site database from an sql file\""
+        },
+        {
+          "path": "frappe/frappe/utils/backups.py",
+          "line": 380,
+          "quote": "for folder in (\"public\", \"private\"):"
+        },
+        {
+          "path": "frappe/frappe/integrations/frappe_providers/frappecloud.py",
+          "line": 10,
+          "quote": "request_url = f\"https://{remote_site}/api/method/press.api.script\""
+        },
+        {
+          "path": "suite/suite/store/__init__.py",
+          "line": 29,
+          "quote": "return os.path.join(get_bench_path(), \"sites\", frappe.local.site, \"blob-store\")"
+        },
+        {
+          "path": "suite/suite/store/__init__.py",
+          "line": 38,
+          "quote": "return os.path.join(get_bench_path(), \"sites\", frappe.local.site, \"private\", \"files\", \"search-index\")"
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 408,
+          "quote": "\"/api/method/create-site-migration\","
+        }
+      ]
+    },
+    {
+      "requirementId": "tenant-7",
+      "sourceStage": "post_mvp",
+      "existing": "Native yalnız belge düzeyinde copy_doc var; api/v2 kopyayı alan düzeyi okuma izinleri uygulandıktan sonra no_private_properties ile döndürür. Site veya kiracı klonlama yok.",
+      "gap": "Klonlanacak yapılandırma/şablon DocType allowlist'i, gizli değer ve kişisel veri ayıklama listesi, tenant-3 oluşturma akışıyla ilişki ve kaynak/hedef yetki modeli tanımsız.",
+      "completionSteps": [
+        "Klonu tenant-3 oluşturma akışı ile allowlist'teki şablon DocType'larının native izinlerle kopyalanması olarak tanımla.",
+        "Varsayılan reddedilen listeyi kabul metnine ekle: site_config değerleri, OAuth/API kayıtları, User, DocShare, oturumlar ve canlı entegrasyon ayarları.",
+        "Yetkiyi kaynakta read, hedefte create olarak explicitPermissionFlags kaynağına bağla; ignore_permissions kullanılmaz.",
+        "Kaynak kiracıya yazma yolu açma; kopyalama yalnız okuma ile yapılır."
+      ],
+      "dependencies": [
+        "tenant-registry--contract",
+        "tenant-registry--schema",
+        "tenant-registry--implementation",
+        "kernel-envelope--contract"
+      ],
+      "acceptance": "Yetkili klonlama yeni kiracı kimliğiyle tamamlanır; kişisel veri, oturum, API anahtarı ve canlı entegrasyonlar varsayılan olarak aktarılmaz; yetkisiz klon isteği reddedilir ve kaynak kiracı değişmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 218,
+          "quote": "copy = frappe.copy_doc(doc, ignore_no_copy=ignore_no_copy)"
+        },
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 220,
+          "quote": "return copy.as_dict(no_private_properties=True, no_nulls=True)"
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "tenant-1: Varsayılan ve karma kiracılık modeli kararı yok. site=kiracı yalnız yerel kanıt varsayımıdır. Keycloak realm/organization eşlemesi bekleyen karar olduğu için kapsam dışıdır.",
-    "tenant-1/tenant-5: Site dışında çalışan sfu, recorder ve collab servisleri için kiracı doğrulaması yok.",
-    "tenant-3 (tenant-registry--implementation-mvp): Durum makinesi, aktivasyon adımı, kiracıya özel askıya alma, oturum ve API token iptali, _new_site sarmalama, veri teslim formatı, saklama kararı kaydı ve silme kanıtı yok. maintenance_mode Administrator dahil tüm istekleri durdurur; drop-site arşivi süresiz kalır. Saklama süresi bu sözleşmede seçilmez.",
-    "tenant-5: İzolasyon envanteri yok: Drive dosya izni (ignore_file_permissions), tantivy indeks yolu, S3 prefix, global Redis anahtarı, RQ job site bağlamı. Çapraz erişim reddi ayrı bir tek davranış olarak seçilmeli.",
-    "Frappe 17.0.0-dev sürüm eşlemesi, bench sarmalayıcısı, uzak ürün baseline'ı ve Suite HEAD unknown.",
-    "Control-plane sitesinin ileride kurulması ve deploy edilmesi: teknik sahip Huseyin Cengiz, DNS sahibi Asistan Huseyin. Bu sözleşme bunlar için yetki vermez."
+    "Uygulama durumu: uygulanmadı; hiçbir madde için ürün kodu, test veya runtime kabulü yok.",
+    "tenant-1: Varsayılan ve karma kiracılık modeli seçilmedi; site dışı sfu, recorder ve collab servisleri modele dahil değil.",
+    "tenant-3: Durum makinesi, aktivasyon, kiracıya özel askı, oturum ve token iptali, _new_site sarmalama, veri teslimi, saklama kararı ve silme kanıtı yok.",
+    "tenant-5: İzolasyon envanteri ve seçilmiş 3 çapraz erişim senaryosu yok.",
+    "tenant-6: Taşıma orkestrasyonu, doğrulama fonksiyonu, geri dönüş ölçütü ve S3/blob-store kapsamı yok.",
+    "tenant-7: Klon allowlist'i, reddedilen liste ve yetki modeli yok.",
+    "ui-family-04--implementation: Bu sözleşmede UI davranışı tanımlanmadı; ui-family-04--contract onayı bekleniyor.",
+    "Hedef Frappe sürüm eşlemesi, bench sarmalayıcısı ve test sitesi unknown. Control-plane kurulumu ve deploy teknik sahibi Hüseyin Cengiz, DNS uygulama sahibi Asistan Hüseyin; bu sözleşme bunlar için yetki vermez."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Kiracılık topolojisi: varsayılan site=kiracı mı, site içinde satır kiracılığı mı; karma modelde control-plane konumu ve eşleme.",
+      "requirementIds": ["tenant-1", "tenant-6"],
+      "blocks": "tenant-1 karar kaydının onayı ve tenant-6 topoloji alanı ile taşıma durum makinesi.",
+      "allowedUntilDecision": "Seçenekleri ve eşleme tablosu sütunlarını değer atamadan belgele."
+    },
+    {
+      "decision": "Hedef Frappe sürümü.",
+      "requirementIds": [
+        "tenant-1",
+        "tenant-3",
+        "tenant-5",
+        "tenant-6",
+        "tenant-7"
+      ],
+      "blocks": "Kaynak alıntılarının sürüme eşlenmesi, native API doğrulaması ve test komutunun doğrulanması.",
+      "allowedUntilDecision": "Sürümsüz kaynakları unknown olarak işaretle; alıntıları yalnız kaynak değerlendirmesi say."
+    },
+    {
+      "decision": "Keycloak realm/organization ile site eşlemesi.",
+      "requirementIds": ["tenant-1", "tenant-6"],
+      "blocks": "Karma model kimlik eşlemesi ve taşıma sonrası kimlik tutarlılık kontrolü.",
+      "allowedUntilDecision": "Native Frappe oturumuyla sınırlı sözleşmeyi koru; eşleme alanlarını boş bırak."
+    },
+    {
+      "decision": "Saklama süresi ve arşiv silme politikası.",
+      "requirementIds": ["tenant-3"],
+      "blocks": "closing'den closed'a geçiş ve arşiv silme adımı.",
+      "allowedUntilDecision": "Teslim kaydı ve saklama kararı alanlarını süre değeri seçmeden belgele."
+    },
+    {
+      "decision": "Müşteri çıkışında veri teslim formatı.",
+      "requirementIds": ["tenant-3"],
+      "blocks": "Teslim kabulü kaydı ve export adımı.",
+      "allowedUntilDecision": "Mevcut yedek çıktısını teslim kaydına bağlayan adımı belgele."
+    },
+    {
+      "decision": "Veri yerleşimi, S3 sağlayıcısı ve bucket/prefix stratejisi.",
+      "requirementIds": ["tenant-5", "tenant-6"],
+      "blocks": "S3 izolasyon doğrulaması ve taşıma sırasında nesne kopyalama veya yeniden bağlama.",
+      "allowedUntilDecision": "İzolasyon ve taşıma envanterinde S3 satırını beklenen ret davranışıyla tanımla."
+    },
+    {
+      "decision": "RPO/RTO değerleri ve kesinti penceresi.",
+      "requirementIds": ["tenant-6"],
+      "blocks": "Geri dönüş tetik ölçütü ve taşıma kabulü.",
+      "allowedUntilDecision": "Doğrulama fonksiyonunun karşılaştırma çıktısını değer atamadan belgele."
+    },
+    {
+      "decision": "Askıya almada mevcut oturum ve API token iptali politikası.",
+      "requirementIds": ["tenant-3"],
+      "blocks": "Kiracıya özel before_request askı kontrolünün kabulü.",
+      "allowedUntilDecision": "Askı durum geçişini ve ret mesajı gereksinimini belgele."
+    },
+    {
+      "decision": "Klonlanacak şablon DocType allowlist içeriği.",
+      "requirementIds": ["tenant-7"],
+      "blocks": "Klon kopyalama adımı.",
+      "allowedUntilDecision": "Varsayılan reddedilen listeyi ve yetki modelini belgele."
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "tenant-1": "poc",
-    "tenant-3": "mvp",
-    "tenant-5": "poc"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,
     "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
-    "permissionPolicyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/explicitPermissionFlags",
     "specificPrerequisitesRef": "#/development/admission"
   }
 }

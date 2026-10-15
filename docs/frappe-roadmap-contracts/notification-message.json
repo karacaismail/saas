@@ -1,0 +1,372 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "notification-message",
+  "canonicalTaskIds": [
+    "notification-delivery--implementation",
+    "notification-message--implementation",
+    "ui-family-26--implementation"
+  ],
+  "requirementIds": ["notifications-1", "notifications-7", "notifications-8"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "notifications-1": "post_mvp",
+    "notifications-7": "post_mvp",
+    "notifications-8": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Alıcıya bağlı uygulama içi bildirim mesajı: tekil oluşturma, okundu ve teslim edildi ayrımı, tek alternatif kanal geçişi. Uygulama durumu: uygulanmadı.",
+    "trigger": "outbox--contract üzerinden tüketilen bir iş olayı bir alıcı için bildirim gerektirdiğinde veya oturumdaki kullanıcı bildirim merkezinden liste, okunmamış sayısı ya da okundu işaretleme isteği gönderdiğinde.",
+    "expected": "Aynı olay anahtarı ve alıcı için tek NotificationMessage kaydı oluşur. Mesaj sınıfı (transactional veya marketing) kayıtta tutulur; pazarlama izni yalnız marketing sınıfına uygulanır. Kullanıcı yalnız kendi mesajlarını görür; okundu işareti kalıcıdır ve yenilemeden sonra korunur. Okundu ile teslim edildi ayrı durumlardır. İlk kanal başarısız olursa alternatif kanala mesaj kimliği başına en fazla bir geçiş yapılır ve her deneme teslimat geçmişine yazılır.",
+    "denied": "Başka kullanıcının mesajını listeleme, okuma veya okundu işaretleme girişimi sunucu tarafında reddedilir; hedef kayıt değişmez. Pazarlama izni olmayan alıcıya marketing sınıfı mesaj gönderilmez; transactional mesaj unsubscribe nedeniyle kesilmez. ignore_permissions, ham SQL ile yetki atlatma veya istemciden gelen alıcı parametresine güven kullanılmaz."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Yalnız kaynak değerlendirmesi. Suite Drive bildirim akışı oturum kullanıcısına göre filtrelenen liste, alıcıyla sınırlanmış okundu işareti ve Drive Notification için permission_query_conditions kancası örüntüsünü gösterir. Calendar Event Notification sanal bir DocType'tır ve draft alanı teslim edilmemiş durumu açıklar. Suite hooks Frappe unsubscribe uç noktasını açar. Meet istemcisinde türe göre istemci tarafı aralık sınırı vardır. Bu parçalar Drive, Calendar ve Meet'e özgüdür ve Vue/Frappe UI kaynağıdır; birleşik bildirim merkezi, kanallar arası teslimat geçmişi, ortak tekilleştirme veya React/Ant Design uygulaması bulunduğunu kanıtlamaz. Çekirdek Notification Log ve Email Queue hedef sürüm kaynağında henüz doğrulanmadı.",
+    "evidence": [
+      {
+        "path": "suite/suite/drive/api/notifications.py",
+        "line": 41,
+        "quote": "query = query.where(Notification.to_user == frappe.session.user)"
+      },
+      {
+        "path": "suite/suite/drive/api/notifications.py",
+        "line": 63,
+        "quote": "frappe.db.set_value(\"Drive Notification\", {\"name\": name, \"to_user\": frappe.session.user}, \"read\", True)"
+      },
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 131,
+        "quote": "\"Drive Notification\": \"suite.drive.utils.overrides.filter_drive_notif\","
+      },
+      {
+        "path": "suite/suite/calendar/doctype/event_notification/event_notification.json",
+        "line": 187,
+        "quote": "\"is_virtual\": 1,"
+      },
+      {
+        "path": "suite/e2e/drive-backed-apps/specs/drive/notifications.spec.ts",
+        "line": 12,
+        "quote": "test(\"sharing a document notifies the recipient\", async ({"
+      },
+      {
+        "path": "suite/suite/drive/api/notifications.py",
+        "line": 159,
+        "quote": "except Exception:"
+      },
+      {
+        "path": "suite/suite/calendar/doctype/event_notification/event_notification.json",
+        "line": 155,
+        "quote": "Notification is not yet finalized or delivered to the user."
+      },
+      {
+        "path": "suite/pyproject.toml",
+        "line": 45,
+        "quote": "frappe = \">=16.0.0,<18.0.0\""
+      },
+      {
+        "path": "suite/suite/drive/api/notifications.py",
+        "line": 124,
+        "quote": "notif = frappe.db.exists(\"Drive Notification\", details)"
+      },
+      {
+        "path": "suite/frontend/src/apps/meet/utils/notificationContext.ts",
+        "line": 25,
+        "quote": "MIN_NOTIFICATION_INTERVAL = 5000"
+      },
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 425,
+        "quote": "/api/method/frappe.email.queue.unsubscribe"
+      }
+    ],
+    "searchedPaths": [
+      "suite/e2e/drive-backed-apps/specs/drive/notifications.spec.ts",
+      "suite/frontend/src/apps/meet/utils/notificationContext.ts",
+      "suite/pyproject.toml",
+      "suite/suite/calendar/doctype/event_notification/event_notification.json",
+      "suite/suite/drive/api/notifications.py",
+      "suite/suite/hooks.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/notification-message.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/notifications/doctype/notification_delivery/notification_delivery.py",
+      "backend/saas_platform/saas_platform/notifications/doctype/notification_message/notification_message.py",
+      "frontend/packages/ui/src/components/ui-family-26/index.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": {
+      "eventConsumption": "outbox--contract üzerinden gelen kernel-envelope--contract zarfı: olay türü, kaynak DocType ve belge adı, kaynak olay kimliği veya sürümü, alıcı kullanıcı, mesaj sınıfı ve email-template--contract şablon referansı. Olay anahtarı bu alanlardan türetilir; kesin formül notification-message--schema görevinde sabitlenir.",
+      "list": "Oturum kullanıcısı için sayfalı liste: sayfa imleci ve boyutu, isteğe bağlı yalnız okunmamış filtresi. İstemci alıcı parametresi göndermez; alıcı her zaman oturumdan alınır.",
+      "unreadCount": "Parametresiz; oturum kullanıcısına göre hesaplanır.",
+      "markRead": "Mesaj kimliği veya kimlik listesi; alıcı filtresi sunucuda oturum kullanıcısıyla birleştirilir.",
+      "deliveryOutcome": "Kanal bağdaştırıcısının sonucu: mesaj kimliği, kanal, deneme sırası, sonuç (teslim edildi, başarısız, bekliyor) ve hata sınıfı."
+    },
+    "output": {
+      "list": "JSON model: mesaj kimliği, başlık, kısa metin, kaynak bağlantısı (DocType ve ad), mesaj sınıfı, oluşturma zamanı, okundu ve teslim durumu, sonraki sayfa imleci. ReactNode, callback veya render talimatı JSON modeline girmez; bunlar ui-family-26 bileşeninde yerel kalır.",
+      "unreadCount": "Tamsayı.",
+      "markRead": "Güncellenen kayıt sayısı; başka kullanıcıya ait kimlik için yetki hatası ve sıfır güncelleme.",
+      "realtime": "Okunmamış sayısı değiştiğinde yalnız alıcıya gönderilen olay; istemci liste ve okunmamış sayısı TanStack Query anahtarlarını geçersiz kılar. Olay adı ve Frappe realtime API'sinin hedef sürüm karşılığı kaynakta doğrulanmadan sabitlenmez."
+    },
+    "authorization": "Native Frappe izin modeli: DocType izinleri, alıcıya bağlı permission_query_conditions kancası (Suite hooks içindeki Drive Notification örüntüsüne benzer) ve native-user-policy--contract. Rol ve izin tanımları explicitPermissionFlags ortak kaynağına bağlanır; bu rehber yeni rol veya bayrak üretmez. Okundu işaretleme filtresi hem mesaj kimliğini hem oturum kullanıcısını içerir. ignore_permissions, SQL ile yetki atlatma ve istemci kaynaklı alıcı parametresi yasaktır. Kiracı ve kapsam görünürlüğü tenant topolojisi kararına bağlıdır.",
+    "persistence": "Önerilen kanonik kayıt NotificationMessage DocType'ıdır (canonicalArtifact: proposed, custom_proposed); teslimat denemeleri notification-delivery görevinin kaydında tutulur. Yazımlar native insert/save ve Frappe transaction sınırında yapılır. Olay anahtarı ve alıcı birlikte benzersiz kısıtla korunur; exists-sonra-insert tek başına yeterli sayılmaz. Çekirdek Notification Log, Email Queue, Drive Notification ve Event Notification ile ilişki kanonik depo kararına bağlıdır. Bu sözleşme şema, veri, servis veya production değiştirme yetkisi vermez.",
+    "failure": "Benzersiz kısıt ihlali yinelenen olay sayılır; ikinci kayıt oluşmaz ve kullanıcıya hata yansımaz. Kanal hatası yutulmaz: deneme başarısız olarak teslimat geçmişine yazılır; alternatif kanal koşulu sağlanıyorsa mesaj kimliği başına tek geçiş yapılır, ikinci başarısızlık son durum olarak kaydedilir. Yetkisiz okundu işaretleme yetki hatası döner ve kayıt değişmez. Realtime yayını başarısız olursa kalıcı durum etkilenmez; istemci sonraki sorguda doğru durumu alır."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "capability-definition--contract",
+      "client-channel-continuity--contract",
+      "client-rule-parity--contract",
+      "email-template--contract",
+      "kernel-envelope--contract",
+      "native-user-policy--contract",
+      "notification-delivery--contract",
+      "notification-delivery--schema",
+      "notification-message--contract",
+      "notification-message--schema",
+      "notification-preference--contract",
+      "outbox--contract",
+      "ui-family-26--contract"
+    ],
+    "admission": {
+      "status": "NOT_ADMITTED",
+      "prerequisites": [
+        "T-00 hedef baz çizgisi; hedef Frappe sürümü kararı dahil.",
+        "R-00 yeniden kullanım eşlemesi: hedef sürümde Notification Log, Email Queue ve unsubscribe mekanizmasının alan, durum ve izin modeli kaynaktan doğrulanmış olmalı.",
+        "R-01: izinli veri tüketicileri için ortak izin kuralları.",
+        "notification-message--schema, notification-delivery--schema, native-user-policy--contract ve outbox--contract sözleşmelerinin kabul edilmiş olması.",
+        "decisionsPending içindeki hedef sürüm ve kanonik depo kararları."
+      ],
+      "rule": "Tek dar davranış, gerçek RED/GREEN kanıtıyla uygulanır. Teknik CI, deploy ve rollback sahibi Hüseyin Cengiz'dir."
+    },
+    "steps": [
+      "Hedef sürüm kaynağında Notification Log, Email Queue ve unsubscribe mekanizmasının alan, durum ve izin modelini okuyup R-00 eşleme tablosuna yaz; version-15 kaynak bağlantılarını yalnız tarihsel referans olarak işaretle.",
+      "Kanonik depo kararını kaydet; Drive Notification ve sanal Event Notification'ın ona kopyalanarak değil, kaynak bağlantısıyla nasıl eşleneceğini yaz.",
+      "notification-message--schema: alıcı, olay anahtarı, mesaj sınıfı, okundu durumu, teslim durumu ve kaynak bağlantısı alanları; olay anahtarı ve alıcı için benzersiz kısıt.",
+      "İzin: DocType izinleri ve alıcı tabanlı permission_query_conditions; rol ve bayraklar explicitPermissionFlags ortak kaynağından.",
+      "Headless API: liste, okunmamış sayısı ve okundu işaretleme; api-middleware--contract zarfı ve sayfalama.",
+      "notification-delivery: kanal başına okundu, teslim ve başarısız eşleme tablosu; deneme kaydı; mesaj kimliğine bağlı tek geçişli fallback.",
+      "notifications-8 politikası: mesaj sınıfı ve notification-preference--contract tercih kontrolü; sıklık sınırı politika kararından sonra.",
+      "ui-family-26: Ant Design/Pro ve Ant Design X ile bildirim merkezi bileşeni; TanStack Query anahtarları; kayıt yalnız UI kaynak registry'sine yapılır, GenUI capability registry ayrı kalır. Outfit, 14 CSS px minimum, çevrelemeyen odak göstergesi ve merkezi motion tokenları uygulanır.",
+      "client-channel-continuity ve client-rule-parity: web (Vite/PWA), Tauri2 ve WXT/MV3 istemcileri aynı API'yi ve aynı sunucu kurallarını kullanır; istemci tarafı aralık sınırı sunucu kuralının yerine geçmez."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Kullanıcı B, kullanıcı A'ya ait bir NotificationMessage kaydını okundu işaretlemeye çalışır; istek reddedilir ve A'nın kaydı okunmamış kalır.",
+      "red": "Okundu işaretleme yalnız mesaj kimliğiyle filtrelendiğinde B'nin çağrısı A'nın okundu alanını değiştirir ve test 'A'nın kaydı okunmamış kalmalı' iddiasında başarısız olur. RED import veya altyapı hatasıyla ya da native davranış bozularak üretilmez.",
+      "green": "Filtre oturum kullanıcısını da içerir ve izin kontrolü native yoldan yapılır; B'nin çağrısı yetki hatası ile sıfır güncelleme döner ve A'nın kaydı yeniden okumada okunmamış kalır."
+    },
+    "rollback": "Bu tur yalnız belgedir: entegrasyon sahibi bu dosyayı önceki durumuna (before=null, dosya yok) döndürebilir; servis, şema veya veri değişmediği için çalışma zamanı geri alması yoktur. Gelecekteki uygulamanın geri alma planını (capability kapatma, migration geri alma, deploy rollback) Hüseyin Cengiz teknik olarak tanımlar ve doğrular; GoDaddy veya DNS değişikliği gerekmez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "notifications-1",
+      "sourceStage": "post_mvp",
+      "existing": "Kaynak gözlemi: Drive bildirim listesi oturum kullanıcısına göre filtrelenir, okundu işareti alıcıyla sınırlanır, Suite hooks Drive Notification için izin sorgusu kancası tanımlar; Calendar Event Notification sanal DocType'tır. Drive paylaşım bildirimi için bir E2E spesifikasyon dosyası vardır; dosyanın varlığı işlevin veya kabulün kanıtı değildir. Çekirdek Notification Log hedef sürüm kaynağında doğrulanmadı.",
+      "gap": "Kanonik depo, hedef sürüm API eşlemesi, headless liste/okunmamış/okundu/sayfalama sözleşmesi, realtime olayı ve TanStack Query geçersiz kılma, kiracı/kapsam/rol görünürlüğü tanımsız; kabul not_run.",
+      "completionSteps": [
+        "Hedef sürümde Notification Log alanlarını ve izinlerini kaynaktan çıkarıp R-00 tablosuna yaz.",
+        "Kanonik depo kararını ve Drive/Event bildirimlerinin eşleme kuralını notification-message--implementation görevine işle.",
+        "Liste, okunmamış sayısı ve okundu işaretleme uçlarını alıcı oturumdan alınacak biçimde tanımla; istemci alıcı parametresini reddet.",
+        "Alıcı tabanlı permission_query_conditions ve DocType izinlerini explicitPermissionFlags kaynağına bağla.",
+        "Realtime olayında yalnız alıcıya yayın ve istemcide liste ile okunmamış sayısı sorgu anahtarlarının geçersiz kılınmasını tanımla.",
+        "ui-family-26 bildirim merkezini Ant Design bileşenleriyle, 320 CSS px'ten başlayarak tasarla."
+      ],
+      "dependencies": [
+        "notification-message--contract",
+        "notification-message--schema",
+        "native-user-policy--contract",
+        "api-middleware--contract",
+        "kernel-envelope--contract",
+        "ui-family-26--contract",
+        "client-channel-continuity--contract"
+      ],
+      "acceptance": "İki kullanıcının bildirimleri ayrışır; okundu durumu yenilemeden sonra korunur; başka kullanıcının bildirimini okundu işaretleme reddedilir ve kayıt değişmez.",
+      "evidence": [
+        {
+          "path": "suite/suite/drive/api/notifications.py",
+          "line": 41,
+          "quote": "query = query.where(Notification.to_user == frappe.session.user)"
+        },
+        {
+          "path": "suite/suite/drive/api/notifications.py",
+          "line": 63,
+          "quote": "frappe.db.set_value(\"Drive Notification\", {\"name\": name, \"to_user\": frappe.session.user}, \"read\", True)"
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 131,
+          "quote": "\"Drive Notification\": \"suite.drive.utils.overrides.filter_drive_notif\","
+        },
+        {
+          "path": "suite/suite/calendar/doctype/event_notification/event_notification.json",
+          "line": 187,
+          "quote": "\"is_virtual\": 1,"
+        },
+        {
+          "path": "suite/e2e/drive-backed-apps/specs/drive/notifications.spec.ts",
+          "line": 12,
+          "quote": "test(\"sharing a document notifies the recipient\", async ({"
+        }
+      ]
+    },
+    {
+      "requirementId": "notifications-7",
+      "sourceStage": "post_mvp",
+      "existing": "Kaynak gözlemi: Drive okundu bayrağı alıcıyla sınırlıdır; Event Notification draft alanı teslim edilmemiş durumu açıklar; Drive paylaşım e-postası gönderiminde genel istisna yakalanıp yutulur. Suite Frappe bağımlılığı 16 ile 18 arasındadır. Gerekçede anılan Mail seen durumu için bu girdide doğrulanmış kanıt yoktur.",
+      "gap": "Kanal başına teslim edildi tanımı, kanallar arası teslimat geçmişi, fallback tetikleyicisi ve tek geçişi garanti eden anahtar yok; yutulan e-posta hatası geçmiş üretmez; birleşik kaydın yeni DocType mı görünüm mü olacağı kararlaştırılmadı.",
+      "completionSteps": [
+        "Hedef sürümde Notification Log ve Email Queue durum alanlarını kaynaktan çıkar; kanal başına okundu, teslim edildi ve başarısız eşleme tablosu yaz.",
+        "Teslimat denemesi kaydını mesaj kimliği, kanal ve deneme sırası ile tanımla; mesaj kimliği ve alternatif kanal için benzersiz kısıtla tek geçişi garanti et.",
+        "Fallback tetikleyicisini hata sınıfı ve zaman aşımı olarak tanımla; değerleri kanal kararına bırak.",
+        "Platform kanal bağdaştırıcılarında istisnanın yutulmamasını, başarısız deneme olarak kaydedilmesini zorunlu kıl; Suite kaynağı değiştirilmez, yalnız gözlem olarak kalır.",
+        "Okundu durumunu teslim durumundan ayrı alanda tut ve API çıktısında ayrı göster."
+      ],
+      "dependencies": [
+        "notification-delivery--contract",
+        "notification-delivery--schema",
+        "notification-message--schema",
+        "outbox--contract",
+        "email-template--contract",
+        "client-channel-continuity--contract"
+      ],
+      "acceptance": "Başarısız ilk kanaldan alternatif kanala tek geçiş olur ve iki deneme de geçmişte görünür; okundu ve teslim edildi ayrışır.",
+      "evidence": [
+        {
+          "path": "suite/suite/drive/api/notifications.py",
+          "line": 63,
+          "quote": "frappe.db.set_value(\"Drive Notification\", {\"name\": name, \"to_user\": frappe.session.user}, \"read\", True)"
+        },
+        {
+          "path": "suite/suite/drive/api/notifications.py",
+          "line": 159,
+          "quote": "except Exception:"
+        },
+        {
+          "path": "suite/suite/calendar/doctype/event_notification/event_notification.json",
+          "line": 155,
+          "quote": "Notification is not yet finalized or delivered to the user."
+        },
+        {
+          "path": "suite/pyproject.toml",
+          "line": 45,
+          "quote": "frappe = \">=16.0.0,<18.0.0\""
+        }
+      ]
+    },
+    {
+      "requirementId": "notifications-8",
+      "sourceStage": "post_mvp",
+      "existing": "Kaynak gözlemi: Drive aynı içerikli kaydı exists kontrolüyle atlar, ancak bu atomik değildir ve olay anahtarına dayanmaz; Meet istemcisinde aynı tür için 5 saniyelik istemci tarafı aralık vardır; Suite hooks Frappe e-posta unsubscribe uç noktasını açar.",
+      "gap": "Olay anahtarı ve saklama süresi, eşzamanlılığa dayanıklı benzersiz kısıt, sıklık sınırı ekseni ve aşım davranışı, mesaj sınıfı alanı ve unsubscribe'ın transactional mesajı kesmemesi kuralı yok. Talimattaki Google Consent Mode kaynağı mesajlaşma izni için uygun değildir.",
+      "completionSteps": [
+        "Olay anahtarını kaynak DocType, belge adı, olay türü ve kaynak olay kimliği veya sürümünden türet; alıcı ile benzersiz kısıt tanımla; kısıt ihlalini yinelenen olay olarak ele al.",
+        "Mesaj sınıfı alanını (transactional, marketing) şemaya ekle; marketing gönderiminden önce notification-preference--contract ve unsubscribe durumunu kontrol et.",
+        "Unsubscribe'ın yalnız marketing sınıfını kestiğini, transactional mesajı etkilemediğini kural olarak yaz.",
+        "Sıklık sınırını sunucu tarafında tanımla; eksen, eşik ve aşım davranışını politika kararı gelince doldur.",
+        "Consent Mode referansının mesajlaşma izni kaynağıyla değiştirilmesini entegrasyon sahibine öneri olarak ilet."
+      ],
+      "dependencies": [
+        "notification-message--schema",
+        "notification-preference--contract",
+        "outbox--contract",
+        "email-template--contract",
+        "kernel-envelope--contract",
+        "client-rule-parity--contract"
+      ],
+      "acceptance": "Aynı olay iki kez, eşzamanlı dahil, tüketilince tek bildirim oluşur; pazarlama izni işlemsel bildirimden ayrı uygulanır.",
+      "evidence": [
+        {
+          "path": "suite/suite/drive/api/notifications.py",
+          "line": 124,
+          "quote": "notif = frappe.db.exists(\"Drive Notification\", details)"
+        },
+        {
+          "path": "suite/frontend/src/apps/meet/utils/notificationContext.ts",
+          "line": 25,
+          "quote": "MIN_NOTIFICATION_INTERVAL = 5000"
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 425,
+          "quote": "/api/method/frappe.email.queue.unsubscribe"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Notification Log, Email Queue ve unsubscribe mekanizmasının hedef sürüm kaynağında alan ve izin doğrulaması yapılmadı.",
+    "Kanonik depo ve Drive/Event bildirimlerinin eşleme biçimi kararlaştırılmadı.",
+    "Kanal başına teslim edildi tanımı ve fallback tetikleyici değerleri yok.",
+    "Sıklık sınırı politikası ve olay anahtarı saklama süresi yok.",
+    "Kiracı ve kapsam görünürlük modeli tenant topolojisi kararına bağlı.",
+    "Hiçbir kabul senaryosu çalıştırılmadı; runtimeAcceptance not_run."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Hedef Frappe sürümü (gözlenen 17.0.0.dev0, Suite aralığı 16-18, kaynak bağlantıları version-15).",
+      "requirementIds": [
+        "notifications-1",
+        "notifications-7",
+        "notifications-8"
+      ],
+      "blocks": "R-00 alan eşlemesi ve notification-message--schema.",
+      "documentStepUntilDecided": "Sürümden bağımsız eşleme tablosu sütunlarını ve doğrulanacak alan listesini yaz."
+    },
+    {
+      "decision": "Kanonik depo: önerilen NotificationMessage DocType'ı mı, çekirdek Notification Log üzerine uyarlama mı; teslimat kaydı yeni DocType mı, görünüm mü.",
+      "requirementIds": ["notifications-1", "notifications-7"],
+      "blocks": "Şema, izin kancası ve API adımları.",
+      "documentStepUntilDecided": "İzin, sayfalama, okundu kalıcılığı ve eşleme maliyeti karşılaştırma ölçütlerini yaz."
+    },
+    {
+      "decision": "Tenant topolojisi ve kiracı/kapsam görünürlük modeli.",
+      "requirementIds": ["notifications-1"],
+      "blocks": "Kiracı düzeyi izin kuralları.",
+      "documentStepUntilDecided": "Alıcıya bağlı kullanıcı düzeyi kuralı ve iki kullanıcı kabul senaryosunu yaz."
+    },
+    {
+      "decision": "Olay anahtarı ve teslimat geçmişi saklama süresi.",
+      "requirementIds": ["notifications-7", "notifications-8"],
+      "blocks": "Temizlik işi ve anahtar ömrü.",
+      "documentStepUntilDecided": "Saklama süresine bağlı alanları ve temizlik koşulunu değer olmadan tanımla."
+    },
+    {
+      "decision": "Push ve sistem bildirimi kanal satıcıları, e-posta sağlayıcısı, kanal başına teslim edildi tanımı ve fallback tetikleyici değerleri.",
+      "requirementIds": ["notifications-7"],
+      "blocks": "Kanal bağdaştırıcıları ve fallback tetikleyicisi.",
+      "documentStepUntilDecided": "Kanaldan bağımsız durum modelini ve tek geçiş anahtarını yaz."
+    },
+    {
+      "decision": "Sıklık sınırı ekseni, eşikleri, aşım davranışı ve pazarlama izninin hukuki dayanağı ile izin kaynağı.",
+      "requirementIds": ["notifications-8"],
+      "blocks": "Sıklık sınırı uygulaması ve marketing gönderimi.",
+      "documentStepUntilDecided": "Sınıf alanını, transactional muafiyetini ve tercih kontrol noktasını yaz."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

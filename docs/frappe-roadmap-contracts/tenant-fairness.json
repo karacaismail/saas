@@ -1,0 +1,200 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "tenant-fairness",
+  "canonicalTaskIds": ["tenant-fairness--implementation"],
+  "requirementIds": ["performance-6"],
+  "stage": "scale",
+  "sourceStages": {
+    "performance-6": "scale"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Aşırı yükte tenant kaynak adaleti, tanımlı sınır aşım yanıtı ve kontrollü hizmet azaltma (Uygulama durumu: uygulanmadı)",
+    "trigger": "Bir tenant'a ait kimliği doğrulanmış istekler veya arka plan iş talepleri o tenant için yapılandırılmış istek/CPU süresi penceresini ya da kuyruk kotasını aşar; veya sistem genelinde onaylanmış aşırı yük eşiği aşılır.",
+    "expected": "Sınırı aşan tenant'ın sonraki istekleri native 429 yanıtıyla, kuyruk kotasını aşan iş talepleri ayırt edilebilir kuyruk-dolu yanıtıyla reddedilir; diğer tenant'ların istek ve işleri aynı pencerede kabul edilmeye devam eder. Sistem geneli aşırı yükte yalnız onaylanmış ağır/isteğe bağlı özellikler kapatılır; çekirdek okuma/yazma akışları ve native izin denetimi değişmez. Her ret ve hizmet azaltma olayı tenant etiketiyle gözlemlenebilir.",
+    "denied": "Tenant kimliği istemcinin gönderdiği başlık veya parametreden alınmaz. create_rate_limit veya ignore_permissions içeren başka bir yardımcı whitelist/dış API olarak açılmaz. Kota ve hizmet azaltma yolu izin denetimini atlamaz, ham SQL ile kayıt değiştirmez. Bir tenant'ın sayacı diğer tenant'ın kotasını tüketmez."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native Frappe RateLimiter sayacı frappe.cache üzerinde incrby ile süre tabanlı tutar ve ret durumunda 429 'Too Many Requests' döner; rate_limit dekoratörü user_based seçeneği sunar. Suite Rate Limit DocType modülü limit kayıtlarını tutar; oluşturma yardımcısı ignore_permissions=True ile insert eder ve yalnız sunucu içi kalmalıdır. En az bir native akış (desk/query_report.py) işi 'long' kuyruğuna gönderir. Bu parçalar tenant boyutlu sayacın, tenant başına kuyruk kotasının, backpressure'ın veya kontrollü hizmet azaltmanın var olduğunu göstermez; yalnız yeniden kullanılacak yapı taşlarıdır.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/rate_limiter.py",
+        "line": 79,
+        "quote": "frappe.cache.incrby(self.key, self.duration)"
+      },
+      {
+        "path": "frappe/frappe/rate_limiter.py",
+        "line": 101,
+        "quote": "return Response(_(\"Too Many Requests\"), status=429)"
+      },
+      {
+        "path": "frappe/frappe/rate_limiter.py",
+        "line": 111,
+        "quote": "user_based: bool = False,"
+      },
+      {
+        "path": "suite/suite/suite_core/doctype/rate_limit/rate_limit.py",
+        "line": 105,
+        "quote": "doc.insert(ignore_permissions=True)"
+      },
+      {
+        "path": "frappe/frappe/desk/query_report.py",
+        "line": 460,
+        "quote": "queue=\"long\","
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/desk/query_report.py",
+      "frappe/frappe/rate_limiter.py",
+      "suite/suite/suite_core/doctype/rate_limit/rate_limit.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/tenant-fairness.json",
+    "plannedProduction": [
+      "operations/tenant-fairness/tenant_fairness_scale.yml"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Kimliği doğrulanmış istek bağlamı (oturum ve site), çağrılan whitelisted method yolu ve arka plan işi için hedef kuyruk adı. Tenant kimliği yalnız sunucu tarafında, onaylanacak tenant topolojisine göre türetilir. Kota değerleri Suite Rate Limit DocType kayıtlarından ve önerilen operations/tenant-fairness/tenant_fairness_scale.yml yapılandırmasından okunur; değerler karar gelene kadar boş kalır.",
+    "output": "Kabul: native yanıt değişmez. İstek sınırı aşımı: native HTTP 429 'Too Many Requests'; tenant boyutlu reddi ayırt etmek için önerilen makine okunur kod 'tenant_rate_limited' ve pencere bitimine kalan süre (Retry-After) tenant-fairness--contract görevinde sabitlenir. Kuyruk kotası aşımı: iş kuyruğa alınmaz, önerilen kod 'tenant_queue_full' ile tanımlı yanıt döner; HTTP durum kodu ve gövde biçimi aynı sözleşme görevinde tek kez kararlaştırılır. Hizmet azaltma aktifken kapatılmış özellik çağrısı önerilen 'feature_degraded' koduyla döner. React/Ant Design istemcisi TanStack Query üzerinden bu kodlara göre yeniden deneme ve kullanıcı mesajı uygular; Vue/Frappe UI davranışı bu istemcinin kanıtı değildir.",
+    "authorization": "Native izin modeli aynen korunur; limit kontrolü izin kararını değiştirmez ve onu atlatmaz. Kota kayıtlarının düzenlenmesi Suite Rate Limit DocType'ın native rol izinleriyle yapılır. Yeni rol veya izin bayrağı gerekirse explicitPermissionFlags ortak kaynağına bağlanır ve kendi kabulünde yetkisiz kullanıcının kota yazma denemesi reddedilir, kayıt değişmeden kalır. create_rate_limit yalnız sunucu içi kurulum/migrasyon yolunda çağrılır, whitelist edilmez. ignore_permissions veya ham SQL ile yetki bypass'ı yasaktır.",
+    "persistence": "Sayaçlar native biçimde frappe.cache üzerinde süreli anahtarlarla tutulur; tenant boyutu anahtara eklenir, kalıcı tablo eklenmez. Kota yapılandırması mevcut Suite Rate Limit DocType'ın native save/validate/hook akışıyla kaydedilir. Yeni alan, DocType veya şema değişikliği bu sözleşmenin kapsamında değildir; gerekirse ayrı sözleşme açılır. Bu sözleşme hiçbir servis, production ortamı, şema veya veriyi değiştirme yetkisi vermez.",
+    "failure": "Tenant kimliği türetilemezse istek tenant kotasına sayılmaz, native site/IP/kullanıcı limitleri geçerli kalır ve olay loglanır; tenant varsayımı yapılmaz. Kota yapılandırması okunamazsa native limitlere geri düşülür. Sayaç deposuna erişilemediğinde fail-open/fail-closed davranışı karar bekler. Ret ve hizmet azaltma olayları tenant etiketiyle gözlemlenebilir olmalıdır; dışa aktarım altyapısı karar bekler."
+  },
+  "development": {
+    "dependencies": ["tenant-fairness--contract"],
+    "admission": "Uygulama durumu: uygulanmadı. Ön koşullar: T-00 hedef sürüm temel çizgisi ve R-00 yeniden kullanım haritası tamamlanmış olmalı; izinli veri tüketen adımlar R-01'i de kullanır. tenant-fairness--contract kapanmadan ve tenant topolojisi kararı gelmeden üretim kodu yazılmaz. Tek dar davranış gerçek RED/GREEN kanıtıyla uygulanır. Küme sırası sunumdur, yeni seri bağımlılık değildir.",
+    "steps": [
+      "T-00: Hedef Frappe ve Suite sürümünde rate_limiter.py (incrby sayaç, 429 yanıtı, rate_limit imzası ve anahtar parametreleri) ile Suite rate_limit.py yeniden okunur; satır kanıtları güncellenir, imzası doğrulanmayan parametreye dayanılmaz.",
+      "R-00: Native parçalar (RateLimiter, rate_limit dekoratörü, Suite Rate Limit DocType, 'long' kuyruğu) ve eksik parçalar (tenant anahtarı, kuyruk kotası, backpressure, hizmet azaltma) ayrı satırlarda eşlenir.",
+      "Sözleşme: tenant-fairness--contract içinde 429 ve kuyruk-dolu yanıt kodları, Retry-After biçimi ve tenant anahtarı türetme kuralı yazılır.",
+      "Tenant anahtarı: topoloji kararından sonra native rate_limit anahtar mekanizmasına tenant boyutu, user_based davranışını bozmadan eklenir; native kod çatallanmaz, sarmalayıcı saas_platform uygulamasında tutulur ve hooks.py ortak dosyasına yalnız seri birleştirmeyle dokunulur.",
+      "Kuyruk kotası: arka plan işi kuyruğa alınmadan önce tenant başına bekleyen iş sayısı kontrol edilir; sayım mekanizması T-00'da doğrulanan API ile seçilir, aşımda iş kuyruğa alınmaz ve tanımlı yanıt döner.",
+      "Hizmet azaltma: onaylanan özellik listesi tenant_fairness_scale.yml önerisinde yapılandırma olarak tutulur; açma/kapama Hüseyin Cengiz'in işlettiği operasyon yolundan yapılır.",
+      "Gözlemlenebilirlik: 429, kuyruk-dolu ve hizmet azaltma olayları tenant etiketiyle sayılır; dışa aktarım metrik altyapısı kararına bağlıdır.",
+      "İstemci: React/Ant Design uygulamasında TanStack Query yeniden deneme politikası Retry-After'a uyar ve tanımlı mesaj gösterilir; bu adım ayrı UI kabulü gerektirir."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Aynı tenant'ın iki farklı kullanıcısı aynı whitelisted method'a toplamda tenant penceresini aşan istek gönderir; ardından başka bir tenant'ın kullanıcısı aynı pencerede istek gönderir.",
+      "red": "Beklenti: ilk tenant'ın pencereyi aşan isteği 429 alır, ikinci tenant'ın isteği kabul edilir. Mevcut user_based sayaç her kullanıcıyı ayrı saydığı için ilk tenant'ın aşan isteği kabul edilir ve test davranış iddiasında başarısız olur. Import, fixture veya altyapı hatası RED sayılmaz; native kullanıcı bazlı limit bozulmaz.",
+      "green": "Tenant boyutlu anahtar eklendikten sonra ilk tenant 429 alır, ikinci tenant kabul edilir; native user_based ve site limit davranışı değişmez. Bu turda test yazılmaz ve koşulmaz."
+    },
+    "rollback": "Tenant boyutu ve kuyruk kotası yapılandırma bayrağıyla kapatıldığında native site/IP/kullanıcı limitlerine dönülür; şema veya veri geri alma gerekmez. Teknik CI, deploy ve rollback sahibi Hüseyin Cengiz'dir; bu sözleşme rollback tetikleme yetkisi vermez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "performance-6",
+      "sourceStage": "scale",
+      "existing": "Native: frappe.cache incrby ile süre tabanlı sayaç, 429 'Too Many Requests' yanıtı, rate_limit dekoratöründe user_based seçeneği; Suite Rate Limit DocType kayıtları (oluşturma yardımcısı ignore_permissions=True ile insert eder); query_report akışında 'long' kuyruğu.",
+      "gap": "Tenant boyutlu sayaç ve anahtar kaynağı yok (user_based kullanıcı bazlıdır); tenant başına kuyruk kotası ve kuyruk-dolu yanıt sözleşmesi yok; backpressure ve kontrollü hizmet azaltma listesi yok; create_rate_limit'in dışa açılmama kuralı kayda geçmemiş.",
+      "completionSteps": [
+        "Native rate_limit ve Suite Rate Limit DocType'ı yeniden kullan; yeni limit motoru, ORM veya CRUD tasarlama.",
+        "Tenant anahtarını yalnız sunucu tarafında, topoloji kararından türet ve sayaç anahtarına ekle.",
+        "Kuyruğa almadan önce tenant başına bekleyen iş kotasını uygula; aşımda tanımlı kuyruk-dolu yanıtını döndür.",
+        "429 ve kuyruk-dolu yanıt kodlarını ve Retry-After biçimini tenant-fairness--contract içinde sabitle.",
+        "Onaylı hizmet azaltma listesini yapılandırma olarak tut; çekirdek akışları ve izin denetimini kapsam dışı bırak.",
+        "create_rate_limit'i whitelist etme; yalnız sunucu içi kurulum yolunda kullan.",
+        "Ret olaylarını tenant etiketiyle gözlemlenebilir yap."
+      ],
+      "dependencies": ["tenant-fairness--contract"],
+      "acceptance": "Aşırı yükte bir tenant diğerini aç bırakmaz: sınırı aşan tenant 429 alırken diğer tenant aynı pencerede kabul edilir; kuyruk kotası aşımı iş kuyruğa alınmadan görünür ve tanımlı yanıt üretir; hizmet azaltma yalnız onaylı listeyi etkiler; yetkisiz kota yazma denemesi reddedilir ve kayıt değişmez; native izin ve kullanıcı bazlı limit davranışı bozulmaz. runtimeAcceptance not_run.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/rate_limiter.py",
+          "line": 79,
+          "quote": "frappe.cache.incrby(self.key, self.duration)"
+        },
+        {
+          "path": "frappe/frappe/rate_limiter.py",
+          "line": 101,
+          "quote": "return Response(_(\"Too Many Requests\"), status=429)"
+        },
+        {
+          "path": "frappe/frappe/rate_limiter.py",
+          "line": 111,
+          "quote": "user_based: bool = False,"
+        },
+        {
+          "path": "suite/suite/suite_core/doctype/rate_limit/rate_limit.py",
+          "line": 105,
+          "quote": "doc.insert(ignore_permissions=True)"
+        },
+        {
+          "path": "frappe/frappe/desk/query_report.py",
+          "line": 460,
+          "quote": "queue=\"long\","
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Tenant kimliğinin limit anahtarına nasıl gireceği tanımsız; user_based kullanıcı bazlıdır, tenant bazlı değildir.",
+    "Tenant başına kuyruk kotası ve sınır aşımında kullanıcıya dönecek yanıt sözleşmesi yok.",
+    "Kontrollü hizmet azaltmada kapatılacak özellikler listelenmemiş.",
+    "create_rate_limit ignore_permissions=True ile ekliyor; dışa açık API olarak sunulmaması kuralı uygulamada doğrulanmalı.",
+    "Backpressure ve tenant etiketli gözlemlenebilirlik yok.",
+    "Kanıtlar önceki salt okunur kaynak anlık görüntülerindendir; canlı site veya ürün kabulü yoktur."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Tenant topolojisi ve tenant kimliğinin sunucu tarafı kaynağı",
+      "requirementIds": ["performance-6"],
+      "blockedStep": "Tenant anahtarı türetme ve tek TDD senaryosu",
+      "documentationStepUntilDecided": "Her topoloji seçeneğinde anahtarın hangi bağlamdan okunacağını ve istemci girdisine güvenilmeyeceğini karar notu olarak yaz; seçim yapma."
+    },
+    {
+      "decision": "Tenant başına istek/CPU penceresi ve kuyruk kotası değerleri, tarife ile ilişkisi",
+      "requirementIds": ["performance-6"],
+      "blockedStep": "Kota yapılandırması ve kabul eşikleri",
+      "documentationStepUntilDecided": "Yapılandırma alanlarını değer içermeden ve tarife seçmeden listele."
+    },
+    {
+      "decision": "Kontrollü hizmet azaltmada kapatılacak özellik listesi ve tetik eşiği",
+      "requirementIds": ["performance-6"],
+      "blockedStep": "Hizmet azaltma yapılandırması",
+      "documentationStepUntilDecided": "Aday özellikleri çekirdek akış dışında tutma ölçütüyle sınıflandır; liste kesinleştirme."
+    },
+    {
+      "decision": "Hedef Frappe ve Suite sürümü (T-00)",
+      "requirementIds": ["performance-6"],
+      "blockedStep": "rate_limit anahtar parametresi ve kuyruk sayım API'sinin doğrulanması",
+      "documentationStepUntilDecided": "Doğrulanacak imza ve satırları kontrol listesi olarak tut."
+    },
+    {
+      "decision": "Sayaç deposu erişilemezken fail-open veya fail-closed davranışı",
+      "requirementIds": ["performance-6"],
+      "blockedStep": "Hata sözleşmesinin kesinleşmesi",
+      "documentationStepUntilDecided": "İki davranışın adalet ve erişilebilirlik etkisini karar notu olarak yaz."
+    },
+    {
+      "decision": "Metrik dışa aktarım altyapısı",
+      "requirementIds": ["performance-6"],
+      "blockedStep": "Tenant etiketli gözlemlenebilirlik dışa aktarımı",
+      "documentationStepUntilDecided": "Olay adlarını ve etiketlerini satıcıdan bağımsız tanımla."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

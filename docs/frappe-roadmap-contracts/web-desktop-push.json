@@ -1,0 +1,223 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "web-desktop-push",
+  "canonicalTaskIds": ["web-desktop-push--implementation"],
+  "requirementIds": ["notifications-3"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "notifications-3": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "İzinli kullanıcıya web push ve masaüstü sistem bildirimi teslimi; izin reddinin yan etkisiz işlenmesi",
+    "trigger": "Outbox üzerinden yayımlanan ve kernel zarfıyla taşınan bir bildirim niyeti ya da kullanıcının kendi oturumunda bir kanal (web/PWA, Tauri 2 masaüstü, WXT/MV3 eklentisi) için bildirim izni isteyip abonelik kaydı başlatması.",
+    "expected": "İzni 'granted' olan ve sunucu tarafında etkin aboneliği bulunan kullanıcı, uygulama arka plandayken ya da web/PWA sekmesi kapalıyken ilgili kanalın sistem bildirimini alır. Bildirime tıklama yalnız kullanıcının erişebildiği bir rotaya yönlendirir. Bildirimin etkin olup olmadığı istemci deposundan değil, sunucudaki abonelik durumundan okunur.",
+    "denied": "İzin 'denied' ya da 'default' kalırsa abonelik yazılmaz, mevcut abonelik kaydı değişmez, bildirim gönderilmez ve istemciye reddedildi durumu döner. Kullanıcı başka bir kullanıcı adına abonelik kaydedemez, değiştiremez veya silemez. Native izinler ignore_permissions ya da SQL ile atlanmaz."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Suite Mail istemcisinin (Vue/Frappe UI) kaynağında şu parçalar görülür: Notifications API ile izin isteme, izin verilmezse erken dönüş ve service worker kaydı üzerinden showNotification ile gösterim. Bu istemci bildirimin etkin olup olmadığını localStorage'daki token varlığından çıkarır. Meet'teki visibilitychange dinleyicisi yalnız sekme görünürlüğü bağlamıdır; sistem bildirimi üretildiğinin kanıtı değildir. Bu kaynaklar Vue tabanlıdır. React/Ant Design uygulamasının kanıtı sayılmaz ve davranışın tamamının var olduğunu göstermez. Yeniden kullanım kod kopyalama değil, desen düzeyindedir; hangi parçanın alınacağı R-00 yeniden kullanım eşlemesinde belirlenir. Uygulama durumu: uygulanmadı.",
+    "evidence": [
+      {
+        "path": "suite/frontend/src/apps/mail/utils/frappe-push-notification.ts",
+        "line": 128,
+        "quote": "const permission = await Notification.requestPermission()"
+      },
+      {
+        "path": "suite/frontend/src/apps/mail/utils/frappe-push-notification.ts",
+        "line": 129,
+        "quote": "if (permission !== 'granted') return { permission_granted: false, token: '' }"
+      },
+      {
+        "path": "suite/frontend/src/apps/mail/utils/push-notifications.ts",
+        "line": 24,
+        "quote": "registration.showNotification(notificationTitle || '', notificationOptions)"
+      },
+      {
+        "path": "suite/frontend/src/apps/mail/utils/frappe-push-notification.ts",
+        "line": 116,
+        "quote": "return localStorage.getItem(`firebase_token_${this.projectName}`) !== null"
+      },
+      {
+        "path": "suite/frontend/src/apps/meet/utils/notificationContext.ts",
+        "line": 32,
+        "quote": "document.addEventListener(\"visibilitychange\", () => {"
+      }
+    ],
+    "searchedPaths": [
+      "suite/frontend/src/apps/mail/utils/frappe-push-notification.ts",
+      "suite/frontend/src/apps/mail/utils/push-notifications.ts",
+      "suite/frontend/src/apps/meet/utils/notificationContext.ts"
+    ],
+    "searchScopeNote": "Arama yalnız listelenen yolları kapsar. Bu yollarda bulunmayan bir parça için kapsamlı yokluk iddiası yapılmaz."
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/web-desktop-push.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/adapters/notifications/web_desktop_push_post_mvp.py"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "(1) Bildirim niyeti: Outbox olayından gelir ve kernel zarfı içinde alıcı kullanıcıyı, kısa başlığı, kısa gövdeyi ve hedef rotayı taşır. (2) Abonelik isteği: oturumdaki kullanıcı için kanal türü (web, tauri, extension), istemcinin gözlediği izin durumu ve taşıma kararına göre abonelik uç noktası ya da token. (3) Durum sorgusu: oturumdaki kullanıcının kanal bazında abonelik durumu.",
+    "output": "Kanal bazında teslim sonucu: kanala iletildi, etkin abonelik yok, izin reddedildi, yeniden denenebilir hata veya geçersiz abonelik. Abonelik isteği için etkin/pasif durumu ve izin durumu döner. Bildirim payload'ı en küçük tutulur (başlık ve rota). Gizli ya da hassas belge içeriği payload'a konmaz.",
+    "authorization": "Abonelik kaydı, güncelleme ve silme yalnız oturumdaki kullanıcının kendi kaydı için yapılır. Kurallar native-user-policy--contract ve capability-definition--contract üzerinden native Frappe izinleriyle uygulanır. Gönderimden önce alıcının hedef belge veya rotaya okuma izni native izin kontrolüyle doğrulanır; izni olmayan alıcıya bildirim gönderilmez. Bu rehber yeni rol veya izin üretmez; ileride gerekirse explicitPermissionFlags ortak kaynağına bağlanır. ignore_permissions, SQL ile yetki atlama ve başka kullanıcı adına yazma yasaktır.",
+    "persistence": "Yeni DocType önerilmez (canonicalArtifact doctypeCount=0). Abonelik durumunun doğruluk kaynağı sunucu tarafıdır; localStorage yalnız istemci önbelleği olabilir. Saklama yeri, şeması ve süresi decisionsPending kararlarına bağlıdır. Yazma işlemleri native insert/save, transaction ve hook zincirinden geçer. Bu sözleşme hiçbir şema, veri, servis veya production ortamını değiştirme yetkisi vermez.",
+    "failure": "İzin reddedilirse yazma yapılmaz ve reddedildi durumu döner. Taşıma geçici olarak hata verirse yeniden deneme outbox-contract kurallarına bırakılır. Abonelik geçersizse (örneğin standart Web Push'ta push servisinin abonelik bitti yanıtı) kayıt silinmez, pasifleştirilir. Kanal desteklenmiyorsa (örneğin ana ekrana eklenmemiş iOS web uygulaması) istemci özellik tespitiyle desteklenmiyor durumunu gösterir. Hiçbir hata durumunda bildirim başka bir kullanıcıya yönlendirilmez."
+  },
+  "development": {
+    "dependencies": [
+      "capability-definition--contract",
+      "email-template--contract",
+      "kernel-envelope--contract",
+      "native-user-policy--contract",
+      "outbox--contract",
+      "web-desktop-push--contract"
+    ],
+    "admission": {
+      "statement": "Uygulama durumu: uygulanmadı.",
+      "prerequisites": [
+        "T-00 hedef temel çizgisi ve R-00 yeniden kullanım eşlemesi tamamlanmış olmalı; izinli veri tüketen adımlar R-01'i de kullanır.",
+        "Bağımlı sözleşmeler (capability-definition, email-template, kernel-envelope, native-user-policy, outbox, web-desktop-push) kabul edilmiş olmalı.",
+        "Taşıma kararı (VAPID ya da Frappe relay ve FCM) ile anahtar/kimlik yönetimi kararı verilmeden gönderim adımı başlamaz.",
+        "Tek ve dar bir davranış gerçek RED/GREEN kanıtıyla uygulanır."
+      ],
+      "orderAuthority": "Sıralamayı mevcut görev bağımlılıkları ve post_mvp aşaması belirler. Küme sırası (8) yalnız sunum amaçlıdır; yeni bir seri bağımlılık grafiği değildir."
+    },
+    "steps": [
+      "R-00 eşlemesinde Suite istemcisini parçalara ayır: izin isteme ve reddedilince dönme deseni yeniden kullanılabilir; showNotification gösterimi standart API'dir; localStorage'a dayalı etkinlik tespiti yeniden kullanılmaz.",
+      "Tek bildirim niyetini kanal adaptörlerine (web/PWA, Tauri, eklenti) dağıtan sözleşmeyi backend adaptöründe tanımla. Adaptör outbox olayını tüketir.",
+      "Abonelik kaydı, durum sorgusu ve abonelikten çıkma uçlarını yalnız oturum kullanıcısı için, native izinlerle tanımla.",
+      "Web/PWA, Tauri ve WXT kanal eşlemesini requirementGuidance'taki adımlara göre ortak entegrasyon dosyalarında planla.",
+      "İzin isteğini yalnız kullanıcı eylemiyle tetikleyen Ant Design yüzeyini UI registry'ye kaydet. Kaynak registry ile GenUI capability registry ayrı tutulur. JSON modeli yalnız durum verisi taşır; ReactNode ve callback'ler yerelde kalır.",
+      "Kabul matrisini (izin reddi, arka planda alım, tarayıcı/OS) karar verilen hedef sürümlere göre çalıştır ve pass/fail/not_run olarak raporla."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "İzin 'denied' olarak çözüldüğünde abonelik kaydı oluşmaz, kullanıcının mevcut abonelik kaydı değişmez ve istemciye reddedildi durumu döner.",
+      "red": "Abonelik kayıt akışı var ama izin reddi dalı yokken test, reddedilen izinde kayıt oluşmadığını ve mevcut kaydın değişmediğini doğrulayan iddiada başarısız olur. Import, kurulum veya altyapı hatası ya da native davranışı bozarak üretilen hata RED sayılmaz. Bu tur test yazılmaz ve koşulmaz.",
+      "green": "İzin reddi dalı, native izin ve transaction zinciri korunarak eklenir. Aynı test, yazma olmadığını ve mevcut kaydın değişmediğini doğrular; diğer native testler bozulmaz."
+    },
+    "rollback": "Bu tur yalnız belge üretilir. Geri alma, entegrasyon sahibinin bu sözleşme dosyasını önceki durumuna (before=null) döndürmesidir. İleride geri almak için kanal kayıtları ortak entegrasyon dosyalarından kaldırılır, service worker push işleyicisi devreden çıkarılır ve abonelik kayıtları silinmeden pasifleştirilir. Deploy ve rollback'in teknik sahibi Hüseyin Cengiz'dir. Bu sözleşme servis, veri veya production değişikliği için yetki vermez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "notifications-3",
+      "sourceStage": "post_mvp",
+      "existing": "Native Suite kaynağında (Vue/Frappe UI) şu parçalar var: Notifications API ile izin isteme, izin verilmezse permission_granted=false ile erken dönüş ve service worker kaydı üzerinden showNotification. Bildirimin etkin olup olmadığı localStorage'daki token varlığından okunuyor. Meet'teki bildirim bağlamı yalnız sekme görünürlüğünü izliyor ve sistem bildirimi üretmiyor. React/Ant Design, Vite/PWA, Tauri 2 ve WXT/MV3 tarafında uygulama kanıtı yok. Değerlendirmedeki 'external' sınıfı kaynakla uyumlu değil; doğru sınıf 'partial'.",
+      "gap": "Taşıma yöntemi (VAPID ya da Frappe relay ve FCM) seçilmemiş. Vite/PWA service worker sahipliği ve push olay işleyicisi tanımsız. Tauri 2 ve WXT/MV3 için kanal eşlemesi yok. Etkin durum sunucudaki abonelikle eşitlenmiyor. Safari/iOS kısıtları ve tarayıcı matrisi belirsiz. Kabul çalıştırılmadı.",
+      "completionSteps": [
+        "data/clusters/07.json içindeki /groups/0/items/2 değerlendirmesinin support değerinin 'external' yerine 'partial' yapılmasını entegrasyon sahibine öner. Bu worker o dosyayı yazmaz.",
+        "R-00'da Suite istemcisinin izin isteme ve reddedilince dönme desenini React/TanStack Query tarafına desen olarak taşı. Vue koduna doğrudan bağımlılık kurma.",
+        "Vite/PWA: web uygulaması tek bir service worker'a sahip olur. push ve notificationclick işleyicileri bu worker'da bulunur; ikinci bir service worker kaydedilmez. vite-plugin-pwa'da özel işleyici eklemeye izin veren bir strateji seçilir (SHOULD: injectManifest). notificationclick yalnız routes.tsx'te tanımlı ve yetki kontrolünden geçen rotaya yönlendirir.",
+        "Tauri 2: bildirimler tauri-plugin-notification ile gösterilir (izin kontrolü, izin isteme ve gönderim). Eklenti Cargo.toml'a, izni tauri.conf.json'daki capability yapılandırmasına eklenir. Uygulama kapalıyken teslim garantisi yoktur ve bu sınır kabulde açıkça yazılır.",
+        "WXT/MV3: wxt.config.ts manifestine 'notifications' izni eklenir. Gösterim background service worker'da chrome.notifications ile yapılır. Arka planda push alım kanalı karar bekliyor.",
+        "Sunucu eşitlemesi: istemci açıldığında sunucudan abonelik durumunu okur. Tarayıcı izni 'denied' ise yalnız kendi kaydı için pasifleştirme isteği gönderir. Taşıma geçersiz abonelik bildirirse kayıt pasifleştirilir. localStorage yalnız önbellektir.",
+        "UI: izin isteği yalnız kullanıcının bir düğmeye basmasıyla tetiklenir. Reddedildi durumunda tarayıcı ayarlarından yeniden açma yönergesi gösterilir. Yüzey Ant Design bileşeniyle registry.ts'e kaydedilir. Metin en az 14 CSS px olur; çevreleyen odak halkası kullanılmaz.",
+        "Tarayıcı matrisi: Chromium, Firefox ve WebKit (macOS Safari). iOS/iPadOS'ta web push yalnız ana ekrana eklenmiş web uygulamasında desteklendiği için, desteklenmeyen ortam özellik tespitiyle gösterilir. Hedef sürümler karar bekliyor."
+      ],
+      "dependencies": [
+        "web-desktop-push--contract",
+        "kernel-envelope--contract",
+        "native-user-policy--contract",
+        "capability-definition--contract",
+        "outbox--contract",
+        "email-template--contract"
+      ],
+      "acceptance": "İzin reddedildiğinde abonelik kaydı oluşmaz, mevcut kayıt değişmez ve istemci reddedildi durumunu gösterir. İzni olan ve aboneliği etkin kullanıcı, web/PWA kanalında sekme arka plandayken ya da kapalıyken sistem bildirimi alır. Tauri ve eklenti kanallarında bildirim, belgelenen çalışma koşulunda görünür. Başka bir kullanıcının aboneliğine yazma isteği reddedilir ve kayıt değişmez. Bu tur kabul çalıştırılmadı: runtimeAcceptance=not_run.",
+      "evidence": [
+        {
+          "path": "suite/frontend/src/apps/mail/utils/frappe-push-notification.ts",
+          "line": 128,
+          "quote": "const permission = await Notification.requestPermission()"
+        },
+        {
+          "path": "suite/frontend/src/apps/mail/utils/frappe-push-notification.ts",
+          "line": 129,
+          "quote": "if (permission !== 'granted') return { permission_granted: false, token: '' }"
+        },
+        {
+          "path": "suite/frontend/src/apps/mail/utils/push-notifications.ts",
+          "line": 24,
+          "quote": "registration.showNotification(notificationTitle || '', notificationOptions)"
+        },
+        {
+          "path": "suite/frontend/src/apps/mail/utils/frappe-push-notification.ts",
+          "line": 116,
+          "quote": "return localStorage.getItem(`firebase_token_${this.projectName}`) !== null"
+        },
+        {
+          "path": "suite/frontend/src/apps/meet/utils/notificationContext.ts",
+          "line": 32,
+          "quote": "document.addEventListener(\"visibilitychange\", () => {"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Taşıma yöntemi (standart VAPID Web Push ya da Frappe relay ve FCM) seçilmedi; Suite istemcisinin yeniden kullanım sınırı R-00'a bağlı.",
+    "Vite/PWA service worker sahipliği ve push/notificationclick işleyicisi yalnız belge olarak tanımlı.",
+    "Tauri 2 ve WXT/MV3 kanal eşlemesi belgelendi; arka planda teslim taşıması karar bekliyor.",
+    "İstemci ile sunucu arasında abonelik durumu eşitlemesi tanımlandı; saklama yeri ve süresi karar bekliyor.",
+    "Safari/iOS kısıtları ve hedef sürüm matrisi karar bekliyor; kabul çalıştırılmadı.",
+    "data/clusters/07.json değerlendirmesindeki 'external' sınıfının 'partial' olarak düzeltilmesi entegrasyon sahibine öneri olarak kaldı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Taşıma yöntemi: standart VAPID Web Push ya da Frappe relay ve FCM",
+      "requirementIds": ["notifications-3"],
+      "blocks": "Backend adaptöründe gönderim, abonelik kaydının biçimi ve service worker push payload sözleşmesi",
+      "interimDocStep": "Kanal soyutlaması, izin reddi akışı ve teslim sonucu durumları taşımadan bağımsız olarak belgelenir."
+    },
+    {
+      "decision": "Abonelik durumunun sunucuda saklanacağı yer, saklama süresi ve pasif kayıtların temizlenmesi",
+      "requirementIds": ["notifications-3"],
+      "blocks": "Persistence adımı ve sunucu eşitlemesi",
+      "interimDocStep": "Etkin/pasif/geçersiz durum geçişleri ve yalnız oturum kullanıcısının kendi kaydına yazabilmesi kuralı belgelenir."
+    },
+    {
+      "decision": "Hedef tarayıcı, OS, Tauri eklentisi ve WXT sürüm matrisi (Safari/iOS dahil)",
+      "requirementIds": ["notifications-3"],
+      "blocks": "Kabul matrisi ve uyumluluk iddiası",
+      "interimDocStep": "Özellik tespiti yaklaşımı ve iOS'un ana ekrana ekleme kısıtı belgelenir."
+    },
+    {
+      "decision": "Tauri ve eklenti kanallarında uygulama kapalı ya da arka plandayken teslim taşıması",
+      "requirementIds": ["notifications-3"],
+      "blocks": "Tauri ve WXT adaptörlerinde arka planda alım kabulü",
+      "interimDocStep": "Uygulama çalışırken yerel bildirim eşlemesi ve teslim garantisinin sınırı belgelenir."
+    },
+    {
+      "decision": "Gönderim anahtarı ya da relay kimlik bilgisinin yönetimi ve dağıtımı (secret kararı bu sözleşmede verilmez; teknik sahibi Hüseyin Cengiz)",
+      "requirementIds": ["notifications-3"],
+      "blocks": "Deploy ve gerçek gönderim",
+      "interimDocStep": "Anahtarın kaynak koddan ve repodan ayrı tutulacağı belgelenir; hiçbir değer yazılmaz."
+    },
+    {
+      "decision": "Tenant topolojisi: abonelik ve gönderim kimliğinin kapsamı (site başına ya da paylaşımlı)",
+      "requirementIds": ["notifications-3"],
+      "blocks": "Persistence kapsamı ve anahtarın kapsamı",
+      "interimDocStep": "Aboneliğin kernel zarfındaki kapsam alanına bağlanacağı belgelenir; topoloji seçilmez."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

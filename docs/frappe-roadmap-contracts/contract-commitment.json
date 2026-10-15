@@ -74,7 +74,7 @@
       "2. Hedef Frappe sürümünde has_permission imzasını, User Permission davranışını ve make_access_log çağrı biçimini kaynakta doğrula; doğrulanamayan parçayı kullanma.",
       "3. Kapsam koşulunu kaydeden rolü ve sürüm alanlarını legal-3 ortak sürüm modeliyle eşleştiren belge notunu tamamla.",
       "4. Önce tek senaryo için başarısız testi yaz (tdd bölümü), sonra izin kuralını native DocType izni ve tenant alanına User Permission ile uygula.",
-      "5. validate hook'una tenant zorunluluğu, yürürlük aralığı çakışması ve kabul edilmiş sürümün değiştirilememesi kurallarını ayrı ayrı ve her biri kendi testiyle ekle.",
+      "5. validate hook'una tenant zorunluluğu, yürürlük aralığı çakışması ve kabul edilmiş sürümün değiştirilememesi kurallarını kapsamı ayrı paket olarak onaylanırsa ele al; bu sözleşmenin tek kabul davranışını veya test kapsamını genişletme.",
       "6. İstemci tarafında yalnız gerektiğinde routes.tsx ve kaynak registry kaydını ekle; Tauri ve WXT dosyalarına bu davranış için değişiklik gerekmez.",
       "7. CI, deploy ve rollback teknik uygulamasını Hüseyin Cengiz yürütür; iş kabulünü hukuk ve müşteri operasyonu sahibi verir."
     ],

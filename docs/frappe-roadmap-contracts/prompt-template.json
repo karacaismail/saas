@@ -1,0 +1,187 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "prompt-template",
+  "canonicalTaskIds": ["prompt-template--implementation"],
+  "requirementIds": ["ai-3"],
+  "stage": "scale",
+  "sourceStages": {
+    "ai-3": "scale"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Sürümlü prompt şablonunun bildirilmiş değişken şemasıyla doğrulanıp değişmez sürüme bağlı render edilmesi",
+    "trigger": "Yetkili bir platform çağıranı (AI orkestrasyon çalıştırması) bir PromptTemplate kaydını ve değişken değerlerini vererek modele gidecek prompt metnini ister.",
+    "expected": "Değişken değerleri render öncesinde yalnız o şablon sürümüne ait bildirilmiş değişken şemasıyla doğrulanır; geçerliyse Frappe sandbox Jinja ile render edilir. Çıktı şablon adı, çözülmüş sürüm numarası ve content_hash ile birlikte döner; çalıştırma bu üçlüye bağlanmadan model çağrısı başlatılmaz. Frappe'nin global jenv ayarları değiştirilmez.",
+    "denied": "Zorunlu değişken eksikse veya şemada bildirilmeyen değişken verilirse render ve model çağrısı yapılmaz, ValidationError döner. Onaylı sürümün gövdesi, şeması veya sürüm numarası değiştirilmeye çalışılırsa kaydetme reddedilir ve kayıt değişmeden kalır. Taslak veya Emekli durumundaki sürümle çalıştırma reddedilir. Yetkisiz kullanıcı native izin kontrolünde PermissionError alır; ignore_permissions, flags veya SQL ile bypass yoktur."
+  },
+  "reuse": {
+    "status": "KISMI_NATIVE_PARCA",
+    "mechanism": "Native parçalar: Frappe'nin sandbox Jinja ortamı (FrappeSandboxedEnvironment) ve validate_template sözdizimi kontrolü yeniden kullanılır. Global jenv DebugUndefined ile kurulduğu için eksik değişken varsayılan olarak reddedilmez; ret davranışı native parça değil, şablona özgü şema doğrulamasıyla tamamlanacak eksiktir ve global ayar değiştirilerek çözülmez. Suite'teki _SYSTEM kodda sabit ve sürümsüz bir prompttur; sürüm veya kayıt modeli kanıtı değildir. Kanıtın bir native parçayı göstermesi bütün davranışın var olduğu anlamına gelmez. Native Frappe/Suite kaynak değerlendirmesi ürün uygulaması kanıtı değildir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/utils/jinja.py",
+        "line": 66,
+        "quote": "jenv = FrappeSandboxedEnvironment(loader=get_jloader(), undefined=DebugUndefined, cache_size=32)"
+      },
+      {
+        "path": "frappe/frappe/utils/jinja.py",
+        "line": 96,
+        "quote": "def validate_template(html, restrict_globals=None):"
+      },
+      {
+        "path": "suite/suite/sheets/ai/client.py",
+        "line": 18,
+        "quote": "_SYSTEM = ("
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/utils/jinja.py",
+      "suite/suite/sheets/ai/client.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/prompt-template.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/ai_orchestration/doctype/prompt_template/prompt_template.py"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "template_key veya PromptTemplate kayıt adı; isteğe bağlı sürüm numarası (verilmezse çözümleme anında en son Onaylı sürüm seçilir ve çözülmüş numara çıktıya yazılır); variables: düz JSON nesnesi. JSON model sınırı korunur: ReactNode, callback veya Python nesnesi girdiye konmaz. Tenant/kapsam alanları kernel-envelope--contract zarfından gelir; bu sözleşme yeni zarf alanı tanımlamaz.",
+    "output": "JSON: {template, version, content_hash, rendered_text}. rendered_text yalnız izin, durum ve şema doğrulaması başarılıysa üretilir. Çalıştırmayı sürüme bağlayan alanlar (template, version, content_hash) audit-envelope--contract zarfına yazılır; bu sözleşme ayrı bir çalıştırma DocType'ı, motor veya CRUD katmanı tasarlamaz.",
+    "authorization": "PromptTemplate okuma, oluşturma ve onaylama izinleri native DocPerm üzerinden frappe.has_permission ve doc.check_permission yoluyla denetlenir. Rol ve bayraklar native-user-policy--contract içindeki explicitPermissionFlags ortak kaynağından gelir; bu rehber yeni rol icat etmez. Render çağrısı en az ilgili şablon kaydını okuma iznini gerektirir. ignore_permissions, frappe.db.sql ile yazma veya izin bayrağıyla atlama yasaktır.",
+    "persistence": "Önerilen PromptTemplate DocType (custom_proposed). Alan önerisi: template_key, version (tam sayı; template_key ile birlikte tekil), body (Jinja metni), variable_schema (JSON: ad, tip, zorunlu), status (Taslak/Onaylı/Emekli), content_hash (body ve variable_schema üzerinden, onay anında sabitlenir). Yazım native insert/save ve istek transaction'ı içinde yapılır. Değişmezlik controller validate kancasında get_doc_before_save karşılaştırmasıyla korunur; alternatif olarak hedef sürümde doğrulanırsa native submit/amend (docstatus) modeli kullanılır. Yeni içerik her zaman yeni sürüm kaydıdır. Şema kuralları native-doctype-schema--contract, olay yayımı outbox--contract ile uyumlu olur.",
+    "failure": "Eksik zorunlu veya bildirilmemiş değişken: ValidationError, render ve model çağrısı yok. Gövde sözdizimi hatası: validate_template kaydetmede reddeder, kayıt oluşmaz. Gövde şemada bildirilmeyen bir değişken kullanıyorsa: kaydetme reddedilir. Onaylı sürümü düzenleme: ValidationError, veri değişmez. Taslak/Emekli sürümle çalıştırma: ValidationError. Yetkisiz erişim: PermissionError. Tüm retlerde transaction geri alınır, yarım kayıt veya bağsız çalıştırma kalmaz."
+  },
+  "development": {
+    "dependencies": [
+      "audit-envelope--contract",
+      "capability-definition--contract",
+      "kernel-envelope--contract",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "outbox--contract",
+      "prompt-template--contract",
+      "prompt-template--schema"
+    ],
+    "admission": "Uygulama durumu: uygulanmadı. Kabul ön koşulları: T-00 hedef temel sürüm ve R-00 yeniden kullanım eşlemesi; izinli veri tüketicisi olduğu için R-01 de gerekir. prompt-template--contract ve prompt-template--schema bağımlılıkları tamamlanmadan bu görev başlamaz. Sıra otoritesi mevcut görev bağımlılıkları ve stage alanıdır; küme sırası yeni seri DAG değildir. Tek dar davranış gerçek RED/GREEN kanıtıyla uygulanır. Bu sözleşme hiçbir servis, production, şema veya veriyi değiştirme yetkisi vermez; CI/deploy/rollback teknik sahibi Hüseyin Cengiz'dir.",
+    "steps": [
+      "T-00 kapsamında hedef Frappe ve Jinja2 sürümünde frappe/frappe/utils/jinja.py içindeki FrappeSandboxedEnvironment, DebugUndefined kullanımı ve validate_template imzasını yeniden doğrula; farklıysa bu sözleşmeyi güncelle.",
+      "prompt-template--schema çıktısına göre PromptTemplate alanlarını ve variable_schema JSON biçimini (ad, tip, zorunlu) sabitle; gövde ve şema aynı sürüm kaydında tutulur.",
+      "Kaydetme doğrulaması: validate_template ile sözdizimi kontrolü yap; Jinja2 meta.find_undeclared_variables (hedef sürümde doğrulanacak) ile gövdenin kullandığı adların şemada bildirildiğini kontrol et.",
+      "Değişmezlik: Onaylı kayıtta body, variable_schema ve version değişikliğini reddet; content_hash onay anında hesaplanır ve sonra değişmez.",
+      "Render sırası: izin kontrolü, durum kontrolü (yalnız Onaylı), değişken şeması doğrulaması, ardından sandbox render. Global jenv'e dokunma; gerekirse yalnız bu çağrıya özel FrappeSandboxedEnvironment tabanlı yerel bir ortam kullan, sandbox dışı Environment kullanma.",
+      "Çıktıyı {template, version, content_hash, rendered_text} olarak döndür; bağ alanlarını audit-envelope--contract zarfına yaz ve model çağrısını bu bağ olmadan başlatma.",
+      "Suite _SYSTEM kararı gelene kadar Suite kaynağını değiştirme; platform içindeki yeni çağıranlar kodda sabit prompt kullanmaz.",
+      "Tek gelecekteki kabulde reddedilen yazmayı (onaylı sürüm düzenleme) ve değişmeyen kaydı da doğrula."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Onaylı bir PromptTemplate sürümü zorunlu customer_name değişkenini bildirir; çağıran bu değişkeni vermeden render ister ve istek reddedilmelidir.",
+      "red": "Şema doğrulaması yokken render, global jenv'in DebugUndefined davranışıyla eksik değişkeni metinde yer tutucu olarak bırakıp başarılı döner; test ValidationError ve rendered_text yokluğu beklediği için davranışsal olarak başarısız olur. RED import hatası, eksik altyapı veya native Jinja ayarını bozarak üretilmez.",
+      "green": "Render öncesi şema doğrulaması eksik zorunlu değişkeni ValidationError ile reddeder; rendered_text üretilmez, model çağrısı yapılmaz ve global jenv undefined ayarı değişmeden kalır. Bu tur test yazılmaz ve koşulmaz."
+    },
+    "rollback": "Bu turda yalnız belge vardır; geri alınacak ürün değişikliği yoktur. Gelecekte geri alma Hüseyin Cengiz'in sahibi olduğu deploy/rollback süreciyle yapılır. Onaylı sürüm kayıtları silinmez, gerekirse Emekli durumuna alınır. Global Jinja ayarı hiç değiştirilmediği için geri alınacak framework ayarı yoktur."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "ai-3",
+      "sourceStage": "scale",
+      "existing": "Native parça: Frappe sandbox Jinja ortamı ve validate_template sözdizimi kontrolü mevcut. Global jenv DebugUndefined kullandığı için eksik değişkeni reddetmez. Suite'te prompt, kodda sabit ve sürümsüz _SYSTEM sabitidir. İncelenen kaynaklarda prompt sürüm/kayıt ürünü saptanmadı.",
+      "gap": "Prompt ve sürümün saklanacağı DocType ile değişmezlik kuralı tanımsız; global jenv değiştirilmeden şablona özgü değişken şeması doğrulaması yok; çalıştırmanın değişmez sürüme bağlanması yok; Suite _SYSTEM sabitinin göç veya istisna durumu yazılmamış.",
+      "completionSteps": [
+        "PromptTemplate DocType alanlarını (template_key, version, body, variable_schema, status, content_hash) prompt-template--schema ile sabitle.",
+        "Kaydetmede validate_template ile sözdizimini, gövde değişkenlerinin şemada bildirildiğini kontrol et.",
+        "Onaylı sürümde body, variable_schema ve version değişikliğini native validate kancasında reddet.",
+        "Render öncesinde değişkenleri şablona özgü şemayla doğrula; eksik zorunlu veya bildirilmemiş değişkende ValidationError ver; global jenv'i değiştirme.",
+        "Render çıktısını template, version ve content_hash ile döndür ve audit-envelope--contract zarfına bağla.",
+        "Suite _SYSTEM için göç veya belgelenmiş istisna kararını decisionsPending üzerinden al; karar gelene kadar Suite kaynağına dokunma."
+      ],
+      "dependencies": [
+        "prompt-template--contract",
+        "prompt-template--schema",
+        "audit-envelope--contract",
+        "kernel-envelope--contract",
+        "native-user-policy--contract",
+        "native-doctype-schema--contract"
+      ],
+      "acceptance": "Eksik değişken reddedilsin; her çalıştırma değişmez prompt sürümüne bağlansın. Gelecekteki tek kabulde ek olarak: onaylı sürüm düzenleme girişimi reddedilir ve kayıt değişmez; global jenv undefined ayarı değişmemiştir.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/utils/jinja.py",
+          "line": 66,
+          "quote": "jenv = FrappeSandboxedEnvironment(loader=get_jloader(), undefined=DebugUndefined, cache_size=32)"
+        },
+        {
+          "path": "frappe/frappe/utils/jinja.py",
+          "line": 96,
+          "quote": "def validate_template(html, restrict_globals=None):"
+        },
+        {
+          "path": "suite/suite/sheets/ai/client.py",
+          "line": 18,
+          "quote": "_SYSTEM = ("
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Değişmezlik mekanizması (validate kancasında get_doc_before_save karşılaştırması veya native submit/amend) hedef sürüm doğrulamasına kadar açık.",
+    "Jinja2 meta.find_undeclared_variables kullanımı doğrulanmış kanıt içinde değildir; hedef Jinja2 sürümünde doğrulanmalıdır.",
+    "Nesne alt alanlarına (ör. a.b) erişen değişkenlerin şema ile nasıl ifade edileceği prompt-template--schema ile netleşmeli.",
+    "Suite _SYSTEM sabitinin göç veya istisna durumu karara bağlı.",
+    "Gerçek RED/GREEN kanıtı, runtime kabulü ve bağımsız inceleme yapılmadı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Suite _SYSTEM sabitinin PromptTemplate kaydına göçü mü yoksa belgelenmiş upstream istisnası olarak kalması mı",
+      "requirementIds": ["ai-3"],
+      "blocks": "Suite sheets AI istemcisinin sürümlü prompta bağlanması veya istisna kaydının kapatılması",
+      "interimDocStep": "_SYSTEM'i upstream Suite kaynağı olarak envantere yaz; platform kodunun buna bağımlı olmadığını ve Suite kaynağının değiştirilmeyeceğini belgede belirt."
+    },
+    {
+      "decision": "Hedef Frappe ve Jinja2 sürümü (T-00)",
+      "requirementIds": ["ai-3"],
+      "blocks": "validate_template, undeclared değişken analizi ve submit/amend davranışının doğrulanması",
+      "interimDocStep": "Kaynak satır referanslarını snapshot kanıtı olarak tut ve sürüme bağlı olduğunu not et."
+    },
+    {
+      "decision": "Tenant topolojisi: prompt şablonları tenant başına mı yoksa paylaşımlı mı",
+      "requirementIds": ["ai-3"],
+      "blocks": "template_key tekillik kapsamı ve izin eşlemesi",
+      "interimDocStep": "Kapsam alanını kernel-envelope--contract zarfına referansla yer tutucu olarak bırak."
+    },
+    {
+      "decision": "Saklama süresi: Emekli sürümler ve rendered_text'in denetim kaydında saklanıp saklanmayacağı (yalnız content_hash mı)",
+      "requirementIds": ["ai-3"],
+      "blocks": "audit-envelope bağ alanlarının içeriği ve temizlik kuralı",
+      "interimDocStep": "Hiçbir silme kuralı yazmadan yalnız template, version ve content_hash bağını zorunlu, rendered_text saklamayı açık olarak işaretle."
+    },
+    {
+      "decision": "Onaylama yetkisinin explicitPermissionFlags içindeki hangi bayrağa eşleneceği",
+      "requirementIds": ["ai-3"],
+      "blocks": "Taslak sürümün Onaylı duruma alınması adımı",
+      "interimDocStep": "Onay bayrağını native-user-policy--contract içindeki explicitPermissionFlags ortak kaynağına referansla yer tutucu olarak yaz; yeni rol tanımlama."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

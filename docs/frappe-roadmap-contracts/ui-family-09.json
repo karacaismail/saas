@@ -1,0 +1,219 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "ui-family-09",
+  "canonicalTaskIds": [
+    "ui-family-09--implementation-post-mvp",
+    "ui-view-table--implementation"
+  ],
+  "requirementIds": ["views-10"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "views-10": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Liste içinde satır/hücre düzenleme: alan doğrulama, kaydetme, iptal ve çakışma geri bildirimi",
+    "trigger": "Yetkili kullanıcı React/Ant Design liste görünümünde düzenlenebilir bir hücreye klavye veya işaretçiyle girer, değeri değiştirir; Enter ile kaydeder ya da Escape ile iptal eder.",
+    "expected": "Kaydet isteği native Frappe izin, doğrulama, transaction ve save yolundan geçer; başarılı yanıtta hücre sunucunun döndürdüğü değer ve yeni modified ile güncellenir. Escape hiçbir istek göndermeden önceki değeri geri yükler. Sunucu doğrulama hatası ilgili hücreye eşlenir, eşzamanlı değişiklik (modified uyuşmazlığı) kullanıcının girdiği değer kaybolmadan açıklanır ve yeniden deneme veya güncel değeri alma seçeneği sunulur. Odak düzenlenen hücrede kalır; klavye odağı çevrelemeyen tek bir görünür göstergeyle gösterilir.",
+    "denied": "Yetkisiz kullanıcı, permlevel erişimi olmayan, read_only veya perm_denied alan için hücre düzenleme moduna girilmez; istemci atlatılsa bile sunucu yazmayı reddeder ve kayıt değişmeden kalır. ignore_permissions, doğrudan SQL veya istemci tarafı yetki kararıyla yazma yoktur."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Uygulama durumu: uygulanmadı. Native parçalar: frappe.client.set_value alan bazlı yazma primitifi; api/v1 güncelleme yolunda kaydın for_update ile kilitlenerek alınması; Meta tarafında permlevel erişimine göre izinli alan listesi. frappe/ui içindeki permDenied/readOnly türetimi ve ListView yalnız Vue tabanlı tasarım referansıdır, React/Ant Design uygulaması kanıtı değildir. Bu kanıtlar native yazma ve izin parçalarını gösterir; hücre düzenleme davranışının tamamının var olduğunu göstermez.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/client.py",
+        "line": 183,
+        "quote": "def set_value(doctype: str, name: str | int, fieldname: str | dict[str, Any], value: Any | None = None):"
+      },
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 56,
+        "quote": "doc = frappe.get_doc(doctype, name, for_update=True)"
+      },
+      {
+        "path": "frappe/frappe/model/meta.py",
+        "line": 746,
+        "quote": "if df.permlevel in permlevel_access"
+      },
+      {
+        "path": "frappe/ui/src/components/FormLayout/buildLayoutFromMeta.ts",
+        "line": 173,
+        "quote": "permDenied: !!field.perm_denied,"
+      },
+      {
+        "path": "frappe/ui/src/components/ListView/useListView.ts",
+        "line": 1,
+        "quote": "import { computed } from \"vue\";"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "frappe/frappe/client.py",
+      "frappe/frappe/model/meta.py",
+      "frappe/ui/src/components/FormLayout/buildLayoutFromMeta.ts",
+      "frappe/ui/src/components/ListView/useListView.ts"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/ui-family-09.json",
+    "plannedProduction": [
+      "frontend/packages/ui/src/components/ui-family-09/post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-view-table/index.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Hücre düzenleme isteği: doctype, name, fieldname, value ve istemcinin son okuduğu modified değeri. Child table satırı için parent doctype/name, child doctype, satır name ve fieldname. Düzenlenebilirlik girdisi Meta'dan gelen fieldtype, read_only, read_only_depends_on, permlevel ve perm_denied bilgisidir; istemci bu bilgiyi yalnız UX için kullanır, yetki kararı sunucudadır.",
+    "output": "Başarıda güncel alan değeri ve yeni modified. Doğrulama reddinde alan adına eşlenebilir hata kaydı (fieldname, kullanıcıya gösterilecek mesaj). Çakışmada çakışma türü, sunucudaki güncel değer ve modified; istemci kullanıcının girdiği değeri ayrı tutar. Yanıt zarfı kernel-envelope--contract ve api-middleware--contract ile hizalanır; bu sözleşme ayrı zarf tanımlamaz.",
+    "authorization": "Native Frappe doküman ve alan izinleri (permlevel) sunucuda uygulanır. Yeni rol veya izin üretilmez; ileride izin bayrağı gerekirse explicitPermissionFlags ortak kaynağına bağlanır ve o rehberin tek kabulünde reddedilen yazma ile değişmeyen kayıt doğrulanır. ignore_permissions ve SQL ile atlatma yasaktır. İstemci tarafı kural eşleşmesi client-rule-parity--contract sınırındadır ve sunucu kararının yerine geçmez.",
+    "persistence": "Yazma yalnız native get_doc/save yolu ile yapılır (set_value veya kararlaştırılacak REST güncelleme yolu). Kayıt for_update ile kilitlenerek alınır; transaction native istek döngüsüne bırakılır. Yeni tablo, alan, şema veya ORM katmanı yoktur. Bu sözleşme hiçbir servis, production, şema veya veriyi değiştirme yetkisi vermez.",
+    "failure": "Ağ hatası: hücre düzenleme modunda kalır, girilen değer korunur, yeniden deneme sunulur. Doğrulama hatası: mesaj eşlenen hücrede gösterilir; eşlenemezse satır düzeyinde gösterilir ve değer korunur. Çakışma: kayıt değiştirilmez, kullanıcının değeri ve sunucudaki güncel değer birlikte gösterilir. Yetki reddi: hücre salt okunur duruma döner, kayıt değişmez. Hiçbir hata durumunda sahte başarı veya sahte ilerleme gösterilmez."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "client-rule-parity--contract",
+      "kernel-envelope--contract",
+      "ui-family-08--contract",
+      "ui-family-09--contract",
+      "ui-family-09--implementation",
+      "ui-family-12--contract",
+      "ui-view-table--contract"
+    ],
+    "admission": {
+      "prerequisites": [
+        "T-00 hedef sürüm tabanı ve R-00 yeniden kullanım eşlemesi tamamlanmış olmalı; izinli veri tüketicisi olduğu için R-01 de uygulanır.",
+        "ui-view-table--contract içinde grid kararı verilmiş ve hücre odak/klavye sahibi belirlenmiş olmalı.",
+        "Yazma yolu kararı (decisionsPending) verilmiş ve hedef sürüm kaynağında doğrulanmış olmalı.",
+        "Document.save içinde modified tabanlı sürüm kontrolünün varlığı ve davranışı hedef sürüm kaynağında okunup alıntılanmış olmalı; alıntı yoksa çakışma kontrolü native yolu bozmadan ayrıca tasarlanır.",
+        "Tek dar davranış için gerçek RED/GREEN kanıtı üretilecek şekilde test sahibi ve dosyası atanmış olmalı."
+      ],
+      "orderAuthority": "Mevcut görev bağımlılıkları ve post_mvp aşaması; küme sırası yalnız sunumdur, yeni seri bağımlılık zinciri değildir."
+    },
+    "steps": [
+      "Hedef sürümde set_value, REST güncelleme yolu ve Document.save sürüm kontrolünü salt okunur inceleyip alıntıları R-00 eşlemesine ekle.",
+      "Inline düzenlenebilir alan türü listesini belge olarak çıkar; Link, Table, child row, read_only_depends_on ve permlevel için ayrı karar satırı yaz.",
+      "Çakışma tokenı sözleşmesini tanımla: istemci modified gönderir, sunucu uyuşmazlıkta kaydı değiştirmeden reddeder; yanıt biçimini kernel-envelope--contract ile hizala.",
+      "Alan hatası eşleme biçimini api-middleware--contract ile hizala; eşlenemeyen hata için satır düzeyi geri dönüşü tanımla.",
+      "Grid kararı geldikten sonra hücre durum makinesini (görüntüle, düzenle, gönderiliyor, hata, çakışma) seçilen grid bileşeninin odak modeline bağla; hücre editörleri yerel ReactNode/callback olarak kalır, GenUI capability registry veya JSON model sınırına taşınmaz.",
+      "Child table satırı düzenlemesinde parent kaydının kaydedilme davranışını UX sözleşmesine yaz: kullanıcıya parent modified değişimi ve çakışma kapsamı açıklanır.",
+      "UI kurallarını kabul ölçütüne bağla: 320 CSS px öncelik, tablonun kendi kapsayıcısında yatay kaydırılması, en az 14 CSS px metin, çevrelemeyen odak göstergesi, merkezi hareket tokenları ve reduced-motion istisnası."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Eski modified değeriyle gönderilen tek hücre yazması sunucuda reddedilir, kayıt değişmez ve kullanıcının girdiği değer hücrede korunarak çakışma açıklaması gösterilir.",
+      "red": "Gelecekte yazılacak test, modified uyuşmazlığında yanıtın çakışma olarak sınıflanmasını ve kaydın değişmemesini bekler; çakışma tokenı sözleşmesi olmadığı için davranışsal olarak başarısız olur. RED, import/altyapı hatası veya native save davranışını bozarak elde edilmez.",
+      "green": "Native save/izin yolunu koruyarak modified karşılaştırmasını istek sözleşmesine bağlayan en küçük değişiklik ve istemcide girilen değeri koruyan çakışma durumu; başka davranış eklenmez."
+    },
+    "rollback": "Gelecekteki geri alma yalnız istemci hücre düzenleme bileşeninin kaydını kaldırıp liste görünümünü salt okunur moda döndürmektir; şema veya veri değişikliği olmadığından veri geri alma adımı yoktur. Teknik CI/deploy/rollback sahibi Hüseyin Cengiz'dir; DNS/GoDaddy işi bu davranışa dahil değildir."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "views-10",
+      "sourceStage": "post_mvp",
+      "existing": "Native Frappe alan bazlı yazma (set_value), güncelleme yolunda for_update ile kilitli kayıt alma ve Meta permlevel tabanlı izinli alan listesi kaynakta görülür. frappe/ui permDenied/readOnly türetimi ve ListView Vue tabanlıdır; yalnız tasarım referansıdır.",
+      "gap": "Çakışma tokenı sözleşmesi yok ve Document.save sürüm kontrolü alıntılarda görünmüyor. Inline düzenlenebilir alan türleri tanımsız (Link, Table, child row, read_only_depends_on, permlevel). Child table düzenlemesinde parent kaydı kaydetme davranışı (girdi analizinde update_doc satır 64-65 olarak not edilmiş; bu sözleşmede alıntıyla doğrulanmadı) UX'e bağlanmamış. Grid seçilmediği için klavye/odak sahibi belirsiz. Sunucu doğrulama hatasını alana eşleyen yanıt sözleşmesi yok. React/Ant Design hücre düzenleme bileşeni yok.",
+      "completionSteps": [
+        "Hedef sürüm kaynağında Document.save sürüm kontrolünü ve REST güncelleme yolunu okuyup path/line/quote ile R-00 eşlemesine ekle.",
+        "Düzenlenebilir alan türü tablosunu yaz: her fieldtype için düzenlenebilir/salt okunur/ilk kapsam dışı kararı ve gerekçesi.",
+        "İstek ve yanıt örneğini belgeye ekle: modified gönderimi, başarı, alan hatası, çakışma ve yetki reddi.",
+        "Çakışmada kullanıcının değerini koruyan yeniden deneme akışını adım adım tanımla: değeri koru, güncel değeri göster, kullanıcı seçimiyle yeni modified ile tekrar gönder.",
+        "Grid kararını ui-view-table--implementation bağımlılığı olarak işaretle; karar gelene kadar odak/klavye bölümü taslak kalır.",
+        "Child row düzenlemesinde parent modified değişimini ve çakışma kapsamını kullanıcı mesajına bağla."
+      ],
+      "dependencies": [
+        "ui-family-09--contract",
+        "ui-family-09--implementation",
+        "ui-view-table--contract",
+        "kernel-envelope--contract",
+        "api-middleware--contract",
+        "client-rule-parity--contract",
+        "ui-family-08--contract",
+        "ui-family-12--contract"
+      ],
+      "acceptance": "Yetkili hücre klavyeyle düzenlenebilir; Enter kaydeder, Escape istek göndermeden iptal eder. Hatalı alan ilgili hücrede açıklanır. Eşzamanlı değişiklik veri kaybetmeden açıklanır ve kayıt değişmez. Yetkisiz yazma sunucuda reddedilir ve kayıt değişmez. Klavye odağı çevrelemeyen görünür bir göstergeyle korunur; metin en az 14 CSS px; tablo 320 CSS px'te kendi kapsayıcısında yatay kaydırılır, sayfa taşmaz. WCAG 2.2 AA hedeflenir.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/client.py",
+          "line": 183,
+          "quote": "def set_value(doctype: str, name: str | int, fieldname: str | dict[str, Any], value: Any | None = None):"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 56,
+          "quote": "doc = frappe.get_doc(doctype, name, for_update=True)"
+        },
+        {
+          "path": "frappe/frappe/model/meta.py",
+          "line": 746,
+          "quote": "if df.permlevel in permlevel_access"
+        },
+        {
+          "path": "frappe/ui/src/components/FormLayout/buildLayoutFromMeta.ts",
+          "line": 173,
+          "quote": "permDenied: !!field.perm_denied,"
+        },
+        {
+          "path": "frappe/ui/src/components/ListView/useListView.ts",
+          "line": 1,
+          "quote": "import { computed } from \"vue\";"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Çakışma tokenı (modified) istek/red sözleşmesi tanımsız; native sürüm kontrolü alıntıyla doğrulanmadı.",
+    "Inline düzenlenebilir alan türü listesi yok.",
+    "Child table satırı düzenlemesinde parent kaydetme davranışının UX sözleşmesi yok.",
+    "Grid bileşeni seçilmediği için hücre odak ve klavye sahibi belirsiz.",
+    "Sunucu doğrulama hatasını alana eşleyen yanıt sözleşmesi yok.",
+    "React/Ant Design hücre düzenleme bileşeni ve buna ait test yok; Vue kaynağı aktarılamaz."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Grid bileşeni seçimi ve hücre odak/klavye modelinin sahibi",
+      "requirementIds": ["views-10"],
+      "blocks": "Hücre durum makinesinin grid odak modeline bağlanması ve klavye kabul ölçütünün uygulanması",
+      "allowedDocWork": "Grid'den bağımsız hücre durum makinesi, istek/yanıt örnekleri ve kabul ölçütleri belge olarak yazılabilir."
+    },
+    {
+      "decision": "Yazma yolu: /api/v2 güncelleme yolu veya frappe.client.set_value",
+      "requirementIds": ["views-10"],
+      "blocks": "İstek sözleşmesinin kesinleşmesi ve çakışma reddinin yerinin belirlenmesi",
+      "allowedDocWork": "İki yolun hedef sürüm kaynağında salt okunur karşılaştırması ve her biri için izin/doğrulama/transaction davranış notu."
+    },
+    {
+      "decision": "İlk kapsamda inline düzenlenebilir alan türleri (Link, Table, child row, read_only_depends_on, permlevel)",
+      "requirementIds": ["views-10"],
+      "blocks": "Hücre editörü kapsamı ve düzenlenebilirlik kararı",
+      "allowedDocWork": "Fieldtype bazlı aday tablo ve her satır için risk/gerekçe notu."
+    },
+    {
+      "decision": "Alan hatası ve çakışma yanıt biçimi",
+      "requirementIds": ["views-10"],
+      "blocks": "Sunucu hatasının hücreye eşlenmesi ve çakışma mesajı",
+      "allowedDocWork": "kernel-envelope--contract ve api-middleware--contract ile hizalı taslak yanıt örnekleri."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

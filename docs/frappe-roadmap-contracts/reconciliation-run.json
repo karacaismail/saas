@@ -1,0 +1,195 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "reconciliation-run",
+  "canonicalTaskIds": ["reconciliation-run--implementation"],
+  "requirementIds": ["finance-3"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "finance-3": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Süper admin için işletmeci cari mutabakat çalıştırması (ReconciliationRun) ve tenant kullanıcısının işletmeci carisine erişiminin reddi. Uygulama durumu: uygulanmadı.",
+    "trigger": "Süper admin rolündeki kullanıcı, işletmeci defterinde tek bir SaaS müşterisi ve tek bir dönem için ReconciliationRun kaydı oluşturup çalıştırma talebi gönderir. Gelecekteki giriş yolu native DocType kaydetme veya izin kontrollü bir Frappe whitelisted çağrısıdır; uç nokta adı henüz tanımlı değildir.",
+    "expected": "Native DocPerm ve has_permission kontrolünden geçen süper admin için çalıştırma kaydı native transaction içinde oluşur. Girdi, eşleme kuralı sürümü, sonuç özeti ve denetim izi referansı kaydedilir. Okuma yanıtı, alan seviyesi okuma izinleri uygulanmış olarak döner.",
+    "denied": "Tenant kullanıcısı veya süper admin rolü olmayan herhangi bir kullanıcı ReconciliationRun ya da işletmeci cari kayıtlarını okuyamaz, oluşturamaz ve değiştiremez. İstek native PermissionError ile reddedilir; hiçbir kayıt, denetim kaydı, outbox olayı veya mutabakat sonucu değişmez."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Frappe çekirdeğindeki native izin parçaları yeniden kullanılır: belge düzeyinde has_permission, REST okuma yolunda check_permission('read') sonrası alan seviyesi okuma izni uygulaması ve reportview tarafında istemciden gelen ignore_permissions parametresinin izin verilmeyen parametreler arasında olması. Bu parçalar mutabakat davranışının tamamının var olduğunu göstermez. Cari ve Payment Reconciliation ERPNext'e aittir ve incelenen kaynak anlık görüntüsünde kurulu değildir. ReconciliationRun DocType'ı, eşleme kuralı, geri alma kuralı ve işletmeci defterinin tenant sitelerinden ayrılması yoktur. server_script.js alıntısı string birleştirmeli izin sorgusu koşulu örneğidir; bu sözleşmede örnek alınmaz, yasaklanan kısayolun kaynağı olarak tutulur.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/permissions.py",
+        "line": 82,
+        "quote": "def has_permission("
+      },
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 84,
+        "quote": "\tdoc.apply_fieldlevel_read_permissions()"
+      },
+      {
+        "path": "frappe/frappe/desk/reportview.py",
+        "line": 25,
+        "quote": "DISALLOWED_PARAMS = (\"cmd\", \"data\", \"ignore_permissions\", \"view\", \"user\", \"csrf_token\", \"join\")"
+      },
+      {
+        "path": "frappe/frappe/core/doctype/server_script/server_script.js",
+        "line": 125,
+        "quote": "conditions = f'tenant_id = {tenant_id}'"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "frappe/frappe/core/doctype/server_script/server_script.js",
+      "frappe/frappe/desk/reportview.py",
+      "frappe/frappe/permissions.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/reconciliation-run.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/commercial/doctype/reconciliation_run/reconciliation_run.py"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Native Frappe User ve Role ile süper admin oturumu; işletmeci defterindeki müşteri cari kimliği (tenant-registry--contract kimliğine bağlanır); mutabakat dönemi başlangıç ve bitiş tarihi; eşleme kuralı sürümü; kernel-envelope--contract zarfındaki idempotency anahtarı. İstemciden gelen ignore_permissions, user, ham SQL koşulu veya tenant tarafından üretilmiş defter kimliği kabul edilmez.",
+    "output": "JSON model: çalıştırma kimliği, durum (taslak, çalışıyor, tamamlandı, başarısız, geri alındı), eşleşen ve eşleşmeyen kalem sayıları, denetim izi referansı. Gelecekteki React/Ant Design Pro yüzeyi yalnız bu JSON modelini tüketir; yerel ReactNode veya callback sözleşmeye girmez. Kaynak registry ile GenUI capability registry ayrıdır; GenUI ayrı kullanıcı projesidir ve bu sözleşmenin kapsamında değildir.",
+    "authorization": "Yalnız native Role, DocPerm, has_permission ve okuma yanıtında alan seviyesi okuma izni kullanılır. Liste filtrelemesi gerekirse hooks.py içindeki native izin kancaları Python'da, parametreli veya kaçışlı değerlerle yazılır; kanca adları hedef sürümde T-00 tabanından yeniden doğrulanır. Rol ve izin tanımları explicitPermissionFlags ortak kaynağına (native-user-policy--contract ve capability-definition--contract üzerinden) bağlanır; bu rehber yeni rol adı veya izin bayrağı üretmez. ignore_permissions=True, frappe.db.sql ile yetki atlama ve string birleştirmeli Permission Query koşulu yasaktır.",
+    "persistence": "ReconciliationRun tek DocType önerisidir (canonicalArtifact: proposed, custom_proposed); alan şeması reconciliation-run--schema görevine aittir. Yazım native insert/save ile tek transaction içinde yapılır; denetim kaydı audit-envelope--contract, yan etki olayı outbox--contract ile aynı transaction'a bağlanır. Defterin konumu (kontrol sitesi veya tenant sitesi) karar bekler; karar verilene kadar site arası veri akışı tasarlanmaz. ERPNext cari ve Payment Reconciliation verisine yazım, ERPNext kurulum kararından sonra ayrıca tanımlanır.",
+    "failure": "Yetkisiz istek: PermissionError, kayıt oluşmaz. Geçersiz veya eksik girdi: ValidationError, transaction geri alınır. Aynı idempotency anahtarıyla tekrar: mevcut çalıştırma döner, yeni kayıt açılmaz. Eşleme sırasındaki hata: kısmi eşleme kalıcılaştırılmaz, çalıştırma 'başarısız' durumuna alınır ve denetim izi yazılır. Tamamlanmış çalıştırmanın geri alınması yalnız süper admin tarafından ve denetim iziyle yapılır; ayrıntılı geri alma kuralı karar bekler. Doğrudan silme veya SQL güncellemesi yoktur."
+  },
+  "development": {
+    "dependencies": [
+      "audit-envelope--contract",
+      "capability-definition--contract",
+      "kernel-envelope--contract",
+      "native-user-policy--contract",
+      "outbox--contract",
+      "reconciliation-run--contract",
+      "reconciliation-run--schema",
+      "tenant-registry--contract"
+    ],
+    "admission": "Uygulama durumu: uygulanmadı. Özel kabul ön koşulları: T-00 hedef taban ve R-00 yeniden kullanım eşlemesi; izinli veri tüketicisi olduğu için R-01; reconciliation-run--contract, reconciliation-run--schema ve ortak sözleşmelerin (kernel-envelope, tenant-registry, native-user-policy, capability-definition, outbox, audit-envelope) kabul edilmiş olması; decisionsPending içindeki defter konumu kararının verilmiş olması. Tek dar davranış gerçek RED/GREEN kanıtıyla uygulanır. Bu sözleşme üretim kirası, servis, production, şema veya veri değişikliği yetkisi vermez.",
+    "steps": [
+      "T-00 tabanındaki hedef Frappe sürümünde has_permission, apply_fieldlevel_read_permissions ve reportview DISALLOWED_PARAMS satırlarını yeniden doğrula; R-00 eşlemesine kaydet.",
+      "Defter konumu kararı gelene kadar yalnız belge üret: yetki sınırını ve tenant için tek negatif kabul senaryosunu yaz.",
+      "reconciliation-run--schema görevinin DocType alanlarını tüket; eksik alan gerekiyorsa bu görevde ekleme yapma, schema görevine geri bildir.",
+      "DocPerm'i yalnız explicitPermissionFlags ortak kaynağındaki süper admin rolüne bağla; tenant rollerine okuma, yazma veya oluşturma izni verme.",
+      "Çalıştırma girişini native sırayla kur: izin kontrolü, doğrulama, insert/save; audit ve outbox kaydını aynı transaction içinde tut.",
+      "Okuma yolunda native check_permission('read') ve ardından alan seviyesi okuma izni uygulama sırasını izle.",
+      "Liste filtrelemesi gerekirse koşulu Python'da kaçışlı değerle veya query builder ile kur; string birleştirme ve ignore_permissions kullanma.",
+      "Eşleme motorunu ERPNext kurulum ve hedef sürüm kararından sonraya bırak; o zamana kadar yalnız çalıştırma kaydı ve durum geçişleri kapsamdadır.",
+      "UI ve paylaşımlı dosya değişiklikleri (routes.tsx, registry.ts, hooks.py, paket dosyaları) yalnız seri entegrasyon sahibi üzerinden ayrı işte yapılır; bu sözleşme değişiklik yetkisi vermez."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Tenant kullanıcısı işletmeci defterinde bir müşteri ve dönem için ReconciliationRun oluşturmayı dener; native PermissionError alır ve ReconciliationRun, denetim ve outbox kayıt sayıları değişmez.",
+      "red": "RED, davranış eksikliğinden gelmelidir: çalıştırma başlatma yolu henüz tenant reddini sağlamadığı için test beklenen PermissionError'ı almaz veya kayıt sayısı artar. Import hatası, eksik altyapı veya native has_permission'ı bozarak üretilen hata RED sayılmaz. Native varsayılan zaten reddediyorsa bu durum karakterizasyon kanıtı olarak kaydedilir ve karar sahibine raporlanır; sahte RED üretilmez.",
+      "green": "Yalnız DocPerm ve explicitPermissionFlags bağlantısı ile native izin kontrolü eklendiğinde aynı test PermissionError ile geçer ve kayıt sayıları değişmez. Süper admin pozitif yolu ayrı ve sonraki bir dilimdir."
+    },
+    "rollback": "Bu sözleşme çalışma zamanında hiçbir şeyi değiştirmez; geri alınacak runtime değişikliği yoktur. Gelecekteki uygulamada geri alma, kod değişikliğinin revert edilmesi ve DocType/izin değişikliğinin migrate ile geri alınmasıdır. Teknik CI, deploy ve rollback sahibi Hüseyin Cengiz'dir. GoDaddy/DNS adımı yoktur; Asistan Hüseyin'e devredilecek iş yoktur. Production verisi, mutabakat kayıtları veya ERPNext defteri bu rehberle değiştirilemez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "finance-3",
+      "sourceStage": "post_mvp",
+      "existing": "Native parçalar: Frappe belge düzeyi has_permission, REST okuma yolunda alan seviyesi okuma izni uygulaması, reportview'da istemciden gelen ignore_permissions parametresinin reddi, DocType izni ve Permission Query primitifleri. Cari ve Payment Reconciliation ERPNext ekosistemindedir ve incelenen kaynakta kurulu değildir. Bu parçalar işletmeci mutabakatının var olduğunu göstermez.",
+      "gap": "(1) İşletmeci defterinin konumu tanımsız; site arası veri akışı yok. (2) Süper admin rol/izin matrisi ve tenant reddi için negatif test senaryosu yazılmamış. (3) Mutabakat çalıştırma sözleşmesi (girdi, eşleme kuralı, geri alma, denetim izi) yok. (4) Keycloak rolünden Frappe Role'e eşleme tanımsız. (5) ignore_permissions ve string SQL Permission Query kısayolunun yasağı açıkça yazılmamış.",
+      "completionSteps": [
+        "Boşluk 1: defter konumu kararını decisionsPending üzerinden karar sahibinden al; karar gelene kadar site arası akış tasarlama.",
+        "Boşluk 2: süper admin izinlerini explicitPermissionFlags ortak kaynağına bağla; tenant için tek negatif kabul senaryosunu (reddedilen yazma, değişmeyen kayıt) development.tdd'deki biçimde yaz.",
+        "Boşluk 3: contract.input, output ve failure alanlarını reconciliation-run--contract ile hizala; eşleme kuralını ERPNext kararı sonrasına bırak, denetim izini audit-envelope--contract'a bağla.",
+        "Boşluk 4: bu sözleşmede yalnız native Frappe Role kullan; Keycloak eşlemesini kapsamına alma, ayrı karar olarak bekle.",
+        "Boşluk 5: contract.authorization'daki yasağı uygula; reportview'daki ignore_permissions reddini ve server_script.js'deki string koşul örneğini incelemede referans al."
+      ],
+      "dependencies": [
+        "reconciliation-run--contract",
+        "reconciliation-run--schema",
+        "native-user-policy--contract",
+        "capability-definition--contract",
+        "tenant-registry--contract",
+        "audit-envelope--contract",
+        "outbox--contract",
+        "kernel-envelope--contract"
+      ],
+      "acceptance": "Gelecekteki tek kabul: tenant kullanıcısının ReconciliationRun oluşturma veya işletmeci carisini okuma isteği native PermissionError ile reddedilir ve kayıt, denetim, outbox sayıları değişmez. Süper adminin mutabakat yapabilmesi ayrı ve sonraki dilimin kabulüdür. runtimeAcceptance şu an not_run.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 82,
+          "quote": "def has_permission("
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 84,
+          "quote": "\tdoc.apply_fieldlevel_read_permissions()"
+        },
+        {
+          "path": "frappe/frappe/desk/reportview.py",
+          "line": 25,
+          "quote": "DISALLOWED_PARAMS = (\"cmd\", \"data\", \"ignore_permissions\", \"view\", \"user\", \"csrf_token\", \"join\")"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/server_script/server_script.js",
+          "line": 125,
+          "quote": "conditions = f'tenant_id = {tenant_id}'"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "İşletmeci defterinin konumu ve site arası veri akışı tanımsız (karar bekliyor).",
+    "Süper admin rol/izin matrisi explicitPermissionFlags kaynağına bağlanmadı; negatif senaryo yalnız yönerge olarak var, test yazılmadı ve koşulmadı.",
+    "Eşleme kuralı ve geri alma politikası tanımsız; mutabakat motoru ERPNext kurulumuna bağlı.",
+    "Keycloak rolünden Frappe Role'e eşleme bu sözleşmenin kapsamı dışında ve açık.",
+    "Kaynak alıntıları önceki salt okunur Frappe anlık görüntülerinden; hedef sürümde yeniden doğrulanmadı, canlı site veya ürün kabulü yok."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "İşletmeci cari defterinin konumu: ayrı kontrol sitesi mi, tenant sitesi mi (tenant topolojisi).",
+      "requirementIds": ["finance-3"],
+      "blocksStep": "contract.persistence, site arası veri akışı ve development.admission",
+      "documentStepUntilDecided": "Yetki sınırını ve tenant için tek negatif kabul senaryosunu belge olarak yaz; site arası akış tasarlama."
+    },
+    {
+      "decision": "ERPNext kurulumu ve hedef sürümü (cari ve Payment Reconciliation için).",
+      "requirementIds": ["finance-3"],
+      "blocksStep": "Eşleme motoru ve ERPNext defterine yazım adımı",
+      "documentStepUntilDecided": "Çalıştırma kaydı, durum geçişleri ve gereken eşleme alanlarının listesini belge olarak tut."
+    },
+    {
+      "decision": "Mutabakat eşleme kuralı ve tamamlanmış çalıştırmanın geri alma politikası (finans iş kuralı).",
+      "requirementIds": ["finance-3"],
+      "blocksStep": "contract.failure geri alma ayrıntısı ve eşleme motoru",
+      "documentStepUntilDecided": "Denetim izi alanlarını ve doğrudan silme/SQL yasağını belge olarak sabitle."
+    },
+    {
+      "decision": "Keycloak rolünden Frappe Role'e eşleme (bu sözleşmenin kapsamı dışında).",
+      "requirementIds": ["finance-3"],
+      "blocksStep": "Dış kimlik sağlayıcıdan gelen süper admin rolünün otomatik eşlenmesi",
+      "documentStepUntilDecided": "Yalnız native Frappe Role ve DocPerm ile yetki sınırını tanımla."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

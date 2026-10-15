@@ -4,15 +4,20 @@
   "canonicalTaskIds": ["security-incident--implementation"],
   "requirementIds": ["security-9"],
   "stage": "mvp",
+  "sourceStages": {
+    "security-9": "mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
-    "title": "Rate Limit blocked_ips girisi gerekce ve geri alma adimi olmadan kaydedilemez",
-    "trigger": "Yetkili kullanici mevcut bir Rate Limit kaydinda blocked_ips alanina IP oneki yazip Document.save cagirir (native desk formu veya mevcut REST).",
-    "expected": "blocked_ips doluysa security_block_reason ve security_rollback_step dolu olmadan kayit reddedilir. Ikisi doluysa kayit saklanir, kaydeden kullanici modified_by ile onaylayan olarak izlenir ve engel mevcut validate akisinda RateLimitExceededError ile uygulanir.",
-    "denied": "Gerekce veya geri alma alani bos blocked_ips kaydi; Rate Limit yazma izni olmayan kullanici; ayni IP'nin hem allowed hem blocked olmasi (mevcut kontrol)."
+    "title": "Rate Limit blocked_ips girişi gerekçe ve geri alma adımı olmadan kaydedilemez",
+    "trigger": "Rate Limit yazma izni olan kullanıcı mevcut bir Rate Limit kaydında blocked_ips alanına IP öneki yazar ve native Document.save yolunu (desk formu veya mevcut Frappe REST) çağırır.",
+    "expected": "blocked_ips doluyken security_block_reason ve security_rollback_step boşsa kayıt reddedilir ve veritabanındaki belge değişmez. İkisi doluysa kayıt native save ile saklanır. Kaydeden kullanıcı modified_by ile onaylayan olarak izlenir. Engelin kendisi mevcut rate_limiter akışındaki RateLimitExceededError ile uygulanır. Uygulama durumu: uygulanmadı.",
+    "denied": "Reddedilenler: gerekçe veya geri alma adımı boş olan blocked_ips kaydı; Rate Limit yazma izni olmayan kullanıcı (native frappe.PermissionError); aynı IP önekinin hem izinli hem engelli listede olması. Son kontrol önceki sözleşmede belirtilmişti ancak doğrulanmış alıntıda görünmüyor; hedef tabanda doğrulanmalı."
   },
   "reuse": {
-    "mechanism": "Native once: mevcut Rate Limit DocType, blocked_ips ve Document.save. Config: iki CustomField (Small Text, mandatory_depends_on eval:doc.blocked_ips). Adapter yalniz mandatory_depends_on sunucu tarafinda zorlanmiyorsa: Rate Limit validate doc_event (suite hooks.py doc_events deseniyle ayni). Yeni DocType, ORM veya olay motoru yok.",
+    "status": "KISMI",
+    "mechanism": "Önce native parçalar kullanılır: mevcut Rate Limit DocType, blocked_ips alanı, native izin denetimi ve Document.save transaction'ı. Engel, mevcut rate_limiter mesajıyla uygulanır. Config tarafında iki CustomField önerilir (Small Text, mandatory_depends_on eval:doc.blocked_ips). Adapter yalnız mandatory_depends_on sunucu tarafında zorlanmıyorsa eklenir: Rate Limit validate doc_event, suite hooks.py olay işleyici desenine uygun. Yeni DocType, ORM, CRUD veya olay motoru yok. ignore_permissions, ignore_mandatory ve ham SQL kullanılmaz. Kanıtlar yalnız tek tek native parçaları gösterir; gerekçe/geri alma zorlaması ve vaka modeli kaynakta görülmedi. Aranan yollar sınırlı bir listedir; kapsamlı bir yokluk iddiası değildir.",
     "evidence": [
       {
         "path": "suite/suite/utils/rate_limiter.py",
@@ -29,6 +34,13 @@
         "line": 261,
         "quote": "\"suite.mail.events.clear_sessions_on_disable\","
       }
+    ],
+    "searchedPaths": [
+      "suite/suite/drive/webdav/auth.py",
+      "suite/suite/hooks.py",
+      "suite/suite/meet/sfu-server/src/server/handlers/AuthHandlers.ts",
+      "suite/suite/suite_core/doctype/rate_limit/rate_limit.py",
+      "suite/suite/utils/rate_limiter.py"
     ]
   },
   "ownership": {
@@ -36,56 +48,151 @@
     "plannedProduction": [
       "operations/security-incident/security_incident_mvp.yml"
     ],
-    "plannedTestFile": "backend/saas_platform/saas_platform/tests/test_security_incident_block_reason.py",
+    "plannedTestFile": null,
     "sharedIntegrationFiles": [
-      "integration/fragments/security-incident--integration.json",
-      "backend/saas_platform/saas_platform/hooks.py (yalniz adapter gerekirse; Codex entegrasyonu)"
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "Rate Limit.blocked_ips: Small Text, satir basina bir IP oneki. security_block_reason: Small Text, bos olamaz; kisisel veri, secret veya ham saglayici logu icermez. security_rollback_step: Small Text, bos olamaz; hangi onekin hangi Rate Limit kaydindan kaldirilacagini yazar. Minimum uzunluk zorlanmaz (gap).",
-    "output": "Rate Limit belgesi native alanlariyla ve iki CustomField ile; okuma native DocType izniyle. Sozlesme surumu contract-security-incident v1. Version kaydi yalniz track_changes aciksa olusur (bilinmiyor).",
-    "authorization": "Native site siniri; yerel kanit suite.localhost. Rate Limit rol izinleri alintida yok, bilinmiyor; beklenen System Manager. Izinsiz yazma frappe.PermissionError. Alanlar permlevel 0, belgeyle ayni kapsam. ignore_mandatory ile kaydeden kod yollari kapsam disi (gap).",
-    "persistence": "Tek istek transaction'inda Document.save; dogrulama hatasinda rollback, blocked_ips degismez. clear_cache metodu rate_limits cache girdisini siler; cagri noktasi alintida yok. CustomField kolonu icin DDL garantisi verilmez, yerel sitede dogrulanir.",
-    "failure": "Eksik alan: frappe.MandatoryError (ValidationError ailesi); mevcut desk/AntD formu alan hatasini gosterir, girilen deger korunur. Engellenen istek: frappe.RateLimitExceededError mevcut mesajla. UI degisikligi yok; ileride Outfit 14px, 320-first, cevreleyen odak halkasi yok, simetrik pozitif Cubic hareket korunur."
+    "input": "Rate Limit.blocked_ips: native Small Text alanı, satır başına bir IP öneki. security_block_reason: önerilen CustomField, Small Text; blocked_ips doluyken boş olamaz; kişisel veri, secret, token veya ham sağlayıcı logu içermez. security_rollback_step: önerilen CustomField, Small Text; blocked_ips doluyken boş olamaz; hangi önekin hangi Rate Limit kaydından kaldırılacağını yazar. Minimum uzunluk ve biçim zorlanmaz (açık eksik).",
+    "output": "Rate Limit belgesi native alanları ve önerilen iki CustomField ile döner; okuma native DocType izniyle yapılır. Sözleşme sürümü: contract-security-incident v1. Version kaydı yalnız DocType'ta track_changes açıksa oluşur. Bu ayarın durumu bilinmiyor; T-00 ile doğrulanır.",
+    "authorization": "Native site ve DocType izin sınırı yeniden kullanılır. Rate Limit rol izinleri doğrulanmış alıntıda yok, dolayısıyla bilinmiyor. System Manager beklentisi, hedef tabanda salt okumayla doğrulanmadan kabul edilmez. İzinsiz yazma native frappe.PermissionError ile reddedilir. Alanlar permlevel 0'dır ve belgeyle aynı kapsamdadır. Bu rehber yeni rol veya izin üretmez; ileride üretilirse ortak explicitPermissionFlags kaynağına bağlanır. ignore_permissions, ignore_mandatory veya SQL ile yazan kod yolları kapsam dışıdır ve bypass olarak kullanılmaz.",
+    "persistence": "Tek istek transaction'ında native Document.save kullanılır. Doğrulama hatasında rollback olur; blocked_ips ve diğer alanlar değişmez. Rate Limit clear_cache metodu rate_limits cache girdisini siler, ancak çağrı noktası alıntıda yok. Bu yüzden engelin hemen etkili olduğu varsayılmaz; doğrulanır. CustomField kolonu için DDL garantisi verilmez. Bu sözleşme hiçbir servis, production ortamı, şema veya veriyi değiştirme yetkisi vermez.",
+    "failure": "Eksik alan: frappe.MandatoryError (ValidationError ailesi). Native desk formu alan hatasını gösterir ve girilen değer korunur. Engellenen istek: frappe.RateLimitExceededError, mevcut mesajla. Bu davranışta UI değişikliği yok. İleride React/Ant Design yüzeyi eklenirse şu kurallar uygulanır: Outfit, en az 14 CSS px metin, 320 CSS px öncelik, çevreleyen odak halkası olmadan görünür klavye odağı ve iki yönlü pozitif süreli simetrik Cubic hareket."
   },
   "development": {
-    "dependencies": [
-      "security-incident--contract",
-      "localPilot r02: same controlled field two configs",
-      "localPilot t08: native admin/reader scopes"
-    ],
-    "admission": "T-00 hedef taban, R-00 yeniden kullanim eslemesi ve R-01 izinli tuketici on kosuldur. Yerel Frappe17-dev frappeHead adf1fd0c; suiteSourceHead unknown. Rate Limit DocType'in yerel sitede kurulu oldugu, izinleri ve mandatory_depends_on sunucu zorlamasi salt okumayla dogrulanmali. Yerel kanit uzak urun tabani degildir.",
+    "dependencies": ["security-incident--contract"],
+    "admission": "Uygulama durumu: uygulanmadı. Ön koşullar: T-00 hedef taban ve R-00 yeniden kullanım eşlemesi; izinli veri tüketicisi olduğu için R-01 de gerekir. Hedef Frappe/Suite sürüm tabanı bu sözleşmede seçilmez ve şu an bilinmiyor. Üretim kiralaması için önce hedef tabanda salt okumayla şunlar doğrulanmalı: Rate Limit DocType'ın kurulu olması, rol izinleri, track_changes ve mandatory_depends_on sunucu zorlaması. Kaynak alıntıları önceki salt okuma Frappe/Suite anlık görüntülerinden gelir; canlı site veya ürün kabulü değildir.",
     "steps": [
-      "Yerel sitede Rate Limit izinlerini, track_changes ve mandatory_depends_on sunucu zorlamasini salt okumayla dogrula.",
-      "Tek testi yaz ve gercek RED gozle.",
-      "security_incident_mvp.yml icinde iki CustomField tanimini yaz; Codex fixture olarak entegre eder.",
-      "Sunucu zorlamasi yoksa yalniz Rate Limit validate doc_event adapter'i ekle (entegrasyon sahipligi).",
-      "Ayni testi GREEN olarak calistir."
+      "Hedef tabanda Rate Limit izinlerini, track_changes ve mandatory_depends_on sunucu zorlamasını salt okumayla doğrula; sonuçları bu sözleşmeye path/line/quote kanıtı olarak ekle.",
+      "Test dosyası sahipliği verildiğinde tek senaryoyu yaz ve gerçek RED'i gözle.",
+      "operations/security-incident/security_incident_mvp.yml içinde iki CustomField tanımını öner; entegrasyon sahibi bunları fixture olarak seri birleştirir.",
+      "Sunucu zorlaması yoksa yalnız Rate Limit validate doc_event adapter'ını öner; backend/saas_platform/saas_platform/hooks.py dosyası entegrasyon sahipliğindedir.",
+      "Aynı senaryoyu değişmeyen assertion ile GREEN olarak çalıştır. Teknik CI, deploy ve rollback devri Hüseyin Cengiz'e yapılır."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "Test kendi olusturdugu Rate Limit kaydina blocked_ips=203.0.113. yazar; gerekce ve geri alma bosken save frappe.MandatoryError vermeli; ikisi doldurulunca save basarili ve alanlar geri okunur. Musteri kaydi silinmez.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Ayni komut: bench --site suite.localhost run-tests --module saas_platform.tests.test_security_incident_block_reason; fixture/adapter sonrasi gecer."
+      "oneScenario": "Test kendi oluşturduğu Rate Limit kaydında blocked_ips=203.0.113. yazar. security_block_reason ve security_rollback_step boşken save frappe.MandatoryError vermeli ve yeniden okunan kayıtta blocked_ips değişmemiş olmalı. İkisi doldurulunca save başarılı olmalı ve alanlar geri okunmalı. Müşteri kaydı oluşturulmaz, değiştirilmez veya silinmez.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. Beklenen RED: alanlar ve zorlama yokken gerekçesiz blocked_ips kaydı başarıyla saklanır, bu yüzden MandatoryError beklentisi başarısız olur. Import veya altyapı hatası RED sayılmaz; native olarak geçen davranışa RED uydurulmaz. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "Uygulamadan sonra aynı senaryo, aynı assertion ve aynı komutla geçmeli. Komut ve test sitesi, T-00 tabanı ve test dosyası sahipliğiyle belirlenir. Şu an not_run; bu sözleşme veya biçim kontrolü ürün GREEN'i sayılmaz."
     },
-    "rollback": "Yerel sitede iki Custom Field kaydini ve fixture/adapter girdisini geri al; test IP onekini blocked_ips'ten cikar. Kolon temizligi garanti degil. Uretim degisikligi yetkisi yok; dagitim Huseyin Cengiz bagimliligidir."
+    "rollback": "İki CustomField önerisini ve varsa adapter girdisini geri al; test IP önekini blocked_ips'ten çıkar. Kolon temizliği garanti değildir. Production değişikliği yetkisi yok; dağıtım ve geri almanın teknik sahibi Hüseyin Cengiz'dir. Bu davranışta DNS/GoDaddy adımı yoktur; ileride gerekirse GoDaddy uygulama sahibi Asistan Hüseyin'dir."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "security-9",
+      "sourceStage": "mvp",
+      "existing": [
+        "Rate Limit blocked_ips (native parça): rate_limiter, engelli IP için mevcut erişim reddi mesajıyla RateLimitExceededError üretir.",
+        "Rate Limit clear_cache (native parça): rate_limits cache girdisini siler. Çağrı noktası alıntıda yok; engelin ne zaman etkili olduğu doğrulanmalı.",
+        "User devre dışı bırakma (native parça): clear_sessions_on_disable olay işleyicisi suite hooks.py içinde kayıtlı; gerekçe veya geri alma kaydı yok.",
+        "WebDAV kimlik doğrulama (sinyal parçası): çok sayıda başarısız girişten sonra erişim geçici olarak reddedilir.",
+        "SFU AuthHandlers (sinyal parçası): authEvents telemetrisi kimlik doğrulama olaylarını sayar."
+      ],
+      "gap": [
+        "Gerekçe ve geri alma adımı alanları ve zorlaması Rate Limit validate akışında yok; bu sözleşmenin tek davranışı bu eksiği kapatır.",
+        "Güvenlik olayı vaka modeli (önem, sorumlu, durum, kanıt bağlantısı) tanımsız; Activity/Access/Error Log kaynakları doğrulanmış alıntıda yok.",
+        "Kontrollü engelin hangi katmanda olacağı karar bekliyor: Rate Limit, User devre dışı bırakma, Keycloak oturum iptali veya edge WAF.",
+        "Rate Limit engeli method bazlı; site geneli IP engeli yok.",
+        "Dört göz onayı yok; onaylayan, kaydeden yetkili kullanıcıdır."
+      ],
+      "completionSteps": [
+        "Rate Limit parçası: hedef tabanda izin, track_changes ve mandatory_depends_on sunucu zorlamasını salt okumayla doğrula.",
+        "Rate Limit parçası: security_block_reason ve security_rollback_step CustomField önerisini (Small Text, mandatory_depends_on eval:doc.blocked_ips) security_incident_mvp.yml içinde yaz. Zorlama sunucuda yoksa yalnız validate doc_event adapter'ını öner.",
+        "Rate Limit parçası: tek senaryoyu gerçek RED ile, ardından aynı assertion ile GREEN olarak kanıtla. Reddedilen yazmada kaydın değişmediğini geri okuyarak doğrula.",
+        "User devre dışı bırakma parçası: mevcut clear_sessions_on_disable yoluna dokunma. Gerekçe/geri alma ihtiyacını ayrı davranış olarak remainingGaps içinde tut; bu sözleşmede uygulanmaz.",
+        "WebDAV ve SFU sinyal parçaları: bunların vaka girdisine bağlanması, vaka modeli kararından sonra ayrı bir tek davranış sözleşmesiyle ele alınır. Yeni olay motoru tasarlanmaz.",
+        "Vaka modeli: decisionsPending kapanmadan DocType veya CRUD tasarlanmaz. O zamana kadar yalnız alan listesi ve kaynak eşlemesi belge olarak tutulur."
+      ],
+      "dependencies": ["security-incident--contract"],
+      "acceptance": "Gelecekteki tek kabul: gerekçe veya geri alma adımı boş olan blocked_ips kaydı MandatoryError ile reddedilir ve yeniden okunan kayıt değişmemiştir. İkisi doluyken native save başarılıdır ve alanlar geri okunur. Vaka kaydı, inceleme ve müdahale akışı bu kabulün dışındadır ve remainingGaps içinde kalır. Uygulama durumu: uygulanmadı; runtimeAcceptance not_run.",
+      "evidence": [
+        {
+          "path": "suite/suite/utils/rate_limiter.py",
+          "line": 52,
+          "quote": "\"Access denied: Your IP address ({0}) is blocked due to explicit IP restrictions.\""
+        },
+        {
+          "path": "suite/suite/suite_core/doctype/rate_limit/rate_limit.py",
+          "line": 80,
+          "quote": "frappe.cache.hdel(\"rate_limits\", self.method_path)"
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 261,
+          "quote": "\"suite.mail.events.clear_sessions_on_disable\","
+        },
+        {
+          "path": "suite/suite/drive/webdav/auth.py",
+          "line": 49,
+          "quote": "\"Too many failed login attempts. Try again later.\","
+        },
+        {
+          "path": "suite/suite/meet/sfu-server/src/server/handlers/AuthHandlers.ts",
+          "line": 18,
+          "quote": "deps.telemetry.authEvents.inc({"
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "Guvenlik olayi vaka modeli (onem, sorumlu, durum, kanit baglantisi) tanimsiz; Activity/Access/Error Log kaynagi alintida yok.",
-    "Dort goz onayi yok; onaylayan = kaydeden yetkili kullanici.",
-    "User enabled=0 ve clear_sessions_on_disable yolunda gerekce/geri alma yok.",
-    "Keycloak oturum iptali karar bekliyor, kapsam disi; edge WAF icin vendor secilmez, dagitim Huseyin Cengiz bagimliligi.",
-    "Engel method bazli; site geneli IP engeli yok.",
-    "WebDAV lockout ve SFU authEvents sinyalleri vakaya baglanmiyor.",
-    "Rate Limit izinleri, track_changes, clear_cache cagri noktasi ve uzak urun tabani bilinmiyor."
+    "Güvenlik olayı vaka modeli (önem, sorumlu, durum, kanıt bağlantısı) tanımsız; Activity/Access/Error Log kaynağı doğrulanmış alıntıda yok.",
+    "Dört göz onayı yok; onaylayan, kaydeden yetkili kullanıcıdır.",
+    "User enabled=0 ve clear_sessions_on_disable yolunda gerekçe ve geri alma kaydı yok.",
+    "Keycloak oturum iptali karar bekliyor ve kapsam dışı. Edge WAF için satıcı seçilmez; teknik bağımlılık Hüseyin Cengiz'dedir.",
+    "Engel method bazlı; site geneli IP engeli yok.",
+    "WebDAV lockout ve SFU authEvents sinyalleri vakaya bağlanmıyor.",
+    "Rate Limit izinleri, track_changes, mandatory_depends_on sunucu zorlaması, clear_cache çağrı noktası ve hedef taban bilinmiyor.",
+    "Gerekçe ve geri alma alanları için minimum uzunluk ve biçim zorlanmıyor."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Kontrollü erişim engelinin katmanı ve kapsamı: method bazlı Rate Limit yeterli mi, yoksa site geneli IP engeli, User devre dışı bırakma veya edge katmanı da mı gerekiyor?",
+      "requirementIds": ["security-9"],
+      "blockedStep": "Rate Limit dışındaki engel aksiyonlarının sözleşmesi ve vaka aksiyon eşlemesi.",
+      "documentStepUntilDecision": "Rate Limit gerekçe/geri alma davranışı belge olarak tamamlanır; diğer katmanlar yalnız eşleme listesinde tutulur."
+    },
+    {
+      "decision": "Edge WAF kullanılacak mı ve satıcısı ne olacak? Bu sözleşme satıcı veya tarife seçmez.",
+      "requirementIds": ["security-9"],
+      "blockedStep": "Edge katmanında engel ve geri alma adımı.",
+      "documentStepUntilDecision": "Satıcıdan bağımsız teknik gereksinim taslağı, Hüseyin Cengiz için devir notu olarak hazırlanır."
+    },
+    {
+      "decision": "Kimlik topolojisinde Keycloak yer alacak mı, oturum iptali hangi sahiplikte yapılacak?",
+      "requirementIds": ["security-9"],
+      "blockedStep": "Keycloak oturum iptali aksiyonu.",
+      "documentStepUntilDecision": "Kapsam dışı not olarak tutulur; Keycloak kararına bağlı başka madde eklenmez."
+    },
+    {
+      "decision": "Vaka ve kanıt kayıtlarının saklama süresi ve veri yerleşimi.",
+      "requirementIds": ["security-9"],
+      "blockedStep": "Vaka modelinin persistence ve kanıt bağlantısı sözleşmesi.",
+      "documentStepUntilDecision": "Alan listesi ve kaynak eşlemesi, saklama değeri belirtilmeden taslak olarak tutulur."
+    },
+    {
+      "decision": "Dört göz onayı zorunlu mu (onaylayan ile kaydeden ayrı kişiler mi olmalı)?",
+      "requirementIds": ["security-9"],
+      "blockedStep": "Ayrı onay modeli ve onaylayan alanı.",
+      "documentStepUntilDecision": "MVP davranışında onaylayanın, modified_by ile izlenen kaydeden kullanıcı olduğu açıkça belgelenir."
+    },
+    {
+      "decision": "Hedef Frappe/Suite sürüm tabanı (T-00).",
+      "requirementIds": ["security-9"],
+      "blockedStep": "Admission doğrulaması, test komutu ve gerçek RED/GREEN.",
+      "documentStepUntilDecision": "Salt okuma doğrulama listesi (izinler, track_changes, mandatory_depends_on zorlaması, clear_cache çağrı noktası) hazırlanır."
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "security-9": "mvp"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,

@@ -1,0 +1,193 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "ui-presence",
+  "canonicalTaskIds": ["ui-presence--implementation"],
+  "requirementIds": ["realtime-5"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "realtime-5": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Kayıt presence'ı ve eski sürümle kaydetme uyarısı (RecordPresence)",
+    "trigger": "Okuma izni olan kullanıcı bir Frappe kaydını React/Ant Design form yüzeyinde açar, açık tutar, kapatır veya bağlantısı kopar; ya da başka bir kullanıcının kaydettiği kaydı kendi yüklediği eski modified değeriyle kaydetmeye çalışır.",
+    "expected": "Aynı kaydı görüntüleyen ve düzenleyen diğer kullanıcılar ayrı modlarla görünür; heartbeat'i kesilen kullanıcı TTL süresi dolunca listeden düşer; eski sürümle kaydetme sunucuda native çakışma kontrolüyle reddedilir, kayıt değişmez ve kullanıcıya yenileme eylemi olan açık bir çakışma uyarısı gösterilir.",
+    "denied": "Kayıt üzerinde read izni olmayan kullanıcı presence odasına katılamaz, kimin görüntülediğini göremez ve kendi varlığını yayımlayamaz; write izni olmayan kullanıcı 'düzenliyor' olarak işaretlenemez. Eski sürümle kaydetme istemci tarafında hiçbir koşulda geçersiz kılınmaz; ignore_permissions, ham SQL veya native çakışma kontrolünü atlayan bir yazma yolu kullanılmaz."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Kaynak değerlendirmesi ürün uygulamasından ayrıdır. Suite Sheets (Vue/Frappe UI) içinde TTL'li awareness, izin kontrolü için sunucu üzerinden geçen relay ve görüntüleyen kullanıcı listesi bulunur; bunlar yalnız Sheet'e özel Yjs awareness desenidir ve React/Ant Design uygulaması kanıtı değildir. Genel kayıt presence'ı için yeniden kullanılacak olan Sheet kodu değil, desendir: yayın sunucuda izin kontrolünden geçer, istemci keepalive gönderir ve TTL dolan istemci düşer. Çakışma tarafında native Document kaydetme/transaction yolu ve check_if_latest kontrolü yeniden kullanılır; mevcut atıf version-15 kaynağına aittir, hedef taban davranışı eşlenmemiştir. suite/suite/sheets/collab.py içindeki ignore_permissions ile insert deseni kopyalanmayacak karşı örnektir. Bir native parçanın varlığı bütün davranışın var olduğu anlamına gelmez.",
+    "evidence": [
+      {
+        "path": "suite/frontend/src/apps/sheets/collab/awareness.js",
+        "line": 23,
+        "quote": "const CLIENT_TTL_MS = 25_000"
+      },
+      {
+        "path": "suite/frontend/src/apps/sheets/collab/realtime-adapter.js",
+        "line": 7,
+        "quote": "so it can enforce permission checks"
+      },
+      {
+        "path": "suite/frontend/src/apps/sheets/components/SheetEditor/useCollaboration.js",
+        "line": 126,
+        "quote": "// other users currently viewing"
+      },
+      {
+        "path": "suite/suite/sheets/collab.py",
+        "line": 147,
+        "quote": "doc.insert(ignore_permissions=True)"
+      }
+    ],
+    "searchedPaths": [
+      "suite/frontend/src/apps/sheets/collab/awareness.js",
+      "suite/frontend/src/apps/sheets/collab/realtime-adapter.js",
+      "suite/frontend/src/apps/sheets/components/SheetEditor/useCollaboration.js",
+      "suite/suite/sheets/collab.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/ui-presence.json",
+    "plannedProduction": [
+      "frontend/packages/ui/src/components/ui-presence/index.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Kayıt kimliği (doctype, name), istemcinin kaydı yüklerken aldığı modified değeri, oturumdaki kullanıcı, presence modu (görüntülüyor/düzenliyor) ve heartbeat zamanı. RecordPresence bileşeninin JSON model girdisi yalnız serileştirilebilir alanlardır (kullanıcı listesi, mod, son görülme, çakışma durumu); yenile/kapat gibi yerel callback ve ReactNode'lar JSON model sınırının dışında, yalnız yerel prop olarak verilir.",
+    "output": "Presence listesi: kullanıcı kimliği, görünen ad, mod ve son heartbeat. Çakışma durumu: kayıt kimliği, reddin nedeni ve kullanıcıya gösterilen uyarı ile yenileme eylemi. Hatalar kernel-envelope sözleşmesinin hata zarfıyla taşınır; bu belge yeni bir zarf veya hata kodu tanımlamaz.",
+    "authorization": "Presence'a katılma ve yayımlama sunucuda native Frappe izin kontrolünden (read) geçer; 'düzenliyor' modu write izni gerektirir. Kontrol api-middleware sözleşmesindeki ortak katmandan geçer. Bu davranış yeni rol veya izin bayrağı üretmez; ileride gerekirse explicitPermissionFlags ortak kaynağına bağlanır. İstemcide gizleme yetki sayılmaz. Presence odası tenant/site sınırını aşamaz.",
+    "persistence": "Kalıcı şema, DocType veya veri değişikliği yoktur. Presence geçicidir: realtime yayını ve gerekiyorsa TTL'li native önbellek; hiçbir koşulda ignore_permissions ile veritabanına yazılmaz. Kayıt kaydetme yalnız native Document save/transaction yolundan geçer; native çakışma kontrolü kapatılmaz veya atlanmaz.",
+    "failure": "Realtime bağlantısı yoksa presence 'bilinmiyor' olarak gösterilir; düzenleme engellenmez, sunucu çakışma kontrolü geçerli kalır. Eski sürümle kaydetme reddedilir ve kayıt değişmez. İzin reddinde presence verisi veya kullanıcı adı sızdırılmaz. TTL dolan kullanıcı listeden düşer; yeniden bağlanınca heartbeat yeniden başlar. Çakışma uyarısı kullanıcının yerel form girdisini silmez."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "client-rule-parity--contract",
+      "kernel-envelope--contract",
+      "ui-presence--contract"
+    ],
+    "admission": {
+      "statusNote": "Uygulama durumu: uygulanmadı.",
+      "prerequisites": [
+        "T-00 hedef tabanı: hedef Frappe sürümü ve bu sürümde Document kaydetme/check_if_latest davranışı okunmuş olmalı.",
+        "R-00 yeniden kullanım eşlemesi: Suite Sheets deseninin yalnız referans olduğu, kodunun taşınmadığı kayda geçmeli.",
+        "R-01: davranış izinli veri tükettiği için ortak izin kuralı uygulanır.",
+        "Bağımlı sözleşmeler (ui-presence--contract, kernel-envelope--contract, api-middleware--contract, client-rule-parity--contract) kabul edilmeden üretim kiralaması verilmez.",
+        "Tek dar davranış gerçek RED/GREEN kanıtıyla uygulanır."
+      ],
+      "orderAuthority": "Mevcut görev bağımlılıkları ve post_mvp aşaması belirler; küme sırası (8) yalnız sunumdur, yeni bir seri bağımlılık zinciri değildir.",
+      "noAuthority": "Bu belge hiçbir servis, production ortamı, şema veya veriyi değiştirme yetkisi vermez."
+    },
+    "steps": [
+      "1. T-00 tabanında native Document kaydetme yolunu oku; modified karşılaştırmasının ve check_if_latest'in hedef sürümdeki davranışını, hata türünü ve mesajını version-15 atfından ayrı bir eşleme tablosuna yaz. Eşleşmeyen nokta varsa decisionsPending'e taşı; API adını doğrulamadan varsayma.",
+      "2. kernel-envelope sözleşmesine referansla native çakışma reddinin hata zarfında nasıl taşındığını eşle; yeni kod uydurma.",
+      "3. Presence sunucu ucu: api-middleware üzerinden izinli bir method; önce read (düzenliyor için write) izin kontrolü, sonra Frappe Realtime API ile yalnız ilgili kaydın odasına yayın. Suite relay'indeki sunucu tarafı izin kontrolü deseni izlenir, Sheet'e bağımlılık kurulmaz.",
+      "4. İstemci: periyodik heartbeat ve TTL ile düşürme; değerler decisionsPending kararına bağlıdır. Suite Sheet'teki 25 sn TTL yalnız referanstır.",
+      "5. RecordPresence bileşeni: Ant Design bileşenleri ve projenin semantik tokenlarıyla; frontend/packages/ui/src/registry.ts içine kaynak bileşen olarak kaydedilir. Bu kayıt GenUI capability registry kaydı değildir.",
+      "6. Çakışma uyarısı: kaydetme mutasyonunun reddi uyarı olarak gösterilir; yenileme eylemi TanStack Query ile kayıt sorgusunu geçersiz kılar. İstemcide erken uyarı client-rule-parity sözleşmesine göre yalnız bilgilendiricidir; otorite sunucudadır.",
+      "7. UI kuralları: minimum 14 CSS px metin, çevreleyen odak halkası yok ve görünür, çevrelemeyen klavye odağı, merkezi hareket tokenları ve reduced-motion, 320 CSS px'ten başlayan akışkan yerleşim; presence bilgisi yalnız hover ile erişilebilir olmaz."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Kullanıcı A ve B aynı kaydı açar; B kaydeder; A, B'nin kaydından önceki modified değeriyle kaydetmeye çalışır: sunucu reddeder, kayıt B'nin kaydettiği haliyle değişmeden kalır ve A'nın ekranında yenileme eylemi olan çakışma uyarısı görünür.",
+      "red": "Native çakışma reddi döndüğü halde RecordPresence/form yüzeyi bu reddi çakışma uyarısı olarak göstermediği için 'uyarı görünür' doğrulaması başarısız olur; 'kayıt değişmedi' doğrulaması native davranışla geçer. RED import veya altyapı hatası olamaz; native kontrol bozularak elde edilemez.",
+      "green": "Native ret, kernel-envelope hata zarfından okunup uyarıya eşlenir; uyarı ve yenileme eylemi görünür, kayıt değişmemiştir ve native check_if_latest yolu değiştirilmemiştir."
+    },
+    "rollback": "Paylaşılan entegrasyon dosyalarındaki eklemeler (registry.ts, routes.tsx, gerekiyorsa hooks.py) ve presence ucu geri alınır. Native kaydetme ve çakışma kontrolü değişmediği için veri geri alımı gerekmez; presence geçici olduğundan TTL sonunda kendiliğinden temizlenir. CI/deploy/rollback'in teknik sahibi Hüseyin Cengiz'dir; bu belge rollback yürütme yetkisi vermez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "realtime-5",
+      "sourceStage": "post_mvp",
+      "existing": "Native parça: Suite Sheets'te TTL'li awareness, sunucuda izin kontrolünden geçen realtime relay ve görüntüleyen kullanıcı listesi var (yalnız Sheet'e özel, Vue/Frappe UI). Frappe'de native Document kaydetme yolu ve check_if_latest çakışma kontrolü var; mevcut atıf version-15 kaynağına ait. Mevcut talimatın kabul ölçütü: iki editör görünür olsun, kopan kullanıcının presence kaydı süre sonunda kalksın.",
+      "gap": "Kabul ölçütünde eşzamanlı düzenleme/çakışma uyarısı yok, yalnız presence var; check_if_latest atfı version-15'e işaret ediyor ve v17-dev davranışı eşlenmemiş; genel kayıt presence'ı ile Sheet'e özel Yjs awareness arasındaki yeniden kullanım sınırı yazılmamış; Suite'teki secret ile ignore_permissions kullanılan persist deseninin kopyalanmaması gerektiği belirtilmemiş.",
+      "completionSteps": [
+        "Kabul ölçütüne 'eski sürümle kaydetme reddedilir, kayıt değişmez ve uyarı gösterilir' maddesini ekle.",
+        "check_if_latest davranışını T-00 hedef tabanında eşle; version-15 atfını 'yalnız kaynak' olarak etiketle.",
+        "Çakışma kontrolünü sunucuda, native Document save yolunda tut; istemci uyarısı yalnız bilgilendirici olsun.",
+        "Presence'ı yalnız read izni olan kullanıcıların katıldığı kayıt odasında TTL'li heartbeat olarak tanımla; düzenliyor modu write izni gerektirsin.",
+        "Sınırı belgele: genel kayıt presence'ı Sheet Yjs awareness kodunu taşımaz, yalnız sunucu tarafı izin kontrolü ve TTL desenini izler.",
+        "Suite'teki ignore_permissions ile kalıcılaştırma desenini yasaklı karşı örnek olarak kaydet; presence kalıcı tabloya yazılmaz.",
+        "Reddedilen yazma testi: read izni olmayan kullanıcının presence yayını reddedilir ve presence durumu değişmeden kalır."
+      ],
+      "dependencies": [
+        "ui-presence--contract",
+        "kernel-envelope--contract",
+        "api-middleware--contract",
+        "client-rule-parity--contract"
+      ],
+      "acceptance": "Aynı kayıtta iki editör birbirini görür; heartbeat'i kesilen kullanıcı TTL sonunda listeden düşer; eski modified ile kaydetme sunucuda reddedilir, kayıt değişmez ve uyarı ile yenileme eylemi görünür; read izni olmayan kullanıcı presence'a katılamaz ve presence verisi görmez; başka tenant/site kullanıcısı görünmez; ignore_permissions veya SQL ile yetki atlayan yol yoktur.",
+      "evidence": [
+        {
+          "path": "suite/frontend/src/apps/sheets/collab/awareness.js",
+          "line": 23,
+          "quote": "const CLIENT_TTL_MS = 25_000"
+        },
+        {
+          "path": "suite/frontend/src/apps/sheets/collab/realtime-adapter.js",
+          "line": 7,
+          "quote": "so it can enforce permission checks"
+        },
+        {
+          "path": "suite/frontend/src/apps/sheets/components/SheetEditor/useCollaboration.js",
+          "line": 126,
+          "quote": "// other users currently viewing"
+        },
+        {
+          "path": "suite/suite/sheets/collab.py",
+          "line": 147,
+          "quote": "doc.insert(ignore_permissions=True)"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Uygulama durumu: uygulanmadı. Bu belge yalnız yönerge sözleşmesidir.",
+    "check_if_latest ve modified karşılaştırmasının hedef sürüm davranışı doğrulanmadı; yalnız version-15 kaynak atfı var.",
+    "Genel kayıt presence'ı için React/Ant Design tarafında kaynak kanıt yok; Suite kanıtları Vue/Frappe UI ve Sheet'e özeldir.",
+    "Native realtime kayıt odası ve izin kontrolünün hedef tabandaki tam API'si doğrulanmadı; uygulama öncesinde T-00'da okunmalı.",
+    "TTL/heartbeat değerleri ve tenant odası yalıtımının test biçimi karar bekliyor.",
+    "Gerçek tarayıcı, çoklu istemci ve runtime kabulü çalıştırılmadı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Hedef Frappe sürümü (T-00 tabanı): check_if_latest eşlemesi hangi sürüm üzerinden yapılacak.",
+      "requirementIds": ["realtime-5"],
+      "blocks": "development.steps 1-2 ve TDD RED/GREEN senaryosu",
+      "documentStepUntilDecision": "version-15 atfını 'yalnız kaynak, hedef taban değil' olarak etiketleyen boş eşleme tablosu şablonunu belgeye ekle."
+    },
+    {
+      "decision": "Genel kayıt presence'ı için TTL ve heartbeat aralığı değerleri.",
+      "requirementIds": ["realtime-5"],
+      "blocks": "development.steps 4 ve 'kopan kullanıcı süre sonunda kalksın' kabulünün sayısal eşiği",
+      "documentStepUntilDecision": "Kabul ölçütünü 'TTL dolunca düşer' biçiminde değer bağımsız yaz; Suite'teki 25 sn değerini yalnız referans olarak not et."
+    },
+    {
+      "decision": "Tenant topolojisi: presence odasının tenant/site yalıtımının hangi sınırda doğrulanacağı.",
+      "requirementIds": ["realtime-5"],
+      "blocks": "Tenant yalıtımı kabul testinin kurulumu",
+      "documentStepUntilDecision": "Topolojiden bağımsız 'başka tenant kullanıcısı görünmez ve yayın alamaz' kabul maddesini belgeye yaz."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

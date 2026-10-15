@@ -1,0 +1,227 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "support-package",
+  "canonicalTaskIds": ["support-package--implementation"],
+  "requirementIds": ["support-9"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "support-9": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Güvenli destek paketi: kullanıcı hata kimliğini, zamanı ve ilgili ekran bağlamını alan alan önizler ve açık onay verdikten sonra paylaşır. Uygulama durumu: uygulanmadı.",
+    "trigger": "Headless React/Ant Design istemcisinde bir Frappe isteği hata döndürür ve kullanıcı destek paketi hazırlama eylemini seçer. İstemci, hatalı yanıttaki X-Frappe-Request-Id başlığını hata bağlamına ekler.",
+    "expected": "Kullanıcı yalnız allowlist alanlarını görür: trace_id, ISO 8601 zaman, IANA saat dilimi, uygulama sürümü, sorgu parametresi içermeyen route/ekran kimliği ve isteğe bağlı kendi açıklaması. Her alanı tek tek çıkarabilir. Paket ancak açık onaydan sonra kaydedilir ve görünürlüğü sahibiyle yetkili alıcıyla sınırlıdır. Otomatik dış mesaj gönderilmez. Pakete özel saklama ve silme politikası uygulanır.",
+    "denied": "Allowlist dışında alan içeren gönderim reddedilir ve kayıt oluşmaz. Bu alanlar şunlardır: form içeriği, request/response gövdesi, cookie, token, secret, ham konsol satırı, tam URL, kişisel veya tenant verisi. Onay verilmeden yapılan gönderim de reddedilir. Yetkisiz kullanıcı başkasının paketini okuyamaz veya değiştiremez. Traceback ve Error Log ilişkisi yalnız native Error Log izni olan role açıktır."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Yeniden kullanılabilecek native Frappe parçaları şunlardır: istek başına üretilen trace_id değerinin X-Frappe-Request-Id yanıt başlığına yazılması, log_error ile aynı trace_id değerinin Error Log kaydına yazılması, Error Log'un native izni (yalnız System Manager) ve ErrorLog.clear_old_logs saklama/silme deseni. Desk request.js raporu yalnız davranış referansıdır: request_id yalnız pano yolunda bulunur, Report yolu ise error_report_email alıcısına CommunicationComposer açar. Bu rapor istek ve yanıt verisini eklediği için allowlist gereksinimini karşılamaz ve headless istemciye taşınmaz. Suite Meet problemReport.ts (Vue) ham konsol satırlarını ve sabit bir dış alıcıyı kullandığı için olumsuz örnektir; React/Ant Design uygulama kanıtı değildir. Her kanıt yalnız tek bir native parçayı gösterir; bütün davranışın var olduğunu göstermez.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/app.py",
+        "line": 274,
+        "quote": "response.headers.update({\"X-Frappe-Request-Id\": trace_id})"
+      },
+      {
+        "path": "frappe/frappe/utils/error.py",
+        "line": 83,
+        "quote": "trace_id=trace_id,"
+      },
+      {
+        "path": "frappe/frappe/public/js/frappe/request.js",
+        "line": 595,
+        "quote": "request_data.request_id = xhr.getResponseHeader(\"X-Frappe-Request-Id\");"
+      },
+      {
+        "path": "frappe/frappe/public/js/frappe/request.js",
+        "line": 634,
+        "quote": "recipients: error_report_email,"
+      },
+      {
+        "path": "frappe/frappe/core/doctype/error_log/error_log.py",
+        "line": 46,
+        "quote": "def clear_old_logs(days=30):"
+      },
+      {
+        "path": "suite/frontend/src/apps/meet/utils/diagnostics/problemReport.ts",
+        "line": 108,
+        "quote": "...consoleLogLines,"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/app.py",
+      "frappe/frappe/core/doctype/error_log/error_log.py",
+      "frappe/frappe/public/js/frappe/request.js",
+      "frappe/frappe/utils/error.py",
+      "suite/frontend/src/apps/meet/utils/diagnostics/problemReport.ts"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/support-package.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/adapters/customer_success/support_package_post_mvp.py"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Tek whitelisted metot için önerilen girdi alanları: trace_id (X-Frappe-Request-Id değeri; isteğe bağlıdır, yoksa boş kalır ve istemci değer uydurmaz), occurred_at (ISO 8601), timezone (IANA adı), app_version, route (sorgu parametreleri ve fragment çıkarılmış ekran/route kimliği), user_note (kullanıcının yazdığı isteğe bağlı açıklama) ve consent (açık onay). Bunların dışındaki hiçbir anahtar kabul edilmez. Paket modeli JSON sınırında yalnız serileştirilebilir alanlardan oluşur; önizlemedeki yerel ReactNode ve callback'ler modele girmez.",
+    "output": "Oluşan paket kaydının adı ve kayda geçen nihai alan listesi döner. Önizleme istemcide üretilir; sunucuya yalnız kullanıcının çıkarmadığı alanlar gönderilir. Dış alıcıya otomatik iletim yoktur.",
+    "authorization": "Oturum açmış kullanıcı yalnız kendi paketini oluşturur. Okuma yetkisi paketin sahibine ve karar sonrası belirlenecek yetkili destek rolüne verilir. Rol ve izin tanımları explicitPermissionFlags ortak kaynağına bağlanır. Native DocType izinleri ve doc.insert/save akışı kullanılır; ignore_permissions veya ham SQL ile yetki atlanmaz. trace_id üzerinden Error Log ilişkisi yalnız Error Log için native okuma izni olan role gösterilir; paket sahibine traceback döndürülmez.",
+    "persistence": "Dar izinli bir paket kaydı tutulur. DocType yapısı native-doctype-schema--contract ile hizalanır; canonicalArtifact'teki doctypeCount değeri bu sözleşmeyle değişmez. Error Log içeriği kopyalanmaz, yalnız trace_id ile ilişkilendirilir. Saklama için ErrorLog.clear_old_logs desenine benzeyen zamanlanmış bir temizlik işi kullanılır; süresi karar bekliyor. Zamanlayıcı kaydını, hooks.py ortak entegrasyon dosyası üzerinden entegrasyon sahibi yapar. Native save ve transaction kullanılır.",
+    "failure": "Allowlist dışı anahtar, onaysız gönderim veya geçersiz biçimli trace_id/timezone ValidationError ile reddedilir ve kayıt oluşmaz. Yetkisiz okuma veya yazma PermissionError verir ve kayıt değişmez. Sunucu hatası olursa istemci paketi tekrar göndermez, kullanıcıya yeniden denemeyi önerir ve içeriği konsola yazdırmaz."
+  },
+  "development": {
+    "dependencies": [
+      "capability-definition--contract",
+      "kernel-envelope--contract",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "outbox--contract",
+      "support-package--contract",
+      "tenant-registry--contract"
+    ],
+    "admission": {
+      "status": "NOT_ADMITTED",
+      "prerequisites": [
+        "T-00 hedef temel (target baseline): kanıtlar önceki salt okunur Frappe/Suite kaynak anlık görüntülerinden alındığı için seçilen hedef sürümde yeniden doğrulanır.",
+        "R-00 yeniden kullanım eşlemesi: reuse.evidence içindeki native parçalar hedef sürümle eşlenir.",
+        "R-01: Error Log ilişkisi ve paket okuması izinli veri tüketimi olduğu için uygulanır.",
+        "support-package--contract kapsamında alan allowlist'i sabitlenir.",
+        "Destek alıcısı ve paket saklama süresi kararları (decisionsPending) verilir.",
+        "Tek dar davranış için gerçek RED/GREEN kanıtı üretilir."
+      ],
+      "orderAuthority": "Sıralamayı mevcut görev bağımlılıkları ve post_mvp aşaması belirler. Küme sırası (11) yalnız sunum içindir; yeni bir seri DAG oluşturmaz."
+    },
+    "steps": [
+      "1. support-package--contract içinde allowlist sabitlenir: trace_id, occurred_at, timezone, app_version, route, user_note, consent. Dışlanan alanlar da açıkça listelenir: form, request/response gövdesi, cookie, token, secret, ham konsol, tam URL, kişisel ve tenant verisi.",
+      "2. Rol ve izin bayrakları explicitPermissionFlags ortak kaynağına bağlanır; paket sahibi ve yetkili destek rolü için okuma ve yazma sınırları native-user-policy--contract ile hizalanır.",
+      "3. Paket kaydının alanları native-doctype-schema--contract ile tanımlanır; trace_id yalnız ilişki alanı olarak tutulur.",
+      "4. Planlanan adaptörde tek bir whitelisted metot tasarlanır. Metot allowlist dışı anahtarı reddeder, consent ister ve native insert/save ile kaydeder. Çağrı kernel-envelope--contract zarfıyla döner.",
+      "5. clear_old_logs desenine benzeyen, süresi parametrik bir temizlik işi tanımlanır. Zamanlayıcı kaydı hooks.py üzerinden entegrasyon sahibince seri olarak birleştirilir.",
+      "6. Headless React istemcisi hatalı yanıttan X-Frappe-Request-Id değerini okur. İstek farklı origin'den yapılıyorsa başlığın CORS ile açığa çıkarıldığı hedef sürümde doğrulanır; doğrulanmadan bu varsayılmaz. Ant Design bileşenleriyle alan bazlı önizleme, çıkarma ve açık onay adımı sunulur. Ekran routes.tsx ve kaynak registry'si üzerinden bağlanır; GenUI capability registry'si ayrı bir kullanıcı projesidir ve bu davranış oraya yazılmaz. Tauri2 ve WXT/MV3 kabukları aynı modeli kullanır; bu sözleşme ek yerel izin eklemez.",
+      "7. Dış alıcıya iletim, ancak destek alıcısı kararı verildikten sonra outbox--contract üzerinden ve kullanıcının açık onayıyla yapılır. Otomatik gönderim yoktur."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Oturum açmış kullanıcı allowlist dışında bir anahtar (cookie) içeren paket gönderir; gönderim reddedilir ve paket kayıt sayısı değişmez.",
+      "red": "Önce alanları süzmeden kaydeden ince bir metot iskeleti kurulur. Bu iskeletle test, kayıt sayısının değişmemesini ve doğrulama hatası alınmasını beklediği için assertion hatasıyla başarısız olur. Import, site kurulumu veya altyapı hatası RED sayılmaz; native davranış bozulmaz.",
+      "green": "Metoda allowlist doğrulaması eklenir. Gönderim ValidationError ile reddedilir, kayıt sayısı değişmez, native izin ve save akışı atlanmaz. Bu tur test yazılmaz ve koşulmaz."
+    },
+    "rollback": "Bu sözleşme yalnız belgedir; geri alma bu dosyayı önceki sürümüne döndürmektir. Gelecekteki uygulamada geri alma şu adımlardan oluşur: route ve kaynak registry kaydını kaldırmak, zamanlanmış temizliği devreden çıkarmak, metodu kapatmak. Paket verisinin silinmesi veya şema değişikliği ayrıca onay gerektirir. Teknik CI, deploy ve rollback sahibi Hüseyin Cengiz'dir. DNS etkisi beklenmez; olursa GoDaddy uygulama sahibi Asistan Hüseyin'dir. Bu sözleşme hiçbir servisi, production ortamını, şemayı veya veriyi değiştirme yetkisi vermez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "support-9",
+      "sourceStage": "post_mvp",
+      "existing": "Native parçalar kanıtlıdır: X-Frappe-Request-Id yanıt başlığı, Error Log kaydındaki trace_id, Error Log'un System Manager ile sınırlı izni ve clear_old_logs saklama deseni. Desk request.js raporu ve Suite Meet problemReport.ts yalnız davranış referansıdır; React/Ant Design uygulaması değildir. Uygulama durumu: uygulanmadı.",
+      "gap": "Eksikler şunlardır: sabit alan allowlist'i, alan bazlı önizleme ve açık onay, saat dilimi alanı, headless istemcide trace_id tüketimi, whitelisted metot ve paket kaydı, yetkili alıcıyla sınırlı izin modeli ve pakete özel saklama/silme politikası. Ayrıca destek alıcısı seçilmemiştir.",
+      "completionSteps": [
+        "Allowlist'i ve dışlanan alanları support-package--contract içinde sabitlemek.",
+        "İzinleri explicitPermissionFlags ortak kaynağına bağlamak ve native-user-policy--contract ile hizalamak.",
+        "Paket kaydı alanlarını native-doctype-schema--contract ile tanımlamak.",
+        "Allowlist ve consent doğrulayan tek whitelisted metodu, native insert/save ile tasarlamak.",
+        "clear_old_logs desenine benzeyen parametrik saklama işini tanımlamak.",
+        "Headless istemcide trace_id okumayı, alan bazlı önizlemeyi, çıkarmayı ve açık onayı eklemek.",
+        "Dış iletimi yalnız karar sonrası, outbox--contract üzerinden ve onayla tasarlamak."
+      ],
+      "dependencies": [
+        "support-package--contract",
+        "kernel-envelope--contract",
+        "tenant-registry--contract",
+        "native-user-policy--contract",
+        "capability-definition--contract",
+        "native-doctype-schema--contract",
+        "outbox--contract"
+      ],
+      "acceptance": "Kullanıcı hata kimliği, saat ve saat dilimi, uygulama sürümü ve ilgili ekranı içeren paketi görüp alanları tek tek çıkarabilir. Token, cookie, secret, form içeriği, kişisel veya tenant verisi varsayılan olarak pakete girmez. Allowlist dışı alanlı veya onaysız gönderim reddedilir ve kayıt değişmez. Yetkisiz kullanıcının okuma ve yazma girişimi reddedilir ve kayıt değişmez. Paylaşılan bilgi yetkili alıcıyla sınırlıdır, saklama/silme politikası uygulanır ve ham konsol dökümü otomatik gönderilmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/app.py",
+          "line": 274,
+          "quote": "response.headers.update({\"X-Frappe-Request-Id\": trace_id})"
+        },
+        {
+          "path": "frappe/frappe/utils/error.py",
+          "line": 83,
+          "quote": "trace_id=trace_id,"
+        },
+        {
+          "path": "frappe/frappe/public/js/frappe/request.js",
+          "line": 595,
+          "quote": "request_data.request_id = xhr.getResponseHeader(\"X-Frappe-Request-Id\");"
+        },
+        {
+          "path": "frappe/frappe/public/js/frappe/request.js",
+          "line": 634,
+          "quote": "recipients: error_report_email,"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/error_log/error_log.py",
+          "line": 46,
+          "quote": "def clear_old_logs(days=30):"
+        },
+        {
+          "path": "suite/frontend/src/apps/meet/utils/diagnostics/problemReport.ts",
+          "line": 108,
+          "quote": "...consoleLogLines,"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Sabit alan allowlist'i yok. Desk paketi istek ve yanıt verisini, dolayısıyla form içeriğini de ekliyor; yalnız parola maskeleniyor. Token, cookie, kişisel veya tenant verisi varsayılan olarak hariç tutulmuyor.",
+    "Kullanıcının alanları tek tek görüp çıkarabildiği yapılandırılmış bir önizleme ve açık onay adımı yok; Composer yalnız serbest metin düzenlemeye izin veriyor.",
+    "Saat dilimi alanı yok. Desk Report (e-posta) yolunda request_id bulunmuyor; bu kimlik yalnız pano yolunda var.",
+    "Suite Meet raporu ham konsol satırlarını ve tam URL'yi pakete koyuyor ve sabit bir dış alıcı kullanıyor; bu gereksinimle çelişiyor.",
+    "Headless React/Ant Design istemcisi için X-Frappe-Request-Id tüketimi, paket kaydı veya whitelisted API sözleşmesi yok.",
+    "Paylaşılan paket için yetkili alıcıyla sınırlı bir depolama/izin modeli ve pakete özel saklama/silme politikası yok. Error Log'un 30 günlük temizliği yalnız sunucu loglarını kapsıyor.",
+    "Destek alıcısı veya entegrasyonu seçilmemiş; Helpdesk kurulu değil."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Destek alıcısı ve entegrasyonu (satıcı/ürün seçimi dahil).",
+      "requirementIds": ["support-9"],
+      "blocksStep": "development.steps 7: dış iletim ve yetkili alıcı rolünün kesinleşmesi.",
+      "interimDocStep": "Allowlist, önizleme ve iç kayıt sözleşmesi alıcıdan bağımsız olarak belgelenir; dış iletim kapalı varsayılır."
+    },
+    {
+      "decision": "Paket saklama süresi.",
+      "requirementIds": ["support-9"],
+      "blocksStep": "development.steps 5: temizlik işinin süre değeri.",
+      "interimDocStep": "Temizlik işi süresi parametrik bırakılarak tanımlanır; Error Log'daki 30 günlük varsayılan pakete otomatik olarak uygulanmaz."
+    },
+    {
+      "decision": "Hedef Frappe sürümü (T-00).",
+      "requirementIds": ["support-9"],
+      "blocksStep": "development.admission ve development.steps 6'daki başlık erişimi doğrulaması.",
+      "interimDocStep": "Kanıtlar önceki kaynak anlık görüntüsü olarak işaretli tutulur; hedef sürümde yeniden doğrulanacak satırlar listelenir."
+    },
+    {
+      "decision": "Tenant topolojisi ve paket verisinin yerleşimi.",
+      "requirementIds": ["support-9"],
+      "blocksStep": "development.steps 2-3: alıcı kapsamı ve kayıt yerleşimi.",
+      "interimDocStep": "Tenant kimliği ve tenant verisi varsayılan olarak pakete girmez; kapsam tenant-registry--contract kararına bırakılır."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

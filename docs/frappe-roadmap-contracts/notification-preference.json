@@ -1,0 +1,288 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "notification-preference",
+  "canonicalTaskIds": [
+    "notification-preference--implementation",
+    "ui-family-26--implementation"
+  ],
+  "requirementIds": ["notifications-5", "notifications-6"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "notifications-5": "post_mvp",
+    "notifications-6": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Kiracı kanal politikası ve kullanıcı tercihine göre sunucu tarafı tek bildirim gönderim kararı. Uygulama durumu: uygulanmadı.",
+    "trigger": "Bir bildirim olayı (Frappe Notification kuralı, frappe.sendmail çağrısı veya PushNotification gönderimi) bir alıcı için gönderime hazırlandığında; ayrıca yetkili kullanıcı kiracı kanal ayarını ya da kendi tercihini kaydetmek istediğinde.",
+    "expected": "Gönderimden önce sunucu tarafındaki tek karar noktası sırasıyla kiracı kanal etkinliğini, kullanıcının konu/kanal tercihini ve kullanıcının saat dilimindeki sessiz aralığı değerlendirir. Sonuç gönder, atla (kanal kapalı veya tercih kapalı) ya da ertele/özete ekle olur. Kapalı kanal hiçbir olayda gönderim yapmaz. Sessiz aralıkta ertelenen bildirimler özet penceresinde tek bir özet olarak gönderilir. Kanal ayarı ve tercih kayıtları native Frappe save, transaction ve izin akışıyla yazılır.",
+    "denied": "Kanal yönetim yetkisi olmayan kullanıcı veya başka kiracı bağlamındaki kullanıcı kanal ayarını okuyamaz ve değiştiremez; kullanıcı başkasının tercih kaydını değiştiremez. Ret native PermissionError ile döner, kayıt değişmez, gönderim yapılmaz. ignore_permissions, ham SQL veya istemci tarafı durum (Mail push localStorage tokenı, Meet zil tercihi) sunucu kararının yerine geçmez."
+  },
+  "reuse": {
+    "status": "PARCALI",
+    "mechanism": "Native parçalar yeniden kullanılır, ortak model yoktur: kanal gönderimi için frappe.sendmail ve frappe.push_notification içindeki PushNotification, kayıt düzeyi yetki için hooks.py has_permission eşlemesi deseni, zamanlama için scheduler_events, arka plan işi için frappe.enqueue. Kiracı düzeyi kanal etkinliği, kimlik bilgisi yönetimi, yönlendirme, kullanıcı konu/kanal tercihi, sessiz saat ve özet için sunucu tarafı model kaynakta görülmedi; bunlar notification-preference--schema altında önerilen tek NotificationPreference DocType ve bu rehberin adımlarıyla tamamlanacaktır. Kanıtların bir native parçayı göstermesi bütün davranışın var olduğu anlamına gelmez. Suite kaynağındaki Vue/Frappe UI kodu React/Ant Design uygulamasının kanıtı değildir.",
+    "evidence": [
+      {
+        "path": "suite/suite/mail/doctype/mail_message/mail_message.py",
+        "line": 17,
+        "quote": "from frappe.push_notification import PushNotification"
+      },
+      {
+        "path": "suite/suite/drive/api/notifications.py",
+        "line": 148,
+        "quote": "frappe.sendmail("
+      },
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 185,
+        "quote": "\"Push Subscription\": \"suite.mail.doctype.push_subscription.push_subscription.has_permission\","
+      },
+      {
+        "path": "suite/frontend/src/apps/mail/utils/frappe-push-notification.ts",
+        "line": 116,
+        "quote": "return localStorage.getItem(`firebase_token_${this.projectName}`) !== null"
+      },
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 289,
+        "quote": "scheduler_events = {"
+      },
+      {
+        "path": "frappe/frappe/api/v2.py",
+        "line": 293,
+        "quote": "job = frappe.enqueue("
+      },
+      {
+        "path": "suite/frontend/src/apps/meet/utils/audioNotifications.ts",
+        "line": 90,
+        "quote": "if (!notificationChimesEnabled.value) return;"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v2.py",
+      "suite/frontend/src/apps/mail/utils/frappe-push-notification.ts",
+      "suite/frontend/src/apps/meet/utils/audioNotifications.ts",
+      "suite/suite/drive/api/notifications.py",
+      "suite/suite/hooks.py",
+      "suite/suite/mail/doctype/mail_message/mail_message.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/notification-preference.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/notifications/doctype/notification_preference/notification_preference.py",
+      "frontend/packages/ui/src/components/ui-family-26/index.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Kiracı kanal ayarı: kiracı bağlamı (topoloji kararı bekliyor), kanal adı (Email, System Notification ve Push eşlemesi T-00 sonrası doğrulanır), etkin bayrağı. Kullanıcı tercihi: kullanıcı, konu anahtarı, kanal, etkin bayrağı, sessiz aralık başlangıç ve bitişi, özet tercihi. Gönderim kararı girdisi: kernel-envelope--contract zarfındaki olay, alıcı, konu, kanal ve olay zamanı. Kanal kimlik bilgisi değerleri bu sözleşmede tanımlanmaz ve hiçbir belgeye yazılmaz.",
+    "output": "Karar sonucu: send, skip_channel_disabled, skip_preference_off, defer_quiet_hours veya digest; erteleme ve özet için idempotency anahtarı (alıcı, kanal, özet penceresi başlangıcı). Arayüze yalnız JSON tercih modeli döner; ReactNode ve callback'ler yalnız yerel ui-family-26 bileşeninde kalır, JSON model sınırını geçmez.",
+    "authorization": "Kiracı kanal ayarını yönetme yetkisi Custom DocPerm ile verilir; rol ve izin adları explicitPermissionFlags ortak kaynağından alınır, bu sözleşme yeni bayrak üretmez. Kullanıcı tercihi yalnız sahibi tarafından okunur ve yazılır; kayıt düzeyi kontrol, Suite hooks.py içindeki Push Subscription has_permission eşlemesi deseniyle backend hooks.py üzerinden bağlanır. Kiracı sınırı native-user-policy--contract ve kiracı topolojisi kararına bağlıdır. ignore_permissions ve SQL ile yetki atlama yasaktır.",
+    "persistence": "Önerilen tek DocType NotificationPreference (custom_proposed). Frappe Notification Settings ile ilişki (yeniden kullanım veya genişletme) T-00 ve R-00 eşlemesinde belirlenir; çakışan ikinci tercih modeli kurulmaz. Kayıtlar native save ve transaction ile yazılır; ertelenmiş bildirimler outbox--contract üzerinden tutulur; özet içeriği email-template--contract şablonuyla üretilir. Bu sözleşme şema, veri, servis veya production değiştirme yetkisi vermez.",
+    "failure": "Kiracı kanal durumu okunamazsa gönderim yapılmaz (kapalı kabul edilir), çünkü kabul ölçütü kapalı kanalın hiçbir olayda çalışmamasını ister. Kullanıcı tercihi yoksa varsayılan, açık karar listesindeki varsayılan tercih kararına bağlıdır; karar gelene kadar uygulama kabul edilmez. Yetki reddi PermissionError döner ve kayıt değişmez. Özet işi tekrar çalışırsa idempotency anahtarı ikinci gönderimi engeller. Kanal gönderim hatası tercih kaydını değiştirmez; yeniden deneme outbox sözleşmesine bırakılır."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "capability-definition--contract",
+      "client-channel-continuity--contract",
+      "client-rule-parity--contract",
+      "email-template--contract",
+      "kernel-envelope--contract",
+      "native-user-policy--contract",
+      "notification-message--contract",
+      "notification-preference--contract",
+      "notification-preference--schema",
+      "outbox--contract",
+      "ui-family-26--contract"
+    ],
+    "admission": {
+      "statement": "Uygulama durumu: uygulanmadı. Bu dosya üretim veya test yazımına izin vermez.",
+      "prerequisite": "T-00 target baseline and R-00 reuse mapping; permissioned data consumers also use R-01; implement one narrow behavior with real RED/GREEN evidence",
+      "specificPrerequisites": [
+        "T-00: hedef Frappe sürümünde Notification DocType kanal alanı ve Notification Settings alanları kaynaktan okunarak doğrulanır.",
+        "R-00: Email, System Notification ve Push kanallarının native kaynak eşlemesi ve Notification Settings yeniden kullanım kararı yazılır.",
+        "R-01: kanal ayarı ve tercih okuyan tüketiciler izinli veri tüketicisi olarak kaydedilir.",
+        "notification-preference--contract ve notification-preference--schema tamamlanmış olmalıdır.",
+        "decisionsPending içindeki kiracı topolojisi ve varsayılan tercih kararları verilmiş olmalıdır."
+      ],
+      "orderAuthority": "existing task dependencies and stage; cluster order is presentation, not a new serial DAG"
+    },
+    "steps": [
+      "T-00 ve R-00 doğrulamasını yap; Notification kanal alanını ve Notification Settings alanlarını eşleme tablosuna yaz.",
+      "Kiracı topolojisi kararından sonra notification-preference--schema altında kiracı kanal ayarı ile kullanıcı tercihini ayrı alan grupları ve ayrı izinler olarak tanımla.",
+      "Sunucu tarafında tek karar noktasını tanımla; Notification gönderim yolu, Suite içindeki frappe.sendmail çağrıları ve PushNotification kullanımı bu noktadan geçmeden gönderim yapmamalı. İstemci localStorage durumu karar girdisi değildir.",
+      "Custom DocPerm ve has_permission kuralını explicitPermissionFlags ortak kaynağına bağla; native izin, save ve transaction akışını yeniden kullan.",
+      "Sessiz saat ertelemesini outbox--contract ile, özet işini tek scheduler_events girdisi ve frappe.enqueue ile, özet içeriğini email-template--contract ile sözleşmeye bağla.",
+      "ui-family-26 bileşenini React, Ant Design/Pro ve TanStack Query ile tasarla; routes.tsx ve registry.ts kaydı kaynak registry kaydıdır, GenUI capability registry değildir. Yetki reddi görünür hata olarak gösterilir, iyimser güncelleme kullanılmaz.",
+      "Web, Tauri2 ve WXT/MV3 istemcileri sunucu kararını client-rule-parity--contract ve client-channel-continuity--contract ile tüketir; paylaşılan entegrasyon dosyaları yalnız ana entegrasyon sahibince seri değiştirilir.",
+      "CI, deploy ve rollback teknik kurulumu Hüseyin Cengiz sorumluluğundadır; DNS gerekirse teknik gereksinimi Hüseyin Cengiz hazırlar, GoDaddy uygulamasını Asistan Hüseyin yapar."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Kanal yönetim yetkisi olmayan veya başka kiracı bağlamındaki kullanıcı, bir kiracının Email kanal etkinlik kaydını kapatmaya çalışır; yazma native izin kontrolüyle reddedilir ve kayıt önceki değerinde kalır.",
+      "red": "Şema görevi tamamlandıktan sonra, DocPerm ve has_permission kuralı bağlanmadan önce yetkisiz yazma kabul edilir ve etkin bayrağı değişir; ret beklentisi ve değişmeyen kayıt doğrulaması davranışsal olarak başarısız olur. Import, eksik DocType veya altyapı hatası RED sayılmaz; native davranışı bozarak RED üretilmez. Bu tur test yazılmaz ve koşulmaz.",
+      "green": "Custom DocPerm ve has_permission kuralı bağlandığında aynı istek PermissionError ile reddedilir, kayıt ve modified değeri değişmez, yetkili kullanıcının aynı kiracıdaki yazması native save ile başarılı olur. ignore_permissions veya SQL kullanılmaz."
+    },
+    "rollback": "Bu sözleşme yalnız belgedir; geri alma bu dosyanın önceki sürümüne dönmektir. Gelecekteki uygulamada karar noktası kaldırıldığında native gönderim yolları değişmeden çalışabilmeli; şema geri alması veri silmeden ve onaylı rollback planıyla yapılır. Teknik rollback sahibi Hüseyin Cengiz'dir. Bu sözleşme hiçbir servis, production, şema veya veriyi değiştirme yetkisi vermez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "notifications-5",
+      "sourceStage": "post_mvp",
+      "existing": "Kaynakta dağınık kanal parçaları var: Suite Mail PushNotification kullanıyor, Drive paylaşım e-postasını frappe.sendmail ile gönderiyor, Push Subscription için hooks.py içinde has_permission eşlemesi var, Mail push etkinliği istemcide localStorage tokenına bağlı. Kiracı düzeyinde kanal açma/kapama, kimlik bilgisi saklama ve yönlendirme için ortak model görülmedi.",
+      "gap": "Kiracı sınırı tanımsız; Notification kanal alanının native kanal eşlemesi doğrulanmadı; kimlik bilgisi saklama yeri ve yöneticisi yok; kanal kapalı kararının sunucuda uygulanacağı tek nokta yok; kanal yönetimi ile kullanıcı tercihi ayrıştırılmamış.",
+      "completionSteps": [
+        "T-00'da hedef sürümün Notification DocType kanal alanını kaynaktan oku; Email, System Notification ve Push eşlemesini R-00 tablosuna yaz.",
+        "Kiracı topolojisi kararından sonra kanal etkinlik kaydının kiracı anahtarını ve izolasyon kuralını yaz.",
+        "notification-preference--schema içinde kiracı kanal ayarını kullanıcı tercihinden ayrı alan grubu ve ayrı DocPerm ile öner.",
+        "Kimlik bilgisi için yalnız değer içermeyen alan ve izin taslağı yaz; saklama yeri kararı gelmeden alan türü seçme, secret değerini hiçbir belgeye koyma.",
+        "Gönderim öncesi tek sunucu karar noktasını Notification yolu, frappe.sendmail çağrıları ve PushNotification kullanımı için tanımla; kanal kapalıysa skip_channel_disabled dön.",
+        "Kayıt düzeyi kiracı kontrolünü Push Subscription has_permission desenine benzer şekilde backend hooks.py üzerinden bağla; rol adlarını explicitPermissionFlags kaynağından al.",
+        "ui-family-26 kanal yönetimi görünümünde markalı AntD Select ve anahtarlar kullan; minimum 14 CSS px, çevreleyen odak halkası yok, 320 CSS px öncelikli yerleşim."
+      ],
+      "dependencies": [
+        "notification-preference--contract",
+        "notification-preference--schema",
+        "native-user-policy--contract",
+        "capability-definition--contract",
+        "kernel-envelope--contract",
+        "api-middleware--contract",
+        "ui-family-26--contract"
+      ],
+      "acceptance": "Kapalı kanal hiçbir olayda çalışmasın; başka tenantın kanal ayarına erişilemesin. Gelecekteki tek kabulde yetkisiz veya başka kiracı kullanıcısının kanal kapatma yazması reddedilir ve kayıt değişmez.",
+      "evidence": [
+        {
+          "path": "suite/suite/mail/doctype/mail_message/mail_message.py",
+          "line": 17,
+          "quote": "from frappe.push_notification import PushNotification"
+        },
+        {
+          "path": "suite/suite/drive/api/notifications.py",
+          "line": 148,
+          "quote": "frappe.sendmail("
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 185,
+          "quote": "\"Push Subscription\": \"suite.mail.doctype.push_subscription.push_subscription.has_permission\","
+        },
+        {
+          "path": "suite/frontend/src/apps/mail/utils/frappe-push-notification.ts",
+          "line": 116,
+          "quote": "return localStorage.getItem(`firebase_token_${this.projectName}`) !== null"
+        }
+      ]
+    },
+    {
+      "requirementId": "notifications-6",
+      "sourceStage": "post_mvp",
+      "existing": "Yalnız yapı taşları var: Suite hooks.py içinde scheduler_events, Frappe içinde frappe.enqueue kullanımı ve Meet'te yalnız istemcide çalışan zil tercihi. Konu/kanal tercihi, sessiz saat ve özet gönderimi için sunucu tarafı model görülmedi.",
+      "gap": "Tercih veri modeli (kullanıcı, konu, kanal ekseni ve varsayılanlar) yok; Notification Settings ile ilişki belirsiz; saat dilimi kaynağı ve DST davranışı tanımsız; özet penceresi, gruplama anahtarı ve tek gönderim idempotency kuralı yok; Meet zil tercihinin sunucu tercihi sayılmayacağı yazılmamış.",
+      "completionSteps": [
+        "T-00'da Frappe Notification Settings alanlarını kaynaktan doğrula; yeniden kullanım veya genişletme kararını R-00'a yaz, çakışan ikinci model kurma.",
+        "Tercih eksenini kullanıcı, konu anahtarı ve kanal olarak tanımla; varsayılan değeri varsayılan tercih kararına bağla.",
+        "Saat dilimi kaynağı adaylarını (kullanıcı saat dilimi, yoksa sistem varsayılanı) T-00'da doğrula; sessiz aralığı yerel saatle değerlendir, DST'de atlanan ve tekrarlanan saatler için kuralı yaz.",
+        "Sessiz aralıktaki bildirimi outbox--contract üzerinden ertelenmiş kayıt olarak tut; tek scheduler_events girdisi pencere sonunda frappe.enqueue ile özet işini başlatsın.",
+        "Özet idempotency anahtarını alıcı, kanal ve özet penceresi başlangıcı olarak tanımla; aynı pencere için ikinci iş gönderim yapmasın.",
+        "Özet içeriğini email-template--contract ile, push ve sistem kanalı özet davranışını notification-message--contract ile hizala.",
+        "Meet zil tercihi ve Mail push localStorage durumu istemci tercihidir, sunucu tercihi sayılmaz; istemciler sunucu kararını client-rule-parity--contract ile yansıtır.",
+        "ui-family-26 tercih formunda saat aralığı ve konu/kanal anahtarları markalı AntD bileşenleriyle, TanStack Query üzerinden sunucu cevabı sonrası güncellensin."
+      ],
+      "dependencies": [
+        "notification-preference--contract",
+        "notification-preference--schema",
+        "outbox--contract",
+        "email-template--contract",
+        "notification-message--contract",
+        "client-rule-parity--contract",
+        "client-channel-continuity--contract",
+        "ui-family-26--contract"
+      ],
+      "acceptance": "Kullanıcı saat dilimindeki sessiz aralıkta bildirim ertelensin; özet tek gönderilsin.",
+      "evidence": [
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 289,
+          "quote": "scheduler_events = {"
+        },
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 293,
+          "quote": "job = frappe.enqueue("
+        },
+        {
+          "path": "suite/frontend/src/apps/meet/utils/audioNotifications.ts",
+          "line": 90,
+          "quote": "if (!notificationChimesEnabled.value) return;"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Uygulama durumu: uygulanmadı; hiçbir madde için üretim kodu, test veya çalışma zamanı kabulü yok.",
+    "Notification kanal alanı ve Notification Settings alanları hedef sürüm kaynağında doğrulanmadı; dayanak yalnız genel dokümanlar ve önceki salt okunur kaynak alıntıları.",
+    "Kiracı sınırı, kimlik bilgisi saklama yeri, push sağlayıcı ve varsayılan tercih kararları açık.",
+    "Özet penceresi, gruplama anahtarı ve ertelenmiş kayıt saklama süresi parametreleri karar bekliyor.",
+    "Kanal yönlendirmesi (hangi olayın hangi kanala gideceği) için Notification kanal seçimi dışında ortak kural tanımlanmadı; T-00 sonrası eşleme yapılacak."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Kiracı topolojisi: site başına kiracı mı, tek sitede kiracı alanı mı",
+      "requirementIds": ["notifications-5", "notifications-6"],
+      "blocks": "Kanal ayarı ve tercih kaydının kiracı anahtarı, has_permission kiracı kuralı ve tek TDD senaryosunun başka kiracı kolu",
+      "allowedBeforeDecision": "İki seçeneğin izolasyon etkisini belgelemek; kiracıdan bağımsız kanal ve tercih alanlarını taslak olarak yazmak"
+    },
+    {
+      "decision": "Hedef Frappe sürümü ve T-00 baz çizgisi",
+      "requirementIds": ["notifications-5", "notifications-6"],
+      "blocks": "Notification kanal alanı ve Notification Settings yeniden kullanım eşlemesi",
+      "allowedBeforeDecision": "T-00'da okunacak kaynak yollarını ve doğrulama sorularını listelemek"
+    },
+    {
+      "decision": "Kanal kimlik bilgisinin saklama yeri ve yöneticisi",
+      "requirementIds": ["notifications-5"],
+      "blocks": "Kimlik bilgisi alanları ve kanal yönetim ekranının kimlik bilgisi bölümü",
+      "allowedBeforeDecision": "Değer içermeyen alan ve izin taslağı yazmak; secret değerini hiçbir belgeye koymamak"
+    },
+    {
+      "decision": "Push sağlayıcı ve aktarıcı seçimi",
+      "requirementIds": ["notifications-5"],
+      "blocks": "Push kanalının sunucu tarafı etkinlik kontrolü ve kimlik bilgisi gereksinimi",
+      "allowedBeforeDecision": "Sağlayıcıdan bağımsız karar noktası sözleşmesini yazmak"
+    },
+    {
+      "decision": "Varsayılan tercih (açık veya kapalı başlangıç) ve izin gereksinimi",
+      "requirementIds": ["notifications-6"],
+      "blocks": "Tercih kaydı yokken karar davranışı ve mevcut kullanıcılar için başlangıç verisi",
+      "allowedBeforeDecision": "İki seçenek için kabul ölçütü taslağı yazmak"
+    },
+    {
+      "decision": "Özet penceresi sıklığı ve ertelenmiş kayıt saklama süresi",
+      "requirementIds": ["notifications-6"],
+      "blocks": "scheduler_events frekansı, idempotency penceresi ve ertelenmiş kayıt temizliği",
+      "allowedBeforeDecision": "Parametrik sözleşme ve DST kural taslağı yazmak"
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

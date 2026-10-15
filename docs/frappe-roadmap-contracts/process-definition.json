@@ -1,0 +1,421 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "process-definition",
+  "canonicalTaskIds": [
+    "process-definition--implementation",
+    "process-definition--implementation-scale",
+    "process-step--implementation",
+    "process-step--implementation-scale",
+    "ui-family-21--implementation",
+    "ui-family-38--implementation-post-mvp",
+    "ui-family-38--implementation-scale"
+  ],
+  "requirementIds": ["workflow-2", "workflow-4", "workflow-5", "workflow-6"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "workflow-2": "post_mvp",
+    "workflow-4": "post_mvp",
+    "workflow-5": "scale",
+    "workflow-6": "scale"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Tanım sürümüne bağlı çok belgeli süreç örneği başlatma ve native Workflow geçişiyle ilerletme",
+    "trigger": "Yetkili kullanıcı bir ProcessDefinition kaydının etkin sürümünden süreç örneği başlatır ya da örneğe bağlı bir belgede native Workflow eylemi uygulanır.",
+    "expected": "Örnek, başlatıldığı tanım sürümünün kimliğini taşır. Bağlı belgelerdeki adım geçişleri yalnız native apply_workflow ve Workflow Action yolundan geçer. Yeni tanım sürümü aktifleşince eski örnek sessizce değişmez. Başlatma, geçiş ve durdurma olayları yürütüm geçmişine kullanıcı, zaman ve tanım sürümüyle yazılır.",
+    "denied": "Başlatma/durdurma yetkisi veya native geçiş rolü olmayan kullanıcının isteği PermissionError ile reddedilir; süreç örneği, bağlı belgelerin workflow_state alanı ve yürütüm geçmişi değişmez. Durdurulmuş örneğe bağlı belgede geçiş reddedilir. Desteklenmeyen BPMN öğesi içeren import bütünüyle reddedilir, kısmi tanım kaydedilmez."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Uygulama durumu: uygulanmadı. Native parçalar: DocType başına tek aktif Workflow; okuma izni, rol ve koşulla filtrelenen geçişler; whitelisted apply_workflow; rol bazlı Workflow Action (Open/Completed); Workflow tanımında track_changes; gizli workflow_data JSON alanı; beta Automation Flow motorunda Wait/WaitForEvent, zaman aşımı, takılı satırı yeniden kuyruklama, deneme sınırı ve yan etki işareti. Bu parçalar bütün davranışın var olduğunu göstermez: çok belgeli süreç örneği, örnek-sürüm bağı, durdurma, yürütüm geçmişi, BPMN ve telafi yoktur. Workflow Builder kanıtı Vue/Frappe Desk kaynağıdır; React/Ant Design uygulaması kanıtı değildir. searchedPaths yalnız önceki salt okunur kaynak anlık görüntüsünde incelenen yollardır; kapsamlı yokluk iddiası değildir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/workflow/doctype/workflow_action/workflow_action.py",
+        "line": 46,
+        "quote": "status: DF.Literal[\"Open\", \"Completed\"]"
+      },
+      {
+        "path": "frappe/frappe/workflow/doctype/workflow_action/workflow_action.py",
+        "line": 115,
+        "quote": "create_workflow_actions_for_roles(roles, doc)"
+      },
+      {
+        "path": "frappe/frappe/model/workflow.py",
+        "line": 37,
+        "quote": "frappe.db.get_value(\"Workflow\", {\"document_type\": doctype, \"is_active\": 1}, \"name\")"
+      },
+      {
+        "path": "frappe/frappe/workflow/doctype/workflow/workflow.py",
+        "line": 139,
+        "quote": ".set(Workflow.is_active, 0)"
+      },
+      {
+        "path": "frappe/frappe/model/workflow.py",
+        "line": 72,
+        "quote": "if transition.state == current_state and transition.allowed in roles:"
+      },
+      {
+        "path": "frappe/frappe/model/workflow.py",
+        "line": 119,
+        "quote": "def apply_workflow(doc: Document | str | dict, action: str):"
+      },
+      {
+        "path": "frappe/frappe/workflow/doctype/workflow/workflow.json",
+        "line": 140,
+        "quote": "\"track_changes\": 1"
+      },
+      {
+        "path": "frappe/frappe/automation_engine/runner.py",
+        "line": 242,
+        "quote": "if step_type == \"Wait\":"
+      },
+      {
+        "path": "frappe/frappe/automation_engine/runner.py",
+        "line": 388,
+        "quote": "mark_effects_delivered(context[\"queue_row\"].name)"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/automation_engine/drainer.py",
+      "frappe/frappe/automation_engine/events.py",
+      "frappe/frappe/automation_engine/runner.py",
+      "frappe/frappe/hooks.py",
+      "frappe/frappe/model/workflow.py",
+      "frappe/frappe/public/js/workflow_builder/WorkflowBuilder.vue",
+      "frappe/frappe/public/js/workflow_builder/store.js",
+      "frappe/frappe/workflow/doctype/workflow/workflow.json",
+      "frappe/frappe/workflow/doctype/workflow/workflow.py",
+      "frappe/frappe/workflow/doctype/workflow_action/workflow_action.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/process-definition.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/services/process_definition_scale.py",
+      "backend/saas_platform/saas_platform/services/process_step_scale.py",
+      "backend/saas_platform/saas_platform/workflow_automation/doctype/process_definition/process_definition.py",
+      "backend/saas_platform/saas_platform/workflow_automation/doctype/process_step/process_step.py",
+      "frontend/packages/ui/src/components/ui-family-21/index.tsx",
+      "frontend/packages/ui/src/components/ui-family-38/post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-family-38/scale.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Başlatma: ProcessDefinition adı, tanım sürüm kimliği ve bağlanacak belge referansları (doctype, name). Geçiş: native apply_workflow(doc, action) argümanları; ayrı geçiş uç noktası yok. Durdurma: örnek kimliği ve gerekçe. BPMN alt küme import/export: yalnız ilgili karar sonrası. Kullanıcı ve tenant native oturumdan çözülür, istemci gövdesinden alınmaz.",
+    "output": "Örnek kimliği, tanım adı ve sürümü, örnek durumu (önerilen değer listesi process-definition--schema sözleşmesinde onaylanır), açık Workflow Action görevleri ve yürütüm geçmişi kayıtları. React/Ant Design istemcisine yalnız JSON model döner; ReactNode veya callback model sınırından geçmez, yerel bileşende kalır.",
+    "authorization": "Okuma/yazma native DocType izinleri ve frappe.has_permission ile; geçişler native get_transitions içindeki okuma izni, rol ve koşul denetimiyle. Başlatma ve durdurma yetkisi explicitPermissionFlags ortak kaynağına native-user-policy--contract üzerinden bağlanır ve bu birim yeni rol üretmeden önce o kaynağı kullanır. ignore_permissions, ham SQL veya flags ile yetki bypass yasaktır. Gelecekteki kabulde en az bir reddedilen yazma ve değişmeyen kayıt doğrulaması bulunur.",
+    "persistence": "Örnek ve geçmiş kayıtları native Document.insert/save ve DocType hook'larıyla aynı transaction içinde yazılır; belge geçişleri native apply_workflow kaydetme yolunda kalır. Tanım değişiklikleri native Version geçmişini (track_changes) kullanır. Dış yan etkiler outbox--contract, denetim kaydı audit-envelope--contract üzerinden. Bu sözleşme hiçbir servis, production, şema veya veriyi değiştirme yetkisi vermez.",
+    "failure": "Yetkisiz istek: PermissionError, kayıt değişmez. Geçersiz geçiş: native WorkflowTransitionError, kayıt değişmez. Kırıcı tanım değişikliği (çalışan örneklerin kullandığı durumun kaldırılması): kaydetme reddedilir ve etkilenen durum farkı döner. Desteklenmeyen BPMN öğesi: import bütünüyle reddedilir. Automation adım hatası: native deneme sınırı uygulanır, tükenince Failed; telafi kararı verilene kadar dış yan etki geri alınmış sayılmaz."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "approval-chain--contract",
+      "approval-decision--contract",
+      "audit-envelope--contract",
+      "automation-rule--contract",
+      "capability-definition--contract",
+      "client-rule-parity--contract",
+      "kernel-envelope--contract",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "native-workflow--contract",
+      "outbox--contract",
+      "process-definition--contract",
+      "process-definition--implementation",
+      "process-definition--schema",
+      "process-step--contract",
+      "process-step--implementation",
+      "process-step--schema",
+      "ui-family-21--contract",
+      "ui-family-38--contract",
+      "ui-family-38--implementation"
+    ],
+    "admission": "T-00 hedef taban ve R-00 yeniden kullanım eşlemesi tamamlanmış olmalı; izinli veri tüketicileri R-01 kullanır. process-definition--contract, process-definition--schema, native-workflow--contract, native-user-policy--contract, outbox--contract ve audit-envelope--contract onaylı olmalı. İlgili decisionsPending kararı verilmeden o karara bağlı adım başlamaz. Tek dar davranış gerçek RED/GREEN kanıtıyla uygulanır. Uygulama durumu: uygulanmadı; bu sözleşme üretim kiralaması vermez.",
+    "steps": [
+      "T-00 hedef Frappe sürümünde kanıtlanan native yolları (model/workflow.py, workflow_action.py, automation_engine) yeniden oku; beta Automation Flow hedef sürümde yoksa workflow-6 adımlarını beklet.",
+      "Kullanıcıyla tek örnek süreç (iki belge, üç adım) ve ölçülecek metrikleri belge olarak sabitle.",
+      "Örnek-sürüm bağlama kararına göre ProcessDefinition sürüm alanını ve süreç örneği kaydını process-definition--schema sözleşmesine yaz; yeni ORM veya geçiş motoru tasarlama.",
+      "Başlatma servisini plannedProduction öneri yolunda native izin denetimiyle yaz; belge geçişlerini native apply_workflow'a bırak.",
+      "Görev sahipliğini karar sonrası native Workflow Action üzerinden oku; paralel görev tablosu açma.",
+      "Kırıcı tanım değişikliği korumasını uygulama hooks.py doc_events ile Workflow validate aşamasında, çalışan örneklerin durumlarını karşılaştırarak ekle.",
+      "Durdurmayı yetkili, gerekçeli ve geçmişe yazılan bir işlem olarak tanımla; bağlı belgelerde validate doc_events ile durdurulmuş örnek kontrolü yap, native akışı değiştirme.",
+      "Scale aşamasında BPMN ve Automation Flow adımlarını requirementGuidance sırasıyla, ilgili kararlar verildikten sonra ele al.",
+      "ui-family-21 ve ui-family-38 görünümlerini Ant Design/Pro bileşenleriyle, yalnız JSON model okuyan salt okunur yüzey olarak planla; kaynak/bileşen registry (packages/ui registry.ts) ile GenUI capability registry ayrıdır, bu birim GenUI kaydı eklemez. Arayüz kuralları (Outfit, en az 14 CSS px, 320 CSS px öncelik, çevrelemeyen odak, token tabanlı hareket) uygulanır."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Bir tanımın birinci sürümüyle başlatılmış süreç örneği, aynı tanımın ikinci sürümü aktifleştirildikten sonra birinci sürüm kimliğini ve mevcut adım durumunu korur.",
+      "red": "Test, sürüm bağı olmadığı için örneğin aktif tanımın yeni sürümünü göstermesi nedeniyle davranış iddiasında düşmelidir; import hatası, eksik altyapı veya native Workflow davranışını bozmak RED sayılmaz. Bu turda test yazılmaz veya koşulmaz.",
+      "green": "Başlatma anında tanım sürüm kimliğini örneğe yazan en küçük değişiklik; native apply_workflow, izin ve save yolu değişmeden kalır."
+    },
+    "rollback": "Bu turda geri alınacak üretim değişikliği yoktur. Gelecekte yeni kayıt türleri native Workflow verisine yazmadığından kapatılmaları belgelerin workflow_state değerlerini değiştirmez; etkinleştirme kapatılır, şema geri alma planı uygulama öncesi yazılır. CI, deploy ve rollback teknik sahibi Hüseyin Cengiz'dir. Bu birimde DNS/GoDaddy adımı yoktur."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "workflow-2",
+      "sourceStage": "post_mvp",
+      "existing": "Belge başına native Workflow ve sonraki olası geçiş rolleri için oluşturulan rol bazlı Workflow Action görev kaydı (Open/Completed).",
+      "gap": "Birden çok belgeyi bağlayan süreç kimliği/örneği, görev sahipliği kararı, süreç metrikleri (süre, darboğaz) ve kabul için örnek süreç yok; Automation Flow yalnız beta dokümana bağlı.",
+      "completionSteps": [
+        "Örnek süreci (iki belge, üç adım) ve metrikleri belgele.",
+        "Süreç örneği ile bağlı belge referanslarının sözleşmesini process-definition--schema içinde yaz.",
+        "Görev kaydı için Workflow Action'ı yeniden kullan; karar ayrı model yönünde çıkarsa yalnız ek alanları tanımla.",
+        "Süre ve darboğaz metriklerini yürütüm geçmişi zaman damgalarından türet; ayrı ölçüm motoru kurma."
+      ],
+      "dependencies": [
+        "process-definition--contract",
+        "process-definition--schema",
+        "native-workflow--contract",
+        "native-user-policy--contract",
+        "approval-chain--contract",
+        "audit-envelope--contract"
+      ],
+      "acceptance": "Çok belgeli örnek süreçte görev, yetki ve süreç sonucu uçtan uca izlenebilmeli; yetkisiz kullanıcının başlatma isteği reddedilir ve kayıt oluşmaz.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/workflow/doctype/workflow_action/workflow_action.py",
+          "line": 46,
+          "quote": "status: DF.Literal[\"Open\", \"Completed\"]"
+        },
+        {
+          "path": "frappe/frappe/workflow/doctype/workflow_action/workflow_action.py",
+          "line": 115,
+          "quote": "create_workflow_actions_for_roles(roles, doc)"
+        },
+        {
+          "path": "frappe/frappe/model/workflow.py",
+          "line": 37,
+          "quote": "frappe.db.get_value(\"Workflow\", {\"document_type\": doctype, \"is_active\": 1}, \"name\")"
+        }
+      ]
+    },
+    {
+      "requirementId": "workflow-4",
+      "sourceStage": "post_mvp",
+      "existing": "DocType başına tek aktif Workflow (yeni tanım aktifleşince diğerleri pasifleşir, önbellek DocType'a göre tutulur); belge yalnız durum alanını saklar; Workflow tanımı track_changes ile Version geçmişi verir.",
+      "gap": "Örneğin tanım sürümüne bağlanması, durdurma/yeniden başlatma semantiği ve yetkisi, yürütüm geçmişi kaynağı yok; aktif tanım değişince mevcut durumların geçerliliği tanımsız, 'Save Anyway' uyarısı yalnız Desk'te.",
+      "completionSteps": [
+        "Örnek-sürüm bağlama kararını (sürüm alanı veya anlık görüntü) process-definition--contract içine yaz.",
+        "Tanım kaydı öncesi çalışan örneklerin kullandığı durumların farkını al; kırıcı değişikliği reddet.",
+        "Durdurma ve yeniden başlatmayı explicitPermissionFlags ile yetkilendir; durdurulmuş örnekte geçişi reddet.",
+        "Yürütüm geçmişini karar verilen kaynağa (Version, Comment veya yeni kayıt) audit-envelope--contract zarfıyla yaz."
+      ],
+      "dependencies": [
+        "process-definition--contract",
+        "process-definition--schema",
+        "native-workflow--contract",
+        "native-user-policy--contract",
+        "audit-envelope--contract"
+      ],
+      "acceptance": "Eski süreç örneği yeni tanımla sessizce değişmemeli; durdurma ve yürütüm geçmişi izlenmeli.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/workflow/doctype/workflow/workflow.py",
+          "line": 139,
+          "quote": ".set(Workflow.is_active, 0)"
+        },
+        {
+          "path": "frappe/frappe/model/workflow.py",
+          "line": 38,
+          "quote": "frappe.cache.hset(\"workflow\", doctype, workflow_name or \"\")"
+        },
+        {
+          "path": "frappe/frappe/workflow/doctype/workflow/workflow.json",
+          "line": 140,
+          "quote": "\"track_changes\": 1"
+        },
+        {
+          "path": "frappe/frappe/model/workflow.py",
+          "line": 140,
+          "quote": "doc.set(workflow.workflow_state_field, transition.next_state)"
+        }
+      ]
+    },
+    {
+      "requirementId": "workflow-5",
+      "sourceStage": "scale",
+      "existing": "BPMN olmayan durum/geçiş motoru: get_transitions rol ve koşulla filtreler, apply_workflow geçişi doğrulayıp durum alanını günceller; Workflow DocType gizli workflow_data JSON alanı tutar; Desk Workflow Builder grafiği Vue Flow node/edge JSON'u olarak saklar (Vue kaynağı, React/Ant Design kanıtı değil).",
+      "gap": "BPMN 2.0 XML import/export, ayrıştırıcı, şema doğrulama ve yürütme yok; gateway, event, subprocess, lane semantiği yok; desteklenen alt küme ve reddetme davranışı, BPMN ile Workflow arasında adaptör ve yetkili kaynak kararı yok; React/Ant Design süreç sözleşmesi ve görselleştirmesi yok.",
+      "completionSteps": [
+        "BPMN gerektiren gerçek süreç olup olmadığını kullanıcıyla netleştir; yoksa madde belge düzeyinde kalır.",
+        "Gerekirse Frappe Workflow'u yetkili kaynak yap ve en dar alt kümeyi (startEvent, userTask->State, sequenceFlow->Transition, endEvent) ile diğer öğeleri reddetme kuralını process-definition--contract içine yaz.",
+        "Önce salt okunur export servisini (states/transitions -> alt küme) process_definition_scale.py öneri yolunda planla.",
+        "Import'u en son, frappe.client.save ve native Workflow validate yolu üzerinden planla; geçişler apply_workflow ile yürümeye devam eder.",
+        "Görselleştirmeyi ui-family-38 scale kapsamında Ant Design ailesiyle, yalnız export JSON modelini okuyarak planla."
+      ],
+      "dependencies": [
+        "process-definition--contract",
+        "process-definition--schema",
+        "process-definition--implementation",
+        "native-workflow--contract",
+        "ui-family-38--contract",
+        "ui-family-38--implementation"
+      ],
+      "acceptance": "Kapsamdaki BPMN öğeleri ve import/export aynı davranışı korumalı; desteklenmeyen öğe açıkça reddedilmeli.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/model/workflow.py",
+          "line": 72,
+          "quote": "if transition.state == current_state and transition.allowed in roles:"
+        },
+        {
+          "path": "frappe/frappe/model/workflow.py",
+          "line": 119,
+          "quote": "def apply_workflow(doc: Document | str | dict, action: str):"
+        },
+        {
+          "path": "frappe/frappe/workflow/doctype/workflow/workflow.json",
+          "line": 108,
+          "quote": "\"fieldname\": \"workflow_data\","
+        },
+        {
+          "path": "frappe/frappe/public/js/workflow_builder/store.js",
+          "line": 85,
+          "quote": "doc.workflow_data = JSON.stringify(workflow_data);"
+        },
+        {
+          "path": "frappe/frappe/public/js/workflow_builder/WorkflowBuilder.vue",
+          "line": 2,
+          "quote": "import { VueFlow, useVueFlow, Panel, PanelPosition } from \"@vue-flow/core\";"
+        }
+      ]
+    },
+    {
+      "requirementId": "workflow-6",
+      "sourceStage": "scale",
+      "existing": "Native beta Automation Flow motoru: Wait adımı devam satırı açar; WaitForEvent aboneliği zaman aşımında 'Timed Out' olur; takılı Running satırları zamanlayıcıya bağlı drain_due ile Pending'e döner; deneme sınırı tükenince Failed; işlemsel olmayan adım öncesi yan etki işareti yazılır.",
+      "gap": "Telafi adım türü ve ters sırada geri alma yok; dış yan etki için uçtan uca idempotency anahtarı yok, koruma TTL'li Redis işaretine dayanıyor; başarısız run'ı güvenle sürdüren yeniden başlatma API'si yok; Wait için üst süre/iptal politikası ve iptal API'si yok; run/wait/timeout durumunu React/Ant Design istemcisine açan sözleşme yok.",
+      "completionSteps": [
+        "Hedef sürümde Automation Flow'un varlığını ve davranışını T-00 tabanında doğrula; yeni motor yazma.",
+        "Upstream automation_engine testlerini incele; aynı davranışı kopyalayan test yazma.",
+        "Run ve adım anahtarından türetilen deterministik idempotency anahtarı ile kalıcı yan etki kaydını tasarla; Frappe çekirdeği değişikliği gerekiyorsa yolu kararla belirle.",
+        "Telafi adımını ancak sonra tasarla: adım tanımında telafi alanı, hatada ters sıra, sonucu sahibiyle outbox--contract ve audit-envelope--contract üzerinden kaydet.",
+        "En son run durumunu salt okunur JSON model olarak React/Ant Design istemcisine açan sözleşmeyi process_step_scale.py öneri yolunda planla."
+      ],
+      "dependencies": [
+        "process-definition--contract",
+        "process-definition--implementation",
+        "process-step--contract",
+        "process-step--schema",
+        "process-step--implementation",
+        "automation-rule--contract",
+        "outbox--contract",
+        "audit-envelope--contract"
+      ],
+      "acceptance": "Kesinti sonrası wait/timeout güvenli sürmeli; dış yan etkiler çift çalışmamalı ve telafi sonucu kaydedilmeli.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/automation_engine/runner.py",
+          "line": 242,
+          "quote": "if step_type == \"Wait\":"
+        },
+        {
+          "path": "frappe/frappe/automation_engine/events.py",
+          "line": 68,
+          "quote": "subscription.db_set(\"status\", \"Timed Out\", update_modified=False)"
+        },
+        {
+          "path": "frappe/frappe/automation_engine/drainer.py",
+          "line": 319,
+          "quote": "\"\"\"Flip Running rows stuck past the claim timeout back to Pending\"\"\""
+        },
+        {
+          "path": "frappe/frappe/automation_engine/drainer.py",
+          "line": 171,
+          "quote": "{\"attempt\": attempt, \"status\": \"Failed\" if exhausted else \"Pending\"},"
+        },
+        {
+          "path": "frappe/frappe/automation_engine/runner.py",
+          "line": 388,
+          "quote": "mark_effects_delivered(context[\"queue_row\"].name)"
+        },
+        {
+          "path": "frappe/frappe/hooks.py",
+          "line": 262,
+          "quote": "\"frappe.automation_engine.drainer.drain_due\","
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Çok belgeli süreç örneği ve örnek-sürüm bağı veri modeli tanımlı değil.",
+    "Durdurma/yeniden başlatma semantiği ve yürütüm geçmişi kaynağı belirlenmedi.",
+    "Kırıcı tanım değişikliği koruması yalnız Desk uyarısı düzeyinde.",
+    "BPMN alt kümesi, adaptör ve reddetme davranışı yok; gerçek gereksinim doğrulanmadı.",
+    "Automation Flow'da telafi, kalıcı idempotency, güvenli yeniden başlatma ve Wait iptal/üst süre politikası yok.",
+    "React/Ant Design süreç ve run durumu görünümü yok; Vue Builder bu katmanın kanıtı değildir.",
+    "Çalışma zamanı kabulü yapılmadı (not_run)."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Örnek-sürüm bağlama yöntemi: sürüm alanı mı, tanım anlık görüntüsü mü.",
+      "requirementIds": ["workflow-4"],
+      "blocks": "process-definition--schema sürüm alanı ve tdd.oneScenario uygulaması",
+      "allowedBeforeDecision": "İki seçeneğin kırıcı değişiklik ve geçmiş etkisini belge olarak karşılaştırmak."
+    },
+    {
+      "decision": "Görev sahipliğinin Workflow Action ile mi ayrı modelle mi tutulacağı.",
+      "requirementIds": ["workflow-2"],
+      "blocks": "Görev okuma/atama adımı",
+      "allowedBeforeDecision": "Workflow Action alanlarını örnek sürecin görev ihtiyacıyla eşleyen tabloyu yazmak."
+    },
+    {
+      "decision": "Örnek süreç ve ölçülecek metrikler (süre, darboğaz).",
+      "requirementIds": ["workflow-2"],
+      "blocks": "Kabul senaryosu ve metrik türetme adımı",
+      "allowedBeforeDecision": "Aday süreç listesini belgelemek."
+    },
+    {
+      "decision": "Yürütüm geçmişi kaynağı: Version, Comment veya yeni kayıt; saklama süresi.",
+      "requirementIds": ["workflow-4"],
+      "blocks": "Geçmiş yazma adımı",
+      "allowedBeforeDecision": "audit-envelope--contract ile gereken alanları listelemek."
+    },
+    {
+      "decision": "BPMN gerçekten gerekli mi; gerekiyorsa alt küme ve olası motor/satıcı/lisans seçimi.",
+      "requirementIds": ["workflow-5"],
+      "blocks": "BPMN export/import ve görselleştirme adımları",
+      "allowedBeforeDecision": "Workflow states/transitions ile en dar BPMN alt kümesi eşleme taslağını yazmak."
+    },
+    {
+      "decision": "Hedef Frappe sürümü ve beta Automation Flow'un o sürümde bulunup bulunmadığı.",
+      "requirementIds": ["workflow-2", "workflow-6"],
+      "blocks": "workflow-6 tüm uygulama adımları",
+      "allowedBeforeDecision": "Kanıtlanan native davranışların sürüm bağımsız özetini tutmak."
+    },
+    {
+      "decision": "Kalıcı yan etki/idempotency kaydının yeri ve saklama süresi; Frappe çekirdeği değişikliği gerekiyorsa upstream katkı mı uygulama düzeyi eylem mi.",
+      "requirementIds": ["workflow-6"],
+      "blocks": "Idempotency ve telafi adımları",
+      "allowedBeforeDecision": "Redis TTL işaretinin kaybolma senaryolarını belgelemek."
+    },
+    {
+      "decision": "Telafi kapsamı ve telafi sonucunun sahibi.",
+      "requirementIds": ["workflow-6"],
+      "blocks": "Telafi adım tasarımı",
+      "allowedBeforeDecision": "Örnek süreçteki dış yan etkileri ve geri alınabilirliklerini listelemek."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

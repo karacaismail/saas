@@ -4,15 +4,22 @@
   "canonicalTaskIds": ["retention-rule--implementation"],
   "requirementIds": ["governance-2", "governance-3", "governance-7"],
   "stage": "mvp",
+  "sourceStages": {
+    "governance-2": "mvp",
+    "governance-3": "mvp",
+    "governance-7": "mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
-    "title": "Tek RetentionRule kaydı ile süresi dolmuş, kaldırılmış durumdaki Drive File kayıtlarının native silme ile kalıcı silinmesi",
+    "title": "Tek RetentionRule kaydı ile süresi dolmuş, Drive'da kaldırılmış durumdaki File kayıtlarının native silme ile kalıcı silinmesi",
     "trigger": "Yetkili kullanıcı bir RetentionRule kaydı üzerinde whitelisted controller metodunu dry_run=false ile manuel çağırır. Zamanlanmış iş yok, scheduler etkinleştirilmez.",
-    "expected": "Kuralda tanımlı süreyi aşmış ve Drive kaldırılmış durumundaki File kayıtları frappe.delete_doc ile izin kontrolü atlanmadan silinir. Blob ve ilişkili Drive satırları native after_delete ile temizlenir. Süresi dolmamış kayıtlar ve kök klasör dokunulmadan kalır. dry_run=true yalnız aday adlarını döndürür.",
-    "denied": "RetentionRule yazma veya File silme izni yoksa frappe.PermissionError döner, hiçbir kayıt silinmez."
+    "expected": "Kuralda tanımlı süreyi aşmış ve Drive kaldırılmış durumundaki (STATUS_REMOVED) File kayıtları frappe.delete_doc ile izin kontrolü atlanmadan silinir. Blob ve ilişkili Drive satırları native after_delete zinciriyle temizlenir. Süresi dolmamış kayıtlar dokunulmadan kalır. Klasörler (kök klasör dahil) ve içerik dokümanı bağlı File kayıtları bu ilk davranışta aday dışıdır ve skipped içinde gerekçeyle döner. dry_run=true yalnız aday adlarını döndürür, hiçbir şey silmez.",
+    "denied": "Çağıranın RetentionRule için write veya File için delete izni yoksa frappe.PermissionError döner; hiçbir File kaydı, blob veya ilişkili Drive satırı değişmez."
   },
   "reuse": {
-    "mechanism": "Native: frappe.delete_doc ve Drive File after_delete zinciri yeniden kullanılır. Yeni silme motoru, ORM kopyası veya hooks.py değişikliği yok. Adapter yalnız retention_rule.py içindeki aday seçimi ve süre karşılaştırmasıdır. Süre değeri RetentionRule kaydından okunur, ürün saklama süresi seçilmez.",
+    "status": "KISMI",
+    "mechanism": "Native parça: frappe.delete_doc ve Drive File after_delete zinciri (kaldırılmış durumda blob commit sonrası silinir, ilişkili Drive satırları silinir) yeniden kullanılır. Eksik parça: politikaya dayalı aday seçimi ve süre karşılaştırması; bu adapter yalnız retention_rule.py içinde olur. Yeni silme motoru, ORM kopyası, CRUD katmanı veya hooks.py değişikliği yok. Süre değeri RetentionRule kaydından okunur; ürün saklama süresi bu sözleşmede seçilmez. Kanıtın native silme parçasını göstermesi saklama politikası, yayılım veya restore sonrası yeniden silme davranışının var olduğu anlamına gelmez.",
     "evidence": [
       {
         "path": "suite/suite/drive/overrides/file.py",
@@ -39,6 +46,16 @@
         "line": 113,
         "quote": "frappe.delete_doc(\"File\", file.name)"
       }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/commands/site.py",
+      "frappe/frappe/migrate.py",
+      "frappe/frappe/model/delete_doc.py",
+      "frappe/frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py",
+      "suite/suite/drive/overrides/file.py",
+      "suite/suite/hooks.py",
+      "suite/suite/slides/doctype/presentation/patches/cleanup_unused_thumbnail_files.py",
+      "suite/suite/suite_core/boot.py"
     ]
   },
   "ownership": {
@@ -46,58 +63,239 @@
     "plannedProduction": [
       "backend/saas_platform/saas_platform/audit_governance/doctype/retention_rule/retention_rule.py"
     ],
-    "plannedTestFile": "backend/saas_platform/saas_platform/audit_governance/doctype/retention_rule/test_retention_rule.py (yalnız planlı, aktif lease değil)",
+    "plannedTestFile": null,
     "sharedIntegrationFiles": [
-      "backend/saas_platform/saas_platform/audit_governance/doctype/retention_rule/retention_rule.json",
       "backend/saas_platform/saas_platform/hooks.py",
-      "integration/fragments/retention-rule--integration.json"
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "RetentionRule adı (string). dry_run: bool, varsayılan true. limit: int, varsayılan 20, en fazla 100. Hedef DocType yalnız File. Süre ve durum alanlarının adları retention-rule--schema sözleşmesinden gelir, bugün bilinmiyor.",
-    "output": "{version:1, rule, dryRun, candidates:[name], deleted:[name], skipped:[{name, reason}]}. Yalnız kayıt adları döner. file_url, dosya adı, sahip veya içerik dönmez.",
-    "authorization": "Yalnız native site boundary ve cookie/CSRF oturumu. Çağıranın RetentionRule için write ve File için delete izni olmalı. delete_doc ignore_permissions olmadan çağrılır. Kök klasör native on_trash PermissionError ile korunur. Tenant global modeli seçilmez.",
-    "persistence": "İstek transaction'ı içinde native delete_doc kullanılır. Blob silme commit sonrası native olarak yapılır (file.py:133). DDL garantisi yok. Şema retention-rule--schema görevine aittir.",
-    "failure": "İlk aday hatasında istisna yükseltilir ve native istek rollback'i ile kısmi silme kalmaz. PermissionError 403 döner, diğer hatalar 417 veya 500 döner. Tüketici hatayı gösterir, sessiz log_error kullanılmaz. Per-candidate savepoint v17-dev'de doğrulanmadıkça kullanılmaz."
+    "input": "RetentionRule adı (string). dry_run: bool, varsayılan true. limit: int, varsayılan 20, en fazla 100. Hedef DocType yalnız File. Süre, durum zaman damgası ve hedef alanlarının adları retention-rule--schema sözleşmesinden gelir; bugün bilinmiyor ve bu rehberde uydurulmaz.",
+    "output": "{version:1, rule, dryRun, candidates:[name], deleted:[name], skipped:[{name, reason}]}. Yalnız kayıt adları ve kısa gerekçe kodu döner. file_url, dosya adı, sahip, içerik veya kişisel veri dönmez.",
+    "authorization": "Yalnız native site sınırı ve native cookie/CSRF oturumu. Çağıranın RetentionRule için write ve File için delete izni olmalı. delete_doc ignore_permissions olmadan çağrılır; SQL ile doğrudan silme veya izin atlama yok. Native zincir file.py:152'de içerik dokümanını ignore_permissions ile sildiği için içerik dokümanı bağlı File ve klasör kayıtları ilk davranışta aday dışıdır. Bu rehber rol veya izin üretmez; retention-rule--schema izin satırı üretirse policyRef altındaki explicitPermissionFlags ortak kaynağına bağlanır. Tenant topolojisi seçilmez.",
+    "persistence": "İstek transaction'ı içinde native delete_doc kullanılır. Blob silme commit sonrası native olarak yapılır (file.py:133). Native delete_doc silinen dokümanın JSON kopyasını Deleted Document içine yazar (delete_doc.py:259); bu davranışta değiştirilmez ve açık eksik olarak kalır. DDL garantisi yok; şema retention-rule--schema görevine aittir.",
+    "failure": "İlk aday hatasında istisna yükseltilir ve native istek rollback'i ile kısmi satır silmesi kalmaz; commit olmadığı için blob silme de tetiklenmez. PermissionError 403, doğrulama hataları 417, diğer hatalar 500 döner. Tüketici hatayı gösterir; sessiz log_error kullanılmaz. Aday başına savepoint v17-dev'de doğrulanmadıkça kullanılmaz."
   },
   "development": {
     "dependencies": [
+      "kernel-envelope--contract",
+      "native-user-policy--contract",
       "retention-rule--contract",
       "retention-rule--schema",
-      "kernel-envelope--contract",
-      "tenant-registry--contract",
-      "native-user-policy--contract",
-      "localPilot frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6, suite.localhost, nativeAuth cookie/CSRF"
+      "tenant-registry--contract"
     ],
-    "admission": "retention_rule.json şeması ve alanları yerinde olmalı. Drive kaldırılmış durum sabiti, durum zaman damgası alanı ve whitelisted doc method çağrı yolu v17-dev Suite kaynağında doğrulanmalı. Bugün bilinmiyor, Suite HEAD bilinmiyor. T-00 ve R-00 gerekli. Yerel kanıt remote ürün baseline'ı değildir.",
+    "admission": "Uygulama durumu: uygulanmadı. Kabul ön koşulları: T-00 hedef baseline ve R-00 yeniden kullanım eşlemesi; izinli veri tüketicisi olduğu için R-01. retention-rule--schema ile RetentionRule alanları ve izin satırları yerinde olmalı. Drive kaldırılmış durum sabiti, durum zaman damgası alanı, klasör ve içerik dokümanı ayırt edici alanları ve whitelisted doc method çağrı yolu hedef Frappe/Suite sürümünde kaynakla doğrulanmalı; kaynak alıntıları v17-dev için eşlenmemiştir. Hedef sürüm kararı açıktır (decisionsPending). Kaynak değerlendirmesi ürün uygulaması değildir.",
     "steps": [
-      "retention_rule.py içine whitelisted apply metodu ekle: kural okunur, File adayları native frappe.get_all ile süre ve kaldırılmış durum filtresiyle seçilir, limit uygulanır.",
-      "dry_run=false iken her aday için frappe.delete_doc(\"File\", name) çağrılır. ignore_permissions kullanılmaz.",
-      "Yanıt sürümlü yapıda döner. hooks.py ve scheduler değişmez."
+      "retention_rule.py içine whitelisted apply(dry_run=True, limit=20) metodu ekle: kural native get_doc ile okunur, çağıranın RetentionRule write izni native has_permission ile kontrol edilir.",
+      "File adaylarını native frappe.get_all ile süre ve kaldırılmış durum filtresiyle seç; klasör ve içerik dokümanı bağlı kayıtları skipped içine gerekçeyle ayır; limit uygula.",
+      "dry_run=false iken her aday için frappe.delete_doc(\"File\", name) çağır; ignore_permissions kullanma, hata yakalayıp yutma.",
+      "Yanıtı sürümlü yapıda döndür. hooks.py, scheduler ve paylaşılan entegrasyon dosyaları bu davranışta değişmez."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "Test fixture'ındaki bir RetentionRule için süresi dolmuş, kaldırılmış bir Drive File ile süresi dolmamış bir File oluşturulur. Yetkili kullanıcı apply(dry_run=false) çağırır. Yalnız süresi dolmuş kayıt silinir ve deleted listesinde yer alır, diğeri kalır.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Uygulamadan sonra aynı test aynı bench run-tests komutuyla yeşil olur. Native olarak zaten çalışan delete_doc davranışı RED olarak kullanılmaz."
+      "oneScenario": "Bir RetentionRule için süresi dolmuş ve kaldırılmış bir Drive File ile süresi dolmamış bir File oluşturulur. Yetkili kullanıcı apply(dry_run=false) çağırır: yalnız süresi dolmuş kayıt silinir ve deleted içinde yer alır, diğeri kalır. Aynı kabulde File delete izni olmayan kullanıcı çağırdığında PermissionError alır ve iki kayıt da değişmeden kalır.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. RED, retention-rule--schema tamamlandıktan sonra süresi dolmuş kaldırılmış File'ın apply sonrası hâlâ var olduğunu gösteren davranış assertion'ı ile gözlenmelidir. Import, AttributeError, fixture veya altyapı hatası RED sayılmaz; native olarak zaten çalışan delete_doc davranışı RED olarak kullanılmaz ve native davranış bozularak RED üretilmez.",
+      "green": "Uygulamadan sonra aynı senaryo, değişmeyen assertion ve aynı bench run-tests komutuyla geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN'i değildir."
     },
-    "rollback": "Yerelde retention_rule.py ve planlı test dosyası geri alınır. Production izni ve servis restart'ı yok."
+    "rollback": "Gelecekteki uygulama turunda retention_rule.py değişikliği ve planlanacak test geri alınır. Bu sözleşme hiçbir servis, production, şema veya veriyi değiştirme yetkisi vermez; servis restart'ı yok. CI, deploy ve rollback teknik sahibi Hüseyin Cengiz'dir. Bu davranış DNS veya GoDaddy işlemi gerektirmez; o alanın uygulama sahibi Asistan Hüseyin'dir."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "governance-2",
+      "sourceStage": "mvp",
+      "existing": "Native parça: Drive after_delete kaldırılmış durumda blob'u commit sonrası siler ve ilişkili Drive satırlarını kaldırır; Sheet/Presentation soft-trash durumu Drive File'a yansıtılır; tek seferlik bir patch delete_doc ile kullanılmayan thumbnail File'larını siler. Personal Data Deletion Request user_data_fields hook'u ile anonimleştirme ilkeli sağlar. Politikaya dayalı saklama, arşiv veya anonimleştirme seçimi yapan bir mekanizma kaynakta yok.",
+      "gap": "Kaynak bağlantıları version-15; v17-dev için Log Settings ve kişisel veri silme eşlemesi doğrulanmadı. Arşiv, anonimleştirme ve kalıcı silme arasında seçim kuralı yok. Drive soft-trash ile kalıcı silme arasındaki süre politikası tanımsız. Saklama istisnası governance-5 (legal-hold) bağımlı; sıralama yazılmamış.",
+      "completionSteps": [
+        "T-00/R-00 kapsamında hedef sürümde Log Settings ve Personal Data Deletion Request kaynak eşlemesini belge olarak kaydet; version-15 URL'lerini kanıt saymadan işaretle.",
+        "İlk politikayı yalnız Drive File kaldırılmış durum -> kalıcı silme olarak sınırla (behavior); süre değeri RetentionRule kaydından okunur.",
+        "Arşiv ve anonimleştirme seçim kuralını karar gelene kadar bu davranışa ekleme; seçim kuralı decisionsPending içinde bekler.",
+        "Saklama istisnasını governance-5 legal-hold sözleşmesine bağımlılık notu olarak yaz; dry_run=false production kullanımı bu kontrol bağlanmadan kabul edilmez. Yeni görev kimliği eklenmez."
+      ],
+      "dependencies": [
+        "retention-rule--contract",
+        "retention-rule--schema",
+        "native-user-policy--contract"
+      ],
+      "acceptance": "Süresi dolmuş kaldırılmış örnek File kural ile kalıcı silinir; süresi dolmamış kayıt kalır; yetkisiz çağrı reddedilir ve kayıt değişmez. Saklama istisnalı kaydın silinmemesi governance-5 bağlandığında ayrı kabulle doğrulanır.",
+      "evidence": [
+        {
+          "path": "suite/suite/drive/overrides/file.py",
+          "line": 132,
+          "quote": "if self.status == STATUS_REMOVED and not self._not_in_disk():"
+        },
+        {
+          "path": "suite/suite/drive/overrides/file.py",
+          "line": 133,
+          "quote": "self._delete_blob_after_commit(not self.manager.flat)"
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 238,
+          "quote": "# soft-trash onto the backing Drive File, on_trash removes it on hard"
+        },
+        {
+          "path": "suite/suite/slides/doctype/presentation/patches/cleanup_unused_thumbnail_files.py",
+          "line": 113,
+          "quote": "frappe.delete_doc(\"File\", file.name)"
+        },
+        {
+          "path": "frappe/frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py",
+          "line": 41,
+          "quote": "self.user_data_fields = frappe.get_hooks(\"user_data_fields\")"
+        }
+      ]
+    },
+    {
+      "requirementId": "governance-3",
+      "sourceStage": "mvp",
+      "existing": "Native parça: Drive after_delete ilişkili Drive satırlarını siler ve içerik dokümanını delete_doc ile kaldırır. Writer SQLite tam metin arama sağlayıcısı hooks.py'de kayıtlı. Mevcut hata örüntüsü yalnız log_error. Arama dizini, cache ve AI kopyalarına silme yayılımı kaynakta görülmedi.",
+      "gap": "Silme hedefi kaydı (blob, arama, cache, Suite içi AI) ve hedef başına silme sözleşmesi yok. Tekrar deneme ve görünür başarısızlık yok. file.py:152 ignore_permissions zinciri saklama kilidini atlayabilir. AI bilgi tabanı hedefi belirsiz; GenUI ayrı kullanıcı projesidir ve GenUI capability registry kapsam dışıdır.",
+      "completionSteps": [
+        "Yayılım alt kabulünü tanımla: ilk hedefler yalnız Drive blob ve Writer arama dizini; cache ve Suite içi AI kopyaları sonraki adım.",
+        "Hedef başına izlenebilir iş durumu (hedef, durum, deneme sayısı, son hata kodu) için alanları retention-rule--schema sözleşmesine öneri olarak ilet; ayrı ORM veya motor tasarlama.",
+        "Writer arama dizininden kayıt kaldırma çağrısını, WriterSearch sağlayıcısının silme yolu hedef sürümde kaynakla doğrulanmadan yazma.",
+        "Tekrar denemeyi native Frappe arka plan kuyruğu ile kur (hedef sürümde doğrulanacak); scheduler etkinleştirmesi Hüseyin Cengiz onayına bağlı ve bu davranışta dormant.",
+        "Başarısız hedefi log_error ile yetinmeden iş durumunda failed olarak görünür kıl ve tüketiciye sonuçta döndür.",
+        "ignore_permissions zincirine girmemek için içerik dokümanı bağlı File ve klasörleri saklama kilidi kontrolü (governance-5) bağlanana kadar aday dışı tut."
+      ],
+      "dependencies": [
+        "retention-rule--schema",
+        "kernel-envelope--contract",
+        "governance-2"
+      ],
+      "acceptance": "Silinen örnek File için blob ve Writer arama hedefi hedef başına izlenebilir işle kapanır; bilinçli başarısız kılınan hedef failed olarak görünür ve tekrar denemede tamamlanır; başka kayıt etkilenmez.",
+      "evidence": [
+        {
+          "path": "suite/suite/drive/overrides/file.py",
+          "line": 138,
+          "quote": "frappe.db.delete(\"Drive Favourite\", {\"entity\": self.name})"
+        },
+        {
+          "path": "suite/suite/drive/overrides/file.py",
+          "line": 152,
+          "quote": "frappe.delete_doc(self.content_doctype, self.content_docname, ignore_permissions=True)"
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 38,
+          "quote": "sqlite_search = [\"suite.writer.search.WriterSearch\"]"
+        },
+        {
+          "path": "suite/suite/slides/doctype/presentation/patches/cleanup_unused_thumbnail_files.py",
+          "line": 115,
+          "quote": "frappe.log_error("
+        }
+      ]
+    },
+    {
+      "requirementId": "governance-7",
+      "sourceStage": "mvp",
+      "existing": "Native parça: bench restore SQL dökümünü source_sql ile içe alır; restore sonrası kanca, silme yeniden oynatma veya karantina kapısı yok. Personal Data Deletion Request anonimleştirme yapar ve durumu Deleted olarak işaretler. delete_doc silinen dokümanın tam JSON kopyasını Deleted Document'e yazar; bu tombstone değil, kişisel veri taşıyan kopyadır. migrate akışında after_migrate kanca noktası var; Suite after_migrate yalnız mail işini çalıştırır.",
+      "gap": "Yedekten bağımsız, kişisel veri taşımayan tombstone deposu yok. Restore veya migrate sonrası tombstone replay'i yok. Kullanıcı trafiği, scheduler ve kuyruk açılmadan önce çalışan karantina kapısı yok. Hard delete ve Drive after_delete için tombstone yazımı yok. Arama ve AI kopyalarının yeniden temizlenmesi governance-3'e bağlı. Personal Data Deletion Request kaydı kişisel veri taşıdığı ve yedekle birlikte döndüğü için replay kaynağı olamaz.",
+      "completionSteps": [
+        "Kişisel veri içermeyen tombstone alanlarını (tenant başına tuzlanmış anahtar özeti, DocType, silme zamanı, karar kimliği) retention-rule--schema'ya öneri olarak yaz; deponun konumu veri yerleşimi kararını bekler, tuz değeri secret olarak kaynak dışında kalır.",
+        "Personal Data Deletion Request anonimleştirme akışı ve native hard-delete tamamlandığında tombstone yazımını tanımla; native akışı değiştirmeden ardından çağrılan bir adım olarak.",
+        "Replay'i idempotent tanımla: tombstone'ları mevcut anonimleştirme ve delete_doc ilkelleriyle, ignore_permissions olmadan yeniden uygula.",
+        "Restore akışı kanca çağırmadığı için replay'i ayrı bir bench komutu olarak restore runbook'una bağla; after_migrate yalnız ikincil tetik. Komut mekanizması hedef sürümde doğrulanacak.",
+        "Karantina kapısı: replay başarıyla bitene kadar site bakım modunda ve scheduler kapalı kalır; operasyon adımının sahibi Hüseyin Cengiz.",
+        "Replay sonrası governance-3 hedeflerinin yeniden temizlenmesini bağımlılık olarak çağır."
+      ],
+      "dependencies": [
+        "retention-rule--contract",
+        "retention-rule--schema",
+        "tenant-registry--contract",
+        "kernel-envelope--contract",
+        "governance-3"
+      ],
+      "acceptance": "Silinmiş kişiyi içeren yedek geri yüklendiğinde servis açılmadan replay ile kişi yeniden anonimleşir veya silinir; geri gelen arama ve AI kopyaları governance-3 hedefleriyle temizlenir; replay ikinci kez çalıştığında değişiklik üretmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/commands/site.py",
+          "line": 404,
+          "quote": "source_sql=sql_file_path,"
+        },
+        {
+          "path": "frappe/frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py",
+          "line": 41,
+          "quote": "self.user_data_fields = frappe.get_hooks(\"user_data_fields\")"
+        },
+        {
+          "path": "frappe/frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py",
+          "line": 302,
+          "quote": "self.db_set(\"status\", \"Deleted\")"
+        },
+        {
+          "path": "frappe/frappe/model/delete_doc.py",
+          "line": 259,
+          "quote": "data=doc.as_json(),"
+        },
+        {
+          "path": "frappe/frappe/migrate.py",
+          "line": 212,
+          "quote": "for fn in frappe.get_hooks(\"after_migrate\", app_name=app):"
+        },
+        {
+          "path": "suite/suite/suite_core/boot.py",
+          "line": 88,
+          "quote": "_run(\"mail.after_migrate\", mail_after_migrate)"
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "governance-2: v17-dev Log Settings ve Personal Data Deletion eşlemesi doğrulanmadı. Arşiv, anonimleştirme ve kalıcı silme arasında seçim kuralı yok. Saklama istisnası ve legal-hold sıralaması (governance-5) bu davranışta yok, bağımlılık olarak açık.",
-    "governance-3: Writer sqlite_search (hooks.py:38), cache ve Suite içi AI kopyalarına yayılım, hedef başına izlenebilir iş, tekrar deneme ve görünür başarısızlık yok. file.py:152 ignore_permissions zinciri saklama kilidini atlayabilir. GenUI registry kapsam dışı.",
-    "governance-7: PII içermeyen, yedek dışı tombstone deposu, restore veya after_migrate replay'i ve karantina kapısı yok. delete_doc Deleted Document içine doc.as_json() kopyası yazıyor (delete_doc.py:259), yani kalıcı silmeden sonra kopya kalıyor.",
-    "Zamanlama yalnız dormant kalır. Gelecekteki deploy ve scheduler etkinleştirmesinin sahibi Hüseyin Cengiz.",
-    "UI bu davranışta yok. İleride AntD tüketicisi eklenirse Outfit, 14px minimum, 320-first, çevreleyen odak halkası olmaması ve simetrik Cubic hareket korunur."
+    "governance-2: hedef sürüm eşlemesi doğrulanmadı; arşiv/anonimleştirme/kalıcı silme seçim kuralı yok; saklama istisnası (governance-5) bu davranışta bağlı değil.",
+    "governance-3: Writer arama dizini, cache ve Suite içi AI kopyalarına yayılım, hedef başına iş, tekrar deneme ve görünür başarısızlık yok; file.py:152 ignore_permissions zinciri açık risk.",
+    "governance-7: yedek dışı tombstone deposu, replay ve karantina kapısı yok; Deleted Document içindeki doc.as_json() kopyası kalıcı silmeden sonra kişisel veri bırakır.",
+    "Zamanlama dormant kalır; gelecekteki deploy ve scheduler etkinleştirmesinin sahibi Hüseyin Cengiz.",
+    "Bu davranışta UI yok. İleride Ant Design tüketicisi eklenirse Outfit, 14 CSS px minimum, 320 öncelikli yerleşim, çevreleyen odak halkası olmaması ve simetrik Cubic hareket korunur."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Hedef Frappe/Suite sürümü (version-15 kaynak bağlantıları ile v17-dev arasında)",
+      "requirementIds": ["governance-2", "governance-3", "governance-7"],
+      "blocks": "development.admission ve tüm kaynak eşlemeleri",
+      "interimDocStep": "Her alıntının hangi sürümden geldiğini ve hedef sürümde doğrulanacak alan/çağrı listesini belgele."
+    },
+    {
+      "decision": "Saklama süreleri ve arşiv/anonimleştirme/kalıcı silme seçim kuralı",
+      "requirementIds": ["governance-2"],
+      "blocks": "Production RetentionRule değerlerinin girilmesi ve arşiv/anonimleştirme davranışları",
+      "interimDocStep": "Sürenin kayıttan okunduğunu ve seçim kuralı için gerekli karar girdilerini belgele; değer seçme."
+    },
+    {
+      "decision": "Tombstone deposunun veri yerleşimi (veritabanı yedeğinden bağımsız konum)",
+      "requirementIds": ["governance-7"],
+      "blocks": "Tombstone yazımı ve replay",
+      "interimDocStep": "Kişisel veri içermeyen tombstone alan listesini ve yedekten bağımsızlık gereksinimini belgele."
+    },
+    {
+      "decision": "Tenant topolojisi (tenant başına anahtar ve kapsam)",
+      "requirementIds": ["governance-3", "governance-7"],
+      "blocks": "Tenant kapsamlı tombstone anahtarı ve hedef başına iş kapsamı",
+      "interimDocStep": "tenant-registry--contract bağımlılığını referansla; global model seçme."
+    },
+    {
+      "decision": "Suite içi AI kopyalarının deposu ve sağlayıcısı",
+      "requirementIds": ["governance-3", "governance-7"],
+      "blocks": "AI kopya silme ve yeniden temizleme hedefi",
+      "interimDocStep": "Hedefi yalnız Suite içi AI kopyaları olarak sınırla; GenUI capability registry ile birleştirme."
+    },
+    {
+      "decision": "Deleted Document kopyalarının ve yedeklerin saklama süresi",
+      "requirementIds": ["governance-2", "governance-7"],
+      "blocks": "Kalıcı silme sonrası kalan kopyanın temizlenmesi ve yedek döngüsü",
+      "interimDocStep": "delete_doc.py:259 kopyasını açık risk olarak kaydet; native davranışı değiştirme."
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "governance-2": "mvp",
-    "governance-3": "mvp",
-    "governance-7": "mvp"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,

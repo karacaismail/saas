@@ -1,0 +1,504 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "rag-source",
+  "canonicalTaskIds": [
+    "rag-chunk-reference--implementation",
+    "rag-source--implementation"
+  ],
+  "requirementIds": ["rag-1", "rag-2", "rag-3", "rag-4", "rag-5"],
+  "stage": "scale",
+  "sourceStages": {
+    "rag-1": "scale",
+    "rag-2": "scale",
+    "rag-3": "scale",
+    "rag-4": "scale",
+    "rag-5": "scale"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Son kullanıcı adına izin denetimli RAG parça getirme ve doğrulanabilir kaynak atfı",
+    "trigger": "Oturum açmış Frappe kullanıcısı kendi kiracı bağlamında bir soru için retrieval isteği gönderir.",
+    "expected": "Yanıt yalnız kullanıcının istek anında Frappe izinleriyle okuyabildiği (belge, kullanıcı izni, paylaşım, sahip ve alan düzeyi) ve aktif embedding sürümüne ait kaynak parçalarını içerir. Her parça ve her atıf sourceDoctype, sourceName, fieldname ve sourceModified taşır.",
+    "denied": "Yetkisiz, silinmiş, iptal edilmiş veya başka kiracıya ait belgenin parçası ne sonuç listesinde ne atıfta görünür. İzin kontrolü yapılamazsa istek açık hata ile reddedilir; boş sonuç başarı gibi dönmez. Servis hesabı, ignore_permissions, ignore_user_permissions veya ham SQL ile yetki atlanmaz."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Yeniden kullanılacak native parçalar: Frappe belge okuma izni (check_permission), alan düzeyi okuma izni (apply_fieldlevel_read_permissions) ve has_permission içindeki kullanıcı/paylaşım/sahip kontrolü. Desen örneği olarak: SQLite FTS izin farkındalıklı arama ve BM25 sıralama izleme, Suite SearchStore'un kimliğe göre sil-ekle upsert ve kimlikle silme deseni. Bağımlılık örneği olarak: PDF ayrıştırıcı (pymupdf) ve Sheets AI Assist için anthropic. Bu parçalar RAG sunucusunun, embedding sürümlemenin, parça düzeyinde yetki yeniden kontrolünün veya atfın var olduğunu göstermez. Karşı örnek olarak tutulur, bu yolda yeniden kullanılmaz: global search'ün DocType bazında tümden silip yeniden kurması, SearchStore aramasının hatayı loglayıp boş dönmesi ve Mail indeksinin best-effort tembel yeniden kurulumu. searchedPaths yalnız sağlanan incelenmiş yollardır; kapsamlı yokluk iddiası değildir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 83,
+        "quote": "doc.check_permission(\"read\")"
+      },
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 84,
+        "quote": "doc.apply_fieldlevel_read_permissions()"
+      },
+      {
+        "path": "frappe/frappe/permissions.py",
+        "line": 94,
+        "quote": "If `doc` is passed, also check user, share and owner permissions."
+      },
+      {
+        "path": "frappe/frappe/desk/search.py",
+        "line": 115,
+        "quote": "ignore_user_permissions: bool = False,"
+      },
+      {
+        "path": "frappe/frappe/search/sqlite_search.py",
+        "line": 53,
+        "quote": "INVALID_DOCUMENT = \"invalid_document\""
+      },
+      {
+        "path": "frappe/frappe/search/sqlite_search.py",
+        "line": 115,
+        "quote": "- Ranking tracking (original BM25 vs modified scores)"
+      },
+      {
+        "path": "frappe/frappe/search/sqlite_search.py",
+        "line": 117,
+        "quote": "- Permission-aware search results via query-level filtering"
+      },
+      {
+        "path": "frappe/frappe/utils/global_search.py",
+        "line": 103,
+        "quote": "delete_global_search_records_for_doctype(doctype)"
+      },
+      {
+        "path": "frappe/frappe/utils/global_search.py",
+        "line": 158,
+        "quote": "frappe.db.delete(\"__global_search\", {\"doctype\": doctype})"
+      },
+      {
+        "path": "suite/pyproject.toml",
+        "line": 14,
+        "quote": "\"pymupdf>=1.24.0\","
+      },
+      {
+        "path": "suite/pyproject.toml",
+        "line": 31,
+        "quote": "# sheets — AI Assist (Claude)"
+      },
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 38,
+        "quote": "sqlite_search = [\"suite.writer.search.WriterSearch\"]"
+      },
+      {
+        "path": "suite/suite/mail/patches/migrate_search_index_to_mail_namespace.py",
+        "line": 15,
+        "quote": "Best-effort: indexes rebuild lazily from cached data, so anything already migrated (or any"
+      },
+      {
+        "path": "suite/suite/store/search_store.py",
+        "line": 18,
+        "quote": "SCHEMA_VERSION_FILE = \"schema.version\""
+      },
+      {
+        "path": "suite/suite/store/search_store.py",
+        "line": 53,
+        "quote": "# Schema definition; changing it bumps the schema version and triggers a rebuild."
+      },
+      {
+        "path": "suite/suite/store/search_store.py",
+        "line": 82,
+        "quote": "Each source is deleted-then-added by its ID_FIELD, so re-indexing an existing"
+      },
+      {
+        "path": "suite/suite/store/search_store.py",
+        "line": 163,
+        "quote": "def delete_documents(self, ids: list[str]) -> int:"
+      },
+      {
+        "path": "suite/suite/store/search_store.py",
+        "line": 198,
+        "quote": "any query error (logged, never raised, so search failures don't break the caller)."
+      },
+      {
+        "path": "suite/suite/writer/search.py",
+        "line": 23,
+        "quote": "# Results are permission-filtered in suite.writer.api.general.search."
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "frappe/frappe/desk/search.py",
+      "frappe/frappe/permissions.py",
+      "frappe/frappe/search/sqlite_search.py",
+      "frappe/frappe/utils/global_search.py",
+      "suite/pyproject.toml",
+      "suite/suite/hooks.py",
+      "suite/suite/mail/patches/migrate_search_index_to_mail_namespace.py",
+      "suite/suite/store/search_store.py",
+      "suite/suite/writer/search.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/rag-source.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/ai_orchestration/doctype/ragchunk_reference/ragchunk_reference.py",
+      "backend/saas_platform/saas_platform/ai_orchestration/doctype/ragsource/ragsource.py"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": {
+      "actor": "Frappe oturum kullanıcısı. Kimlik eşlemesi native-user-policy--contract sözleşmesine aittir; bu birim yeni bir kimlik akışı tanımlamaz.",
+      "fields": [
+        "query: boş olmayan metin; boş sorgu doğrulama hatasıdır.",
+        "topK: pozitif tamsayı; üst sınırı uygulama kabulünden önce belgede sabitlenir.",
+        "sourceFilter: isteğe bağlı RAGSource adları listesi; yalnız daraltır, yetki genişletmez."
+      ],
+      "tenantContext": "Kiracı bağlamı istek gövdesinden değil, oturumun bağlı olduğu bağlamdan okunur. Kiracı = site kararı decisionsPending içindedir.",
+      "envelope": "İstek ve yanıt kernel-envelope--contract zarfını kullanır; yeni bir zarf tanımlanmaz."
+    },
+    "output": {
+      "chunks": "Her öğe chunkId, sourceDoctype, sourceName, fieldname, sourceModified, embeddingVersion, score ve alan izni uygulanmış metin taşır.",
+      "citations": "Atıflar yalnız dönen chunks içinden türetilir ve doctype + name + modified üçlüsünden oluşur. Yetkisiz parça atfa giremez.",
+      "modelBoundary": "Yanıt yalnız JSON veridir; ReactNode, callback veya UI bileşeni taşımaz. RAGSource kaynak registry'si GenUI capability registry'si ve frontend/packages/ui/src/registry.ts ile birleştirilmez."
+    },
+    "authorization": {
+      "readPath": "Her aday parça için kaynak belge üzerinde, istek anında ve son kullanıcı adına native okuma izni ve alan düzeyi okuma izni kontrol edilir. Önbelleğe alınmış ACL kullanılmaz; izin iptali bir sonraki istekte etkili olur.",
+      "filterStrategy": "İndeks sorgusundaki kiracı ve kaynak kısıtı yalnız daraltma amaçlı ön filtredir. Nihai kararı son filtre verir. Son filtre sonucu topK'nın altına düşürürse aday havuzu belgede sabitlenen sınırlı sayıda tur kadar genişletilir; sınıra ulaşılırsa eksik sonuç kısmi olarak işaretlenir.",
+      "forbidden": [
+        "ignore_permissions veya ignore_user_permissions bayrağını retrieval yolunda geçirmek",
+        "Servis hesabıyla veya ham SQL ile kaynak okumak",
+        "Kiracı etiketini kayıt ACL'i yerine kullanmak"
+      ],
+      "permissionFlags": "RAGSource ve RAGChunk Reference için rol/izin satırları explicitPermissionFlags ortak kaynağından türetilir (policyRef altındaki ortak politika). Bu sözleşme yeni bir rol veya izin bayrağı tanımlamaz.",
+      "deniedWriteAcceptance": "RAGSource yazma izni olmayan kullanıcının kaynak bağlama veya güncelleme denemesi native izin hatasıyla reddedilir. İlgili RAGSource kaydının alanları ve modified değeri değişmeden kalır."
+    },
+    "persistence": {
+      "ragSource": "RAGSource (önerilen DocType, custom_proposed) bağlanan kaynak DocType'ını, indekslenen alan adlarını ve durumunu tutar. Şema rag-source--schema görevine aittir.",
+      "chunkReference": "RAGChunk Reference (önerilen) kaydında chunkId deterministiktir: sourceDoctype + sourceName + fieldname + parça sırası. sourceModified, içerik özeti ve embeddingVersion ayrı alanlarda tutulur. Şema rag-chunk-reference--schema görevine aittir.",
+      "embeddingVersion": "Sürüm kaydı model kimliği, boyut, parçalayıcı sürümü, normalizasyon ve durum (building/active/retired) taşır. Ayrı kayıt mı yoksa alt tablo mu olacağına rag-source--schema karar verir.",
+      "writes": "Kaynak kayıtlar native save/transaction ile değişir. İndeks güncellemesi commit sonrası outbox--contract üzerinden chunkId bazında yapılır. DocType bazında tümden silip yeniden kurmak yoktur.",
+      "audit": "Kaynak bağlama, sürüm geçişi ve silme yayılımı audit-envelope--contract biçiminde kaydedilir.",
+      "authority": "Bu sözleşme hiçbir servis, production, şema veya veriyi değiştirme yetkisi vermez."
+    },
+    "failure": {
+      "parseError": "Ayrıştırma hatasında eski parçalar korunur ve hata görünür bir kayda yazılır. Yeniden deneme outbox üzerinden yapılır; sessiz kayıp olmaz.",
+      "searchError": "Arama veya izin kontrolü hatası istemciye açık hata kodu olarak döner. Loglayıp boş sonuç döndürme deseni bu yolda kullanılmaz.",
+      "versionSwitch": "Yeniden indeksleme tamamlanmazsa active sürüm değişmez. building durumundaki sürüm sorgulara katılmaz.",
+      "deletePropagation": "Silme veya iptal olayında ilgili chunkId listesi silinir. Başarısız olursa yeniden denenir ve görünür kayda yazılır."
+    }
+  },
+  "development": {
+    "dependencies": [
+      "audit-envelope--contract",
+      "capability-definition--contract",
+      "kernel-envelope--contract",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "outbox--contract",
+      "rag-chunk-reference--contract",
+      "rag-chunk-reference--schema",
+      "rag-source--contract",
+      "rag-source--schema"
+    ],
+    "admission": {
+      "statement": "Uygulama durumu: uygulanmadı. Bu dosya yalnız geliştirme yönergesidir.",
+      "prerequisites": [
+        "T-00 target baseline ve R-00 reuse mapping",
+        "İzinli veri tüketicisi olduğu için R-01",
+        "development.dependencies listesindeki sözleşme ve şema görevlerinin kabulü",
+        "Tek dar davranış için gerçek RED/GREEN kanıtı"
+      ],
+      "blockingDecisions": "İlk kabulden önce decisionsPending içindeki kiracı topolojisi ve hedef sürüm kararları gerekir.",
+      "orderAuthority": "Mevcut görev bağımlılıkları ve stage belirleyicidir; küme sırası yalnız sunum içindir, yeni bir seri DAG oluşturmaz."
+    },
+    "steps": [
+      "Hedef sürüm kararından sonra check_permission, apply_fieldlevel_read_permissions ve has_permission davranışını o sürümde doğrula. v1.py kanıtı v2 için kendiliğinden geçerli sayılmaz.",
+      "rag-chunk-reference--schema kapsamında chunkId bileşenlerini ve sourceModified alanını sabitle.",
+      "Retrieval yolunu son kullanıcı oturumuyla tanımla: adayları indeksten al, her adayı native okuma ve alan izniyle son filtreden geçir, geçmeyeni at.",
+      "Atfı yalnız geçen parçalardan üret. sourceModified güncel belgeyle eşleşmiyorsa parçayı bayat işaretle ve outbox ile yeniden indekslemeye gönder.",
+      "İndeks güncelleme ve silmeyi commit sonrası chunkId bazında outbox işi olarak tanımla.",
+      "Sürüm kaydında building -> active geçişini tek atomik durum değişikliği olarak tanımla; önceki active sürüm retired olarak geri dönüşe hazır tutulur.",
+      "Teknik CI/deploy/rollback adımlarının sahibi Hüseyin Cengiz'dir. Bu birimde DNS/GoDaddy adımı yoktur."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Aynı kiracıda A kullanıcısının okuma izni olmadığı belgenin parçası indekste varken A'nın retrieval isteği bu parçayı ne sonuçta ne atıfta döndürür.",
+      "red": "Retrieval yolu ve RAGChunk Reference iskeleti hazırdır, sorgu anı son filtresi henüz yoktur. Yetkisiz belgenin chunkId'si sonuçta göründüğü için assertion başarısız olur. Import/altyapı hatası veya native izin davranışını bozmak RED sayılmaz.",
+      "green": "Son filtre native okuma ve alan izni kontrolüyle eklenir. Yetkisiz parça sonuçta ve atıfta bulunmaz; yetkili belgenin parçası doctype + name + modified atfıyla döner; kaynak kayıtlar değişmez. Bu turda test yazılmaz ve koşulmaz."
+    },
+    "rollback": "Gelecekteki uygulamada retrieval yolu devre dışı bırakılır ve active sürüm işaretçisi önceki tamamlanmış sürüme döner. İndeks parçaları türev veri olduğundan kaynak Frappe belgeleri için veri geri alımı gerekmez. Bu sözleşme için geri alma yalnız dosyanın kaldırılmasıdır. Teknik rollback sahibi Hüseyin Cengiz'dir."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "rag-1",
+      "sourceStage": "scale",
+      "existing": "Native parçalar: v1 REST okumasında belge ve alan izni, SQLite FTS izin farkındalıklı sözcüksel arama ve Writer FTS sağlayıcı kaydı. Sheets AI Assist için anthropic bağımlılığı var. Embedding, vektör deposu, üretim ve atıf yapan bir RAG sunucusu incelenen yollarda görülmedi.",
+      "gap": "RAG servisinin Frappe ile sınırı, son kullanıcı kimliğiyle okuma yolu, kiracı tanımı, hedef sürüm eşlemesi ve Sheets AI Assist ile sınır tanımsız.",
+      "completionSteps": [
+        "Retrieval okumasının son kullanıcı oturumuyla Frappe üzerinden yapılacağını ve servis hesabıyla okumanın yasak olduğunu contract.authorization'a bağla.",
+        "Hedef sürüm kararı gelene kadar v1.py kanıtını yalnız davranış örneği olarak işaretle.",
+        "Atfın doctype + name + modified taşıdığını contract.output ile sabitle.",
+        "Sheets AI Assist'i bu birimin kapsamı dışında bırak; üretim sağlayıcısı sınırını decisionsPending'de tut."
+      ],
+      "dependencies": [
+        "rag-source--contract",
+        "kernel-envelope--contract",
+        "native-user-policy--contract",
+        "capability-definition--contract"
+      ],
+      "acceptance": "Yetkili kaynak üzerinden soru yanıtı ve kaynak gösterimi çalışır; başka kiracının verisi dönmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 83,
+          "quote": "doc.check_permission(\"read\")"
+        },
+        {
+          "path": "frappe/frappe/search/sqlite_search.py",
+          "line": 117,
+          "quote": "- Permission-aware search results via query-level filtering"
+        },
+        {
+          "path": "suite/pyproject.toml",
+          "line": 31,
+          "quote": "# sheets — AI Assist (Claude)"
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 38,
+          "quote": "sqlite_search = [\"suite.writer.search.WriterSearch\"]"
+        }
+      ]
+    },
+    {
+      "requirementId": "rag-2",
+      "sourceStage": "scale",
+      "existing": "Desen örnekleri: kimliğe göre sil-ekle upsert, indeksleme uyarı tipleri ve PDF ayrıştırıcı bağımlılığı. Karşı örnekler: DocType bazında tümden silip yeniden kurma ve arama hatasını loglayıp yutma.",
+      "gap": "Bağlanacak kaynak listesi, tetikleyici, chunkId şeması ile ayrıştırma hatasının kaydı ve yeniden denenmesi tanımsız. Tümden yeniden kurmanın kabul edilmediği de yazılmamış. Bu madde rag-3 ile aynı ortak eksiğe bağlıdır: chunkId + sürüm kaydı + outbox güncellemesi.",
+      "completionSteps": [
+        "İlk kaynakları RAGSource kaydı olarak tanımla; File/Drive, Writer ve Mail genişlemesi ayrı karara bağlıdır.",
+        "Kayıt değişikliği sonrası indekslemeyi outbox--contract ile commit sonrasına bağla; tetikleme mekanizması outbox sözleşmesine aittir.",
+        "Deterministik chunkId ile sil-ekle upsert uygula; yalnız içerik özeti değişen parçalar yeniden yazılır.",
+        "Ayrıştırma hatasında eski parçaları koru, hatayı uyarı tipine göre sınıflandırıp görünür kayda yaz ve yeniden denemeyi outbox'a bırak.",
+        "DocType bazında tümden silmenin bu yolda kabul edilmediğini contract.persistence'a yaz."
+      ],
+      "dependencies": [
+        "rag-chunk-reference--contract",
+        "rag-chunk-reference--schema",
+        "rag-source--schema",
+        "outbox--contract",
+        "native-doctype-schema--contract"
+      ],
+      "acceptance": "Değişen belge yalnız ilgili parçaları günceller; parse hatası sessiz veri kaybı üretmez.",
+      "evidence": [
+        {
+          "path": "suite/suite/store/search_store.py",
+          "line": 82,
+          "quote": "Each source is deleted-then-added by its ID_FIELD, so re-indexing an existing"
+        },
+        {
+          "path": "suite/suite/store/search_store.py",
+          "line": 198,
+          "quote": "any query error (logged, never raised, so search failures don't break the caller)."
+        },
+        {
+          "path": "frappe/frappe/search/sqlite_search.py",
+          "line": 53,
+          "quote": "INVALID_DOCUMENT = \"invalid_document\""
+        },
+        {
+          "path": "frappe/frappe/utils/global_search.py",
+          "line": 103,
+          "quote": "delete_global_search_records_for_doctype(doctype)"
+        },
+        {
+          "path": "suite/pyproject.toml",
+          "line": 14,
+          "quote": "\"pymupdf>=1.24.0\","
+        }
+      ]
+    },
+    {
+      "requirementId": "rag-3",
+      "sourceStage": "scale",
+      "existing": "Yalnız sözcüksel indeks için schema.version dosyası var; şema değişince yerinde yeniden kurulumu tetikliyor. Mail indeksi best-effort ve tembel yeniden kuruluyor. Bu desenler paralel sürüm ve atomik geçiş sağlamaz, doğrudan yeniden kullanılamaz.",
+      "gap": "Sürüm meta verisi, paralel indeks, atomik active geçişi ve geri dönüş sözleşmesi yok. Vektör deposunun seçimi ve konumu açık.",
+      "completionSteps": [
+        "Sürüm kaydı alanlarını (model kimliği, boyut, parçalayıcı sürümü, normalizasyon, durum) rag-source--schema'ya öner.",
+        "Yeni sürümü building durumunda ayrı indeksle; sorgular yalnız active sürümü okur.",
+        "active geçişini yalnız tamamlanmış yeniden indeksleme yapabilir; geçiş audit-envelope ile kaydedilir.",
+        "Önceki sürümü retired olarak tut; saklama süresi açık karardır."
+      ],
+      "dependencies": [
+        "rag-source--contract",
+        "rag-source--schema",
+        "native-doctype-schema--contract",
+        "audit-envelope--contract"
+      ],
+      "acceptance": "Embedding modeli değişince eski ve yeni indeks karışmaz; geçiş bitmeden aktif sürüm değişmez.",
+      "evidence": [
+        {
+          "path": "suite/suite/store/search_store.py",
+          "line": 18,
+          "quote": "SCHEMA_VERSION_FILE = \"schema.version\""
+        },
+        {
+          "path": "suite/suite/store/search_store.py",
+          "line": 53,
+          "quote": "# Schema definition; changing it bumps the schema version and triggers a rebuild."
+        },
+        {
+          "path": "suite/suite/mail/patches/migrate_search_index_to_mail_namespace.py",
+          "line": 15,
+          "quote": "Best-effort: indexes rebuild lazily from cached data, so anything already migrated (or any"
+        }
+      ]
+    },
+    {
+      "requirementId": "rag-4",
+      "sourceStage": "scale",
+      "existing": "Native parçalar: has_permission içinde kullanıcı, paylaşım ve sahip kontrolü; alan düzeyi okuma izni; Writer aramasında indeks filtresi olmadan API katmanında izin süzmesi. desk/search.py'de ignore_user_permissions parametresi bulunuyor; RAG yolunda yasaklanacak bayrağa örnektir.",
+      "gap": "Ön/son filtre kararı, top-k doldurma kuralı, permlevel alanlarından üretilen parçaların korunması, sorgu anında izin kontrolü zorunluluğu ve bayrak yasağı yazılmamış.",
+      "completionSteps": [
+        "Her parçanın sourceDoctype, sourceName ve fieldname taşımasını rag-chunk-reference--schema'ya bağla.",
+        "Yanıttan önce son kullanıcı adına has_permission ve alan izni kontrolünü zorunlu son filtre yap.",
+        "Her parçayı tek bir alandan üret; kullanıcı o alanı okuyamıyorsa parçayı at.",
+        "topK doldurma kuralını contract.authorization.filterStrategy'ye göre uygula.",
+        "Kiracı etiketinin ACL yerine geçmediğini ve yasak bayrakları contract.authorization.forbidden'da tut."
+      ],
+      "dependencies": [
+        "native-user-policy--contract",
+        "rag-chunk-reference--contract",
+        "rag-chunk-reference--schema",
+        "capability-definition--contract"
+      ],
+      "acceptance": "Aynı kiracıdaki yetkisiz belge parçası arama veya yanıtta görünmez; izin iptali hemen uygulanır.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 94,
+          "quote": "If `doc` is passed, also check user, share and owner permissions."
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 84,
+          "quote": "doc.apply_fieldlevel_read_permissions()"
+        },
+        {
+          "path": "suite/suite/writer/search.py",
+          "line": 23,
+          "quote": "# Results are permission-filtered in suite.writer.api.general.search."
+        },
+        {
+          "path": "frappe/frappe/desk/search.py",
+          "line": 115,
+          "quote": "ignore_user_permissions: bool = False,"
+        }
+      ]
+    },
+    {
+      "requirementId": "rag-5",
+      "sourceStage": "scale",
+      "existing": "Native parçalar: kimlikle indeksten silme ve BM25 ile özel skor sıralama izleme. DocType bazında toplu silme var ama tek belge silme yayılımı için karşı örnektir.",
+      "gap": "Atıf sürüm alanı ve doğrulama yolu, silme/iptal tetikleyicisi ve azami gecikme, kalite metriği/seti/eşiği ile yedek ve türev kopyalarda silme kapsamı tanımsız.",
+      "completionSteps": [
+        "Atfı doctype + name + modified olarak tanımla; doğrulamada atıftaki modified güncel belgeyle karşılaştırılır.",
+        "Belge silme veya iptal olayından sonra ilgili chunkId'leri outbox ile sil; DocType bazında toplu silme kullanma.",
+        "Kalite ölçümünü küçük sabit bir soru seti, tek metrik ve tek eşik olarak tanımla; ham ve nihai skorlar ayrı izlenir.",
+        "Azami gecikme, yedek kapsamı ve eşik değerini decisionsPending'de tut."
+      ],
+      "dependencies": [
+        "outbox--contract",
+        "audit-envelope--contract",
+        "rag-chunk-reference--schema",
+        "rag-source--contract"
+      ],
+      "acceptance": "Yanıtta doğrulanabilir kaynak sürümü bulunur; silinen belgenin parçaları arama ve yanıttan kalkar.",
+      "evidence": [
+        {
+          "path": "suite/suite/store/search_store.py",
+          "line": 163,
+          "quote": "def delete_documents(self, ids: list[str]) -> int:"
+        },
+        {
+          "path": "frappe/frappe/utils/global_search.py",
+          "line": 158,
+          "quote": "frappe.db.delete(\"__global_search\", {\"doctype\": doctype})"
+        },
+        {
+          "path": "frappe/frappe/search/sqlite_search.py",
+          "line": 115,
+          "quote": "- Ranking tracking (original BM25 vs modified scores)"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "RAG servisinin Frappe ile sınırı ve son kullanıcı kimliğiyle okuma yolu ürün kodunda yok.",
+    "chunkId şeması, sürüm kaydı ve görünür hata kaydı biçimi şema görevlerinde henüz kabul edilmedi.",
+    "Embedding, vektör deposu ve yanıt üretimi incelenen kaynaklarda bulunmuyor.",
+    "Kalite ölçümü için veri seti, metrik ve eşik yok.",
+    "Yedek ve türev kopyalarda silme kapsamı tanımsız."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Kiracı topolojisi: kiracı = site mi, site içi ayrım mı",
+      "requirementIds": ["rag-1", "rag-4"],
+      "blocks": "Ön filtre kuralı ve kiracılar arası sızıntı kabulü",
+      "allowedBeforeDecision": "Son filtrenin her durumda native izinle yapılacağını ve kiracı etiketinin ACL yerine geçmediğini belgele."
+    },
+    {
+      "decision": "Hedef Frappe sürümü ve API sürümü eşlemesi (17.0.0.dev0 / v2)",
+      "requirementIds": ["rag-1", "rag-4"],
+      "blocks": "Retrieval okuma yolunun sabitlenmesi ve ilk RED",
+      "allowedBeforeDecision": "v1 kanıtını yalnız davranış örneği olarak işaretle."
+    },
+    {
+      "decision": "Embedding modeli/sağlayıcısı ile vektör deposunun seçimi, konumu ve veri yerleşimi",
+      "requirementIds": ["rag-1", "rag-3"],
+      "blocks": "Sürüm kaydı değer kümesi ve indeks konumu",
+      "allowedBeforeDecision": "Sürüm kaydı alan listesini ve building/active/retired geçiş kuralını belgele."
+    },
+    {
+      "decision": "Yanıt üretimi sağlayıcısı, lisansı ve Sheets AI Assist ile sınır",
+      "requirementIds": ["rag-1"],
+      "blocks": "Yanıt üretimi adımı",
+      "allowedBeforeDecision": "Retrieval ve atfı üretimden bağımsız tanımla."
+    },
+    {
+      "decision": "Silme yayılımı azami gecikmesi, retired sürüm ile yedek/türev kopyaların saklama süresi",
+      "requirementIds": ["rag-3", "rag-5"],
+      "blocks": "Silme kabulünün süre ölçütü ve rollback penceresi",
+      "allowedBeforeDecision": "chunkId bazlı silme yayılımını ve görünür hata kaydını belgele."
+    },
+    {
+      "decision": "Kalite değerlendirme seti, metrik ve eşik değeri",
+      "requirementIds": ["rag-5"],
+      "blocks": "Kalite kabulü",
+      "allowedBeforeDecision": "Ölçüm biçimini (sabit soru seti, ham ve nihai skor izleme) belgele."
+    },
+    {
+      "decision": "Bağlanacak ilk kaynak listesi (DocType alanları, File/Drive, Writer, Mail)",
+      "requirementIds": ["rag-2"],
+      "blocks": "Ayrıştırıcı kapsamı ve ilk indeksleme",
+      "allowedBeforeDecision": "RAGSource kayıt biçimini ve hata sözleşmesini belgele."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

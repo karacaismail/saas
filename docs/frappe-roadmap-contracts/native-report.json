@@ -1,0 +1,409 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "native-report",
+  "canonicalTaskIds": [
+    "native-report--implementation",
+    "ui-family-28--implementation",
+    "ui-family-29--implementation",
+    "ui-family-31--implementation-post-mvp",
+    "ui-view-chart--implementation",
+    "ui-view-matrix--implementation-post-mvp",
+    "ui-view-pivot--implementation"
+  ],
+  "requirementIds": ["reports-1", "reports-4", "reports-5", "reports-7"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "reports-1": "post_mvp",
+    "reports-4": "post_mvp",
+    "reports-5": "post_mvp",
+    "reports-7": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Native Frappe rapor ve metrik sonuçlarının izin kapsamında headless okunması",
+    "trigger": "Gelecekteki React/Ant Design (Pro/X) rapor, grafik, matris veya pivot yüzeyi, TanStack Query ile Frappe backend'deki rapor adaptöründen rapor sonucu, kayıtlı filtre ya da metrik değeri ister.",
+    "expected": "Adaptör sonucu yalnız native Frappe yollarıyla üretir: frappe.client.get_list, frappe.desk.reportview.get_count, frappe.desk.query_report, Number Card get_result ve Dashboard Chart önbellek yolu. Yanıt; çağıranın rol, User Permission ve alan seviyesi izinleri uygulanmış satır ve alanları, filtre ve kolon metadata'sını, metrik tanım kimliğini ve varsa last_synced_on bilgisini içerir. Aynı metrik iki panoda aynı tanım kaydından ve aynı sunucu fonksiyonundan hesaplanır.",
+    "denied": "report veya export hakkı olmayan ya da kayıt/alan izni dışında kalan çağrı PermissionError ile reddedilir; yanıt yetkisiz satır, alan veya sayım içermez. ignore_permissions, ham SQL ile kapsam atlatma veya istemci tarafı filtreleme izin denetimi yerine kullanılmaz. Kayıtlı rapor yazma reddedildiğinde kayıt değişmeden kalır."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native Frappe parçaları yeniden kullanılır: izinli get_list parametreleri (filters, group_by), reportview.get_count, 'report' ve 'export' rol hakları, tek doküman okumasında apply_fieldlevel_read_permissions, frappe.desk.query_report modülü, frappe.enqueue arka plan kuyruğu, get_print baskı üretimi, Number Card get_result (frappe.get_list üzerinden), Dashboard Chart Redis önbelleği ve last_synced_on alanı. Kanıtlar tek tek native parçaları gösterir; davranışın bütününün hazır olduğunu göstermez. Desk JS (chart_widget.js) kanıtı native Desk arayüzüne aittir ve React/AntD uygulamasının kanıtı değildir. Yeni rapor motoru, ORM veya CRUD katmanı tasarlanmaz.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/client.py",
+        "line": 29,
+        "quote": "filters: str | list | dict[str, Any] | None = None,"
+      },
+      {
+        "path": "frappe/frappe/client.py",
+        "line": 30,
+        "quote": "group_by: str | list[str] | None = None,"
+      },
+      {
+        "path": "frappe/frappe/api/v2.py",
+        "line": 193,
+        "quote": "from frappe.desk.reportview import get_count"
+      },
+      {
+        "path": "frappe/frappe/permissions.py",
+        "line": 25,
+        "quote": "\"report\","
+      },
+      {
+        "path": "frappe/frappe/permissions.py",
+        "line": 27,
+        "quote": "\"export\","
+      },
+      {
+        "path": "frappe/frappe/utils/print_format.py",
+        "line": 12,
+        "quote": "from frappe.desk.query_report import get_permitted_report_print_format"
+      },
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 84,
+        "quote": "doc.apply_fieldlevel_read_permissions()"
+      },
+      {
+        "path": "frappe/frappe/desk/doctype/number_card/number_card.py",
+        "line": 159,
+        "quote": "res = frappe.get_list("
+      },
+      {
+        "path": "frappe/frappe/utils/dashboard.py",
+        "line": 25,
+        "quote": "cache_key = f\"chart-data:{chart_name}\""
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "frappe/frappe/api/v2.py",
+      "frappe/frappe/client.py",
+      "frappe/frappe/desk/doctype/number_card/number_card.py",
+      "frappe/frappe/desk/doctype/number_card_link/number_card_link.json",
+      "frappe/frappe/permissions.py",
+      "frappe/frappe/public/js/frappe/widgets/chart_widget.js",
+      "frappe/frappe/utils/dashboard.py",
+      "frappe/frappe/utils/print_format.py",
+      "frappe/frappe/utils/print_utils.py",
+      "suite/pyproject.toml"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/native-report.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/adapters/reporting/report_post_mvp.py",
+      "frontend/packages/ui/src/components/ui-family-28/index.tsx",
+      "frontend/packages/ui/src/components/ui-family-29/index.tsx",
+      "frontend/packages/ui/src/components/ui-family-31/post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-view-chart/index.tsx",
+      "frontend/packages/ui/src/components/ui-view-matrix/post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-view-pivot/index.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Rapor kimliği (Report kaydı ya da DocType ve Report Builder ayarı) veya metrik kimliği (Number Card ya da Dashboard Chart kaydı); native biçimde filters, group_by, order_by, limit_start, limit_page_length; metriklerde isteğe bağlı to_date ve refresh. Kiracı ve kapsam bağlamı kernel-envelope--contract zarfından gelir. İstemci kapsam bilgisi göndermez; sunucu kapsamı oturumdan türetir.",
+    "output": "kernel-envelope--contract zarfı içinde: izinli kolonlar, satırlar veya toplam değer, toplam sayım, uygulanan filtreler, native-report--contract içinde tanımlanacak metrik kimliği ve tanım sürümü, last_synced_on veya computed_at; tazelik eşiği karara bağlandıktan sonra stale işareti. Yanıt yalnız JSON ile serileştirilebilir veridir; ReactNode veya callback taşımaz. Görünüm eşlemesi kaynak registry'de (frontend/packages/ui/src/registry.ts önerisi) yapılır; bu registry GenUI capability registry'sinden ayrıdır.",
+    "authorization": "Native denetimler kullanılır: has_permission, 'report' ve 'export' hakları, get_list üzerinden User Permission, alan seviyesi okuma izni. Ham SQL kullanan Query/Script raporları, sunucu tarafında oturumdan türetilen zorunlu kapsam filtresi doğrulanmadan headless olarak açılmaz. Export, report hakkından ayrı olarak export hakkı ister. ignore_permissions içeren yardımcılar whitelist veya rota olarak açılmaz. Rol veya izin artefaktı gerekirse explicitPermissionFlags ortak kaynağına bağlanır; o artefaktın kabulünde reddedilen yazma ve değişmeyen kayıt kontrolü bulunur.",
+    "persistence": "Davranış okuma ağırlıklıdır. Kayıtlı raporlar native Report ve Report Builder ayarlarıyla, native save, transaction ve hook akışından geçer. Zamanlanmış gönderim, v17-dev eşlemesinden sonra native Auto Email Report ve frappe.enqueue ile yapılır. Grafik önbelleği native Redis chart-data anahtarını kullanır. Yeni tablo, şema alanı, ORM veya CRUD katmanı eklenmez. Bu sözleşme servis, production, şema veya veri değiştirme yetkisi vermez.",
+    "failure": "İzin reddi: PermissionError döner, satır veya sayım dönmez. Bilinmeyen rapor veya metrik: bulunamadı hatası döner. Geçersiz filtre: doğrulama hatası döner. Zamanlanmış iş hatası job-state--contract durumuna yazılır, teslim outbox--contract ile izlenir. Stale veri: değer gizlenmez, uyarı alanı eklenir. v17-dev kaynağına eşlenmemiş rapor veya export yolu adaptörde açılmaz."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "client-rule-parity--contract",
+      "document-template--contract",
+      "job-state--contract",
+      "kernel-envelope--contract",
+      "native-doctype-schema--contract",
+      "native-report--contract",
+      "native-user-policy--contract",
+      "outbox--contract",
+      "ui-family-15--contract",
+      "ui-family-28--contract",
+      "ui-family-29--contract",
+      "ui-family-31--contract",
+      "ui-family-31--implementation",
+      "ui-view-chart--contract",
+      "ui-view-matrix--contract",
+      "ui-view-matrix--implementation",
+      "ui-view-pivot--contract"
+    ],
+    "admission": [
+      "Uygulama durumu: uygulanmadı.",
+      "T-00 hedef temel çizgisi ve R-00 yeniden kullanım eşlemesi tamamlanmış olmalı; izinli veri tüketicisi olduğu için R-01 de uygulanır.",
+      "native-report--contract, kernel-envelope--contract, native-user-policy--contract, native-doctype-schema--contract ve outbox--contract kabul edilmiş olmalı.",
+      "frappe/desk/query_report.py ve reportview export yolları v17-dev kaynağında satır bazında eşlenmiş olmalı.",
+      "Rapor türü × uç nokta izin matrisi belgelenmiş olmalı.",
+      "İlk tur, gerçek RED/GREEN kanıtı olan tek ve dar bir davranışla sınırlıdır."
+    ],
+    "steps": [
+      "Kabul ön koşullarını doğrula ve decisionsPending içinde ilk davranışı engelleyen bir karar olmadığını kontrol et.",
+      "v17-dev eşleme tablosunu çıkar: query_report, reportview export, Auto Email Report ve Report DocType.",
+      "Rapor türü × uç nokta izin matrisini yaz; her hücrede uygulanan native denetimi ve kanıt satırını göster.",
+      "İzinli headless okuma adaptörünü (report_post_mvp.py önerisi) tek davranış TDD'siyle uygula; native yollara çağıranın oturumuyla delege et.",
+      "Metrik okuma ucunu (reports-7) ayrı ve tek davranışlı bir kabul turunda ekle.",
+      "UI ailelerini (ui-family-28/29/31, ui-view-chart/matrix/pivot) yalnız ilgili contract görevleri kabul edildikten sonra kaynak registry kaydıyla bağla. ui-family-31 ve ui-view-matrix post-MVP implementation bağımlılıklarına uyar. Matris ve pivot görünümleri grid seçimi yapmaz. Tüm UI semantik tokenları, 320 CSS px önceliğini, en az 14 CSS px metni, çevreleyen odak halkası yasağını ve tablonun kendi kapsayıcısında yatay kaydırılmasını uygular.",
+      "Paylaşılan entegrasyon dosyaları (hooks.py, routes.tsx, registry.ts, package.json, Tauri ve WXT yapılandırmaları, package-lock.json) yalnız entegrasyon sahibinin seri birleştirmesiyle değişir."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Bir DocType'ta User Permission ile tek kayda sınırlanmış kullanıcı, rapor adaptörünün okuma ucundan aynı DocType'ın satırlarını ve sayımını istediğinde yalnız izinli kaydı ve buna uyan sayımı alır.",
+      "red": "Adaptör ucu sözleşme biçiminde çağrılabilir durumdadır (import veya altyapı hatası yoktur). Test, izinli kayıt dışındaki satırın yanıtta bulunmadığını ve sayımın izinli kayıt sayısına eşit olduğunu iddia eder. İlk iskelet izin kapsamını uygulamadığı için bu iddia başarısız olur. RED, native Frappe davranışı değiştirilerek veya bozularak üretilmez.",
+      "green": "Adaptör, ignore_permissions kullanmadan çağıranın oturumuyla frappe.client.get_list ve frappe.desk.reportview.get_count yollarına delege eder. Yanıtta yalnız izinli kayıt ve buna uyan sayım bulunur, iddia geçer."
+    },
+    "rollback": "Bu tur yalnız sözleşme belgesidir; geri alma, entegrasyon sahibinin bu JSON'u seri birleştirmeden çıkarmasıyla yapılır. Gelecekteki uygulamada adaptör ve UI bileşenleri registry ve rota kaydından çıkarılarak devre dışı bırakılır. Native Report, Number Card ve Dashboard Chart kayıtları ile şema değiştirilmediğinden veri geri dönüşü gerekmez. CI, deploy ve rollback'in teknik sahibi Hüseyin Cengiz'dir."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "reports-1",
+      "sourceStage": "post_mvp",
+      "existing": "Native rapor temelleri kaynakta görülüyor: izinli get_list parametreleri (group_by dahil), 'report' rol hakkı ve frappe.desk.query_report modülü. Kurulu uygulamalar frappe ve suite; Suite, Drive, Slides, Writer, Sheets, Meet, Mail ve Calendar modüllerini içeriyor.",
+      "gap": "Muhasebe ve CRM domain raporları kurulu envanterde yok. Suite modülleri için rapor envanteri yok. Headless rapor çağrı sözleşmesi (çalıştırma, kolon/filtre metadata'sı, sayfalama, export izni), v17-dev sürüm eşlemesi ve domain toplamlarını ölçecek referans veri kümesi tanımlı değil.",
+      "completionSteps": [
+        "Suite modülleri için rapor envanterini belgele: modül, kaynak DocType, native rapor türü (Report Builder, Query veya Script) ve gereken toplamlar.",
+        "Envanterden ilk kabul örneği olarak tek bir Suite modül raporu seç. Muhasebe ve CRM maddelerini ERPNext/CRM kurulum kararına bağlı koşullu kapsam olarak işaretle.",
+        "native-report--contract içinde headless çağrı sözleşmesini tanımla: frappe.desk.query_report çalıştırma, get_list/get_count izin akışı, kolon/filtre metadata'sı, sayfalama ve export hakkı.",
+        "Seçilen rapor için referans veri kümesini ve beklenen domain toplamlarını belge olarak yaz."
+      ],
+      "dependencies": [
+        "native-report--contract",
+        "native-doctype-schema--contract",
+        "native-user-policy--contract",
+        "kernel-envelope--contract"
+      ],
+      "acceptance": "Kurulu kapsamda seçilen örnek rapor referans veri kümesinin domain toplamlarıyla eşleşir ve yetkisiz kayıt içermez. Muhasebe ve CRM örnek raporları, ilgili uygulama kurulum kararından sonra aynı ölçütle kabul edilir.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/client.py",
+          "line": 30,
+          "quote": "group_by: str | list[str] | None = None,"
+        },
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 25,
+          "quote": "\"report\","
+        },
+        {
+          "path": "frappe/frappe/utils/print_format.py",
+          "line": 12,
+          "quote": "from frappe.desk.query_report import get_permitted_report_print_format"
+        },
+        {
+          "path": "suite/pyproject.toml",
+          "line": 6,
+          "quote": "Drive, Slides, Writer, Sheets, Meet, Mail, Calendar in one app."
+        }
+      ]
+    },
+    {
+      "requirementId": "reports-4",
+      "sourceStage": "post_mvp",
+      "existing": "Kaynakta filtreli liste (filters) ve sayım (reportview.get_count) uçları, frappe.enqueue arka plan kuyruğu ve get_print baskı üretimi görülüyor.",
+      "gap": "Auto Email Report talimatı version-15'e dayanıyor ve v17-dev'e eşlenmemiş. Report DocType ve kaydedilmiş Report Builder ayarları incelenen kesitte görülmedi. Kayıtlı rapor için headless sözleşme (JSON filtre biçimi, göreli tarih saklama) yok. Zamanlanmış gönderimin izin bağlamı, harici alıcı kısıtı, teslim biçimi ve sınırları tanımsız.",
+      "completionSteps": [
+        "v17-dev kaynağında Auto Email Report ve Report DocType kodunu oku; version-15 talimatıyla farkları satır bazında eşle.",
+        "Kayıtlı rapor sözleşmesini native Report kaydı üzerinden yaz: filtre JSON biçimi ve göreli tarih aralığının saklanması. Yazma native save ve izin akışından geçer; yeni CRUD eklenmez.",
+        "İlk kabul senaryosunu tek davranış olarak tanımla: kaydedilmiş göreli tarih filtresi yeniden açıldığında aynı filtre çözümlenir.",
+        "'Aynı kapsam' kararı alınana kadar zamanlanmış gönderimi adaptörde kapalı tut. Karar sonrasında teslim, job-state--contract ve outbox--contract ile izlenir."
+      ],
+      "dependencies": [
+        "native-report--contract",
+        "job-state--contract",
+        "outbox--contract",
+        "document-template--contract",
+        "native-user-policy--contract"
+      ],
+      "acceptance": "Kaydedilen tarih filtresi yeniden açıldığında aynı filtreyi uygular. Zamanlanmış rapor, karara bağlanan izin bağlamında, doğru alıcılara aynı kapsamla gider. Yetkisiz kullanıcının kayıtlı raporu yazma denemesi reddedilir ve kayıt değişmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/client.py",
+          "line": 29,
+          "quote": "filters: str | list | dict[str, Any] | None = None,"
+        },
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 193,
+          "quote": "from frappe.desk.reportview import get_count"
+        },
+        {
+          "path": "frappe/frappe/utils/print_format.py",
+          "line": 113,
+          "quote": "job = frappe.enqueue("
+        },
+        {
+          "path": "frappe/frappe/utils/print_utils.py",
+          "line": 54,
+          "quote": "def get_print("
+        }
+      ]
+    },
+    {
+      "requirementId": "reports-5",
+      "sourceStage": "post_mvp",
+      "existing": "'export' rol hakkı var. v1 tek doküman okumasında alan seviyesi okuma izni uygulanıyor. client.get_value DocType iznini denetliyor. v1 kaynak listesi frappe.client.get_list üzerinden çalışıyor.",
+      "gap": "Kiracı modeli tanımsız. Rapor türü × uç nokta izin matrisi yok. Query/Script Report ve export yolları v17-dev'de eşlenmedi; ham SQL raporlarında kayıt ve alan izninin uygulanıp uygulanmadığı kaynakla doğrulanmadı. Data Masking kararı yok. Headless istemcinin kullanacağı uç noktaların sınırı yazılmamış.",
+      "completionSteps": [
+        "İzin matrisini yaz: Report Builder, Query Report, Script Report, REST get_list/get_count ve export için uygulanan native denetimi ve kanıt satırını belirt.",
+        "frappe/desk/query_report.py ve reportview export yollarını v17-dev'de satır bazında eşle; eşlenmeyen yolu headless sınırın dışında tut.",
+        "Ham SQL kullanan raporlar için kural koy: sunucuda oturumdan türetilen zorunlu kapsam filtresi doğrulanmadan rapor açılmaz.",
+        "Headless sınırı yaz: istemci yalnız matriste onaylı uçları çağırır; ignore_permissions içeren yardımcılar açılmaz.",
+        "Kiracı kararı gelene kadar kayıt ve alan boyutunu ilerlet; kiracı boyutunu kabule alma."
+      ],
+      "dependencies": [
+        "native-user-policy--contract",
+        "api-middleware--contract",
+        "kernel-envelope--contract",
+        "client-rule-parity--contract",
+        "native-report--contract"
+      ],
+      "acceptance": "Aynı rapor ve export yetkisiz satır veya alan içermez. SQL tabanlı rapor yolu ve REST API yolu ayrı ayrı doğrulanır. Export hakkı olmayan kullanıcının export isteği reddedilir.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 27,
+          "quote": "\"export\","
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 84,
+          "quote": "doc.apply_fieldlevel_read_permissions()"
+        },
+        {
+          "path": "frappe/frappe/client.py",
+          "line": 134,
+          "quote": "if not frappe.has_permission(doctype, parent_doctype=parent):"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 35,
+          "quote": "return frappe.call(frappe.client.get_list, doctype, **frappe.form_dict)"
+        }
+      ]
+    },
+    {
+      "requirementId": "reports-7",
+      "sourceStage": "post_mvp",
+      "existing": "Number Card değerini get_result hesaplıyor; bu fonksiyon frappe.get_list üzerinden izinle filtrelenmiş toplam üretiyor. Dashboard Chart sonucu Redis'te chart-data anahtarıyla önbelleğe alınıyor ve last_synced_on güncelleniyor. Native Desk grafik bileşeni 'Last synced' bilgisini gösteriyor; bu bir React/AntD kanıtı değil. Number Card Link alt tablosu kartı panolara referansla bağlıyor, böylece tanım ortak kalıyor.",
+      "gap": "Sürümlü ve sahibi belli bir metrik sözleşmesi yok. Number Card ve Dashboard Chart aynı kavram için bağımsız tanımlar üretebiliyor. Tazelik eşiği ve uyarı yok; Number Card'da tazelik bilgisi hiç yok. Headless metrik sağlayıcı sözleşmesi yok. Çalışma zamanı kabulü not_run. Okuma modeli gecikmesi (reports-6) bu birimin kapsamında değil.",
+      "completionSteps": [
+        "native-report--contract içinde metrik sözleşmesini tanımla: metric_id, sürüm, sahip, kaynak DocType, filtre, zaman dilimi, freshness_threshold. Bunu Number Card ve Dashboard Chart kayıtlarına referansla eşle; yeni hesaplama motoru yazma.",
+        "Envanterde aynı kavram için oluşan Number Card/Dashboard Chart çift tanımlarını işaretle; her metric_id için tek kaynak kayıt kuralı koy.",
+        "Tek okuma ucunu tanımla: değer get_result veya Dashboard Chart önbellek yolundan gelir. Yanıt tanım sürümünü ve last_synced_on ya da yanıt anında üretilen computed_at bilgisini içerir. Kalıcı alan veya şema eklenmez. Eşik karara bağlandıktan sonra stale işareti eklenir.",
+        "Uyarıyı React/AntD pano yüzeyinde (ui-view-chart) göster; Suite Vue arayüzüne dokunma. reports-6 bağlantısını ancak entegrasyon sahibi karar verirse bağımlılık olarak ekle."
+      ],
+      "dependencies": [
+        "native-report--contract",
+        "ui-view-chart--contract",
+        "job-state--contract",
+        "kernel-envelope--contract"
+      ],
+      "acceptance": "İki panodaki aynı metriğin tanımı ve değeri eşleşir; eşiği aşan veri görünür bir uyarı üretir.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/desk/doctype/number_card/number_card.py",
+          "line": 127,
+          "quote": "def get_result("
+        },
+        {
+          "path": "frappe/frappe/desk/doctype/number_card/number_card.py",
+          "line": 159,
+          "quote": "res = frappe.get_list("
+        },
+        {
+          "path": "frappe/frappe/utils/dashboard.py",
+          "line": 25,
+          "quote": "cache_key = f\"chart-data:{chart_name}\""
+        },
+        {
+          "path": "frappe/frappe/utils/dashboard.py",
+          "line": 73,
+          "quote": "\"last_synced_on\","
+        },
+        {
+          "path": "frappe/frappe/public/js/frappe/widgets/chart_widget.js",
+          "line": 960,
+          "quote": "let last_synced_text = __(\"Last synced {0}\", ["
+        },
+        {
+          "path": "frappe/frappe/desk/doctype/number_card_link/number_card_link.json",
+          "line": 16,
+          "quote": "\"options\": \"Number Card\""
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Uygulama durumu: uygulanmadı; adaptör, UI bileşenleri ve testler yok.",
+    "query_report, reportview export, Auto Email Report ve Report DocType için v17-dev satır eşlemesi yapılmadı.",
+    "Rapor türü × uç nokta izin matrisi ve ham SQL raporları için kapsam filtresi kuralı yazılmadı.",
+    "Metrik sözleşmesi, tekil tanım kuralı ve tazelik uyarısı tanımlanmadı.",
+    "Suite modül rapor envanteri ve referans veri kümesi yok.",
+    "Çalışma zamanı kabulü yapılmadı (not_run)."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Kiracı topolojisi: site başına kiracı mı, User Permission veya alan bazlı ayrım mı",
+      "requirementIds": ["reports-5"],
+      "blocks": "Kiracı ekseninde izin kabulü ve kapsam filtresinin kiracı boyutu",
+      "untilDecided": "İzin matrisini kayıt ve alan izni boyutları için doldur."
+    },
+    {
+      "decision": "ERPNext ve Frappe CRM kurulumu",
+      "requirementIds": ["reports-1"],
+      "blocks": "Muhasebe ve CRM örnek raporlarının kabulü",
+      "untilDecided": "Suite modül rapor envanterini yaz; bu maddeleri koşullu bağımlılık olarak işaretle."
+    },
+    {
+      "decision": "Hedef Frappe sürümü ve version-15 talimatlarının v17-dev'deki geçerliliği",
+      "requirementIds": ["reports-1", "reports-4", "reports-5"],
+      "blocks": "query_report, export ve Auto Email Report adaptör adımları",
+      "untilDecided": "v17-dev kaynak satır eşleme tablosunu belge olarak hazırla."
+    },
+    {
+      "decision": "Zamanlanmış gönderimin izin bağlamı (rapor sahibi mi, alıcı mı) ve harici alıcı kısıtı",
+      "requirementIds": ["reports-4"],
+      "blocks": "Zamanlanmış gönderim davranışı",
+      "untilDecided": "Kaydedilmiş filtrenin yeniden açılması senaryosunu belgele."
+    },
+    {
+      "decision": "Teslim biçimi (PDF, CSV, XLSX), boyut ve hız sınırları, üretilen dosyaların saklama süresi",
+      "requirementIds": ["reports-4"],
+      "blocks": "Export ve teslim işi",
+      "untilDecided": "Teslimin job-state ve outbox ile izlenmesini biçimden bağımsız tarif et."
+    },
+    {
+      "decision": "Data Masking'in kullanılıp kullanılmayacağı",
+      "requirementIds": ["reports-5"],
+      "blocks": "Maskelenmiş alan davranışı",
+      "untilDecided": "Alan seviyesi okuma izni yolunu eşle."
+    },
+    {
+      "decision": "Metrik sahipliği ve tazelik eşiği değeri",
+      "requirementIds": ["reports-7"],
+      "blocks": "stale işareti ve uyarı kabulü",
+      "untilDecided": "Metrik sözleşme alanlarını ve çift tanım envanterini yaz."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

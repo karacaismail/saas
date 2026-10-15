@@ -1,0 +1,293 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "tauri-mobile-release",
+  "canonicalTaskIds": ["tauri-mobile-release--implementation"],
+  "requirementIds": ["releases-12", "releases-13"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "releases-12": "post_mvp",
+    "releases-13": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Tauri 2 istemci yayın sınırı ve mağaza yayın kapısı: masaüstünde imzalı updater, mobilde yalnız imzalı mağaza paketi; her sürüm adayı içerik sınıfına göre kapıdan geçer. Uygulama durumu: uygulanmadı.",
+    "trigger": "Bir istemci sürüm adayı (masaüstü, Android veya iOS) yayın kapısına sunulduğunda ya da kurulu istemci yeni bir sürüm veya yerel migration ile karşılaştığında.",
+    "expected": "Sürüm adayı içerik bazında sınıflandırılır: metin/görünüm düzeltmesi; yeni işlev, veri veya ödeme değişikliği; native kod, eklenti veya izin değişikliği. Masaüstü dağıtımı yalnız Tauri updater ve imzalı güncelleme manifestiyle, mobil dağıtım yalnız imzalı App Store/Google Play paketiyle yapılır. Mobil OTA, ayrı PoC ile doğrulanana kadar kapalıdır ve desteklenmiyor sayılır. Web yayını telefondaki kodu otomatik etkinleştirmez. İstemci, native/şema sürümünü ve minimum desteklenen sürümü bildirir. Güncelleme, kullanıcı form doldururken zorla yenileme yapmaz; bekleyen kayıt/outbox ve dosyalar güncelleme, migration ve geri dönüş boyunca korunur. Soğuk açılış sağlık kontrolü geçmeden sürüm sağlıklı sayılmaz. Kapı kaydında izin açıklaması eşlemesi, login ve Apple 4.8 değerlendirmesi, uygulama içi hesap silme yolu, inceleme kanıtı bağlantısı ve onaylayıcılar (ürün ekibi + Hüseyin Cengiz) bulunur. Mağaza kabulü için garanti verilmez.",
+    "denied": "Native eklenti, izin veya şema farkı içeren aday için OTA ya da indirilen kod kanalı reddedilir; yalnız yeni imzalı mağaza paketi yolu kalır. İzin açıklaması eşlemesi, inceleme kanıtı veya onaylayıcı eksik olan aday mağazaya ya da updater kanalına açılmaz. Uyumlu rollback yoksa veri kaybettiren geri dönüş engellenir. İmza doğrulaması veya soğuk açılış sağlık kontrolü başarısız olan sürüm etkinleştirilmez. Kapı kaydında yetkisiz kullanıcının yazma denemesi reddedilir ve kayıt değişmeden kalır."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Yalnız releases-13 için bir native parça yeniden kullanılır: Frappe'nin Personal Data Deletion Request akışı. Bu akış whitelisted trigger_data_deletion, user_data_fields kapsamında anonimleştirme, kullanıcıyı devre dışı bırakma, Website Settings bayrağına bağlı /me silme bağlantısı ve zamanlanmış process_data_deletion_request hook'undan oluşur. Akış kendi izinleri ve System Manager onayıyla kullanılır; ignore_permissions veya SQL ile bypass yapılmaz. Bu parça, Keycloak kimlik eşlemesini, uygulama içi giriş noktasını veya yayın kapısını sağlamaz. Tauri kabuğu, updater, mağaza imzası, OTA sınırı ve istemci sürüm sözleşmesi için aranan yollarda native parça bulunmadı. Suite'in Vue service worker ve PWA kaynakları tarayıcı kapsamındadır ve skipWaiting ile kabule aykırıdır; bu nedenle yeniden kullanım tabanı değildir. Vue/Frappe UI kaynağı, React/Ant Design uygulamasının kanıtı sayılmaz. searchedPaths yalnız incelenen yolları listeler; kapsamlı bir yokluk iddiası değildir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py",
+        "line": 128,
+        "quote": "def trigger_data_deletion(self):"
+      },
+      {
+        "path": "frappe/frappe/www/me.html",
+        "line": 60,
+        "quote": "{% if frappe.db.get_single_value(\"Website Settings\", \"show_account_deletion_link\") %}"
+      },
+      {
+        "path": "frappe/frappe/hooks.py",
+        "line": 301,
+        "quote": "\"frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request.process_data_deletion_request\","
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/hooks.py",
+      "frappe/frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py",
+      "frappe/frappe/www/me.html",
+      "suite/frontend/public/pwa/suite/manifest.webmanifest",
+      "suite/frontend/src/apps/mail/sw.ts",
+      "suite/frontend/src/router/index.ts",
+      "suite/frontend/vite.config.ts",
+      "suite/suite/www/service-worker.js"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/tauri-mobile-release.json",
+    "plannedProduction": [
+      "frontend/packages/platform/src/tauri-mobile-release/tauri_mobile_release_post_mvp.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Sürüm adayı bildirimi şu bilgileri içerir: platform (masaüstü, Android, iOS); istemci sürümü; native/şema sürümü; önceki sürüme göre native eklenti ve izin farkı; değişiklik sınıfı; izin açıklaması eşlemesi (NS*UsageDescription, uses-permission ve bunları gerektiren eklenti); login ve Apple 4.8 değerlendirme notu; uygulama içi hesap silme giriş noktası; inceleme kanıtı bağlantısı; onaylayıcılar. Kesin alan adları tauri-mobile-release--contract içinde belirlenir; bu belge yeni API, hook veya dosya adı tanımlamaz.",
+    "output": "Kapı kararı şunları içerir: izin verilen dağıtım kanalı (masaüstünde imzalı updater, mobilde imzalı mağaza paketi; mobil OTA kapalı), varsa red gerekçelerinin listesi ve eksik onaylar. Çıktı bir mağaza kabul garantisi değildir. İstemci tarafında bildirilen native/şema sürümü ve minimum desteklenen sürüm, güncelleme yönlendirmesinin girdisidir.",
+    "authorization": "Kapı onayını ürün ekibi ve Hüseyin Cengiz verir. Kapı kaydı Frappe'de tutulursa onaylayıcı rolü ve izinleri explicitPermissionFlags ortak kaynağına bağlanır. Yazma işlemleri native izin, transaction, save ve hook yolundan geçer; ignore_permissions veya SQL ile yetki bypass yapılmaz. Hesap silme, native Personal Data Deletion Request akışının kendi doğrulama ve onay adımlarıyla yürür. İmza anahtarlarının sahibi ve rotasyon sorumlusu Hüseyin Cengiz'dir. Anahtar, şifre veya token değerleri bu sözleşmeye, Git'e veya çıktılara yazılmaz.",
+    "persistence": "Yayın kapısı kontrol listesi, sürümle birlikte versiyonlanan tek bir artefakttır; saklama yeri karara bağlıdır. İstemcide form taslağı, outbox ve dosyalar güncelleme, migration ve geri dönüş boyunca silinmez. Bu sözleşme hiçbir şema, veri, servis veya production değişikliğine yetki vermez.",
+    "failure": "Kapı kapalı başarısız olur: eksik zorunlu alan, bilinmeyen değişiklik sınıfı, imza doğrulama hatası, native/izin farkı varken OTA talebi veya başarısız soğuk açılış sağlık kontrolü dağıtımı reddeder ve gerekçeyi döner. Minimum desteklenen sürümün altındaki istemci, bekleyen veriyi silmeden mağaza güncellemesine yönlendirilir. Uyumlu rollback yoksa geri dönüş engellenir. Mobil OTA test edilmediyse destekleniyor denmez."
+  },
+  "development": {
+    "dependencies": [
+      "client-rule-parity--contract",
+      "keycloak-login--contract",
+      "tauri-mobile-release--contract",
+      "ui-family-01--contract"
+    ],
+    "admission": {
+      "prerequisites": [
+        "T-00 hedef temel çizgisi ve R-00 yeniden kullanım eşlemesi tamamlanmış olmalı.",
+        "Kapı kaydı veya hesap silme gibi izinli veri tüketen adımlar ayrıca R-01'i kullanmalı.",
+        "Listelenen dört sözleşme bağımlılığı tamamlanmış olmalı.",
+        "İlgili adımı engelleyen decisionsPending kararları verilmiş olmalı.",
+        "Her adım tek dar davranışla, gerçek RED/GREEN kanıtıyla ilerlemeli."
+      ],
+      "orderAuthority": "Mevcut görev bağımlılıkları ve aşama geçerlidir; küme sırası yalnız sunumdur, yeni bir seri DAG değildir.",
+      "scopeBoundary": "İş Frappe uygulamasının dışında, React/Vite istemci tarafında yürür. Suite'in Vue frontend'i ve service worker'ları taban olarak kullanılmaz. Capacitor ve başka backend kapsam dışıdır. GenUI ayrı bir kullanıcı projesidir; kaynak registry ile GenUI capability registry karıştırılmaz."
+    },
+    "steps": [
+      "1. tauri-mobile-release--contract içinde kanal sınırını yaz: masaüstü için imzalı manifestli Tauri updater, mobil için yalnız imzalı mağaza paketi. Mobil OTA PoC doğrulanana kadar kapalı kalır. Native/şema sürümü ve minimum desteklenen sürüm alanlarını tanımla. İmza anahtarlarının sahibi ve rotasyon sorumlusu olarak Hüseyin Cengiz'i yaz.",
+      "2. Yayın kapısı kontrol listesinin alanlarını tanımla: değişiklik sınıfı, native eklenti/izin farkı, izin açıklaması eşlemesi, login/4.8 değerlendirmesi, hesap silme yolu, inceleme kanıtı bağlantısı, onaylayıcılar.",
+      "3. Tek kuralı uygula: native/izin farkı içeren aday için OTA reddi (tdd.oneScenario).",
+      "4. React/Vite istemcisine minimal bir Tauri 2 kabuğu ekle. Önce yalnız Android için debug olmayan, imzalı bir AAB üretim hattı ve soğuk açılış sağlık kontrolü kur. CI'ın teknik kurulumunun sahibi Hüseyin Cengiz'dir. Kabul ölçütü: imzalı AAB doğrulanır ve sağlık kontrolü raporlanır.",
+      "5. Güncelleme ve migration sırasında form/outbox/dosya korumasını ve veri kaybettiren geri dönüş engelini ekle. client-rule-parity--contract kurallarıyla uyumlu olmalıdır.",
+      "6. Masaüstünde Tauri updater eklentisini ve imzalı manifest doğrulamasını ekle. Ardından iOS imzalı paketini hazırla.",
+      "7. Hesap silme için native akışı keycloak-login--contract eşlemesiyle bağla ve istemcide uygulama içi giriş noktası sun (ui-family-01--contract bileşenleriyle).",
+      "8. İstemci sürümünü dönen salt okunur provider ucu yalnız gerekiyorsa ve en son eklenir; native izin yolunu kullanır."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Önceki sürüme göre native eklenti veya izin farkı içeren bir mobil sürüm adayı yayın kapısına sunulduğunda OTA/indirilen kod kanalı reddedilir; karar, yalnız imzalı mağaza paketi kanalını ve red gerekçesini döner.",
+      "red": "Kural henüz yokken kapı aynı adaya OTA kanalını açık döndürür ve davranış doğrulaması bu yüzden başarısız olur. Import veya altyapı hatası RED sayılmaz; native Frappe davranışını bozarak RED üretilmez.",
+      "green": "En küçük kural eklenir: native/izin farkı varsa OTA reddedilir ve mağaza paketi kanalı döner. Farkı olmayan metin/görünüm adayının kararı değişmez. Bu turda test yazılmaz ve koşulmaz."
+    },
+    "rollback": "Bu turda yalnız belge vardır; sözleşme dosyası entegrasyon sahibince seri birleştirmede geri alınabilir. Gelecekte istemci yayınının geri dönüşü, CI/deploy ve rollback'in teknik sahibi Hüseyin Cengiz'dir. Masaüstünde dönüş, önceki imzalı manifestle yapılır. Mobilde dönüş, mağazadaki yayını durdurmak ve yeni imzalı paket göndermekle yapılır. Uyumlu migration yoksa veri kaybettiren geri dönüş engellenir; outbox ve dosyalar korunur. Bir güncelleme manifesti alan adı gerekirse DNS kaydının teknik gereksinimini Hüseyin Cengiz hazırlar, GoDaddy uygulamasını Asistan Hüseyin yapar, sonucu Hüseyin Cengiz doğrular."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "releases-12",
+      "sourceStage": "post_mvp",
+      "existing": "Native Tauri kabuğu, updater, mağaza imzası veya OTA parçası yok. Suite web tarafında iki service worker var; ikisi de skipWaiting ile yeni sürümü hemen etkinleştiriyor. Mail service worker'ı manifest:false ile yalnız bildirim amaçlıdır. Bunlar tarayıcı PWA kapsamındaki Vue kaynaklarıdır ve React/Ant Design Tauri istemcisinin tabanı veya kanıtı değildir. Ayrıca form doldururken zorla yenilememe kabulüne aykırı birer örnektir.",
+      "gap": [
+        "Tauri 2 istemci projesi (src-tauri, tauri.conf, capabilities) ve React/Ant Design istemcisinin Tauri kabuğu yok.",
+        "Masaüstü Tauri updater eklentisi, imzalı manifest ve imza anahtarı yönetimi yok.",
+        "Android keystore/AAB ve iOS provisioning/IPA imzalı paketleme hattı yok.",
+        "Masaüstü updater ile mobil mağaza/OTA yolunu ayıran açık sözleşme yok.",
+        "Native/şema sürümü ve minimum desteklenen sürüm sözleşmesi yok.",
+        "Form/outbox/dosya koruması, soğuk açılış sağlık kontrolü ve veri kaybettiren geri dönüş engeli yok.",
+        "Mobil OTA PoC yapılmadı; bu nedenle mobil OTA desteklenmiyor sayılır.",
+        "İmza anahtarının saklanma yeri ve rotasyon periyodu tanımlı değil."
+      ],
+      "completionSteps": [
+        "tauri-mobile-release--contract içinde masaüstü updater ve mobil mağaza kanallarını ayrı yaz; mobil OTA'yı kapalı işaretle.",
+        "İstemci sürüm sözleşmesine native/şema sürümü ve minimum desteklenen sürüm alanlarını ekle.",
+        "Android için debug olmayan, imzalı AAB hattı ve soğuk açılış sağlık kontrolü kur; teknik sahibi Hüseyin Cengiz.",
+        "Güncelleme istemini, düzenlenmekte olan form veya bekleyen outbox varken zorla uygulamayan bir akış tanımla.",
+        "Masaüstü updater'ı imzalı manifestle ekle; ardından iOS imzalı paketini hazırla.",
+        "Mobil OTA ancak ayrı PoC; native sürüm/şema uyumunu, imzayı, sağlık kontrolünü, güvenli geri dönüşü ve mağaza politikasını doğrularsa yeniden değerlendirilir."
+      ],
+      "dependencies": [
+        "tauri-mobile-release--contract",
+        "client-rule-parity--contract",
+        "ui-family-01--contract"
+      ],
+      "acceptance": "Kullanıcı form doldururken zorla yenileme yapılmaz. Bekleyen kayıt/outbox ve dosyalar mağaza güncellemesi, migration ve geri dönüşte korunur. İmza, native/eklenti uyumu ve soğuk açılış sağlığı test edilir. Uyumlu rollback yoksa veri kaybettiren geri dönüş engellenir. Mobil OTA test edilmediyse destekleniyor denmez.",
+      "evidence": [
+        {
+          "path": "suite/frontend/src/apps/mail/sw.ts",
+          "line": 49,
+          "quote": "self.skipWaiting()"
+        },
+        {
+          "path": "suite/suite/www/service-worker.js",
+          "line": 219,
+          "quote": "self.skipWaiting();"
+        },
+        {
+          "path": "suite/frontend/vite.config.ts",
+          "line": 126,
+          "quote": "manifest: false,"
+        }
+      ]
+    },
+    {
+      "requirementId": "releases-13",
+      "sourceStage": "post_mvp",
+      "existing": "Frappe'de Personal Data Deletion Request akışı var: e-posta doğrulaması, System Manager onayı, user_data_fields kapsamında anonimleştirme ve kullanıcıyı devre dışı bırakma. /me sayfasındaki silme bağlantısı show_account_deletion_link bayrağına bağlıdır. Onay bekleyen talepler zamanlanmış bir hook ile işlenir. Suite'teki standalone PWA manifesti, setPwaTags ve injectManifest service worker'ı bir web kurulum yüzeyidir; imzalı native mağaza paketi değildir ve Vue kaynağıdır.",
+      "gap": [
+        "Tauri 2 native mobil kabuk ve imzalı paket yapılandırması yok (Capacitor ve Cordova kapsam dışıdır).",
+        "İzin açıklamaları (NS*UsageDescription, uses-permission) ile kullanılan eklentiler arasında eşleme yok.",
+        "Sürüm başına içerik sınıflandırması kaydı yok.",
+        "Yayın kapısı, onaylayıcı rolü ve inceleme kanıtı bağlantısı yok.",
+        "İçerik sınıfına bağlı, OTA/indirilen kodu sınırlayan bir kapı yok.",
+        "Sign in with Apple ve Apple 4.8 değerlendirmesi yok.",
+        "Hesap silme yalnız Frappe User kaydını anonimleştiriyor; Keycloak kimliğiyle eşleme yok.",
+        "React istemcide uygulama içi hesap silme girişi yok; mevcut bağlantı bir site ayarına bağlı web sayfasıdır.",
+        "Platform verileri için user_data_fields bildirimi tanımlı değil."
+      ],
+      "completionSteps": [
+        "Yayın kapısı kontrol listesini sürümle birlikte versiyonlanan tek bir artefakt olarak tanımla. Onaylayıcılar ürün ekibi ve Hüseyin Cengiz'dir.",
+        "Her sürümü metin/görünüm; yeni işlev/veri/ödeme; native/izin olarak sınıflandır. Native/izin farkında OTA'yı reddeden tek kuralı RED/GREEN kanıtıyla ekle.",
+        "Her native izni bir açıklamaya ve onu gerektiren eklentiye eşle. Gerçek fayda gerekçesini ve inceleme kanıtı bağlantısını kayda bağla.",
+        "Login akışının Apple 4.8 değerlendirmesini keycloak-login--contract kararıyla kaydet. Yalnız Keycloak kullanmak otomatik olarak Sign in with Apple zorunluluğu doğurmaz.",
+        "Native Personal Data Deletion Request akışını Keycloak kimliğini silme veya devre dışı bırakma işlemiyle eşleyen dar bir sözleşme yaz. İstemcide uygulama içi giriş noktası sun. Platform verileri için user_data_fields bildirimini hooks.py entegrasyon sahibine öner.",
+        "Kapı kaydı Frappe'de tutulursa rolü explicitPermissionFlags kaynağına bağla. Kabul ölçütüne, yetkisiz yazmanın reddedildiği ve kaydın değişmediği bir senaryo ekle."
+      ],
+      "dependencies": [
+        "tauri-mobile-release--contract",
+        "keycloak-login--contract",
+        "ui-family-01--contract"
+      ],
+      "acceptance": "Her yayın içerik bazında değerlendirilir. Mobil uyum ve güncel mağaza kuralları geçmeden OTA veya mağaza dağıtımı açılmaz. Gerçek fayda, izin açıklamaları ve inceleme kanıtı kaydedilir. Mağaza kabulü için garanti verilmez. Uygulama içi hesap silme, native akış üzerinden çalışır. Yetkisiz kullanıcının kapı kaydına yazması reddedilir ve kayıt değişmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py",
+          "line": 128,
+          "quote": "def trigger_data_deletion(self):"
+        },
+        {
+          "path": "frappe/frappe/www/me.html",
+          "line": 60,
+          "quote": "{% if frappe.db.get_single_value(\"Website Settings\", \"show_account_deletion_link\") %}"
+        },
+        {
+          "path": "frappe/frappe/hooks.py",
+          "line": 301,
+          "quote": "\"frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request.process_data_deletion_request\","
+        },
+        {
+          "path": "suite/frontend/public/pwa/suite/manifest.webmanifest",
+          "line": 6,
+          "quote": "\"display\": \"standalone\","
+        },
+        {
+          "path": "suite/frontend/src/router/index.ts",
+          "line": 319,
+          "quote": "function setPwaTags(to: RouteLocationNormalizedLoaded) {"
+        },
+        {
+          "path": "suite/frontend/vite.config.ts",
+          "line": 119,
+          "quote": "strategies: 'injectManifest',"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Tauri 2 istemci kabuğu, masaüstü updater ve imzalı mobil paketleme hattı yok.",
+    "Native/şema sürümü ve minimum desteklenen sürüm sözleşmesi yok.",
+    "Form/outbox/dosya koruması, soğuk açılış sağlık kontrolü ve veri kaybettiren geri dönüş engeli yok.",
+    "İçerik sınıfına bağlı yayın kapısı, izin açıklaması eşlemesi ve inceleme kanıtı kaydı yok.",
+    "Keycloak ile eşlenmiş uygulama içi hesap silme yok.",
+    "Mobil OTA doğrulanmadı ve desteklenmiyor."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Mobil OTA için Tauri ile uyumlu teknik çözüm ve satıcı. Ayrı PoC sonucu gelmeden seçilmez.",
+      "requirementIds": ["releases-12", "releases-13"],
+      "blocks": "Mobil OTA kanalının açılması.",
+      "documentStepUntilDecision": "OTA kapalı kuralını ve mağaza paketi yolunu belgele; PoC kabul ölçütlerini listele."
+    },
+    {
+      "decision": "İmza anahtarlarının saklama çözümü ve rotasyon periyodu. Sahip ve rotasyon sorumlusu Hüseyin Cengiz'dir; çözüm seçilmedi.",
+      "requirementIds": ["releases-12"],
+      "blocks": "İmzalı AAB/IPA hattı ve masaüstü manifest imzası.",
+      "documentStepUntilDecision": "Anahtar türlerini, sahipliği ve rotasyon gereksinimlerini secret değeri içermeden belgele."
+    },
+    {
+      "decision": "Hedef işletim sistemi sürümleri ve minimum desteklenen istemci sürümü politikası.",
+      "requirementIds": ["releases-12"],
+      "blocks": "Sürüm sözleşmesindeki değerler ve zorunlu güncelleme yönlendirmesi.",
+      "documentStepUntilDecision": "Alan yapısını değer vermeden tanımla."
+    },
+    {
+      "decision": "Apple ve Google mağaza geliştirici hesaplarının sahipliği ve ücretleri.",
+      "requirementIds": ["releases-12", "releases-13"],
+      "blocks": "Mağazaya gönderim ve inceleme kanıtı.",
+      "documentStepUntilDecision": "Yayın kapısı kontrol listesini hazırla."
+    },
+    {
+      "decision": "Masaüstü updater manifestinin barındırma yeri ve alan adı.",
+      "requirementIds": ["releases-12"],
+      "blocks": "Masaüstü updater adımı.",
+      "documentStepUntilDecision": "Hüseyin Cengiz DNS gereksinim taslağını hazırlar; GoDaddy uygulaması karardan sonra Asistan Hüseyin'e devredilir."
+    },
+    {
+      "decision": "Hesap silmede Keycloak kimliğinin silinip silinmeyeceği veya yalnız devre dışı bırakılacağı ve saklama süresi.",
+      "requirementIds": ["releases-13"],
+      "blocks": "Hesap silme eşleme sözleşmesi.",
+      "documentStepUntilDecision": "Native Personal Data Deletion Request adımlarını ve eşleme noktalarını belgele."
+    },
+    {
+      "decision": "Sosyal giriş sağlayıcıları ve Sign in with Apple gerekliliği. keycloak-login--contract kararına bağlıdır.",
+      "requirementIds": ["releases-13"],
+      "blocks": "Apple 4.8 değerlendirmesinin kapatılması.",
+      "documentStepUntilDecision": "Değerlendirme alanını kapı listesine koy."
+    },
+    {
+      "decision": "Yayın kapısı artefaktının saklama yeri: sürümlenen dosya mı, Frappe kaydı mı.",
+      "requirementIds": ["releases-13"],
+      "blocks": "Kapının kalıcılığı ve rol bağlantısı.",
+      "documentStepUntilDecision": "Alan listesini saklama yerinden bağımsız tanımla."
+    },
+    {
+      "decision": "Önerilen client-migration--implementation bağımlılığının mevcut görev bağımlılıklarına eklenip eklenmeyeceği. Entegrasyon sahibi karar verir; bu sözleşme kimlik eklemez.",
+      "requirementIds": ["releases-12"],
+      "blocks": "Migration sırasında form/outbox koruma adımı.",
+      "documentStepUntilDecision": "Koruma kabul ölçütlerini yaz; adımı karara kadar beklemede tut."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

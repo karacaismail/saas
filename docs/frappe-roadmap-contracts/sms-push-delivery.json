@@ -1,0 +1,225 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "sms-push-delivery",
+  "canonicalTaskIds": ["sms-push-delivery--implementation"],
+  "requirementIds": ["notifications-2"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "notifications-2": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "implementationStatusNote": "Uygulama durumu: uygulanmadı. Bu dosya yalnız gelecekteki geliştirme rehberidir; hiçbir servis, production ortamı, şema veya veri bu sözleşmeyle değiştirilemez.",
+  "behavior": {
+    "title": "Aynı olaydan SMS ve mobil push üretimi, iptal edilen cihaz tokenına gönderimin durdurulması",
+    "trigger": "Bildirim üreten bir alan olayı, kernel-envelope--contract zarfıyla outbox--contract kuyruğuna yazılır. Bu olay için alıcının izinli kanalları SMS ve push'tur.",
+    "expected": "Tek olay kaydından kanal başına birer teslim kaydı türetilir: SMS ve push. Push yalnız alıcıya ait ve iptal edilmemiş cihaz tokenlarına gider. Token iptal edildikten veya rotasyonla değiştirildikten sonraki olaylarda eski tokena gönderim yapılmaz. Gönderim sonucu ve hata nedeni teslim kaydına işlenir.",
+    "denied": "Kullanıcı başka bir kullanıcı adına token kaydedemez veya iptal edemez. İzinsiz yazma reddedilir ve mevcut abonelik kaydı değişmez. Yetki kontrolü ignore_permissions veya doğrudan SQL ile atlanmaz. Durum değiştiren abonelik çağrısı GET ile ve tokenı URL sorgu dizesinde taşıyarak kabul edilmez."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Önceki salt-okunur Frappe/Suite kaynak görüntülerinde frappe.push_notification modülünün PushNotification sınıfı backend'de içe aktarılıyor. Suite frontend'inde FCM tokenı için abone olma/abonelikten çıkma ve token rotasyonu akışı var. Bu akış harici bir relay sunucusuna (push_relay_server_url) bağlı ve web odaklı. Abonelik GET isteğiyle ve token sorgu dizesinde gönderiliyor. Suite frontend kaynağı Vue/Frappe UI tarafına aittir. React/Ant Design, Tauri 2 veya SMS uygulaması için kanıt değildir. Kanıt yalnız native parçaların varlığını gösterir, davranışın tamamının var olduğunu göstermez. SMS kaynağı aranan yollarda görülmedi. Bu, kapsamlı bir yokluk iddiası değildir.",
+    "evidence": [
+      {
+        "path": "suite/suite/mail/doctype/mail_message/mail_message.py",
+        "line": 17,
+        "quote": "from frappe.push_notification import PushNotification"
+      },
+      {
+        "path": "suite/frontend/src/apps/mail/utils/frappe-push-notification.ts",
+        "line": 33,
+        "quote": "return window.push_relay_server_url"
+      },
+      {
+        "path": "suite/frontend/src/apps/mail/utils/frappe-push-notification.ts",
+        "line": 184,
+        "quote": "'/api/method/frappe.push_notification.subscribe?fcm_token=' +"
+      },
+      {
+        "path": "suite/frontend/src/apps/mail/utils/frappe-push-notification.ts",
+        "line": 189,
+        "quote": "method: 'GET',"
+      },
+      {
+        "path": "suite/frontend/src/apps/mail/utils/frappe-push-notification.ts",
+        "line": 141,
+        "quote": "if (oldToken) await this.unregisterTokenHandler(oldToken)"
+      }
+    ],
+    "searchedPaths": [
+      "suite/frontend/src/apps/mail/utils/frappe-push-notification.ts",
+      "suite/suite/mail/doctype/mail_message/mail_message.py"
+    ],
+    "searchedPathsNote": "Yalnız bu yollar incelendi. SMS kaynağının ve Tauri mobil push kaynağının bulunmaması kapsamlı bir yokluk iddiası değildir. T-00/R-00 sırasında hedef Frappe sürümünde yeniden aranmalıdır."
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/sms-push-delivery.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/adapters/notifications/sms_push_delivery_post_mvp.py"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "kernel-envelope--contract zarfında taşınan tek bir bildirim olayı. Zarf; olay kimliği, tenant kapsamı, alıcı kullanıcı, şablon referansı (email-template--contract ile ortak şablon çözümleme) ve istenen kanallardan oluşur. Cihaz aboneliği girdisi; oturumdaki kullanıcı, platform (web/iOS/Android), sağlayıcı tokenı ve proje adından oluşur. Token yalnız istek gövdesinde taşınır.",
+    "output": "Olay başına kanal ve alıcı için tek teslim kaydı üretilir. Kayıt; kanal, hedef (maskelenmiş telefon veya token özeti), durum (bekliyor/gönderildi/kalıcı_hata/geçici_hata/iptal_token), deneme sayısı ve son hata nedenini içerir. Ham token ve tam telefon numarası loglara yazılmaz.",
+    "authorization": "native-user-policy--contract ile native Frappe izinleri yeniden kullanılır. Abonelik kaydı ve iptali yalnız oturumdaki kullanıcının kendi cihazları için yapılır. Yeni rol veya izin bayrağı gerekirse explicitPermissionFlags ortak kaynağına bağlanır, bu birim kendi bayrağını üretmez. Kanal etkinliği capability-definition--contract üzerinden açılır. ignore_permissions ve SQL ile yetki atlama yasaktır.",
+    "persistence": "Native transaction, save ve hook akışı yeniden kullanılır. Teslim kayıtları outbox--contract kalıcılığına bağlanır. Bu birim için yeni DocType önerilmez (canonicalArtifact doctypeCount=0). Token kalıcılığı R-00 eşlemesinde bulunan native push abonelik kaynağına yazılır. Native kaynak yoksa bu adım decisionsPending kararı gelene kadar bloke kalır.",
+    "failure": "Sağlayıcı tokenın geçersiz veya kayıtsız olduğunu bildirirse token iptal edilmiş sayılır ve sonraki gönderimlerden çıkarılır. Geçici hatalar outbox tekrar deneme politikasına göre ele alınır; sayı ve bekleme süresi decisionsPending kapsamındadır. Bir kanalın hatası aynı olaydaki diğer kanalın teslimini engellemez. Hata nedeni teslim kaydına ve native hata kaydı mekanizmasına yazılır. Bu mekanizma R-00'da doğrulanır."
+  },
+  "development": {
+    "dependencies": [
+      "capability-definition--contract",
+      "email-template--contract",
+      "kernel-envelope--contract",
+      "native-user-policy--contract",
+      "outbox--contract",
+      "sms-push-delivery--contract"
+    ],
+    "admission": {
+      "statusNote": "Uygulama durumu: uygulanmadı. Kabul verilmedi.",
+      "prerequisites": [
+        "T-00: hedef Frappe sürümü taban çizgisi. frappe.push_notification modülünün, abonelik endpoint'inin kabul ettiği HTTP yöntemlerinin ve Notification SMS kanalının hedef sürümdeki karşılığı kaynak yolu ve satırıyla kaydedilir.",
+        "R-00: yeniden kullanım eşlemesi. PushNotification, abonelik/abonelikten çıkma endpoint'leri, SMS Settings ve Notification SMS kanalı native parça veya eksik olarak işaretlenir.",
+        "R-01: tenant veya kullanıcıya bağlı veri tüketimi için izinli okuma eşlemesi.",
+        "Bağımlı sözleşmeler entegre durumda olmalıdır: outbox, kernel-envelope, native-user-policy, capability-definition, email-template ve sms-push-delivery--contract.",
+        "Seçilen tek dar davranışı engelleyen decisionsPending maddeleri karara bağlanmış olmalıdır.",
+        "Gerçek RED/GREEN kanıtıyla tek davranış uygulanır."
+      ]
+    },
+    "steps": [
+      "1. T-00 ve R-00 eşlemesini belgeye işle. Native var, kısmen var ve yok ayrımını kaynak satırıyla yaz. Doğrulanmayan API'ye dayanan tasarım yapma.",
+      "2. Olay akışını tanımla. Tek outbox olayından SMS ve push için ayrı teslim kayıtları türet. Tekrar üretimi engellemek için idempotency anahtarını olay, kanal ve hedef üçlüsünden kur.",
+      "3. Token yaşam döngüsünü tanımla: kayıt, rotasyon (eski tokenın önce iptal edilmesi), kullanıcı çıkışında iptal ve sağlayıcı geçersiz dediğinde iptal. Web akışındaki rotasyon davranışı kaynakla gösterilmiştir. Tauri 2 mobil karşılığı karar gelene kadar yalnız sözleşme olarak kalır.",
+      "4. Abonelik çağrısını POST ve gövdede token olacak şekilde gereksinim olarak yaz. Native endpoint'in POST kabul edip etmediği T-00'da doğrulanmadan sarmalayıcı veya yeni endpoint tasarlama.",
+      "5. SMS kanalını native Notification SMS kanalı ve SMS Settings üzerinden eşle. Sağlayıcı seçimi yapılmadan sağlayıcıya özgü kod yazma.",
+      "6. Hata politikasını teslim kaydı durumlarına eşle. Kalıcı token hatasında iptal et, geçici hatada outbox ile tekrar dene. Ham token ve telefon numarasını loglama.",
+      "7. Yetki reddi kabulünü yaz. Başka kullanıcının tokenını iptal etme girişimi reddedilir ve kayıt değişmez.",
+      "8. Planlanan adaptör dosyasında tek davranış için RED/GREEN uygula. hooks.py kaydı ortak entegrasyon dosyası olduğundan ana entegrasyon sahibine seri birleştirme için bırak."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Kullanıcının iki push tokenından biri iptal edilmiştir. Yeni bir olay işlendiğinde push yalnız iptal edilmemiş tokena gönderilir ve aynı olay için SMS teslim kaydı da üretilir.",
+      "red": "Adaptör iskeleti import edilebilir durumdadır. Test, iptal edilmiş token için gönderim sayısının 0 olduğu doğrulamasında assertion hatasıyla başarısız olmalıdır. Import, bağımlılık veya altyapı hatası RED sayılmaz. Native davranışı bozarak RED üretilmez. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "Adaptör, R-00'da eşlenen native abonelik durumunu izinli okuma ile kullanarak iptal edilmiş tokenı hedeflerden çıkarır. SMS teslim kaydı etkilenmez. ignore_permissions veya SQL kullanılmaz."
+    },
+    "rollback": "Kanal capability-definition--contract bayrağıyla kapatılır ve hooks.py kaydı normal deploy süreciyle geri alınır. Teknik CI, deploy ve rollback sahibi Hüseyin Cengiz'dir. Kabul ölçütü, kapatma sonrasında yeni olaylardan SMS veya push teslim kaydı üretilmemesidir. Şema değişikliği önerilmediği için veri göçü geri alımı yoktur. Mevcut abonelik ve teslim kayıtları silinmez. Relay için alan adı gerekirse DNS kaydı gereksinimini Hüseyin Cengiz hazırlar, GoDaddy tarafında Asistan Hüseyin uygular, sonucu Hüseyin Cengiz doğrular. Bu sözleşme bu işlemlerin hiçbirine yetki vermez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "notifications-2",
+      "sourceStage": "post_mvp",
+      "existing": "Native parçalar: backend'de frappe.push_notification.PushNotification içe aktarımı ve frontend'de FCM token abonelik/abonelikten çıkma ile rotasyon akışı (Suite, Vue, web odaklı, harici relay'e bağlı). Kaynak değerlendirmesine göre Frappe Notification SMS kanalını destekler, ancak hedef sürümdeki karşılığı doğrulanmamıştır. Uygulama durumu: uygulanmadı.",
+      "gap": "SMS sağlayıcısı ve SMS Settings eşlemesi yok. Tauri 2 mobil için APNs/FCM cihaz kaydı, token yaşam döngüsü ve backend abonelik sözleşmesi tanımsız. Relay sahipliği, güven sınırı ve secret yönetimi belirsiz. Abonelik durum değiştiren bir GET isteği ve token URL'de taşınıyor. Hata durumunda token iptali, tekrar deneme ve hata kaydı politikası tanımsız. SMS ve push'un aynı olaydan üretilmesi henüz bağlanmamış.",
+      "completionSteps": [
+        "T-00'da hedef Frappe sürümü için push_notification modülünü, abonelik endpoint'inin HTTP yöntemlerini ve Notification SMS kanalını kaynak satırıyla doğrula.",
+        "R-00'da SMS Settings ve Notification SMS kanalını native parça olarak eşle. Sağlayıcıya özgü kısım karar gelene kadar boş kalsın.",
+        "outbox--contract üzerinde olay başına kanal teslim kayıtlarını ve idempotency anahtarını tanımla. Şablon çözümlemesini email-template--contract ile ortak tut.",
+        "Token yaşam döngüsünü kayıt, rotasyon, çıkış ve sağlayıcı-geçersiz durumlarıyla yaz. Web için mevcut rotasyon davranışını referans al. Tauri 2 mobil mekanizmasını karar gelene kadar açık bırak.",
+        "Aboneliği POST ve gövdede token olacak şekilde zorunlu gereksinim olarak yaz. Ham tokenın ve telefon numarasının loglanmamasını kabul ölçütüne ekle.",
+        "Relay için sahiplik, güven sınırı ve secret saklama yerini karar maddesi olarak yaz. Secret değerini hiçbir dosyaya koyma.",
+        "Yetki reddi kabulünü native-user-policy--contract ile bağla. Başka kullanıcının tokenına yazma reddedilmeli ve kayıt değişmemeli."
+      ],
+      "dependencies": [
+        "sms-push-delivery--contract",
+        "kernel-envelope--contract",
+        "native-user-policy--contract",
+        "capability-definition--contract",
+        "outbox--contract",
+        "email-template--contract"
+      ],
+      "acceptance": "SMS ve push aynı olaydan üretilebilsin. İptal edilen cihaz tokenına gönderim durdurulsun. İzinsiz token yazma girişimi reddedilsin ve kayıt değişmesin. Abonelik POST ile yapılsın ve token URL'de bulunmasın. Gelecekteki doğrulama: runtimeAcceptance=not_run.",
+      "evidence": [
+        {
+          "path": "suite/suite/mail/doctype/mail_message/mail_message.py",
+          "line": 17,
+          "quote": "from frappe.push_notification import PushNotification"
+        },
+        {
+          "path": "suite/frontend/src/apps/mail/utils/frappe-push-notification.ts",
+          "line": 33,
+          "quote": "return window.push_relay_server_url"
+        },
+        {
+          "path": "suite/frontend/src/apps/mail/utils/frappe-push-notification.ts",
+          "line": 184,
+          "quote": "'/api/method/frappe.push_notification.subscribe?fcm_token=' +"
+        },
+        {
+          "path": "suite/frontend/src/apps/mail/utils/frappe-push-notification.ts",
+          "line": 189,
+          "quote": "method: 'GET',"
+        },
+        {
+          "path": "suite/frontend/src/apps/mail/utils/frappe-push-notification.ts",
+          "line": 141,
+          "quote": "if (oldToken) await this.unregisterTokenHandler(oldToken)"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "SMS kaynağı aranan yollarda görülmedi. Hedef sürümde Notification SMS kanalı ve SMS Settings karşılığı doğrulanmadı.",
+    "Tauri 2 mobil için APNs/FCM cihaz kaydı ve token yaşam döngüsü tanımsız.",
+    "Relay sunucusunun sahipliği, güven sınırı ve secret yönetimi belirsiz.",
+    "Mevcut abonelik çağrısı GET ile yapılıyor ve token sorgu dizesinde taşınıyor. Native endpoint'in POST desteği doğrulanmadı.",
+    "Token iptali, tekrar deneme ve hata kaydı politikası tanımsız.",
+    "React/Ant Design ve Tauri 2 tarafında uygulama kanıtı yok. Suite Vue kaynağı bunun yerine geçmez."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "SMS sağlayıcısı, tarifesi ve sözleşme/lisans koşulları",
+      "requirementIds": ["notifications-2"],
+      "blocks": "SMS kanalının sağlayıcıya özgü gönderim adımı ve SMS Settings değerlerinin eşlenmesi",
+      "documentWorkUntilDecided": "Native Notification SMS kanalı ve SMS Settings alan eşlemesini sağlayıcıdan bağımsız olarak belgelemek"
+    },
+    {
+      "decision": "Push relay sunucusunu kimin işleteceği, güven sınırı ve secret saklama yeri",
+      "requirementIds": ["notifications-2"],
+      "blocks": "push_relay_server_url yapılandırması ve production push gönderimi",
+      "documentWorkUntilDecided": "Relay'e giden ve relay'den gelen veri alanlarını, gereken secret türlerini (değer olmadan) ve güven sınırı seçeneklerini belgelemek"
+    },
+    {
+      "decision": "Hedef Frappe sürümü (v17 karşılıklarının doğrulanacağı taban)",
+      "requirementIds": ["notifications-2"],
+      "blocks": "T-00 kaynak doğrulaması ve endpoint HTTP yöntemi kararı",
+      "documentWorkUntilDecided": "Doğrulanacak modül, endpoint ve kanal listesini hazırlamak"
+    },
+    {
+      "decision": "Tauri 2 mobilde APNs/FCM token edinme mekanizması ve platform hesapları",
+      "requirementIds": ["notifications-2"],
+      "blocks": "Mobil cihaz kaydı ve iptal sözleşmesinin uygulanması",
+      "documentWorkUntilDecided": "Platformdan bağımsız token yaşam döngüsünü ve backend abonelik sözleşmesini yazmak"
+    },
+    {
+      "decision": "Native GET abonelik endpoint'inin POST'a çevrilme yolu (native destek, upstream değişikliği veya sarmalayıcı)",
+      "requirementIds": ["notifications-2"],
+      "blocks": "İstemci abonelik çağrısının uygulanması",
+      "documentWorkUntilDecided": "POST ve gövdede token gereksinimini ve log maskeleme kabulünü yazmak"
+    },
+    {
+      "decision": "Tekrar deneme sayısı ve bekleme süresi, teslim kaydı ve token saklama süresi, telefon/token verisinin veri yerleşimi",
+      "requirementIds": ["notifications-2"],
+      "blocks": "Hata politikasının ve saklama temizliğinin uygulanması",
+      "documentWorkUntilDecided": "Teslim kaydı durum makinesini ve kalıcı/geçici hata sınıflandırmasını belgelemek"
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

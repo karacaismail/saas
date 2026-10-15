@@ -1,0 +1,241 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "ui-family-12",
+  "canonicalTaskIds": [
+    "ui-family-08--implementation-post-mvp",
+    "ui-family-09--implementation-post-mvp",
+    "ui-family-11--implementation",
+    "ui-family-12--implementation",
+    "ui-family-13--implementation",
+    "ui-provider-viewstate--implementation-post-mvp",
+    "ui-view-table--implementation"
+  ],
+  "requirementIds": ["views-7"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "views-7": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Liste görünümünde filtre, sıralama, sayfalama ve sütun seçiminin URL'den geri yüklenmesi ve kayıtlı görünüm (SavedView, önerilen bileşen) olarak saklanması. Uygulama durumu: uygulanmadı.",
+    "trigger": "Kullanıcı bir DocType liste görünümünde filtre, sıralama, sayfa veya sütun değiştirir; görünüm durumunu taşıyan bir URL'yi açar; ya da kayıtlı bir görünümü seçer veya kaydeder.",
+    "expected": "Görünüm durumu tek, sürümlü ve yalnız JSON ile serileştirilebilir bir modelde tutulur. URL'den geri yüklenir. Sunucu, native liste sorgusu ve izin denetimiyle filtre, sıralama, sayfa ve sütunları yeniden doğrular. UI yalnız sunucunun döndürdüğü alanları sütun olarak gösterir. Sayım native count uç noktasından ayrı alınır. Kayıtlı görünüm, karar verilen native saklama yerine native kaydetme yoluyla yazılır.",
+    "denied": "URL veya kayıtlı görünüm şunları genişletemez: kullanıcının permlevel erişimi olmayan alan, izinli listede bulunmayan operatör, başka tenant kapsamı ve sayfa boyutu üst sınırını aşan değer. Bu durumda sunucu alanı düşürür veya isteği reddeder; UI reddi kullanıcıya gösterir ve önceki geçerli durumu korur. Başka bir kullanıcının kayıtlı görünümüne yazma reddedilir ve kayıt değişmez."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Şu native Frappe parçaları yeniden kullanılır: liste sorgusu parametreleri (order_by, limit_start, limit_page_length), API v2 count kuralı, reportview içindeki permlevel alan filtresi ve doctype düzeyindeki List View Settings okuması. frappe/ui ListView snapshot yalnız tasarım deseni kanıtıdır: kaydetme işi host'a bırakılır. Bu kaynak Vue/Frappe UI'dır, React/Ant Design uygulamasının kanıtı değildir. Kanıtın bir native parçayı göstermesi bütün davranışın var olduğu anlamına gelmez. Kişisel veya adlandırılmış kayıtlı görünüm, URL şeması ve UI tarafındaki sütun doğrulaması için native tam karşılık kanıtlanmadı.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/client.py",
+        "line": 33,
+        "quote": "limit_page_length: int | str = 20,"
+      },
+      {
+        "path": "frappe/frappe/api/v2.py",
+        "line": 650,
+        "quote": "Rule(\"/doctype/<doctype>/count\", methods=[\"GET\", \"QUERY\"], endpoint=count),"
+      },
+      {
+        "path": "frappe/frappe/desk/reportview.py",
+        "line": 181,
+        "quote": "if df.get(\"permlevel\") not in meta.get_permlevel_access(parenttype=data.doctype):"
+      },
+      {
+        "path": "frappe/frappe/desk/listview.py",
+        "line": 18,
+        "quote": "return frappe.get_cached_doc(\"List View Settings\", doctype)"
+      },
+      {
+        "path": "frappe/ui/src/components/ListView/useListView.ts",
+        "line": 55,
+        "quote": "The library owns no saving"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v2.py",
+      "frappe/frappe/client.py",
+      "frappe/frappe/desk/listview.py",
+      "frappe/frappe/desk/reportview.py",
+      "frappe/ui/src/components/ListView/useListView.ts"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/ui-family-12.json",
+    "plannedProduction": [
+      "frontend/packages/ui/src/components/ui-family-08/post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-family-09/post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-family-11/index.tsx",
+      "frontend/packages/ui/src/components/ui-family-12/index.tsx",
+      "frontend/packages/ui/src/components/ui-family-13/index.tsx",
+      "frontend/packages/ui/src/components/ui-provider-viewstate/post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-view-table/index.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Görünüm durumu modeli (ViewState, taslak): {version, doctype, filters: [[fieldname, operator, value]], orderBy: [{fieldname, direction}], page: {start, length}, columns: [fieldname], savedViewRef?}. Model yalnız JSON verisidir; ReactNode, callback veya bileşen referansı içermez. Yerel React render ve callback'leri bu sınırın dışında, bileşen tarafında kalır. URL'de aynı model sürüm işaretiyle taşınır. Değerler kullanıcı girdisi sayılır ve sunucuda yeniden doğrulanır.",
+    "output": "Sunucunun normalize edip kabul ettiği durum: kayıtlar, ayrı alınan toplam sayım, gerçekten döndürülen alan listesi ve düşürülen ya da reddedilen öğelerin bildirimi. UI sütun gerçeği olarak yalnız döndürülen alan listesini kullanır. Kaydetme sonucu native doküman kimliği ve sürüm bilgisidir; saklama yeri kararı gelene kadar tanımsızdır.",
+    "authorization": "Tek yetki kaynağı sunucudur. Native liste sorgusu izin denetimi ve permlevel alan filtresi korunur. ignore_permissions, ham SQL ya da istemci tarafı izin kararı kullanılmaz. Tenant bağlamı kernel-envelope--contract ve api-middleware--contract üzerinden gelir. Kayıtlı görünüm hiçbir zaman sunucu izninden geniş veri döndürmez. Bu rehber yeni rol veya izin üretmez. İleride bir paylaşım kararı rol veya izin gerektirirse, o iş explicitPermissionFlags ortak kaynağına bağlanır ve tek kabulünde reddedilen yazma ile değişmeyen kayıt gösterilir.",
+    "persistence": "Saklama yeri karar bekliyor (decisionsPending). Adaylar: List View Settings (kanıta göre doctype başına tek kayıt; kişisel veya adlandırılmış görünüm değil), Report Builder raporu ve kullanıcı ayarı. Kayıt native doküman kaydetme yolu, transaction ve hook'larla yapılır. Yeni ORM, CRUD veya şema bu sözleşmeyle tasarlanmaz. Seçilen native mekanizma yetmezse ayrı bir sözleşme gerekir.",
+    "failure": "Geçersiz alan, operatör veya sürüm: sunucu reddi kernel-envelope hata biçimiyle döner; UI hatayı gösterir, önceki geçerli durumu ve kullanıcının girdisini korur. Anlaşılamayan URL sürümü: varsayılan görünüm açılır ve bildirim gösterilir. Kayıtlı görünümde silinmiş veya izinsiz alan varsa alan düşürülür ve bildirilir. Sayım bütçeyi aşarsa kayıtlar sayım olmadan gösterilir; sayım durumu açıkça belirtilir. Kesin sınırlar bütçe kararına bağlıdır."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "client-channel-continuity--contract",
+      "client-data-budget--contract",
+      "client-rule-parity--contract",
+      "device-grant--contract",
+      "kernel-envelope--contract",
+      "search-query--contract",
+      "sync-receipt--contract",
+      "ui-family-02--contract",
+      "ui-family-08--contract",
+      "ui-family-08--implementation",
+      "ui-family-09--contract",
+      "ui-family-09--implementation",
+      "ui-family-11--contract",
+      "ui-family-12--contract",
+      "ui-family-13--contract",
+      "ui-family-14--contract",
+      "ui-provider-viewstate--contract",
+      "ui-provider-viewstate--implementation",
+      "ui-view-table--contract"
+    ],
+    "admission": "Uygulama durumu: uygulanmadı. Kabul önkoşulları: T-00 hedef taban çizgisi ve R-00 yeniden kullanım eşlemesi. İzinli veri tükettiği için R-01 de gerekir. Tek ve dar bir davranış gerçek RED/GREEN kanıtıyla uygulanır. Sıralamayı mevcut görev bağımlılıkları ve post_mvp aşaması belirler; küme sırası yalnız sunumdur, yeni bir seri DAG değildir. Saklama yeri ve tenant kapsamı kararları gelmeden kaydetme adımı kabul edilmez.",
+    "steps": [
+      "Hedef Frappe sürümünde (T-00) kanıt satırlarını yeniden oku ve R-00 eşlemesine işle. Count kuralı ve permlevel filtresi o sürümde yoksa adımı durdur ve bildir.",
+      "ViewState JSON modelini ui-provider-viewstate--contract sınırına bağla. Model JSON veri olarak kalır; ReactNode veya callback taşımaz.",
+      "URL şemasını belgele: sürüm işareti, filtre üçlüleri, sıralama, sayfa ve sütun alanları. TanStack Router search parametre doğrulamasıyla ayrıştır. Geçersiz değeri varsayılana düşür ve bildir.",
+      "Veri çağrısında TanStack Query anahtarını normalize edilmiş ViewState'ten üret. Native liste sorgusunu api-middleware ve kernel-envelope üzerinden tenant bağlamıyla çağır.",
+      "Sütun seçimini sunucunun döndürdüğü alan listesiyle kesiştir. Düşürülen alanları kullanıcıya bildir ve istemci tarafında izin kararı verme.",
+      "Sayımı native v2 count kuralıyla ayrı sorgu olarak al. Sayfa boyutu ve sayım sınırını client-data-budget--contract kararına bağla.",
+      "Saklama yeri kararından sonra kayıtlı görünümü native doküman kaydetme yoluyla yaz ve yükle; native izin, transaction ve hook'ları koru.",
+      "Bileşen kaydını kaynak registry önerisi olarak frontend/packages/ui/src/registry.ts dosyasında düşün. GenUI capability registry'den ayrı tut.",
+      "Web, PWA, Tauri2 ve WXT/MV3 kanallarında aynı serileştirmeyi client-channel-continuity--contract ile hizala. Görünür URL olmayan kanalda aynı modeli kanal durumunda taşı."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Kullanıcının permlevel erişimi olmayan bir sütunu içeren URL veya kayıtlı görünüm geri yüklendiğinde, o sütun tabloda gösterilmez ve kullanıcıya düşürüldüğü bildirilir.",
+      "red": "Gelecekteki bileşen sütunları doğrudan ViewState'ten çizdiği için, sunucu yanıtında bulunmayan izinsiz alanın sütun başlığı görünür kalır. Bu bir davranış hatasıdır; import hatası, altyapı hatası veya native davranışın bozulmasıyla elde edilmez.",
+      "green": "Bileşen sütunları sunucunun döndürdüğü alan listesiyle kesiştirir; izinsiz sütun görünmez ve bildirim gösterilir. Native permlevel filtresi değiştirilmez."
+    },
+    "rollback": "Bu tur yalnız belge üretir; geri alınacak üretim değişikliği yoktur. Gelecekte geri alma şöyle yapılır: bileşenin registry kaydı ve rota bağlantısı kaldırılır. Yeni şema olmadığı için şema geri alma gerekmez. Native saklamada oluşan kullanıcı kayıtları kullanıcı verisidir ve bu sözleşmeyle silinmez. CI, deploy ve rollback'in teknik sahibi Hüseyin Cengiz'dir. Bu sözleşme hiçbir servis, production, şema veya veriyi değiştirme yetkisi vermez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "views-7",
+      "sourceStage": "post_mvp",
+      "existing": "Native olarak şunlar var: liste sorgusunda sıralama ve sayfalama parametreleri (varsayılan sayfa boyutu 20), API v2'de doctype count kuralı, reportview'da permlevel erişimi olmayan alanların düşürülmesi ve List View Settings'in doctype bazında okunması. frappe/ui snapshot kalıcılığı host'a bırakan bir Vue desenidir; React/AntD kanıtı değildir.",
+      "gap": "Kayıtlı görünümün saklama yeri ve tenant ile kullanıcı kapsamı seçilmedi. URL filtre serileştirme şeması ve izinli operatör listesi yok. Sunucudaki permlevel filtresinin UI karşılığı yazılmadı. Büyük tablolarda sayım maliyeti ve sayfa boyutu üst sınırı tanımsız.",
+      "completionSteps": [
+        "Saklama yeri ve kapsam kararlarını decisionsPending üzerinden al. Karar gelene kadar kaydetme adımını açma.",
+        "Sürümlü URL şemasını ve izinli operatör listesi taslağını belgele. Operatörleri native liste sorgusunun kabul ettikleriyle sınırla ve sunucu doğrulamasını tek kaynak tut.",
+        "UI sütun gerçeğini sunucunun döndürdüğü alan listesine bağla ve düşürülen alanları bildir.",
+        "Sayımı native count kuralıyla ayrı al. Sayfa boyutu üst sınırını client-data-budget--contract kararına bağla.",
+        "Kaydetmeyi seçilen native mekanizmanın kaydetme yoluyla yap. Yeni ORM, CRUD veya DocType tasarlama."
+      ],
+      "dependencies": [
+        "ui-family-12--contract",
+        "kernel-envelope--contract",
+        "api-middleware--contract",
+        "client-rule-parity--contract",
+        "ui-family-02--contract",
+        "client-channel-continuity--contract",
+        "ui-provider-viewstate--contract",
+        "ui-view-table--contract",
+        "client-data-budget--contract",
+        "search-query--contract"
+      ],
+      "acceptance": "Filtre, sıralama, sayfa ve sütunlar URL'den geri yüklenir. Kayıtlı görünüm tenant ve alan izinlerini aşmaz. İzinsiz sütun gösterilmez. Başka kullanıcının görünümüne yazma reddedilir ve kayıt değişmez. Hepsi gelecekte gerçek RED/GREEN kanıtıyla gösterilmelidir; runtime kabulü not_run.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/client.py",
+          "line": 33,
+          "quote": "limit_page_length: int | str = 20,"
+        },
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 650,
+          "quote": "Rule(\"/doctype/<doctype>/count\", methods=[\"GET\", \"QUERY\"], endpoint=count),"
+        },
+        {
+          "path": "frappe/frappe/desk/reportview.py",
+          "line": 181,
+          "quote": "if df.get(\"permlevel\") not in meta.get_permlevel_access(parenttype=data.doctype):"
+        },
+        {
+          "path": "frappe/frappe/desk/listview.py",
+          "line": 18,
+          "quote": "return frappe.get_cached_doc(\"List View Settings\", doctype)"
+        },
+        {
+          "path": "frappe/ui/src/components/ListView/useListView.ts",
+          "line": 55,
+          "quote": "The library owns no saving"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Kişisel veya adlandırılmış kayıtlı görünüm için native tam karşılık kanıtlanmadı. List View Settings doctype başına tek kayıttır.",
+    "URL serileştirme şeması ve izinli operatör listesi yalnız taslak olarak yazılabilir; nihai liste karar bekliyor.",
+    "UI tarafında sunucu alan listesiyle sütun kesiştirme davranışı uygulanmadı.",
+    "Sayım maliyeti ve sayfa boyutu üst sınırı ölçülmedi ve karara bağlanmadı.",
+    "Grid kararı bu sözleşmenin kapsamı dışındadır. ViewState modeli belirli bir grid'e bağlı yazılmaz.",
+    "Hiçbir runtime, tarayıcı veya CI doğrulaması yapılmadı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Kayıtlı görünümün saklama yeri: List View Settings, Report Builder raporu ya da kullanıcı ayarı.",
+      "requirementIds": ["views-7"],
+      "blocksStep": "Kayıtlı görünümü native kaydetme yoluyla yazma ve yükleme adımı.",
+      "documentStepUntilDecision": "ViewState modelini ve URL şemasını saklamadan bağımsız belgele; her adayın kanıtlanan sınırını (doctype başına tek kayıt, host'a bırakılan kaydetme) karşılaştırma notu olarak yaz."
+    },
+    {
+      "decision": "Kayıtlı görünümün tenant ve kullanıcı kapsamı (kişisel, rol veya tenant geneli paylaşım); tenant topolojisine bağlı.",
+      "requirementIds": ["views-7"],
+      "blocksStep": "Paylaşım ve kapsam denetimi; gerekirse explicitPermissionFlags bağlantısı.",
+      "documentStepUntilDecision": "Hiçbir kapsamın sunucu iznini genişletemeyeceğini ve tenant bağlamının kernel-envelope ile api-middleware üzerinden geldiğini belgele."
+    },
+    {
+      "decision": "Sayfa boyutu üst sınırı ve büyük tablolarda sayım stratejisi.",
+      "requirementIds": ["views-7"],
+      "blocksStep": "Sayım ve sayfa boyutu sınırının uygulanması.",
+      "documentStepUntilDecision": "Gözlenen native varsayılanı (20) ve sınırın sunucuda uygulanması gerektiğini client-data-budget--contract'a referansla belgele."
+    },
+    {
+      "decision": "URL filtrelerinde izinli operatör listesi.",
+      "requirementIds": ["views-7"],
+      "blocksStep": "URL şemasının nihai hale getirilmesi.",
+      "documentStepUntilDecision": "Native liste sorgusunun kabul ettiği operatörlerin alt kümesi olarak taslak liste yaz ve taslak olarak işaretle."
+    },
+    {
+      "decision": "Hedef Frappe sürümü (T-00 hedef taban çizgisi).",
+      "requirementIds": ["views-7"],
+      "blocksStep": "Uygulama kabulü ve API v2 count kuralının kullanımı.",
+      "documentStepUntilDecision": "Kanıtların salt okunur kaynak anlık görüntülerinden alındığını ve hedef sürümde yeniden doğrulanacağını belgele."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

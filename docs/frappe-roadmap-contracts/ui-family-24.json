@@ -1,0 +1,192 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "ui-family-24",
+  "canonicalTaskIds": [
+    "ui-family-24--implementation-post-mvp",
+    "ui-view-feed--implementation-post-mvp"
+  ],
+  "requirementIds": ["realtime-6"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "realtime-6": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Paylaşımlı çalışma alanı için izin süzgeçli etkinlik akışı ve kayıt aboneliği",
+    "trigger": "Oturum açmış kullanıcı, karar verilmiş çalışma alanı kapsamındaki etkinlik akışını açar ya da bir kaydı takip etmeye başlar veya takibi bırakır. Ayrıca izlenen bir kayıttaki değişiklik commit edildikten sonra istemciye realtime yenileme sinyali ulaşır.",
+    "expected": "Akış, native log kaynaklarından (aday: Version, Comment, Activity Log; T-00 kaynak okumasıyla doğrulanacak) yalnız kullanıcının okuma iznine sahip olduğu kayıtlara ait girdileri döndürür. Bu süzgeç her okumada, izin süzgeçli get_list ve referans kaydın native izin kontrolüyle uygulanır. Realtime olayı içerik taşımaz; istemciye yalnız ilgili sorguyu yeniden çalıştırma sinyali verir. Kullanıcı bir kaydın takibini bıraktıktan sonra o kayıt için ona yeni bildirim üretilmez.",
+    "denied": "Okuma izni olmayan kayda ait girdi akışta görünmez; sayımla veya realtime sinyaliyle de sızdırılmaz. Başka bir kullanıcının aboneliğini iptal etme ya da değiştirme girişimi native izin hatasıyla reddedilir ve abonelik kaydı değişmeden kalır. ignore_permissions veya ham SQL ile izin süzgeci atlanmaz."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native parça 1: frappe.client.get_list üzerinden izin süzgeçli liste okuma (frappe/frappe/api/v1.py:35). Native parça 2: Suite Meet Room'da realtime yayının commit sonrasına bağlandığını gösteren after_commit=True parametresi (suite/suite/meet/doctype/meet_room/meet_room.py:191). Bu iki parça, birleşik çalışma alanı akışının, workspace-tenant eşlemesinin, log kaynağı eşlemesinin veya Document Follow ile abonelik yönetiminin var olduğunu göstermez. Bu turda yalnız searchedPaths içindeki iki dosya değerlendirildi. Version, Comment, Activity Log ve Document Follow kaynakları okunmadı; bu liste kapsamlı bir yokluk iddiası değildir. Vue/Frappe UI kaynağı React/Ant Design uygulaması için kanıt sayılmaz.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 35,
+        "quote": "return frappe.call(frappe.client.get_list, doctype, **frappe.form_dict)"
+      },
+      {
+        "path": "suite/suite/meet/doctype/meet_room/meet_room.py",
+        "line": 191,
+        "quote": "after_commit=True,"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "suite/suite/meet/doctype/meet_room/meet_room.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/ui-family-24.json",
+    "plannedProduction": [
+      "frontend/packages/ui/src/components/ui-family-24/post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-view-feed/post_mvp.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Kullanıcı ve tenant kimliği, native oturumdan ve kernel-envelope sözleşmesinden sunucuda çözülür; istemci bu kimlikleri göndermez. İstek, çalışma alanı kimliğini (anlamı decisionsPending kararına bağlı), isteğe bağlı sayfalama imlecini, zaman aralığını ve kayıt filtresini taşır. Abonelik işlemi hedef DocType adı ile kayıt adını ve takip et / takibi bırak eylemini taşır.",
+    "output": "Kernel-envelope biçiminde, zamana göre sıralı akış girdileri döner. Her girdi şunları içerir: kaynak türü (aday: Version, Comment, Activity Log), kaynak kayıt referansı, zaman, aktör ve kısa özet. Yanıt ayrıca kullanıcının ilgili kayıtlardaki abonelik durumunu taşır. Realtime kanalı yalnız olay türünü ve kayıt referansını içeren bir yenileme sinyali taşır; alan değeri veya yorum metni taşımaz. İstemcide JSON veri modeli ile yerel ReactNode/callback ayrı tutulur. Bileşen frontend kaynak registry'sine (registry.ts) kaydedilir; GenUI capability registry bu sözleşmenin parçası değildir.",
+    "authorization": "Her kaynak log DocType'ı native get_list izin süzgecinden okunur. Ayrıca her girdinin referans verdiği kaydın okunabilirliği native belge izin kontrolüyle doğrulanır; kullanılacak tam çağrı T-00 hedef sürüm kaynağından seçilir. Realtime sinyali izin sınırı sayılmaz: sinyali alan istemci her zaman izin süzgeçli okumayı yeniden yapar. Abonelik yazımı native insert/save/delete ve izin kontrolüyle yapılır; başka kullanıcıya ait abonelik değiştirilemez. api-middleware sözleşmesindeki kimlik doğrulama ve hata zarfı uygulanır. Bu rehber yeni rol veya izin üretmez; ileride gerekirse explicitPermissionFlags ortak kaynağına bağlanır.",
+    "persistence": "Yeni DocType, alan veya şema önerilmez. Akış native log kayıtlarından okunur, bu kayıtlara yazılmaz. Abonelik durumu, Document Follow kaynağı hedef sürümde okunup uygun olduğu doğrulandıktan sonra ona eşlenir. Uygun değilse konu decisionsPending'e döner; özel abonelik tablosu icat edilmez. Yazmalar native transaction ile save/hook zinciri içinde yapılır; realtime yayınları after_commit ile commit sonrasına bağlanır.",
+    "failure": "İzin yoksa girdi listeden ve sayımdan düşer; kayda doğrudan erişim native izin hatası verir. Realtime bağlantısı yoksa akış elle veya aralıklı yenilemeyle doğru kalır; sinyal kaybı veri kaybı anlamına gelmez. Geri alınan transaction için after_commit nedeniyle sinyal gönderilmez. Workspace kararı verilmeden uç nokta tanımlanmaz. Hata yanıtları kernel-envelope biçimindedir ve iç ayrıntı veya başka kayıtların varlığını sızdırmaz."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "client-rule-parity--contract",
+      "crm-interaction--contract",
+      "kernel-envelope--contract",
+      "native-comment--contract",
+      "ui-family-24--contract",
+      "ui-family-24--implementation",
+      "ui-view-feed--contract",
+      "ui-view-feed--implementation"
+    ],
+    "admission": {
+      "prerequisites": [
+        "T-00 hedef sürüm baz çizgisi",
+        "R-00 yeniden kullanım eşlemesi",
+        "R-01 izinli veri tüketicileri kuralı (akış izinli veri tükettiği için zorunlu)",
+        "decisionsPending içindeki workspace-tenant karşılığı ve koşullu kapsam tetikleyicisi kararları",
+        "Bağımlı contract görevlerinin kabulü"
+      ],
+      "rule": "Tek ve dar bir davranış, gerçek RED/GREEN kanıtıyla uygulanır.",
+      "orderAuthority": "Sırayı mevcut görev bağımlılıkları ve post_mvp aşaması belirler. Küme sırası (8) yalnız sunum içindir; yeni bir seri DAG oluşturmaz."
+    },
+    "steps": [
+      "1. T-00 hedef sürümünde Version, Comment, Activity Log ve Document Follow DocType kaynaklarını salt okunur incele. Alanları, izin davranışını ve bildirim yolunu R-00 eşlemesine yaz. Bu adımda kod veya şema değişikliği yapılmaz.",
+      "2. Workspace kararı gelene kadar workspace ile tenant/izin eşleme seçeneklerini yalnız belgede tablo olarak hazırla; seçim yapma.",
+      "3. Sunucu tarafı okuyucuyu tasarla: her kaynak DocType için izin süzgeçli get_list, ardından referans kaydın native izin kontrolü; birleştirme ve sıralama sunucuda. Okuyucuyu kernel-envelope ve api-middleware sözleşmelerine bağla. hooks.py'ye yalnız gerekli kayıt eklenir.",
+      "4. Realtime yayınını after_commit=True ile içeriksiz bir yenileme sinyali olarak tanımla. İstemcide sinyal TanStack Query sorgusunu geçersiz kılar ve izinli okumayı yeniden tetikler.",
+      "5. Document Follow uygun bulunursa takip et / takibi bırak işlemlerini native kayıt üzerinden yap. Bildirim üretim yolunun aboneliği okuduğunu ve takibi bırakmanın sonraki bildirimleri durdurduğunu doğrula.",
+      "6. React/Ant Design akış bileşenini plannedProduction yollarında, rotasını routes.tsx'te (TanStack Router), kaydını registry.ts'te planla. client-rule-parity ile istemci görünürlüğü sunucu kararını tekrar etmez, yalnız yansıtır. native-comment ve crm-interaction girdileriyle çift gösterim olmaz. UI politikaları uygulanır: 320 CSS px öncelikli düzen, Outfit, en az 14 CSS px metin, çevreleyen odak halkası yok, merkezi motion tokenları.",
+      "7. Gelecekteki kabulde tek senaryo RED/GREEN olarak yürütülür. İzin sızıntısı için bağımsız standards-reviewer incelemesi ve UI için bağımsız QA yapılır. CI/deploy teknik kurulumunun sahibi Hüseyin Cengiz'dir."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Aynı çalışma alanındaki bir kullanıcının akış yanıtında, okuma izni olmadığı kayda ait Comment girdisi görünmez.",
+      "red": "Gelecekte, girdileri döndüren ilk okuyucu sürümüne karşı yazılan test, izinsiz referans kayda ait girdinin yanıtta bulunmaması beklentisiyle davranış düzeyinde başarısız olur. RED, import veya altyapı hatasıyla, eksik modülle ya da native izin davranışını bozarak üretilmez. Bu turda test yazılmadı ve koşulmadı.",
+      "green": "Okuma anında referans kayıt için native izin kontrolü eklenir. Aynı test geçer ve izinli kullanıcı için girdi görünür kalır. ignore_permissions veya SQL kullanılmaz; native izin kuralları değiştirilmez."
+    },
+    "rollback": "Bu sözleşme yalnız belgedir; geri alma, dosyanın sürüm kontrolündeki önceki haline dönmesidir. Gelecekteki uygulamada geri almada rota ve registry kaydı kaldırılır, akış uç noktası devreden çıkarılır; native log ve abonelik kayıtları silinmez veya dönüştürülmez. Teknik CI/deploy/rollback sahibi Hüseyin Cengiz'dir. GoDaddy/DNS değişikliği beklenmez; gerekirse uygulama sahibi Asistan Hüseyin'dir."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "realtime-6",
+      "sourceStage": "post_mvp",
+      "existing": "Kaynak değerlendirmesi (ürün uygulaması değil): izin süzgeçli get_list okuması ve commit sonrası yayın için after_commit parametresi native Frappe/Suite kaynağında görülüyor. Mevcut yönerge data/clusters/07.json:520 (/groups/2/items/5): destek 'partial', eylem 'extend', sahip 'Ortak çalışma'. Kayıt güncelleme yayınları ve yorumlar mevcut; izinli birleşik akış ve abonelik yönetimi eksik. Uygulama durumu: uygulanmadı.",
+      "gap": [
+        "Workspace'in tenant ve izin karşılığı tanımsız",
+        "Akış kaynağı native log DocType'larına eşlenmemiş",
+        "Abonelik iptalinin hangi native kayda yazılacağı tanımsız",
+        "Akışta görünürlük, okuma anında get_list izin süzgecine bağlanmamış",
+        "Görev post-mvp, kapsam ise conditional; tetikleyici koşul belirsiz"
+      ],
+      "completionSteps": [
+        "Workspace karşılığı: karar gelene kadar seçenek tablosunu belgede hazırla. Karardan sonra workspace kimliğinin sunucuda oturum ve kernel-envelope üzerinden tenant/izin bağlamına çözüldüğünü sözleşmeye işle.",
+        "Log kaynağı: T-00 hedef sürümünde Version, Comment ve Activity Log kaynaklarını oku. Her girdi türü için referans alanlarını ve özet alanını R-00 eşlemesine yaz; uygun olmayan kaynağı gerekçesiyle dışarıda bırak.",
+        "Abonelik: Document Follow kaynağını hedef sürümde oku. Takip et / takibi bırak eylemini bu native kayda eşle ve bildirim yolunun bu kaydı okuduğunu doğrula. Uygun değilse konuyu decisionsPending'e taşı.",
+        "Görünürlük: her okumada izin süzgeçli get_list ve referans kayıt izin kontrolü uygula. Realtime'ı yalnız yenileme sinyali olarak kullan; sinyalden sonra izinli okuma yeniden yapılır.",
+        "Tetikleyici: koşullu kapsamın hangi ürün koşuluyla devreye gireceği kararını bekle; o zamana kadar admission kapalı kalır."
+      ],
+      "dependencies": [
+        "ui-family-24--contract",
+        "ui-view-feed--contract",
+        "kernel-envelope--contract",
+        "api-middleware--contract",
+        "client-rule-parity--contract",
+        "native-comment--contract",
+        "crm-interaction--contract"
+      ],
+      "acceptance": "Akış yalnız erişilebilir kayıtları gösterir. Takibi bırakmak sonraki bildirimleri durdurur. Başka kullanıcının aboneliğini değiştirme girişimi reddedilir ve kayıt değişmez. Realtime sinyali içerik sızdırmaz.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 35,
+          "quote": "return frappe.call(frappe.client.get_list, doctype, **frappe.form_dict)"
+        },
+        {
+          "path": "suite/suite/meet/doctype/meet_room/meet_room.py",
+          "line": 191,
+          "quote": "after_commit=True,"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Uygulama durumu: uygulanmadı.",
+    "Version, Comment, Activity Log ve Document Follow kaynakları bu turda okunmadı; eşleme ve uygunluk doğrulanmadı.",
+    "Workspace kavramının tenant ve izin modeline bağlanması karara bağlı.",
+    "Bildirim üretim yolunun aboneliği nasıl okuduğu kaynakta doğrulanmadı.",
+    "Önerilen canonicalArtifact CommentsCommunication bileşeni ile akış bileşeninin sınırı, native-comment ve crm-interaction sözleşmeleriyle henüz hizalanmadı.",
+    "Çalışan site, ürün kabulü veya tarayıcı doğrulaması yok; runtimeAcceptance not_run."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Paylaşımlı çalışma alanının tenant topolojisi ve izin karşılığı",
+      "requirementIds": ["realtime-6"],
+      "blocks": "development.steps 3, 5 ve 6; admission",
+      "documentStepUntilDecision": "Workspace ile tenant/izin eşleme seçeneklerini belgede tablo olarak hazırla; seçim yapma."
+    },
+    {
+      "decision": "Koşullu kapsamın tetikleyici koşulu (görev post-mvp, kapsam conditional)",
+      "requirementIds": ["realtime-6"],
+      "blocks": "admission",
+      "documentStepUntilDecision": "Aday tetikleyici koşulları ve her birinin etkilediği adımları belgede listele."
+    },
+    {
+      "decision": "Hedef Frappe sürümü (Document Follow eşlemesi buna bağlı)",
+      "requirementIds": ["realtime-6"],
+      "blocks": "development.steps 1 ve 5",
+      "documentStepUntilDecision": "T-00 sırasında okunacak native kaynak dosyalarının listesini hazırla."
+    },
+    {
+      "decision": "Akışın görüntüleme penceresi ve log saklama süresi",
+      "requirementIds": ["realtime-6"],
+      "blocks": "development.step 3 (sayfalama ve zaman aralığı sınırı)",
+      "documentStepUntilDecision": "Native log temizleme ayarlarının kaynakta nerede tanımlandığını belgele; değer seçme."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

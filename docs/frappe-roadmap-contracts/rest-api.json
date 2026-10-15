@@ -1,10 +1,18 @@
 {
   "schemaVersion": "saas-existing-work-contract.v1",
   "canonicalUnitId": "rest-api",
-  "canonicalTaskIds": ["rest-api--implementation"],
+  "canonicalTaskIds": [
+    "rest-api--implementation",
+    "ui-family-36--implementation-mvp",
+    "ui-provider-data--implementation-mvp"
+  ],
   "requirementIds": ["integration-9"],
   "stage": "mvp",
+  "sourceStages": {
+    "integration-9": "mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
     "title": "Sürümlü ve izinli sayfalı liste okuma (v1 tabanlı ürün zarfı)",
     "trigger": "Oturumlu kullanıcı GET /api/method/saas_platform.adapters.integration_hub.rest_api_mvp.list_v1 çağırır (doctype, limit_start, limit_page_length).",
@@ -12,7 +20,8 @@
     "denied": "DocType read izni olmayan kullanıcı native PermissionError (403) alır, satır sızmaz; misafir native kimlik doğrulamasıyla reddedilir."
   },
   "reuse": {
-    "mechanism": "Native v1 /api/method RPC yolu ve v1 document_list ile aynı native izinli liste sorgusu yeniden kullanılır. v2 iç implementasyonu kırıcı değişiklik sayılmadan değişebildiği için taban v1'dir. Tek ince adapter yalnız sürüm alanı, sayfa tavanı ve has_more ekler; yeni CRUD/ORM kopyası yok. document_list'in kullandığı iç fonksiyon adı implementasyonda okunarak doğrulanacak (unknown).",
+    "status": "KISMI",
+    "mechanism": "Native v1 /api/method RPC yolu ve v1 document_list ile aynı native izinli liste sorgusu yeniden kullanılır. v2 iç implementasyonu kırıcı değişiklik sayılmadan değişebildiği için önerilen taban v1'dir; kalıcı taban ADR onayı bekliyor. Tek ince adapter yalnız sürüm alanı, sayfa tavanı ve has_more ekler; yeni CRUD/ORM kopyası, ignore_permissions veya ham SQL ile izin atlama yok. document_list'in kullandığı iç fonksiyon adı implementasyon öncesi hedef tabanda okunarak doğrulanacak (unknown). Kanıtlar yalnız native parçaları gösterir; ürün sürüm zarfı, OpenAPI üretimi, idempotency ve dış REST tüketim adaptörü native olarak var sayılmaz.",
     "evidence": [
       {
         "path": "frappe/frappe/api/v1.py",
@@ -29,68 +38,199 @@
         "line": 8,
         "quote": "implementation can change without treating it as \"breaking change\"."
       }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "frappe/frappe/api/v2.py",
+      "frappe/frappe/utils/oauth.py",
+      "frappe/pyproject.toml"
     ]
   },
   "ownership": {
     "activeContractFile": "docs/frappe-roadmap-contracts/rest-api.json",
     "plannedProduction": [
-      "backend/saas_platform/saas_platform/adapters/integration_hub/rest_api_mvp.py"
+      "backend/saas_platform/saas_platform/adapters/integration_hub/rest_api_mvp.py",
+      "frontend/packages/ui/src/components/ui-family-36/mvp.tsx",
+      "frontend/packages/ui/src/components/ui-provider-data/mvp.tsx"
     ],
-    "plannedTestFile": "backend/saas_platform/saas_platform/adapters/integration_hub/test_rest_api_mvp.py",
+    "plannedTestFile": null,
     "sharedIntegrationFiles": [
-      "integration/fragments/rest-api--integration.json"
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
     "input": "doctype: str, zorunlu, mevcut DocType; limit_start: int >= 0, varsayılan 0; limit_page_length: int >= 1, varsayılan 20, 100 üstü 100'e sabitlenir. Alan seçimi, filtre ve sıralama bu davranışta yok.",
     "output": "apiVersion=v1; data: [{name, modified}] yalnız izinli satırlar; page: {limit_start, limit_page_length, has_more: bool}. Sürüm method adındadır (list_v1); kırıcı değişiklik ayrı list_v2 ile gelir.",
-    "authorization": "Native site oturumu (cookie/CSRF veya native API anahtarı), DocType read izni ve kayıt düzeyi user permission native liste sorgusunda uygulanır; ihlalde 403. Kiracı kapsamı tenant-registry sözleşmesine bağlı; Keycloak not_run.",
-    "persistence": "Salt okuma; yazma, transaction, hook veya DDL yok.",
-    "failure": "İzin yok: frappe.PermissionError -> 403. Geçersiz limit veya bilinmeyen doctype: frappe.ValidationError; native durum kodu implementasyonda doğrulanacak. Misafir: 401/403 native davranış. TanStack tüketicisi 401/403'te yeniden denemez, mevcut AntD hata durumunu gösterir."
+    "authorization": "Native site oturumu (cookie/CSRF veya native API anahtarı), DocType read izni ve kayıt düzeyi user permission native liste sorgusunda uygulanır; ihlalde 403. ignore_permissions veya SQL ile izin atlama yasak; allow_guest verilmez. Test için rol veya izin hazırlığı gerekirse ortak explicitPermissionFlags kaynağına bağlanır; bu rehber rol veya izin üretmez. Kiracı kapsamı tenant-registry--contract sözleşmesine bağlı; Keycloak bearer eşlemesi karar bekliyor ve not_run.",
+    "persistence": "Salt okuma; yazma, transaction, hook, şema/DDL veya veri değişikliği yok. Idempotency-Key bu GET davranışında uygulanmaz.",
+    "failure": "İzin yok: frappe.PermissionError -> 403. Geçersiz limit veya bilinmeyen doctype: frappe.ValidationError; native durum kodu implementasyonda doğrulanacak. Misafir: 401/403 native davranış. Ürün hata gövdesi api-response--contract ve api-middleware--contract ile hizalanır; 429 ve süre sınırı bu davranışta tanımlanmaz. TanStack Query tüketicisi 401/403'te yeniden denemez, mevcut Ant Design hata durumunu gösterir."
   },
   "development": {
     "dependencies": [
-      "rest-api--contract",
-      "kernel-envelope--contract",
-      "tenant-registry--contract",
-      "native-user-policy--contract",
-      "capability-definition--contract",
-      "native-doctype-schema--contract",
-      "outbox--contract",
       "api-middleware--contract",
-      "local pilot t08: native admin/reader kapsamlı Data kaydı okuma"
+      "api-response--contract",
+      "capability-definition--contract",
+      "client-rule-parity--contract",
+      "connection--contract",
+      "device-grant--contract",
+      "kernel-envelope--contract",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "outbox--contract",
+      "rest-api--contract",
+      "sync-receipt--contract",
+      "tenant-registry--contract",
+      "ui-family-36--contract",
+      "ui-family-36--implementation",
+      "ui-provider-data--contract",
+      "ui-provider-data--implementation"
     ],
-    "admission": "T-00 hedef taban, R-00 yeniden kullanım eşlemesi ve R-01 izinli veri tüketimi gerekir. saas_platform yerel Frappe17-dev suite.localhost sitesinde kurulu olmalı. Remote ürün tabanı ve Suite HEAD unknown; yerel kanıt remote taban değildir.",
+    "admission": "Uygulama durumu: uygulanmadı. Kabul öncesi T-00 hedef taban ve R-00 yeniden kullanım eşlemesi, izinli veri tüketimi için R-01 gerekir; ardından tek dar davranış gerçek RED/GREEN kanıtıyla uygulanır. Hedef Frappe/Suite tabanı ve HEAD unknown; önceki salt okunur kaynak kesitleri ürün uygulaması kanıtı değildir. saas_platform uygulamasının hedef tabanda kurulu olduğu ayrıca doğrulanmalıdır. Bu sözleşme servis, production, şema veya veri değişikliği yetkisi vermez.",
     "steps": [
-      "rest_api_mvp.py içinde @frappe.whitelist() ile GET list_v1 tanımla.",
-      "limit_start ve limit_page_length doğrula; 100 tavanını uygula.",
-      "Native izinli liste sorgusuyla limit+1 satır oku, has_more hesapla, v1 zarfını döndür.",
-      "Rota ve sözleşme referansını entegrasyon fragmanı için Codex'e teslim et; hooks.py değişmez."
+      "Hedef tabanda frappe/frappe/api/v1.py document_list akışını salt okuyarak kullandığı native izinli liste fonksiyonunu belirle; adı doğrulanmadan kullanma.",
+      "rest_api_mvp.py içinde @frappe.whitelist() ile yalnız GET kabul eden list_v1 tanımla; allow_guest verme.",
+      "doctype varlığını, limit_start >= 0 ve limit_page_length >= 1 kurallarını doğrula; 100 tavanını uygula; ihlalde frappe.ValidationError yükselt.",
+      "Native izinli liste sorgusuyla yalnız name ve modified alanlarını limit+1 satır oku; has_more hesapla, fazla satırı at, v1 zarfını döndür.",
+      "UI tüketimi (ui-provider-data ve ui-family-36 önerilen yolları) yalnız list_v1 sözleşmesini TanStack Query ile okur; 401/403'te yeniden deneme yok; hata ve boş durum mevcut Ant Design/Pro bileşenleriyle gösterilir. Outfit, en az 14 CSS px, 320 CSS px önceliği, çevreleyen odak halkası yok ve simetrik pozitif süreli Cubic hareket korunur. UI kabulü kendi sözleşmelerinde ayrı yürür.",
+      "Rota ve sözleşme referansını ortak entegrasyon dosyaları için ana entegrasyon sahibine seri birleştirme notu olarak ilet; hooks.py, routes.tsx ve registry.ts bu rehberle doğrudan değiştirilmez."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "Reader kullanıcı, test transaction içinde oluşturulmuş 2 okunabilir kayıt varken limit_start=0, limit_page_length=1 ile list_v1 çağırır; apiVersion=v1, len(data)=1, page.has_more=true beklenir.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Aynı test ve komut implementasyondan sonra geçer: bench --site suite.localhost run-tests --module saas_platform.adapters.integration_hub.test_rest_api_mvp. Komut yerel bench'te doğrulanacak."
+      "oneScenario": "Okuma izni olan reader kullanıcı, test transaction içinde oluşturulmuş 2 okunabilir kayıt varken limit_start=0, limit_page_length=1 ile list_v1 çağırır; apiVersion=v1, len(data)=1, page.has_more=true beklenir.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. RED, list_v1 çağrılabilir durumdayken apiVersion veya page.has_more assertion başarısızlığı olmalıdır; import/modül yokluğu, altyapı hatası veya native izin davranışını bozmak RED sayılmaz. Native geçen davranışa RED uydurulmaz. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "Uygulamadan sonra aynı senaryo değişmeyen assertion ve komutla geçmelidir. Test modülü yolu ve bench komutu hedef tabanda belirlenecek (unknown); plannedTestFile atanmadı. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN'i değildir."
     },
-    "rollback": "rest_api_mvp.py ve planlanan test dosyası yerelde geri alınır; veri ve şema değişikliği yok; production izni yok."
+    "rollback": "Gelecekteki uygulamada rest_api_mvp.py ve ilgili UI tüketici değişiklikleri revert edilerek geri alınır; veri ve şema değişikliği olmadığından veri geri dönüşü gerekmez. Uzak ortamda CI/deploy/rollback teknik sahibi Hüseyin Cengiz'dir; bu sözleşme deploy veya production yetkisi vermez."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "integration-9",
+      "sourceStage": "mvp",
+      "existing": "Uygulama durumu: uygulanmadı. Native parçalar: v1 /resource/<doctype> liste rotası (document_list) ve /method RPC yolu; belge okumada doc.check_permission('read') izin kontrolü; v2 REST katmanı var ancak iç implementasyonu kırıcı değişiklik sayılmadan değişebilir; v2 frappe.api.discovery import eder; requests bağımlılığı tanımlı; Social Login Key OAuth2 login sağlayıcı kayıtlarıdır. Bu parçalar ürün sürüm sözleşmesinin var olduğunu göstermez.",
+      "gap": "Ürün API sürüm zarfı ve taban ADR'si, OpenAPI kaynağı, Idempotency-Key saklama ve tekrar yazım semantiği, dış REST tüketim sözleşmesi (timeout/retry, Password alanında secret, egress/SSRF) ve Keycloak token -> User/tenant eşlemesi eksik. v2'nin Frappe 17 dev'de stabil sözleşme olmadığı ürün belgelerinde not edilmemiş.",
+      "completionSteps": [
+        "Kısa ADR taslağı yaz: önerilen taban v1, sürüm method adında (list_v1, kırıcı değişiklikte list_v2), sayfalama alanları limit_start/limit_page_length, v2'nin stabil sözleşme olmadığı notu; onay entegrasyon sahibinde.",
+        "frappe.api.discovery modülünü hedef tabanda yalnız okuyarak OpenAPI temeli olup olmadığını kaydet; doğrulanmadan OpenAPI üretimi iddia edilmez.",
+        "Bu sözleşmenin tek davranışı olan list_v1 ince adapterını development.steps sırasıyla uygula; native izin sorgusu dışında veri erişimi ekleme.",
+        "Native PermissionError/ValidationError eşlemesini api-response--contract ve api-middleware--contract hata şemasıyla hizala; 401/403/429 ve süre sınırı ayrı davranış olarak orada kabul edilir.",
+        "Yazma uçları için Idempotency-Key semantiğini outbox--contract ve kernel-envelope--contract üzerinden tanımla: aynı anahtar ve aynı gövde aynı sonucu döndürür, aynı anahtar farklı gövde reddedilir; saklama süresi karar gelene kadar boş kalır.",
+        "Dış REST tüketimini connection--contract'a bağla: her requests çağrısında zorunlu timeout, yeniden deneme yalnız idempotent çağrılarda, secret yalnız native Password alanında ve değeri belgeye/Git'e yazılmaz, egress/SSRF politikası karar sonrası eklenir. Bu davranışta dış çağrı yok.",
+        "Keycloak bearer eşlemesini kapsam dışı tut; Social Login Key'in login akışı olduğunu, bearer doğrulaması olmadığını belgele; eşleme kararı gelince native-user-policy--contract ve tenant-registry--contract üzerinden ayrı davranış aç.",
+        "UI tüketicisini ui-provider-data--contract ve ui-family-36--contract kabulüne bağla; aynı list_v1 sözleşmesi dışında yeni uç tüketme."
+      ],
+      "dependencies": [
+        "rest-api--contract",
+        "api-middleware--contract",
+        "api-response--contract",
+        "kernel-envelope--contract",
+        "outbox--contract",
+        "connection--contract",
+        "tenant-registry--contract",
+        "native-user-policy--contract",
+        "native-doctype-schema--contract",
+        "ui-provider-data--contract",
+        "ui-family-36--contract"
+      ],
+      "acceptance": "Bu davranış için: izinli kullanıcı sayfalı v1 zarfını doğru has_more ile alır; read izni olmayan kullanıcı 403 alır ve hiçbir satır dönmez; misafir reddedilir; 100 üstü limit 100'e sabitlenir; veri değişmez. Madde bütünü için sonraki ayrı davranışlarda: iki yönlü CRUD, sayfalama ve hata şeması sözleşme testi; sürüm geçişi, 401/403/429, süre sınırı ve idempotent yazım doğrulanır.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 153,
+          "quote": "Rule(\"/resource/<doctype>\", methods=[\"GET\", \"QUERY\"], endpoint=document_list),"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 83,
+          "quote": "doc.check_permission(\"read\")"
+        },
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 8,
+          "quote": "implementation can change without treating it as \"breaking change\"."
+        },
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 19,
+          "quote": "from frappe.api import discovery"
+        },
+        {
+          "path": "frappe/pyproject.toml",
+          "line": 68,
+          "quote": "\"requests~=2.34.2\","
+        },
+        {
+          "path": "frappe/frappe/utils/oauth.py",
+          "line": 107,
+          "quote": "providers = frappe.get_all(\"Social Login Key\", fields=[\"*\"])"
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "Idempotency-Key saklama ve tekrar yazım semantiği tanımsız; yazma uçları kapsam dışı, outbox ve kernel-envelope sözleşmelerine bağlı.",
+    "Uygulama durumu: uygulanmadı; ürün kodu, test ve runtime kabulü yok.",
+    "Idempotency-Key saklama ve tekrar yazım semantiği tanımsız; yazma uçları kapsam dışı, outbox--contract ve kernel-envelope--contract sözleşmelerine bağlı.",
     "OpenAPI: frappe.api.discovery yalnız import olarak görüldü; içeriği ve kullanılabilirliği unknown, salt okuma doğrulaması gerekir.",
     "Dış REST tüketimi: requests bağımlılığı var; timeout/retry, Password alanında secret saklama ve egress/SSRF politikası tanımsız.",
     "Keycloak token -> User/tenant eşlemesi karar bekliyor, kapsam dışı; Social Login Key login akışıdır, bearer doğrulaması değildir.",
-    "429/rate limit, süre sınırı, yazma CRUD zarfı ve ortak hata şeması api-middleware ve kernel-envelope sözleşmelerine bağlı.",
-    "v2 Frappe 17 dev'de stabil sözleşme değil; v1 taban kararının kalıcı ADR onayı entegrasyon sahibinde.",
-    "UI tüketicisi bu davranışta değişmez; ileride Outfit 14px, 320-first, çevreleyen odak halkası yok, simetrik pozitif Cubic hareket ve mevcut AntD korunur.",
-    "Uzak deploy gerekirse teknik sahibi Hüseyin Cengiz; bu sözleşme deploy yetkisi vermez."
+    "429/rate limit, süre sınırı, yazma CRUD zarfı ve ortak hata şeması api-middleware--contract, api-response--contract ve kernel-envelope--contract sözleşmelerine bağlı.",
+    "v2 Frappe 17 dev'de stabil sözleşme değil; v1 taban önerisinin kalıcı ADR onayı entegrasyon sahibinde.",
+    "document_list'in kullandığı native liste fonksiyonu ve geçersiz girdi durum kodu hedef tabanda doğrulanmadı (unknown).",
+    "Uzak deploy gerekirse teknik sahibi Hüseyin Cengiz; bu sözleşme deploy, servis veya production yetkisi vermez."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Ürün API tabanı ve ad alanı ADR onayı: v1 üzerine ince sarmalayıcı (öneri) veya ayrı /api/method ad alanı.",
+      "requirementIds": ["integration-9"],
+      "blocks": "list_v1 dışında yeni sürümlü uç yayımlama ve sürüm geçiş kabulü.",
+      "documentStepUntilDecision": "v1 önerisi, sürüm adlandırma ve sayfalama alanlarıyla ADR taslağı hazırlanır."
+    },
+    {
+      "decision": "Hedef Frappe/Suite tabanı ve sürümü (T-00).",
+      "requirementIds": ["integration-9"],
+      "blocks": "implementationAdmission ve kaynak kanıtlarının hedef tabanda yeniden doğrulanması.",
+      "documentStepUntilDecision": "Hedef tabanda yeniden okunacak dosya ve satır listesi (searchedPaths) belgelenir."
+    },
+    {
+      "decision": "Idempotency-Key saklama süresi ve saklama yeri.",
+      "requirementIds": ["integration-9"],
+      "blocks": "İdempotent yazma uçları ve tekrar yazım kabulü.",
+      "documentStepUntilDecision": "Süre içermeyen semantik taslak (aynı anahtar/aynı gövde, aynı anahtar/farklı gövde) outbox ve kernel-envelope sözleşmelerine not edilir."
+    },
+    {
+      "decision": "Dış REST egress izin politikası, SSRF sınırları ve secret yönetim yöntemi.",
+      "requirementIds": ["integration-9"],
+      "blocks": "Dış REST tüketim adaptörü.",
+      "documentStepUntilDecision": "Zorunlu timeout, yalnız idempotent yeniden deneme ve native Password alanı gereksinimleri connection sözleşmesine taslak olarak yazılır; secret değeri yazılmaz."
+    },
+    {
+      "decision": "Keycloak token -> Frappe User ve tenant eşlemesi.",
+      "requirementIds": ["integration-9"],
+      "blocks": "Bearer token ile dış istemci kimlik doğrulaması.",
+      "documentStepUntilDecision": "Social Login Key login akışı ile bearer doğrulaması arasındaki fark belgelenir; native oturum ve API anahtarı yolu korunur."
+    },
+    {
+      "decision": "Kiracı topolojisi ve kiracı kapsamlı süzme modeli (tenant-registry).",
+      "requirementIds": ["integration-9"],
+      "blocks": "list_v1 sonuçlarının kiracıya göre süzülmesinin kabulü.",
+      "documentStepUntilDecision": "Bu davranışta yalnız native DocType ve user permission süzgeci geçerli olduğu belgelenir."
+    },
+    {
+      "decision": "Rate limit eşikleri ve 429 politikası.",
+      "requirementIds": ["integration-9"],
+      "blocks": "429 ve süre sınırı kabul testleri.",
+      "documentStepUntilDecision": "429 yanıt biçimi eşik değeri olmadan api-middleware sözleşmesine taslak olarak bağlanır."
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "integration-9": "mvp"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,

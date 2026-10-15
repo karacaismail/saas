@@ -4,105 +4,187 @@
   "canonicalTaskIds": ["web-build--implementation"],
   "requirementIds": ["channels-1"],
   "stage": "mvp",
+  "sourceStages": {
+    "channels-1": "mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
-    "title": "Mevcut referans tuketicinin mevcut Vite uretim derlemesini urun web ciktisi olarak yeniden kullanmak (reuse_existing)",
-    "trigger": "Entegrasyon sahibi referans tuketici kokunde mevcut build betigini (tsc --noEmit -p . && vite build) calistirir.",
-    "expected": "Tip denetimi ve Vite derlemesi basarili biter; olusan statik paket urun web ciktisidir. Yeni gorunum, sayfa, cerceve veya motor eklenmez; kayit okuma/guncelleme T08 headless_provider.records akisinda kalir. UI kimligi mevcut src/theme.ts ve src/interactionTokens.ts uzerinden gelir (Outfit, min 14px, 320 oncelikli, cevreleyen odak halkasi yok, simetrik pozitif Cubic hareket, mevcut AntD).",
-    "denied": "tsc veya vite hatasinda cikti kabul edilmez ve yayin adayi sayilmaz. Statik /saas Pages yayini, uzak deploy ve gelecekteki PWA bu ciktinin yerine gecmez ve bununla karistirilmaz."
+    "title": "SaaS web kabuğunda oturumlu kullanıcının yetkili bir kaydı native Frappe REST üzerinden okuması",
+    "trigger": "Oturumlu kullanıcı React/Ant Design web kabuğunda (TanStack Router rotası) belirli bir DocType kaydının görünümünü açar; kabuk TanStack Query ile native Frappe kaynak okuma uç noktasını çağırır.",
+    "expected": "Sunucu native read_doc yolunda doc.check_permission(\"read\") ve alan düzeyi okuma filtresini uygular; kabuk yalnız dönen alanları ui-family-01 sözleşmesindeki onaylı AntD bileşenleri ve semantik tokenlarla gösterir. Kabuk yetki kararı üretmez, sunucu yanıtını yorumlar.",
+    "denied": "read izni olmayan kullanıcıda native izin hatası (HTTP 403) kabukta açık bir izin reddi durumu olarak gösterilir; kayıt alanları render edilmez, sorgu önbelleğine kayıt verisi yazılmaz, istemci tarafı yeniden deneme veya izin bypass denemesi yapılmaz."
   },
   "reuse": {
-    "mechanism": "reuse_existing: mevcut package.json build/preview betikleri ve vite devDependency. Onceki onerideki yeni read_doc sayfasi T08 kayit okuma akisini kopyaladigi icin geri cekildi. Adaptor, yeni view, framework veya engine yok.",
+    "status": "KISMI",
+    "mechanism": "Yalnız native Frappe backend primitifleri yeniden kullanılır: v1 REST /resource kuralları, read_doc içindeki doc.check_permission ve sayfa render yolundaki CSRF enjeksiyonu. Suite website_route_rules deseni yalnız bir SPA servis seçeneği örneğidir; Suite istemcisi Vue Router tabanlıdır ve React/AntD kabuğunun var olduğuna kanıt değildir. React/TanStack web kabuğu için kaynakta kanıt yoktur. Kanıtın bir native parçayı göstermesi uçtan uca davranışın var olduğu anlamına gelmez.",
     "evidence": [
       {
-        "path": "package.json",
-        "line": 14,
-        "quote": "\"build\": \"tsc --noEmit -p . && vite build\",",
-        "repository": "genui-saas-panel@6ea301c"
+        "path": "frappe/frappe/api/v1.py",
+        "line": 154,
+        "quote": "Rule(\"/resource/<doctype>\", methods=[\"POST\"], endpoint=create_doc),"
       },
       {
-        "path": "package.json",
-        "line": 15,
-        "quote": "\"start\": \"NODE_ENV=production tsx server/index.ts\",",
-        "repository": "genui-saas-panel@6ea301c"
+        "path": "frappe/frappe/api/v1.py",
+        "line": 83,
+        "quote": "doc.check_permission(\"read\")"
       },
       {
-        "path": "package.json",
-        "line": 56,
-        "quote": "\"vite\": \"^7.3.7\",",
-        "repository": "genui-saas-panel@6ea301c"
-      },
-      {
-        "path": "frappe_provider/headless_provider/records.py",
-        "line": 28,
-        "quote": "def read_record(doctype: str, name: str) -> dict[str, Any]:",
-        "repository": "genui-saas-panel@6ea301c"
-      },
-      {
-        "path": "suite/suite/hooks.py",
-        "line": 44,
-        "quote": "# (www/suite.py -> suite.html); Vue Router takes over client-side. (plan D9)"
+        "path": "frappe/frappe/api/v2.py",
+        "line": 8,
+        "quote": "internal implementation can change without treating it as \"breaking change\"."
       },
       {
         "path": "frappe/frappe/website/page_renderers/base_template_page.py",
         "line": 22,
         "quote": "\"<!-- csrf_token -->\", f'<script>frappe.csrf_token = \"{csrf_token}\";</script>'"
+      },
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 44,
+        "quote": "# (www/suite.py -> suite.html); Vue Router takes over client-side. (plan D9)"
       }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "frappe/frappe/api/v2.py",
+      "frappe/frappe/website/page_renderers/base_template_page.py",
+      "suite/suite/hooks.py"
     ]
   },
   "ownership": {
     "activeContractFile": "docs/frappe-roadmap-contracts/web-build.json",
-    "plannedProduction": [],
+    "plannedProduction": [
+      "frontend/packages/platform/src/web-build/web_build_mvp.tsx"
+    ],
     "plannedTestFile": null,
     "sharedIntegrationFiles": [
-      "package.json",
-      "integration/fragments/web-build--integration.json"
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "Referans tuketici kaynak agaci ve mevcut build betigi; parametre yok. VITE_ onekli derleme zamani degiskenleri pakete gomulur; secret veya gercek env degeri kullanilmaz. vite.config bu girdide yok; base yolu ve outDir unknown.",
-    "output": "Vite statik paketi (index.html ve hash'li JS/CSS varliklari; dizin vite.config gorulmeden unknown). Veri veya yetki icermez. Ayri artifact surumleme sozlesmesi yok; surum kaynagi derleme girdisidir.",
-    "authorization": "Derleme ciktisi yetki karari vermez. Calisma zamaninda kayit erisimi native site/rol/User Permission/alan duzeyi denetimiyle sunucuda kalir (T08). Native site siniri yalniz yerel kanit icin; yerel pilotta cookie/CSRF, Keycloak not_run ve kapsam disi.",
-    "persistence": "Veritabani yazimi, transaction, hook, kuyruk, zamanlayici veya DDL yok. Derleme yalniz yerel cikti dizinini uretir.",
-    "failure": "tsc tip hatasi veya vite build sifirdan farkli cikis -> cikti reddedilir, onceki kabul edilmis cikti degismez; entegrasyon sahibi hatayi kaydeder, yeniden deneme ile maskelemez. Kurulum/bagimlilik hatasi altyapi hatasidir, urun RED'i degildir."
+    "input": "DocType adı ve kayıt adı (rota parametreleri); oturum kimliği tarayıcı oturumundan gelir. Oturum taşıma yöntemi (sid çerezi veya OIDC token) karar bekler. Secret veya gerçek env değeri pakete gömülmez; VITE_ önekli derleme değişkenleri yalnız gizli olmayan yapılandırma içerir.",
+    "output": "Başarıda sunucunun alan düzeyi okuma filtresinden geçmiş kayıt alanları; reddedilmede izin reddi durumu. Kabuk ham yanıtı yeniden şekillendirmez; JSON model sınırı ile yerel ReactNode/callback sınırı ayrı tutulur. Kaynak registry ile GenUI capability registry ayrıdır; bu davranış GenUI capability registry'ye kayıt eklemez.",
+    "authorization": "Yetki tamamen sunucuda native rol/izin, User Permission ve alan düzeyi izinlerle verilir. ignore_permissions, doğrudan SQL veya istemci tarafı yetki kararı yasaktır. client-rule-parity sözleşmesindeki istemci kuralları yalnız kullanıcı deneyimi içindir, sunucu kararının yerine geçmez. Bu davranış rol veya izin üretmez; ileride rol/izin üretilirse explicitPermissionFlags ortak kaynağına bağlanır.",
+    "persistence": "Okuma davranışıdır; veritabanı yazımı, transaction, hook, kuyruk, zamanlayıcı veya DDL yoktur. İstemci önbelleği yalnız başarılı yanıtı tutar ve oturum değişiminde temizlenir.",
+    "failure": "403 izin reddi olarak, 404 kayıt yok olarak, 401/oturum yok giriş akışına yönlendirme olarak, 5xx ve ağ hatası tekrar deneme seçeneği olan genel hata olarak gösterilir. Hata türleri birbirine karıştırılmaz; izin reddi otomatik yeniden denenmez. Kurulum veya bağımlılık hatası altyapı hatasıdır, ürün RED'i sayılmaz."
   },
   "development": {
     "dependencies": [
-      "web-build--contract",
-      "ui-family-01--contract",
       "client-rule-parity--contract",
-      "localPilot t08 (recordCommit 6ea301c)"
+      "ui-family-01--contract",
+      "web-build--contract"
     ],
-    "admission": "Mevcut Vite build ve secili referans tuketici yerelde dogrulanmis; T-00 ve R-00 kabulu gerekir. Uzak urun taban cizgisi, Suite HEAD, servis bicimi (Frappe website_route_rules ile ayni origin, start betigindeki Node sunucusu veya ayri origin) ve uzak deploy unknown. Yerel kanit uzak baseline degildir.",
+    "admission": "Uygulama durumu: uygulanmadı. Giriş için T-00 hedef taban çizgisi ve R-00 yeniden kullanım eşlemesi kabul edilmeli; izinli veri tükettiği için R-01 de gerekir. decisionsPending içindeki API sürümü, oturum bağlama ve servis biçimi kararları verilmeden üretim kiralaması açılmaz. Tek dar davranış gerçek RED/GREEN kanıtıyla uygulanır. Kaynak alıntıları önceki salt okunur Frappe/Suite kaynak anlık görüntülerinden gelir; canlı site veya ürün kabulü değildir.",
     "steps": [
-      "Urun dosyasi yazilmaz; web_build_mvp.tsx olusturulmaz. Canonical owns kaydinin gereksizligi entegrasyon sahibine not olarak birakilir.",
-      "Entegrasyon sahibi fragmente mevcut build komutunu, cikti dizini dogrulamasini ve UI tokenlarinin mevcut tema dosyalarindan geldigini yazar.",
-      "Fragmentte statik /saas Pages, urun web ciktisi, uzak deploy ve gelecekteki PWA ayri satirlarla etiketlenir."
+      "T-00 sırasında hedef Frappe sürümünde v1 kaynak okuma rotasının (GET /resource/<doctype>/<name>) read_doc'a eşlendiğini ve /api önekini doğrulayın; seçili alıntı yalnız POST create_doc kuralını ve read_doc içindeki izin denetimini gösterir.",
+      "API sürüm kararı gelene kadar kabuğun veri katmanını tek bir istemci modülü arkasında tanımlayın; v2 iç uygulaması değişebileceği için v2'ye doğrudan bağlanmayın.",
+      "Rota tanımını frontend/apps/web/src/routes.tsx paylaşılan entegrasyon dosyasına entegrasyon sahibi seri olarak ekler; davranış bileşeni planlanan web_build_mvp.tsx yolunda kalır.",
+      "Görünüm ui-family-01 sözleşmesindeki onaylı AntD bileşenlerini ve semantik tokenları kullanır: Outfit, en az 14 CSS px metin, 320 CSS px öncelikli yerleşim, çevreleyen odak halkası olmayan görünür klavye odağı, merkezi simetrik Cubic hareket tokenları.",
+      "İzin reddi, kayıt yok, oturum yok ve sunucu hatası durumlarını ayrı durum bileşenleri olarak tanımlayın; hover tek erişim yolu olmasın.",
+      "Teknik CI, deploy ve rollback adımları Hüseyin Cengiz'e, alan adı/DNS kaydının GoDaddy tarafındaki uygulaması Asistan Hüseyin'e devredilir; bu sözleşme hiçbir servis veya DNS değişikliği yetkisi vermez."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "Mevcut build betigi (npm run build; paket yoneticisi entegrasyonda dogrulanir) referans tuketici kokunde sifir cikis kodu ve index.html iceren cikti uretir; regresyon kapisidir, yeni test dosyasi yok.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Ayni komut entegrasyonda yeniden calistirilir; cikis kodu ve cikti listesi kanit olarak kaydedilir. Kosulmadikca not_run."
+      "oneScenario": "Bir DocType kaydında read izni olan kullanıcı kayıt rotasını açtığında kaydın beklenen alan değeri görünür; read izni olmayan kullanıcı aynı rotayı açtığında izin reddi durumu görünür ve alan değeri DOM'da bulunmaz.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. RED, rota ve test altyapısı çalışırken beklenen alan değerinin veya izin reddi durumunun görünmemesinden doğan assertion hatası olmalıdır; import, modül bulunamadı veya altyapı hatası RED sayılmaz. Native geçen izin davranışı bozularak RED uydurulmaz. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion geçmelidir; komut ve sonuç kanıt olarak kaydedilir. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN'i değildir."
     },
-    "rollback": "Yalniz bu sozlesme dosyasi onceki surume doner; urun dosyasi, production, servis veya veri degisikligi yok."
+    "rollback": "Yalnız bu sözleşme dosyası önceki sürüme döner. Ürün dosyası, production, servis, şema veya veri değişikliği yoktur. Gelecekteki ürün rollback'i Hüseyin Cengiz'in teknik rollback sürecine bağlıdır."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "channels-1",
+      "sourceStage": "mvp",
+      "existing": "Native parçalar: v1 REST /resource kuralları (create_doc kanıtlı), read_doc içinde doc.check_permission(\"read\"), Frappe sayfa render yolunda CSRF token enjeksiyonu, Suite'te website_route_rules ile tek SPA servis deseni (Vue). React/TanStack/AntD web kabuğu kaynakta yok.",
+      "gap": "React web kabuğu, rota ve sorgu katmanı yok. API sürüm eşlemesi sabitlenmedi (v2 iç uygulaması değişebilir). Keycloak ile Frappe oturum bağlama ve CSRF taşıma yöntemi tanımsız. Tenant'ın Frappe karşılığı tanımsız. SPA'nın servis biçimi (aynı origin website_route_rules veya ayrı origin/CORS) belirsiz. İlk ziyaret, giriş, tenant seçimi ve yetkili kayıt uçtan uca kabulü not_run.",
+      "completionSteps": [
+        "Kararlar gelene kadar: decisionsPending maddelerini kabul ölçütüne bağlayan belge güncellemesini yapın; hiçbir seçenek bu sözleşmede seçilmez.",
+        "API sürümü kararından sonra: kabuğun veri istemcisini seçilen sürümün kaynak okuma ve oluşturma uçlarına bağlayın; T-00'da rota eşlemesini kaynakla doğrulayın.",
+        "Servis biçimi kararından sonra: aynı origin seçilirse SPA girişini backend/saas_platform/saas_platform/hooks.py içinde website_route_rules ile eşleyin ve CSRF'yi sayfa render yolundan alın; ayrı origin seçilirse CORS ve CSRF taşıma yöntemi ayrı karar olarak belgelenir.",
+        "Bu sözleşmenin tek davranışı olan yetkili kayıt okumasını gerçek RED/GREEN ile uygulayın; yazma (POST create_doc) ayrı bir sonraki davranıştır ve CSRF kararına bağlıdır.",
+        "Oturum bağlama ve tenant kararlarından sonra: giriş ve tenant seçimi adımlarını kabuğa ekleyin; yetki her zaman sunucuda native izinlerle kalır."
+      ],
+      "dependencies": [
+        "web-build--contract",
+        "ui-family-01--contract",
+        "client-rule-parity--contract"
+      ],
+      "acceptance": "İlk ziyaret, giriş, tenant seçimi ve yetkili kayıt işlemi üretim API sözleşmesiyle uçtan uca çalışmalı. Bu sözleşmenin tek davranışı için: yetkili kullanıcı kaydı görür, yetkisiz kullanıcı 403 izin reddi görür ve kayıt verisi render edilmez; 320 CSS px'ten masaüstüne kadar okunabilirlik ve görünür klavye odağı korunur. Durum: not_run.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 154,
+          "quote": "Rule(\"/resource/<doctype>\", methods=[\"POST\"], endpoint=create_doc),"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 83,
+          "quote": "doc.check_permission(\"read\")"
+        },
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 8,
+          "quote": "internal implementation can change without treating it as \"breaking change\"."
+        },
+        {
+          "path": "frappe/frappe/website/page_renderers/base_template_page.py",
+          "line": 22,
+          "quote": "\"<!-- csrf_token -->\", f'<script>frappe.csrf_token = \"{csrf_token}\";</script>'"
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 44,
+          "quote": "# (www/suite.py -> suite.html); Vue Router takes over client-side. (plan D9)"
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "Urun web ciktisinin servis bicimi ve base yolu karari yok: website_route_rules ile ayni origin, Node start sunucusu veya ayri origin/CORS.",
-    "Ayri originde yazma icin CSRF tasima belirsiz; token yalniz Frappe sayfa render yolunda enjekte ediliyor.",
-    "Uzak deploy, reverse proxy, TLS: Huseyin Cengiz bagimliligi; DNS kaydi: Asistan Huseyin bagimliligi; unknown.",
-    "Statik /saas Pages rehber/dokuman yuzeyidir, urun web ciktisi degildir.",
-    "PWA (manifest, service worker) gelecek kapsam; kaynakta kanit yok.",
-    "Keycloak oturum baglama ve tenant karsiligi karar bekliyor; kapsam disi.",
-    "v2 API eslemesi secilmedi; kayit akisi T08'de kalir.",
-    "Ilk ziyaret, giris, tenant secimi ve yetkili kayit uctan uca kabulu not_run."
+    "React/TanStack/AntD web kabuğu kaynakta yok; Suite SPA Vue tabanlı olduğu için React uygulaması kanıtı değildir.",
+    "v1 GET kaynak okuma rotasının read_doc eşlemesi seçili alıntıda yok; T-00'da doğrulanmalı.",
+    "Ayrı originde yazma için CSRF taşıma belirsiz; token kanıta göre yalnız Frappe sayfa render yolunda enjekte ediliyor.",
+    "Yazma davranışı (POST create_doc) bu sözleşmenin tek davranışı dışında; ayrı davranış olarak ele alınmalı.",
+    "Uzak deploy, reverse proxy ve TLS Hüseyin Cengiz bağımlılığı; DNS kaydının GoDaddy uygulaması Asistan Hüseyin bağımlılığı; durum unknown.",
+    "PWA (manifest, service worker) bu davranışın kapsamında değil; kaynakta kanıt yok.",
+    "İlk ziyaret, giriş, tenant seçimi ve yetkili kayıt uçtan uca kabulü not_run."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Hedef Frappe API sürümü (v1 veya v2) ve sürüm sabitleme",
+      "requirementIds": ["channels-1"],
+      "blocks": "Veri istemcisinin uç noktalara bağlanması ve üretim kiralaması",
+      "untilDecided": "v1 ve v2 kanıtlarını ve v2'nin değişebilir iç uygulama notunu karar notuna aktarın; istemciyi tek modül arkasında soyut tanımlayın."
+    },
+    {
+      "decision": "Keycloak ile Frappe oturum bağlama yöntemi (OIDC token, sid çerezi) ve CSRF taşıma",
+      "requirementIds": ["channels-1"],
+      "blocks": "Giriş adımı ve yazma davranışı",
+      "untilDecided": "Seçenekleri ve CSRF kanıtını belgeleyin; okuma davranışının oturum yok durumunu giriş akışına yönlendirme olarak tanımlı bırakın."
+    },
+    {
+      "decision": "Tenant'ın Frappe karşılığı (site, User Permission veya organizasyon) ve tenant topolojisi",
+      "requirementIds": ["channels-1"],
+      "blocks": "Tenant seçimi adımı ve uçtan uca kabul",
+      "untilDecided": "Kabul ölçütünde tenant seçimini karar bekliyor olarak işaretleyin; okuma davranışı native izinlerle tenant'tan bağımsız doğrulanabilir."
+    },
+    {
+      "decision": "SPA servis biçimi: aynı origin website_route_rules veya ayrı origin/CORS",
+      "requirementIds": ["channels-1"],
+      "blocks": "hooks.py rota eşlemesi, base yolu ve deploy devri",
+      "untilDecided": "İki seçeneğin CSRF ve deploy etkisini Hüseyin Cengiz'e teknik devir notu olarak hazırlayın; hooks.py'ye yazım yapılmaz."
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "channels-1": "mvp"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,

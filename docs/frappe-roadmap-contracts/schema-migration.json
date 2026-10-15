@@ -4,15 +4,21 @@
   "canonicalTaskIds": ["schema-migration--implementation"],
   "requirementIds": ["releases-4", "releases-7"],
   "stage": "mvp",
+  "sourceStages": {
+    "releases-4": "mvp",
+    "releases-7": "mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
-    "title": "Sheets migrate_blob_to_cells patch'i bos olmayan blob'u Sheet Cell satirlarina donusturur; donusturemezse hatayi yutmaz, migrate'i durdurur",
-    "trigger": "Yerel tek kullanimlik suite.localhost test kopyasinda, eski blob'u bos olmayan bir Sheet belgesi uzerinde patch'in belge bazli donusum fonksiyonunun calistirilmasi (fonksiyon adi saglanan alintida yok, unknown)",
-    "expected": "Ornek blob sheet.sheets = {Sheet1: {A1: '5'}} icin tam bir Sheet Cell satiri olusur: parent_sheet=belge adi, sheet_name=Sheet1, cell_id=A1, raw_value='5'. Bos hucreler saklanmaz.",
-    "denied": "Donusum hatasi (or. NameError) loglanip patch basarili sayilmaz. Hata patch_handler.run_all'a kadar yukselir; --skip-failing kullanilmaz ve migrate fazi geri alinir."
+    "title": "Sheets migrate_blob_to_cells patch'i boş olmayan blob'u Sheet Cell satırlarına dönüştürür; dönüştüremezse hatayı yutmaz, migrate'i durdurur. Uygulama durumu: uygulanmadı.",
+    "trigger": "Admission sonrası, T-00 hedef temel çizgisine bağlı izole ve tek kullanımlık bir test sitesi kopyasında, eski blob'u boş olmayan bir Sheet belgesi üzerinde patch'in belge bazlı dönüşüm adımının çalıştırılması. Dönüşüm fonksiyonunun adı sağlanan alıntıda yoktur; hedef kaynakta okunarak belirlenir.",
+    "expected": "Örnek blob Sheet1/A1='5' için tam bir Sheet Cell satırı oluşur: üst belge adı, sheet adı Sheet1, hücre A1, ham değer '5'. Boş hücreler saklanmaz. Alan adları önceki sözleşmeden gelir ve hedef DocType tanımında doğrulanmalıdır.",
+    "denied": "Dönüşüm hatası (örneğin tanımsız ad nedeniyle NameError) loglanıp patch başarılı sayılmaz. İstisna patch_handler.run_all'a kadar yükselir, migrate durur, --skip-failing kullanılmaz ve patch için skipped=0 başarı kaydı oluşmaz."
   },
   "reuse": {
-    "mechanism": "Native: bench migrate, patches.txt, PatchType bolumleri, Patch Log ve atomic faz commit'i aynen kullanilir. Yeni motor, ORM veya olay katmani yoktur. Tek kod degisikligi, mevcut Suite patch'indeki tanimsiz adin yerel 'sheets' degiskeniyle (satir 57) degistirilmesi ve hatanin yukari tasinmasidir.",
+    "status": "KISMI",
+    "mechanism": "Native Frappe aynen kullanılır: bench migrate, patches.txt, PatchType bölümleri (pre_model_sync, post_model_sync, post_fixture_sync), Patch Log, never_skip_patches hook'u ve run_schema_updates üzerindeki atomic faz sarmalayıcısı. Yeni migration motoru, ORM, olay katmanı veya CRUD tasarlanmaz. Native parça patch yürütme ve kaydıdır; eksik olan bölüm kuralı, satır hatası politikası, önkontrol/sonkontrol runbook'u ve geri alınamayan patch sınıflandırmasıdır. Kanıtlar yalnız seçilen dosya ve satırları gösterir; bütün davranışın var olduğu veya searchedPaths dışında ilgili kaynak bulunmadığı anlamına gelmez.",
     "evidence": [
       {
         "path": "suite/suite/sheets/patches/v0_1/migrate_blob_to_cells.py",
@@ -38,7 +44,22 @@
         "path": "frappe/frappe/modules/patch_handler.py",
         "line": 48,
         "quote": "logs a failing patch in Patch Log with"
+      },
+      {
+        "path": "frappe/frappe/modules/patch_handler.py",
+        "line": 79,
+        "quote": "executed = set(frappe.get_all(\"Patch Log\", filters={\"skipped\": 0}, fields=\"patch\", pluck=\"patch\"))"
       }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/installer.py",
+      "frappe/frappe/migrate.py",
+      "frappe/frappe/modules/patch_handler.py",
+      "suite/suite/drive/patches/integrate_with_framework.py",
+      "suite/suite/mail/patches/create_suite_user_role.py",
+      "suite/suite/mail/patches/migrate_cache_to_mail_namespace.py",
+      "suite/suite/mail/patches/rebuild_automation_sieve_scripts.py",
+      "suite/suite/sheets/patches/v0_1/migrate_blob_to_cells.py"
     ]
   },
   "ownership": {
@@ -46,59 +67,194 @@
     "plannedProduction": [
       "operations/schema-migration/schema_migration_mvp.yml"
     ],
-    "plannedTestFile": "suite/suite/sheets/tests/test_migrate_blob_to_cells.py (yalniz planli; dizin varligi unknown; Suite kaynagi gorev owns disinda, entegrasyon kabulu gerekir)",
+    "plannedTestFile": null,
     "sharedIntegrationFiles": [
-      "suite/suite/sheets/patches/v0_1/migrate_blob_to_cells.py",
-      "suite/suite/hooks.py",
-      "backend/saas_platform/saas_platform/patches.txt",
-      "integration/fragments/schema-migration--integration.json"
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "Sheet belge adi (string) ve parse edilmis blob: sheet.sheets (sheet_name -> {cell_id: raw}), formats, merge, view, sheet.current (varsayilan Sheet1). Ek boyut limiti tanimlanmadi.",
-    "output": "Sheet Cell satirlari: name, parent_sheet, sheet_name, cell_id, raw_value, format_json. API surumu degismez; okuyan tuketiciler native DocType izinleriyle (R-01) okur.",
-    "authorization": "Bench CLI uzerinden site seviyesinde Administrator baglaminda calisir. Kullanici, kayit veya alan izni uygulanmaz (bulk_insert). Web istegiyle tetiklenmez; HTTP yuzeyi yoktur.",
-    "persistence": "frappe.db.bulk_insert, run_schema_updates'in @atomic faz transaction'i icinde calisir; hata olursa frappe.db.rollback cagrilir. DDL ve dosya etkilerinin atomik geri alindigi garanti edilmez. Testte Frappe test sinifinin rollback'i kullanilir.",
-    "failure": "Python istisnasi yukselir, run_all icinde skip_failing=False oldugu icin tekrar firlatilir ve migrate durur. Runbook, Patch Log'da skipped=1 veya migrate penceresinde yeni Error Log kaydi gorurse surumu basarisiz sayar."
+    "input": "Runbook girdisi: hedef site adı, sabitlenmiş Frappe ve Suite commit/etiketleri, bekleyen patch listesi, migrate öncesi yedek kimliği. Patch girdisi: Sheet belge adı ve parse edilmiş blob (sheet_name -> {cell_id: raw}, formats, merge, view, current; current varsayılanı Sheet1). Ek boyut limiti tanımlanmadı.",
+    "output": "Sheet Cell satırları; migrate sonucu olarak Patch Log kayıtları ve hangi commit/etiketle migrate edildiğini gösteren sürüm kaydı. API sürümü değişmez; okuyan tüketiciler native DocType izinleriyle (R-01) okur.",
+    "authorization": "bench migrate CLI üzerinden site seviyesinde çalışır; HTTP yüzeyi yoktur, web isteğiyle tetiklenmez. Bu rehber yeni ignore_permissions, ham SQL yazma veya izin bypass'ı eklemez. Mevcut create_suite_user_role ham UPDATE'i değiştirilmez, yalnız 'restore şart' olarak sınıflandırılır. Rol veya izin değişikliği gerekirse explicitPermissionFlags ortak kaynağına bağlanır ve o değişikliğin kendi kabulünde reddedilen yazma ile değişmeyen kayıt gösterilir. Bu sözleşme hiçbir servis, production, şema veya veriyi değiştirme yetkisi vermez; production migrate, deploy ve rollback teknik sahibi Hüseyin Cengiz'dir.",
+    "persistence": "Patch yazımı run_schema_updates fazının atomic sarmalayıcısı içinde yapılır. Alıntı yalnız sarmalayıcının tanımını gösterir; hata yolundaki rollback davranışı hedef sürümde okunarak doğrulanmalıdır. DDL ve dosya etkilerinin (örneğin rmtree, rename) atomik geri alındığı garanti edilmez. Eski sheets_data blob'u belge üzerinde rollback artifact'ı olarak korunur ve bu sözleşmeyle silinmez.",
+    "failure": "İstisna yükselir; skip_failing kapalıyken migrate durur. Runbook, Patch Log'da skipped=1, migrate penceresinde yeni Error Log kaydı veya yalnız print ile raporlanan satır hatası (Drive patch'i) görürse sürümü başarısız sayar ve sürüm kaydını başarı olarak işlemez."
   },
   "development": {
-    "dependencies": [
-      "schema-migration--contract",
-      "yerel pilot: frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6, suite.localhost"
-    ],
-    "admission": "T-00 hedef temel cizgisi ve R-00 eslemesi gerekir. Suite kaynak HEAD'i unknown; Suite dosyasi degisikligini entegrasyon sahibi (Codex) kabul etmeli. Test sitesinde allow_tests'in acik olup olmadigi unknown; acik degilse site konfigurasyonu degistirilmez, bagimlilik olarak bildirilir. Yerel kanit uzak urun temel cizgisi degildir.",
+    "dependencies": ["schema-migration--contract"],
+    "admission": "Uygulama durumu: uygulanmadı. T-00 hedef temel çizgisi ve R-00 yeniden kullanım eşlemesi gerekir; izinli veri tüketicileri ayrıca R-01'i kullanır. Frappe ve Suite hedef commit'leri temel çizgide sabitlenmeden kod veya test yazılmaz. Suite kaynağı bu görevin üretim sahipliği dışındadır; Suite patch değişikliğini ana entegrasyon sahibi kabul etmelidir. Test sitesinde allow_tests durumu bilinmiyor; site konfigürasyonu bu sözleşmeyle değiştirilmez, gerekiyorsa bağımlılık olarak bildirilir. Staging kopyası, yedek ve kapasite provası Hüseyin Cengiz'e aittir. Tek dar davranış gerçek RED/GREEN kanıtıyla uygulanır.",
     "steps": [
-      "Planli testi yaz ve mevcut kodda calistir (RED veya bulgu)",
-      "Satir 66'da suite.sheets yerine yerel sheets degiskenini kullan; satir bazli hatayi yutan blok varsa (saglanan alintida gorunmuyor, unknown) istisnayi yukari tasi",
-      "Ayni testi tekrar calistir (GREEN)",
-      "Runbook YAML'a yaz: once kontrol, --skip-failing yasagi, migrate sonrasi Patch Log/Error Log kontrolu ve bu patch icin 'restore gerekli' etiketi"
+      "Admission sonrası hedef kaynakta migrate_blob_to_cells.py dosyasını oku; satır 66'daki suite adının tanımlı olup olmadığını ve satır hatasını yutan blok bulunup bulunmadığını kaydet.",
+      "oneScenario için tek test yaz ve değiştirilmemiş patch üzerinde çalıştır; beklenen RED, Sheet Cell satırının oluşmaması veya hatanın yutulmasıdır.",
+      "Dönüşümde tanımsız ad yerine dosyadaki parse edilmiş blob değişkenini kullan; satır hatasını yutan blok varsa istisnayı yukarı taşı. Başka patch'e dokunma.",
+      "Aynı testi aynı assertion ile tekrar çalıştır (GREEN).",
+      "operations/schema-migration/schema_migration_mvp.yml runbook taslağını yaz: önkontrol, --skip-failing yasağı, bölüm kuralı, migrate sonrası Patch Log ve Error Log kontrolü, patch başına geri dönüş etiketi, sürüm kaydı.",
+      "Kritik patch listesi karara bağlandıktan sonra never_skip_patches kaydını Suite hooks.py için ana entegrasyon sahibine öner."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "Bir Sheet belgesine blob olarak Sheet1/A1='5' verilir, donusum fonksiyonu cagrilir ve tek bir Sheet Cell satiri (Sheet1, A1, '5') olusmasi beklenir.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Ayni komut (bench --site suite.localhost run-tests --module suite.sheets.tests.test_migrate_blob_to_cells) duzeltme sonrasi gecer."
+      "oneScenario": "Bir Sheet belgesine blob olarak Sheet1/A1='5' verilir, dönüşüm adımı çağrılır ve tek bir Sheet Cell satırı (Sheet1, A1, '5') oluşması beklenir.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. RED, değiştirilmemiş patch üzerinde beklenen satırın oluşmaması veya hatanın yutulup patch'in tamamlanmış görünmesidir; import veya altyapı hatası ya da native davranışı bozmak RED sayılmaz. Senaryo native olarak geçerse RED uydurulmaz; bulgu kaydedilir ve kod değiştirilmez.",
+      "green": "Düzeltmeden sonra aynı senaryo, değişmeyen assertion ve aynı komutla geçmelidir. Komut ve test site adı admission sonrası belirlenir. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN'i değildir."
     },
-    "rollback": "Yerelde tek satirlik patch degisikligi ve test dosyasi geri alinir. Uretim yetkisi yoktur. Patch daha once bir sitede calistiysa geri donus uygulama rollback'iyle olmaz, yalniz restore ile yapilir."
+    "rollback": "Bu sözleşme yalnız belgedir; geri alınacak üretim değişikliği yoktur. Gelecekte patch düzeltmesi ve test dosyası kod düzeyinde geri alınabilir. Patch bir sitede çalıştıysa veri geri dönüşü uygulama rollback'iyle olmaz; yalnız migrate öncesi yedekten, eşleşen eski kod sürümüyle restore ile olur. Production rollback ve restore uygulaması Hüseyin Cengiz'e aittir."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "releases-4",
+      "sourceStage": "mvp",
+      "existing": "Native Frappe patch motoru: run_schema_updates içinde pre_model_sync bölümüyle run_all çağrısı, Patch Log'a dayalı çalıştırılmış patch kümesi (skipped=0), --skip-failing ile skipped kaydı ve never_skip_patches hook'u. Suite patch'leri bu motorla çalışır.",
+      "gap": "Bölüm yerleşim kuralı yok. Satır bazlı hata politikası yok: Drive patch'i hataları yalnız print eder; Sheets patch'inde tanımsız ad şüphesi kaynak okumasına dayanır, çalıştırılmadı. Enqueue edilen Sieve rebuild işinin tamamlanma takibi yok. v16'dan v17'ye yükseltme yolu ve frappe>=16,<18 test matrisi eşlenmedi.",
+      "completionSteps": [
+        "Runbook'a bölüm kuralı yaz: şema senkronundan önce gereken veri düzeltmeleri pre_model_sync, yeni alanlara yazan dönüşümler post_model_sync, fixture'a bağımlı olanlar post_fixture_sync.",
+        "Satır hatası politikası taslağı yaz: satır hatası patch'i başarısız sayar; eşik değeri decisionsPending kararına bağlıdır.",
+        "Kritik patch adaylarını (örneğin migrate_blob_to_cells) never_skip_patches önerisi olarak listele; kayıt ana entegrasyon sahibine aittir.",
+        "Enqueue edilen işler için migrate sonrası kontrol yaz: iş başarısız veya beklemedeyse sürüm tamamlanmış sayılmaz; yeni zamanlayıcı veya otomasyon etkinleştirilmez.",
+        "Sheets patch'indeki şüpheli adı development.tdd senaryosuyla doğrula."
+      ],
+      "dependencies": ["schema-migration--contract"],
+      "acceptance": "Örnek patch ve şema geçişi staging kopyasında çalışır; hata üretimde atlanmaz ve sonuç sürümü kaydedilir. Şu anda not_run.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/modules/patch_handler.py",
+          "line": 79,
+          "quote": "executed = set(frappe.get_all(\"Patch Log\", filters={\"skipped\": 0}, fields=\"patch\", pluck=\"patch\"))"
+        },
+        {
+          "path": "frappe/frappe/migrate.py",
+          "line": 142,
+          "quote": "frappe.modules.patch_handler.run_all("
+        },
+        {
+          "path": "suite/suite/sheets/patches/v0_1/migrate_blob_to_cells.py",
+          "line": 66,
+          "quote": "for sheet_name, cells in suite.sheets.items():"
+        },
+        {
+          "path": "suite/suite/drive/patches/integrate_with_framework.py",
+          "line": 54,
+          "quote": "print(f\"Migration finished with {len(failures)} failure(s): {failures}\")"
+        },
+        {
+          "path": "suite/suite/mail/patches/rebuild_automation_sieve_scripts.py",
+          "line": 32,
+          "quote": "frappe.enqueue(rebuild_automation_sieve_scripts, queue=\"long\", enqueue_after_commit=True)"
+        }
+      ]
+    },
+    {
+      "requirementId": "releases-7",
+      "sourceStage": "mvp",
+      "existing": "Native: migrate fazlarında atomic sarmalayıcı, Patch Log ile skip kaydı, bench backup ve restore. Installer kaynağı, eski sürüm SQL yedeğinin güncel kodla uyumsuz olabileceğini ve restore'u bozabileceğini belirtir. Sheets patch'i eski blob'u rollback artifact'ı olarak korur.",
+      "gap": "Önkontrol listesi yok. Geri alınamayan patch sınıflandırması yok (create_suite_user_role ham UPDATE, migrate_cache_to_mail_namespace rmtree). Restore uyumluluğu ve RPO/RTO tanımsız. DDL ve dosya etkilerinin atomikliği kanıtlanmadı. Sheets patch'indeki ad şüphesi ayrı kusur olarak doğrulanmadı.",
+      "completionSteps": [
+        "Önkontrol yaz: hedef commit'ler sabit, migrate öncesi yedek alındı ve kimliği kaydedildi, kapasite kontrolü yapıldı, bekleyen patch listesi çıkarıldı, --skip-failing kullanılmayacak.",
+        "Sonkontrol yaz: Patch Log'da skipped=1 yok, migrate penceresinde yeni Error Log yok, enqueue işler izlendi; aksi halde sürüm başarısız.",
+        "Patch sınıflandırma tablosu yaz: her patch için 'uygulama rollback'i yeterli' veya 'restore şart'; ham UPDATE, dosya silme veya taşıma yapanlar 'restore şart'.",
+        "İki geri dönüş yolunu ayrı yaz: uygulama rollback'i (veri mutasyonu olmayan sürümde kod sürümünü geri al) ve veri restore'u (migrate öncesi yedek, eşleşen eski kod sürümüyle).",
+        "Restore uyumluluk notu yaz: eski sürüm yedeği yeni kodla yüklenmez; restore eski kod sürümüyle eşlenir.",
+        "Prova planını Hüseyin Cengiz'e teknik devir olarak yaz: staging kopyasında iki yol ayrı prova edilir; RPO/RTO karar sonrası ölçülür."
+      ],
+      "dependencies": ["schema-migration--contract"],
+      "acceptance": "Geçiş öncesi yedek ve kapasite kontrolü geçer; iki geri dönüş yolu ve kayıp hedefleri provada ayrı doğrulanır. Şu anda not_run.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/migrate.py",
+          "line": 47,
+          "quote": "def atomic(method):"
+        },
+        {
+          "path": "frappe/frappe/modules/patch_handler.py",
+          "line": 48,
+          "quote": "logs a failing patch in Patch Log with"
+        },
+        {
+          "path": "suite/suite/mail/patches/create_suite_user_role.py",
+          "line": 47,
+          "quote": "SET `owner` = `user` WHERE"
+        },
+        {
+          "path": "suite/suite/mail/patches/migrate_cache_to_mail_namespace.py",
+          "line": 51,
+          "quote": "shutil.rmtree(source, ignore_errors=True)"
+        },
+        {
+          "path": "suite/suite/sheets/patches/v0_1/migrate_blob_to_cells.py",
+          "line": 6,
+          "quote": "parent doc as a rollback artifact"
+        },
+        {
+          "path": "suite/suite/sheets/patches/v0_1/migrate_blob_to_cells.py",
+          "line": 66,
+          "quote": "for sheet_name, cells in suite.sheets.items():"
+        },
+        {
+          "path": "frappe/frappe/installer.py",
+          "line": 114,
+          "quote": "which will cause failure in the restore"
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "pre/post_model_sync ve post_fixture_sync bolum kurali yalniz runbook'ta belgelenir; otomatik kontrol yoktur",
-    "never_skip_patches'e kritik patch kaydi suite hooks.py uzerinden yapilir ve entegrasyon sahibine aittir; hangi patch'lerin kritik oldugu karari acik",
-    "Drive integrate_with_framework hatalari yalniz print ediliyor; satir hatasi esigi politikasi tanimsiz",
-    "Sieve rebuild enqueue isinin tamamlanma takibi yok; zamanlama veya otomasyon etkinlestirilmez",
-    "v16->v17 yukseltme yolu ve frappe>=16,<18 test matrisi eslenmedi",
-    "Geri alinamayan patch'ler (create_suite_user_role ham UPDATE, migrate_cache_to_mail_namespace rmtree) yalniz restore ile geri donulebilir olarak etiketlenmeli",
-    "Restore uyumlulugu ve RPO/RTO degerleri kullanici karari bekliyor; bu sozlesme deger secmez",
-    "Staging kopyasi, yedek ve kapasite provasi: teknik sahip Huseyin Cengiz; not_run",
-    "Fazlar arasinda DDL ve dosya etkilerinin atomikligi kanitlanmadi"
+    "Bölüm kuralı yalnız runbook'ta belgelenir; otomatik kontrol yoktur.",
+    "never_skip_patches kaydı Suite hooks.py üzerinden yapılır ve ana entegrasyon sahibine aittir; kritik patch listesi açık karardır.",
+    "Drive integrate_with_framework hataları yalnız print ediliyor; satır hatası eşiği tanımsız.",
+    "Sieve rebuild enqueue işinin tamamlanma takibi yok; zamanlama veya otomasyon etkinleştirilmez.",
+    "v16'dan v17'ye yükseltme yolu ve frappe>=16,<18 test matrisi eşlenmedi.",
+    "create_suite_user_role ham UPDATE ve migrate_cache_to_mail_namespace rmtree yalnız restore ile geri dönülebilir olarak etiketlenmeli.",
+    "Restore uyumluluğu ve RPO/RTO değerleri karar bekliyor; bu sözleşme değer seçmez.",
+    "atomic sarmalayıcının hata yolu ve DDL/dosya etkilerinin atomikliği kanıtlanmadı.",
+    "Staging kopyası, yedek ve kapasite provası: teknik sahip Hüseyin Cengiz; not_run.",
+    "Sheet Cell alan adları ve dönüşüm fonksiyonu adı hedef kaynakta doğrulanmadı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "RPO ve RTO hedef değerleri",
+      "requirementIds": ["releases-7"],
+      "blocks": "İki geri dönüş yolunun provada kabulü",
+      "untilDecided": "Runbook'ta iki yol ayrı yazılır; ölçüm alanları boş ve karar bekliyor olarak işaretlenir."
+    },
+    {
+      "decision": "Hedef Frappe/Suite sürümü ve frappe>=16,<18 aralığında test edilecek sürümler",
+      "requirementIds": ["releases-4"],
+      "blocks": "Yükseltme yolu, test komutu ve T-00 temel çizgisine bağlı RED/GREEN",
+      "untilDecided": "Sürümden bağımsız önkontrol, sonkontrol ve bölüm kuralı adımları yazılır."
+    },
+    {
+      "decision": "Satır bazlı hata eşiği politikası",
+      "requirementIds": ["releases-4"],
+      "blocks": "Satır hatası politikasının kabulü ve Drive patch'i için başarısızlık ölçütü",
+      "untilDecided": "Taslakta satır hatası patch'i başarısız sayar; eşik karar bekliyor olarak işaretlenir."
+    },
+    {
+      "decision": "never_skip_patches kapsamına alınacak kritik patch listesi",
+      "requirementIds": ["releases-4", "releases-7"],
+      "blocks": "Suite hooks.py kayıt önerisinin entegrasyonu",
+      "untilDecided": "Aday liste ve gerekçesi runbook'a yazılır; hooks.py değiştirilmez."
+    },
+    {
+      "decision": "Migrate öncesi yedeklerin ve sheets_data rollback artifact'ının saklama süresi",
+      "requirementIds": ["releases-7"],
+      "blocks": "Eski blob temizliği ve restore penceresinin tanımı",
+      "untilDecided": "Artifact korunur; temizlik adımı yazılmaz, yalnız karar bekliyor notu düşülür."
+    },
+    {
+      "decision": "Staging site kopyası ve tenant topolojisi",
+      "requirementIds": ["releases-4", "releases-7"],
+      "blocks": "Staging provası ve test sitesi komutu",
+      "untilDecided": "Hüseyin Cengiz'e teknik devir notu ve prova kontrol listesi yazılır; site oluşturulmaz veya değiştirilmez."
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "releases-4": "mvp",
-    "releases-7": "mvp"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,

@@ -3,19 +3,50 @@
   "canonicalUnitId": "native-doctype-schema",
   "canonicalTaskIds": [
     "native-doctype-schema--implementation",
-    "native-doctype-schema--implementation-mvp"
+    "native-doctype-schema--implementation-mvp",
+    "native-doctype-schema--implementation-post-mvp",
+    "ui-family-17--implementation-mvp",
+    "ui-family-18--implementation",
+    "ui-family-19--implementation",
+    "ui-family-38--implementation",
+    "ui-family-38--implementation-mvp",
+    "ui-provider-metadata--implementation",
+    "ui-provider-metadata--implementation-mvp",
+    "ui-provider-metadata--implementation-post-mvp",
+    "ui-view-gantt--implementation",
+    "ui-view-graph--implementation",
+    "ui-view-map--implementation-mvp",
+    "ui-view-timeline--implementation",
+    "ui-view-tree--implementation"
   ],
-  "requirementIds": ["model-1", "model-2", "model-4", "model-6", "model-7"],
+  "requirementIds": [
+    "model-1",
+    "model-2",
+    "model-4",
+    "model-5",
+    "model-6",
+    "model-7"
+  ],
   "stage": "poc",
+  "sourceStages": {
+    "model-1": "poc",
+    "model-2": "mvp",
+    "model-4": "poc",
+    "model-5": "post_mvp",
+    "model-6": "mvp",
+    "model-7": "poc"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
-    "title": "Kurulum/migration öncesi salt okunur Custom Field sahiplik çakışma ön kontrolü (model-7)",
+    "title": "Kurulum/migration öncesi salt okunur Custom Field sahiplik çakışma ön kontrolü (model-7). Uygulama durumu: uygulanmadı.",
     "trigger": "Sahip adaptördeki ön kontrol, kurulu uygulamaların bildirdiği (app, dt, fieldname) uzantı listesiyle native create_custom_fields çağrısından önce çalışır.",
-    "expected": "Aynı (dt, fieldname) birden fazla uygulama tarafından bildirilmişse tüm çakışmalar tek hatada listelenir, native kurulum adımı başlamaz ve Custom Field yazılmaz. Çakışma yoksa ok=true döner, native yaşam döngüsü değişmeden sürer.",
-    "denied": "Çakışmada sessiz atlama veya son yazan kazanır; Property Setter module veya owner alanını sahiplik kanıtı sayma; ön kontrolü whitelist/headless uç olarak açma."
+    "expected": "Aynı (dt, fieldname) birden fazla uygulama tarafından bildirilmişse tüm çakışmalar tek hatada listelenir, native kurulum adımı başlamaz ve Custom Field yazılmaz. Çakışma yoksa ok=true döner ve native yaşam döngüsü değişmeden sürer.",
+    "denied": "Çakışmada sessiz atlama veya son yazan kazanır davranışı; Property Setter module veya owner alanını sahiplik kanıtı sayma; ön kontrolü whitelist veya headless uç olarak açma; ignore_permissions, izin atlayan helper veya SQL ile yetki bypass."
   },
   "reuse": {
-    "mechanism": "Native Custom Field ve create_custom_fields korunur. Native yol aynı dt/fieldname varsa sessizce atladığı ve Property Setter eskisini sildiği için çakışmada durma davranışı yoktur; config ile karşılanamaz. Tek ekleme sahip adaptör dosyasında saf, salt okunur ön kontrol fonksiyonudur. İkinci alan/ORM motoru, sahiplik tablosu veya yeni DocType kurulmaz.",
+    "status": "KISMI",
+    "mechanism": "Native Custom Field, Property Setter ve create_custom_fields korunur. Native yol aynı dt/fieldname varsa sessizce atlar ve yeni Property Setter eskisini siler; çakışmada durma davranışı yoktur ve config ile karşılanamaz. Tek ekleme, sahip adaptör dosyasında saf ve salt okunur bir ön kontrol fonksiyonudur. İkinci alan/ORM motoru, sahiplik tablosu veya yeni DocType kurulmaz. Kanıtlar yalnız native parçaları gösterir; bütün davranışın var olduğunu göstermez.",
     "evidence": [
       {
         "path": "frappe/frappe/custom/doctype/custom_field/custom_field.py",
@@ -37,71 +68,452 @@
         "line": 87,
         "quote": "# WARNING: Ignores Permissions"
       }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "frappe/frappe/api/v2.py",
+      "frappe/frappe/core/doctype/doctype/doctype.js",
+      "frappe/frappe/core/doctype/doctype/doctype.py",
+      "frappe/frappe/custom/doctype/custom_field/custom_field.js",
+      "frappe/frappe/custom/doctype/custom_field/custom_field.py",
+      "frappe/frappe/custom/doctype/customize_form/customize_form.js",
+      "frappe/frappe/custom/doctype/customize_form/customize_form.py",
+      "frappe/frappe/custom/doctype/customize_form_field/customize_form_field.py",
+      "frappe/frappe/custom/doctype/property_setter/property_setter.json",
+      "frappe/frappe/custom/doctype/property_setter/property_setter.py",
+      "frappe/frappe/model/meta.py",
+      "suite/suite/hooks.py"
     ]
   },
   "ownership": {
     "activeContractFile": "docs/frappe-roadmap-contracts/native-doctype-schema.json",
     "plannedProduction": [
-      "backend/saas_platform/saas_platform/adapters/records_taxonomy/doc_type_poc.py"
+      "backend/saas_platform/saas_platform/adapters/records_taxonomy/doc_type_mvp.py",
+      "backend/saas_platform/saas_platform/adapters/records_taxonomy/doc_type_poc.py",
+      "backend/saas_platform/saas_platform/adapters/records_taxonomy/doc_type_post_mvp.py",
+      "frontend/packages/ui/src/components/ui-family-17/mvp.tsx",
+      "frontend/packages/ui/src/components/ui-family-18/index.tsx",
+      "frontend/packages/ui/src/components/ui-family-19/index.tsx",
+      "frontend/packages/ui/src/components/ui-family-38/index.tsx",
+      "frontend/packages/ui/src/components/ui-family-38/mvp.tsx",
+      "frontend/packages/ui/src/components/ui-provider-metadata/index.tsx",
+      "frontend/packages/ui/src/components/ui-provider-metadata/mvp.tsx",
+      "frontend/packages/ui/src/components/ui-provider-metadata/post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-view-gantt/index.tsx",
+      "frontend/packages/ui/src/components/ui-view-graph/index.tsx",
+      "frontend/packages/ui/src/components/ui-view-map/mvp.tsx",
+      "frontend/packages/ui/src/components/ui-view-timeline/index.tsx",
+      "frontend/packages/ui/src/components/ui-view-tree/index.tsx"
     ],
-    "plannedTestFile": "backend/saas_platform/saas_platform/adapters/records_taxonomy/test_doc_type_poc.py",
+    "plannedTestFile": null,
     "sharedIntegrationFiles": [
       "backend/saas_platform/saas_platform/hooks.py",
-      "integration/fragments/native-doctype-schema--integration.json"
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
     "input": "declarations: list[{app: str kurulu uygulama adı, dt: str DocType adı, fieldname: str küçük harf snake_case en çok 140}], en çok 500 satır; aynı uygulamanın yinelenen satırı tekilleştirilir; şekil hatası doğrulama hatasıdır.",
     "output": "{version: native-doctype-schema.preflight.v1, ok: bool, conflicts: [{dt, fieldname, apps: sıralı list[str]}]}; yalnız bildirim verisi döner, kayıt veya kişisel veri içermez.",
-    "authorization": "Whitelist edilmez, HTTP üzerinden çağrılamaz; Suite DENIED_WILDCARD_PATHS /api/ değişmez. Native kurulum/migration bağlamında veya test oturumunda çalışır; istek bağlamında System Manager rolü yoksa native izin hatası. Sınır native site; tenant global modeli seçilmez.",
-    "persistence": "Salt okunur: yazma, commit, DDL veya updatedb yok. Çakışmada create_custom_fields çağrılmadığı için kısmi yazım olmaz. DDL garantisi verilmez; native updatedb davranışı değişmez.",
-    "failure": "Çakışma: frappe.throw ile doğrulama hatası (sınıf adı hedef 17-dev kaynağında doğrulanacak), mesajda dt/fieldname/apps. Kurulum/migration durur; tüketici yalnız kurulum hook'udur, hatayı yutmaz, yeniden denemez."
+    "authorization": "Whitelist edilmez, HTTP üzerinden çağrılamaz; Suite DENIED_WILDCARD_PATHS içindeki /api/ girdisi değişmez. Native kurulum/migration bağlamında çalışır; istek bağlamında System Manager rolü yoksa native rol kontrolüyle izin hatası verir. ignore_permissions, izin atlayan helper veya SQL ile yetki bypass yoktur. Rol ve izin bayrakları ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/explicitPermissionFlags ortak kaynağına bağlıdır. Sınır native sitedir; tenant topolojisi seçilmez.",
+    "persistence": "Salt okunur: yazma, commit, DDL veya updatedb yok. Çakışmada create_custom_fields çağrılmadığı için kısmi yazım olmaz. Native save, transaction ve updatedb davranışı değişmez.",
+    "failure": "Çakışmada frappe.throw ile doğrulama hatası verilir; istisna sınıf adı T-00 sırasında hedef sürüm kaynağında doğrulanır. Mesajda dt, fieldname ve apps bulunur. Kurulum/migration durur; tek tüketici kurulum hook'udur, hatayı yutmaz ve yeniden denemez."
   },
   "development": {
     "dependencies": [
-      "native-doctype-schema--contract",
+      "api-middleware--contract",
+      "client-rule-parity--contract",
+      "device-grant--contract",
       "kernel-envelope--contract",
-      "tenant-registry--contract",
+      "native-doctype-schema--contract",
+      "native-doctype-schema--implementation",
+      "native-role-scope--contract",
       "native-user-policy--contract",
-      "localPilot frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6, schemaCommit f926e9b"
+      "permissioned-metadata--contract",
+      "sync-receipt--contract",
+      "tenant-registry--contract",
+      "ui-family-16--contract",
+      "ui-family-17--contract",
+      "ui-family-17--implementation",
+      "ui-family-18--contract",
+      "ui-family-19--contract",
+      "ui-family-38--contract",
+      "ui-family-38--implementation",
+      "ui-provider-metadata--contract",
+      "ui-provider-metadata--implementation",
+      "ui-view-gantt--contract",
+      "ui-view-graph--contract",
+      "ui-view-map--contract",
+      "ui-view-map--implementation",
+      "ui-view-timeline--contract",
+      "ui-view-tree--contract"
     ],
-    "admission": "T-00 hedef baz ve R-00 yeniden kullanım eşlemesi gerekli. Frappe 17-dev ve suite.localhost yalnız yerel kanıttır; uzak ürün tabanı ve Suite HEAD bilinmiyor. create_custom_fields gövdesi (update=True) alıntıda yok; uygulama öncesi hedef kaynakta okunmalı.",
+    "admission": "Uygulama durumu: uygulanmadı. T-00 hedef baz ve R-00 yeniden kullanım eşlemesi gereklidir; izinli veri tüketicileri ayrıca R-01 kullanır. Kaynak alıntıları önceki salt okunur Frappe/Suite kaynak anlık görüntülerinden alınmıştır ve ürün kabulü değildir; hedef Frappe sürümü ve Suite HEAD seçilmemiştir. create_custom_fields gövdesi (update=True varsayılanı) alıntıda yoktur; uygulama öncesinde hedef kaynakta okunmalıdır. Bu sözleşme ürün kodu, servis, production, şema veya veri değişikliği yetkisi vermez.",
     "steps": [
-      "doc_type_poc.py içine preflight_custom_field_conflicts(declarations) saf fonksiyonunu ekle: (dt, fieldname) grupla, birden fazla uygulama varsa hata üret.",
-      "İstek bağlamında System Manager kontrolü ekle; whitelist ekleme.",
-      "before_install/before_migrate bağlantısını ve bildirim kaynağını hooks.py'ye yazmadan entegrasyon fragmanı olarak Codex'e öner."
+      "Hedef sürüm kaynağında create_custom_fields gövdesini, Custom Field insert izin yolunu ve frappe.throw istisna sınıfını oku; bulguları R-00 eşlemesine yaz.",
+      "doc_type_poc.py içine preflight_custom_field_conflicts(declarations) saf fonksiyonunu öner: girdi şeklini doğrula, aynı uygulamanın yinelenen satırını tekilleştir, (dt, fieldname) çiftine göre grupla, birden fazla uygulama varsa tek hata üret.",
+      "İstek bağlamındaki System Manager kontrolünü native rol kontrolüyle yap; whitelist ekleme, ignore_permissions kullanma.",
+      "before_install/before_migrate bağlantısını ve bildirim kaynağını hooks.py'ye yazmadan, seri birleştirme önerisi olarak ana entegrasyon sahibine ilet."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "saas_app_a ve saas_app_b aynı (yerel pilot kontrollü DocType, saas_ext_code) çiftini bildirir; ön kontrol iki uygulamayı listeleyen hata verir ve bu dt/fieldname için Custom Field oluşmaz. Aynı senaryoda System Manager rolü olmayan, kimliği doğrulanmış kullanıcının aynı dt/fieldname için native Custom Field insert'i yan etkiden önce native izin hatasıyla reddedilir; Custom Field oluşmaz ve mevcut kalıcı değerler değişmez.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Aynı komut: bench --site suite.localhost run-tests --module saas_platform.adapters.records_taxonomy.test_doc_type_poc; çakışma mantığından sonra geçer. Test rollback ile çalışır, müşteri kaydı yazmaz."
+      "oneScenario": "saas_app_a ve saas_app_b aynı (dt, saas_ext_code) çiftini bildirir. dt, T-00 eşlemesinde seçilecek ve Custom Field kabul eden, core olmayan standart bir DocType'tır. Ön kontrol iki uygulamayı listeleyen tek bir hata verir ve bu dt/fieldname için Custom Field oluşmaz. Aynı senaryoda System Manager rolü olmayan, kimliği doğrulanmış kullanıcının aynı dt/fieldname için native Custom Field insert girişimi yan etkiden önce native izin hatasıyla reddedilir; Custom Field oluşmaz ve mevcut kalıcı değerler değişmez.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. RED, ön kontrol yokken çakışan bildirimlerde hata üretilmediğini gösteren assertion'dır. Import/altyapı hatası veya native davranışı bozmak RED sayılmaz; native olarak geçen izin reddi için RED uydurulmaz. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "Uygulamadan sonra aynı senaryo, değişmeyen assertion ve komutla geçmelidir. Komut, hedef baz (T-00) ve test yerleşimi belirlendiğinde bir kez sabitlenir; şu anda not_run. Bu sözleşme veya biçim kontrolü ürün GREEN'i değildir. Test transaction rollback ile çalışır, müşteri kaydı yazmaz."
     },
-    "rollback": "Yalnız doc_type_poc.py ve planlı test dosyasının yerel geri alınması; hook bağlanmadıkça native davranış değişmez. Production izni yoktur."
+    "rollback": "Yalnız doc_type_poc.py ve gelecekte belirlenecek test dosyası yerel olarak geri alınır; hook bağlanmadıkça native davranış değişmez. Production, servis, şema veya veri değişikliği yetkisi yoktur. Dağıtım gerekirse teknik CI/deploy/rollback sahibi Hüseyin Cengiz'dir."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "model-1",
+      "sourceStage": "poc",
+      "existing": "Native: DocType kaydedilince updatedb ile şema güncellenir; validate developer_mode kontrolü yapar; developer_mode dışında standart DocType formu salt okunurdur; v1 /resource CRUD kuralları ve v2 get_meta vardır. Suite DENIED_WILDCARD_PATHS /api/ girdisini içerir.",
+      "gap": "Standart DocType (Customize Form/Property Setter) ile custom DocType düzenlemesi ayrılmamış. Şema önizleme/fark, onay ve kırıcı değişiklik reddi yok. v1/v2 seçimi, get_meta tüketim sözleşmesi ve Suite /api/ izin sınırı tanımsız. Hedef sürüm sabitlenmemiş.",
+      "completionSteps": [
+        "Görev kabulüne yol ayrımını yaz: custom=1 DocType için DocType belgesi, standart DocType için Customize Form; developer_mode dışında standart DocType düzenleme yolu açılmaz.",
+        "API sürümü kararından sonra document CRUD ve get_meta tüketimini tek sürüme bağla; DENIED_WILDCARD_PATHS etkisini ana entegrasyon sahibine öneri olarak belgele.",
+        "Şema değişikliği için önizleme/fark ve onay adımını native kayıttan önce konumlandır; kırıcı sınıflar model-2 kararına bağlanır.",
+        "Kabule şunu ekle: izinsiz kullanıcının kayıt oluşturma veya yazma isteği native izinle reddedilir ve kayıt değişmez."
+      ],
+      "dependencies": [
+        "native-doctype-schema--contract",
+        "kernel-envelope--contract",
+        "tenant-registry--contract",
+        "native-user-policy--contract",
+        "api-middleware--contract",
+        "permissioned-metadata--contract"
+      ],
+      "acceptance": "Yeni DocType alanlarıyla kayıt oluşturma, okuma ve yazma seçilen izinli API üzerinden native izinle çalışır. İzinsiz kullanıcının yazması reddedilir ve kayıt değişmez. developer_mode dışında standart DocType, DocType belgesiyle değiştirilemez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/core/doctype/doctype/doctype.py",
+          "line": 546,
+          "quote": "frappe.db.updatedb(self.name, Meta(self))"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/doctype/doctype.py",
+          "line": 198,
+          "quote": "self.check_developer_mode()"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/doctype/doctype.js",
+          "line": 66,
+          "quote": "if (!frappe.boot.developer_mode && !frm.doc.custom) {"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 154,
+          "quote": "Rule(\"/resource/<doctype>\", methods=[\"POST\"], endpoint=create_doc),"
+        },
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 245,
+          "quote": "def get_meta(doctype: str):"
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 466,
+          "quote": "\"/api/\","
+        }
+      ]
+    },
+    {
+      "requirementId": "model-2",
+      "sourceStage": "mvp",
+      "existing": "Native: CustomizeFormField içinde fieldtype listesi; Custom Field kaydı updatedb çalıştırır; Meta, Custom Field ve Property Setter kayıtlarını birleştirir; Property Setter yalnız naming_series tür değişikliğini engeller; core DocType'a Custom Field eklenemez.",
+      "gap": "Her fieldtype için UI kontrolü ve API değer eşlemesi tanımsız; kırıcı değişiklik sınıfları yok. make_property_setter izinleri yok sayıyor, create_custom_field ignore_validate alıyor; bunların headless yüzeye açılmayacağı yazılmamış. Meta önbelleği temizlendikten sonra istemci sorgu geçersizleştirme sözleşmesi yok.",
+      "completionSteps": [
+        "Kabule yaz: alan ekleme Custom Field belgesiyle, özellik değişikliği Customize Form/Property Setter belgesiyle, kendi native izinleri ve save yoluyla yapılır.",
+        "İzin veya doğrulama atlayan helper'ların (make_property_setter, create_custom_field) whitelist veya headless uç olarak açılmayacağını denied listesine ekle.",
+        "Desteklenen fieldtype listesini hedef sürüm kaynağından çıkar; sunucu doğrulaması ile UI sunum metaverisini ayrı sütunlarda eşle.",
+        "Kırıcı sınıfları (tür değişikliği, silme, unique ekleme, uzunluk küçültme) karar gelene kadar reddedilecek olarak listele.",
+        "Meta değişikliği sonrası istemci geçersizleştirmesini permissioned-metadata ve client-rule-parity sözleşmelerine bağla; yeni önbellek motoru kurma."
+      ],
+      "dependencies": [
+        "native-doctype-schema--contract",
+        "native-doctype-schema--implementation",
+        "native-user-policy--contract",
+        "permissioned-metadata--contract",
+        "client-rule-parity--contract"
+      ],
+      "acceptance": "get_meta çıktısındaki fieldtype, reqd ve unique değerleri API kayıt davranışıyla eşleşir. İzinsiz kullanıcının Custom Field veya Property Setter yazması reddedilir ve meta değişmez. Core DocType'a Custom Field eklenemez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/custom/doctype/customize_form_field/customize_form_field.py",
+          "line": 33,
+          "quote": "fieldtype: DF.Literal["
+        },
+        {
+          "path": "frappe/frappe/custom/doctype/custom_field/custom_field.py",
+          "line": 229,
+          "quote": "frappe.db.updatedb(self.dt)"
+        },
+        {
+          "path": "frappe/frappe/custom/doctype/property_setter/property_setter.py",
+          "line": 8,
+          "quote": "not_allowed_fieldtype_change = [\"naming_series\"]"
+        },
+        {
+          "path": "frappe/frappe/custom/doctype/property_setter/property_setter.py",
+          "line": 87,
+          "quote": "# WARNING: Ignores Permissions"
+        },
+        {
+          "path": "frappe/frappe/custom/doctype/custom_field/custom_field.py",
+          "line": 291,
+          "quote": "Custom Fields cannot be added to core DocTypes."
+        },
+        {
+          "path": "frappe/frappe/model/meta.py",
+          "line": 174,
+          "quote": "self.apply_property_setters()"
+        }
+      ]
+    },
+    {
+      "requirementId": "model-4",
+      "sourceStage": "poc",
+      "existing": "Native: Meta Link alanlarını listeler; Dynamic Link alan türü ve unique özelliği vardır; v1 link genişletmesi bağlı kaydı read izniyle okur; v1 delete_doc yolunda child doc handling için TODO bulunur.",
+      "gap": "Silme politikası seçilmemiş; v1 delete yolunda child TODO var. Yinelenen veri varken unique ekleme davranışı tanımsız. Link, Dynamic Link, Table ve Table MultiSelect ile N:M eşlemesi yok. Okuma izni olmayan bağlı kayıtta genişletme davranışı kabulde yok.",
+      "completionSteps": [
+        "İlişki türü eşleme tablosunu göreve yaz: Link, Dynamic Link, Table, Table MultiSelect ve N:M karşılığı; yeni ilişki motoru kurma.",
+        "Geçersiz Link ve eksik reqd reddini native save yolunun davranışı olarak yalnız doğrulama kanıtına bağla; native olarak geçen davranış için RED üretme.",
+        "Silme politikası kararına kadar bağlı kayıt silmeyi native link kontrolüne bırak; API sürümü kararı olmadan delete yolu headless kabulün dışında kalır.",
+        "Yinelenen veri varken unique eklemeyi model-2 kırıcı sınıfına bağla.",
+        "Kabule ekle: okuma izni olmayan bağlı kaydın genişletilmesi native read izin hatasıyla sonuçlanır."
+      ],
+      "dependencies": [
+        "native-doctype-schema--contract",
+        "kernel-envelope--contract",
+        "tenant-registry--contract",
+        "native-user-policy--contract",
+        "api-middleware--contract"
+      ],
+      "acceptance": "Geçersiz Link, eksik zorunlu değer ve yinelenen benzersiz değer seçilen API üzerinden reddedilir ve kayıt yazılmaz. Bağlı kayıt silme politikası karardan sonra denenir. Okuma izni olmayan bağlı kayıt genişletilmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/model/meta.py",
+          "line": 186,
+          "quote": "return self.get(\"fields\", {\"fieldtype\": \"Link\", \"options\": [\"!=\", \"[Select]\"]})"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 104,
+          "quote": "link_doc = frappe.get_doc(doctype, doc_fieldvalue, check_permission=\"read\")"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 71,
+          "quote": "# TODO: child doc handling"
+        },
+        {
+          "path": "frappe/frappe/custom/doctype/customize_form_field/customize_form_field.py",
+          "line": 123,
+          "quote": "unique: DF.Check"
+        },
+        {
+          "path": "frappe/frappe/custom/doctype/customize_form_field/customize_form_field.py",
+          "line": 49,
+          "quote": "\"Dynamic Link\","
+        }
+      ]
+    },
+    {
+      "requirementId": "model-5",
+      "sourceStage": "post_mvp",
+      "existing": "Native: Meta, Custom Field kayıtlarını site veritabanından dt filtresiyle okur; Customize Form kaydı updatedb çalıştırır; Property Setter yalnız naming_series tür değişikliğini engeller; Customize Form, kalıcı kolon silmede veri kaybı uyarısı verir.",
+      "gap": "Tenant topolojisi bağlanmamış; şema sürümü/revizyonu yok. Tür değişiminde kuru çalıştırma ve uyumsuz satır raporu yok. Customize Form tür geçiş listesi görülmedi (unknown). Trim/kolon silmenin headless yüzeydeki durumu yazılmamış.",
+      "completionSteps": [
+        "Tenant topolojisi kararına kadar sızıntı kabulünü gözlenen native site sınırıyla belgele ve tenant-registry sözleşmesine bağla; paylaşımlı tenant kolonu tasarlama.",
+        "Salt okunur uyumsuzluk raporu sözleşmesi yaz: girdi (dt, fieldname, hedef tür), çıktı uyumsuz satır sayısı ve örnek kayıt adları; yazma ve DDL yok.",
+        "Customize Form tür geçiş doğrulamasını hedef sürüm kaynağında oku ve izinli geçiş listesine eşle; okunana kadar unknown kalır.",
+        "Trim Table ve kolon silme gibi geri alınamaz adımları headless yüzeyde kapalı tut; yalnız native Desk yolunda kalsın.",
+        "Şema revizyon kimliği için yalnız hedef sürüm kararından sonra alan adı ve biçim önerisi yaz."
+      ],
+      "dependencies": [
+        "native-doctype-schema--contract",
+        "native-doctype-schema--implementation",
+        "kernel-envelope--contract",
+        "tenant-registry--contract",
+        "native-user-policy--contract"
+      ],
+      "acceptance": "Bir sitenin özel alanı başka bir sitede görünmez. Tür değişiminden önce uyumsuz veri kayıpsız ve salt okunur raporlanır; rapor veri veya şema değiştirmez. İzinsiz kullanıcının tür değişikliği reddedilir ve meta değişmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/model/meta.py",
+          "line": 414,
+          "quote": "filters={\"dt\": self.name},"
+        },
+        {
+          "path": "frappe/frappe/custom/doctype/property_setter/property_setter.py",
+          "line": 8,
+          "quote": "not_allowed_fieldtype_change = [\"naming_series\"]"
+        },
+        {
+          "path": "frappe/frappe/custom/doctype/customize_form/customize_form.py",
+          "line": 247,
+          "quote": "frappe.db.updatedb(self.doc_type)"
+        },
+        {
+          "path": "frappe/frappe/custom/doctype/customize_form/customize_form.js",
+          "line": 230,
+          "quote": "Warning: DATA LOSS IMMINENT!"
+        }
+      ]
+    },
+    {
+      "requirementId": "model-6",
+      "sourceStage": "mvp",
+      "existing": "Native: CustomizeFormField içinde default, fetch_from ve mandatory_depends_on özellikleri vardır; v1 create yolu Document insert'ten geçtiği için controller validate API yolunda çalışır.",
+      "gap": "Hangi DocType'ta hangi formülün hesaplanacağı ve yeniden hesaplama zamanı tanımsız. Import ve job yollarının aynı validate zincirinden geçtiği doğrulanmadı (unknown). UI read_only/depends_on bilgisinin sunucu doğrulaması sayılmayacağı yazılmamış. Suite'te ilgili controller veya doc_events görülmedi.",
+      "completionSteps": [
+        "Her hesaplanan alan için kural yaz: sunucu controller'ı validate içinde yeniden hesaplar, istemciden gelen değer yok sayılır.",
+        "read_only, depends_on ve fetch_from bilgisini sunum veya kopyalama metaverisi olarak işaretle, sunucu doğrulaması sayma; client-rule-parity sözleşmesine bağla.",
+        "Import ve job yollarının aynı Document save zincirinden geçtiğini hedef kaynakta oku; doğrulanana kadar unknown kalır.",
+        "Kabulü, formül kararından sonra tek DocType üzerinde API ve import yolunun aynı sonucu vermesiyle sınırla."
+      ],
+      "dependencies": [
+        "native-doctype-schema--contract",
+        "native-doctype-schema--implementation",
+        "native-user-policy--contract",
+        "client-rule-parity--contract"
+      ],
+      "acceptance": "Tek DocType'ta hesaplanan alan API ve import yolunda aynı sonucu verir. İstemcinin gönderdiği türetilmiş değer kaydedilen değeri değiştirmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/custom/doctype/customize_form_field/customize_form_field.py",
+          "line": 30,
+          "quote": "fetch_from: DF.SmallText | None"
+        },
+        {
+          "path": "frappe/frappe/custom/doctype/customize_form_field/customize_form_field.py",
+          "line": 27,
+          "quote": "default: DF.SmallText | None"
+        },
+        {
+          "path": "frappe/frappe/custom/doctype/customize_form_field/customize_form_field.py",
+          "line": 98,
+          "quote": "mandatory_depends_on: DF.Code | None"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 50,
+          "quote": "return frappe.new_doc(doctype, **data).insert()"
+        }
+      ]
+    },
+    {
+      "requirementId": "model-7",
+      "sourceStage": "poc",
+      "existing": "Native: create_custom_field aynı dt/fieldname varsa sessizce atlar; yeni Property Setter aynı özellikteki eskisini siler; Property Setter module alanı yalnız export içindir; sistem üretimi Custom Field için yükseltmede ezilebilir uyarısı vardır; devre dışı modülün Property Setter kayıtları meta'da gizlenir.",
+      "gap": "Uygulama başına alan sahipliği kaydı ve çakışma politikası yok. create_custom_fields update=True gövdesi okunmadı. is_system_generated koruması tanımsız. Suite fixtures/custom_fields görülmedi.",
+      "completionSteps": [
+        "Bu sözleşmenin behavior ve contract bölümündeki salt okunur ön kontrolü uygula: açık uygulama bildirimi tek kaynaktır, (dt, fieldname) çiftine göre gruplanır, çakışmada tek hata üretilir.",
+        "module/owner alanını sahiplik kanıtı sayma; Property Setter (dt, field, property) çakışmasını sonraki adımda aynı bildirim modeline ekle.",
+        "Ön kontrolü native kurulum/migration yaşam döngüsünün önüne bağla; onun yerine geçirme, whitelist veya headless uç açma.",
+        "create_custom_fields gövdesini ve Suite fixtures/custom_fields kullanımını hedef kaynakta oku; bulguları R-00'a yaz."
+      ],
+      "dependencies": [
+        "native-doctype-schema--contract",
+        "kernel-envelope--contract",
+        "tenant-registry--contract",
+        "native-user-policy--contract"
+      ],
+      "acceptance": "İki uygulamanın alan uzantısı çakışınca kurulum durur ve Custom Field yazılmaz. Yükseltme özgün kayıt sahipliğini korur. System Manager olmayan kullanıcının Custom Field insert'i reddedilir ve kayıt değişmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/custom/doctype/custom_field/custom_field.py",
+          "line": 314,
+          "quote": "if not frappe.db.get_value(\"Custom Field\", {\"dt\": doctype, \"fieldname\": df.fieldname}):"
+        },
+        {
+          "path": "frappe/frappe/custom/doctype/property_setter/property_setter.py",
+          "line": 46,
+          "quote": "delete_property_setter(self.doc_type, self.property, self.field_name, self.row_name)"
+        },
+        {
+          "path": "frappe/frappe/custom/doctype/property_setter/property_setter.json",
+          "line": 103,
+          "quote": "\"label\": \"Module (for export)\","
+        },
+        {
+          "path": "frappe/frappe/custom/doctype/custom_field/custom_field.js",
+          "line": 33,
+          "quote": "may be overwritten by a future update"
+        },
+        {
+          "path": "frappe/frappe/model/meta.py",
+          "line": 446,
+          "quote": "is_module_disabled(ps.module)"
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "model-1: standart DocType (Customize Form/Property Setter) ile custom DocType ayrımı, developer_mode kısıtı, şema önizleme/onay, /api/v2 document/get_meta ile Suite /api/ izin listesi sınırı açık. İzinli kayıt okuma/güncelleme yerel pilotta (t08) native çalıştığı için yeni RED üretilmez.",
-    "model-4: silme politikası (restrict veya child cascade), v1 delete_doc child TODO, yinelenen veri varken unique ekleme ve expand_links okuma izni tanımsız. Geçersiz Link/reqd reddi native olduğundan yalnız doğrulama kanıtı gerekir.",
-    "model-7 kalan: bildirimde olmayan elle oluşturulmuş Custom Field ile çakışma, Property Setter (dt, field, property) son yazan kazanır, is_system_generated yükseltme koruması, Suite fixtures/custom_fields görülmedi.",
-    "model-2 (MVP): fieldtype UI/API eşlemesi, kırıcı değişiklik sınıfları, izin atlayan make_property_setter ve ignore_validate yolunun headless yüzeye açılmaması, core DocType sınırı, meta cache geçersizleştirme.",
-    "model-6 (MVP): hesaplanan alan formülü ve validate içinde yeniden hesaplama; import ve job yolunun aynı zincirden geçmesi unknown.",
-    "Uzak ürün tabanı, Suite HEAD ve Keycloak not_run. Dağıtım gerekirse teknik sahip Hüseyin Cengiz; zamanlama veya otomasyon etkinleştirilmez."
+    "model-1: standart ve custom DocType yol ayrımı, developer_mode kısıtı, şema önizleme/onay, API sürümü ve Suite /api/ izin sınırı açık.",
+    "model-2 (MVP): fieldtype UI/API eşlemesi, kırıcı değişiklik sınıfları, izin atlayan helper'ların headless yüzeye kapalı tutulması, core DocType sınırı ve meta önbellek geçersizleştirmesi açık.",
+    "model-4: silme politikası, v1 delete_doc child TODO, yinelenen veri varken unique ekleme, ilişki türü eşlemesi ve bağlı kayıt okuma izni açık. Geçersiz Link/reqd reddi native davranış olarak yalnız doğrulama kanıtı ister.",
+    "model-5 (post-MVP): tenant topolojisi, şema revizyonu, salt okunur uyumsuzluk raporu, tür geçiş listesi (unknown) ve trim/kolon silmenin headless yüzeyde kapalı tutulması açık.",
+    "model-6 (MVP): hesaplanan alan formülü, yeniden hesaplama zamanı ve import/job yolunun aynı zincirden geçmesi (unknown) açık.",
+    "model-7 kalan: bildirimde olmayan elle oluşturulmuş Custom Field ile çakışma, Property Setter son yazan kazanır davranışı, is_system_generated yükseltme koruması ve Suite fixtures/custom_fields görülmedi.",
+    "Hedef Frappe sürümü, uzak ürün tabanı ve Suite HEAD doğrulanmadı; runtime kabulü not_run. Dağıtım gerekirse teknik sahip Hüseyin Cengiz'dir; zamanlama veya otomasyon etkinleştirilmez."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Hedef Frappe sürümü ve commit sabitlemesi",
+      "requirementIds": ["model-1", "model-2", "model-5", "model-7"],
+      "blocks": "T-00 hedef baz; istisna sınıfı, create_custom_fields gövdesi ve tür geçiş doğrulamasının okunması",
+      "interimDocStep": "Sürüme duyarlı noktaları (developer_mode kontrolü, get_meta, tür geçiş doğrulaması, create_custom_fields) R-00 taslağında liste olarak tut."
+    },
+    {
+      "decision": "API sürümü (v1 veya v2) ve Suite DENIED_WILDCARD_PATHS izin sınırı",
+      "requirementIds": ["model-1", "model-4"],
+      "blocks": "Headless CRUD, get_meta tüketimi ve delete yolunun kabulü",
+      "interimDocStep": "İki sürümün native yollarını ve v1 delete child TODO notunu karşılaştırmalı tabloya yaz."
+    },
+    {
+      "decision": "Tenant topolojisi (site başına veya paylaşımlı)",
+      "requirementIds": ["model-5"],
+      "blocks": "Kiracılar arası sızıntı kabulü ve kiracıya göre sınırlanmış uyumsuzluk raporu",
+      "interimDocStep": "Gözlenen native site sınırını kaynak alıntısıyla belgele; topoloji seçme."
+    },
+    {
+      "decision": "Bağlı kayıt silme politikası (restrict veya child cascade)",
+      "requirementIds": ["model-4"],
+      "blocks": "Silme politikası kabul senaryosu",
+      "interimDocStep": "Native link kontrolü ve child table davranışını kaynak okumasıyla eşleme tablosuna yaz."
+    },
+    {
+      "decision": "Kırıcı şema değişikliği politikası (red veya onaya bağlı), yinelenen veri varken unique ekleme dahil",
+      "requirementIds": ["model-2", "model-4", "model-5"],
+      "blocks": "Kırıcı sınıf kabulü ve onay akışı",
+      "interimDocStep": "Kırıcı sınıfları listele ve karar gelene kadar reddedilecek olarak işaretle."
+    },
+    {
+      "decision": "Hesaplanan alan formülleri ve yeniden hesaplama zamanı (kayıt anında veya job)",
+      "requirementIds": ["model-6"],
+      "blocks": "Tek DocType üzerinde API/import eşdeğerlik kabulü",
+      "interimDocStep": "validate içinde yeniden hesaplama ve istemci değerini yok sayma kuralını genel ilke olarak yaz."
+    },
+    {
+      "decision": "Uygulama uzantı bildiriminin kaynağı ve biçimi",
+      "requirementIds": ["model-7"],
+      "blocks": "Ön kontrolün kurulum/migration hook bağlantısı",
+      "interimDocStep": "contract.input şeklini tek kaynak gereksinimi olarak koru; hooks.py'ye yazma."
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "model-1": "poc",
-    "model-2": "mvp",
-    "model-4": "poc",
-    "model-6": "mvp",
-    "model-7": "poc"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,
     "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
-    "permissionPolicyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/explicitPermissionFlags",
     "specificPrerequisitesRef": "#/development/admission"
   }
 }

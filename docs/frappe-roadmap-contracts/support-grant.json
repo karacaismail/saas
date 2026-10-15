@@ -1,0 +1,316 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "support-grant",
+  "canonicalTaskIds": ["support-grant--implementation"],
+  "requirementIds": ["access-4", "access-5"],
+  "stage": "enterprise",
+  "sourceStages": {
+    "access-4": "enterprise",
+    "access-5": "enterprise"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "statusNote": "Uygulama durumu: uygulanmadı. Bu dosya yalnız gelecekteki geliştirme rehberidir; ürün kodu, test, şema, servis, production veya veri değişikliği yetkisi vermez.",
+  "behavior": {
+    "title": "Onaylı ve süresi geçerli Destek İzni (Support Grant) olmadan Frappe-native impersonate çağrısının sunucuda reddedilmesi",
+    "trigger": "Destek görevlisi Frappe-native whitelisted impersonate(user, reason) metodunu POST ile çağırır.",
+    "expected": "Çağıran için hedef kullanıcıya ait, durumu onaylı, şu an başlangıç ile bitiş zamanı arasında kalan ve onaylayanı talep edenden farklı bir grant varsa ve hedef korunan değilse çağrı native akışa aynen devredilir: native User 'impersonate' izin türü kontrolü, Activity Log (operation=Impersonate), hedefe bildirim ve login_as ile oturum devri değişmeden çalışır; Version kayıtları impersonated_by taşır.",
+    "denied": "Geçerli grant yoksa; grant onaylanmamış, iptal edilmiş veya süresi dolmuşsa; hedef Administrator ise, Administrator/System Manager rolüne sahipse ya da restrict_ip tanımlıysa çağrı sunucuda izin hatasıyla reddedilir. Oturum değişmez, Impersonate Activity Log kaydı ve bildirim oluşmaz, grant kaydı değişmez."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Frappe-native impersonate metodu ve User 'impersonate' izin türü, LoginManager.impersonate/login_as oturum devri, set_impersonated ile oturum verisine impersonated_by yazımı, Version.set_impersonator ile değişiklik kayıtlarına impersonated_by/audit_user eklenmesi, rol tabanlı izin değerlendirmesi ve uygulama has_permission kancaları yeniden kullanılır. Yeni oturum, izin, denetim motoru, ORM veya CRUD katmanı kurulmaz.",
+    "scopeNote": "Kanıtlar yalnız native parçaların varlığını gösterir; bütün davranışın var olduğu anlamına gelmez. Grant kaydı, sunucu tarafı hedef koruması, süre bağlama, iptal ve hassas işlem sınırı kaynakta görülmedi. Alıntılar önceki salt okunur Frappe/Suite kaynak anlık görüntülerindendir; canlı site veya ürün kabulü değildir. Vue/Frappe UI kaynağı React/Ant Design uygulaması kanıtı sayılmaz.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/core/doctype/user/user.py",
+        "line": 1581,
+        "quote": "frappe.has_permission(\"User\", \"impersonate\", throw=True)"
+      },
+      {
+        "path": "frappe/frappe/core/doctype/user/user.py",
+        "line": 1590,
+        "quote": "\"operation\": \"Impersonate\","
+      },
+      {
+        "path": "frappe/frappe/auth.py",
+        "line": 376,
+        "quote": "self.login_as(user, session_end=session_data.session_end, audit_user=session_data.audit_user)"
+      },
+      {
+        "path": "frappe/frappe/sessions.py",
+        "line": 495,
+        "quote": "self.data.data.impersonated_by = original_user"
+      },
+      {
+        "path": "frappe/frappe/core/doctype/version/version.py",
+        "line": 44,
+        "quote": "data[\"impersonated_by\"] = impersonator"
+      },
+      {
+        "path": "frappe/frappe/core/doctype/user/user.js",
+        "line": 401,
+        "quote": "if (frm.doc.restrict_ip) {"
+      },
+      {
+        "path": "frappe/frappe/permissions.py",
+        "line": 109,
+        "quote": "if user == \"Administrator\":"
+      },
+      {
+        "path": "frappe/frappe/permissions.py",
+        "line": 168,
+        "quote": "role_permissions = get_role_permissions(meta, user=user, debug=debug)"
+      },
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 154,
+        "quote": "has_permission = {"
+      },
+      {
+        "path": "suite/suite/sheets/permissions.py",
+        "line": 22,
+        "quote": "_PRIVILEGED_ROLES = frozenset({\"Administrator\", \"System Manager\"})"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/auth.py",
+      "frappe/frappe/core/doctype/user/user.js",
+      "frappe/frappe/core/doctype/user/user.py",
+      "frappe/frappe/core/doctype/version/version.py",
+      "frappe/frappe/permissions.py",
+      "frappe/frappe/sessions.py",
+      "suite/suite/hooks.py",
+      "suite/suite/sheets/permissions.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/support-grant.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/authorization/doctype/support_grant/support_grant.py"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "impersonate çağrısı: hedef kullanıcı (user) ve gerekçe (reason). Grant kaydı (support-grant--schema sahipliğinde): talep eden destek kullanıcısı, hedef kullanıcı, tenant bağlamı (tenant-registry--contract), yapılandırılmış gerekçe, kapsam, başlangıç ve bitiş zamanı, onaylayan ve durum (talep, onaylı, iptal, süresi doldu). Alan adları ve durum değerleri support-grant--contract içinde kesinleşir; bu rehber yeni alan adı icat etmez.",
+    "output": "Başarıda native impersonate sonucu değişmeden döner. Ayrı ve sonraki dar davranışta React/Ant Design istemcisine dönen yanıt zarfına (kernel-envelope--contract) salt okunur actor (impersonated_by) ve subject (session.user) alanları eklenir; istemci bunları yalnız gösterir, yazamaz. Ret durumunda native izin hatası ve iç ayrıntı sızdırmayan kısa bir neden döner.",
+    "authorization": "Native has_permission(User, impersonate) kontrolü kaldırılmaz, kopyalanmaz ve atlanmaz. Ek sunucu kontrolleri: geçerli onaylı grant, korunan hedef reddi (Administrator, System Manager rolü, restrict_ip) ve onaylayan ile talep edenin farklı olması. Destek rolü Administrator veya System Manager olamaz; bu roller izin değerlendirmesini atladığı için süre ve hassas işlem sınırı etkisiz kalır. Grant DocType rol izinleri, onaylayıcı rolü ve 'impersonate' izin türünün verileceği rol explicitPermissionFlags ortak kaynağına bağlanır. ignore_permissions, ham SQL veya başka yetki bypass'ı kullanılmaz; grant okuma çağıranın kendi izinleriyle yapılır.",
+    "persistence": "Grant durum geçişleri native Document validate/save ve transaction üzerinden yapılır; talep eden kendi grant'ini onaylayamaz. Denetim izi: native Activity Log ve Version impersonated_by korunur; grant kaydı gerekçe, onay, süre ve iptalin yapılandırılmış kanıtıdır. Değişmez log DocType'ı gereksinimi ve saklama süresi açık karardır. Bu sözleşme şema veya veri değiştirmez.",
+    "failure": "Grant okunamazsa, tenant bağlamı çözülemezse veya hedefin rolleri belirlenemezse çağrı reddedilir (fail-closed). Native impersonate hata verirse grant durumu değişmez. Grant bitişi veya iptalinden sonra açık impersonation oturumunun sürmesi kabul edilmez; süre bağlama davranışı kabul edilmeden özellik etkinleştirilmez."
+  },
+  "development": {
+    "dependencies": [
+      "kernel-envelope--contract",
+      "support-grant--contract",
+      "support-grant--schema",
+      "tenant-registry--contract"
+    ],
+    "admission": {
+      "prerequisites": [
+        "T-00 hedef sürüm temeli: kaynak v17-dev, dokümanlar v15/v16; impersonate imzası, POST kısıtı, login_as session_end parametresi ve set_impersonated hedef sürümde yeniden doğrulanır.",
+        "R-00 yeniden kullanım eşlemesi: bu dosyadaki native parçalar.",
+        "R-01: grant kaydını okuyan izinli veri tüketicileri için.",
+        "support-grant--contract ve support-grant--schema kabul edilmiş olmalı.",
+        "kernel-envelope--contract ve tenant-registry--contract kabul edilmiş olmalı.",
+        "Tek dar davranış ve gerçek RED/GREEN kanıtı."
+      ],
+      "permissionFlagsRef": "explicitPermissionFlags ortak kaynağı; tam JSON işaretçisi entegrasyon sahibince doğrulanır",
+      "blockedBy": [
+        "decisionsPending: destek erişim modeli, hedef Frappe sürümü, onaylayan ve tenant topolojisi"
+      ]
+    },
+    "steps": [
+      "1. support-grant--contract alanlarını ve durum geçişlerini bu rehberle eşle; eksik alan için ad uydurma, contract görevine geri bildir.",
+      "2. T-00 hedef sürüm kaynağında native impersonate akışını ve whitelisted metot sarmalama yolunu (Frappe hooks.py override_whitelisted_methods) doğrula; bu yol kanıt listesinde yoktur ve doğrulanmadan kullanılmaz.",
+      "3. RED: tdd.oneScenario testini yaz; native davranışla ret beklentisinin başarısız olduğunu kaydet.",
+      "4. plannedProduction dosyasında dar sarmalayıcı: grant ve korunan hedef kontrolleri geçerse native impersonate aynı argümanlarla çağrılır; native kontroller kopyalanmaz veya atlanmaz.",
+      "5. Sarmalayıcıyı backend/saas_platform/saas_platform/hooks.py üzerinden bağla; paylaşılan dosya olduğu için seri birleştirme entegrasyon sahibindedir.",
+      "6. GREEN kanıtı ve native mutlu yol regresyonu: geçerli grant ile impersonate çalışır, Version impersonated_by taşır.",
+      "7. Sonraki ayrı dar davranışlar, her biri kendi RED/GREEN kanıtıyla: grant bitişinin oturum bitişine bağlanması ve iptalde oturum sonlandırma; impersonation oturumunda hassas işlem reddi; yanıt zarfında salt okunur actor/subject."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "User 'impersonate' izin türüne sahip, onaylı grant'i olmayan destek kullanıcısı korunmayan bir hedef için impersonate POST çağrısı yapar; çağrı sunucuda reddedilir.",
+      "red": "Sarmalayıcı yokken native metot yalnız 'impersonate' izin türünü kontrol ettiği için çağrı başarılı olur: oturum kullanıcısı hedefe geçer ve Impersonate Activity Log kaydı oluşur; testin ret beklentisi bu gerçek davranış nedeniyle başarısız olur. Import veya altyapı hatası ya da native davranışı bozarak üretilen hata RED sayılmaz.",
+      "green": "Sarmalayıcı bağlandıktan sonra aynı çağrı izin hatası verir; oturum kullanıcısı değişmez, yeni Impersonate Activity Log kaydı ve bildirim oluşmaz, grant kayıtları değişmez. Geçerli onaylı grant ile aynı çağrı native akışla başarılı olur."
+    },
+    "rollback": "Gelecekte geri alma: hooks.py bağlantısı kaldırılarak native impersonate davranışına dönülür; grant verileri silinmez, şema geri alma support-grant--schema sahipliğindedir. CI, deploy ve rollback teknik sahibi Hüseyin Cengiz'dir; bu birimde GoDaddy/DNS işi yoktur. Bu sözleşme hiçbir servis, production, şema veya veriyi değiştirme yetkisi vermez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "access-4",
+      "sourceStage": "enterprise",
+      "existing": "Native parçalar: POST ile sınırlı whitelisted impersonate(user, reason) ve User 'impersonate' izin türü kontrolü; Activity Log (operation=Impersonate), hedefe gerekçeli bildirim ve varsayılan hesap varsa uyarı e-postası; login_as ile session_end ve audit_user değerlerini devralan yeni oturum; oturum verisinde impersonated_by; Version kayıtlarında impersonated_by ve audit_user; Desk banner'ı; user.js içinde zorunlu gerekçe ve yalnız istemci tarafı restrict_ip kontrolü.",
+      "gap": "Sunucu tarafı hedef koruması yok (korunan roller, restrict_ip). Süre sınırı, onaylayan, bekleyen talep ve iptal kaydı yok; gerekçe yapılandırılmış alan değil. Yapılandırılmış actor/subject yalnız Version ve Activity Log metninde; Access Log, Comment, Error Log, RPC çağrıları, realtime olayları ve Suite aktivite kayıtları taşımıyor. Keycloak impersonation/token-exchange claim eşlemesi yok. API key/token, WebDAV Basic Auth ve Meet SFU JWT yolları için politika yok. React/Ant Design istemcisine dönen yanıt sözleşmesinde actor/subject alanı yok; gösterge yalnız Frappe Desk'te.",
+      "completionSteps": [
+        "Hedef korumasını sarmalayıcıda sunucu tarafında uygula: Administrator, Administrator/System Manager rolü ve restrict_ip tanımlı hedef reddedilir; user.js kontrolüne güvenilmez.",
+        "Gerekçeyi grant kaydında yapılandırılmış alan olarak tut; native reason argümanını bildirim için aynen geçir.",
+        "Grant onayı, süre aralığı ve iptal durumunu çağrı anında kontrol et; onaylayan talep eden olamaz.",
+        "Grant bitişini oturum bitişine bağla; native login_as session_end parametresini kullanan yöntem T-00 kaynağında doğrulanmadan seçilmez.",
+        "Version impersonated_by davranışını koru; kernel-envelope--contract yanıtına salt okunur actor/subject ekle. Diğer log türlerine yayılım ayrı karar ve ayrı davranıştır.",
+        "Alternatif kimlik yollarının impersonation ile ilişkisini belgeleyip karar sonrası ayrı davranış olarak ele al.",
+        "Keycloak claim eşlemesini karar gelene kadar uygulama; yalnız impersonated_by alanına eşleneceğini not et."
+      ],
+      "dependencies": [
+        "support-grant--contract",
+        "support-grant--schema",
+        "kernel-envelope--contract",
+        "tenant-registry--contract"
+      ],
+      "acceptance": "Destek oturumu yetkisiz açılmamalı; log her işlemde asıl ve temsil edilen kimliği ayırmalı. Gelecekteki kabul: grant'siz veya korunan hedefe çağrı reddedilir, oturum ve kayıtlar değişmez; geçerli grant ile oluşan Version kaydı impersonated_by taşır.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/core/doctype/user/user.py",
+          "line": 1581,
+          "quote": "frappe.has_permission(\"User\", \"impersonate\", throw=True)"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/user/user.py",
+          "line": 1590,
+          "quote": "\"operation\": \"Impersonate\","
+        },
+        {
+          "path": "frappe/frappe/auth.py",
+          "line": 376,
+          "quote": "self.login_as(user, session_end=session_data.session_end, audit_user=session_data.audit_user)"
+        },
+        {
+          "path": "frappe/frappe/sessions.py",
+          "line": 495,
+          "quote": "self.data.data.impersonated_by = original_user"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/version/version.py",
+          "line": 44,
+          "quote": "data[\"impersonated_by\"] = impersonator"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/user/user.js",
+          "line": 401,
+          "quote": "if (frm.doc.restrict_ip) {"
+        }
+      ]
+    },
+    {
+      "requirementId": "access-5",
+      "sourceStage": "enterprise",
+      "existing": "Native parçalar: rol tabanlı izin değerlendirmesi (get_role_permissions), Administrator için tam bypass ve uygulama düzeyinde has_permission kancası deseni; Suite sheets modülünde Administrator ve System Manager ayrıcalıklı rol kümesi.",
+      "gap": "Süreli ve müşteri onaylı destek erişimi nesnesi yok. Erişim modeli, hassas işlem listesi ve sunucuda reddedileceği yer tanımsız. Destek rolünün Administrator/System Manager olamayacağı yazılmamış. Denetim izinin yeri ve bitişte oturum/token iptali tanımsız. v15/v16 dokümanları v17-dev kaynağına eşlenmemiş.",
+      "completionSteps": [
+        "Erişim modelini R-00 gereği Frappe-native impersonate ve grant kaydı olarak belgele; Keycloak alternatifi karar listesinde kalır.",
+        "Gerekçe, onaylayan ve bitiş zamanını grant validate kuralında zorunlu tut; azami süre değeri karar gelene kadar sabitlenmez.",
+        "Destek rolünü ayrıcalıklı rollerden ayır; korunan rol kümesini tek yerde tanımla ve hem hedef hem destek rolü için uygula.",
+        "Hassas işlem sınırını impersonation oturumunda (oturum verisinde impersonated_by) sunucuda reddet: liste karar sonrası has_permission kancası ve whitelisted metot girişinde uygulanır.",
+        "Denetim izini grant kaydı, native Activity Log ve Version ile kur; değişmez log ayrı karardır.",
+        "Bitiş ve iptalde açık impersonation oturumlarını native oturum sonlandırma yoluyla kapat; kullanılacak API T-00 kaynağında doğrulanır.",
+        "Rol ve izin tanımlarını explicitPermissionFlags ortak kaynağına bağla."
+      ],
+      "dependencies": [
+        "support-grant--contract",
+        "support-grant--schema",
+        "kernel-envelope--contract",
+        "tenant-registry--contract"
+      ],
+      "acceptance": "Gerekçe, müşteri onayı ve süre zorunlu olmalı; süre sonunda erişim ve hassas işlemler kesilmeli. İzin kabulü: talep edenin kendi grant'ini onaylı yapma girişimi reddedilir ve kayıt değişmeden kalır.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 109,
+          "quote": "if user == \"Administrator\":"
+        },
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 168,
+          "quote": "role_permissions = get_role_permissions(meta, user=user, debug=debug)"
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 154,
+          "quote": "has_permission = {"
+        },
+        {
+          "path": "suite/suite/sheets/permissions.py",
+          "line": 22,
+          "quote": "_PRIVILEGED_ROLES = frozenset({\"Administrator\", \"System Manager\"})"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Grant bitişinin oturum bitişine bağlanma yöntemi ve iptalde oturum sonlandırma API'si hedef sürümde doğrulanmadı.",
+    "Hassas işlem listesi ve reddin uygulanacağı giriş noktaları tanımsız.",
+    "Access Log, Comment, Error Log, realtime ve Suite aktivite kayıtlarında yapılandırılmış actor/subject yok.",
+    "API key/token, WebDAV Basic Auth ve Meet SFU JWT yollarının impersonation politikası yok.",
+    "React/Ant Design istemcisinde impersonation göstergesi kernel-envelope--contract alanı kabul edilmeden tanımlanamaz.",
+    "Whitelisted metot sarmalama yolu kanıt listesinde değil; T-00 doğrulaması gerekir."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Destek erişim modeli ve Keycloak impersonation/token-exchange kullanılıp kullanılmayacağı",
+      "requirementIds": ["access-4", "access-5"],
+      "blocks": "Keycloak claim'inin impersonated_by alanına eşlenmesi; development.steps 4 öncesi admission",
+      "untilDecided": "Frappe-native impersonate ve grant esaslı akışı belgele; claim eşlemesini yalnız taslak not olarak tut."
+    },
+    {
+      "decision": "Hedef Frappe sürümü (T-00)",
+      "requirementIds": ["access-4", "access-5"],
+      "blocks": "development.steps 2-6",
+      "untilDecided": "Yeniden doğrulanacak native API listesini (impersonate, login_as, set_impersonated, oturum sonlandırma, sarmalama yolu) belgele."
+    },
+    {
+      "decision": "Hassas işlem listesi ve kapsamı",
+      "requirementIds": ["access-5"],
+      "blocks": "Impersonation oturumunda hassas işlem reddi davranışı",
+      "untilDecided": "Aday DocType ve whitelisted metot envanterini belge olarak hazırla."
+    },
+    {
+      "decision": "Müşteri onayını kimin verdiği ve tenant topolojisi",
+      "requirementIds": ["access-4", "access-5"],
+      "blocks": "Grant onay durum geçişi izinleri",
+      "untilDecided": "explicitPermissionFlags'e bağlı rol-izin matrisi taslağı hazırla."
+    },
+    {
+      "decision": "Azami grant süresi ve denetim kaydı saklama süresi",
+      "requirementIds": ["access-5"],
+      "blocks": "Grant validate süre kuralı ve log saklama politikası",
+      "untilDecided": "Alanları değer sabitlemeden tanımla."
+    },
+    {
+      "decision": "Alternatif kimlik yolları politikası ve bitişte token iptali",
+      "requirementIds": ["access-4", "access-5"],
+      "blocks": "API key/token, WebDAV ve Meet JWT kısıtlama davranışı",
+      "untilDecided": "Her yolun döndürdüğü kimliği ve impersonation ile ilişkisini belgele."
+    },
+    {
+      "decision": "Değişmez denetim log'u gereksinimi ve actor/subject yayılım kapsamı",
+      "requirementIds": ["access-4", "access-5"],
+      "blocks": "Version ve Activity Log dışındaki log türlerine yayılım",
+      "untilDecided": "Native Activity Log, Version ve grant kaydıyla mevcut izi belgele."
+    },
+    {
+      "decision": "Acil durum (break-glass) istisnası olup olmayacağı",
+      "requirementIds": ["access-4", "access-5"],
+      "blocks": "Grant'siz impersonate için olası istisna yolu",
+      "untilDecided": "İstisnasız ret varsayımıyla belgele."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

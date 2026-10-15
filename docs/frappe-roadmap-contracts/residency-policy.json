@@ -1,0 +1,254 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "residency-policy",
+  "canonicalTaskIds": ["residency-policy--implementation"],
+  "requirementIds": ["governance-6"],
+  "stage": "enterprise",
+  "sourceStages": {
+    "governance-6": "enterprise"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Onaylı bölge listesi dışındaki depolama bölgesine yeni aktarım yapılandırmasının kayıt anında reddedilmesi ve alt işleyen envanterinin tutulması. Uygulama durumu: uygulanmadı.",
+    "trigger": "Yetkili kullanıcı Drive depolama ayarını (endpoint_url, bucket) kaydeder. Sonraki ayrı kabullerde aynı onaylı bölge listesi Sheets AI çağrısı başlamadan önce ve site config ile tanımlı dış uç noktalar envantere işlenirken okunur.",
+    "expected": "Bucket bölgesi onaylı listedeyse kayıt native save akışıyla tamamlanır. Her dış veri aktarım noktası (S3, Anthropic, Meet SFU/recorder/STT, Sheets collab, push relay, Suite Cloud, Mail sunucusu) beyan edilen bölge, kopya türü ve sorumlu ekip bilgisiyle envanterde listelenir.",
+    "denied": "Bölge liste dışındaysa, bölge sorgusu başarısız olursa veya custom endpoint için bölge doğrulanamıyorsa kayıt validate aşamasında açık bir doğrulama hatasıyla reddedilir, native transaction geri alınır ve önceki ayar değerleri değişmez. Onaylı bölgede olmayan AI alt işleyenine çalışma sayfası bağlamı gönderilmez."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native parçalar: Suite Drive dosya yöneticisi S3 bucket bölgesini get_bucket_location ile bulur, LocationConstraint boşsa us-east-1 kabul eder ve bu bilgiyi yalnız presigned URL imzası için kullanır; boto istemcisi ayardaki endpoint_url ile kurulur ve custom endpoint tanımlıysa bölge sorgulanmaz. Anthropic istemcisi yalnız api_key ile, base_url veya bölge seçeneği olmadan kurulur. SFU ve recorder uç noktaları frappe.conf üzerinden okunur; Suite Settings suite_cloud_url alanı taşır. frappe System Settings country alanı yalnız yerel ayar varsayılanıdır. Bu parçaların hiçbiri bölgeye izin vermez veya engellemez; yerleşim politikası, alt işleyen envanteri ve ret noktası yoktur. Kanıtın bir native parçayı göstermesi davranışın tamamının var olduğu anlamına gelmez. Aranan yollar listesi kapsamlı bir yokluk iddiası değildir. Vue/Frappe UI kaynağı React/Ant Design uygulaması kanıtı sayılmaz.",
+    "evidence": [
+      {
+        "path": "suite/suite/drive/utils/files.py",
+        "line": 246,
+        "quote": "region = self.conn.get_bucket_location(Bucket=bucket).get(\"LocationConstraint\") or \"us-east-1\""
+      },
+      {
+        "path": "suite/suite/drive/utils/files.py",
+        "line": 42,
+        "quote": "endpoint_url=(settings.endpoint_url or None),"
+      },
+      {
+        "path": "suite/suite/sheets/ai/client.py",
+        "line": 88,
+        "quote": "client = anthropic.Anthropic(api_key=api_key)"
+      },
+      {
+        "path": "suite/suite/meet/utils/sfu_config.py",
+        "line": 12,
+        "quote": "\"sfu_server_url\": frappe.conf.get(\"sfu_server_url\", \"http://localhost\"),"
+      },
+      {
+        "path": "suite/suite/meet/api/recording.py",
+        "line": 272,
+        "quote": "base_url=frappe.conf.get(\"recorder_server_url\"),"
+      },
+      {
+        "path": "suite/suite/suite_core/doctype/suite_settings/suite_settings.json",
+        "line": 61,
+        "quote": "\"fieldname\": \"suite_cloud_url\","
+      }
+    ],
+    "searchedPaths": [
+      "suite/suite/drive/utils/files.py",
+      "suite/suite/meet/api/recording.py",
+      "suite/suite/meet/utils/sfu_config.py",
+      "suite/suite/sheets/ai/client.py",
+      "suite/suite/suite_core/doctype/suite_settings/suite_settings.json"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/residency-policy.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/audit_governance/doctype/residency_policy/residency_policy.py"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "ResidencyPolicy kaydındaki onaylı bölge/ülke listesi (alan yapısı residency-policy--schema görevinde belirlenir); kaydedilen Drive depolama ayarı (endpoint_url, bucket); alt işleyen envanteri satırları (alt işleyen adı, uç nokta kaynağı olarak ayar alanı veya site config anahtarı, beyan edilen bölge, veri kategorisi, kopya türü birincil/yedek/analitik, sorumlu ekip). Tenant bağlamı kernel-envelope--contract ve tenant-registry--contract üzerinden gelir; bu sözleşme tenant topolojisi seçmez.",
+    "output": "Kabul: native save sonucu, ek alan yok. Ret: tespit edilen bölge kodunu ve ihlal edilen politika kaydını adlandıran, secret, api_key veya erişim anahtarı içermeyen doğrulama hatası. Envanter: yetkili kullanıcıya salt okunur düz JSON liste; JSON model sınırında yalnız veri döner, yerel ReactNode veya callback sözleşmeye girmez.",
+    "authorization": "Native Frappe DocType izinleri ve rol modeli kullanılır. ResidencyPolicy düzenleme ve envanter okuma rolleri native-user-policy--contract ve ortak explicitPermissionFlags kaynağına bağlanır; bu sözleşmede yeni rol veya izin bayrağı icat edilmez. ignore_permissions, ham SQL veya izin kontrolünü atlayan yazma yasaktır. Bölge kontrolü kaydı yapan kullanıcının rolünden bağımsız olarak her kayıtta çalışır; yönetici bypass bayrağı yoktur.",
+    "persistence": "Politika ve envanter yalnız önerilen tek DocType olan ResidencyPolicy üzerinde tutulur; şema residency-policy--schema görevinin çıktısıdır. Ret validate aşamasında frappe.throw ile yapılır ve native save transaction geri alınır. Doğrulama amacıyla mevcut 24 saatlik önbellek değeri yerine kayıt anında taze bölge sorgusu kullanılır; mevcut önbellek davranışı değiştirilmez. Mevcut kayıtlar, şema veya veri bu sözleşmeyle değiştirilmez; mevcut yapılandırmaların geriye dönük taranması ayrı karardır.",
+    "failure": "ClientError, ağ hatası veya boş ya da belirsiz yanıt doğrulanamadı sayılır ve kayıt reddedilir (fail-closed). Custom endpoint_url (MinIO vb.) için bölge API ile sorgulanamaz; envanterde onaylı bölge beyanı ve DevOps doğrulaması yoksa kayıt reddedilir, kabul yöntemi karar bekler. Politika tanımlı olmayan sitede davranış karar bekler ve karar gelene kadar uygulama kabul edilmez. Mevcut çalışan yapılandırmalar bu sözleşme kapsamında kapatılmaz. Hata mesajları ve loglar secret, api_key veya bucket erişim bilgisi içermez."
+  },
+  "development": {
+    "dependencies": [
+      "kernel-envelope--contract",
+      "native-user-policy--contract",
+      "residency-policy--contract",
+      "residency-policy--schema",
+      "tenant-registry--contract"
+    ],
+    "admission": {
+      "prerequisites": [
+        "T-00 hedef taban çizgisi ve R-00 yeniden kullanım eşlemesi tamamlanmış olmalı; izinli veri tüketicileri için R-01 de uygulanır.",
+        "residency-policy--contract ve residency-policy--schema tamamlanmış; kernel-envelope--contract, tenant-registry--contract ve native-user-policy--contract sözleşmeleri mevcut olmalı.",
+        "Onaylı bölge listesi, custom endpoint kabul yöntemi ve politika tanımsız site davranışı kararları verilmiş olmalı.",
+        "R-00 eşlemesinde Drive depolama ayar DocType adı, validate genişletme noktası ve files.py satır 246 bölge tespit mantığının hedef Suite sürümünde çağrılabilirliği doğrulanmış olmalı.",
+        "Tek dar davranış: yalnız Drive depolama ayarı kaydında bölge reddi; gerçek RED/GREEN kanıtıyla."
+      ],
+      "orderAuthority": "Mevcut görev bağımlılıkları ve aşama belirleyicidir; küme sırası 3 yalnız sunumdur, yeni seri DAG değildir.",
+      "scopeNote": "Bu sözleşme hiçbir servis, production ortamı, şema veya veri değişikliğine yetki vermez. Teknik CI, deploy ve rollback sahibi Hüseyin Cengiz'dir. DNS veya GoDaddy işlemi bu kapsamda yoktur; gerekirse uygulama sahibi Asistan Hüseyin'dir."
+    },
+    "steps": [
+      "R-00 eşlemesi: files.py içindeki bölge tespit bloğunun bağımsız çağrılabilir olup olmadığını ve Drive depolama ayar DocType adını hedef Suite sürümünde doğrula; bulunamazsa yardımcı uydurma, eşlemeyi eksik olarak kaydet.",
+      "ResidencyPolicy alanlarını residency-policy--schema çıktısından al; onaylı bölge listesi ve envanter alanlarını burada yeniden tasarlama.",
+      "development.tdd senaryosunu yaz ve RED sonucunu kaydet.",
+      "residency_policy.py içinde bölge karşılaştırma fonksiyonu: girdi tespit edilen bölge ve politika, çıktı izin veya ret; belirsizlikte ret.",
+      "Drive depolama ayar DocType'ının validate olayına native doc_events kaydıyla bağla; hooks.py paylaşılan entegrasyon dosyası olduğundan değişiklik ana entegrasyon sahibine seri birleştirme için önerilir. Suite kaynak dosyaları değiştirilmez.",
+      "GREEN: ret senaryosu ve onaylı bölgede kabul senaryosu geçer; native izin ve save akışı bozulmaz.",
+      "Sonraki dar davranışlar ayrı kabullerle ilerler: Sheets AI çağrısı öncesi kontrol, site config uç noktalarının envanter kaydı, salt okunur envanter görünümü."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Onaylı bölge listesi tanımlıyken, bölgesi listede olmayan bir S3 bucket'ına işaret eden Drive depolama ayarı kaydedilmek istendiğinde kayıt doğrulama hatasıyla reddedilir ve veritabanındaki önceki ayar değerleri değişmez. S3 bölge yanıtı test sınırında taklit edilir; canlı bucket kullanılmaz.",
+      "red": "Bölge kontrolü henüz olmadığından kayıt başarıyla tamamlanır ve önceki değerler değişir; test ret ve değişmeyen kayıt beklediği için davranış nedeniyle başarısız olur. Import, fixture veya altyapı hatası RED sayılmaz.",
+      "green": "validate aşamasındaki bölge karşılaştırması eklendikten sonra aynı test ret ve değişmeyen kayıtla geçer; onaylı bölgedeki bucket ile kayıt native akışla kabul edilmeye devam eder."
+    },
+    "rollback": "hooks.py içindeki doc_events kaydı ana entegrasyon sahibi tarafından geri alınır ve kontrol devre dışı kalır. Şema veya veri migrasyonu olmadığından veri geri dönüşü gerekmez; ResidencyPolicy kayıtları korunur. Deploy ve rollback'in teknik uygulaması Hüseyin Cengiz'dedir."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "governance-6",
+      "sourceStage": "enterprise",
+      "existing": "S3 bucket bölgesi tespit ediliyor ancak yalnız URL imzası için kullanılıyor; custom endpoint'te bölge sorgulanmıyor. Anthropic istemcisi varsayılan uç noktayla kuruluyor ve çalışma sayfası bağlamını gönderiyor. SFU, recorder ve Suite Cloud uç noktaları ayar veya site config ile tanımlı. Kaynak değerlendirmesine göre collab_ws_url, push_relay_server_url ve Mail Settings server_url de var; bunlar doğrulanmış kanıt listesinde yok.",
+      "gap": [
+        "Onaylı bölge/ülke listesi modeli yok.",
+        "Alt işleyen envanteri kaydı yok.",
+        "Ayar kaydında uç nokta veya bölge doğrulaması yok.",
+        "Yasak bölgeye yeni aktarımı engelleyen uygulama noktası yok.",
+        "Tenant başına yerleşim bağlamı ve yedek/analitik kopya konum kaydı yok.",
+        "Yerleşim ve alt işleyen bilgisini salt okunur sunan API sözleşmesi yok.",
+        "Ağ egress politikası ve fiziksel veri merkezi konumu kaynaktan kanıtlanamaz."
+      ],
+      "completionSteps": [
+        "Onaylı liste: ResidencyPolicy DocType'ında residency-policy--schema ile tanımlanır; liste içeriği karar gelene kadar boş kalır.",
+        "Envanter: her dış uç nokta için bir satır; S3 (endpoint_url, bucket), Anthropic (Sheets AI ayarı), sfu_server_url, recorder_server_url, STT, collab_ws_url, push_relay_server_url, suite_cloud_url, Mail server_url. Doğrulanmış kanıtı olmayan anahtar ve DocType adları R-00'da doğrulanır.",
+        "Kayıtta doğrulama: ilk kabul olarak Drive depolama ayarı validate olayında bölge karşılaştırması (development.tdd).",
+        "Aktarım engeli: Sheets AI çağrısından önce Anthropic envanter satırının onaylı bölgede olduğu kontrol edilir. Native genişletme noktası R-00'da doğrulanır; örneğin ilgili uç whitelisted ise override_whitelisted_methods. Bulunamazsa Suite upstream değişikliği ayrı karardır. Ağ seviyesi egress allowlist Hüseyin Cengiz'in altyapı devridir.",
+        "Tenant ve kopyalar: tenant bağlamı tenant-registry--contract ve kernel-envelope--contract üzerinden okunur; envanter satırındaki kopya türü yedek ve analitik kopyaları kapsar; konum beyanı Hüseyin Cengiz'den alınır.",
+        "Salt okunur sunum: envanter kernel-envelope--contract zarfında düz JSON olarak döner. Ant Design Pro tablo görünümü ayrı kabuldür; routes.tsx ve registry.ts paylaşılan dosyalardır ve entegrasyon sahibine önerilir. Kaynak registry ile GenUI capability registry ayrıdır; GenUI tarafına dokunulmaz.",
+        "Fiziksel konum ve sözleşme: Hüseyin Cengiz altyapı doğrulaması ve Hukuk ekibinin alt işleyen sözleşme kontrolü yapılır; doğrulayan ve tarih alanları schema görevine önerilir."
+      ],
+      "dependencies": [
+        "residency-policy--contract",
+        "residency-policy--schema",
+        "kernel-envelope--contract",
+        "tenant-registry--contract",
+        "native-user-policy--contract"
+      ],
+      "acceptance": "Tüm veri kopyaları ve alt işleyenler onaylı bölgelerde listelenir; yasak bölgeye yeni aktarım engellenir. İlk dar kabul: liste dışı bölgedeki bucket'a işaret eden Drive depolama ayarı kaydı reddedilir ve önceki kayıt değişmez; onaylı bölgedeki kayıt kabul edilir. Site ayarı tek başına ülke garantisi sayılmaz.",
+      "evidence": [
+        {
+          "path": "suite/suite/drive/utils/files.py",
+          "line": 246,
+          "quote": "region = self.conn.get_bucket_location(Bucket=bucket).get(\"LocationConstraint\") or \"us-east-1\""
+        },
+        {
+          "path": "suite/suite/drive/utils/files.py",
+          "line": 42,
+          "quote": "endpoint_url=(settings.endpoint_url or None),"
+        },
+        {
+          "path": "suite/suite/sheets/ai/client.py",
+          "line": 88,
+          "quote": "client = anthropic.Anthropic(api_key=api_key)"
+        },
+        {
+          "path": "suite/suite/meet/utils/sfu_config.py",
+          "line": 12,
+          "quote": "\"sfu_server_url\": frappe.conf.get(\"sfu_server_url\", \"http://localhost\"),"
+        },
+        {
+          "path": "suite/suite/meet/api/recording.py",
+          "line": 272,
+          "quote": "base_url=frappe.conf.get(\"recorder_server_url\"),"
+        },
+        {
+          "path": "suite/suite/suite_core/doctype/suite_settings/suite_settings.json",
+          "line": 61,
+          "quote": "\"fieldname\": \"suite_cloud_url\","
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Onaylı bölge/ülke listesi modeli ve içeriği yok.",
+    "Alt işleyen envanteri yok; S3, Anthropic, Meet SFU/recorder/STT, Sheets collab, push relay, Suite Cloud ve Mail sunucusu bağlanmamış.",
+    "Ayar kaydında bölge doğrulaması ve yasak bölgeye aktarım engeli yok.",
+    "Tenant başına yerleşim bağlamı ve yedek/analitik kopya konum kaydı yok.",
+    "Salt okunur yerleşim ve alt işleyen API sözleşmesi yok.",
+    "Ağ egress politikası ve fiziksel konum kanıtı Hüseyin Cengiz'in altyapı doğrulamasına, sözleşme kontrolü Hukuk ekibine bağlı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Onaylı veri yerleşimi bölge/ülke listesi.",
+      "owner": "Hukuk ekibi ve ürün sahibi",
+      "requirementIds": ["governance-6"],
+      "blocks": "development.tdd ve bölge karşılaştırma adımları; ilk dar kabul.",
+      "interimDocStep": "KVKK ve GDPR resmi kaynaklarına bağlı karar şablonu ve gerekçe alanları belgelenir; liste değeri yazılmaz."
+    },
+    {
+      "decision": "AI alt işleyeni satıcısı ve işlem bölgesi (Anthropic varsayılan uç noktası dahil).",
+      "owner": "Hukuk ekibi ve ürün sahibi",
+      "requirementIds": ["governance-6"],
+      "blocks": "Sheets AI çağrısı öncesi kontrol kabulü.",
+      "interimDocStep": "Envanter taslağında Anthropic satırı bölge doğrulanmadı olarak belgelenir."
+    },
+    {
+      "decision": "Custom endpoint (MinIO veya kendi barındırılan depolama) için bölge beyanının kabul yöntemi.",
+      "owner": "Hüseyin Cengiz ve Hukuk ekibi",
+      "requirementIds": ["governance-6"],
+      "blocks": "contract.failure custom endpoint kuralının kesinleşmesi.",
+      "interimDocStep": "DevOps konum doğrulama kontrol listesi taslağı yazılır."
+    },
+    {
+      "decision": "Politika tanımsız sitede varsayılan davranış ve mevcut yapılandırmaların geriye dönük taranması.",
+      "owner": "Ürün sahibi ve Hüseyin Cengiz",
+      "requirementIds": ["governance-6"],
+      "blocks": "Yayına alma ve admission.",
+      "interimDocStep": "Geçiş seçenekleri ve etkileri belgelenir; varsayılan seçilmez."
+    },
+    {
+      "decision": "Tenant topolojisi ve tenant başına yerleşim modeli.",
+      "owner": "Ürün sahibi",
+      "requirementIds": ["governance-6"],
+      "blocks": "Tenant başına yerleşim bağlamı adımı.",
+      "interimDocStep": "tenant-registry--contract referansıyla bağımlılık belgelenir."
+    },
+    {
+      "decision": "Yedek ve analitik kopyaların konumu ve saklama süresi.",
+      "owner": "Hüseyin Cengiz ve Hukuk ekibi",
+      "requirementIds": ["governance-6"],
+      "blocks": "Envanterin kopya satırları ve kabulün tüm kopyalar kısmı.",
+      "interimDocStep": "Hüseyin Cengiz'den istenecek konum beyanı alanları belgelenir."
+    },
+    {
+      "decision": "Native genişletme noktası bulunamazsa Suite upstream değişikliği ve hedef Suite sürümü.",
+      "owner": "Ürün sahibi ve Hüseyin Cengiz",
+      "requirementIds": ["governance-6"],
+      "blocks": "Sheets AI aktarım engeli kabulü.",
+      "interimDocStep": "R-00 eşleme sonucuna göre seçenekler belgelenir; sürüm seçilmez."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

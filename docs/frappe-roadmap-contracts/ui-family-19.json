@@ -1,36 +1,54 @@
 {
   "schemaVersion": "saas-existing-work-contract.v1",
   "canonicalUnitId": "ui-family-19",
-  "canonicalTaskIds": ["ui-family-19--implementation-mvp"],
+  "canonicalTaskIds": [
+    "ui-family-16--implementation",
+    "ui-family-18--implementation-mvp",
+    "ui-family-19--implementation-mvp",
+    "ui-family-22--implementation",
+    "ui-provider-metadata--implementation-mvp"
+  ],
   "requirementIds": ["forms-5"],
   "stage": "mvp",
+  "sourceStages": {
+    "forms-5": "mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
-    "title": "Mevcut kayit RPC'sinde tek Table alaninin satir projeksiyonu ve parent Document.save ile toplu kaydi (gelecek; kabul bekliyor)",
-    "trigger": "Write yetkili kullanici taslak parent kayitta bir Table alaninin satirlarini ekler/siler/siralar ve Kaydet der; istemci mevcut save_record cagrisina base_modified ile tum satir dizisini gonderir.",
-    "expected": "read_record izinli Table alanini child Data alanlariyla (name, idx, values) dondurur. save_record kilitli parent uzerinde doc.set(tableField, satirlar) ve native doc.save() calistirir: dizi sirasi idx olur, dizide olmayan mevcut satir kalkar, name'siz satir eklenir. Yanit yeniden yuklenen satirlari ve yeni modified'i dondurur.",
-    "denied": "Parent write, Table alani write veya child alan izni yoksa; bilinmeyen alan, bilinmeyen ya da baska parent'a ait satir name'i gelirse ayni api._forbidden yaniti doner, hicbir satir yazilmaz. UI kontrolleri canWrite'a gore devre disi gorunur; karar backend'dedir."
+    "title": "Tek Table alanının satır projeksiyonu ve native parent Document.save ile toplu kaydı. Uygulama durumu: uygulanmadı.",
+    "trigger": "Parent DocType üzerinde write yetkisi olan kullanıcı, taslak (docstatus 0) parent kayıtta tek bir Table alanının satırlarını ekler, siler veya yeniden sıralar ve Kaydet der; istemci native Frappe belge kaydetme yoluna son okunan modified değeriyle birlikte o Table alanının tam satır dizisini gönderir.",
+    "expected": "Okumada izinli Table alanı child satırlarıyla (name, idx, izinli child alan değerleri) gelir. Kayıtta native Document.save parent ile birlikte child satırları yazar: dizi sırası idx olur, dizide olmayan mevcut satır kalkar, name içermeyen satır eklenir. Başarı sonrası istemci kaydı yeniden okur; yeniden okunan satırlar ve yeni modified gösterilir, yerel taslak temizlenir.",
+    "denied": "Parent write, Table alanı yazma veya child alan izni yoksa; bilinmeyen alan ya da başka parent kaydına ait satır name değeri gelirse native izin veya doğrulama reddi döner, hiçbir satır yazılmaz ve kayıt değişmez. UI kontrolleri izin metadata'sına göre devre dışı görünür; karar her zaman backend'dedir. ignore_permissions veya SQL ile yetki atlatma yoktur."
   },
   "reuse": {
-    "mechanism": "Duzeltme: T-08 records RPC yalniz mevcut Data alanlarini destekler ve istable DocType'lari disarida birakir; Table/child yazimi, child izni ve kaliciligi T-08 ile kanitlanmadi. Onceki 'adapter gerekmez' iddiasi geri alindi. Secim: ikinci CRUD motoru veya yeni endpoint degil, mevcut read_record/save_record icinde en kucuk ek (tek Table alani yolu); yazma yine native frappe.get_doc(for_update) + Document.save, ignore_permissions yok.",
+    "status": "KISMI",
+    "mechanism": "Native Frappe parçaları yeniden kullanılır: Attach alan türü ve link_filters alan özelliği çekirdek alan şemasında; v1 link genişletmesi read izniyle get_doc kullanır; v1 table/multiselect alanlarını meta.get_table_fields ile dolaşır; v2 POST isteğini write iznine eşler ve upload_file'ı içe aktarır; client.py search_widget'ı içe aktarır. Bu kanıtlar yalnız parçaları gösterir; child satır silme/idx normalizasyonu, child alan izni, yetkili ilişki araması ve dosya-alan bağlama davranışının bütün olarak var olduğunu göstermez. İkinci CRUD motoru, yeni ORM veya yeni endpoint tasarlanmaz. Native kayıt yolu yetersiz kalırsa en küçük ek kernel-envelope--contract ve api-middleware--contract sahipleriyle karara bağlanır. Vue/Frappe UI kaynağı React/Ant Design uygulaması kanıtı değildir. Uygulama durumu: uygulanmadı.",
     "evidence": [
       {
-        "path": "frappe_provider/headless_provider/records.py",
+        "path": "frappe/frappe/custom/doctype/customize_form_field/customize_form_field.py",
+        "line": 35,
+        "quote": "\"Attach\","
+      },
+      {
+        "path": "frappe/frappe/custom/doctype/customize_form_field/customize_form_field.py",
+        "line": 97,
+        "quote": "link_filters: DF.JSON | None"
+      },
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 104,
+        "quote": "link_doc = frappe.get_doc(doctype, doc_fieldvalue, check_permission=\"read\")"
+      },
+      {
+        "path": "frappe/frappe/client.py",
+        "line": 11,
+        "quote": "from frappe.desk.search import PAGE_LENGTH_FOR_LINK_VALIDATION, search_widget"
+      },
+      {
+        "path": "frappe/frappe/api/v2.py",
         "line": 22,
-        "quote": "RECORD_FIELD_TYPES = frozenset({\"Data\"})",
-        "repository": "genui-saas-panel@6ea301c"
-      },
-      {
-        "path": "frappe_provider/headless_provider/records.py",
-        "line": 76,
-        "quote": "or cint(meta.istable)",
-        "repository": "genui-saas-panel@6ea301c"
-      },
-      {
-        "path": "frappe_provider/headless_provider/records.py",
-        "line": 63,
-        "quote": "doc.save()",
-        "repository": "genui-saas-panel@6ea301c"
+        "quote": "from frappe.handler import is_valid_http_method, run_server_script, upload_file"
       },
       {
         "path": "frappe/frappe/api/v1.py",
@@ -42,67 +60,182 @@
         "line": 26,
         "quote": "\"POST\": \"write\","
       }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "frappe/frappe/api/v2.py",
+      "frappe/frappe/client.py",
+      "frappe/frappe/custom/doctype/customize_form_field/customize_form_field.py"
     ]
   },
   "ownership": {
     "activeContractFile": "docs/frappe-roadmap-contracts/ui-family-19.json",
     "plannedProduction": [
-      "frappe_provider/headless_provider/records.py (Kiralama 1, parent/backend; bu gorevin owns listesinde degil, entegrasyon sahibi seri atar)",
-      "frontend/packages/ui/src/components/ui-family-19/mvp.tsx (Kiralama 2, child/UI; yalniz Kiralama 1 GREEN sonrasi)"
+      "frontend/packages/ui/src/components/ui-family-16/index.tsx",
+      "frontend/packages/ui/src/components/ui-family-18/mvp.tsx",
+      "frontend/packages/ui/src/components/ui-family-19/mvp.tsx",
+      "frontend/packages/ui/src/components/ui-family-22/index.tsx",
+      "frontend/packages/ui/src/components/ui-provider-metadata/mvp.tsx"
     ],
-    "plannedTestFile": "frappe_provider/headless_provider/test_records_table.py (yalniz planli; mevcut test konumu/kosucusu girdide yok, entegrasyon sahibince sabitlenecek)",
+    "plannedTestFile": null,
     "sharedIntegrationFiles": [
-      "frappe_provider/headless_provider/api.py (salt okunur bagimlilik)",
-      "frontend/packages/ui/src/index.ts",
-      "integration/fragments/ui-family-19--integration-mvp.json"
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "save_record(doctype:str, name:str<=140, base_modified:str<=64, values:object). values en fazla bir Table fieldname -> Array<{name?:str<=140, [childDataField]:str}> icerir; diger anahtarlar mevcut Data kurallarinda. Child alanlar yalniz Data ve string; aksi api._invalid. Satir ust siniri sabiti (MAX_TABLE_ROWS) zorunlu, degeri bilinmiyor. read_record girdisi degismez.",
-    "output": "Mevcut zarfa ek: record.tables{[tableField]: Array<{name, idx, values{dataField: str|null}}>}; yalniz okuma izinli Table alani ve child alanlari, native apply_fieldlevel_read_permissions sonrasi. writableFields Table alanini yalniz parent+child yazma izni varsa icerir. Surum: modified. Zarf eki headless-metadata.v1 tuketicilerini etkiler; surum karari o sozlesme sahibinde, bilinmiyor.",
-    "authorization": "Native site oturumu (cookie/CSRF; Keycloak not_run). Parent: has_permission read/write, docstatus 0, parent meta get_permitted_fieldnames(permission_type='write') Table alanini icermeli. Child alan permlevel izninin parent baglaminda hangi native API ile hesaplandigi kanitlanmadi; kabul engeli. Ret: api._forbidden, kayit/alan/satir varligini sizdirmayan ayni mesaj.",
-    "persistence": "Tek istek; transaction HTTP katmaninda, commit yok. _load_record(for_update=True) satir kilidi; base_modified uyusmazliginda frappe.TimestampMismatchError; sonra doc.set + doc.save() (izin, check_if_latest, validate, hook native). Hata: istek transaction'i geri alinir. DDL, yeni hook, queue yok. Cikarilan child satirin native save'de silinmesi ve idx normalizasyonu dogrulanmadi.",
-    "failure": "api._forbidden: taslak korunur, yetki mesaji. api._invalid: girdi hatasi. frappe.TimestampMismatchError: yeniden yukle istemi, otomatik ustune yazma yok. Native dogrulama hatasi (sinif girdide yok): mesaj, taslak korunur. Ag hatasi: kaydedilmedi durumu. HTTP kodlari api modulu girdide olmadigindan bilinmiyor."
+    "input": "Native belge kaydetme isteği: doctype, name (en fazla 140), son okunan modified, değişen parent değerleri ve en fazla bir Table fieldname -> Array<{name?: str (en fazla 140), [childField]: değer}>. Satır sırası dizi sırasıdır; istemcinin gönderdiği idx kalıcı sırayı belirlemez (native davranış kaynaktan doğrulanacak). Satır üst sınırı (MAX_TABLE_ROWS) zorunlu, değeri karar bekliyor. Kesin v2 rota, yöntem ve gövde biçimi T-00 hedef kaynağından literal kanıtla sabitlenir; bu sözleşme rota uydurmaz. Dosya ve ilişki girdileri requirementGuidance içinde ayrı tamamlanır; bu davranışın tek kabulüne dahil değildir.",
+    "output": "Okuma: parent alanları ve tables{[tableField]: Array<{name, idx, values}>}; yalnız read izinli alanlar, native alan seviyesi okuma izni filtrelemesi sonrası. Yazılabilir alan bilgisi Table alanını yalnız parent ve child yazma izni varsa içerir. Kayıt sonrası yeniden okunan satırlar ve yeni modified. Zarf biçimi ve sürüm etkisi kernel-envelope--contract sahibindedir; bilinmiyor.",
+    "authorization": "Mevcut native site oturumu ve CSRF; kimlik sağlayıcı kararı bu kapsamda değil. Parent: native has_permission read/write, docstatus 0 ve alan seviyesinde write izni Table alanını kapsamalı. Child alan permlevel izninin parent bağlamında hangi native API ile hesaplandığı kanıtlanmadı; kabul engelidir. Ret mesajı kayıt, alan veya satır varlığını sızdırmaz. Bu rehber rol veya izin üretmez; gelecekteki test kullanıcısı rolleri explicitPermissionFlags ortak kaynağına bağlanır.",
+    "persistence": "Tek istek, native HTTP istek transaction'ı; açık commit yok. Native save izin, modified uyuşmazlığı denetimi, validate ve mevcut hook zincirini çalıştırır. Hata durumunda istek transaction'ı geri alınır. DDL, yeni hook, kuyruk, şema veya veri değişikliği yok. Çıkarılan child satırın silinmesi ve idx normalizasyonu kaynaktan doğrulanmadı.",
+    "failure": "İzin reddi: taslak korunur, yetki mesajı. Girdi hatası: alan bazlı mesaj. Modified uyuşmazlığı (native zaman damgası hatası; sınıf adı kaynaktan doğrulanacak): yeniden yükle istemi, otomatik üstüne yazma yok. Native doğrulama hatası: mesaj, taslak korunur. Ağ hatası: kaydedilmedi durumu ve tekrar dene. HTTP kod eşlemesi api-middleware--contract sahibinde; bilinmiyor."
   },
   "development": {
     "dependencies": [
-      "ui-family-19--contract",
-      "ui-family-19--implementation",
-      "kernel-envelope--contract",
       "api-middleware--contract",
       "client-rule-parity--contract",
+      "device-grant--contract",
+      "kernel-envelope--contract",
+      "native-doctype-schema--contract",
+      "sync-receipt--contract",
+      "ui-family-06--contract",
+      "ui-family-07--contract",
       "ui-family-16--contract",
-      "ui-provider-metadata--implementation-mvp (destekleyici; records.py sahipligi varsayim, dogrulanmadi)",
-      "yerel pilot T-08 (6ea301c): yalniz genisletilecek Data-only RPC tabani; Table/child kaniti degildir"
+      "ui-family-18--contract",
+      "ui-family-18--implementation",
+      "ui-family-19--contract",
+      "ui-family-19--implementation",
+      "ui-family-22--contract",
+      "ui-provider-metadata--contract",
+      "ui-provider-metadata--implementation"
     ],
-    "admission": "Uygulama kabulu YOK. On kosullar: T-00 baseline ve R-00/R-01; Frappe adf1fd0c kaynaginda Document.set/save child ekleme-silme-idx davranisi ve child alan izin API'si literal kanitla sabitlenmeli; yerel pilotta Table alanli test DocType/kayit (kanitlanmadi); MAX_TABLE_ROWS ve zarf surum karari. Kiralamalar seri: Kiralama 1 GREEN olmadan Kiralama 2 acilmaz, ayni anda iki kiralama yok. Suite HEAD ve uzak baseline bilinmiyor; yerel kanit uzak baseline degildir.",
+    "admission": "Uygulama durumu: uygulanmadı. Uygulama kabulü yok (NOT_ADMITTED). Ön koşullar: T-00 hedef baseline ve R-00 yeniden kullanım eşlemesi; izinli veri tüketicisi olduğu için R-01. Hedef Frappe kaynağında Document.set/save child ekleme-silme-idx davranışı, child alan izin API'si, v2 belge kaydetme rotası, search_widget izin uygulaması ve upload_file yanıt biçimi path:line literal kanıtla sabitlenmeli. MAX_TABLE_ROWS kararı verilmeli; Table alanlı test DocType'ı, kullanıcıları ve test komutu entegrasyon sahibince belirlenmeli. Kiralamalar seri: Kiralama 1 GREEN olmadan Kiralama 2 açılmaz, aynı anda iki kiralama yok. Bu sözleşme hiçbir servis, production, şema veya veri değişikliği yetkisi vermez; teknik CI/deploy/rollback sahibi Hüseyin Cengiz'dir.",
     "steps": [
-      "Kaynak dogrulama (yazmasiz): native child save ve child izin API'leri.",
-      "Kiralama 1: records.py icinde mevcut _snapshot/_load_record/_writable_fields uzerinden tek Table alani projeksiyonu ve save yolu; RECORD_FIELD_TYPES Data kalir; satir name'leri mevcut parent satirlarina karsi dogrulanir.",
-      "Kiralama 2: mvp.tsx mevcut AntD Table + TanStack mutation ile yerel taslak, Ekle/Sil/Yukari/Asagi (klavyeyle erisilebilir, hover tek yol degil); Outfit, min 14 CSS px, 320 once, tablo kapsayicida yatay kaydirma, cevreleyen odak halkasi yok, interactionTokens simetrik Cubic hareket."
+      "Kaynak doğrulama (yazmasız): hedef sürümde native child save, child alan izni, v2 kaydetme rotası ve zaman damgası çakışma davranışını path:line ile kaydet; kanıt yoksa ilgili adımı engelli işaretle.",
+      "Kiralama 1 (istemci veri katmanı): TanStack Query ile kayıt okuma; mutation taslaktan tam satır dizisini ve son modified değerini native kaydetme yoluna gönderir; başarıda kayıt sorgusu geçersiz kılınıp yeniden okunur; ret, girdi, çakışma ve ağ hataları api-middleware--contract eşlemesiyle ayrıştırılır.",
+      "Kiralama 2 (UI): ui-family-19/mvp.tsx içinde ChildTable önerisi; Ant Design form bileşenleriyle yerel taslak, Ekle/Sil/Yukarı/Aşağı eylemleri klavyeyle erişilebilir, hover tek yol değil; ayrı grid kütüphanesi kararından bağımsız. Outfit, en az 14 CSS px metin, 320 CSS px önce, satır listesi kendi kapsayıcısında yatay kaydırma, çevreleyen odak halkası yok, merkezi simetrik Cubic hareket tokenları ve reduced-motion istisnası.",
+      "Kayıt: bileşen frontend/packages/ui/src/registry.ts kaynak bileşen registry'sine entegrasyon sahibince seri eklenir; GenUI capability registry ayrı projedir ve kapsam dışıdır; JSON model sınırı ile yerel ReactNode/callback ayrı tutulur.",
+      "Native yol yetersiz çıkarsa: backend eki yalnız kernel-envelope--contract ve api-middleware--contract kararıyla, native get_doc ve Document.save üzerinden; hooks.py paylaşılan dosyası entegrasyon sahibince seri birleştirilir; ignore_permissions ve SQL yok."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "Write yetkili kullanici 3 Table satirli taslak parent kayitta 2. satiri cikarip 3. satiri one alarak save_record cagirir; yanit ve yeniden okunan kayit 2 satir, sira [satir1, satir3], idx [1,2] gosterir, silinen satir kalici degildir.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Ayni test ayni komutla Kiralama 1 sonrasi gecer; komut entegrasyon sahibince sabitlenecek, simdi calistirilmadi."
+      "oneScenario": "Write yetkili kullanıcı 3 Table satırlı taslak parent kayıtta 2. satırı çıkarıp 3. satırı öne alarak kaydeder; yanıt sonrası yeniden okunan kayıt 2 satır, sıra [satır1, satır3], idx [1, 2] gösterir ve silinen satır kalıcı değildir.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış oneScenario'dur. RED içe aktarma veya altyapı hatası değil, davranış assertion başarısızlığı olmalıdır. Native kayıt yolu senaryoyu zaten geçiriyorsa ona RED uydurulmaz; RED yalnız istemci taslak-satır dizisi eşlemesi veya yeniden okuma gösteriminde aranır.",
+      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN'i değildir. Komut entegrasyon sahibince sabitlenecek; bu turda test yazılmadı ve koşulmadı."
     },
-    "rollback": "Yalniz records.py eki, planli test ve varsa mvp.tsx yerelde geri alinir. Veri/DDL/servis degisikligi yok, musteri kaydi silinmez, production izni yok."
+    "rollback": "Yalnız planlı istemci dosyaları ve varsa küçük backend eki çalışma dalında geri alınır. Veri, DDL, servis veya production değişikliği yoktur; müşteri kaydı silinmez. Deploy ve rollback işletimi Hüseyin Cengiz'dedir."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "forms-5",
+      "sourceStage": "mvp",
+      "existing": "Native parçalar: Attach alan türü ve link_filters alan özelliği çekirdek alan şemasında; v1 link genişletmesi hedef kaydı read izniyle yükler; v1 table/multiselect alanlarını meta.get_table_fields ile dolaşır; v2 POST'u write iznine eşler ve upload_file'ı içe aktarır; client.py search_widget'ı içe aktarır. Bunlar bütün davranışın var olduğunu göstermez.",
+      "gap": "Yetkili ilişki araması için hedef sürüm uç noktası ve link_filters uygulaması kanıtlanmadı; dosya gizliliği, boyut/tip sınırı ve yükleme sonrası alan bağlama sözleşmesi yok; Table satırlarında idx, satır ekleme/silme ve child alan izni doğrulanmadı; Table MultiSelect davranışı tanımsız.",
+      "completionSteps": [
+        "Table (bu sözleşmenin tek davranışı): behavior ve contract bölümlerindeki native Document.save yolu, Kiralama 1 ve 2 adımlarıyla tamamlanır.",
+        "İlişki seçimi: hedef sürüm frappe.desk.search kaynağı okunur; search_widget'ın izin uygulaması ve link_filters'ın aramaya nasıl yansıdığı path:line ile kaydedilir; ancak bundan sonra izinli arama uç noktası sabitlenir. UI markalı, aranabilir ve klavyeyle erişilebilir Ant Design seçim bileşeni kullanır; native işletim sistemi açılır menüsü yok. Seçim sonrası native kayıt Link doğrulamasını yine backend yapar.",
+        "Dosya alanı: yükleme native upload_file ile yapılır; varsayılan private önerilir (onay decisionsPending içinde); boyut/tip sınırı karar bekler. Dönen dosya referansı Attach alanına parent kaydıyla native save üzerinden bağlanır; upload_file yanıt biçimi ve izin denetimi kaynaktan doğrulanmadan bağlama adımı açılmaz.",
+        "Table MultiSelect: kapsam kararı gelene kadar uygulanmaz; yalnız belgedeki açık madde olarak tutulur.",
+        "Her alt parça ayrı, tek davranışlı gelecekteki kiralama olarak entegrasyon sahibince seri sıralanır; bu sözleşme yalnız Table davranışına kabul önerir."
+      ],
+      "dependencies": [
+        "native-doctype-schema--contract",
+        "kernel-envelope--contract",
+        "api-middleware--contract",
+        "client-rule-parity--contract",
+        "ui-family-16--contract",
+        "ui-family-19--contract"
+      ],
+      "acceptance": "Dosya ve tekrarlı satır kaydı korunmalı; ilişki araması yalnız yetkili kayıtları döndürmeli. Table için: oneScenario sırası ve idx değerleri yeniden okumada doğrulanır; write izni olmayan kullanıcının aynı kaydetme isteği reddedilir ve yeniden okunan kayıt değişmemiş olur. UI 320, 360, 375, 390 CSS px, tablet ve masaüstünde Chromium, Firefox ve WebKit'te klavye ve dokunmayla doğrulanır; şu an hepsi not_run.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/custom/doctype/customize_form_field/customize_form_field.py",
+          "line": 35,
+          "quote": "\"Attach\","
+        },
+        {
+          "path": "frappe/frappe/custom/doctype/customize_form_field/customize_form_field.py",
+          "line": 97,
+          "quote": "link_filters: DF.JSON | None"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 104,
+          "quote": "link_doc = frappe.get_doc(doctype, doc_fieldvalue, check_permission=\"read\")"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 111,
+          "quote": "table_fields = meta.get_table_fields()"
+        },
+        {
+          "path": "frappe/frappe/client.py",
+          "line": 11,
+          "quote": "from frappe.desk.search import PAGE_LENGTH_FOR_LINK_VALIDATION, search_widget"
+        },
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 22,
+          "quote": "from frappe.handler import is_valid_http_method, run_server_script, upload_file"
+        },
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 26,
+          "quote": "\"POST\": \"write\","
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "Child alan izni ve child satir silme/idx native davranisi kaynakta dogrulanmadi.",
-    "Yetkili iliski aramasi: search_widget izin uygulamasi, v17 uc noktasi ve link_filters gorulmedi.",
-    "Dosya: upload_file sozlesmesi, private varsayilani, boyut/tip siniri ve Attach baglama tanimsiz.",
-    "Table ve Table MultiSelect literal kaniti excerpt disinda; Table MultiSelect kapsam disi.",
-    "forms-2 kosullu zorunlu/capraz alan reddi client-rule-parity--contract kapsaminda.",
-    "Test kosucusu, Suite HEAD, uzak baseline bilinmiyor; tarayici matrisi not_run."
+    "Child alan izni, child satır silme ve idx normalizasyonu native kaynakta doğrulanmadı.",
+    "Yetkili ilişki araması: search_widget izin uygulaması, hedef sürüm uç noktası ve link_filters uygulaması görülmedi.",
+    "Dosya: upload_file yanıt sözleşmesi, private varsayılanının onayı, boyut/tip sınırı ve Attach bağlama tanımsız.",
+    "v2 belge kaydetme rotası ve gövde biçimi literal kanıtla sabitlenmedi.",
+    "Table MultiSelect kapsamı tanımsız.",
+    "Koşullu zorunlu/çapraz alan reddi client-rule-parity--contract kapsamındadır.",
+    "Test koşucusu, test DocType'ı ve hedef baseline bilinmiyor; tarayıcı matrisi not_run."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Table satır üst sınırı (MAX_TABLE_ROWS) değeri",
+      "requirementIds": ["forms-5"],
+      "blocks": "Kiralama 1 girdi doğrulaması ve kabul",
+      "interimDocumentStep": "Sınırın zorunlu olduğunu ve değerinin bilinmediğini sözleşmede tut."
+    },
+    {
+      "decision": "Dosya gizlilik varsayılanının (önerilen private) onayı ve boyut/tip sınırı",
+      "requirementIds": ["forms-5"],
+      "blocks": "Dosya alanı bağlama kiralaması",
+      "interimDocumentStep": "upload_file yanıtını ve izin denetimini kaynaktan belgeleyip seçenekleri karar sahibine sun."
+    },
+    {
+      "decision": "Hedef Frappe sürümü (gap'teki v17 ifadesinin teyidi)",
+      "requirementIds": ["forms-5"],
+      "blocks": "İzinli arama uç noktası ve v2 rota sabitleme",
+      "interimDocumentStep": "T-00 baseline sonucu gelene kadar kanıtları sürümden bağımsız path:line olarak kaydet."
+    },
+    {
+      "decision": "Table MultiSelect'in MVP kapsamında olup olmadığı",
+      "requirementIds": ["forms-5"],
+      "blocks": "Table MultiSelect rehberi",
+      "interimDocumentStep": "Açık madde olarak tut, davranış tanımlama."
+    },
+    {
+      "decision": "Satır projeksiyonunun zarf sürümüne etkisi",
+      "requirementIds": ["forms-5"],
+      "blocks": "Okuma çıktısı biçiminin kabulü",
+      "interimDocumentStep": "kernel-envelope--contract sahibine önerilen alan biçimini belge olarak ilet."
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "forms-5": "mvp"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,

@@ -3,125 +3,445 @@
   "canonicalUnitId": "record-integrity",
   "canonicalTaskIds": [
     "record-integrity--implementation",
-    "record-integrity--implementation-mvp"
+    "record-integrity--implementation-mvp",
+    "record-integrity--implementation-post-mvp",
+    "ui-family-14--implementation",
+    "ui-family-20--implementation",
+    "ui-family-20--implementation-post-mvp",
+    "ui-family-40--implementation",
+    "ui-provider-query--implementation"
   ],
-  "requirementIds": ["integrity-1", "integrity-4", "integrity-5"],
+  "requirementIds": [
+    "integrity-1",
+    "integrity-3",
+    "integrity-4",
+    "integrity-5",
+    "integrity-6"
+  ],
   "stage": "poc",
+  "sourceStages": {
+    "integrity-1": "poc",
+    "integrity-3": "post_mvp",
+    "integrity-4": "mvp",
+    "integrity-5": "mvp",
+    "integrity-6": "post_mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
-    "title": "Stale hatasından sonra güncel kayıt ile taslağın salt okunur karşılaştırması",
-    "trigger": "RecordWorkspace kaydı mevcut save_record çağrısından FrappeError code='stale' alır; request.version ve scope güncel.",
-    "expected": "İstemci mevcut read_record ile tek GET yapar; 'Güncel kayıt ile taslağınız' bölümünde her kaydedilmemiş alan için güncel değer ve taslak değeri alt alta, salt okunur gösterilir. edits, draft.baseModified ve recordKey önbelleği değişmez; girdi ve odak korunur.",
-    "denied": "Otomatik tekrar, baseModified yükseltme, üzerine yazma, birleştirme ve taslak silme yok. Yeniden Kaydet eski baseModified ile gider ve native olarak yine reddedilir. Yeni zarf, HTTP statüsü veya backend yok."
+    "title": "Eski modified ile gelen ikinci yazımın reddedilmesi ve ilk kaydın korunması",
+    "trigger": "İki istemci aynı kaydı aynı modified değeriyle okur. Birincisi planlanan PoC kayıt yazma adapterı üzerinden başarıyla kaydeder; ikincisi aynı, artık eski modified değeriyle aynı kayda yazma ister.",
+    "expected": "İkinci yazım yazmadan reddedilir; TimestampMismatchError kernel-envelope--contract zarfında çakışma sonucuna eşlenir. Kalıcı kayıt ilk yazımın alan değerlerini ve modified değerini korur. İstemci taslağı ve odak korunur; otomatik tekrar veya birleştirme yapılmaz. Güncel değer gerekirse ayrı ve izinli bir okuma ile alınır.",
+    "denied": "modified taşımayan yazma son-yazan-kazanır olarak kabul edilmez, doğrulama hatasıyla ve yazmadan reddedilir. Çakışma hatası yutulmaz. frappe.db.set_value, client.set_value veya ham SQL ile koruma atlanmaz; ignore_permissions kullanılmaz; istemci modified değerini ileri saramaz; yeni şema, DocType, zarf veya hook eklenmez."
   },
   "reuse": {
-    "mechanism": "Mevcut headless-metadata.v1: save_record bayat sürümü native FOR UPDATE altında TimestampMismatchError ile, bilinmeyen/yasak alanları api._forbidden ile reddediyor (yerel kapı 8/8). Önceki öneri (409/428, ayrı zarf, alanları yok sayma) hatalıydı, geri çekildi. Eksik yalnız istemci: mevcut onLoad taslağı siliyor (setEdits(null)); güncel değer taslak kaybolmadan görülemiyor. read_record, client.readRecord ve bindEnvelope yeniden kullanılır. records.py/RecordWorkspace satırları sağlanan içerikten sayıldı; kaynak runtime kanıtı değildir.",
+    "status": "KISMI",
+    "mechanism": "Uygulama durumu: uygulanmadı. Yeniden kullanılacak native parçalar: v1/v2 güncelleme yolu kaydı for_update ile kilitleyip istemci verisini doc.update ile birleştirir ve native save çağırır; TimestampMismatchError Frappe exceptions içinde tanımlıdır ve Suite Writer onu çakışma hatası olarak sınıflar; client.py çerçeve alanlarını (default_fields, child_table_fields) yasak kümeye alır. Eksik olan: istemci modified değerinin zorunlu tutulması ve satır kilidi altında karşılaştırılması, çakışmanın zarfa eşlenmesi, istemcide taslağın korunması. v17 check_if_latest davranışı kaynakta okunmadı; native save yolunun istemcinin gönderdiği modified değerini karşılaştırıp karşılaştırmadığı doğrulanmadı. Kanıtların bir native parçayı göstermesi bütün davranışın var olduğu anlamına gelmez. Alıntılar önceki salt okunur Frappe/Suite kaynak okumalarındandır; canlı site, hedef sürüm veya ürün kabulü değildir. Vue/Frappe UI kaynağı React/Ant Design uygulaması kanıtı sayılmaz. searchedPaths listesi kapsamlı bir yokluk iddiası değildir.",
     "evidence": [
       {
-        "path": "frappe_provider/headless_provider/records.py",
-        "line": 37,
-        "quote": "def save_record(doctype: str, name: str, base_modified: str, values: dict | str) -> dict[str, Any]:",
-        "repository": "genui-saas-panel@6ea301c"
+        "path": "frappe/frappe/api/v1.py",
+        "line": 56,
+        "quote": "doc = frappe.get_doc(doctype, name, for_update=True)"
       },
       {
-        "path": "frappe_provider/headless_provider/records.py",
-        "line": 51,
-        "quote": "api._forbidden(_(\"Yalnız düzenleme yetkiniz olan alanlar değiştirilebilir.\"))",
-        "repository": "genui-saas-panel@6ea301c"
+        "path": "frappe/frappe/api/v2.py",
+        "line": 228,
+        "quote": "doc.update(data)"
       },
       {
-        "path": "frappe_provider/headless_provider/records.py",
-        "line": 52,
-        "quote": "if cstr(doc.modified) != modified:",
-        "repository": "genui-saas-panel@6ea301c"
+        "path": "frappe/frappe/client.py",
+        "line": 202,
+        "quote": "forbidden = set(frappe.model.default_fields + frappe.model.child_table_fields)"
       },
       {
-        "path": "frappe_provider/headless_provider/records.py",
-        "line": 28,
-        "quote": "def read_record(doctype: str, name: str) -> dict[str, Any]:",
-        "repository": "genui-saas-panel@6ea301c"
+        "path": "suite/suite/writer/doctype/writer_document/writer_document.py",
+        "line": 15,
+        "quote": "frappe.exceptions.TimestampMismatchError,"
       },
       {
-        "path": "src/features/records/RecordWorkspace.tsx",
-        "line": 31,
-        "quote": "stale: 'Kayıt bu arada başka bir işlemle değişti. Kaydı yeniden yükleyip değişikliği tekrar uygulayın.',",
-        "repository": "genui-saas-panel@6ea301c"
+        "path": "suite/suite/writer/doctype/writer_document/writer_document.py",
+        "line": 32,
+        "quote": "frappe.db.set_value(\"Writer Document\", self.name, \"content\", data)"
       }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "frappe/frappe/api/v2.py",
+      "frappe/frappe/client.py",
+      "frappe/frappe/core/doctype/deleted_document/deleted_document.py",
+      "frappe/frappe/model/delete_doc.py",
+      "frappe/frappe/model/document.py",
+      "frappe/frappe/permissions.py",
+      "suite/suite/sheets/api.py",
+      "suite/suite/writer/doctype/writer_document/writer_document.py"
     ]
   },
   "ownership": {
     "activeContractFile": "docs/frappe-roadmap-contracts/record-integrity.json",
-    "plannedProduction": ["src/features/records/RecordWorkspace.tsx"],
-    "plannedTestFile": "tests/headless-schema.spec.ts",
-    "sharedIntegrationFiles": [
-      "src/features/records/RecordWorkspace.tsx",
-      "src/features/records/records.css",
-      "integration/fragments/record-integrity--integration.json"
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/adapters/records_taxonomy/record_integrity_mvp.py",
+      "backend/saas_platform/saas_platform/adapters/records_taxonomy/record_integrity_poc.py",
+      "backend/saas_platform/saas_platform/adapters/records_taxonomy/record_integrity_post_mvp.py",
+      "frontend/packages/ui/src/components/ui-family-14/index.tsx",
+      "frontend/packages/ui/src/components/ui-family-20/index.tsx",
+      "frontend/packages/ui/src/components/ui-family-20/post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-family-40/index.tsx",
+      "frontend/packages/ui/src/components/ui-provider-query/index.tsx"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "Koşul: saveMutation.error FrappeError, code==='stale', aktif lifecycle ve scope. Okuma: client.readRecord(doctype, name, {signal}) -> GET read_record (name ≤140). Anahtar ['records','compare',site,user,doctype,name,draft.baseModified]; retry:false, gcTime:0, staleTime:Infinity, focus/reconnect refetch ve polling yok.",
-    "output": "Mevcut RecordEnvelope {metadata, record{name,modified,values}, canWrite, writableFields}, bindEnvelope ile bağlı. Yalnız kaydedilmemiş yapılandırılmış alanlar: etiket, 'Güncel değer', 'Taslağınız'. Envelope'ta olmayan alan için yalnız 'Güncel değer görüntülenemiyor'.",
-    "authorization": "Native cookie/CSRF, suite.localhost site sınırı; read_record _require_user, izinli _snapshot, has_permission('read'), apply_fieldlevel_read_permissions. Auth kaybında mevcut dropPrivateState taslağı, karşılaştırmayı ve önbelleği temizler. Keycloak not_run.",
-    "persistence": "Yazma yok; yalnız GET. Transaction, hook, DDL yok. Taslak yalnız bellekte.",
-    "failure": "TimestampMismatchError'ın 'stale' koduna eşlemesi ve HTTP statüsü sağlanan kaynakta görünmüyor; client.ts okunur, değiştirilmez. Karşılaştırma okumasında auth kaybı -> dropPrivateState; diğer hata -> messageFor, taslak korunur, tekrar yok. stale metni 'Kaydı yükle taslağı siler' bilgisini içerecek şekilde güncellenir."
+    "input": "Yazma isteği: doctype, name, modified (zorunlu; istemcinin son okuduğu değer, metin olarak birebir) ve values (yalnız güncellenecek alanlar). modified values üzerinden yazılamaz; çerçeve alanları native client.set_value yasak kümesiyle aynı sınırda tutulur. Oturum ve tenant bağlamı api-middleware--contract ve tenant-registry--contract üzerinden gelir; bu sözleşme yeni kimlik kaynağı tanımlamaz.",
+    "output": "Başarı: native save sonrası alan düzeyi okuma izinleri uygulanmış kayıt projeksiyonu ve yeni modified, kernel-envelope--contract zarfında. Çakışma: zarfta çakışma hata kodu; kodun adı ve HTTP statüsü kernel-envelope--contract ile kesinleşir (kaynak değerlendirmesinin önerisi 409). Çakışma yanıtı kayıt verisi taşımaz. Eksik modified: doğrulama hatası. İstemci tarafında ui-provider-query--contract kapsamında mutation çakışmada taslağı, odağı ve önbellek anahtarını korur, retry yapmaz.",
+    "authorization": "Native oturum/CSRF veya api-middleware--contract ile tanımlanan kimlik. Yazma yetkisi native doc.save ve has_permission yolundan gelir; ignore_permissions, ham SQL veya db.set_value ile yetki ya da çakışma bypass edilmez. Tenant kapsamı tenant-registry--contract, kullanıcı politikası native-user-policy--contract ile belirlenir. Bu davranış rol veya izin üretmez; ileride rol/izin üreten her adım explicitPermissionFlags ortak kaynağına bağlanır ve kendi tek kabulünde reddedilen yazma ile değişmeyen kayıt bulunur.",
+    "persistence": "İstek başına tek native transaction. Kayıt frappe.get_doc(..., for_update=True) ile satır kilidi altında okunur, modified karşılaştırması kilit altında yapılır, yazma yalnız doc.update ve doc.save ile olur. Hata halinde native istek rollback'i uygulanır; kısmi yazım yok. DDL, şema, veri göçü, yeni DocType veya hook davranış değişikliği yok.",
+    "failure": "modified eksik veya boş: doğrulama hatası, yazma yok. modified uyuşmaz: TimestampMismatchError, çakışma sonucu, yazma yok. Yetki yok: native PermissionError, yazma yok. Native validate veya link hatası: native hata zarfa eşlenir. Hiçbir hata yutulmaz; kaynak değerlendirmesine göre Suite Writer'da görülen çakışmayı sessizce geçme davranışı bu yola taşınmaz."
   },
   "development": {
     "dependencies": [
-      "record-integrity--contract",
+      "api-middleware--contract",
+      "client-rule-parity--contract",
+      "device-grant--contract",
       "kernel-envelope--contract",
-      "tenant-registry--contract",
       "native-user-policy--contract",
-      "ui-family-40--implementation",
-      "local pilot recordCommit 6ea301c recordFullGate 8/8"
+      "native-workflow--contract",
+      "record-integrity--contract",
+      "record-integrity--implementation",
+      "sync-receipt--contract",
+      "tenant-registry--contract",
+      "transfer-run--contract",
+      "ui-family-07--contract",
+      "ui-family-14--contract",
+      "ui-family-20--contract",
+      "ui-family-20--implementation",
+      "ui-family-40--contract",
+      "ui-provider-query--contract"
     ],
-    "admission": "T-00 baseline ve R-00 eşlemesi. Yerel pilot Frappe17-dev adf1fd0c, suite.localhost; remote baseline ve Suite HEAD bilinmiyor. Planlanan dosyalar aktif kira değil; Codex tek entegrasyon sahibi.",
+    "admission": "Uygulama durumu: uygulanmadı. Ön koşullar: T-00 hedef baseline ve R-00 yeniden kullanım eşlemesi; izinli veri tüketicileri için R-01; hedef Frappe sürümü kararı; hedef sürümde frappe/model/document.py check_if_latest okunmuş ve sonucu satır alıntısıyla bu sözleşmeye işlenmiş; kernel-envelope--contract çakışma kodu kesinleşmiş; ana entegrasyon sahibinden açık üretim kirası. Tek dar davranış gerçek RED/GREEN kanıtıyla uygulanır. Bu belge hiçbir servis, production, şema veya veriyi değiştirme yetkisi vermez.",
     "steps": [
-      "client.ts stale eşlemesini oku.",
-      "Tek testi yaz, RED'i gör.",
-      "RecordWorkspace'e stale koşullu ayrı karşılaştırma useQuery'si ekle; recordKey, edits, baseModified'a dokunma.",
-      "h2 + dl salt okunur bölüm; mevcut AntD, nx-records sınıfları, Outfit, ≥14px, 320-first dikey akış, çevreleyen odak halkası yok, yeni hareket yok.",
-      "stale metnini güncelle; başarılı kayıt, açık yükleme, kimlik kaybı ve unmount mevcut lifecycle ile karşılaştırmayı kaldırır."
+      "Hedef sürüm kesinleşince frappe/model/document.py içindeki check_if_latest'i oku; karşılaştırmanın veritabanı değerini hangi değerle kıyasladığını satır alıntısıyla kaydet.",
+      "Native yol istemcinin gönderdiği eski modified değerini zaten reddediyorsa RED uydurma; davranışı native yeniden kullanım olarak kaydet ve yalnız zarf eşlemesini uygula.",
+      "Aksi halde record_integrity_poc.py önerisi kapsamında tek yazma adapterı tanımla: modified zorunlu; frappe.get_doc(..., for_update=True) sonrası kilit altında modified karşılaştırması; uyuşmazlıkta TimestampMismatchError; eşleşmede doc.update ve doc.save. Native check_if_latest kaldırılmaz veya atlanmaz.",
+      "Hata eşlemesini kernel-envelope--contract zarfına bağla; yeni zarf veya statü sözlüğü tanımlama.",
+      "Adapterın kaydı (hooks.py veya whitelist) yalnız ana entegrasyon sahibinin seri birleştirmesiyle yapılır.",
+      "ui-provider-query--contract kapsamında mutation modified gönderir; çakışmada taslak, odak ve önbellek anahtarı korunur, retry kapalıdır, güncel değer ayrı izinli okuma ile gösterilir. Arayüz ortak semantik tokenlar, Outfit, en az 14 CSS px metin, 320 CSS px öncelikli akış ve çevreleyen odak halkası yasağına uyar.",
+      "db.set_value, client.set_value ve Suite Writer kaydetme yolunu bypass listesi olarak belgele; adapterın bunları çağırmaması kabul ölçütüne girer. Suite kodu değiştirilmez."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "conflict comparison reads the current native value without replacing or resending the draft",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Aynı komut: npm test -- src/features/records/RecordWorkspace.staleCompare.test.tsx; ayrıca typecheck ve lint."
+      "oneScenario": "Aynı modified değeriyle okuyan ikinci istemcinin yazımı reddedilir ve kayıt ilk yazımın değerlerinde kalır.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. RED, adapter yolu eski modified ile gelen ikinci yazımı kabul ettiği için kalıcı değerin ikinci istemcininkine dönmesiyle düşen bir assertion olmalıdır. Import, fixture veya altyapı hatası RED sayılmaz; native davranış bozularak RED üretilmez. Native yol zaten reddediyorsa RED yoktur ve bu durum kaydedilir. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "Uygulamadan sonra aynı senaryo, değişmeyen assertion ve aynı komutla geçmeli: ikinci yazım çakışma sonucu alır, kalıcı değerler ve modified ilk yazımınki olarak kalır. Komut T-00 sonrası hedef depodaki gerçek test yapılandırmasından belirlenir; şu an not_run. Bu sözleşme veya biçim kontrolü ürün GREEN'i değildir."
     },
-    "rollback": "RecordWorkspace.tsx, gerekirse records.css ve test dosyası yerelde geri alınır; backend değişmez. Production yetkisi yok."
+    "rollback": "Planlanan adapter ve istemci değişiklikleri ana entegrasyon sahibince yerelde geri alınır; şema ve veri değişikliği olmadığından veri geri dönüşü gerekmez. CI, deploy ve production rollback teknik sahibi Hüseyin Cengiz'dir; bu sözleşme production yetkisi vermez. Bu kapsamda DNS/GoDaddy işi yoktur; gerekirse GoDaddy uygulama sahibi Asistan Hüseyin'dir."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "integrity-1",
+      "sourceStage": "poc",
+      "existing": "Native: v1/v2 güncelleme yolu kaydı for_update ile kilitler, doc.update ve save ile yazar; TimestampMismatchError tanımlıdır; client.set_value çerçeve alanlarını yasak kümeye alır.",
+      "gap": "Headless yazma sözleşmesinde modified zorunlu değil; eksikse ret tanımsız ve son yazan kazanır. Çakışmanın zarf/HTTP eşlemesi ve taslak koruma tanımsız. Bypass yolları (db.set_value, client.set_value, Suite Writer kaydetme) listelenmemiş; kaynak değerlendirmesine göre Suite Writer bu hatayı yutuyor. v17 check_if_latest doğrulanmadı.",
+      "completionSteps": [
+        "Hedef sürümde check_if_latest davranışını oku ve kaydet.",
+        "modified zorunlu, kilit altında karşılaştıran tek yazma adapterını development.steps sırasıyla uygula.",
+        "Çakışmayı kernel-envelope--contract zarfına eşle; eksik modified için doğrulama hatası döndür.",
+        "İstemcide çakışmada taslağı ve odağı koru, retry kapat.",
+        "Bypass yollarını listele ve adapterdan çağrılmadığını kabule ekle."
+      ],
+      "dependencies": [
+        "record-integrity--contract",
+        "kernel-envelope--contract",
+        "tenant-registry--contract",
+        "native-user-policy--contract",
+        "ui-provider-query--contract"
+      ],
+      "acceptance": "İki istemciden eski modified ile gelen ikinci değişiklik reddedilsin; ilk kayıt kaybolmasın. modified taşımayan yazma reddedilsin ve kayıt değişmesin.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 56,
+          "quote": "doc = frappe.get_doc(doctype, name, for_update=True)"
+        },
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 228,
+          "quote": "doc.update(data)"
+        },
+        {
+          "path": "frappe/frappe/client.py",
+          "line": 202,
+          "quote": "forbidden = set(frappe.model.default_fields + frappe.model.child_table_fields)"
+        },
+        {
+          "path": "suite/suite/writer/doctype/writer_document/writer_document.py",
+          "line": 15,
+          "quote": "frappe.exceptions.TimestampMismatchError,"
+        },
+        {
+          "path": "suite/suite/writer/doctype/writer_document/writer_document.py",
+          "line": 32,
+          "quote": "frappe.db.set_value(\"Writer Document\", self.name, \"content\", data)"
+        }
+      ]
+    },
+    {
+      "requirementId": "integrity-3",
+      "sourceStage": "post_mvp",
+      "existing": "Native: client.rename_doc whitelisted ve merge parametresi alır.",
+      "gap": "rename_doc.py hedef sürümde okunmadı; link güncelleme davranışı doğrulanmadı. DocType bazında mükerrer tespit kuralı, korunacak alan seçimi, alan çakışmasında kullanıcı kararı, geri alınamazlık/önizleme/onay sınırı ve merge için gereken iznin (allow_rename/write) eşlemesi yok.",
+      "completionSteps": [
+        "MVP dışında tut.",
+        "Hedef sürümde frappe/model/rename_doc.py merge ve link güncelleme davranışını oku, satır alıntısıyla kaydet.",
+        "Tek DocType için mükerrer tespit kuralını decisionsPending kararından al; özel eşleştirme motoru yazma.",
+        "Salt okunur önizleme sözleşmesi yaz: iki kayıt, çakışan alanlar, kullanıcının seçeceği değer; yazma yok.",
+        "Asıl birleştirmeyi yalnız native rename_doc(merge=True) ve native izinle yap; link güncellemesi için özel SQL yok.",
+        "Geri alınamazlık uyarısı ve açık onay adımı ekle; merge izni hedef sürümde okunarak eşlenir."
+      ],
+      "dependencies": [
+        "record-integrity--contract",
+        "record-integrity--implementation",
+        "kernel-envelope--contract",
+        "tenant-registry--contract",
+        "native-user-policy--contract"
+      ],
+      "acceptance": "Örnek mükerrer birleşiminde bağlantılar korunsun; çelişen kritik alan kullanıcı kararına sunulsun.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/client.py",
+          "line": 265,
+          "quote": "def rename_doc(doctype: str, old_name: str | int, new_name: str | int, merge: bool = False):"
+        }
+      ]
+    },
+    {
+      "requirementId": "integrity-4",
+      "sourceStage": "mvp",
+      "existing": "Native: v2 bulk_delete öğe bazında deleted/failed/total sonucu döndürür ve eşik üstünde işi kuyruğa alır; insert_many 200 ile sınırlı ve tek hatada tümüyle geri döner; Document save webhook çalıştırır (dış etki).",
+      "gap": "Toplu güncelleme ve submit için öğe bazlı sonuç sözleşmesi yok. Kuyruğa alınmış işte iptal ve yeni öğe başlamaması tanımsız. Idempotency ve dış etki telafi kaydı yok. Async eşik değeri ürün kararına bağlanmamış.",
+      "completionSteps": [
+        "deleted/failed/total sonuç şeklini toplu güncelleme ve submit için ortak sonuç olarak kernel-envelope--contract'a öner; yeni toplu işlem motoru yazma.",
+        "Her öğeyi native save/submit ve native izinle işle; öğe hatası diğerlerini geri almasın, hata failed listesine yazılsın; öğe başına savepoint davranışını hedef sürümde doğrula.",
+        "insert_many tümüyle-ya-da-hiç ve 200 sınırıyla kalsın; kısmi başarı için kullanılmasın.",
+        "İptali hedef sürüm background_jobs ve RQ iş durumu üzerinden doğrula; öğe aralarında iptal kontrolü, iptalden sonra yeni öğe başlamaz, tamamlananlar raporlanır.",
+        "Idempotency anahtarı ve tekrarlanan isteğin aynı sonucu döndürmesini kernel-envelope--contract ile tanımla.",
+        "Dış etki telafisini ilk aşamada yalnız izlenebilir kayıt olarak tanımla; otomatik geri alma yok.",
+        "Async eşik değerini decisionsPending kararına bağla; zamanlama veya worker aktiflenmez."
+      ],
+      "dependencies": [
+        "record-integrity--contract",
+        "record-integrity--implementation",
+        "kernel-envelope--contract",
+        "tenant-registry--contract",
+        "native-user-policy--contract"
+      ],
+      "acceptance": "Bir öğesi başarısız toplu işte sonuçlar ayrı görülsün; iptalden sonra yeni iş başlamasın; dış etki telafisi izlenebilsin.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 282,
+          "quote": "failed: List of failed deletions with error messages"
+        },
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 292,
+          "quote": "if len(names) > get_bulk_operation_async_threshold(doctype):"
+        },
+        {
+          "path": "frappe/frappe/client.py",
+          "line": 245,
+          "quote": "if len(docs) > 200:"
+        },
+        {
+          "path": "frappe/frappe/model/document.py",
+          "line": 25,
+          "quote": "from frappe.integrations.doctype.webhook import run_webhooks"
+        }
+      ]
+    },
+    {
+      "requirementId": "integrity-5",
+      "sourceStage": "mvp",
+      "existing": "Native: izin modeli submit/cancel/amend haklarını tanır ve submittable olmayan DocType'ta submit'i reddeder; DocStatus framework içindedir. ERPNext Immutable Ledger kurulu değildir, yerel özellik sayılmaz.",
+      "gap": "ERPNext olmadan hangi DocType'ların kritik ve submittable olacağı tanımsız. Ters hareket ve gerekçe bağlantısı için domain modeli yok. Submit sonrası düzenlenebilir alanlar ve db.set_value bypass riski ele alınmamış. ERPNext kurulumu ayrı karar olarak işaretlenmemiş.",
+      "completionSteps": [
+        "ERPNext kararı gelmeden kurulum yapma.",
+        "ERPNext yoksa kritik DocType listesini domain kararıyla belirle; is_submittable tanımı ayrı DocType sözleşmesinde yapılır, bu belge şema değiştirmez.",
+        "Düzeltmeyi DocType bazında native cancel ve amend ile ya da gerekçe linki olan ayrı ters kayıt DocType'ı ile tanımla.",
+        "Submit sonrası düzenlenebilir alanların envanterini çıkar; kritik alanlarda db.set_value kullanımını yasak listesine al.",
+        "submit/cancel/amend rollerini native izin modeliyle ver ve explicitPermissionFlags ortak kaynağına bağla; kabulde yetkisiz cancel reddedilir ve kayıt değişmez."
+      ],
+      "dependencies": [
+        "record-integrity--contract",
+        "record-integrity--implementation",
+        "kernel-envelope--contract",
+        "tenant-registry--contract",
+        "native-user-policy--contract"
+      ],
+      "acceptance": "Kesinleşmiş finans hareketi doğrudan değişmesin; düzeltme ters hareketle ve bağlantılı gerekçeyle yapılsın.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 160,
+          "quote": "if ptype == \"submit\" and not cint(meta.is_submittable):"
+        },
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 22,
+          "quote": "\"amend\","
+        },
+        {
+          "path": "frappe/frappe/model/document.py",
+          "line": 28,
+          "quote": "from frappe.model.docstatus import DocStatus"
+        }
+      ]
+    },
+    {
+      "requirementId": "integrity-6",
+      "sourceStage": "post_mvp",
+      "existing": "Native: delete_doc kalıcı silme değilse belgeyi Deleted Document'a yazar; restore yalnız System Manager'a açıktır, çift kurtarmayı DocumentAlreadyRestored ile engeller ve hedef belge için read izni denetler; clear_old_logs varsayılanı 180 gündür. Suite Sheets kendi çöp akışında restore_sheet ile delete iznini denetler.",
+      "gap": "Yetkili yapılandırılmış önizleme (dry-run/diff) yok; restore doğrudan ekler. Tenant yalıtımı yok. Saklama süresi restore anında uygulanmıyor; kaynak değerlendirmesine göre Deleted Document varsayılan log temizliğine kayıtlı değil. Silme sırasında temizlenen ilişkili kayıtlar birlikte geri gelmiyor. Kalıcı silme politikası merkezi değil. Sheets/Drive çöpü ile Deleted Document eşlenmemiş. Backup restore ayrımı ürün sözleşmesi olarak belgelenmemiş. React/Ant Design istemcisi için restore/önizleme/denetim sözleşmesi yok; Suite'in Vue arayüzü bunun yerine geçmez.",
+      "completionSteps": [
+        "record-integrity--contract içinde tenant/kayıt/alan izni, retention, ilişkili kayıtlar ve idempotent restore sınırını tanımla.",
+        "İlk dar adım: Deleted Document için izinli salt okunur restore önizleme projeksiyonu; gerekli alan, tip, isim ve ilişki çakışmasını yan etkisiz metadata kontrolleriyle raporla.",
+        "Önizlemede keyfi DocType controller validate hooklarını çağırma; hooklar yazma veya dış etki üretebilir. Tam iş kuralı kabulü önizleme ile kanıtlanmış sayılmaz.",
+        "Sonraki adım: native restore yaşam döngüsünü saran izin/retention/audit adapterı; native doğrulama ve çift geri yükleme koruması korunur, saklama süresi dolmuş kayıt reddedilir.",
+        "System Manager dışına açılacak restore rolü explicitPermissionFlags ortak kaynağına bağlanır; kabulde yetkisiz restore reddedilir ve Deleted Document değişmez.",
+        "Writer/Sheets/Drive ilişkili davranışları ayrı mevcut bağımlılıklarda ele al; backup restore'u ayrı mekanizma olarak belgele."
+      ],
+      "dependencies": [
+        "record-integrity--contract",
+        "record-integrity--implementation",
+        "kernel-envelope--contract",
+        "tenant-registry--contract",
+        "native-user-policy--contract"
+      ],
+      "acceptance": "Yetkili kullanıcı geri yüklenecek veriyi önizlesin; başka tenant veya yetkisiz silinen kayıt görünmesin. Kimlik/ilişki çakışması ve kritik durum doğrulansın, geri yükleme denetlensin; aynı kayıt tekrar kurtarılarak çoğalmasın. Saklama süresi bitmiş veya kalıcı silme politikasına tabi veri geri getirilmesin; backup restore ayrı kalsın.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/core/doctype/deleted_document/deleted_document.py",
+          "line": 44,
+          "quote": "frappe.only_for(\"System Manager\")"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/deleted_document/deleted_document.py",
+          "line": 48,
+          "quote": "frappe.throw(_(\"Document {0} Already Restored\").format(name), exc=frappe.DocumentAlreadyRestored)"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/deleted_document/deleted_document.py",
+          "line": 58,
+          "quote": "if not frappe.has_permission(doc.doctype, \"read\", doc=doc):"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/deleted_document/deleted_document.py",
+          "line": 34,
+          "quote": "def clear_old_logs(days=180):"
+        },
+        {
+          "path": "frappe/frappe/model/delete_doc.py",
+          "line": 241,
+          "quote": "add_to_deleted_document(doc)"
+        },
+        {
+          "path": "suite/suite/sheets/api.py",
+          "line": 475,
+          "quote": "frappe.has_permission(\"Sheet\", doc=name, ptype=\"delete\", throw=True)"
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "Kanonik görevin diğer gereksinimleri ve aşağıdaki kalan işler bu yerel dilimle DONE sayılmaz.",
-    "integrity-1: taslağı güncel sürüme bilinçli taşıma kararı tanımsız; karşılaştırma salt okunur.",
-    "integrity-1: db.set_value, client.set_value ve Suite save_doc (TimestampMismatchError yutuluyor) korumayı atlıyor; ui-provider-query--implementation bağımlılığı.",
-    "Kanonik görevin record_integrity_poc.py sahipliği bu davranış için gerekmiyor; uyumsuzluğu Codex çözer.",
-    "Chromium/Firefox/WebKit, 320..masaüstü, klavye ve bağımsız QA not_run.",
-    "integrity-4 (MVP): toplu güncelleme/submit sonucu, iptal, idempotency, dış etki telafisi, async eşik kararı açık; zamanlama aktiflenmez.",
-    "integrity-5 (MVP): ERPNext kurulumu ayrı karar, şimdi yok; kritik submittable DocType, ters kayıt ve gerekçe modeli açık.",
-    "Remote dağıtım yalnız bağımlılık; teknik sahip Hüseyin Cengiz."
+    "Uygulama durumu: uygulanmadı. Hiçbir madde ve hiçbir kanonik görev bu sözleşmeyle tamamlanmış sayılmaz.",
+    "integrity-1: hedef sürümde check_if_latest doğrulanmadı; taslağı güncel sürüme bilinçli taşıma veya birleştirme kararı tanımsız, bu sözleşme yalnız ret ve korumayı kapsar.",
+    "integrity-1: db.set_value, client.set_value ve Suite Writer kaydetme yolları korumayı atlar; istemci tarafı ui-provider-query--implementation görevinde ele alınır.",
+    "ui-family-14, ui-family-20 ve ui-family-40 görevlerinin bu davranıştaki rolü kendi sözleşmelerinde (ui-family-14--contract, ui-family-20--contract, ui-family-40--contract) belirlenir; bu belge onlar için bileşen tasarlamaz.",
+    "integrity-3 (post_mvp): mükerrer tespit, önizleme ve native merge eşlemesi açık.",
+    "integrity-4 (mvp): toplu güncelleme/submit sonucu, iptal, idempotency, dış etki telafisi ve async eşik açık; zamanlama aktiflenmez.",
+    "integrity-5 (mvp): ERPNext kararı, kritik submittable DocType listesi ve ters kayıt/gerekçe modeli açık.",
+    "integrity-6 (post_mvp): restore önizleme, tenant yalıtımı, retention, ilişkili kurtarma, Sheets/Drive eşlemesi ve backup ayrımı açık.",
+    "Chromium/Firefox/WebKit, 320 CSS px'ten masaüstüne görünümler, klavye ve bağımsız QA not_run.",
+    "Remote dağıtım yalnız bağımlılıktır; teknik sahip Hüseyin Cengiz."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Hedef Frappe sürümü (T-00 baseline)",
+      "requirementIds": [
+        "integrity-1",
+        "integrity-3",
+        "integrity-4",
+        "integrity-5",
+        "integrity-6"
+      ],
+      "blocks": "check_if_latest, rename_doc, background_jobs ve Deleted Document davranışlarının doğrulanması ile tüm RED/GREEN adımları",
+      "documentStepUntilDecided": "Sürüme duyarlı noktaları ve okunacak dosyaları listele; kaynak değerlendirmesini ürün kanıtı sayma."
+    },
+    {
+      "decision": "Çakışma hata kodu ve HTTP statüsü (kernel-envelope--contract)",
+      "requirementIds": ["integrity-1", "integrity-4"],
+      "blocks": "Çakışma ve toplu sonuç zarf eşlemesi",
+      "documentStepUntilDecided": "409 önerisini aday olarak kaydet; yeni zarf tanımlama."
+    },
+    {
+      "decision": "Finans için ERPNext kurulumu yapılıp yapılmayacağı",
+      "requirementIds": ["integrity-5"],
+      "blocks": "Ters kayıt modeli seçimi ve kritik DocType tasarımı",
+      "documentStepUntilDecided": "Native cancel/amend ve ayrı ters kayıt seçeneklerini karşılaştıran belge notu yaz; kurulum yapma."
+    },
+    {
+      "decision": "Kritik ve submittable olacak DocType listesi",
+      "requirementIds": ["integrity-5"],
+      "blocks": "is_submittable tanımı ve düzeltme modeli",
+      "documentStepUntilDecided": "Aday DocType envanterini ve submit sonrası düzenlenebilir alanları belgele."
+    },
+    {
+      "decision": "DocType bazında mükerrer tespit kuralları ve ilk hedef DocType",
+      "requirementIds": ["integrity-3"],
+      "blocks": "Salt okunur birleştirme önizleme sözleşmesi",
+      "documentStepUntilDecided": "Hedef sürümde rename_doc merge davranışını oku ve kaydet."
+    },
+    {
+      "decision": "Toplu işlem async eşik değeri (bulk_operation_async_threshold)",
+      "requirementIds": ["integrity-4"],
+      "blocks": "Senkron/kuyruk ayrımının ürün sözleşmesi",
+      "documentStepUntilDecided": "Ortak deleted/failed/total sonuç şeklini eşikten bağımsız belgele."
+    },
+    {
+      "decision": "Silinen kayıt saklama süresi ve kalıcı silme politikası",
+      "requirementIds": ["integrity-6"],
+      "blocks": "Restore anında retention reddi ve log temizliği kaydı",
+      "documentStepUntilDecided": "Metot varsayılanı 180 günü yalnız mevcut native değer olarak belgele; ürün kararı sayma."
+    },
+    {
+      "decision": "Tenant topolojisi (tenant-registry--contract)",
+      "requirementIds": ["integrity-1", "integrity-4", "integrity-6"],
+      "blocks": "Yazma, toplu işlem ve restore kapsam sınırı",
+      "documentStepUntilDecided": "Kapsam kontrolünün hangi noktada uygulanacağını topolojiden bağımsız işaretle."
+    },
+    {
+      "decision": "Restore yetkisinin System Manager dışına açılıp açılmayacağı",
+      "requirementIds": ["integrity-6"],
+      "blocks": "Restore adapterının izin modeli",
+      "documentStepUntilDecided": "Mevcut only_for sınırını koru; olası rolü explicitPermissionFlags ortak kaynağına bağlanacak aday olarak yaz."
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "integrity-1": "poc",
-    "integrity-4": "mvp",
-    "integrity-5": "mvp"
-  },
   "implementationAdmission": {
-    "status": "LOCAL_DEFINED_SLICE_VERIFIED",
+    "status": "NOT_ADMITTED",
     "activeProductionLease": false,
     "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
     "specificPrerequisitesRef": "#/development/admission"
-  },
-  "localDeliveryProof": {
-    "repository": "/Users/w6x/Developer/genui-saas-panel",
-    "commit": "16b0224b1da739d8bab4676dfc3ff11bba776698",
-    "testFile": "tests/headless-schema.spec.ts",
-    "wholeFileGate": "10/10,49.0s",
-    "finalFocusedAfterMinorCopy": "1/1,6.7s",
-    "rootProof": "../frappe-roadmap-analysis.json executionBacklog.localDelivery",
-    "canonicalWholeTaskDone": false
   }
 }

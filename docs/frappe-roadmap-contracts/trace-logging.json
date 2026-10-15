@@ -4,15 +4,22 @@
   "canonicalTaskIds": ["trace-logging--implementation"],
   "requirementIds": ["observability-3", "observability-5", "observability-6"],
   "stage": "mvp",
+  "sourceStages": {
+    "observability-3": "mvp",
+    "observability-5": "mvp",
+    "observability-6": "mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
-    "title": "API isteğinin request_id değeri, o istekten kuyruğa atılan RQ işinin yapılandırılmış log satırına aynen taşınır; satırda yalnız izinli alanlar bulunur",
-    "trigger": "Oturum açmış kullanıcı /api/method/<method> çağırır; metot native kuyruk API'siyle bir RQ işi kuyruğa atar ve worker bu işi çalıştırır.",
-    "expected": "API log satırı ile iş log satırı aynı request_id, site ve user değerini taşır. Yanıtta X-Request-ID başlığı geri döner. Satırlarda yalnız event, request_id, site, user, method/job ve outcome alanları bulunur.",
-    "denied": "İş kwargs değeri, istek gövdesi, Authorization/Cookie başlığı ve hata mesajı metni log satırına yazılmaz. Geçersiz X-Request-ID değeri reddedilmez; yok sayılır ve sunucu yeni bir kimlik üretir. Native izin reddi (403) değişmez; yalnız outcome=denied yazılır."
+    "title": "API isteğinin request_id değeri, o istekten kuyruğa atılan RQ işinin yapılandırılmış log satırına aynen taşınır; satırda yalnız izinli alanlar bulunur. Uygulama durumu: uygulanmadı.",
+    "trigger": "Oturum açmış kullanıcı /api/method/<method> çağırır; metot native kuyruk API'siyle bir RQ işi kuyruğa atar ve worker bu işi native yürütme yoluyla çalıştırır.",
+    "expected": "API log satırı ile iş log satırı aynı request_id, site ve user değerini taşır. Yanıtta X-Request-ID başlığı geri döner. Satırlarda yalnız izin listesindeki alanlar bulunur: event, request_id, site, user, method veya job, outcome; gerektiğinde origin ve yalnız outcome=error için error_class.",
+    "denied": "İş kwargs değeri, istek gövdesi, Authorization/Cookie başlığı ve hata mesajı metni log satırına yazılmaz. Geçersiz X-Request-ID değeri isteği reddettirmez; yok sayılır ve sunucu yeni bir kimlik üretir. Native izin reddi (403) değişmez; adaptör yalnız outcome=denied yazar."
   },
   "reuse": {
-    "mechanism": "Native frappe.logger(allow_site=True) ve mail EventLogger ctx deseni yeniden kullanılır. log_admin_action'daki payload yazmama kuralı izin listesine dönüştürülür. Bağlamı istekten işe taşımak için yalnızca en küçük adaptör eklenir; v17-dev hook noktası doğrulanmadan yazılmaz. Yeni DocType, ORM veya olay motoru yoktur.",
+    "status": "KISMI",
+    "mechanism": "Native frappe.logger(allow_site=True) çağrısı ve mail EventLogger'ın bağlam sözlüğü (ctx) deseni yeniden kullanılır. log_admin_action'daki payload yazmama kuralı bir izin listesine dönüştürülür. Bağlamı istekten işe taşımak için yalnız en küçük adaptör eklenir; hedef sürümdeki istek ve iş yürütme hook noktası kaynaktan doğrulanmadan yazılmaz. Yeni DocType, ORM, CRUD veya olay motoru yoktur. Kanıtlar yalnız native log üretim yapı taşlarını gösterir. Correlation taşıma, merkezi log hedefi ve Sentry entegrasyonu alıntılarda görülmez; alıntılar bütün davranışın var olduğu anlamına gelmez. Suite mail/Meet kaynağı React/Ant Design uygulamasının kanıtı değildir.",
     "evidence": [
       {
         "path": "suite/suite/mail/utils/logger.py",
@@ -39,59 +46,247 @@
         "line": 152,
         "quote": "Rule(\"/method/<path:method>\", endpoint=handle_rpc_call),"
       }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "suite/pyproject.toml",
+      "suite/suite/mail/utils/logger.py",
+      "suite/suite/meet/observability/grafana/provisioning/dashboards/json/recorder-overview.json",
+      "suite/suite/meet/recorder-server/src/app.ts",
+      "suite/suite/meet/recorder-server/src/server.ts",
+      "suite/suite/meet/sfu-server/src/utils/logger.ts"
     ]
   },
   "ownership": {
     "activeContractFile": "docs/frappe-roadmap-contracts/trace-logging.json",
-    "plannedProduction": [
-      "operations/trace-logging/trace_logging_mvp.yml",
-      "backend/saas_platform/saas_platform/observability/request_context.py"
+    "plannedProduction": ["operations/trace-logging/trace_logging_mvp.yml"],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
     ],
-    "plannedTestFile": "backend/saas_platform/saas_platform/observability/test_request_context.py",
-    "sharedIntegrationFiles": ["backend/saas_platform/saas_platform/hooks.py"],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "İsteğe bağlı X-Request-ID başlığı: ^[A-Za-z0-9-]{8,64}$. Eşleşmezse veya yoksa uuid4 hex üretilir. Başka girdi alanı yoktur.",
-    "output": "Yanıtta X-Request-ID başlığı döner. Log satırı sürümü log_schema=1'dir; alanlar event, request_id, site, user, method|job ve outcome(ok|error|denied) ile sınırlıdır. Hata durumunda yalnız istisna sınıf adı yazılır.",
-    "authorization": "Metot için native site, oturum ve whitelist izinleri değişmez. Loglar site log dizinine yazılır; okuma erişimi bench/dosya sistemi düzeyindedir. Logları okumak için yeni bir API açılmaz.",
-    "persistence": "Veritabanına yazılmaz, DDL ve DocType yoktur. Log yazımı DB işlemine katılmaz. request_id iş kuyruğa atılırken işe ayrılmış meta alanında taşınır, worker başlarken bağlama geri yüklenir ve iş bitince temizlenir.",
-    "failure": "Log yazma hatası log_admin_action'daki gibi yutulur; istek veya iş başarısız olmaz. İstek dışında (scheduler veya konsol) kuyruğa atılan işte request_id null olur ve origin=job yazılır. Tüketici yalnız X-Request-ID başlığını kullanır; başlık yoksa korelasyonu yok sayar."
+    "input": "İsteğe bağlı X-Request-ID başlığı; desen ^[A-Za-z0-9-]{8,64}$. Başlık yoksa veya desene uymuyorsa sunucu uuid4 hex üretir. Başka girdi alanı yoktur. İstek gövdesi, iş kwargs değerleri ve başlıkların geri kalanı adaptöre girdi olarak alınmaz.",
+    "output": "Yanıtta X-Request-ID başlığı döner; native yanıt gövdesi ve durum kodu değişmez. Log satırının sürüm alanı log_schema=1'dir. Alanlar şu izin listesiyle sınırlıdır: event, request_id, site, user, method veya job, outcome (ok|error|denied), origin (request|job) ve yalnız outcome=error için error_class (istisna sınıf adı). İzin listesi dışındaki her anahtar yazımdan önce düşürülür.",
+    "authorization": "Metot için native site, oturum, whitelist ve DocType izinleri değişmez. ignore_permissions, SQL ile yetki atlama veya izin kontrolünü kısa devre eden bir yol eklenmez. Native 403 yanıtı aynen döner. Loglar site log dizinine yazılır ve okuma erişimi bench/dosya sistemi düzeyinde kalır. Logları okumak için yeni API, rol veya izin üretilmediğinden explicitPermissionFlags kaynağına bayrak eklenmez. İleride log okuma rolü gerekirse o rehber explicitPermissionFlags ortak kaynağına bağlanır; kendi kabulünde, reddedilen okuma girişimi ve değişmeyen kayıt bulunur.",
+    "persistence": "Veritabanına yazılmaz; DDL, şema değişikliği ve DocType yoktur. Log yazımı DB transaction'ına katılmaz, native save/commit akışını değiştirmez. request_id iş kuyruğa atılırken işe ayrılmış bir meta alanında taşınır; worker başlarken bağlama geri yüklenir ve iş bitince temizlenir. Meta alanın adı ve taşıma noktası hedef sürüm kaynağında doğrulanana kadar belirlenmez. Bu sözleşme hiçbir servisi, production ortamını, şemayı veya veriyi değiştirme yetkisi vermez.",
+    "failure": "Log yazma hatası, log_admin_action'da olduğu gibi yutulur; istek veya iş bu yüzden başarısız olmaz. İstek dışında (scheduler veya konsol) kuyruğa atılan işte request_id null olur ve origin=job yazılır. Hata durumunda yalnız istisna sınıf adı yazılır; hata mesajı ve traceback log satırına girmez, native hata kaydı davranışı değişmez. Tüketici yalnız X-Request-ID başlığını kullanır; başlık yoksa korelasyonu yok sayar."
   },
   "development": {
-    "dependencies": [
-      "trace-logging--contract",
-      "localPilot frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6"
-    ],
-    "admission": "T-00 hedef temel çizgisi ve R-00 yeniden kullanım eşlemesi tamamlanmış olmalı. v17-dev'de istek öncesi/sonrası ve iş öncesi hook noktaları ile native iş yürütme fonksiyonunun adı kaynaktan doğrulanmalı; bunlar şu an bilinmiyor. suiteSourceHead bilinmiyor; uzak ürün temel çizgisi bilinmiyor. Kanıt yalnız yerel suite.localhost içindir.",
+    "dependencies": ["trace-logging--contract"],
+    "admission": "Uygulama durumu: uygulanmadı. Ortak kabul politikası implementationAdmission.policyRef altındadır. Bu birime özgü önkoşullar şunlardır. (1) T-00 hedef temel çizgisi ve R-00 yeniden kullanım eşlemesi tamamlanmış olmalıdır. Bu davranışta izinli veri tüketicisi olmadığından R-01 yalnız ileride log okuma yetkisi eklenirse uygulanır. (2) Hedef Frappe sürümünde istek öncesi/sonrası ve iş yürütme öncesi/sonrası hook noktaları ile native iş yürütme yolu kaynaktan doğrulanmalıdır; bunlar şu an bilinmiyor. v16 Profiling dokümanı bağlayıcı değildir. (3) Python adaptör modülünün ve test dosyasının yolu atanmadı (ownership.plannedProduction yalnız yml içerir, plannedTestFile=null). Production lease öncesinde ana entegrasyon sahibi bu yolları gözlenen depoya göre çözmelidir. (4) Frappe ve Suite kaynak HEAD'i ile uzak ürün temel çizgisi bilinmiyor. (5) Tek dar davranış, gerçek RED/GREEN kanıtıyla uygulanır. Bunlar sağlanmadan production lease verilmez.",
     "steps": [
-      "trace_logging_mvp.yml dosyasına izinli alan listesi ve log_schema=1 yazılır.",
-      "request_context.py: request_id doğrulama/üretme, frappe.logger(allow_site=True) üstüne izin listesine göre filtreleyen bir kayıt fonksiyonu, kuyruğa atmada request_id ekleme ve worker başında geri yükleme.",
-      "Hook kayıtları hooks.py'ye yalnızca Codex entegrasyonu tarafından eklenir."
+      "trace_logging_mvp.yml dosyasına log_schema=1, izinli alan listesi, X-Request-ID deseni ve sızıntı taraması için yasak anahtar listesi yazılır. Dosya secret, DSN, token veya lisans bilgisi içermez.",
+      "Adaptör, X-Request-ID değerini doğrular ya da yeni değer üretir. frappe.logger(name, allow_site=True) üstünde, izin listesi dışındaki her anahtarı düşüren tek bir kayıt fonksiyonu sağlar. Kural kara liste değil izin listesidir.",
+      "Kuyruğa atma noktasında request_id, site ve user meta bilgisi eklenir. Worker başlarken bu bilgi bağlama geri yüklenir, iş sonunda temizlenir. Doğrulanmamış hook veya fonksiyon adı kullanılmaz.",
+      "Yanıta yalnız X-Request-ID başlığı eklenir; native yanıt gövdesi, durum kodu ve izin reddi değişmez.",
+      "hooks.py kayıtları, yalnız ana entegrasyon sahibi tarafından seri birleştirmeyle eklenir. Diğer sharedIntegrationFiles dosyaları (frontend, Tauri, WXT, UI registry, package dosyaları) bu davranışta değiştirilmez.",
+      "Node sfu/recorder logger'ları, Sentry, merkezi log manager, trace/metrik enstrümantasyonu ve uptime probe bu davranışa dahil değildir. Bunlar requirementGuidance ve decisionsPending üzerinden ayrı dar davranışlar olarak ele alınır."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "Test kullanıcısı X-Request-ID=req-abc12345 ile bir test metodunu çağırır. Metot kwargs içinde password alanı olan bir iş kuyruğa atar. İş native yürütme yoluyla çalıştırılır (now=True kullanılmaz). Site log satırlarında aynı request_id, site ve user ile iki satır bulunmalı; hiçbir satırda password değeri veya kwargs anahtarı bulunmamalıdır.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Uygulamadan sonra aynı test aynı komutla, yerel bench run-tests üzerinden yalnız bu test modülü için çalıştırılır ve geçer. Native olarak zaten çalışan davranış için RED üretilmez."
+      "oneScenario": "Test kullanıcısı X-Request-ID=req-abc12345 ile bir test metodunu çağırır. Metot, kwargs içinde password alanı olan bir işi kuyruğa atar. İş native yürütme yoluyla çalıştırılır; now=True kullanılmaz. Site log satırlarında aynı request_id, site ve user değerini taşıyan iki satır bulunmalıdır. Hiçbir satırda password değeri veya kwargs anahtarı bulunmamalıdır.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. Beklenen RED davranışsal bir assertion hatasıdır: adaptör yokken worker satırında API satırıyla aynı request_id bulunmaması. Import hatası, eksik altyapı ya da native davranışı bozarak üretilen hata RED sayılmaz. Native olarak zaten geçen bir assertion için RED uydurulmaz. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "Uygulamadan sonra aynı senaryo, değişmeyen assertion ve aynı komutla geçmelidir. Komut, yalnız bu test modülü için bench run-tests'tir. Test dosyası yolu henüz atanmadı. Şu anki durum not_run'dır; bu sözleşme ve biçim kontrolü ürün GREEN'i değildir."
     },
-    "rollback": "request_context.py, yml ve hook satırları yerelde geri alınır. Log dosyaları silinmez. Production yetkisi yoktur."
+    "rollback": "Adaptör modülü, trace_logging_mvp.yml ve hooks.py kayıtları ana entegrasyon sahibi tarafından geri alınır. Log dosyaları silinmez. Veri ve şema yazımı olmadığı için veri geri dönüşü gerekmez. Bu sözleşme production yetkisi vermez; herhangi bir ortamda CI, deploy ve rollback işinin teknik sahibi Hüseyin Cengiz'dir."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "observability-3",
+      "sourceStage": "mvp",
+      "existing": "Mail EventLogger, frappe.logger üzerinden allow_site=True ile site bazlı log üretir; dosya boyutu ve dosya sayısı ayarlıdır, yani loglar döndürmelidir. log_admin_action payload yazmaz. SFU logger'ı ve recorder sunucusu JSON event satırı üretir. Bunlar yalnız log üretim yapı taşlarıdır; log manager veya Sentry adaptörü değildir.",
+      "gap": "Frappe web, RQ worker ve Node servisleri arasında correlation-id sözleşmesi yok. Merkezi log manager hedefi, saklama süresi ve erişim yetkisi seçilmedi. Sentry için barındırma, DSN secret yönetimi ve veri yerleşimi kararları yok. Redaksiyon listesi ve hedef sürüm logging API eşlemesi yok. pyproject alıntısı yalnız bağımlılık listesinin başlangıcını gösterir; sentry'nin yokluğu bu alıntıyla kapsamlı biçimde kanıtlanmaz.",
+      "completionSteps": [
+        "Correlation alanının tek adı request_id olarak sabitlenir. Frappe web ve RQ worker için behavior bölümündeki adaptörle uygulanır.",
+        "log_admin_action'daki payload yazmama kuralı, yml içindeki izin listesine genelleştirilir; listede olmayan anahtar düşürülür.",
+        "T-00 temel çizgisinde, hedef sürümdeki frappe.logger imzası ve site log dizini davranışı kaynaktan eşlenir.",
+        "Log manager kararı verildikten sonra, yalnız site log dosyalarını okuyan toplayıcı yapılandırması Hüseyin Cengiz için teknik devir olarak yazılır. Uygulama koduna log gönderim kodu eklenmez.",
+        "Sentry kararı verildikten sonra adaptör ayrı bir dar davranış olarak tanımlanır: DSN yalnız secret deposundan okunur ve olay gönderiminden önce aynı izin listesi uygulanır. DSN veya token yönerge dosyasına, Git'e ya da log satırına yazılmaz."
+      ],
+      "dependencies": ["trace-logging--contract"],
+      "acceptance": "Örnek bir API hatası ve bir worker hatası aynı request_id ile site logunda görülür; kararlar verildikten sonra merkezi kayıtta ve Sentry'de de görülür. Hiçbir satırda password, token, Authorization değeri veya mail içeriği bulunmaz. Durum: not_run.",
+      "evidence": [
+        {
+          "path": "suite/suite/mail/utils/logger.py",
+          "line": 48,
+          "quote": "self.logger_name, allow_site=True, max_size=max_size, file_count=file_count"
+        },
+        {
+          "path": "suite/suite/mail/utils/logger.py",
+          "line": 161,
+          "quote": "payload, which can hold passwords and message contents."
+        },
+        {
+          "path": "suite/suite/meet/sfu-server/src/utils/logger.ts",
+          "line": 71,
+          "quote": "event: name,"
+        },
+        {
+          "path": "suite/suite/meet/recorder-server/src/server.ts",
+          "line": 142,
+          "quote": "event: 'service_initialization_failed',"
+        },
+        {
+          "path": "suite/pyproject.toml",
+          "line": 10,
+          "quote": "dependencies = ["
+        }
+      ]
+    },
+    {
+      "requirementId": "observability-5",
+      "sourceStage": "mvp",
+      "existing": "Kaynakta yalnız Meet recorder hizmetine ait prom-client Counter/Gauge/Registry kullanımı, /health ve /ready uçları ve bir Grafana panosu görülür. Frappe'de /api/method kuralı native olarak tanımlıdır. Bu uçların varlığı çalıştıklarının kanıtı değildir.",
+      "gap": "Trace yayılım başlığı ve headless istemciden Frappe /api'ye, oradan RQ worker'a taşıma tanımsız. Hedef sürümde istek ve iş kuyruğu enstrümantasyon noktası eşlenmedi. Frappe web, worker, sfu-server ve collab-server için RED metrik envanteri ve ortak adlandırma yok. Bağımsız probe'un yeri ve sıklığı belirlenmedi.",
+      "completionSteps": [
+        "Tek sayfalık bir sinyal sözleşmesi yazılır: yayılım başlığı (karar sonrası), zorunlu span'ler (API isteği ve RQ işi) ve RED metrik adları (istek sayısı, hata sayısı, süre dağılımı).",
+        "Karar gelene kadar korelasyon request_id ile sağlanır. Bir trace formatı seçilirse trace kimliği izin listesine request_id'nin yanına eklenir; onun yerine geçmez.",
+        "Hedef sürüm kaynağında istek ve iş kuyruğu hook noktası doğrulanır. Doğrulanmamış middleware veya hook adı yazılmaz.",
+        "Recorder'daki prom-client Registry ve /ready deseni, Node servisleri için referans alınır. Frappe tarafı için metrik dışa aktarımı ayrı bir karar ve ayrı bir dar davranıştır.",
+        "Bağımsız uptime probe'unun yeri, sıklığı ve kabulü, Hüseyin Cengiz için teknik devir olarak yazılır. Bu sözleşme cron, zamanlanmış iş veya probe etkinleştirmez. DNS kaydı gerekirse kaydı Hüseyin Cengiz hazırlar, Asistan Hüseyin GoDaddy'de uygular ve Hüseyin Cengiz doğrular."
+      ],
+      "dependencies": ["trace-logging--contract"],
+      "acceptance": "Headless istemci, API ve worker zinciri tek bir trace/correlation kimliğiyle izlenebilir. Hata oranı ve uptime bağımsız bir probe ile doğrulanır. Durum: not_run.",
+      "evidence": [
+        {
+          "path": "suite/suite/meet/recorder-server/src/app.ts",
+          "line": 6,
+          "quote": "import { Counter, Gauge, Registry } from 'prom-client';"
+        },
+        {
+          "path": "suite/suite/meet/recorder-server/src/app.ts",
+          "line": 196,
+          "quote": "app.get('/health', (_req, res) => res.json({ status: 'ok' }));"
+        },
+        {
+          "path": "suite/suite/meet/observability/grafana/provisioning/dashboards/json/recorder-overview.json",
+          "line": 117,
+          "quote": "\"title\": \"Frappe Meet Recorder Overview\","
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 152,
+          "quote": "Rule(\"/method/<path:method>\", endpoint=handle_rpc_call),"
+        }
+      ]
+    },
+    {
+      "requirementId": "observability-6",
+      "sourceStage": "mvp",
+      "existing": "Mail EventLogger bağlam sözlüğünü referansla bağlar ve olay başına bir yapılandırılmış kayıt üretir. log_admin_action, eylemi yapan kullanıcıyı ve nesneyi yazar ama payload'u yazmaz; user alanı frappe.session.user'dan gelir. SFU logger'ı serbest alanlarla JSON event yazar. Recorder ise hata mesajını reason alanına ham olarak yazar. Ortak bir request/tenant kimliği veya redaksiyon filtresi alıntılarda görülmez; bu desen mail modülüne özgüdür.",
+      "gap": "Yasak alan listesi ve maskeleme kuralı tanımsız. Keycloak sub ile Frappe kullanıcısı arasındaki eşleme ve logda yazılacak kimlik tanımsız. Kiracı kimliği kararı yok (site adı mı, ayrı tenant id mi). Python ve TS logger'ları için ortak bağlam sözleşmesi yok. Ham error.message alanları için bir kural yok.",
+      "completionSteps": [
+        "yml içine, izin listesine ek olarak sızıntı taraması için yasak anahtar listesi yazılır: password, token, secret, api_key, Authorization, Cookie, istek gövdesi, iş kwargs ve mail gövdesi. Birincil kural izin listesidir.",
+        "Karar gelene kadar user alanına frappe.session.user yazılır. Keycloak sub eşlemesi bu birimin kapsamına alınmaz.",
+        "Karar gelene kadar tenant olarak site adı yazılır. Tenant kararı verildiğinde alan yeniden eşlenir.",
+        "Node sfu/recorder için aynı alan adlarını kullanan ortak log alan sözleşmesi belgelenir. reason alanına error.message yerine hata sınıfı veya sabit kod yazılması ayrı bir dar davranış olarak planlanır.",
+        "Kabul aşamasında log satırları yasak anahtarlar ve test parolası değeri için taranır."
+      ],
+      "dependencies": ["trace-logging--contract"],
+      "acceptance": "Bir kullanıcı işlemi, API ve worker loglarında aynı request_id, site ve user ile eşleşir. Hiçbir satırda token, parola veya yasak PII bulunmaz. Durum: not_run.",
+      "evidence": [
+        {
+          "path": "suite/suite/mail/utils/logger.py",
+          "line": 19,
+          "quote": "Binds a context dict (shared by reference, so callers can keep mutating it)"
+        },
+        {
+          "path": "suite/suite/mail/utils/logger.py",
+          "line": 160,
+          "quote": "Written for accountability, so it names the acting user and the object acted on — never the"
+        },
+        {
+          "path": "suite/suite/mail/utils/logger.py",
+          "line": 165,
+          "quote": "fields = {\"user\": frappe.session.user, \"action\": action}"
+        },
+        {
+          "path": "suite/suite/meet/sfu-server/src/utils/logger.ts",
+          "line": 64,
+          "quote": "event(name: string, fields: { [key: string]: JsonValue } = {}): void {"
+        },
+        {
+          "path": "suite/suite/meet/recorder-server/src/server.ts",
+          "line": 73,
+          "quote": "reason: error instanceof Error ? error.message : 'callback_failed',"
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "Sentry: self-host veya SaaS, DSN secret deposu ve veri yerleşimi kararı yok. Bu bir kurulum bağımlılığıdır; sahibi Hüseyin Cengiz'dir.",
+    "Sentry için barındırma (self-host veya SaaS), DSN secret deposu ve veri yerleşimi kararı yok. Kurulum bağımlılığının teknik sahibi Hüseyin Cengiz'dir.",
     "Merkezi log manager hedefi, saklama süresi ve erişim yetkisi seçilmedi.",
-    "W3C traceparent/OTel span'leri ve Frappe web, worker, sfu ve collab için RED metrik envanteri yok. Recorder'daki prom-client ve /ready deseni yalnız referanstır.",
-    "Bağımsız uptime probe'unun yeri ve sıklığı belirsiz; kurulum ve kabul Hüseyin Cengiz'e aittir. Cron veya zamanlama etkinleştirilmez.",
-    "Node sfu/recorder logger'larına request_id taşınmıyor; ham error.message alanları ayrıca kısıtlanmalı.",
-    "Serbest metindeki PII için kara liste, Keycloak sub eşlemesi (karar bekliyor) ve tenant kimliği kararı yok; burada site adı yalnız yerel kanıt sınırıdır."
+    "Trace yayılım formatı, span'ler ve Frappe web, worker, sfu ve collab için RED metrik envanteri yok. Recorder'daki prom-client ve /ready deseni yalnız referanstır.",
+    "Bağımsız uptime probe'unun yeri ve sıklığı belirsiz; kurulum ve kabul Hüseyin Cengiz'e aittir. Cron veya zamanlanmış iş etkinleştirilmez.",
+    "Node sfu/recorder logger'larına request_id taşınmıyor. Ham error.message alanları ayrıca kısıtlanmalı.",
+    "Hedef sürümdeki istek ve iş hook noktaları, adaptör modülü yolu ve test dosyası yolu doğrulanmadı ve atanmadı.",
+    "Serbest metindeki PII için kategori listesi, Keycloak sub eşlemesi ve tenant kimliği kararları bekleniyor."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Sentry barındırma modeli, satıcı/tarife, DSN secret deposu ve veri yerleşimi",
+      "requirementIds": ["observability-3"],
+      "blocks": "Sentry adaptörü dar davranışı ve observability-3 kabulündeki Sentry ayağı",
+      "docStepUntilDecided": "Olay gönderimi öncesi izin listesi filtresi gereksinimini belgele. DSN yer tutucusu dahil hiçbir secret değeri yazma."
+    },
+    {
+      "decision": "Merkezi log manager hedefi, saklama süresi ve log erişim yetkisi",
+      "requirementIds": ["observability-3", "observability-6"],
+      "blocks": "Toplayıcı yapılandırmasının teknik devri ve merkezi kayıt kabulü",
+      "docStepUntilDecided": "Site log satırı biçimini (log_schema=1) ve izinli alan listesini sabitle."
+    },
+    {
+      "decision": "Trace yayılım formatı ve trace/metrik arka ucu",
+      "requirementIds": ["observability-5"],
+      "blocks": "Span ve RED metrik enstrümantasyonu ile uçtan uca trace kabulü",
+      "docStepUntilDecided": "request_id korelasyonunu ve RED metrik ad taslağını içeren sinyal sözleşmesini yaz."
+    },
+    {
+      "decision": "Hedef Frappe sürümü ve temel çizgisi (T-00)",
+      "requirementIds": [
+        "observability-3",
+        "observability-5",
+        "observability-6"
+      ],
+      "blocks": "Adaptörün yazımı, hook kayıtları ve production lease",
+      "docStepUntilDecided": "Doğrulanacak istek ve iş hook noktaları için kontrol listesi yaz; isim varsayma."
+    },
+    {
+      "decision": "Tenant topolojisi ve kiracı kimliği (site adı veya ayrı tenant id)",
+      "requirementIds": ["observability-6"],
+      "blocks": "tenant alanının nihai anlamı ve tenantlar arası log ayrımı kabulü",
+      "docStepUntilDecided": "site adını geçici alan olarak belgele ve yeniden eşleme notunu ekle."
+    },
+    {
+      "decision": "Keycloak sub ile Frappe kullanıcısı eşlemesi",
+      "requirementIds": ["observability-6"],
+      "blocks": "user alanına IdP kimliğinin eklenmesi",
+      "docStepUntilDecided": "frappe.session.user yazılacağını belgele; eşlemeyi bu birimin kapsamına alma."
+    },
+    {
+      "decision": "Uptime probe'unun yeri, sıklığı ve sahibi",
+      "requirementIds": ["observability-5"],
+      "blocks": "Bağımsız erişilebilirlik ve hata oranı kabulü",
+      "docStepUntilDecided": "Hüseyin Cengiz için teknik devir taslağı yaz; zamanlanmış iş etkinleştirme."
+    },
+    {
+      "decision": "Loglanmayacak PII kategorileri ve maskeleme kuralı",
+      "requirementIds": ["observability-6"],
+      "blocks": "Serbest metin sızıntı taramasının nihai kapsamı",
+      "docStepUntilDecided": "Bilinen secret anahtarlarıyla yasak listeyi belgele; izin listesini birincil kural olarak tut."
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "observability-3": "mvp",
-    "observability-5": "mvp",
-    "observability-6": "mvp"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,

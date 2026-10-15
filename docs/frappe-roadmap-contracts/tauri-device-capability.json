@@ -1,0 +1,212 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "tauri-device-capability",
+  "canonicalTaskIds": [
+    "tauri-device-capability--implementation",
+    "ui-family-22--implementation-post-mvp"
+  ],
+  "requirementIds": ["channels-18"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "channels-18": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Tauri 2 mobil cihaz yeteneginden yetkili Frappe kaydina gecis. Uygulama durumu: uygulanmadı.",
+    "trigger": "Kullanici Tauri 2 mobil istemcide secilmis bir cihaz yetenegini (belge fotografi, barkod, guvenli dosya secimi) kullanir veya bir bildirim ya da deep link ile belirli bir Frappe belgesini acmak ister.",
+    "expected": "Yalniz MVP icin secilmis ve capability izin tanimina en az izinle eklenmis yetenek izin ister. Kabulde yakalanan dosya native Frappe dosya yukleme yolu uzerinden hedef belgeye baglanir; barkod degeri yalniz form girdisi olarak kullanilir ve sunucu kuralindan gecer. Deep link veya bildirim acilisi her zaman once tenant dogrulamasindan, sonra sunucu tarafi native belge okuma izin kontrolunden gecer; yalniz izin verilen alanlarla kayit ekrani gosterilir. Cevrimdisi eklenen dosya kalici kuyruga alinir ve baglanti geldiginde ayni izin kontrolleriyle gonderilir.",
+    "denied": "Kullanici cihaz iznini reddederse veya sonradan iptal ederse yetenek devre disi kalir ve elle dosya secme veya elle kod girme gibi alternatif yol gosterilir. Yanlis tenant, yetkisiz belge veya taninmayan deep link reddedilir; kayit verisi gosterilmez ve hedef kayit degismeden kalir. Secilmemis yetenek hic izin istemez. Uzak icerik ayricalikli native kopruye erisemez."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Sunucu tarafinda yalniz iki native parca yeniden kullanilir: Frappe dosya yukleme yolu (upload_file) ve belge okuma izin kontrolu (doc.check_permission). Cihazdan yakalama, barkod, push bildirim, Tauri capability kapsami, deep link ile izin eslemesi ve cevrimdisi dosya kuyrugu kaynakta yoktur; bunlar yeni istemci adapter isi olarak tanimlanir. Kanitin bir native parcayi gostermesi butun davranisin var oldugu anlamina gelmez. Arama yalniz searchedPaths icindeki dosyalarla sinirlidir ve kapsamli bir yokluk iddiasi degildir. Vue/Frappe UI kaynagi React/Ant Design uygulamasinin kaniti sayilmaz.",
+    "evidence": [
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 423,
+        "quote": "\"/api/method/upload_file\","
+      },
+      {
+        "path": "frappe/frappe/api/v2.py",
+        "line": 22,
+        "quote": "from frappe.handler import is_valid_http_method, run_server_script, upload_file"
+      },
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 83,
+        "quote": "doc.check_permission(\"read\")"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "frappe/frappe/api/v2.py",
+      "suite/suite/hooks.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/tauri-device-capability.json",
+    "plannedProduction": [
+      "frontend/packages/platform/src/tauri-device-capability/tauri_device_capability_post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-family-22/post_mvp.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Onerilen cihaz yetenegi olayi: secilmis alt kumeden yetenek turu (kamera, barkod, dosya, bildirim), oturum tenanti, hedef doctype ve belge adi, yakalanan dosyanin tipi, boyutu ve yerel referansi ya da barkod degeri. Deep link ve bildirim yuku yalniz tenant, doctype ve belge adi referansi tasir; kayit icerigi, token veya secret tasimaz.",
+    "output": "Basarida sunucunun izin verdigi alanlarla kayit ekrani ya da hedef belgeye bagli native File kaydinin referansi; cevrimdisi durumda gorunur bekleyen kuyruk durumu. Retde onerilen tur ayrimi (izin reddi, tenant uyusmazligi, belge yetkisi yok, dosya siniri, yetenek kapali) ve alternatif yol; kayit verisi donmez. Cihaz callbacklari ve ReactNode degerleri istemcide yerel kalir, JSON model sinirina girmez.",
+    "authorization": "Yetki karari her zaman sunucudadir: belge okuma native check_permission ve alan duzeyi okuma izinleriyle, dosya yukleme ve belgeye baglama native Frappe izinleriyle yapilir. ignore_permissions, dogrudan SQL veya istemci tarafi yetki kestirmesi yoktur. Tauri capability tanimi yalniz yerel en az ayricalik sinirdir, yetkinin yerine gecmez; uzak origin ayricalikli kopru kapsaminin disinda tutulur. Bu birim rol veya izin uretmez; ileride gerekirse explicitPermissionFlags ortak kaynagina baglanir ve tek kabulunde reddedilen yazma ile degismeyen kayit kaniti bulunur.",
+    "persistence": "Sunucuda yalniz native File ve ek baglama davranisi kullanilir; yeni DocType, sema veya veri degisikligi ongorulmez. Istemcide cevrimdisi dosya ve kayit kalici kuyruga yazilir; kuyruk sozlesmesi channels-15 outbox maddesine baglanir. Cihazda saklama suresi karar bekler. Oturum anahtarlari bu sozlesmenin degil keycloak-login--contract sozlesmesinin kapsamindadir.",
+    "failure": "Baglanti yoksa oge kuyrukta kalir ve kullaniciya gorunur. Izin oturum icinde iptal edilirse yetenek kapanir; kuyruktaki ogeler korunur ancak gonderimde yeniden sunucu izninden gecer. Sunucu yetki reddinde oge reddedildi olarak isaretlenir, sonsuz yeniden denenmez ve hedef kayit degismez. Tip veya boyut siniri asiminda dosya kuyruga girmeden yerelde reddedilir; sunucu da ayni siniri bagimsiz uygular. Tenant degisiminde baska tenanta ait kuyruk ogeleri gonderilmez."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "asset-rendition--contract",
+      "client-rule-parity--contract",
+      "file-type-policy--contract",
+      "kernel-envelope--contract",
+      "keycloak-login--contract",
+      "malware-scan--contract",
+      "native-file--contract",
+      "object-storage--contract",
+      "tauri-device-capability--contract",
+      "ui-family-01--contract",
+      "ui-family-22--contract",
+      "ui-family-22--implementation"
+    ],
+    "admission": "Ortak on kosullar: T-00 hedef surum tabani ve R-00 yeniden kullanim eslemesi; izinli veri tuketen adimlarda R-01; tek dar davranis gercek RED/GREEN kanitiyla uygulanir. Bu birime ozel on kosullar: decisionsPending icindeki MVP yetenek alt kumesi karari verilmeden capability kapsami yazilmaz; tauri-device-capability--contract, ui-family-01--contract, client-rule-parity--contract ve keycloak-login--contract mevcut bagimliliklari karsilanir; dosya adimlari icin file-type-policy--contract, malware-scan--contract ve native-file--contract hazir olur. Siralama mevcut gorev bagimliliklari ve asamadan gelir; kume sirasi yeni bir seri bagimlilik degildir. Bu sozlesme uretim yazma kirasi vermez.",
+    "steps": [
+      "T-00 tabaninda Tauri 2, React/Ant Design ve Frappe hedef surumlerini dogrula; surum secimi bu sozlesmede yapilmaz.",
+      "Yetenek alt kumesi karari geldikten sonra yalniz acilan yetenekler icin en az izinli capability satirlari tanimla; secilmeyen yetenek hic eklenmez ve uzak origin kapsama alinmaz.",
+      "Deep link ve bildirim acilis adaptoru: yolu tenant, doctype ve belge adina ayristir; tenant oturumla uyusmazsa yerelde reddet; aksi halde native okuma yolunun izin sonucuna gore ekrani ac veya reddet.",
+      "Dosya ve fotograf ekleme: dosya tipi, zararli yazilim tarama ve native dosya sozlesmelerine bagla; yuklemeyi native upload_file yoluyla, belgeye baglamayi sunucu izniyle yap.",
+      "Cevrimdisi sira: once hedef belgenin erisilebilir oldugunu dogrula, sonra yukle, sonra bagla; her kuyruk ogesine tekrar guvenli bir kimlik ver; kuyrugu channels-15 outbox sozlesmesine bagla.",
+      "Barkod: sonuc yalniz girdi degeridir; dogrulama client-rule-parity--contract ile sunucu kuraliyla esitlenir. Barkod eklentisi belge fotografi cozumu sayilmaz.",
+      "Bildirim: saglayici karari sonrasina birakilir; yuk yalniz referans tasir ve acilis 3. adimdaki izin yolundan gecer.",
+      "UI: ui-family-22 bilesenleri Ant Design ailesiyle, izin reddinde alternatif yol ve gorunur kuyruk durumu sunar. Cihaz yetenegi GenUI capability registry kaydina eklenmez; kaynak registry ve GenUI registry ayri kalir.",
+      "Gercek cihaz kabul plani: izin kabul, red ve sonradan iptal, yanlis tenant, yetkisiz deep link, dosya siniri ve kullanilmayan yetenegin izin istememesi. Emulasyon sonuclari gercek cihazdan ayri raporlanir."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Belgeyi okuma yetkisi olmayan kullanici o belgeye isaret eden bir deep link acar; istemci sunucu izin kontrolunden ret alir, kayit ekranini ve alanlari gostermez, alternatif yol sunar ve hedef kayit degismeden kalir.",
+      "red": "Deep link adaptoru sunucu izin sonucunu beklemeden kayit ekranina yonlendirdigi icin 'kayit ekrani gosterilmedi ve ret gorundu' beklentisi davranis duzeyinde basarisiz olur. RED import hatasi, eksik altyapi veya native Frappe izin davranisini bozmakla elde edilmez.",
+      "green": "Adaptor referansi ayristirir, tenant uyusmazliginda yerelde, aksi halde native okuma yolunun izin sonucuna gore reddeder; ret ekrani alternatif yolu gosterir ve belge degismez. Bu turda test yazilmaz ve kosulmaz."
+    },
+    "rollback": "Bu sozlesme urun degisikligi icermez; geri alinacak uretim durumu yoktur. Gelecekte geri alma: ilgili capability satiri kaldirilir ve yetenek yeni istemci surumuyle kapatilir; sunucuda sema veya veri degisikligi ongorulmedigi icin sunucu geri almasi gerekmez; kuyruktaki gonderilmemis ogeler silinmeden korunur. Teknik CI, deploy ve rollback sahibi Hüseyin Cengiz'dir. Dogrulanmis alan adi icin DNS kaydi gerekirse teknik gereksinimi Hüseyin Cengiz hazirlar, GoDaddy uygulamasini Asistan Hüseyin yapar, sonucu Hüseyin Cengiz dogrular."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "channels-18",
+      "sourceStage": "post_mvp",
+      "existing": "Native parcalar: Suite hooks.py upload_file yolunu listeler; Frappe v2 API upload_file'i frappe.handler'dan ice aktarir; v1 belge okuma yolu doc.check_permission('read') cagirir. Bunlar yalniz sunucu tarafi yukleme ve okuma izni parcalaridir; cihaz davranisi, Tauri capability ve React/Ant Design yuzeyi icin kanit degildir.",
+      "gap": "MVP yetenek alt kumesi (kamera, barkod, dosya, bildirim) secilmemis. Cevrimdisi eklenen dosyanin outbox uzerinden upload_file ile hedef belgeye baglanma sirasi ve boyut/tip siniri tanimsiz. Deep link yolu ile native belge izin kontrolu arasindaki esleme ve tenant dogrulamasi tanimsiz. Push saglayicisi (FCM/APNs) ve Frappe tarafindaki tetik kaynagi secilmemis; Frappe bunu hazir saglamaz.",
+      "completionSteps": [
+        "Yetenek alt kumesi karari sonrasi her acilan yetenek icin izin, red alternatifi ve capability satirini tek tabloda belgele.",
+        "Deep link referansini tenant, doctype ve belge adina eslestir; acilisi her zaman native okuma izin kontrolune bagla.",
+        "Dosya ekleme sirasini (erisim dogrulama, yukleme, baglama) ve tekrar guvenli kimligi channels-15 outbox sozlesmesiyle hizala.",
+        "Boyut ve tip sinirini file-type-policy--contract ve malware-scan--contract kararina bagla; istemci ve sunucu ayni siniri uygular.",
+        "Bildirim yukunu yalniz referansla sinirla; saglayici ve tetik kaynagi kararindan sonra baglantiyi ekle.",
+        "Gercek cihaz kabul senaryolarini izin, tenant, yetki ve kullanilmayan yetenek icin ayri yaz."
+      ],
+      "dependencies": [
+        "tauri-device-capability--contract",
+        "native-file--contract",
+        "file-type-policy--contract",
+        "malware-scan--contract",
+        "object-storage--contract",
+        "client-rule-parity--contract",
+        "keycloak-login--contract",
+        "ui-family-22--contract"
+      ],
+      "acceptance": "Gercek cihazda izin kabul, red ve sonradan iptal; fotograf ekleme veya barkod yolu; dosya siniri ve bildirim baglantisi dogrulanir. Cevrimdisi eklenen dosya veya kayit kalici kuyruga baglanir. Yanlis tenant veya yetkisiz deep link reddedilir ve hedef kayit degismez; yetkisiz dosya baglama girisimi reddedilir ve belge degismez. Kullanilmayan yetenek izin istemez.",
+      "evidence": [
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 423,
+          "quote": "\"/api/method/upload_file\","
+        },
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 22,
+          "quote": "from frappe.handler import is_valid_http_method, run_server_script, upload_file"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 83,
+          "quote": "doc.check_permission(\"read\")"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Cihazdan yakalama, barkod ve push bildirim kaynakta yok; yeni istemci adapter isi gerekir.",
+    "Tauri capability kapsami yetenek alt kumesi kararina bagli oldugu icin yazilamaz.",
+    "Deep link ile native izin kontrolu ve tenant dogrulamasi arasindaki esleme tanimsiz.",
+    "Cevrimdisi dosya kuyrugunun channels-15 outbox ile sirasi ve tekrar guvenligi tanimsiz.",
+    "Gercek cihaz kabul testi kosulmadi; runtimeAcceptance not_run."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "MVP'ye giren yetenek alt kumesi: kamera, barkod, dosya, bildirim.",
+      "requirementIds": ["channels-18"],
+      "blocksStep": "Capability satirlari ve yetenege ozel UI adimlari.",
+      "documentStepUntilDecision": "Her yetenek icin izin, red alternatifi ve risk satirini taslak tablo olarak yaz."
+    },
+    {
+      "decision": "Belge fotografi icin Tauri eklentisi veya Kotlin/Swift adapter secimi ve lisansi.",
+      "requirementIds": ["channels-18"],
+      "blocksStep": "Kamera ile belge fotografi yakalama adimi.",
+      "documentStepUntilDecision": "Adapterin uymasi gereken girdi, cikti ve izin sinirini satici secmeden belgele."
+    },
+    {
+      "decision": "Dosya boyut ve tip siniri.",
+      "requirementIds": ["channels-18"],
+      "blocksStep": "Cevrimdisi dosya kuyrugu ve yukleme adimi.",
+      "documentStepUntilDecision": "Sinirin istemci ve sunucuda ayni kaynaktan uygulanacagi kuralini file-type-policy--contract baglantisiyla yaz."
+    },
+    {
+      "decision": "Push saglayicisi (FCM/APNs) ve Frappe tarafindaki tetik kaynagi.",
+      "requirementIds": ["channels-18"],
+      "blocksStep": "Bildirimden kayda gecis adimi.",
+      "documentStepUntilDecision": "Bildirim yukunun yalniz referans tasiyacagini ve acilisin izin yolundan gececegini belgele."
+    },
+    {
+      "decision": "Tenant topolojisi: deep link icinde tenantin nasil tasinacagi ve dogrulanacagi.",
+      "requirementIds": ["channels-18"],
+      "blocksStep": "Deep link tenant dogrulama adimi.",
+      "documentStepUntilDecision": "Uyusmazlikta yerel ret ve sunucu kontrolunun her durumda zorunlu oldugunu yaz."
+    },
+    {
+      "decision": "Cihazda bekleyen veya reddedilen kuyruk ogelerinin saklama suresi.",
+      "requirementIds": ["channels-18"],
+      "blocksStep": "Kuyruk temizligi ve geri alma ayrintisi.",
+      "documentStepUntilDecision": "Ogelerin kullanici onayi olmadan silinmeyecegini belgele."
+    },
+    {
+      "decision": "Tauri 2 ve mobil isletim sistemi hedef surumleri.",
+      "requirementIds": ["channels-18"],
+      "blocksStep": "T-00 hedef surum tabani.",
+      "documentStepUntilDecision": "Surume bagli API kullanimlarini dogrulanacak olarak isaretle."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

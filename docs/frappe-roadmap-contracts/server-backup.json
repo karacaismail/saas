@@ -10,15 +10,24 @@
     "backup-6"
   ],
   "stage": "mvp",
+  "sourceStages": {
+    "backup-1": "mvp",
+    "backup-2": "mvp",
+    "backup-4": "mvp",
+    "backup-5": "mvp",
+    "backup-6": "mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
     "title": "Native yedek setinden secret içermeyen restore manifesti üretimi",
-    "trigger": "Yerel suite.localhost için native BackupGenerator ile DB, public/private dosya ve config yedeği alındıktan sonra manifest adaptörü bu set üzerinde çalıştırılır.",
-    "expected": "Manifest DB, public_files, private_files ve config olmak üzere dört artifact'i dosya adı, boyut, sha256 ve encrypted bilgisiyle listeler. Config bölümü yalnızca redakte edilmiş anahtar adlarını taşır. Şifreleme anahtarı için yalnızca configKey=backup_encryption_key ve operatörün verdiği opak keyRef bulunur.",
-    "denied": "backup_encryption_key ya da başka bir secret değeri manifestte kalırsa manifest yazılmaz ve çıkış kodu sıfırdan farklı olur. Eksik artifact varsa da manifest üretilmez."
+    "trigger": "Hedef sürümde tek bir site için native BackupGenerator (bench backup) ile DB dump, public tar, private tar ve site config yedeği alındıktan sonra bench sahibi OS kullanıcısı manifest adımını yalnız o sitenin backup dizini üzerinde çalıştırır.",
+    "expected": "Manifest DB, public_files, private_files ve config olmak üzere dört artifact'i dosya adı, boyut, sha256 ve encrypted bilgisiyle listeler. Config bölümü yalnız redakte edilmiş anahtar adlarını taşır. Şifreleme anahtarı için yalnız configKey=backup_encryption_key ve operatörün verdiği opak keyRef bulunur; anahtar değeri, env değeri ve mutlak sunucu yolu bulunmaz.",
+    "denied": "backup_encryption_key ya da redactKeys listesindeki başka bir secret değeri manifest metninde kalırsa manifest yazılmaz ve çıkış kodu sıfırdan farklı olur (MANIFEST_SECRET_LEAK). Dört artifact'ten biri eksik veya okunamazsa (MANIFEST_ARTIFACT_MISSING) ya da başka sitenin yolu verilirse (SITE_SCOPE_DENIED) manifest üretilmez; mevcut kalıcı manifest değişmeden kalır."
   },
   "reuse": {
-    "mechanism": "Yedek üretimi native BackupGenerator ile, restore ve anahtar verme işi native bench restore ile yapılır. Bunlar yeniden yazılmaz. Gözlenen tek eksik, manifest ve redaksiyon kuralıdır. Bu eksik için en küçük adaptör eklenir. Yeni DocType, hook, queue ya da scheduler eklenmez.",
+    "status": "KISMI",
+    "mechanism": "Yedek üretimi native BackupGenerator ile; şifreli yedeğin çözülmesi ve anahtar verme native bench restore (--encryption-key / FRAPPE_BACKUP_ENCRYPTION_KEY, --non-interactive) ile yapılır. Bunlar yeniden yazılmaz ve sarmalanmaz. Kanıt yalnız bu native parçaların varlığını gösterir; restore manifesti, config redaksiyonu, offsite değiştirilemez saklama, otomatik prova ve RPO/RTO ölçümü native olarak gözlenmedi. Eksik için tek dar manifest/redaksiyon adımı önerilir; yeni DocType, ORM, CRUD, hook, queue veya scheduler eklenmez. Bu bir kaynak değerlendirmesidir, ürün uygulaması değildir.",
     "evidence": [
       {
         "path": "frappe/frappe/utils/backups.py",
@@ -36,6 +45,11 @@
         "quote": "backup_path_conf=None,"
       },
       {
+        "path": "frappe/frappe/utils/backups.py",
+        "line": 20,
+        "quote": "from cryptography.fernet import Fernet"
+      },
+      {
         "path": "frappe/frappe/commands/site.py",
         "line": 197,
         "quote": "envvar=\"FRAPPE_BACKUP_ENCRYPTION_KEY\","
@@ -46,66 +60,321 @@
         "quote": "\"--non-interactive\","
       },
       {
+        "path": "frappe/frappe/commands/site.py",
+        "line": 265,
+        "quote": "from frappe.utils.backups import decrypt_backup"
+      },
+      {
         "path": "suite/pyproject.toml",
         "line": 88,
         "quote": "# standalone services, each deployed and run outside the Frappe site"
       }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "frappe/frappe/commands/site.py",
+      "frappe/frappe/patches/v11_0/set_dropbox_file_backup.py",
+      "frappe/frappe/utils/backups.py",
+      "suite/pyproject.toml",
+      "suite/suite/mail/api/account.py"
     ]
   },
   "ownership": {
     "activeContractFile": "docs/frappe-roadmap-contracts/server-backup.json",
-    "plannedProduction": [
-      "operations/server-backup/server_backup_mvp.yml",
-      "operations/server-backup/build_restore_manifest.py (görevin owns listesinde yok; Codex sahiplik genişletmesini onaylamazsa uygulanmaz)"
-    ],
-    "plannedTestFile": "operations/server-backup/tests/test_restore_manifest.py",
+    "plannedProduction": ["operations/server-backup/server_backup_mvp.yml"],
+    "plannedTestFile": null,
     "sharedIntegrationFiles": [
-      "integration/fragments/server-backup--integration.json"
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "site: string (yerel pilotta suite.localhost). Native yedek setinin dört dosya yolu: db .sql.gz, public tar, private tar, site config yedeği; her biri mevcut ve okunabilir olmalı. keyRef: opak string, en fazla 128 karakter, anahtar değerinden türetilmez. redactKeys: yml içinde sabit liste (en az backup_encryption_key ve db_password).",
-    "output": "server-backup-manifest.v1 sürümlü JSON: site, createdAt (ISO-8601), artifacts[{kind, fileName, sizeBytes, sha256, encrypted}], config.redactedKeys[], keyRef{configKey, refId}. Mutlak sunucu yolu, env değeri ve secret değeri yer almaz.",
-    "authorization": "Yetki sınırı native site sınırıdır: adaptör yalnızca bench sahibi OS kullanıcısıyla, tek bir sitenin backup dizini üzerinde çalışır. HTTP/API ucu açılmaz ve Frappe rolü verilmez. Başka sitenin yolu verilirse istek reddedilir.",
-    "persistence": "Veritabanına yazılmaz, DDL değişikliği yapılmaz, Document.save ya da hook kullanılmaz. Manifest önce geçici dosyaya yazılır; redaksiyon denetimi geçerse atomik rename ile kalıcı hâle gelir. Denetim geçmezse geçici dosya silinir.",
-    "failure": "Hata durumları: MANIFEST_ARTIFACT_MISSING (exit 2), MANIFEST_SECRET_LEAK (exit 3), SITE_SCOPE_DENIED (exit 4). Tüketici olan prova veya operatör, sıfırdan farklı çıkış kodunda artifact'i yayınlamaz. Native restore tarafında, şifreli yedekte --non-interactive ile anahtar verilmezse native hata korunur ve sarmalanmaz."
+    "input": "site: string, tek bir Frappe site adı. Native yedek setinin dört dosya yolu: db .sql.gz, public tar, private tar, site config yedeği; her biri mevcut, okunabilir ve aynı sitenin backup dizininde olmalı. keyRef: opak string, en fazla 128 karakter, anahtar değerinden türetilmez. redactKeys: yml içinde sabit liste, en az backup_encryption_key ve db_password; genişletme Hüseyin Cengiz incelemesiyle yapılır.",
+    "output": "server-backup-manifest.v1 sürümlü JSON: site, createdAt (ISO-8601), artifacts[{kind, fileName, sizeBytes, sha256, encrypted}], config.redactedKeys[], keyRef{configKey, refId}, external[{service, owner, backupMethod}]. Mutlak sunucu yolu, env değeri ve secret değeri yer almaz.",
+    "authorization": "Yetki sınırı native site sınırıdır: manifest adımı yalnız bench sahibi OS kullanıcısıyla, tek sitenin backup dizini üzerinde çalışır. HTTP/API ucu açılmaz, Frappe rolü veya izni üretilmez; ignore_permissions veya SQL ile yetki atlanmaz. Başka sitenin yolu verilirse istek reddedilir. İleride prova probu için Frappe kullanıcısı gerekirse rolü sharedExecutionPolicy içindeki explicitPermissionFlags ortak kaynağına bağlanır.",
+    "persistence": "Veritabanına yazılmaz, DDL değişikliği yapılmaz, Document.save ya da hook kullanılmaz. Manifest önce geçici dosyaya yazılır; redaksiyon denetimi geçerse atomik rename ile kalıcı hâle gelir, geçmezse geçici dosya silinir.",
+    "failure": "MANIFEST_ARTIFACT_MISSING (exit 2), MANIFEST_SECRET_LEAK (exit 3), SITE_SCOPE_DENIED (exit 4). Tüketici prova veya operatör sıfırdan farklı çıkış kodunda artifact'i yayınlamaz. Şifreli yedekte --non-interactive ile anahtar verilmezse native restore hatası korunur ve sarmalanmaz."
   },
   "development": {
-    "dependencies": [
-      "server-backup--contract",
-      "yerel pilot: frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6, suite.localhost"
-    ],
-    "admission": "T-00 hedef baseline ve R-00 yeniden kullanım eşlemesi gerekir. Codex adaptör dosyası için sahiplik kararını vermelidir. Yerel v17 bench backup CLI bayraklarının BackupGenerator parametreleriyle eşlemesi bilinmiyor; doğrulanmalı. Suite HEAD ve uzak ürün baseline'ı bilinmiyor. Yerel kanıt, uzak baseline'ın kanıtı sayılmaz.",
+    "dependencies": ["server-backup--contract"],
+    "admission": "Uygulama durumu: uygulanmadı. Giriş için T-00 hedef baseline ve R-00 yeniden kullanım eşlemesi gerekir; izinli okuma yapan prob için R-01 de gerekir. Hedef Frappe/Suite sürümü belirlenmeli ve bench backup/restore bayraklarının BackupGenerator parametreleriyle eşlemesi o sürümün kaynağında doğrulanmalı. Manifest adımının kod dosyası plannedProduction içinde yok; ana entegrasyon sahibi sahiplik kararını vermeden üretim dosyası açılmaz. Bu sözleşme hiçbir servis, production, şema veya veriyi değiştirme yetkisi vermez; CI, deploy ve rollback teknik sahibi Hüseyin Cengiz'dir.",
     "steps": [
-      "yml dosyasına manifest şemasını, redactKeys listesini ve dört artifact türünü yaz; zamanlama tanımı ekleme.",
-      "Adaptör native yedek setini okusun, sha256 değerlerini hesaplasın, config'i redakte etsin ve sızıntı denetimini yazmadan önce yapsın.",
-      "Yalnızca yerel suite.localhost üzerinde çalıştır; servis yeniden başlatma, cron ya da production adımı ekleme."
+      "Hedef sürümde config yedeğinin backup_encryption_key değerini taşıyıp taşımadığını kaynaktan doğrula ve sonucu belgeye yaz.",
+      "server_backup_mvp.yml önerisine manifest şemasını, dört artifact türünü, redactKeys listesini, external satırlarını ve hata kodlarını yaz; zamanlama tanımı ekleme.",
+      "Manifest adımı native yedek setini okusun, sha256 hesaplasın, config'i redakte etsin, sızıntı denetimini kalıcı yazımdan önce yapsın ve geçerse atomik rename ile yazsın.",
+      "Yalnız izole ve geçici bir test sitesinde çalıştırılsın; servis yeniden başlatma, cron, offsite yükleme veya production adımı eklenmez.",
+      "backup-2, backup-4, backup-5 ve backup-6 adımları decisionsPending kararları gelene kadar belge düzeyinde kalır."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "Native BackupGenerator ile yerel suite.localhost yedeği alınır. Geçici bir config kopyasına sentetik bir test anahtarı eklenir. Adaptör çalıştırılır ve şu doğrulanır: dört artifact sha256 değerleriyle eşleşiyor, manifest metninde sentetik anahtar değeri geçmiyor, keyRef mevcut.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Adaptör uygulandıktan sonra aynı test aynı komutla geçmelidir. Sızıntı enjekte edilen ek bir doğrulamada MANIFEST_SECRET_LEAK hatası alınmalıdır."
+      "oneScenario": "Hedef sürümde izole ve geçici tek bir test sitesinde native BackupGenerator ile yedek alınır; geçici config kopyasına sentetik bir test anahtarı konur. Manifest adımı çalıştırılır ve şu doğrulanır: dört artifact sha256 değerleriyle eşleşir, manifest metninde sentetik anahtar değeri geçmez, keyRef mevcuttur.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış oneScenario'dur. RED import, dosya bulunamadı veya altyapı hatası olamaz; native davranış bozularak RED üretilmez. RED, manifest sözleşmesinin assertion düzeyinde karşılanmamasıdır. Config yedeğinin anahtarı taşımadığı doğrulanırsa sızıntı assertion'ı RED sayılmaz.",
+      "green": "Uygulamadan sonra aynı senaryo değişmeyen assertion ve komutla geçmeli; sızıntı enjekte edilen ek doğrulamada MANIFEST_SECRET_LEAK alınmalı. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN'i değildir."
     },
-    "rollback": "yml ve adaptör değişiklikleri yerelde geri alınır, yerel geçici manifest dosyaları silinir. Production'a dokunma yetkisi yoktur ve müşteri kaydı silinmez."
+    "rollback": "Belge ve yml önerisi değişiklikleri geri alınır; izole test sitesindeki geçici manifest dosyaları silinir ve geçici site kaldırılır. Production'a dokunma yetkisi yoktur, müşteri kaydı silinmez. Gerçek ortam rollback'i Hüseyin Cengiz'e aittir."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "backup-1",
+      "sourceStage": "mvp",
+      "existing": "Native BackupGenerator DB, public dosya, private dosya ve config için ayrı yol parametreleri taşır; şifreleme anahtarı site config içinde backup_encryption_key adıyla tutulur. Suite'in sfu (iç içe stt), recorder ve collab sunucuları site dışında çalışan bağımsız servisler olarak işaretlidir; Stalwart, Mail Settings üzerinden yapılandırılan harici bileşendir.",
+      "gap": "Restore manifesti, config redaksiyon kuralı ve anahtar referansı ayrımı yok. Site dışı Suite servisleri ile Stalwart bench yedeğinin kapsamında değil, yedek yöntemleri yazılmamış. Kaynak dokümanlar sürümsüz; hedef sürüm komut ve bayrak eşlemesi yapılmamış.",
+      "completionSteps": [
+        "Bu sözleşmenin behavior ve contract bölümlerindeki manifesti tek kaynak kabul et: DB dump, public tar, private tar, redakte config ve yalnız keyRef.",
+        "redactKeys listesine en az backup_encryption_key ve db_password yaz; config manifestte değer olarak değil yalnız anahtar adı olarak yer alsın.",
+        "sfu/stt, recorder, collab ve Stalwart için manifestte ayrı external satırları aç; sahip Hüseyin Cengiz, yedek yöntemi karar gelene kadar 'tanımsız'.",
+        "Hedef sürüm belirlenince bench backup/restore bayraklarının BackupGenerator parametreleriyle eşlemesini o sürümün kaynağından doğrula."
+      ],
+      "dependencies": ["server-backup--contract"],
+      "acceptance": "İzole test sitesinde dört artifact manifestte sha256 ile eşleşir; manifest ve yayınlanabilir artifact metninde sentetik anahtar değeri geçmez; external satırları sahipli ve yöntemi açıkça 'tanımsız' görünür.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/utils/backups.py",
+          "line": 34,
+          "quote": "BACKUP_ENCRYPTION_CONFIG_KEY = \"backup_encryption_key\""
+        },
+        {
+          "path": "frappe/frappe/utils/backups.py",
+          "line": 72,
+          "quote": "backup_path_private_files=None,"
+        },
+        {
+          "path": "frappe/frappe/utils/backups.py",
+          "line": 77,
+          "quote": "backup_path_conf=None,"
+        },
+        {
+          "path": "suite/pyproject.toml",
+          "line": 88,
+          "quote": "# standalone services, each deployed and run outside the Frappe site"
+        },
+        {
+          "path": "suite/suite/mail/api/account.py",
+          "line": 286,
+          "quote": "3. Fallback: parse the user's domain DNS SRV records (if Stalwart is configured)."
+        }
+      ]
+    },
+    {
+      "requirementId": "backup-2",
+      "sourceStage": "mvp",
+      "existing": "Native yedek Fernet tabanlı şifreleme kullanır; restore tarafında anahtar --encryption-key seçeneği veya FRAPPE_BACKUP_ENCRYPTION_KEY env değişkeniyle verilir ve restore akışı decrypt_backup kullanır. Offsite için kaynakta yalnız Dropbox Settings'e ait eski bir patch gözlendi; bu bir offsite saklama sözleşmesi değildir.",
+      "gap": "Anahtarın yedekle aynı yerde bulunmaması için saklama ve erişim ayrımı, offsite hedef, değiştirilemez saklama yöntemi, retention süresi ve üretim kimliğinden ayrı silme yetkisi kararsız.",
+      "completionSteps": [
+        "Anahtar değerini manifest ve offsite artifact'ten ayır; manifestte yalnız keyRef bulunsun (backup-1 ile aynı kural).",
+        "Offsite hedef, değiştirilemez saklama ve retention gereksinimlerini decisionsPending üzerinden Hüseyin Cengiz'e teknik devir olarak yaz; satıcı seçme.",
+        "Kabul provası belgesine iki red senaryosu yaz: anahtar verilmeden --non-interactive restore reddi ve üretim kimliğiyle offsite silmenin başarısız olması.",
+        "Native şifreleme ve decrypt akışını sarmalama; yeni kripto kodu yazma."
+      ],
+      "dependencies": ["server-backup--contract"],
+      "acceptance": "Anahtar verilmeden şifreli yedek okunamaz ve native hata korunur; karar verilen süre boyunca üretim kimliği offsite kopyayı silemez ve kopya değişmeden kalır; manifestte anahtar değeri yoktur.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/utils/backups.py",
+          "line": 20,
+          "quote": "from cryptography.fernet import Fernet"
+        },
+        {
+          "path": "frappe/frappe/commands/site.py",
+          "line": 197,
+          "quote": "envvar=\"FRAPPE_BACKUP_ENCRYPTION_KEY\","
+        },
+        {
+          "path": "frappe/frappe/commands/site.py",
+          "line": 265,
+          "quote": "from frappe.utils.backups import decrypt_backup"
+        },
+        {
+          "path": "frappe/frappe/patches/v11_0/set_dropbox_file_backup.py",
+          "line": 9,
+          "quote": "frappe.db.set_single_value(\"Dropbox Settings\", \"file_backup\", 1)"
+        }
+      ]
+    },
+    {
+      "requirementId": "backup-4",
+      "sourceStage": "mvp",
+      "existing": "Native restore komutu var; --non-interactive bayrağı eksik anahtarda soru sormak yerine başarısız olur; --with-public-files public tar'ı geri yükler; restore SQL dosya türünü file komutuyla tespit eder ve tespit edemezse çıkar.",
+      "gap": "Zamanlanmış prova, izole prova sitesinin yeri ve yetkisi, sayım ve dosya-hash kontrol listesi ve bozuk yedek alarmı yok.",
+      "completionSteps": [
+        "Prova işini pasif tanım olarak yaz: geçici izole sitede native restore --non-interactive, public ve private tar ile. Etkinleştirme ve zamanlayıcı yeri Hüseyin Cengiz'e aittir.",
+        "Küçük ve sabit kontrol listesi yaz: seçilen birkaç DocType için kayıt sayısı, File kayıtlarına karşılık gelen dosyaların varlığı ve manifest sha256 eşleşmesi.",
+        "Sonuç kaydına başlangıç/bitiş zamanı, manifest sürümü, kontrol sonuçları ve çıkış kodu girsin; bozuk yedekte alarm tanımlansın, kanal karar bekler.",
+        "Prova sitesi production verisine veya servislerine yazmaz; prova sonunda geçici site kaldırılır."
+      ],
+      "dependencies": ["server-backup--contract"],
+      "acceptance": "Prova manifestteki snapshot'ı izole sitede açar, sayım ve dosya kontrollerini kaydeder; sha256 uyuşmazlığı veya restore hatası sıfırdan farklı sonuç ve alarm kaydı üretir.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/commands/site.py",
+          "line": 165,
+          "quote": "@click.command(\"restore\")"
+        },
+        {
+          "path": "frappe/frappe/commands/site.py",
+          "line": 202,
+          "quote": "\"--non-interactive\","
+        },
+        {
+          "path": "frappe/frappe/commands/site.py",
+          "line": 180,
+          "quote": "\"--with-public-files\","
+        },
+        {
+          "path": "frappe/frappe/commands/site.py",
+          "line": 281,
+          "quote": "err, out = frappe.utils.execute_in_shell(f\"file {sql_file_path}\", check_exit_code=True)"
+        }
+      ]
+    },
+    {
+      "requirementId": "backup-5",
+      "sourceStage": "mvp",
+      "existing": "Native BackupGenerator isteğe bağlı yedek üretir ve yedek kapsamını site config içindeki backup ayarından okur. Kaynakta RPO hedefi, ölçümü veya alarmı gözlenmedi.",
+      "gap": "Sayısal RPO ve onaylayan kişi yok. PITR yokken RPO'nun yedek aralığı ile offsite kopyalama gecikmesinin toplamıyla sınırlandığı yazılmamış. Site dışı Suite servisleri için ayrı RPO yok.",
+      "completionSteps": [
+        "Ölçüm tanımını yaz: kayıp penceresi = kesinti anı eksi son başarılı ve doğrulanmış offsite yedeğin zaman damgası; PITR yokken üst sınır yedek aralığı artı offsite kopyalama gecikmesidir.",
+        "Ölçümü backup-4 prova sonuç kaydına ekle; eşik karar gelene kadar boş, alarm pasif kalır.",
+        "Site dışı Suite servisleri için RPO satırlarını ayrı aç ve değerleri decisionsPending'e bağla.",
+        "PITR veya başka arşivleme yöntemi seçme; ayrı karardır."
+      ],
+      "dependencies": ["server-backup--contract", "backup-4"],
+      "acceptance": "Provada hesaplanan veri kaybı penceresi kaydedilir ve onaylı RPO aşıldığında alarm kaydı oluşur.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/utils/backups.py",
+          "line": 56,
+          "quote": "class BackupGenerator:"
+        },
+        {
+          "path": "frappe/frappe/utils/backups.py",
+          "line": 168,
+          "quote": "backup_conf = frappe.conf.get(\"backup\", {})"
+        }
+      ]
+    },
+    {
+      "requirementId": "backup-6",
+      "sourceStage": "mvp",
+      "existing": "Native restore CLI ve yetkili liste okuması için /api/resource/<doctype> GET ucu var; sfu/stt, recorder ve collab sunucuları site dışında ayrı çalışır.",
+      "gap": "Sayısal RTO, hazır olma probu ve bağımlılıkların ayağa kalkma sırası yok. Keycloak ve istemciler snapshot'ta değil; Keycloak girişi içeren prob Keycloak kararına bağlıdır.",
+      "completionSteps": [
+        "Minimum probu tanımla: izinli bir test kullanıcısıyla native /api/resource/<doctype> GET okuması; native izin denetimi korunur, ignore_permissions yok. Kullanıcının rolü explicitPermissionFlags ortak kaynağına bağlanır.",
+        "Ayağa kalkma sırasını yaz: DB ve Frappe site, site dışı Suite servisleri, DNS. DNS kayıt gereksinimini Hüseyin Cengiz hazırlar, GoDaddy uygulamasını Asistan Hüseyin yapar, sonucu Hüseyin Cengiz doğrular.",
+        "Ölçümü backup-4 provasına ekle: kesinti başlangıcından probun ilk başarılı yanıtına kadar geçen süre; RTO değeri karar bekler.",
+        "Keycloak giriş adımını prob kapsamına ekleme; karar gelince ayrı güncelleme yapılır."
+      ],
+      "dependencies": ["server-backup--contract", "backup-4"],
+      "acceptance": "Provada süre kaydedilir ve onaylı RTO ile karşılaştırılır; aynı test kullanıcısının yazma denemesi reddedilir ve kayıt değişmeden kalır.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/commands/site.py",
+          "line": 165,
+          "quote": "@click.command(\"restore\")"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 153,
+          "quote": "Rule(\"/resource/<doctype>\", methods=[\"GET\", \"QUERY\"], endpoint=document_list),"
+        },
+        {
+          "path": "suite/pyproject.toml",
+          "line": 89,
+          "quote": "\"suite/meet/sfu-server/*\",  # includes the nested stt-server"
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "backup-2: offsite hedef, değiştirilemez saklama, retention süresi, ayrı silme yetkisi ve anahtarın yedekten ayrı tutulacağı secret deposu kararsız. Sahibi Hüseyin Cengiz; vendor seçilmedi.",
-    "backup-4: izole prova sitesi, sayım ve dosya kontrol listesi ile alarm kanalı tanımsız. Prova işi pasif tanımlanabilir, etkinleştirmesi Hüseyin Cengiz'e aittir.",
-    "backup-5/backup-6: sayısal RPO/RTO değerleri ve onaylayan kişi yok; kritik akış probu ve ayağa kalkma sırası tanımsız.",
-    "backup-1: site dışı Suite servisleri (sfu, stt, recorder, collab), Stalwart ve Keycloak realm export'u bench yedeğinin kapsamında değil. Sahibi Hüseyin Cengiz; Keycloak karar beklediği için kapsam dışı. DNS bağımlılığı Asistan Hüseyin'e aittir.",
-    "Adaptör dosyası mevcut owns listesinin dışında; sahiplik kararı Codex entegrasyonuna aittir."
+    "backup-1: config yedeğinin anahtarı taşıyıp taşımadığı hedef sürümde doğrulanmadı; site dışı Suite servisleri ve Stalwart için yedek yöntemi tanımsız.",
+    "backup-2: offsite hedef, değiştirilemez saklama, retention, ayrı silme yetkisi ve anahtar deposu kararsız.",
+    "backup-4: izole prova sitesinin yeri, kontrol listesindeki DocType seçimi ve alarm kanalı tanımsız; prova yalnız pasif tanımlanabilir.",
+    "backup-5 ve backup-6: sayısal RPO/RTO değerleri ve onaylayan kişi yok; prob kullanıcısının rolü tanımsız.",
+    "Manifest adımının kod dosyası plannedProduction dışında; sahiplik kararı ana entegrasyon sahibine aittir."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Hedef Frappe/Suite sürümü (T-00 baseline)",
+      "requirementIds": [
+        "backup-1",
+        "backup-2",
+        "backup-4",
+        "backup-5",
+        "backup-6"
+      ],
+      "blocks": "Bayrak eşlemesinin doğrulanması ve uygulama girişi",
+      "allowedUntilDecision": "Manifest şeması ve hata kodlarını sürümden bağımsız belge olarak yazmak"
+    },
+    {
+      "decision": "Offsite hedef ve değiştirilemez saklama sağlayıcısı",
+      "requirementIds": ["backup-2"],
+      "blocks": "Offsite yükleme ve silme reddi provası",
+      "allowedUntilDecision": "Gereksinimleri ve iki red senaryosunu belgeye yazmak"
+    },
+    {
+      "decision": "Retention süresi",
+      "requirementIds": ["backup-2"],
+      "blocks": "Değiştirilemez saklama süresinin kabulü",
+      "allowedUntilDecision": "Alanı manifest dışında 'karar bekliyor' olarak işaretlemek"
+    },
+    {
+      "decision": "Anahtarın yedekten ayrı tutulacağı secret deposu",
+      "requirementIds": ["backup-1", "backup-2"],
+      "blocks": "keyRef değerinin çözümlenmesi",
+      "allowedUntilDecision": "keyRef'i opak string olarak tanımlamak"
+    },
+    {
+      "decision": "İzole prova ortamının yeri ve topolojisi",
+      "requirementIds": ["backup-4", "backup-5", "backup-6"],
+      "blocks": "Prova işinin etkinleştirilmesi",
+      "allowedUntilDecision": "Prova adımlarını pasif tanım olarak yazmak"
+    },
+    {
+      "decision": "Bozuk yedek ve eşik aşımı alarm kanalı",
+      "requirementIds": ["backup-4", "backup-5"],
+      "blocks": "Alarmın teslimi",
+      "allowedUntilDecision": "Alarm kaydının alanlarını tanımlamak"
+    },
+    {
+      "decision": "Sayısal RPO ve onaylayan kişi",
+      "requirementIds": ["backup-5"],
+      "blocks": "RPO alarm eşiği",
+      "allowedUntilDecision": "Ölçüm formülünü yazmak"
+    },
+    {
+      "decision": "Sayısal RTO ve kritik akışın kapsamı",
+      "requirementIds": ["backup-6"],
+      "blocks": "RTO karşılaştırması",
+      "allowedUntilDecision": "Minimum native API probunu ve ayağa kalkma sırasını yazmak"
+    },
+    {
+      "decision": "Keycloak realm yedeği ve Keycloak girişli prob",
+      "requirementIds": ["backup-1", "backup-6"],
+      "blocks": "Kimlik sağlayıcı satırının kapsama alınması",
+      "allowedUntilDecision": "Bu sözleşmede kapsam dışı bırakmak"
+    },
+    {
+      "decision": "Site dışı Suite servisleri ve Stalwart için yedek yöntemi",
+      "requirementIds": ["backup-1", "backup-5"],
+      "blocks": "external satırlarının doldurulması",
+      "allowedUntilDecision": "Satırları sahipli ve 'tanımsız' olarak listelemek"
+    },
+    {
+      "decision": "Manifest adımı kod dosyasının sahipliği",
+      "requirementIds": ["backup-1"],
+      "blocks": "Uygulama dosyasının açılması",
+      "allowedUntilDecision": "Davranışı yml önerisinde tanımlamak"
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "backup-1": "mvp",
-    "backup-2": "mvp",
-    "backup-4": "mvp",
-    "backup-5": "mvp",
-    "backup-6": "mvp"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,

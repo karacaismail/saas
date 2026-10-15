@@ -1,0 +1,235 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "soap-api",
+  "canonicalTaskIds": [
+    "soap-api--implementation",
+    "ui-family-36--implementation-post-mvp"
+  ],
+  "requirementIds": ["integration-11"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "integration-11": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "WSDL/XSD sözleşmesine bağlı tek bir SOAP işleminin sunucu tarafında güvenli tüketimi. Uygulama durumu: uygulanmadı.",
+    "trigger": "Yetkili bir kullanıcı ya da onaylı bir sunucu içi akış, kayıtlı bir SOAP bağlantısı üzerinden örnek WSDL'deki tek bir işlemi allow_guest=False ile tanımlı bir Frappe whitelisted method aracılığıyla çağırır.",
+    "expected": "İstek, WSDL/XSD'ye göre sunucuda kurulur. Yanıt zarfı sertleştirilmiş ayrıştırıcıyla okunur ve XSD'ye göre doğrulanır. Geçerli yanıt, tipli ve JSON serileştirilebilir bir sonuç modeline dönüşür. SOAP fault, namespace veya SOAP sürümü uyumsuzluğu tipli hata olarak döner. Hata gövdesinde kimlik bilgisi, ham zarf, fault detail veya traceback bulunmaz.",
+    "denied": "Misafir ya da yetkisiz kullanıcı çağrısı native izin hatasıyla reddedilir ve dış çağrı yapılmaz. Bağlantı kaydı ve ilişkili kayıtlar değişmeden kalır. DOCTYPE veya ENTITY içeren, boyut sınırını aşan ya da XSD'ye uymayan yanıt reddedilir ve kalıcı veri yazılmaz."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "SOAP davranışı incelenen yerel Frappe/Suite kaynağında yoktur. Kanıtlar iki şeyi gösterir. Birincisi, Frappe istek gövdesini yalnız JSON veya form/query olarak ayrıştırır ve Webhook yalnız Form URL-Encoded ile JSON sunar; yani XML/SOAP yolu yoktur. İkincisi, Suite Drive WebDAV ayrıştırıcısı entity çözümleme, ağ ve DTD kapalı, DOCTYPE/ENTITY reddeden bir lxml deseni içerir. Bu desen yalnız sertleştirme örneğidir; DAV ad alanına bağlıdır, SOAP sözleşmesi değildir ve doğrudan import edilmez. Yeniden kullanılması planlanan native mekanizmalar şunlardır: whitelisted method ve izin kontrolü, Password alan tipi ve sunucu tarafı çözme, DocType izinleri, transaction/save/hook. Bunlar bu sözleşmenin doğrulanmış kanıtında yer almaz ve hedef sürüm kaynağında ayrıca doğrulanmalıdır. Aranan yollar listesi kapsamlı bir yokluk iddiası değildir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/app.py",
+        "line": 341,
+        "quote": "if request_data and request.is_json:"
+      },
+      {
+        "path": "frappe/frappe/integrations/doctype/webhook/webhook.json",
+        "line": 127,
+        "quote": "\"options\": \"\\nForm URL-Encoded\\nJSON\""
+      },
+      {
+        "path": "suite/suite/drive/webdav/xmlutil.py",
+        "line": 18,
+        "quote": "resolve_entities=False,"
+      },
+      {
+        "path": "suite/suite/drive/webdav/xmlutil.py",
+        "line": 46,
+        "quote": "if b\"<!DOCTYPE\" in body or b\"<!ENTITY\" in body:"
+      },
+      {
+        "path": "suite/pyproject.toml",
+        "line": 17,
+        "quote": "\"lxml~=6.1\",  # drive: WebDAV XML (previously only a transitive dep via frappe)"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/app.py",
+      "frappe/frappe/integrations/doctype/webhook/webhook.json",
+      "suite/pyproject.toml",
+      "suite/suite/drive/webdav/xmlutil.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/soap-api.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/adapters/integration_hub/soap_api_post_mvp.py",
+      "frontend/packages/ui/src/components/ui-family-36/post_mvp.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Bağlantı kimliği (önerilen SOAP bağlantı kaydının adı), WSDL'de tanımlı tek işlem adı ve XSD'ye eşlenecek JSON parametre nesnesi. Tenant bağlamı kernel-envelope ve tenant-registry sözleşmelerinden gelir. İstemciden uç nokta URL'si, SOAPAction, namespace, SOAP sürümü veya kimlik bilgisi kabul edilmez; bunlar yalnız sunucudaki bağlantı kaydından okunur.",
+    "output": "Başarı durumunda işlem adı, XSD ile doğrulanmış yanıt alanları (JSON) ve korelasyon kimliği döner. Hata durumunda tipli hata kodu (soap_fault, schema_invalid, namespace_mismatch, version_mismatch, xml_rejected, transport_error) ile güvenli ve kısa bir mesaj döner. Ham XML, ReactNode veya callback JSON model sınırını geçmez; UI tarafındaki yerel bileşen ve callback'ler bu modeli yalnız tüketir.",
+    "authorization": "Çağrı allow_guest=False whitelisted method üzerinden yapılır. Dış çağrıdan önce bağlantı kaydı için native Frappe izin kontrolü yapılır. ignore_permissions veya SQL ile yetki bypass edilmez. Rol ve izin bayrakları explicitPermissionFlags ortak kaynağına bağlanır; bu sözleşme kendi rolünü veya bayrağını tanımlamaz. Sunucu tarafı (WSDL yayımlama, gelen zarf) kapsama alınırsa global before_request kullanılmaz; kapsamı sınırlı tek bir rota ve kimlik doğrulama zorunludur.",
+    "persistence": "Yalnız önerilen bir SOAP bağlantı DocType'ı vardır: uç nokta, WSDL kaynağı, SOAP sürümü, hedef namespace ve Password alanında kimlik bilgisi. Kimlik bilgisi yalnız sunucuda get_decrypted_password ile okunur ve istemciye dönmez. Çağrı sonucu bir kayda yazılacaksa native save/transaction ve outbox sözleşmesi kullanılır. Ham zarfın saklanması ve saklama süresi açık karardır. Bu sözleşme şema, servis, production veya veri değişikliği yetkisi vermez.",
+    "failure": "Fault, XSD ihlali, namespace/sürüm uyumsuzluğu, zaman aşımı ve ayrıştırıcı reddi tipli hataya eşlenir. Fault detail, traceback, kimlik bilgisi ve iç host bilgisi istemciye ve genel loglara sızmaz. Hata durumunda kısmi yazım olmaz; transaction geri alınır ve ilgili kayıtlar değişmeden kalır."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "capability-definition--contract",
+      "client-rule-parity--contract",
+      "field-mapping--contract",
+      "graphql-api--contract",
+      "kernel-envelope--contract",
+      "mcp-api--contract",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "outbox--contract",
+      "soap-api--contract",
+      "tenant-registry--contract",
+      "ui-family-36--contract",
+      "ui-family-36--implementation",
+      "xml-feed--contract"
+    ],
+    "admission": "Uygulama durumu: uygulanmadı. Kabul için şu önkoşullar gerekir: T-00 hedef temel çizgi ve R-00 yeniden kullanım eşlemesi; izinli veri tüketicisi olduğu için ayrıca R-01. soap-api--contract için hedef sağlayıcı, SOAP sürümü, WS-Security gereksinimi ve gerçek bir örnek WSDL/XSD sabitlenmeden build başlamaz. Mevcut bağımlılık sırası korunur: kernel-envelope, tenant-registry, native-user-policy, capability-definition, native-doctype-schema, outbox ve api-middleware sözleşmeleri. Bu sıra yeni bir seri DAG değildir. Tek dar davranış için gerçek RED/GREEN kanıtı gerekir.",
+    "steps": [
+      "decisionsPending listesindeki kararları karar sahipleriyle kapat ve örnek WSDL/XSD'yi kaynak dışı, değişmez girdi olarak sabitle.",
+      "Hedef Frappe sürümü kaynağında whitelisted method, allow_guest, Password alan tipi, get_decrypted_password ve DocType izin kontrolü davranışını doğrula; R-00 eşlemesine path ve satırıyla işle.",
+      "Önerilen bağımsız uygulama modülünde SOAP/XML kütüphanesini, karar verilen sürümle, modülün kendi pyproject dosyasında tanımla. Suite'in Drive için tanımladığı lxml'e dolaylı yoldan dayanma.",
+      "Sertleştirilmiş XML ayrıştırıcıyı Suite xmlutil desenini örnek alarak kur: resolve_entities=False, no_network, load_dtd=False, huge_tree=False, DOCTYPE/ENTITY reddi ve gövde boyut sınırı. Suite modülünü import etme.",
+      "İstemciyi tek işlemle sınırla: istek XSD'ye göre kurulur, yanıt XSD ile doğrulanır, SOAP 1.1/1.2 zarf sürümü ve hedef namespace beklenenle karşılaştırılır, fault tipli hataya eşlenir.",
+      "SOAP bağlantı DocType'ını native-doctype-schema sözleşmesine göre tanımla. Kimlik bilgisi Password alanında tutulsun; izinler explicitPermissionFlags ortak kaynağından gelsin.",
+      "Whitelisted method'u api-middleware ve kernel-envelope zarfına bağla. Yetenek kaydını capability-definition sözleşmesine göre yap. Kaynak registry ile GenUI capability registry ayrı tutulur; GenUI ayrı bir kullanıcı projesidir.",
+      "ui-family-36 post_mvp UI: React ve Ant Design Pro form ile bağlantı yönetimi ve tek işlem deneme sonucu ekranı kurulur; çağrı TanStack Query ile whitelisted method'a gider. Parola alanı yalnız yazılır, değeri geri okunmaz. Tipli hata kodları kullanıcı mesajlarına eşlenir. Vue/Frappe UI kaynağı React/AntD uygulama kanıtı sayılmaz. Grid kararı açık olduğundan liste için grid seçimi yapılmaz.",
+      "Sunucu tarafını en son ve yalnız karar verilirse ekle: WSDL yayımlama ve gelen zarf ayrıştırma, SOAPAction veya action parametresine göre tek ve kapsamı sınırlı bir rotada yapılır; fault yanıtı aynı güvenli eşlemeyi kullanır."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Örnek WSDL'deki tek işlemin istemci tüketiminde, transport stub'ı XSD'ye uymayan bir yanıt döndürdüğünde çağrı schema_invalid tipli hatayla reddedilir. Hata gövdesinde ham zarf ve kimlik bilgisi bulunmaz ve hiçbir kayıt yazılmaz.",
+      "red": "Modül ve bağımlılıkları yüklüyken test, davranış iddiasında başarısız olmalıdır: XSD doğrulaması olmayan minimal istemci geçersiz yanıtı kabul eder ve beklenen tipli hata gelmez. Import veya altyapı hatasıyla ya da native Frappe davranışını bozarak elde edilen kırmızı geçerli değildir. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "XSD doğrulaması ve güvenli hata eşlemesi eklendiğinde aynı test geçer. Geçerli yanıt senaryosu bozulmaz. Yetkisiz çağrının reddedildiği, dış çağrının yapılmadığı ve bağlantı kaydının değişmediği kontrolü de aynı kabulde korunur."
+    },
+    "rollback": "Bu tur yalnız belgedir; geri alınacak üretim değişikliği yoktur. Gelecekte özellik modülü ve rota bağımsız olarak devre dışı bırakılabilmeli; bağlantı DocType'ı mevcut native şemayı değiştirmemelidir. CI, deploy ve rollback'in teknik sahibi Hüseyin Cengiz'dir. Bu madde DNS gerektirmez; gerekirse kayıt değerlerini Hüseyin Cengiz hazırlar, GoDaddy tarafında Asistan Hüseyin uygular ve sonucu Hüseyin Cengiz doğrular."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "integration-11",
+      "sourceStage": "post_mvp",
+      "existing": "Native parçalar SOAP davranışı değildir. Frappe make_form_dict istek gövdesini yalnız JSON ya da form/query olarak ayrıştırır (frappe/frappe/app.py:341). Webhook request_structure yalnız Form URL-Encoded ve JSON sunar (webhook.json:127). Suite Drive WebDAV'da entity, ağ ve DTD kapalı, DOCTYPE/ENTITY reddeden bir lxml ayrıştırıcı deseni vardır (xmlutil.py:18 ve 46). Suite, lxml'i Drive için kendi pyproject dosyasında tanımlar (pyproject.toml:17). SOAP zarfı, WSDL/XSD üretimi ve doğrulaması, fault işleme, SOAPAction veya application/soap+xml yönlendirmesi ve zeep/spyne/xmlschema bağımlılığı incelenen yollarda bulunamadı.",
+      "gap": "SOAP 1.1/1.2 sunucu uç noktası (zarf ayrıştırma, SOAPAction/action yönlendirmesi, fault yanıtı); WSDL yayımlama ve WSDL/XSD ile istek/yanıt doğrulaması; WSDL'den işlem çağıran ve namespace/sürüm uyumsuzluğunu yakalayan istemci; gizli bilgi ve traceback sızdırmayan fault eşlemesi; kimlik bilgisini Password alanında tutan SOAP bağlantı DocType'ı; tanımlanmamış WS-Security/WS-Addressing gereksinimi; SOAP işlemi için kernel-envelope zarfı ve capability-definition yetenek eşlemesi; sağlayıcı, SOAP sürümü ve örnek WSDL girdisi.",
+      "completionSteps": [
+        "soap-api--contract kararlarını (sağlayıcı, SOAP sürümü, WS-Security, örnek WSDL/XSD) sabitle; bu girdi gelmeden build başlamasın.",
+        "Bağımsız modülde SOAP/XML bağımlılığını kendi pyproject dosyasında tanımla ve Suite xmlutil desenine göre sertleştirilmiş ayrıştırıcıyı kopyalamadan, import etmeden kur.",
+        "Tek işlem için istemciyi yaz: XSD'ye uymayan yanıtı schema_invalid, namespace veya zarf sürümü uyumsuzluğunu namespace_mismatch/version_mismatch, fault'u detail ve traceback içermeyen soap_fault olarak döndür.",
+        "SOAP bağlantı DocType'ını native-doctype-schema sözleşmesiyle tanımla; Password alanı get_decrypted_password ile yalnız sunucuda okunsun, izinler explicitPermissionFlags kaynağından gelsin.",
+        "allow_guest=False whitelisted method'u api-middleware ve kernel-envelope zarfına, yetenek kaydını capability-definition sözleşmesine bağla; çağrı sonrası kalıcı yazım gerekiyorsa outbox ve native save/transaction kullan.",
+        "ui-family-36 post_mvp için React/Ant Design Pro bağlantı formunu ve deneme sonucunu JSON model sınırı üzerinden kur; parola değeri istemciye hiç dönmesin.",
+        "Sunucu tarafını en son ve yalnız kararla, kapsamı sınırlı tek rota olarak ekle; WS-Security/WS-Addressing yalnız gereksinim tanımlanırsa eklensin."
+      ],
+      "dependencies": [
+        "soap-api--contract",
+        "kernel-envelope--contract",
+        "tenant-registry--contract",
+        "native-user-policy--contract",
+        "capability-definition--contract",
+        "native-doctype-schema--contract",
+        "outbox--contract",
+        "api-middleware--contract",
+        "ui-family-36--contract",
+        "ui-family-36--implementation"
+      ],
+      "acceptance": "İstemci, gerekirse sunucu örneği de, örnek WSDL/XSD doğrulamasını geçmelidir. Namespace/sürüm uyumsuzluğu ve SOAP fault tipli hata olarak işlenmeli ve gizli bilgi sızdırmamalıdır. DOCTYPE/ENTITY içeren ve boyut sınırını aşan yanıt reddedilmelidir. Aynı kabulde yetkisiz kullanıcının yazma veya çağrı girişimi reddedilmeli, dış çağrı yapılmamalı ve bağlantı kaydı ile ilişkili kayıtlar değişmeden kalmalıdır.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/app.py",
+          "line": 341,
+          "quote": "if request_data and request.is_json:"
+        },
+        {
+          "path": "frappe/frappe/integrations/doctype/webhook/webhook.json",
+          "line": 127,
+          "quote": "\"options\": \"\\nForm URL-Encoded\\nJSON\""
+        },
+        {
+          "path": "suite/suite/drive/webdav/xmlutil.py",
+          "line": 18,
+          "quote": "resolve_entities=False,"
+        },
+        {
+          "path": "suite/suite/drive/webdav/xmlutil.py",
+          "line": 46,
+          "quote": "if b\"<!DOCTYPE\" in body or b\"<!ENTITY\" in body:"
+        },
+        {
+          "path": "suite/pyproject.toml",
+          "line": 17,
+          "quote": "\"lxml~=6.1\",  # drive: WebDAV XML (previously only a transitive dep via frappe)"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "SOAP 1.1/1.2 sunucu uç noktası: zarf ayrıştırma, SOAPAction veya action parametresine göre yönlendirme, SOAP fault yanıtı.",
+    "WSDL yayımlama ve WSDL/XSD sözleşmesine göre istek/yanıt doğrulaması.",
+    "WSDL'den işlem çağıran, namespace/sürüm uyumsuzluğunu yakalayan SOAP istemcisi.",
+    "Fault içinde gizli bilgi ve traceback sızıntısını engelleyen hata eşlemesi.",
+    "Kimlik bilgisini Password alanında saklayan ve yalnız sunucuda çözen SOAP bağlantı DocType'ı.",
+    "WS-Security/WS-Addressing desteği; gereksinim tanımlanmamış.",
+    "SOAP işlemi için kernel-envelope zarfı ve capability-definition yetenek eşlemesi.",
+    "Sağlayıcı, SOAP sürümü ve örnek WSDL/XSD girdisi; kaynak dışı ve hâlâ belirsiz."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Hedef SOAP sağlayıcısı ve entegrasyon yönü: yalnız tüketim mi, ayrıca servis sunma mı?",
+      "requirementIds": ["integration-11"],
+      "blocks": "soap-api--contract girdisinin sabitlenmesi ve tüm build adımları",
+      "documentStepUntilDecision": "Tüketim ve sunma için ayrı davranış başlıklarını, ortak hata eşlemesini ve izin sınırını belgede tut."
+    },
+    {
+      "decision": "SOAP sürümü (1.1, 1.2 veya ikisi) ve beklenen içerik türü/SOAPAction kullanımı",
+      "requirementIds": ["integration-11"],
+      "blocks": "Zarf sürümü doğrulaması ve version_mismatch hata eşlemesi",
+      "documentStepUntilDecision": "İki sürüm için ayrılması gereken alanları (zarf namespace, içerik türü, action taşıma yeri) karşılaştırma notu olarak yaz."
+    },
+    {
+      "decision": "WS-Security ve WS-Addressing gereksinimi",
+      "requirementIds": ["integration-11"],
+      "blocks": "Kimlik doğrulama başlıkları ve bağlantı DocType alanları",
+      "documentStepUntilDecision": "Bağlantı kaydında yalnız Password alanındaki temel kimlik bilgisi varsayımını belgede tut; ek başlık alanlarını tanımlama."
+    },
+    {
+      "decision": "Gerçek örnek WSDL/XSD'nin kaynağı ve kullanım izni",
+      "requirementIds": ["integration-11"],
+      "blocks": "TDD RED/GREEN senaryosu ve XSD doğrulama kabulü",
+      "documentStepUntilDecision": "Senaryoyu WSDL'den bağımsız davranış diliyle (tek işlem, geçersiz yanıt, fault) tanımlı tut."
+    },
+    {
+      "decision": "SOAP/XML kütüphanesi ve hedef sürümü",
+      "requirementIds": ["integration-11"],
+      "blocks": "Modül pyproject bağımlılığı ve ayrıştırıcı uygulaması",
+      "documentStepUntilDecision": "Kütüphaneden bağımsız sertleştirme gereksinimlerini (entity, ağ, DTD kapalı, DOCTYPE/ENTITY reddi, gövde sınırı) kabul ölçütü olarak yaz."
+    },
+    {
+      "decision": "Ham SOAP zarfı ve fault içeriğinin saklanıp saklanmayacağı ve saklama süresi",
+      "requirementIds": ["integration-11"],
+      "blocks": "Kalıcılık ve loglama tasarımı",
+      "documentStepUntilDecision": "Varsayılan olarak ham zarf saklanmaz; yalnız tipli hata kodu ve korelasyon kimliği belgelenir."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

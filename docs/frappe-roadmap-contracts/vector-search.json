@@ -1,0 +1,232 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "vector-search",
+  "canonicalTaskIds": ["vector-search--implementation"],
+  "requirementIds": ["search-3"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "search-3": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Site kapsamlı vektör benzerlik araması ve Qdrant adaptörü (search-3). Uygulama durumu: uygulanmadı.",
+    "trigger": "Yetkili bir kullanıcı, kernel-envelope--contract ile tanımlanacak Frappe whitelisted API üzerinden tek bir DocType için doğal dil sorgusu gönderir. Ayrıca kaynak kaydın native save veya delete işlemi, transaction commit sonrasında outbox--contract üzerinden yeniden embedding işini tetikler.",
+    "expected": "Sorgu etkin embedding model_version ile vektöre çevrilir. Qdrant'ta yalnızca site anahtarı frappe.local.site'a eşit olan, istenen DocType'a ait ve etkin model_version'ı taşıyan noktalar aranır. Aday kayıt adları native Frappe okuma izni kontrolünden geçer. Yanıtta yalnızca kullanıcının okuyabildiği kayıtlar; kayıt adı, benzerlik skoru, model_version ve izinli alanlarla döner.",
+    "denied": "Başka sitenin vektörü, farklı model_version ile üretilmiş vektör, okuma izni olmayan kayıt ve izinsiz alan değeri sonuca girmez. Site anahtarı sunucu tarafında çözülemezse veya izin süzmesi uygulanamazsa sorgu sonuç döndürmeden reddedilir. Yetki ignore_permissions, ham SQL veya filtresiz Qdrant sorgusuyla atlanmaz."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Taranan frappe ve suite kaynaklarında vektör benzerlik araması, embedding üretimi ya da Qdrant istemcisi, adaptörü veya bağımlılığı bulunmadı. Bulunanlar yalnızca sözcük tabanlı tam metin aramasına ait bitişik desenlerdir: (1) Suite SearchStore, namespace başına Tantivy indeksi tutar ve şema değiştiğinde sürümü artırıp indeksi yeniden kurar; bu, model_version izleme için örnek alınabilir. (2) get_search_base_path, indeksi frappe.local.site altında site başına private dizinde tutar; bu, tenant anahtarı eşlemesi için örnek alınabilir. (3) Upstream SQLiteSearch, sorgudan önce get_search_filters ile izin süzmesi yapar; bu, pre-filter için örnek alınabilir. Bu desenler vektör davranışının var olduğunu göstermez. Yokluk tespiti yalnızca searchedPaths ile önceki salt okunur kaynak anlık görüntülerine dayanır; kapsamlı bir yokluk iddiası değildir. Canlı site veya ürün kabulü yoktur.",
+    "evidence": [
+      {
+        "path": "suite/suite/store/search_store.py",
+        "line": 41,
+        "quote": "\"\"\"A Tantivy full-text index for one entity type, scoped to a `namespace`."
+      },
+      {
+        "path": "suite/suite/store/search_store.py",
+        "line": 53,
+        "quote": "# Schema definition; changing it bumps the schema version and triggers a rebuild."
+      },
+      {
+        "path": "suite/suite/store/__init__.py",
+        "line": 35,
+        "quote": "Sits alongside the site's private files, so it is per-site (multi-tenant safe) and never web-served."
+      },
+      {
+        "path": "frappe/frappe/search/sqlite_search.py",
+        "line": 109,
+        "quote": "Abstract base class for SQLite FTS5-based full-text search for Frappe."
+      },
+      {
+        "path": "frappe/frappe/search/sqlite_search.py",
+        "line": 292,
+        "quote": "permission_filters = self.get_search_filters()"
+      },
+      {
+        "path": "suite/pyproject.toml",
+        "line": 27,
+        "quote": "\"tantivy~=0.26.0\","
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/search/sqlite_search.py",
+      "suite/pyproject.toml",
+      "suite/suite/store/__init__.py",
+      "suite/suite/store/search_store.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/vector-search.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/adapters/search_discovery/vector_search_post_mvp.py"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Site anahtarı sunucu tarafında frappe.local.site değerinden çözülür; istemciden alınmaz ve istemcinin gönderdiği bir değerle ezilemez. İlk adımda tek bir DocType desteklenir; hangi DocType olacağı native-doctype-schema--contract ile belirlenir. Diğer girdiler: sorgu metni, sözleşmede sabitlenecek üst sınıra sahip limit ve isteğe bağlı kullanıcı filtreleri. İstek zarfı kernel-envelope--contract'a uyar.",
+    "output": "Her sonuç kayıt adı, DocType, benzerlik skoru, model_version ve yalnızca izinli alanları içerir. Boş sonuç geçerli bir yanıttır. Ham vektör ile başka sitenin veya iç payload alanlarının değerleri dönmez. Yanıt JSON model sınırında kalır; ReactNode veya callback taşımaz.",
+    "authorization": "Native Frappe izinleri yeniden kullanılır. Pre-filter, SQLiteSearch.get_search_filters desenine benzer biçimde sorgudan önce kurulur; site, DocType ve model_version Qdrant'ta zorunlu filtre olarak uygulanır. Qdrant'tan dönen adaylar ayrıca native okuma izni kontrolünden geçer (frappe.has_permission ya da izin uygulayan frappe.get_list). Alan düzeyi izinler native-user-policy--contract ve search-4 izin sözleşmesine bağlıdır. Bu birim rol veya izin üretmez; ileride üretmesi gerekirse explicitPermissionFlags ortak kaynağına bağlanır.",
+    "persistence": "Tek doğruluk kaynağı Frappe kaydıdır; Qdrant yalnızca türetilmiş bir indekstir. Her nokta payload'ında site, DocType, kayıt adı ve model_version bulunur. Kayıt yazımı native save ve transaction ile yapılır. İndeks güncellemesi commit sonrasında outbox--contract üzerinden yürür ve Frappe kaydını değiştirmez. Koleksiyon topolojisi ve saklama süresi decisionsPending içinde açıktır. Bu sözleşme hiçbir servis, şema veya veri üzerinde değişiklik yetkisi vermez.",
+    "failure": "Qdrant veya embedding sağlayıcısı erişilemezse kernel-envelope--contract'ın hata biçimiyle açık bir hata döner; filtresiz veya izin süzmesiz sonuca sessizce düşülmez. model_version uyuşmazlığında eski noktalar sonuçtan dışlanır ve yeniden embedding işi kuyruğa alınır. Outbox işi başarısız olursa outbox--contract'ın tanımlayacağı yeniden deneme davranışı uygulanır; Frappe kaydının save işlemi geri alınmaz."
+  },
+  "development": {
+    "dependencies": [
+      "kernel-envelope--contract",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "outbox--contract",
+      "vector-search--contract"
+    ],
+    "admission": {
+      "note": "Uygulama durumu: uygulanmadı. Bu dosya yalnızca bir yönergedir; üretim kodu, test, servis veya şema yazma yetkisi vermez.",
+      "prerequisites": [
+        "T-00 hedef temel çizgisi (target baseline) ve R-00 yeniden kullanım eşlemesi (reuse mapping) tamamlanmış olmalı; izinli veri tüketicisi olduğu için R-01 de uygulanmalı.",
+        "development.dependencies içindeki beş sözleşme ve search-4 izin sözleşmesi kapanmış olmalı.",
+        "decisionsPending içindeki embedding modeli, koleksiyon topolojisi, Qdrant barındırma şekli ve hedef sürümü, veri yerleşimi ve lisans onayı kararları kapanmış olmalı.",
+        "Test ortamındaki Qdrant servisinin teknik kurulumu ve CI tanımı Hüseyin Cengiz tarafından hazırlanmış ve doğrulanmış olmalı.",
+        "Gerçek RED/GREEN kanıtıyla yalnızca tek ve dar bir davranış uygulanır; activeProductionLease olmadan üretim yazımı yapılmaz."
+      ]
+    },
+    "steps": [
+      "Bağımlı sözleşmeleri kapat. Karar geldikten sonra embedding model kimliğini, model sürümünün biçimini ve payload'daki model_version alanını bu sözleşmeye işle.",
+      "Tenant eşlemesini sabitle: site anahtarı yalnızca sunucu tarafında frappe.local.site değerinden üretilir. Koleksiyon topolojisi ne seçilirse seçilsin, site payload filtresi her sorguda zorunlu tutulur.",
+      "İzin süzmesini önce pre-filter olarak tanımla (SQLiteSearch.get_search_filters deseni). Qdrant'tan dönen adaylar için native okuma izni yeniden kontrolünü zorunlu ikinci katman olarak ekle.",
+      "plannedProduction yolu için en dar adaptör arayüzünü yaz: tek DocType için nokta ekleme/güncelleme, silme ve filtreli arama. Her çağrı site ve model_version taşır. Qdrant çok kiracılı payload filtreleme yaklaşımı resmi multitenancy belgesine dayandırılır.",
+      "İlk RED testini tdd.oneScenario'ya göre yaz; ardından yalnızca bu testi geçirecek GREEN değişikliğini yap.",
+      "model_version izlemesini SearchStore'daki şema sürümü desenine benzer biçimde ekle: etkin sürüm dışındaki noktalar sorguda dışlanır, model değişince yeniden indeksleme başlar.",
+      "Yeniden embedding tetikleyicisini hooks.py doc_events ile outbox--contract'a bağla. Save sırasında Qdrant'a senkron çağrı yapılmaz.",
+      "Arama API'sini kernel-envelope--contract zarfıyla aç. İleride eklenecek React/Ant Design arayüzü bu API'yi TanStack Query ile tüketir. Kaynak registry kaydı GenUI capability registry'den ayrı tutulur ve GenUI kapsamına alınmaz."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "A sitesindeki kullanıcı bir sorgu yapar. Aynı DocType ve aynı model_version ile B sitesine ait, sorguya en yakın vektör indekste bulunur. Bu vektör sonuçta görünmemelidir.",
+      "red": "Site payload filtresi uygulanmadığında adaptörün arama sonucu B sitesinin kaydını içerir ve test bu davranışsal assertion nedeniyle başarısız olur. RED, import veya altyapı hatasıyla ya da native Frappe davranışını bozarak elde edilmez.",
+      "green": "Adaptör frappe.local.site'tan çözülen site anahtarını zorunlu filtre olarak uyguladığında sonuçta yalnızca A sitesinin kayıtları kalır. Native izin ve save davranışları değişmez."
+    },
+    "rollback": "Arama API'si ve outbox tetikleyicisi devre dışı bırakılır; Frappe kayıtları türetilmiş indeksten bağımsız olduğu için veri kaybı olmaz. Qdrant koleksiyonunu silmek veya servisi geri almak için ayrı onay gerekir ve bu işlerin teknik sahibi Hüseyin Cengiz'dir. DNS kaydı gerekirse kayıt bilgisini Hüseyin Cengiz hazırlar, GoDaddy tarafında Asistan Hüseyin uygular. Bu sözleşme hiçbir production değişikliğine yetki vermez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "search-3",
+      "sourceStage": "post_mvp",
+      "existing": "Native parça: yalnızca sözcük tabanlı tam metin araması desenleri bulunuyor (upstream SQLiteSearch FTS5/BM25 ve get_search_filters ile pre-filter; Suite SearchStore Tantivy indeksi, şema sürümü ve site başına dizin). Frappe RedisearchWrapper yalnızca öneri ve FT sarmalayıcısıdır; vektör kullanımı yoktur. Mevcut yönerge data/clusters/05.json satır 455 (/groups/2/items/2): Qdrant'ın çok kiracılı vektör indekslemesi dışarıdan entegre edilecek; embedding üretimi, güncelleme ve Frappe adaptörü ayrıca geliştirilecek.",
+      "gap": "Eksik olanlar: Qdrant istemcisi, adaptörü ve bağımlılığı; model ve sürüm kimliği, sahibi ve yeniden üretim tetikleyicisi tanımlı embedding üretimi; site ile koleksiyon veya payload anahtarı eşlemesi ve başka tenant vektörünün sızmaması garantisi; model değişiminde indeks sürümü izleme; vektör sonuçlarına kayıt ve alan izni uygulanması (search-4'e bağlı); kernel envelope üzerinden vektör araması API sözleşmesi.",
+      "completionSteps": [
+        "Bağımlı sözleşmeleri ve search-4 izin sözleşmesini kapat; embedding model ve sürüm kimliğini sözleşmeye yaz.",
+        "Site anahtarını frappe.local.site ile eşle ve get_search_base_path'teki site başına izolasyon desenini Qdrant payload filtresine taşı.",
+        "Pre-filter'ı SQLiteSearch.get_search_filters desenine göre tanımla; adaylar için native okuma izni kontrolünü ekle.",
+        "Tek DocType için site ve model_version taşıyan Qdrant adaptör arayüzünü yaz.",
+        "İlk RED testi: başka sitenin vektörü sonuç olarak dönmemeli.",
+        "Yeniden embedding tetikleyicisini outbox üzerinden bağla; model değişiminde eski sürüm noktalarını dışla ve yeniden indeksle.",
+        "Arama API'sini kernel envelope ile aç. Mevcut görev kimlikleriyle ilerle; yeni bir registry açma."
+      ],
+      "dependencies": [
+        "vector-search--contract",
+        "kernel-envelope--contract",
+        "native-user-policy--contract",
+        "native-doctype-schema--contract",
+        "outbox--contract"
+      ],
+      "acceptance": "Başka bir tenant'ın vektörü sonuçta görünmemeli; model değiştiğinde indeks sürümü izlenmeli. Ayrıca okuma izni olmayan kayıt sonuca girmemeli ve reddedilen sorgu Frappe kaydını değiştirmemeli. Bu kabul gelecekte gerçek RED/GREEN kanıtıyla yapılacak; bu turda not_run.",
+      "evidence": [
+        {
+          "path": "suite/suite/store/search_store.py",
+          "line": 41,
+          "quote": "\"\"\"A Tantivy full-text index for one entity type, scoped to a `namespace`."
+        },
+        {
+          "path": "suite/suite/store/search_store.py",
+          "line": 53,
+          "quote": "# Schema definition; changing it bumps the schema version and triggers a rebuild."
+        },
+        {
+          "path": "suite/suite/store/__init__.py",
+          "line": 35,
+          "quote": "Sits alongside the site's private files, so it is per-site (multi-tenant safe) and never web-served."
+        },
+        {
+          "path": "frappe/frappe/search/sqlite_search.py",
+          "line": 109,
+          "quote": "Abstract base class for SQLite FTS5-based full-text search for Frappe."
+        },
+        {
+          "path": "frappe/frappe/search/sqlite_search.py",
+          "line": 292,
+          "quote": "permission_filters = self.get_search_filters()"
+        },
+        {
+          "path": "suite/pyproject.toml",
+          "line": 27,
+          "quote": "\"tantivy~=0.26.0\","
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Qdrant veya başka bir vektör deposu için istemci, adaptör ve bağımlılık yok; frappe/pyproject.toml ve suite/pyproject.toml'da bulunmuyor, suite yalnızca tantivy kullanıyor.",
+    "Embedding üretimi tanımlı değil: model ve sürüm kimliği, sahibi ve yeniden üretim tetikleyicisi (doc_events veya outbox bağlantısı) eksik.",
+    "Site ile Qdrant koleksiyonu veya payload anahtarı arasındaki eşleme ve tenant sızıntısı garantisi tanımlı değil.",
+    "Model değişiminde indeks sürümü izlenmiyor; SearchStore'daki sürüm deseni yalnızca Tantivy şeması içindir.",
+    "Vektör sonuçlarına kayıt ve alan izni uygulanmıyor; bu iş search-4 izin sözleşmesine bağlı.",
+    "Kernel envelope üzerinden vektör araması API sözleşmesi yok."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Embedding modeli, sağlayıcısı ve sürüm kimliği biçimi",
+      "requirementIds": ["search-3"],
+      "blocksStep": "Adaptör arayüzü, model_version alanı ve yeniden embedding işi",
+      "allowedDocumentStepUntilDecision": "model_version alanının zorunlu olduğu ve sürüm uyuşmazlığında noktaların dışlanacağı kuralı yazılabilir; model adı yazılmaz."
+    },
+    {
+      "decision": "Tenant topolojisi: site başına koleksiyon mu, payload bölümlemeli ortak koleksiyon mu",
+      "requirementIds": ["search-3"],
+      "blocksStep": "Koleksiyon oluşturma ve ilk RED testinin ortam kurulumu",
+      "allowedDocumentStepUntilDecision": "Topolojiden bağımsız olarak her sorguda zorunlu site payload filtresi kuralı yazılabilir."
+    },
+    {
+      "decision": "Qdrant barındırma şekli, hedef sürümü ve veri yerleşimi (embedding için metnin dış sağlayıcıya gönderilip gönderilmeyeceği dahil)",
+      "requirementIds": ["search-3"],
+      "blocksStep": "Bağımlılığın eklenmesi, test ortamı ve Hüseyin Cengiz'in CI kurulumu",
+      "allowedDocumentStepUntilDecision": "Adaptör sözleşmesinin girdi, çıktı ve hata biçimleri sürümden bağımsız olarak belgelenebilir."
+    },
+    {
+      "decision": "Vektörlerin saklama süresi ve kaynak kayıt silindikten sonra noktaların silinme süresi",
+      "requirementIds": ["search-3"],
+      "blocksStep": "Silme ve yeniden indeksleme outbox işleri",
+      "allowedDocumentStepUntilDecision": "Silinen kaydın noktasının aramada dönmeyeceği kuralı yazılabilir."
+    },
+    {
+      "decision": "Qdrant istemcisi ve embedding bağımlılıkları için lisans onayı",
+      "requirementIds": ["search-3"],
+      "blocksStep": "Bağımlılığın backend'e eklenmesi",
+      "allowedDocumentStepUntilDecision": "Bağımlılık adı ve gerekçesi karar notu olarak hazırlanabilir; lisans seçilmez."
+    },
+    {
+      "decision": "Vektör servisi erişilemezken sözcük tabanlı aramaya düşülüp düşülmeyeceği",
+      "requirementIds": ["search-3"],
+      "blocksStep": "Hata davranışının nihai hali",
+      "allowedDocumentStepUntilDecision": "Açık hata dönme ve filtresiz sonuca sessizce düşmeme kuralı yazılabilir."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

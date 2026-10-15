@@ -1,0 +1,229 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "ui-family-39",
+  "canonicalTaskIds": [
+    "ui-family-39--implementation-post-mvp",
+    "ui-provider-registry--implementation-post-mvp"
+  ],
+  "requirementIds": ["ai-7"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "ai-7": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "İzinli Frappe action kimliğini kullanıcıya ait GenUI capability kimliğine sürümlü eşleme ile bağlama; açık ret ve AI kesintisinde normal iş ekranı (Uygulama durumu: uygulanmadı)",
+    "trigger": "React/Ant Design X tüketicisi, modelin ürettiği X Cards katalog mesajını (GenUI capability kimliği, eşlenmiş Frappe action kimliği, sürüm bilgisi ve JSON girdi) render veya action öncesi doğrulamaya gönderdiğinde.",
+    "expected": "Bileşen kimliği kullanıcıya ait GenUI capability registry içinde, action kimliği Frappe kaynak/action registry içinde bulunur; eşleme sürümü ve Frappe registry revizyonu tutarlıdır; JSON girdi katı şemaya uyar; oturum kullanıcısı ve tenant kapsamı için native Frappe izni sağlanır. Okuma eylemi deterministik Ant Design bileşeni olarak gösterilir. Yazma eylemi önizleme, görünür kullanıcı onayı ve native save/validation zinciri ile uygulanır. Tenant/kapsam, gerekli onay ve gerçek sonuç görünür olur.",
+    "denied": "Bilinmeyen bileşen veya action kimliği, eşleme ya da revizyon uyuşmazlığı, şema dışı veya ek alan içeren JSON, yürütülebilir kod, ReactNode veya callback içeren model çıktısı, native izni olmayan kullanıcı ve kapsam dışı tenant verisi açık ret kodu ile reddedilir. Sessizce atılmaz, varsayılan bileşene düşülmez, hiçbir native kayıt değişmez, uydurma ilerleme veya yapılmamış mutation gösterilmez."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native parçalar yalnız desen kaynağıdır, bütün davranışın varlığını göstermez. (a) Suite Sheets AI ucu, AI eyleminden önce native Frappe write iznini doğrular. (b) Model zorunlu tool çağrısı ve enum ile sınırlı JSON şeması (setCell, answer) ile kısıtlanır. (c) Sunucu clean_actions ile şemaya uymayan eylemleri ayıklar, ancak sessizce atar. (d) frappe/ui fieldtype kaydı bilinmeyen türü FALLBACK bileşenine düşürür. Bu kaynaklar Vue/Frappe UI ve Suite Sheets kaynağıdır; React/Ant Design/X/X Cards uygulaması veya entegrasyon kanıtı değildir. (c) ve (d) bu sözleşmenin açık ret kuralıyla çeliştiği için yeniden kullanılmaz, yalnız karşı örnek olarak not edilir. Aranan yollar sınırlıdır; kapsamlı yokluk veya varlık iddiası değildir.",
+    "evidence": [
+      {
+        "path": "suite/suite/sheets/ai/client.py",
+        "line": 51,
+        "quote": "\"enum\": [\"setCell\", \"answer\"],"
+      },
+      {
+        "path": "suite/suite/sheets/ai/client.py",
+        "line": 97,
+        "quote": "tool_choice={\"type\": \"tool\", \"name\": \"emit_actions\"},"
+      },
+      {
+        "path": "suite/suite/sheets/api.py",
+        "line": 620,
+        "quote": "frappe.has_permission(\"Sheet\", doc=name, ptype=\"write\", throw=True)"
+      },
+      {
+        "path": "suite/suite/sheets/api.py",
+        "line": 665,
+        "quote": "return {\"actions\": ai_validate.clean_actions(raw), \"model\": model, \"source\": source}"
+      },
+      {
+        "path": "frappe/ui/src/components/Fields/fieldTypes.ts",
+        "line": 62,
+        "quote": "return registry.get(fieldtype) ?? registry.get(FALLBACK)!;"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/ui/src/components/Fields/fieldTypes.ts",
+      "suite/suite/sheets/ai/client.py",
+      "suite/suite/sheets/api.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/ui-family-39.json",
+    "plannedProduction": [
+      "frontend/packages/genui/src/components/ui-family-39/post_mvp.tsx",
+      "frontend/packages/genui/src/components/ui-provider-registry/post_mvp.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Model çıktısı yalnız serileştirilebilir JSON katalog mesajıdır: GenUI capability kimliği ve sürümü, isteğe bağlı eşlenmiş Frappe action kimliği, Frappe registry revizyonu, eşleme sürümü, katı şemalı props/girdi ve tenant kapsamı. Alan adları öneridir; kesin adları capability-definition--contract ve kernel-envelope--contract belirler. Fonksiyon, ReactNode, HTML/JS dizesi veya şemada tanımsız alan kabul edilmez.",
+    "output": "Başarıda doğrulanmış deterministik render planı (onaylı Ant Design/X Cards bileşeni ve izinli action bağlantısı); yazma eylemlerinde önce önizleme özeti, onay sonrası native kayıt revizyonu. Retlerde kernel-envelope--contract ret zarfı içinde açık kod, kullanıcıya görünür neden ve ilgili requirementId.",
+    "authorization": "Yetki native Frappe izinleri ve native-user-policy--contract ile her action için sunucuda yeniden kontrol edilir; istemci veya şema doğrulaması sunucu yetkisinin yerine geçmez. ignore_permissions, ham SQL veya izin atlatan yol yasaktır. Bu sözleşme rol veya izin üretmez; ileride yeni bir izin bayrağı gerekirse explicitPermissionFlags ortak kaynağına bağlanır ve o maddenin kendi kabulünde reddedilen yazma ile değişmeyen kayıt gösterilir.",
+    "persistence": "GenUI katmanı kendi iş verisi deposunu oluşturmaz. Yazma yalnız native Frappe doc save, transaction, validation ve hook zinciri ile yapılır. Frappe action registry ile GenUI capability registry eşlemesinin sürümlenmesi ui-provider-registry--contract kapsamındadır; yeni ORM, CRUD veya motor tasarlanmaz. GenUI capability kataloğu kullanıcıya ait backend bağımsız projede kalır; Frappe tarafı onun sahibi veya kopyası olmaz.",
+    "failure": "AI ayarı kapalı, anahtar yok, model veya ağ hatası ya da doğrulama reddi durumunda yalnız GenUI yüzeyi açık hata veya devre dışı durumuna geçer. Normal Ant Design Pro iş ekranları, yerel form ve ilgili görevdeki senkronizasyon kuyruğu GenUI yüzeyine bağımlı olmadan erişilebilir kalır. Revizyon çakışması onay sonrası apply adımında açık ret üretir; kısmi yazma yapılmaz."
+  },
+  "development": {
+    "dependencies": [
+      "capability-definition--contract",
+      "kernel-envelope--contract",
+      "native-user-policy--contract",
+      "ui-family-01--contract",
+      "ui-family-07--contract",
+      "ui-family-39--contract",
+      "ui-family-39--implementation",
+      "ui-provider-registry--contract",
+      "ui-provider-registry--implementation"
+    ],
+    "admission": {
+      "prerequisite": "T-00 target baseline and R-00 reuse mapping; permissioned data consumers also use R-01; implement one narrow behavior with real RED/GREEN evidence",
+      "orderAuthority": "existing task dependencies and stage; cluster order is presentation, not a new serial DAG",
+      "specificPrerequisites": [
+        "capability-definition--contract, native-user-policy--contract ve kernel-envelope--contract sınırları netleşmiş olmalı; bu rehber onları tüketir, yeniden tanımlamaz.",
+        "ui-provider-registry--contract Frappe action registry kimlik ve revizyon biçimini sabitlemiş olmalı.",
+        "decisionsPending içindeki hedef sürüm ve AI sağlayıcı kararları uygulama adımlarından önce kapanmalı."
+      ],
+      "note": "Uygulama durumu: uygulanmadı. Bu sözleşme hiçbir servis, production ortamı, şema veya veriyi değiştirme yetkisi vermez. Teknik CI, deploy ve rollback sahibi Hüseyin Cengiz'dir; bu madde için GoDaddy/DNS işlemi öngörülmez."
+    },
+    "steps": [
+      "Bağımlı sözleşmelerden tüketilecek alanları (kimlik, sürüm, yetki kapsamı, ret zarfı) referansla listele; eksik alanı icat etme, ilgili sözleşmeye açık soru olarak yaz.",
+      "Frappe sağlayıcının yalnız izinli kaynak/projection metadata kimliklerini, sunucu action kimliklerini, JSON girdi/çıktı şemalarını, revizyonu ve kullanıcı/tenant yetki kapsamını mevcut Frappe kaynak/action registry üzerinden sunacağını ui-provider-registry--contract ile bağla.",
+      "Tüketicide GenUI capability kimliği ile Frappe action kimliği arasında açık, sürümlü eşleme kaydı tanımla; eşleme yoksa veya sürüm/revizyon uyuşmuyorsa ret.",
+      "Model JSON sınırını katı şema ile tanımla (ek alan yok, enum ile sınırlı tür); callback, olay işleyici ve ReactNode yalnız yerel kodda capability kimliğine bağlanır, model JSON'una girmez.",
+      "Sessiz ayıklama ve varsayılan bileşene düşme yerine her ret için açık kod ve görünür mesaj üret.",
+      "Yazma eylemlerinde önizleme, görünür onay, sunucuda native izin yeniden kontrolü, revizyon çakışma kontrolü ve native save/validation sırasını koru.",
+      "GenUI yüzeyini normal iş ekranı route'larından bağımsız tut; AI kesintisi yalnız GenUI yüzeyini etkiler.",
+      "Katalog bileşenleri dahil 320 CSS px öncelikli yerleşim, en az 14 CSS px metin, Outfit, semantik tokenlar, çevreleyen olmayan klavye odağı ve merkezi motion tokenları kabul ölçütüne eklenir."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Native write izni olmayan oturum kullanıcısı, eşlemesi geçerli tek izinli Frappe action kimliğini içeren GenUI JSON mesajını onaylayıp uyguladığında açık yetki ret kodu döner ve hedef native kayıt değişmeden kalır.",
+      "red": "Gelecekte, hazır altyapı ve native izinler bozulmadan test, beklenen ret kodu ve değişmemiş kayıt koşulunda davranışsal olarak başarısız olmalıdır. Import hatası, eksik altyapı veya native izin davranışını gevşetmek RED sayılmaz. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "En küçük değişiklik: eşleme doğrulamasından sonra sunucuda native izin kontrolü ile açık ret; ignore_permissions veya SQL yok; kaydın önce/sonra revizyonu aynı kalır."
+    },
+    "rollback": "Bu turda geri alınacak üretim değişikliği yoktur. Gelecekte GenUI yüzeyi bağımsız modül/route olarak devre dışı bırakılabilir; normal iş ekranları etkilenmez ve native kayıtlar yalnız native save ile değiştiği için GenUI kaldırma veri dönüşümü gerektirmemelidir. Teknik rollback sahibi Hüseyin Cengiz'dir."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "ai-7",
+      "sourceStage": "post_mvp",
+      "existing": [
+        "Native parça (Suite Sheets, Vue arayüzü): AI ucu, AI eyleminden önce native Sheet write iznini doğrular (suite/suite/sheets/api.py:620).",
+        "Native parça: model zorunlu tool çağrısı ve setCell/answer enum'u ile sınırlı JSON şemasına bağlanır (suite/suite/sheets/ai/client.py:51, 97).",
+        "Native parça: sunucu clean_actions ile şema dışı eylemleri ayıklar, ancak açık ret üretmez (suite/suite/sheets/api.py:665).",
+        "Native parça (frappe/ui, Vue): fieldtype→component kaydı vardır; bilinmeyen tür reddedilmez, FALLBACK bileşenine düşer (frappe/ui/src/components/Fields/fieldTypes.ts:62).",
+        "Aranan kaynakta Ant Design, Ant Design X, X Cards, A2UI veya GenUI bileşen kataloğu bulunmadı; arama sınırlıdır."
+      ],
+      "gap": [
+        "Frappe kaynak/action registry kimlikleri ile kullanıcıya ait ayrı GenUI capability registry kimlikleri arasında sürümlü eşleme sözleşmesi eksik.",
+        "Suite Vue/Sheets AI örneği seçilmiş React/Ant Design/X Cards tüketicisinin entegrasyon kanıtı değildir; tüketici bu turda taranmadı.",
+        "İzinli server action şeması, açık red/hata, tenant kapsamı, onay ve AI kesintisinde normal ekran sözleşmesi eksik.",
+        "Yerel callback/ReactNode ile serileştirilebilir model JSON sınırının kabul ölçütü mevcut göreve bağlanmalı."
+      ],
+      "completionSteps": [
+        "ui-provider-registry--contract içinde Frappe action kimliği, revizyon ve JSON girdi/çıktı şeması alanlarını mevcut Frappe registry üzerinden tanımla.",
+        "ui-family-39--contract içinde GenUI capability kimliği ile Frappe action kimliği arasındaki sürümlü eşlemeyi ve uyuşmazlıkta ret kuralını yaz.",
+        "Katı model JSON şeması ve callback/ReactNode yasağını kabul ölçütüne bağla.",
+        "Ret zarfını kernel-envelope--contract'a, yetki kontrolünü native-user-policy--contract'a bağla; sessiz ayıklama ve varsayılan bileşene düşme kullanılmaz.",
+        "Yazma için önizleme, onay, native izin yeniden kontrolü, revizyon kontrolü ve native save sırasını belgele.",
+        "AI kesintisinde normal iş ekranının ve senkronizasyon kuyruğunun erişilebilir kaldığını kabul ölçütü yap; offline/outbox tasarımı kendi mevcut görevinde kalır.",
+        "Tek dar davranışı gelecekteki RED/GREEN senaryosu olarak işaretle; bu turda test yazma."
+      ],
+      "dependencies": [
+        "capability-definition--contract",
+        "kernel-envelope--contract",
+        "native-user-policy--contract",
+        "ui-family-01--contract",
+        "ui-family-07--contract",
+        "ui-family-39--contract",
+        "ui-provider-registry--contract"
+      ],
+      "acceptance": "Bilinmeyen bileşen, yürütülebilir model kodu, yetkisiz eylem ve kapsam dışı veri açık kodla reddedilir ve native kayıt değişmez. Tenant/kapsam ve gerekli işlem onayı görünür olur; uydurma ilerleme veya yapılmamış mutation gösterilmez. AI veya ağ kesintisinde normal iş ekranı, yerel kayıt ve senkronizasyon kuyruğu erişilebilir kalır. Katalog bileşenleri dahil 320 CSS px yerleşim, en az 14 CSS px metin, kullanıcı kök yazı boyutu ve zoom, Outfit, semantik tokenlar ve çevreleyen olmayan görünür klavye odağı korunur. Tüm tarayıcı ve cihaz kabulleri bu turda not_run.",
+      "evidence": [
+        {
+          "path": "suite/suite/sheets/ai/client.py",
+          "line": 51,
+          "quote": "\"enum\": [\"setCell\", \"answer\"],"
+        },
+        {
+          "path": "suite/suite/sheets/ai/client.py",
+          "line": 97,
+          "quote": "tool_choice={\"type\": \"tool\", \"name\": \"emit_actions\"},"
+        },
+        {
+          "path": "suite/suite/sheets/api.py",
+          "line": 620,
+          "quote": "frappe.has_permission(\"Sheet\", doc=name, ptype=\"write\", throw=True)"
+        },
+        {
+          "path": "suite/suite/sheets/api.py",
+          "line": 665,
+          "quote": "return {\"actions\": ai_validate.clean_actions(raw), \"model\": model, \"source\": source}"
+        },
+        {
+          "path": "frappe/ui/src/components/Fields/fieldTypes.ts",
+          "line": 62,
+          "quote": "return registry.get(fieldtype) ?? registry.get(FALLBACK)!;"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Uygulama durumu: uygulanmadı. React/Ant Design X/X Cards tüketicisi bu turda taranmadı; entegrasyon kanıtı yoktur.",
+    "Frappe action registry ile GenUI capability registry arasındaki sürümlü eşleme ui-provider-registry--contract ile netleşmelidir.",
+    "Ret zarfı alan adları kernel-envelope--contract'a bağlıdır; bu rehber alan adı sabitlemez.",
+    "Offline/outbox ve senkronizasyon kuyruğu kendi mevcut görevindedir; burada yalnız AI kesintisinde erişilebilirlik kabul ölçütü taşınır.",
+    "Tarayıcı, viewport, giriş yöntemi ve erişilebilirlik kabul kanıtları not_run durumundadır."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Ant Design X ve X Cards hedef sürümü ile katalog mesaj şeması sürümü",
+      "requirementIds": ["ai-7"],
+      "blocks": "Katalog mesaj şemasının sabitlenmesi ve eşleme kaydındaki capability sürüm biçimi",
+      "interimDocStep": "Şema alanlarını sürümden bağımsız mantıksal adlarla belgele; resmi Ant Design X ve X Cards kaynaklarını referans olarak tut."
+    },
+    {
+      "decision": "GenUI için AI model sağlayıcısı, lisans ve tarife",
+      "requirementIds": ["ai-7"],
+      "blocks": "Model çağrı istemcisinin, kota ve kesinti davranışının uygulanması",
+      "interimDocStep": "Sağlayıcıdan bağımsız ret ve kesinti sözleşmesini yaz; Suite Sheets tool şemasını yalnız desen olarak an."
+    },
+    {
+      "decision": "Tenant topolojisi ve tenant kapsamının native izinlerle nasıl ifade edileceği",
+      "requirementIds": ["ai-7"],
+      "blocks": "Tenant kapsamı doğrulama kuralı ve kapsam dışı veri ret senaryosu",
+      "interimDocStep": "Tenant kapsamını native-user-policy--contract'a açık soru olarak bağla; yeni topoloji önerme."
+    },
+    {
+      "decision": "AI istem, yanıt ve ret kayıtlarının saklama süresi ve veri yerleşimi",
+      "requirementIds": ["ai-7"],
+      "blocks": "Denetim kaydı kalıcılığı ve saklama politikası",
+      "interimDocStep": "Kaydedilecek alanları listele, saklamayı karar bekliyor olarak işaretle; secret veya gereksiz kişisel veri kaydedilmez."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

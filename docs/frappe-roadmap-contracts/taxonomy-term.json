@@ -1,18 +1,26 @@
 {
   "schemaVersion": "saas-existing-work-contract.v1",
   "canonicalUnitId": "taxonomy-term",
-  "canonicalTaskIds": ["taxonomy-term--implementation"],
+  "canonicalTaskIds": [
+    "taxonomy-term--implementation",
+    "ui-view-tree--implementation-mvp"
+  ],
   "requirementIds": ["model-3"],
   "stage": "mvp",
+  "sourceStages": {
+    "model-3": "mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
     "title": "Taxonomy Term düğümü farklı kiracıya ait bir üst düğüme taşınamaz",
     "trigger": "Mevcut veya yeni bir Taxonomy Term kaydının nsm üst alanı, kiracı alanı farklı olan bir düğüme ayarlanıp Document.save çağrılır.",
-    "expected": "Aynı kiracı içindeki üst düğüme taşıma native NestedSet update_move_node ile tamamlanır; kayıt yeni üst düğümle döner.",
-    "denied": "Kiracısı farklı üst düğüm verilirse controller validate aşamasında frappe.ValidationError atılır, lft/rgt ve üst alan değişmez. Döngü reddi native NestedSetRecursionError olarak kalır ve yeniden uygulanmaz."
+    "expected": "Aynı kiracı içindeki üst düğüme taşıma native NestedSet akışıyla (on_update içinde update_nsm; üst değiştiyse update_move_node) tamamlanır; kayıt yeni üst düğümle döner.",
+    "denied": "Kiracısı farklı üst düğüm verilirse gelecekte sahip olunacak controller'ın validate aşamasında frappe.ValidationError atılır; üst alan, lft ve rgt değişmez. Döngü reddi native NestedSetRecursionError olarak kalır ve yeniden uygulanmaz."
   },
   "reuse": {
-    "mechanism": "Native NestedSet temel sınıfı taşıma, döngü engeli ve lft/rgt bakımını yapar; treeview get_children izinli ağaç okumasını sağlar. Yalnız kaynakta bulunmayan kiracı sınırı kontrolü, sahip olunan controller'ın validate kancasına eklenir. Yeni taxonomy motoru, endpoint veya ORM kopyası yok.",
+    "status": "KISMI",
+    "mechanism": "Native NestedSet temel sınıfı taşıma, döngü engeli ve lft/rgt bakımını yapar; desk treeview whitelisted get_children ağaç okumasını sağlar. Kanıtlar yalnız bu native parçaları gösterir; kiracı sınırı, etiket modeli ve çoklu etiket araması dahil davranışın tamamının var olduğunu göstermez. Kaynakta görülmeyen tek kiracı sınırı kontrolü gelecekte sahip olunacak controller'ın validate kancasına eklenir. Yeni taxonomy motoru, endpoint, ORM veya CRUD kopyası yok. Desk/Vue kaynağı React/Ant Design uygulamasının kanıtı değildir. Aranan yollar listesi kapsamlı bir yokluk iddiası değildir.",
     "evidence": [
       {
         "path": "frappe/frappe/utils/nestedset.py",
@@ -34,65 +42,169 @@
         "line": 42,
         "quote": "def get_children(doctype: str, parent: str = \"\", include_disabled: str | int | bool = False, **filters):"
       }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/desk/doctype/tag/tag.py",
+      "frappe/frappe/desk/treeview.py",
+      "frappe/frappe/utils/nestedset.py"
     ]
   },
   "ownership": {
     "activeContractFile": "docs/frappe-roadmap-contracts/taxonomy-term.json",
     "plannedProduction": [
-      "backend/saas_platform/saas_platform/records_taxonomy/doctype/taxonomy_term/taxonomy_term.py"
+      "backend/saas_platform/saas_platform/records_taxonomy/doctype/taxonomy_term/taxonomy_term.py",
+      "frontend/packages/ui/src/components/ui-view-tree/mvp.tsx"
     ],
-    "plannedTestFile": "backend/saas_platform/saas_platform/records_taxonomy/doctype/taxonomy_term/test_taxonomy_term.py",
+    "plannedTestFile": null,
     "sharedIntegrationFiles": [
-      "backend/saas_platform/saas_platform/records_taxonomy/doctype/taxonomy_term/taxonomy_term.json",
-      "integration/fragments/taxonomy-term--integration.json",
-      "backend/saas_platform/saas_platform/hooks.py"
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "Taxonomy Term kaydı: name (string), nsm üst alanı (Link Taxonomy Term, boş ise kök), kiracı Link alanı (adı tenant-registry kontratından gelir; şu an bilinmiyor). lft/rgt istemciden kabul edilmez; native restore_nsm_fields kayıtlı değerlere döndürür.",
-    "output": "Kaydedilmiş Taxonomy Term belgesi (contract-taxonomy-term v1): name, üst alan, kiracı alanı, is_group; yalnız okuma izni olan alanlar. Ağaç okuması native get_children (value, title, expandable).",
-    "authorization": "Native site sınırı; Taxonomy Term üzerinde native write izni olmayan kullanıcı native PermissionError alır. Kiracı ve rol eşlemesi native-user-policy ve tenant-registry kontratlarına bağlı; bu adım yalnız kiracılar arası taşımayı reddeder, yeni izin katmanı eklemez.",
-    "persistence": "Document.save istek işlemi içinde; kontrol validate kancasında, native on_update/update_nsm öncesi çalışır. frappe.throw işlemi geri alır. Controller DDL yapmaz; alan tanımı schema görevine aittir.",
-    "failure": "Kiracı uyuşmazlığı: frappe.ValidationError, çevrilebilir Türkçe mesaj. Döngü: native NestedSetRecursionError. Üst düğüm yok: native Link doğrulama hatası. Tüketici hatayı alan düzeyinde gösterir, kaydı değişmemiş kabul eder ve yeniden dener."
+    "input": "Taxonomy Term kaydı: name (string), nsm üst alanı (Link Taxonomy Term; boşsa kök), kiracı Link alanı (adı tenant-registry kontratından gelir; şu an bilinmiyor). lft/rgt istemciden kabul edilmez; girdi değerlendirmesine göre native restore_nsm_fields bunları kayıtlı değerlere döndürür. İstek zarfı kernel-envelope ve api-middleware kontratlarına aittir; zarf alanları burada tanımlanmaz.",
+    "output": "Kaydedilmiş Taxonomy Term belgesi (contract-taxonomy-term v1): name, üst alan, kiracı alanı, is_group; yalnız kullanıcının okuma izni olan alanlar. Ağaç okuması native get_children çıktısıdır (value, title, expandable). Ağaç UI'ı bu çıktıyı yalnız okur; JSON model sınırı ile yerel ReactNode/callback ayrı tutulur ve GenUI capability registry'ye bağlanmaz.",
+    "authorization": "Native site sınırı ve native izinler; Taxonomy Term üzerinde write izni olmayan kullanıcı native PermissionError alır. ignore_permissions, ham SQL veya flags ile yetki bypass yok. Kiracı ve rol eşlemesi native-user-policy ve tenant-registry kontratlarına bağlıdır; bu adım yalnız kiracılar arası taşımayı reddeder, yeni izin katmanı eklemez. Bu rehber rol veya izin üretmez; schema görevinde DocPerm tanımlanırsa explicitPermissionFlags ortak kaynağına bağlanır.",
+    "persistence": "Document.save istek işlemi içinde; kontrol validate kancasında, native on_update/update_nsm öncesi çalışır. frappe.throw işlemi geri alır. Controller DDL yapmaz; alan tanımı schema görevine aittir. Bu sözleşme hiçbir servis, şema, veri veya production ortamını değiştirme yetkisi vermez.",
+    "failure": "Kiracı uyuşmazlığı: frappe.ValidationError, çevrilebilir Türkçe mesaj. Döngü: native NestedSetRecursionError. Üst düğüm yok: native Link doğrulama hatası. Yetki yok: native PermissionError. Tüketici hatayı alan düzeyinde gösterir, kaydı değişmemiş kabul eder ve kullanıcı düzeltince yeniden dener."
   },
   "development": {
     "dependencies": [
+      "api-middleware--contract",
+      "client-rule-parity--contract",
+      "kernel-envelope--contract",
+      "native-user-policy--contract",
       "taxonomy-term--contract",
       "taxonomy-term--schema",
-      "kernel-envelope--contract",
       "tenant-registry--contract",
-      "native-user-policy--contract",
-      "localPilot frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6 (yalnız yerel kanıt)"
+      "ui-view-tree--contract",
+      "ui-view-tree--implementation"
     ],
-    "admission": "taxonomy_term.json schema görevinde is_tree=1, nsm üst alanı ve kiracı Link alanıyla mevcut olmalı; kiracı alan adı tenant-registry kontratında sabitlenmeli. T-00/R-00 bilinmiyor; yerel Frappe17-dev/suite.localhost kanıtı uzak ürün baseline'ı değildir, Suite HEAD bilinmiyor.",
+    "admission": "Uygulama durumu: uygulanmadı. Ön koşullar: T-00 hedef baseline ve R-00 yeniden kullanım eşlemesi; izinli veri tüketicisi olduğu için R-01. taxonomy_term.json schema görevinde is_tree=1, nsm üst alanı ve kiracı Link alanıyla mevcut olmalı; kiracı alan adı tenant-registry kontratında sabitlenmeli. Hedef Frappe sürümü ve ürün baseline'ı bilinmiyor; kanıt satırları önceki salt okunur kaynak alıntılarıdır, ürün baseline'ı değildir. Gerçek RED/GREEN kanıtı olmadan kabul yok.",
     "steps": [
-      "Controller sınıfını frappe.utils.nestedset.NestedSet'ten türet (schema iskeleti zaten değilse).",
-      "validate içinde üst alan doluysa üst düğümün kiracı değerini oku; doc kiracısından farklıysa frappe.throw ile ValidationError at.",
-      "Döngü, taşıma ve lft/rgt işlemlerini native NestedSet'e bırak; ek kopya yazma."
+      "Schema görevinin taxonomy_term.json tanımında is_tree, nsm üst alanı ve kiracı alan adını doğrula; eksikse dur ve schema görevine geri bildir. Controller DDL yapmaz.",
+      "Controller sınıfını frappe.utils.nestedset.NestedSet'ten türet (schema iskeleti zaten öyle değilse).",
+      "validate içinde üst alan doluysa üst düğümün kiracı değerini yalnız karşılaştırma için oku; doc kiracısından farklıysa çevrilebilir Türkçe mesajla frappe.throw (ValidationError) at. Okunan değer kullanıcıya döndürülmez.",
+      "Döngü, taşıma ve lft/rgt işlemlerini native NestedSet'e bırak; validate_loop veya update_move_node kopyası yazma.",
+      "Ağaç UI'ı ayrı görevde (ui-view-tree--implementation-mvp) native get_children çıktısını TanStack Query ile okuyan React/Ant Design ağaç bileşeni olarak planla; taşıma reddini alan düzeyinde göster. Kaynak registry (frontend/packages/ui/src/registry.ts) ile GenUI capability registry'yi karıştırma."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "Kiracı A kökü altında T1, kiracı B kökü R2 oluşturulur; T1'in üst alanı R2 yapılıp save çağrılınca frappe.ValidationError beklenir ve T1'in üst alanı, lft ve rgt değerleri değişmemiş kalır.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Aynı test, controller değişikliğinden sonra aynı bench run-tests komutuyla (yerel suite.localhost) geçmelidir."
+      "oneScenario": "Kiracı A kökü altında T1 ve kiracı B kökü R2 oluşturulur; T1'in üst alanı R2 yapılıp save çağrılınca frappe.ValidationError beklenir ve T1'in üst alanı, lft ve rgt değerleri değişmemiş kalır.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. Schema mevcut ve controller'da kiracı kontrolü yokken senaryo çalıştırılınca save hata atmadan tamamlanır ve ValidationError beklentisi başarısız olur; RED budur. Import/altyapı hatası, eksik schema veya native davranışı bozma RED sayılmaz; native olarak zaten geçen döngü reddine RED uydurulmaz. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "validate eklemesinden sonra aynı senaryo, değişmeyen assertion'lar ve aynı test komutuyla geçmeli; komut T-00 baseline'ında belirlenir. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN'i değildir."
     },
-    "rollback": "Yalnız taxonomy_term.py içindeki validate eklemesini geri al; veri göçü yok, production izni yok."
+    "rollback": "Gelecekte yalnız taxonomy_term.py içindeki validate eklemesi geri alınır; veri göçü, şema değişikliği veya production izni yok. CI/deploy/rollback teknik sahibi Hüseyin Cengiz; DNS/GoDaddy adımı yok."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "model-3",
+      "sourceStage": "mvp",
+      "existing": "Native backend parçaları: NestedSet (on_update içinde update_nsm, üst değişince update_move_node, validate_loop ile NestedSetRecursionError, çocuklu düğüm silme reddi, restore_nsm_fields, rebuild_tree, remove_subtree); desk treeview whitelisted get_children, get_all_nodes, add_node; Tag master, Tag Link, add_tag/add_tags/remove_tag/get_tagged_docs ve _user_tags kolonu. React/Ant Design tarafında karşılık yok.",
+      "gap": "Somut is_tree=1 Taxonomy Term DocType'ı yok; etiket ilişki modeli seçilmedi; çoklu etiket AND araması ve etiket sınırına duyarlı tam eşleşme yok (get_tagged_docs tek etiketle LIKE yapar; girdi değerlendirmesine göre get_documents_for_tag ilk karakteri koşulsuz siler); NestedSet tek tabloda global lft/rgt tutar ve kiracı sınırı kontrolü yok; Tag master add_tag içinde ignore_permissions ile global oluşturulur; kernel zarflı ağaç/etiket okuma sözleşmesi yok; RED/GREEN kanıtı yok.",
+      "completionSteps": [
+        "Bu sözleşmenin tek davranışını (kiracılar arası taşıma reddi) development.steps sırasıyla uygula; döngü reddini native bırak.",
+        "Etiket ilişki modeli kararı gelince yalnız seçilen modeli schema görevine aktar; ignore_permissions ile global Tag oluşturan native add_tag akışını kiracı sözlüğü olarak kullanma.",
+        "Çoklu etiket AND aramasını ayrı, tek davranışlı bir rehbere ayır: seçilen modelde her etiketin tam eşleşmesini izinli native sorgu (frappe.get_list) üzerinden ifade et; _user_tags üzerinde çıplak LIKE ile kısmi eşleşmeyi kabul etme.",
+        "Ağaç ve etiket okumasını kernel-envelope ve api-middleware zarfına bağla; yeni ağaç endpoint'i yazmadan native get_children'ı kullan, kiracı okuma filtresini native-user-policy kararına bırak.",
+        "ui-view-tree--implementation-mvp: React/Ant Design ağaç bileşeni; Outfit, en az 14 CSS px, 320 CSS px öncelikli yerleşim, çevreleyen odak halkası yok, merkezi simetrik Cubic hareket tokenı; taşıma hatası alan düzeyinde ve kayıt değişmemiş olarak gösterilir."
+      ],
+      "dependencies": [
+        "taxonomy-term--contract",
+        "taxonomy-term--schema",
+        "tenant-registry--contract",
+        "native-user-policy--contract",
+        "kernel-envelope--contract",
+        "api-middleware--contract",
+        "client-rule-parity--contract",
+        "ui-view-tree--contract",
+        "ui-view-tree--implementation"
+      ],
+      "acceptance": "Kategori döngüsü engellenmeli (native NestedSetRecursionError); aynı kiracı içinde taşıma doğru alt ağacı döndürmeli, kiracılar arası taşıma reddedilip kayıt değişmemeli; çoklu etiket araması yalnız tüm etiketlerle tam eşleşen ve kullanıcının okuyabildiği kayıtları döndürmeli. Bu sözleşmenin ilk kabulü yalnız behavior senaryosudur; diğer parçalar ayrı rehberlerde gerçek RED/GREEN ister.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/utils/nestedset.py",
+          "line": 57,
+          "quote": "elif old_parent != parent:"
+        },
+        {
+          "path": "frappe/frappe/utils/nestedset.py",
+          "line": 129,
+          "quote": "validate_loop(doc.doctype, doc.name, new_parent.lft, new_parent.rgt)"
+        },
+        {
+          "path": "frappe/frappe/utils/nestedset.py",
+          "line": 252,
+          "quote": "frappe.throw(_(\"Item cannot be added to its own descendants\"), NestedSetRecursionError)"
+        },
+        {
+          "path": "frappe/frappe/desk/treeview.py",
+          "line": 42,
+          "quote": "def get_children(doctype: str, parent: str = \"\", include_disabled: str | int | bool = False, **filters):"
+        },
+        {
+          "path": "frappe/frappe/desk/doctype/tag/tag.py",
+          "line": 70,
+          "quote": "return (frappe.qb.from_(doctype).where(doctype._user_tags.like(tag)).select(doctype.name)).run()"
+        },
+        {
+          "path": "frappe/frappe/desk/doctype/tag/tag.py",
+          "line": 101,
+          "quote": "frappe.get_doc({\"doctype\": \"Tag\", \"name\": tag}).insert(ignore_permissions=True)"
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "Çoklu etiket AND araması karşılanmadı: get_tagged_docs tek etiketle LIKE yapıyor (frappe/frappe/desk/doctype/tag/tag.py:70), etiket sınırına duyarlı eşleşme yok; etiket modeli (Table MultiSelect bağlantı DocType'ı veya _user_tags) kararı bekliyor.",
+    "Çoklu etiket AND araması karşılanmadı: get_tagged_docs tek etiketle LIKE yapıyor (frappe/frappe/desk/doctype/tag/tag.py:70), etiket sınırına duyarlı eşleşme yok; etiket modeli kararı bekliyor.",
     "Tag master kiracıdan bağımsız ve global oluşturuluyor (tag.py:101, ignore_permissions); kiracıya özgü etiket sözlüğü yok.",
     "Bir düğümün kiracı alanının sonradan değiştirilmesiyle alt ağacın kiracı dışına çıkması; set_only_once kararı schema görevine aittir.",
     "NestedSet tek tabloda global lft/rgt tutar; kiracı başına kilit ve performans etkisi ölçülmedi.",
-    "Headless provider ağaç/etiket sözleşmesi ve kiracı zarfı yok; kernel-envelope kontratına bağlı.",
-    "Ağaç UI ui-view-tree--implementation-mvp görevine aittir; planlanan UI Outfit, 14 CSS px, 320 öncelikli, çevreleyen odak halkasız, simetrik Cubic hareket ve mevcut AntD ile sınırlıdır.",
+    "Kernel zarflı ağaç/etiket okuma sözleşmesi ve kiracı filtresi yok; kernel-envelope, api-middleware ve native-user-policy kontratlarına bağlı.",
+    "Ağaç UI'ı ui-view-tree--implementation-mvp görevine aittir; React/Ant Design ile planlanır, Outfit, 14 CSS px, 320 öncelikli, çevreleyen odak halkasız ve simetrik Cubic hareket kurallarıyla sınırlıdır.",
     "Kabul ölçütündeki taşıma ve çoklu etiket araması için çalıştırılmış RED/GREEN kanıtı yok."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Etiket ilişki modeli: kiracı alanlı bağlantı DocType'ı ile Table MultiSelect mi, native Tag/_user_tags mı.",
+      "requirementIds": ["model-3"],
+      "blocks": "Etiket schema'sı ve çoklu etiket AND araması rehberi.",
+      "interimDocStep": "İki seçeneğin izin, kiracı ve tam eşleşme etkisini karşılaştıran belge notunu hazırla; seçim yapma."
+    },
+    {
+      "decision": "Kiracı topolojisi ve Taxonomy Term kiracı alan adı (tenant-registry kontratı).",
+      "requirementIds": ["model-3"],
+      "blocks": "Schema görevindeki kiracı Link alanı ve validate kontrolünün uygulanması.",
+      "interimDocStep": "Davranışı alan adından bağımsız tanımlı tut; alan adı gelince yalnız bu sözleşmenin input metnini güncelle."
+    },
+    {
+      "decision": "Etiket sözlüğü kiracıya özgü mü, site genelinde mi.",
+      "requirementIds": ["model-3"],
+      "blocks": "Tag master kullanımı ve etiket oluşturma yetkisi.",
+      "interimDocStep": "Global oluşturma riskini (tag.py:101) remainingGaps içinde açık tut."
+    },
+    {
+      "decision": "Kiracı alanının oluşturulduktan sonra değiştirilebilir olup olmayacağı (set_only_once).",
+      "requirementIds": ["model-3"],
+      "blocks": "Alt ağacın kiracı dışına çıkmasını önleyen schema kuralı.",
+      "interimDocStep": "Riski schema görevine geri bildirim olarak belgele; bu sözleşmenin kapsamına ekleme."
+    },
+    {
+      "decision": "Hedef Frappe sürümü ve T-00 ürün baseline'ı.",
+      "requirementIds": ["model-3"],
+      "blocks": "Kanıt satırlarının hedef sürümde doğrulanması ve gelecekteki test komutunun belirlenmesi.",
+      "interimDocStep": "Kanıtları önceki salt okunur kaynak alıntıları olarak işaretli tut; ürün baseline'ı gibi sunma."
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "model-3": "mvp"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,

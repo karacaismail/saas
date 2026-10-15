@@ -1,0 +1,215 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "status-page",
+  "canonicalTaskIds": ["status-page--implementation"],
+  "requirementIds": ["service-1"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "service-1": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "İç/dış hizmet durumu sayfası (status page). Uygulama durumu: uygulanmadı.",
+    "trigger": "Kamu ziyaretçisi dış durum yüzeyini açar veya yetkili iç kullanıcı iç durum görünümünü açar; Frappe sitesi dışında çalışan harici probe sinyalleri periyodik olarak toplar.",
+    "expected": "Dış yüzey yalnız katalogda kamuya açık işaretli bileşenleri ve onların kaba durumunu gösterir. İç görünüm yetkili kullanıcıya sinyal ayrıntısını gösterir. Ana uygulama (Frappe sitesi) arızalıyken dış yüzey Frappe dışından erişilebilir kalır ve etkilenen kamu bileşenini sinyal-durum eşleme tablosuna göre gösterir. Sinyal yoksa durum 'bilinmiyor' olur, 'çalışıyor' varsayılmaz.",
+    "denied": "Dış yüzey iç bileşeni, kuyruk/worker istatistiğini, hata ayrıntısını veya tenant verisini göstermez. Kimliği doğrulanmamış veya System Manager olmayan istek System Health Report ayrıntısını alamaz; native frappe.only_for kontrolü ignore_permissions, doğrudan SQL veya servis hesabı hilesiyle aşılmaz. Durum sayfası hiçbir Frappe kaydını yazmaz veya değiştirmez."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native parçalar yalnız sinyal kaynağıdır: System Health Report (site içi, yükleme anında hesaplanan, kalıcı olmayan, beta, yalnız System Manager), is_scheduler_process_running (Redis üzerindeki scheduler heartbeat anahtarının varlığı) ve frappe.conf.monitor açıkken başlayan Monitor kaydı. Bu parçalar kamuya açık veya Frappe çökünce ayakta kalan bir durum yüzeyi sağlamaz; bileşen kataloğu, eşleme, harici probe ve Frappe dışı yayın geliştirilecek eksiktir. Kaynak alıntıları önceki salt okunur Frappe/Suite anlık görüntülerindendir; canlı site veya ürün kabulü değildir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/desk/doctype/system_health_report/system_health_report.py",
+        "line": 158,
+        "quote": "frappe.only_for(\"System Manager\")"
+      },
+      {
+        "path": "frappe/frappe/desk/doctype/system_health_report/system_health_report.py",
+        "line": 4,
+        "quote": "Basic system health check report to see how everything on site is functioning in one single page."
+      },
+      {
+        "path": "frappe/frappe/desk/doctype/system_health_report/system_health_report.json",
+        "line": 3,
+        "quote": "\"beta\": 1,"
+      },
+      {
+        "path": "frappe/frappe/utils/scheduler.py",
+        "line": 95,
+        "quote": "return bool(get_redis_conn().exists(_get_scheduler_heartbeat_key()))"
+      },
+      {
+        "path": "frappe/frappe/monitor.py",
+        "line": 23,
+        "quote": "if frappe.conf.monitor:"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/desk/doctype/system_health_report/system_health_report.json",
+      "frappe/frappe/desk/doctype/system_health_report/system_health_report.py",
+      "frappe/frappe/monitor.py",
+      "frappe/frappe/utils/scheduler.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/status-page.json",
+    "plannedProduction": ["operations/status-page/status_page_post_mvp.yml"],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "(1) Bileşen kataloğu: her bileşen için kimlik, görünen ad, görünürlük (kamu|iç), sinyal kaynağı ve sorumlu. (2) Sinyaller: harici HTTP probe sonucu (Frappe dışından), is_scheduler_process_running boolean değeri, System Health Report alanlarının salt okunur okuması, frappe.conf.monitor açıksa monitor kaydı. (3) Sinyal-durum eşleme tablosu. Kesin bileşen listesi ve eşik değerleri bu sözleşmede seçilmez; kapsam kararıyla doldurulur.",
+    "output": "Dış durum çıktısı: yalnız kamu bileşenleri, durum etiketi ve son güncelleme zamanı. İç durum çıktısı: tüm katalog bileşenleri ve yetkili kullanıcıya sinyal ayrıntısı. Önerilen durum kümesi (çalışıyor, düşük performans, kesinti, bilinmiyor) eşleme tablosunda kesinleşene kadar öneridir. Planlanan üretim biçimi bir yapılandırma dosyasıdır (canonicalArtifact kind=config, doctypeCount=0, pageCount=0); yeni DocType, ORM veya CRUD motoru önerilmez. İç görünüm React/Ant Design ile yapılacaksa yalnız kapsam kararı sonrası ayrı ele alınır ve mevcut UI kuralları (Outfit, en az 14 CSS px, 320 CSS px önceliği, çevreleyen odak halkası yok) uygulanır.",
+    "authorization": "Dış yüzey kimlik doğrulamasız salt okunurdur ve yalnız kamu bileşenlerinden üretilir. System Health Report ayrıntısı native frappe.only_for(\"System Manager\") kontrolüyle korunur; okuma gerçek System Manager yetkisiyle yapılır, ignore_permissions veya SQL ile atlanmaz. İç görünüm için erişim yöntemi karar bekler (decisionsPending). Bu sözleşme yeni rol veya izin bayrağı tanımlamaz; ileride rol/izin gerekirse explicitPermissionFlags ortak kaynağına bağlanır ve kendi kabulünde reddedilen yazma ile değişmeyen kayıt kontrolü bulunur.",
+    "persistence": "Frappe tarafında şema, veri veya kayıt değişikliği yoktur; System Health Report zaten kalıcı değildir. Durum geçmişinin tutulup tutulmayacağı, saklama süresi ve veri yerleşimi karar bekler. Durum yüzeyi Frappe veritabanına bağımlı olmamalıdır.",
+    "failure": "Frappe yanıt vermezse harici probe ilgili kamu bileşenini eşleme tablosuna göre işaretler ve dış yüzey ayakta kalır. Sinyal alınamazsa veya System Health Report bir bölümü hata verirse durum 'bilinmiyor' olur. frappe.conf.monitor kapalıyken monitor verisinin yokluğu sağlıklı sayılmaz. Heartbeat anahtarının yokluğu scheduler'ın çalışmadığını gösterir; Redis erişilemezse sonuç 'bilinmiyor' olarak ayrılır. Hatalar dış yüzeye iç ayrıntı sızdırmaz."
+  },
+  "development": {
+    "dependencies": ["status-page--contract"],
+    "admission": {
+      "prerequisite": "T-00 target baseline and R-00 reuse mapping; permissioned data consumers also use R-01; implement one narrow behavior with real RED/GREEN evidence",
+      "orderAuthority": "existing task dependencies and stage; cluster order is presentation, not a new serial DAG",
+      "specific": [
+        "Kapsam kararı (decisionsPending) yazılı olmadan uygulama başlamaz.",
+        "Hedef Frappe sürümünde System Health Report'un varlığı ve beta durumu doğrulanmadan bu rapor sinyal kaynağı olarak eşlenmez.",
+        "Frappe dışı barındırma sınırı ve teknik sahibi (Hüseyin Cengiz) yazılı olmadan dış yüzey yayına alınmaz."
+      ],
+      "note": "Uygulama durumu: uygulanmadı. Bu sözleşme hiçbir servis, production ortamı, şema veya veriyi değiştirme yetkisi vermez."
+    },
+    "steps": [
+      "status-page--implementation altında kapsam kararını belgeleyin: iç, dış veya ikisi; seçimi kimin hangi ölçütle yaptığı.",
+      "Kamu/iç bileşen kataloğu tablosunu yazın; owner alanı 'DevOps ekibi ve ürün iletişimi' ayrımına göre doldurulsun.",
+      "Sinyal-durum eşleme tablosunu yazın: harici probe, is_scheduler_process_running, System Health Report alanları (salt okunur) ve isteğe bağlı monitor; her satırda 'sinyal yok' durumu 'bilinmiyor' olsun.",
+      "Hedef sürüm için System Health Report sürüm eşlemesi ve kararlılık notunu ekleyin (beta, yalnız System Manager, kalıcı değil).",
+      "Barındırma sınırını Frappe sitesi dışında tanımlayın; teknik devir Hüseyin Cengiz'e: probe konumu, bağımlılıklar, erişim ve doğrulama ölçütü. Alan adı gerekiyorsa DNS kayıt türü/adı/değeri Hüseyin Cengiz tarafından hazırlanır, GoDaddy'de Asistan Hüseyin uygular, sonucu Hüseyin Cengiz doğrular.",
+      "Karar sonrası operations/status-page/status_page_post_mvp.yml için yapılandırma şemasını (katalog + eşleme) tanımlayın; secret değerleri dosyaya yazılmaz.",
+      "Tek dar davranışı gerçek RED/GREEN kanıtıyla uygulamak için ayrı kabul alın."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Katalogda iç olarak işaretli bir bileşen ve kamu olarak işaretli bir bileşen varken dış durum çıktısı üretildiğinde yalnız kamu bileşeni yer alır.",
+      "red": "Dış çıktıda iç bileşenin veya iç ayrıntının (ör. kuyruk istatistiği) görünmesi nedeniyle kabul başarısız olur; RED import hatası, altyapı hatası veya native davranışı bozmak olamaz.",
+      "green": "Dış çıktı yalnız kamu bileşenini ve durum etiketini içerir; iç bileşen yer almaz; hiçbir Frappe kaydı değişmez ve native frappe.only_for kontrolü olduğu gibi kalır."
+    },
+    "rollback": "Değişiklik Frappe dışı yapılandırma ve barındırma ile sınırlıdır; geri alma, dış yüzeyin yayından kaldırılması ve yapılandırmanın önceki sürüme dönmesidir. Frappe verisi veya şeması değişmediği için veri geri alımı gerekmez. Teknik geri alma sahibi Hüseyin Cengiz; DNS kaydı eklendiyse kaldırma GoDaddy'de Asistan Hüseyin tarafından, Hüseyin Cengiz'in teknik talimatıyla yapılır."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "service-1",
+      "sourceStage": "post_mvp",
+      "existing": "Uygulama durumu: uygulanmadı. Kaynakta site içi sağlık parçaları var: System Health Report site işleyişini tek sayfada özetler, ancak yalnız System Manager'a açık, beta ve yükleme anında hesaplanır; scheduler heartbeat Redis'te anahtar varlığıyla okunur; monitor yalnız frappe.conf.monitor açıkken başlar. Bu parçaların varlığı durum sayfası davranışının var olduğu anlamına gelmez.",
+      "gap": [
+        "Bileşen kataloğu ve kamu/iç görünürlük tanımı yok.",
+        "Sinyal-durum eşleme sözleşmesi yok.",
+        "Ana uygulama arızasında erişilebilirlik için Frappe dışı barındırma, bağımlılık sınırı ve altyapı sorumlusu tanımlı değil.",
+        "System Health Report için sürüm eşlemesi ve kararlılık notu yok.",
+        "Koşullu kapsamın kim tarafından ve hangi ölçütle seçileceği yazılı değil."
+      ],
+      "completionSteps": [
+        "Kapsam kararını ve karar sahibini yazın.",
+        "Kamu/iç bileşen kataloğu tablosunu ekleyin.",
+        "Sinyal-durum eşleme tablosunu ekleyin; is_scheduler_process_running, System Health Report alanları (salt okunur, System Manager yetkisiyle) ve harici probe kullanılsın.",
+        "System Health Report için hedef sürüm ve beta notunu ekleyin.",
+        "Frappe dışı barındırma sınırını ve Hüseyin Cengiz'e teknik devri yazın.",
+        "Tek TDD senaryosunu (dış çıktıda iç bileşen yok) ayrı kabulle uygulayın."
+      ],
+      "dependencies": ["status-page--contract"],
+      "acceptance": "Dış sayfa yalnız kamu bileşenlerini, iç sayfa yetkili ayrıntıyı gösterir; ana uygulama arızasında dış sayfa erişilebilir kalır; yetkisiz istek System Health Report ayrıntısını alamaz ve hiçbir kayıt değişmez. Doğrulama durumu: not_run.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/desk/doctype/system_health_report/system_health_report.py",
+          "line": 158,
+          "quote": "frappe.only_for(\"System Manager\")"
+        },
+        {
+          "path": "frappe/frappe/desk/doctype/system_health_report/system_health_report.py",
+          "line": 4,
+          "quote": "Basic system health check report to see how everything on site is functioning in one single page."
+        },
+        {
+          "path": "frappe/frappe/desk/doctype/system_health_report/system_health_report.json",
+          "line": 3,
+          "quote": "\"beta\": 1,"
+        },
+        {
+          "path": "frappe/frappe/utils/scheduler.py",
+          "line": 95,
+          "quote": "return bool(get_redis_conn().exists(_get_scheduler_heartbeat_key()))"
+        },
+        {
+          "path": "frappe/frappe/monitor.py",
+          "line": 23,
+          "quote": "if frappe.conf.monitor:"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Bileşen kataloğu, sinyal-durum eşlemesi, Frappe dışı barındırma ve harici probe tanımlanmadı.",
+    "System Health Report için hedef sürüm kararlılığı doğrulanmadı.",
+    "Tek dar davranış için RED/GREEN kanıtı yok; runtime kabulü not_run."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Kapsam: yalnız dış, yalnız iç veya ikisi; seçimi yapan rol ve ölçüt.",
+      "requirementIds": ["service-1"],
+      "blocks": "Katalog ve eşleme tablolarının kesinleşmesi, uygulama kabulü.",
+      "interimDocStep": "Her iki seçenek için katalog şablonunu boş satırlarla belgeleyin."
+    },
+    {
+      "decision": "Frappe dışı barındırma ve harici probe aracı/satıcısı ile lisansı.",
+      "requirementIds": ["service-1"],
+      "blocks": "Dış yüzeyin arıza sırasında erişilebilirliği ve probe yapılandırması.",
+      "interimDocStep": "Bağımlılık sınırını (Frappe, veritabanı ve Redis'ten bağımsız olma) satıcıdan bağımsız biçimde yazın; teknik değerlendirme Hüseyin Cengiz'e."
+    },
+    {
+      "decision": "Hedef Frappe sürümü.",
+      "requirementIds": ["service-1"],
+      "blocks": "System Health Report alanlarının sinyal olarak eşlenmesi.",
+      "interimDocStep": "Eşlemede rapor alanlarını 'sürüm doğrulaması bekliyor' olarak işaretleyin; heartbeat ve harici probe satırlarını yazın."
+    },
+    {
+      "decision": "Tenant topolojisi: platform geneli mi, tenant başına mı durum.",
+      "requirementIds": ["service-1"],
+      "blocks": "Bileşen kimlikleri ve dış yüzeyde tenant görünürlüğü.",
+      "interimDocStep": "Katalogda tenant alanını açık karar olarak bırakın; dış yüzeyde tenant verisi gösterilmeyeceğini yazın."
+    },
+    {
+      "decision": "Durum geçmişi tutulacak mı; saklama süresi ve veri yerleşimi.",
+      "requirementIds": ["service-1"],
+      "blocks": "Kalıcılık tasarımı ve geçmiş gösterimi.",
+      "interimDocStep": "Sözleşmeyi yalnız anlık durum için tamamlayın; geçmişi kapsam dışı olarak not edin."
+    },
+    {
+      "decision": "İç görünüm erişim yöntemi (native Frappe oturumu içinde mi, Frappe dışı yüzeyde mi).",
+      "requirementIds": ["service-1"],
+      "blocks": "İç ayrıntının yetkilendirmesi ve yüzey konumu.",
+      "interimDocStep": "Ayrıntının native frappe.only_for kontrolü atlanmadan okunacağını sabit kural olarak yazın."
+    },
+    {
+      "decision": "Dış yüzey alan adı.",
+      "requirementIds": ["service-1"],
+      "blocks": "DNS kaydı ve yayın.",
+      "interimDocStep": "DNS gereksinimini Hüseyin Cengiz hazırlar; GoDaddy uygulaması Asistan Hüseyin'e devredilecek adım olarak yazılır."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

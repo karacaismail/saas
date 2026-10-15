@@ -1,23 +1,53 @@
 {
   "schemaVersion": "saas-existing-work-contract.v1",
   "canonicalUnitId": "job-state",
-  "canonicalTaskIds": ["job-state--implementation"],
-  "requirementIds": ["jobs-2", "jobs-3", "jobs-4", "jobs-5"],
+  "canonicalTaskIds": [
+    "job-state--implementation",
+    "job-state--implementation-post-mvp",
+    "job-state--implementation-scale",
+    "ui-family-30--implementation-post-mvp",
+    "ui-family-31--implementation-post-mvp",
+    "ui-family-32--implementation",
+    "ui-family-32--implementation-post-mvp"
+  ],
+  "requirementIds": [
+    "jobs-2",
+    "jobs-3",
+    "jobs-4",
+    "jobs-5",
+    "jobs-7",
+    "jobs-8"
+  ],
   "stage": "mvp",
+  "sourceStages": {
+    "jobs-2": "mvp",
+    "jobs-3": "mvp",
+    "jobs-4": "mvp",
+    "jobs-5": "mvp",
+    "jobs-7": "scale",
+    "jobs-8": "post_mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
     "title": "Aynı site içinde aynı job_type+idempotency_key ile ikinci yürütme iş etkisini tekrar uygulamaz",
-    "trigger": "Worker yeniden denemesi ya da elle yeniden çalıştırma, job_state.py içindeki run_once(job_type, idempotency_key, effect) yardımcısını aynı yerel site bağlamında ikinci kez çağırır.",
-    "expected": "İlk çağrı JobState kaydını ve effect yazımını aynı DB transaction'ında yapar, status=applied döner. İkinci çağrı effect'i çağırmaz; mevcut JobState adını status=skipped_duplicate ile döner.",
-    "denied": "Boş ya da 140 karakteri aşan anahtar veya bilinmeyen job_type, effect çalışmadan frappe.throw ile reddedilir. Başka sitenin kaydı görülmez ve tekilleştirmede sayılmaz."
+    "trigger": "Worker yeniden denemesi ya da elle yeniden çalıştırma, gelecekte JobState kontrolcüsüne (job_state.py) yazılacak run_once(job_type, idempotency_key, effect) yardımcısını aynı Frappe site bağlamında ikinci kez çağırır.",
+    "expected": "İlk çağrı JobState kaydını ve effect yazımını aynı DB transaction'ında yapar ve status=applied döner. İkinci çağrı effect'i çağırmaz; mevcut JobState adını status=skipped_duplicate ile döner.",
+    "denied": "Boş ya da 140 karakteri aşan anahtar veya bilinmeyen job_type, effect çalışmadan frappe.throw ile reddedilir ve hiçbir kayıt değişmez. Başka sitenin kaydı görülmez ve tekilleştirmede sayılmaz. JobState yazma izni olmayan çağrı native izin hatası alır; effect çalışmaz, kayıt değişmez."
   },
   "reuse": {
-    "mechanism": "Native: JobState DocType, Document.insert ve worker DB transaction'ı. Mevcut job_id/is_job_enqueued kuyruk tekilleştirmesi korunur, fakat iş etkisi için yeterli sayılmaz. Yeni kuyruk, kilit servisi, event motoru veya ORM kopyası açılmaz; job_state.py içinde yalnız tek yardımcı eklenir.",
+    "status": "KISMI",
+    "mechanism": "Native parçalar: frappe.enqueue job_id/retry/timeout/at_front aktarımı, Scheduled Job Type rq_job_id ve is_job_enqueued kuyruk tekilleştirmesi, RQ Job üzerindeki System Manager kısıtı, Document.insert ve worker DB transaction'ı. Bu kanıtlar yalnız kuyruk düzeyindeki parçaları gösterir; bütün davranışın var olduğu anlamına gelmez. İş etkisi tekilleştirmesi, kalıcı iş durumu, kooperatif iptal ve kiracı başına sınır incelenen kaynakta görülmedi. Yeni kuyruk, kilit servisi, event motoru, ORM veya CRUD katmanı açılmaz; planlanan tek ek JobState kontrolcüsündeki run_once yardımcısıdır. Kaynak alıntıları önceki salt okunur Frappe kaynak anlık görüntüsünden alındı; canlı site veya ürün kabulü yoktur.",
     "evidence": [
       {
         "path": "frappe/frappe/utils/background_jobs.py",
         "line": 257,
         "quote": "job_id=job_id,"
+      },
+      {
+        "path": "frappe/frappe/core/doctype/scheduled_job_type/scheduled_job_type.py",
+        "line": 113,
+        "quote": "\"\"\"Unique ID created to deduplicate jobs with single RQ call.\"\"\""
       },
       {
         "path": "frappe/frappe/core/doctype/scheduled_job_type/scheduled_job_type.py",
@@ -33,67 +63,410 @@
         "path": "frappe/frappe/core/doctype/rq_job/rq_job.py",
         "line": 32,
         "quote": "frappe.only_for(\"System Manager\")"
+      },
+      {
+        "path": "frappe/frappe/utils/background_jobs.py",
+        "line": 258,
+        "quote": "retry=retry,"
       }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/core/doctype/rq_job/rq_job.js",
+      "frappe/frappe/core/doctype/rq_job/rq_job.py",
+      "frappe/frappe/core/doctype/scheduled_job_log/scheduled_job_log.py",
+      "frappe/frappe/core/doctype/scheduled_job_type/scheduled_job_type.json",
+      "frappe/frappe/core/doctype/scheduled_job_type/scheduled_job_type.py",
+      "frappe/frappe/utils/background_jobs.py",
+      "frappe/frappe/utils/scheduler.py",
+      "frappe/pyproject.toml"
     ]
   },
   "ownership": {
     "activeContractFile": "docs/frappe-roadmap-contracts/job-state.json",
     "plannedProduction": [
-      "backend/saas_platform/saas_platform/platform_system/doctype/job_state/job_state.py"
+      "backend/saas_platform/saas_platform/platform_system/doctype/job_state/job_state.py",
+      "backend/saas_platform/saas_platform/services/job_state_post_mvp.py",
+      "backend/saas_platform/saas_platform/services/job_state_scale.py",
+      "frontend/packages/ui/src/components/ui-family-30/post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-family-31/post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-family-32/index.tsx",
+      "frontend/packages/ui/src/components/ui-family-32/post_mvp.tsx"
     ],
-    "plannedTestFile": "backend/saas_platform/saas_platform/platform_system/doctype/job_state/test_job_state.py",
+    "plannedTestFile": null,
     "sharedIntegrationFiles": [
-      "integration/fragments/job-state--integration.json",
       "backend/saas_platform/saas_platform/hooks.py",
-      "backend/saas_platform/saas_platform/platform_system/doctype/job_state/job_state.json"
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "job_type: Data, en fazla 140 karakter, kayıtlı iş sınıfı. idempotency_key: Data, 1-140 karakter, iş girdisinden deterministik türetilir; kişisel veri ve secret içermez. effect: aynı transaction'da yalnız DB'ye yazan çağrılabilir. Site parametre olarak alınmaz, çağrının site bağlamından gelir.",
-    "output": "{contractVersion:'job-state.v1', status:'applied'|'skipped_duplicate', job_state:<name>}. ui-family-32 yalnız JobState okuma izniyle name/job_type/status/modified alanlarını görür. idempotency_key ve hata ayrıntısının alan düzeyinde gizlenmesi (permlevel) job-state--schema'ya bağlıdır ve unknown.",
-    "authorization": "Yerel kanıt için sınır native site'tır; ürünün kiracı modeli burada seçilmez. JobState yazımı native DocType izinleriyle yapılır; ignore_permissions yalnız native-user-policy--contract açıkça izin verirse kullanılır. Zorla durdurma mevcut System Manager kısıtında kalır, yeni iptal yetkisi açılmaz. Yetkisiz okuma native izin hatasıyla reddedilir; hata sınıfının adı yerelde doğrulanacak (unknown).",
-    "persistence": "Önce mevcut kayıt okunur; yoksa JobState insert ve effect aynı transaction'da yapılır. Commit/rollback, worker'ın iş sonu davranışına bırakılır; execute_job ayrıntısı excerpt'te yok (unknown). Tekillik, job_state.json'da job_type+idempotency_key benzersizliğine dayanır. Bu alan job-state--schema'nın sahipliğindedir ve varlığı doğrulanmadı; DDL garantisi yoktur. Worker çökerse commit edilmemiş claim geri alınır, kilit kalıcı kalmaz. Bu yalnız DB etkileri için geçerlidir.",
-    "failure": "Yarış durumunda benzersizlik ihlali yakalanır, effect çağrılmaz ve skipped_duplicate döner. Native duplicate hata sınıfı ve savepoint API'si unknown. Effect istisnasında rollback yapılır ve JobState yazılmaz; iş, RQ failed registry'de failure TTL süresince kalır. Consumer failed durumunu gösterir, otomatik tekrar tetiklemez. Geçersiz kuyruk native 'Queue should be one of' hatasıyla reddedilir."
+    "input": "job_type: Data, en fazla 140 karakter, iş sınıfı politika tablosunda kayıtlı. idempotency_key: Data, 1-140 karakter, iş girdisinden deterministik türetilir; kişisel veri ve secret içermez. effect: aynı transaction'da yalnız DB'ye yazan çağrılabilir; dış servis çağrısı yapmaz. Site parametre olarak alınmaz, çağrının Frappe site bağlamından gelir.",
+    "output": "{contractVersion:'job-state.v1', status:'applied'|'skipped_duplicate', job_state:<name>}. ui-family-32 yalnız JobState okuma izniyle name/job_type/status/modified alanlarını görür. idempotency_key ve hata ayrıntısının alan düzeyinde gizlenmesi (permlevel) job-state--schema'ya bağlıdır ve unknown. Bu çıktı JSON model sınırıdır; istemci tarafındaki ReactNode/callback'ler bu sözleşmeye girmez.",
+    "authorization": "Sınır native Frappe site'tır; ürünün kiracı topolojisi burada seçilmez (decisionsPending). JobState okuma/yazma native DocType izinleri ve frappe.has_permission ile yapılır; ignore_permissions, ham SQL veya başka yetki atlatma yolu kullanılmaz. Rol/izin bayrakları explicitPermissionFlags ortak kaynağına bağlanır; bu sözleşme yeni rol üretmez. Zorla durdurma (stop_job) mevcut System Manager kısıtında kalır; son kullanıcıya veya kiracı yöneticisine yeni iptal yetkisi açılmaz. Yetkisiz okuma/yazma native izin hatasıyla reddedilir; hata sınıfının adı hedef tabanda doğrulanacak (unknown).",
+    "persistence": "Önce aynı site, job_type ve idempotency_key ile mevcut kayıt native izinle okunur; yoksa JobState insert ve effect aynı transaction'da yapılır. Commit/rollback worker'ın iş sonu davranışına bırakılır; execute_job ayrıntısı incelenen alıntılarda yok (unknown). Tekillik job_state.json'daki job_type+idempotency_key benzersizliğine dayanır; bu alan job-state--schema sahipliğindedir, varlığı doğrulanmadı ve DDL garantisi yoktur. Worker çökerse commit edilmemiş claim geri alınır, kalıcı kilit kalmaz; bu yalnız DB etkileri için geçerlidir. RQ sonuçları RQ_RESULTS_TTL (10 dakika) sonunda silindiğinden kalıcı durum yalnız JobState'te tutulur.",
+    "failure": "Yarışta benzersizlik ihlali yakalanır, effect çağrılmaz ve skipped_duplicate döner; native duplicate hata sınıfı ve savepoint API'si unknown. Effect istisnasında rollback yapılır ve JobState yazılmaz; iş RQ failed registry'de failure TTL süresince kalır. Tüketici failed durumunu gösterir, otomatik tekrar tetiklemez. Geçersiz kuyruk native 'Queue should be one of' hatasıyla reddedilir. Doğrulama veya izin hatasında hiçbir kayıt değişmez."
   },
   "development": {
     "dependencies": [
+      "api-middleware--contract",
+      "client-rule-parity--contract",
+      "document-template--contract",
       "job-state--contract",
+      "job-state--implementation",
       "job-state--schema",
       "kernel-envelope--contract",
+      "native-report--contract",
       "native-user-policy--contract",
-      "localPilot schemaCommit f926e9b, recordCommit 6ea301c, frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6"
+      "ui-family-30--contract",
+      "ui-family-30--implementation",
+      "ui-family-31--contract",
+      "ui-family-31--implementation",
+      "ui-family-32--contract",
+      "ui-family-32--implementation"
     ],
-    "admission": "T-00 hedef taban ve R-00 eşlemesi gerekir. job_state.json'da job_type, idempotency_key, status alanları ve site içi benzersizlik doğrulanmalı (şu an unknown). Kanıt yalnız yerel Frappe17-dev/suite.localhost'tan gelir; uzak ürün tabanı ve Suite HEAD unknown.",
+    "admission": "Uygulama durumu: uygulanmadı. Kabul için önce T-00 hedef taban ve R-00 yeniden kullanım eşlemesi gerekir; izinli veri tüketicileri (ui-family-32, jobs-8 listesi) ayrıca R-01 kullanır. job_state.json'da job_type, idempotency_key, status alanları ve site içi benzersizlik job-state--schema tarafından doğrulanmalıdır (şu an unknown). Hedef ürün tabanı ve sürümü unknown. Tek dar davranış gerçek RED/GREEN kanıtıyla uygulanır. Bu sözleşme üretim, şema, servis, veri veya production değiştirme yetkisi vermez.",
     "steps": [
       "job_state.json alanlarını oku; benzersizlik yoksa job-state--schema sahibine bildir, şemayı kendin değiştirme.",
-      "job_state.py içinde run_once'ı yaz: girdiyi doğrula, mevcut kaydı oku, yoksa insert ile effect'i çalıştır, duplicate durumunda mevcut adı döndür.",
-      "frappe.enqueue job_id değerini aynı anahtardan türet; zamanlayıcı/cron etkinleştirme.",
-      "Tüketici sözleşmesini yalnız integration fragmentine öner; hooks.py entegrasyonu Codex'tedir."
+      "Önce tdd.oneScenario için başarısız testi yaz. Ardından job_state.py içinde run_once'ı yaz: girdiyi doğrula, mevcut kaydı native izinle oku, yoksa insert ve effect'i aynı transaction'da çalıştır, duplicate durumunda mevcut adı döndür.",
+      "frappe.enqueue job_id değerini aynı site+job_type+idempotency_key bileşiminden türet; mevcut kuyruk tekilleştirmesini koru, zamanlayıcı veya cron etkinleştirme.",
+      "Tüketici çıktısını yalnız ana entegrasyon sahibine öner; hooks.py, registry.ts ve routes.tsx entegrasyonu onun seri birleştirmesindedir.",
+      "jobs-2/3/4/7/8 bu davranışa eklenmez; her biri requirementGuidance içindeki kendi dar senaryosuyla ayrı kabul alır."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "Yerel test sitesinde aynı job_type+idempotency_key ile run_once sırayla iki kez çağrılır. Beklenen: effect sayacı 1, JobState kayıt sayısı 1, ikinci dönüş skipped_duplicate.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Aynı komut değişmeden geçmeli: bench --site <yerel test sitesi> run-tests --module saas_platform.platform_system.doctype.job_state.test_job_state"
+      "oneScenario": "Test sitesinde aynı job_type+idempotency_key ile run_once sırayla iki kez çağrılır. Beklenen: effect sayacı 1, JobState kayıt sayısı 1, ikinci dönüş skipped_duplicate.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. RED davranışsal bir assertion hatasıdır; örneğin tekilleştirme yokken effect sayacının 2 olması. Import/altyapı hatası veya native davranışı bozmak RED sayılmaz; native geçen davranışa RED uydurulmaz. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "Uygulamadan sonra aynı senaryo değişmeyen assertion ve komutla geçmeli. Test dosyası ve komut, sahiplik verildiğinde admission içinde sabitlenir (plannedTestFile şu an null). Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN'i değildir."
     },
-    "rollback": "Yalnız job_state.py ve planlanan test dosyası yerelde geri alınır. Şema, hook ve üretim değişikliği yoktur; üretim izni yoktur."
+    "rollback": "Gelecekte yalnız job_state.py değişikliği ve ona ait test dosyası geri alınır. Bu sözleşme şema, hook, servis, veri veya production değişikliği içermez. Worker/dağıtım/rollback teknik sahibi Hüseyin Cengiz'dir; DNS veya GoDaddy adımı yoktur."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "jobs-2",
+      "sourceStage": "mvp",
+      "existing": "Native: frappe.enqueue timeout ve at_front değerlerini aktarır. Kuyruk default/short/long dışındaysa reddedilir; conf.workers özel kuyrukları listeler. MAX_QUEUED_JOBS=500 kuyruk genelinde bir enqueue tavanıdır; QUEUE_STARVATION_THRESHOLD=16.",
+      "gap": "Kiracı anahtarı ve kiracı başına eşzamanlılık sınırı yok. İş sınıfı-kuyruk-timeout-at_front politika tablosu yok. 'Uzun iş kısa kuyruğu bloke etmemeli' ölçütü short kuyruğa ayrılmış worker gerektiriyor; bu şart dağıtım devrinde yok.",
+      "completionSteps": [
+        "İş sınıfı -> kuyruk (default/short/long veya conf.workers) -> timeout -> at_front tablosunu bu sözleşmenin ekinde belgele; sayısal değerler sahibince onaylanana kadar unknown kalır.",
+        "Sınır noktasını frappe.enqueue çağrısını saran tek bir fonksiyon olarak belgele; kiracı anahtarı tenant topolojisi kararından gelir. Her kiracıya kuyruk açılmaz.",
+        "Sayaç için mevcut Redis bağlantısı yeniden kullanılır; yardımcı API adı hedef tabanda doğrulanır (unknown). Sınır aşımında enqueue reddedilir ve kuyruk değişmez.",
+        "Short kuyruğa ayrılmış worker şartını Hüseyin Cengiz'e teknik devir olarak yaz: kuyruk-worker eşlemesi; doğrulama long iş çalışırken short iş bekleme süresinin ölçülmesi. Bu sözleşme etkinleştirme yapmaz."
+      ],
+      "dependencies": [
+        "job-state--contract",
+        "job-state--schema",
+        "kernel-envelope--contract",
+        "native-user-policy--contract"
+      ],
+      "acceptance": "Aynı kiracının sınır+1. enqueue çağrısı reddedilir ve kuyruktaki iş sayısı değişmez. Ayrık short worker varken uzun iş short kuyruktaki işi bloke etmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/utils/background_jobs.py",
+          "line": 44,
+          "quote": "MAX_QUEUED_JOBS = 500  # frappe.enqueue will start failing when these many jobs exist in queue."
+        },
+        {
+          "path": "frappe/frappe/utils/background_jobs.py",
+          "line": 252,
+          "quote": "timeout=timeout,"
+        },
+        {
+          "path": "frappe/frappe/utils/background_jobs.py",
+          "line": 254,
+          "quote": "at_front=at_front,"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/rq_job/rq_job.py",
+          "line": 310,
+          "quote": "return list((frappe.conf.workers or {}).keys())"
+        }
+      ]
+    },
+    {
+      "requirementId": "jobs-3",
+      "sourceStage": "mvp",
+      "existing": "Native: frappe.enqueue RQ retry parametresini aktarır (rq==2.6.1 sabit). Başarısız işler RQ failed registry'de 7 gün ve en çok 1000 kayıt tutulur. remove_failed_jobs System Manager'a açık toplu silmedir; Scheduled Job Log eski kayıtları temizler. FrappeWorker RQ scheduler'ı her zaman kapatır.",
+      "gap": "with_scheduler=False iken Retry interval ile artan beklemenin yeniden kuyruğa alınıp alınmadığı unknown. Hata sınıflandırması, deneme üst sınırı ve bekleme dizisi yok. Kalıcı dead-letter yok; saklama süresi ve sahibi tanımsız. Retry sırasında site bağlamının korunması kabulde yok.",
+      "completionSteps": [
+        "Hedef tabanda frappe.enqueue retry yolunu ve FrappeWorker.work ilişkisini oku; interval'li retry'ın çalıştığı kanıtlanmadan artan bekleme kabulü verilmez.",
+        "Hata sınıfı (geçici/kalıcı) -> max deneme -> aralık dizisi tablosunu belgele; değerler onaylanana kadar unknown kalır.",
+        "Kalıcı hatayı mevcut Error Log'a veya native izinli JobState status=failed kaydına yaz; ayrı dead-letter kuyruğu açma. remove_failed_jobs'ın JobState kaydını silmediğini belgele.",
+        "Retry aynı idempotency anahtarıyla run_once'a döner; böylece yeniden deneme ikinci etki üretmez."
+      ],
+      "dependencies": [
+        "job-state--contract",
+        "job-state--schema",
+        "kernel-envelope--contract",
+        "native-user-policy--contract"
+      ],
+      "acceptance": "Geçici hata tanımlı artan beklemeyle denenir. Kalıcı hata sınırlı denemeden sonra aynı site bağlamında incelenebilir kalır; RQ failure TTL dolduğunda JobState kaydı silinmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/utils/background_jobs.py",
+          "line": 258,
+          "quote": "retry=retry,"
+        },
+        {
+          "path": "frappe/frappe/utils/background_jobs.py",
+          "line": 456,
+          "quote": "kwargs[\"with_scheduler\"] = False  # Always disable RQ scheduler"
+        },
+        {
+          "path": "frappe/frappe/utils/background_jobs.py",
+          "line": 37,
+          "quote": "RQ_JOB_FAILURE_TTL = 7 * 24 * 60 * 60  # 7 days instead of 1 year (default)"
+        },
+        {
+          "path": "frappe/frappe/utils/background_jobs.py",
+          "line": 38,
+          "quote": "RQ_FAILED_JOBS_LIMIT = 1000  # Only keep these many recent failed jobs around"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/rq_job/rq_job.py",
+          "line": 281,
+          "quote": "def remove_failed_jobs():"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/scheduled_job_log/scheduled_job_log.py",
+          "line": 30,
+          "quote": "frappe.db.delete(table, filters=(table.creation < (Now() - Interval(days=days))))"
+        }
+      ]
+    },
+    {
+      "requirementId": "jobs-4",
+      "sourceStage": "mvp",
+      "existing": "Native: RQ Job üzerinde System Manager'a açık zorla durdurma (send_stop_job_command); arayüz metni bunu tehlikeli olarak nitelendirir. Scheduled Job Type'ta Execute ve Skip Next Execution aksiyonları var. RQ durum kümesi queued/started/failed/finished/deferred/scheduled/canceled; RQ sonuçları 10 dakika tutulur.",
+      "gap": "Kooperatif iptal bayrağı (cancel_requested), adım checkpoint'i, kalıcı ilerleme, elle tekrar çalıştırmada tekilleştirme kuralı ve kiracı yöneticisi izin modeli yok. Realtime ilerleme yardımcısı unknown.",
+      "completionSteps": [
+        "JobState durum sözleşmesini belgele: status, cancel_requested, son checkpoint, gerçek ilerleme (done/total; total bilinmiyorsa null). Alan eklemek job-state--schema sahibinin işidir.",
+        "İş kodu adım sınırlarında cancel_requested okur ve güvenli noktada durur; stop_job yalnız System Manager için son çare olarak kalır.",
+        "Elle tekrar çalıştırma aynı idempotency anahtarıyla run_once'a döner; tamamlanmış adımlar checkpoint'ten atlanır.",
+        "İptal/tekrar yetkisini explicitPermissionFlags ortak kaynağına bağla; rol seçimi decisionsPending'dedir. Realtime yardımcısını hedef tabanda envanterle; doğrulanamazsa ui-family-32 TanStack Query ile periyodik okur."
+      ],
+      "dependencies": [
+        "job-state--contract",
+        "job-state--schema",
+        "kernel-envelope--contract",
+        "native-user-policy--contract",
+        "ui-family-32--contract"
+      ],
+      "acceptance": "İptal işi güvenli noktada durdurur; devam veya elle tekrar başarılı adımı çoğaltmaz. Yetkisiz kullanıcının cancel_requested yazma denemesi native izin hatasıyla reddedilir ve JobState kaydı değişmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/core/doctype/rq_job/rq_job.py",
+          "line": 7,
+          "quote": "from rq.command import send_stop_job_command"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/rq_job/rq_job.py",
+          "line": 32,
+          "quote": "frappe.only_for(\"System Manager\")"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/rq_job/rq_job.js",
+          "line": 16,
+          "quote": "\"This will terminate the job immediately and might be dangerous, are you sure?\""
+        },
+        {
+          "path": "frappe/frappe/utils/background_jobs.py",
+          "line": 39,
+          "quote": "RQ_RESULTS_TTL = 10 * 60"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/rq_job/rq_job.py",
+          "line": 25,
+          "quote": "JOB_STATUSES = [\"queued\", \"started\", \"failed\", \"finished\", \"deferred\", \"scheduled\", \"canceled\"]"
+        }
+      ]
+    },
+    {
+      "requirementId": "jobs-5",
+      "sourceStage": "mvp",
+      "existing": "Native: Scheduled Job Type sabit rq_job_id ile önce kuyrukta varlık kontrolü yapıp sonra kuyruğa ekler; enqueue job_id aktarır; scheduler süreç kilidi bench düzeyinde bir FileLock'tur. Bunlar iş etkisini tekilleştirmez.",
+      "gap": "İdempotency anahtarı ve etki kaydı sözleşmesi yok. Kilit kapsamı ve lease TTL, kontrol-sonra-ekle yarışı ve retry sonrası ikinci etki kapsanmıyor. Uygulama düzeyindeki kilit yardımcıları unknown.",
+      "completionSteps": [
+        "Ana behavior'u (run_once) tek davranış olarak uygula; anahtar site+job_type+idempotency_key'dir.",
+        "DB etkisi dedup kaydıyla aynı transaction'da kesinleşir; dış etkiler bu davranışın dışındadır ve mevcut outbox/inbox sözleşmesine bağlanır.",
+        "enqueue_after_commit'i yalnız zamanlama mekanizması olarak belgele; tek etki garantisi sayma.",
+        "Hedef tabandaki kilit yardımcısının kapsam ve TTL davranışını doğrula; doğrulanmadan lease TTL kabulü verme. Mevcut job_id tekilleştirmesini koru."
+      ],
+      "dependencies": [
+        "job-state--contract",
+        "job-state--schema",
+        "kernel-envelope--contract",
+        "native-user-policy--contract"
+      ],
+      "acceptance": "Aynı iş tekrar çalıştığında tek iş etkisi doğar; çökme sonrası commit edilmemiş claim kalmaz. İki worker eşzamanlı yarışı ayrı bir gelecekteki senaryoda kanıtlanır; bu davranışın kabulüne dahil değildir.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/core/doctype/scheduled_job_type/scheduled_job_type.py",
+          "line": 113,
+          "quote": "\"\"\"Unique ID created to deduplicate jobs with single RQ call.\"\"\""
+        },
+        {
+          "path": "frappe/frappe/core/doctype/scheduled_job_type/scheduled_job_type.py",
+          "line": 87,
+          "quote": "if not self.is_job_in_queue():"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/scheduled_job_type/scheduled_job_type.py",
+          "line": 109,
+          "quote": "return is_job_enqueued(self.rq_job_id)"
+        },
+        {
+          "path": "frappe/frappe/utils/background_jobs.py",
+          "line": 257,
+          "quote": "job_id=job_id,"
+        },
+        {
+          "path": "frappe/frappe/utils/scheduler.py",
+          "line": 52,
+          "quote": "lock = FileLock(lock_path)"
+        }
+      ]
+    },
+    {
+      "requirementId": "jobs-7",
+      "sourceStage": "scale",
+      "existing": "Native: global kuyruk tavanı, starvation eşiği, worker dequeue_strategy, conf.workers özel kuyrukları, Scheduled Job Type sırasının karıştırılması ve site bazlı bakım ofseti.",
+      "gap": "Kiracı başına adil paylaşım garantisi yok. Kiracı modeli, bekleme SLO değeri, yük profili ve kota tanımsız. MAX_QUEUED_JOBS global olduğundan yoğun bir kiracı diğerlerinin enqueue çağrılarını başarısız yapabilir. Yeniden kullanılacak mekanizma seçilmedi.",
+      "completionSteps": [
+        "Tenant topolojisi kararı gelene kadar yalnız ölçüm planını belgele: kiracı başına bekleme süresi ve kuyruktaki iş sayısı.",
+        "job-state--implementation-scale altında kiracı başına sınırı jobs-2 sayacına bağla; yeni zamanlayıcı yazma.",
+        "conf.workers özel kuyrukları ile dequeue_strategy seçeneklerinden hangisinin kullanılacağını hedef tabanda doğrulayıp belgele; worker topolojisi Hüseyin Cengiz'e teknik devirdir.",
+        "Yoğun kiracının global tavanı tüketmesini, kiracı sınırını enqueue öncesinde uygulayarak önle."
+      ],
+      "dependencies": [
+        "job-state--contract",
+        "job-state--schema",
+        "job-state--implementation",
+        "kernel-envelope--contract",
+        "native-user-policy--contract"
+      ],
+      "acceptance": "Yoğun kiracı yükünde küçük kiracının bekleme SLO'su korunur (sayısal değer karar bekliyor); kaynak kullanımı kiracı başına ölçülür.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/utils/background_jobs.py",
+          "line": 44,
+          "quote": "MAX_QUEUED_JOBS = 500  # frappe.enqueue will start failing when these many jobs exist in queue."
+        },
+        {
+          "path": "frappe/frappe/utils/background_jobs.py",
+          "line": 47,
+          "quote": "QUEUE_STARVATION_THRESHOLD = 16"
+        },
+        {
+          "path": "frappe/frappe/utils/background_jobs.py",
+          "line": 438,
+          "quote": "dequeue_strategy=strategy,"
+        },
+        {
+          "path": "frappe/frappe/utils/scheduler.py",
+          "line": 167,
+          "quote": "random.shuffle(all_jobs)"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/scheduled_job_type/scheduled_job_type.py",
+          "line": 124,
+          "quote": "maintenance_offset = int(hashlib.sha1(frappe.local.site.encode()).hexdigest(), 16) % 60"
+        }
+      ]
+    },
+    {
+      "requirementId": "jobs-8",
+      "sourceStage": "post_mvp",
+      "existing": "Native: RQ Job sanal ve periyodik temizlenen bir görünümdür, yalnız System Manager'a açıktır. Sonuç TTL'i 10 dakikadır; stop_job zorla sonlandırmadır. Vue/Frappe UI kaynağı React/Ant Design uygulamasının kanıtı değildir.",
+      "gap": "Kullanıcıya ait kalıcı iş kaydı modeli, ilerleme olayı sözleşmesi, kooperatif iptal/devam, sonuç saklama süresi, indirme yetkisi ve liste filtreleme yok. Data Import ve Prepared Report gibi native kayıtlar incelenmedi (unknown).",
+      "completionSteps": [
+        "Hedef tabanda native kalıcı iş kayıtlarını ve ilerleme yayını API'sini envanterle; bulunanları JobState'e eşle, kopya DocType açma.",
+        "Tek iş kaydı sözleşmesi yaz: owner, site/kiracı, durum (bekliyor/çalışıyor/kısmi başarı/başarısız/tamamlandı), gerçek ilerleme (total yoksa yüzde yok), sonuç dosyası ve saklama süresi (karar bekliyor).",
+        "Liste ve indirme native DocType/File izinleriyle filtrelenir; RQ Job API'si ve stop_job son kullanıcıya açılmaz. İzinler explicitPermissionFlags ortak kaynağına bağlanır.",
+        "ui-family-32 ve ui-family-30/31 post_mvp tüketicileri bu kaydı TanStack Query ile okur. React/Ant Design yüzeyi Outfit, en az 14 CSS px, 320 CSS px öncelikli, çevreleyen odak halkası olmadan ve simetrik pozitif süreli Cubic hareketle çalışır; durum değişimi erişilebilir durum mesajıyla duyurulur. Bu yüzey GenUI capability registry'ye eklenmez."
+      ],
+      "dependencies": [
+        "job-state--contract",
+        "job-state--schema",
+        "job-state--implementation",
+        "kernel-envelope--contract",
+        "native-user-policy--contract",
+        "ui-family-32--contract",
+        "ui-family-32--implementation"
+      ],
+      "acceptance": "Import, export, rapor ve toplu iş, sayfa değiştiğinde veya yeniden girişte kimliğiyle izlenir. Durumlar ve gerçek ilerleme görülür; toplam bilinmiyorsa sahte yüzde gösterilmez. İptal/devam başarılı adımı çoğaltmaz. Başka kullanıcının işini iptal etme veya sonucunu indirme denemesi native izin hatasıyla reddedilir ve kayıt değişmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/core/doctype/rq_job/rq_job.py",
+          "line": 32,
+          "quote": "frappe.only_for(\"System Manager\")"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/rq_job/rq_job.js",
+          "line": 9,
+          "quote": "__(\"This is a virtual doctype and data is cleared periodically.\")"
+        },
+        {
+          "path": "frappe/frappe/utils/background_jobs.py",
+          "line": 39,
+          "quote": "RQ_RESULTS_TTL = 10 * 60"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/rq_job/rq_job.py",
+          "line": 304,
+          "quote": "frappe.get_doc(\"RQ Job\", job_id).stop_job()"
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "jobs-2: Kiracı başına eşzamanlılık sayacı ve iş sınıfı-kuyruk/timeout/at_front tablosu yazılmadı; MAX_QUEUED_JOBS kuyruk genelindedir. Short kuyruğa ayrılmış worker bir dağıtım bağımlılığıdır; sahibi Hüseyin Cengiz, etkinleştirilmedi.",
-    "jobs-3: with_scheduler=False iken Retry interval ile backoff'un çalışıp çalışmadığı unknown. Hata sınıfı/max deneme tablosu yok; 7 gün ve 1000 kayıt sınırı incelenebilirlikle çelişebilir. Saklama süresi seçilmedi.",
-    "jobs-4: cancel_requested ile kooperatif iptal, checkpoint/devam, ilerleme yayını (realtime yardımcısı unknown) ve kiracı yöneticisi izin modeli açık. ui-family-32 mevcut AntD UI'da Outfit, en az 14px, 320-first, çevreleyen odak halkası olmadan ve simetrik pozitif Cubic hareketle tüketmeli.",
-    "jobs-5: İki worker'ın eşzamanlı yarışı, dış etkiler (outbox/inbox) ve lease TTL bu senaryoda kanıtlanmaz. enqueue_after_commit tek etki garantisi değildir.",
-    "Gereksinimlerin teslimi not_proven durumunda; bu plan ürün GREEN'i değildir."
+    "Uygulama durumu: uygulanmadı. Hiçbir madde teslim edilmiş değildir; bu sözleşme ürün GREEN'i değildir.",
+    "jobs-2: Kiracı başına sayaç ve iş sınıfı politika tablosu yazılmadı; short kuyruğa ayrılmış worker dağıtım bağımlılığıdır, sahibi Hüseyin Cengiz, etkinleştirilmedi.",
+    "jobs-3: with_scheduler=False altında retry interval davranışı unknown; hata sınıfı/deneme tablosu yok.",
+    "jobs-4: cancel_requested, checkpoint, ilerleme yayını ve kiracı yöneticisi izni açık.",
+    "jobs-5: İki worker eşzamanlı yarışı, dış etkiler ve lease TTL ana senaryoda kanıtlanmaz.",
+    "jobs-7: Kiracı modeli, SLO ve kota olmadan adil zamanlama kabul edilemez.",
+    "jobs-8: Native kalıcı iş kayıtları ve ilerleme API'si envanteri yapılmadı; ui-family-30/31 post_mvp davranışları bu girdide tanımlı değil, yollar yalnız öneridir."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Kiracı topolojisi: kiracı Frappe site mi, site içi bir kayıt mı",
+      "requirementIds": ["jobs-2", "jobs-7", "jobs-8"],
+      "blocks": "Kiracı sayaç anahtarı, adil zamanlama ve iş merkezi filtreleme",
+      "interimDocumentStep": "Sınırı site bağlamında belgele; ölçüm planını kiracı anahtarından bağımsız yaz."
+    },
+    {
+      "decision": "Başarısız iş kaydı ve sonuç dosyası saklama süresi",
+      "requirementIds": ["jobs-3", "jobs-8"],
+      "blocks": "Kalıcı hata ve sonuç temizleme kuralı",
+      "interimDocumentStep": "Mevcut 7 gün/1000 kayıt, Scheduled Job Log temizliği ve 10 dakika sonuç TTL'ini kısıt olarak listele."
+    },
+    {
+      "decision": "Hedef Frappe sürümü ve taban (T-00)",
+      "requirementIds": ["jobs-3", "jobs-4", "jobs-5", "jobs-8"],
+      "blocks": "Retry/scheduler, kilit yardımcısı, realtime ve native iş kaydı doğrulamaları",
+      "interimDocumentStep": "unknown işaretli doğrulama listesini güncel tut."
+    },
+    {
+      "decision": "Kiracı başına eşzamanlılık/kota ve bekleme SLO sayıları",
+      "requirementIds": ["jobs-2", "jobs-7"],
+      "blocks": "Sınır ve adillik kabul senaryoları",
+      "interimDocumentStep": "Ölçüm yöntemini ve yük profilini sayısız şablon olarak belgele."
+    },
+    {
+      "decision": "İptal, elle tekrar çalıştırma ve sonuç indirme yetkisinin hangi role verileceği",
+      "requirementIds": ["jobs-4", "jobs-8"],
+      "blocks": "explicitPermissionFlags eşlemesi ve reddedilen yazma kabulü",
+      "interimDocumentStep": "System Manager kısıtını koru; izin eşleme taslağını rol seçmeden yaz."
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "jobs-2": "mvp",
-    "jobs-3": "mvp",
-    "jobs-4": "mvp",
-    "jobs-5": "mvp"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,

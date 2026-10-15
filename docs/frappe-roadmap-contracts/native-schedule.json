@@ -4,15 +4,21 @@
   "canonicalTaskIds": ["native-schedule--implementation"],
   "requirementIds": ["jobs-1", "jobs-6"],
   "stage": "mvp",
+  "sourceStages": {
+    "jobs-1": "mvp",
+    "jobs-6": "mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
-    "title": "Tek bir Cron Scheduled Job Type icin izinli, salt okunur headless zamanlama durumu",
-    "trigger": "Oturumlu kullanici (cookie/CSRF) GET /api/method/saas_platform.adapters.async_runtime.scheduled_job_type_mvp.get_schedule_status?name=<Scheduled Job Type adi> cagirir.",
-    "expected": "Native Scheduled Job Type kaydi okunur; frequency, cron_format, stopped, queue, last_execution, native get_next_execution sonucu, rq_job_id tekilligine gore job_in_queue ve site scheduler durumu (heartbeat ve inactive) tek yanitta doner. Hicbir is kuyruga alinmaz, hicbir alan yazilmaz.",
-    "denied": "Scheduled Job Type read izni olmayan kullanici (native olarak yalniz System Manager) PermissionError alir; kayit yoksa DoesNotExistError; frequency Cron degilse ValidationError. Zamanlama olusturma, etkinlestirme, cron degistirme ve force enqueue bu davranista yoktur."
+    "title": "Tek bir Cron Scheduled Job Type için izinli, salt okunur headless zamanlama durumu",
+    "trigger": "Native oturumlu kullanıcı (cookie/CSRF) GET /api/method/saas_platform.adapters.async_runtime.scheduled_job_type_mvp.get_schedule_status?name=<Scheduled Job Type adı> çağırır. Uç nokta yalnız gelecekteki öneridir; bugün yoktur.",
+    "expected": "Native Scheduled Job Type kaydı native izin kontrolüyle okunur; frequency, cron_format, stopped, queue, last_execution, native get_next_execution sonucu, rq_job_id tekilliğine göre job_in_queue ve site scheduler durumu (heartbeat ve inactive) tek JSON yanıtta döner. Hiçbir iş kuyruğa alınmaz, hiçbir alan yazılmaz.",
+    "denied": "Scheduled Job Type read izni olmayan kullanıcı (native izinlerde yalnız System Manager tanımlı) PermissionError alır ve kayıt değişmez; kayıt yoksa DoesNotExistError; frequency Cron değilse ValidationError. Zamanlama oluşturma, durdurma/etkinleştirme, cron değiştirme, queue değiştirme, Skip Next Execution ve force enqueue bu davranışta yoktur."
   },
   "reuse": {
-    "mechanism": "Native once: izin icin DocType permission, hesap icin Scheduled Job Type metotlari, saglik icin utils/scheduler fonksiyonlari. Kaynak secimi: scheduler_events + Scheduled Job Type birincil; automation_engine process_cron kapsam disi. Gozlenen bosluk, headless tuketicinin bu degerleri tek izinli yanitta alamamasi oldugu icin yalniz sahip olunan dosyada tek whitelisted okuma fonksiyonu eklenir. Yeni DocType, CustomField, hook veya kuyruk yok.",
+    "status": "KISMI",
+    "mechanism": "Native önce: izin için Scheduled Job Type DocType izni (frappe.get_doc ardından doc.check_permission read), zaman hesabı için kaydın kendi get_next_execution ve is_job_in_queue metotları, sağlık için frappe/utils/scheduler.py fonksiyonları. Kaynak seçimi: scheduler_events hook + Scheduled Job Type birincil; automation_engine process_cron ayrı cron yoludur ve bu davranışın kapsamı dışındadır. Kanıtlar yalnız native parçaların varlığını gösterir; izinli headless okuma yanıtı, worker sağlık sözleşmesi, catch-up/DST/saat dilimi politikası yoktur. Eksik kısım yalnız gelecekteki sahip dosyada tek whitelisted okuma fonksiyonudur; yeni DocType, CustomField, hook, kuyruk, ORM veya CRUD katmanı tasarlanmaz. ignore_permissions veya ham SQL ile yetki atlama yoktur. searchedPaths verilen okunmuş kaynak listesidir; liste dışı kaynaklar için kapsamlı yokluk iddiası değildir.",
     "evidence": [
       {
         "path": "frappe/frappe/core/doctype/scheduled_job_type/scheduled_job_type.json",
@@ -35,6 +41,11 @@
         "quote": "last_execution = get_datetime(self.last_execution or self.creation)"
       },
       {
+        "path": "frappe/frappe/core/doctype/scheduled_job_type/scheduled_job_type.py",
+        "line": 106,
+        "quote": "return self.get_next_execution() <= (current_time or now_datetime())"
+      },
+      {
         "path": "frappe/frappe/utils/scheduler.py",
         "line": 93,
         "quote": "def is_scheduler_process_running() -> bool:"
@@ -49,6 +60,13 @@
         "line": 289,
         "quote": "scheduler_events = {"
       }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/automation_engine/scheduler.py",
+      "frappe/frappe/core/doctype/scheduled_job_type/scheduled_job_type.json",
+      "frappe/frappe/core/doctype/scheduled_job_type/scheduled_job_type.py",
+      "frappe/frappe/utils/scheduler.py",
+      "suite/suite/hooks.py"
     ]
   },
   "ownership": {
@@ -56,58 +74,213 @@
     "plannedProduction": [
       "backend/saas_platform/saas_platform/adapters/async_runtime/scheduled_job_type_mvp.py"
     ],
-    "plannedTestFile": "backend/saas_platform/saas_platform/adapters/async_runtime/test_scheduled_job_type_mvp.py",
+    "plannedTestFile": null,
     "sharedIntegrationFiles": [
-      "integration/fragments/native-schedule--integration.json",
-      "backend/saas_platform/saas_platform/hooks.py"
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "name: string, zorunlu, bos olamaz, en fazla 140 karakter, mevcut Scheduled Job Type adi. Baska parametre kabul edilmez; bilinmeyen parametre yok sayilmaz, ValidationError.",
-    "output": "version=native-schedule.status.v1; name, method, frequency, cron_format, stopped (0/1), queue, last_execution, next_execution (native get_next_execution, site sistem saatine gore naive datetime), job_in_queue (bool veya null), scheduler.process_running (bool veya null), scheduler.inactive (bool), catch_up=native_last_execution_coalesce_unverified, timezone_source=unknown. Zarf bicimi kernel-envelope--contract v1 ile hizalanir; bu belge zarf alanlarini tanimlamaz.",
-    "authorization": "Native site siniri (yerel pilotta suite.localhost) tenant=site olarak yalniz yerel kanit icin kullanilir. frappe.get_doc ardindan doc.check_permission read; field duzeyinde ek maske yok, cunku tum alanlar DocType okumaya acik. Site ici tenant kapsami yok ve iddia edilmez.",
-    "persistence": "Salt okunur. Yazma, commit, enqueue, Document.save veya DDL yok. stopped/queue degisikligi bu davranista sunulmaz; native Document.save yolu ayri kalir.",
-    "failure": "frappe.PermissionError -> HTTP 403, tuketici yetki yok durumunu gosterir; frappe.DoesNotExistError -> 404; frappe.ValidationError -> 417 (Cron olmayan frequency, gecersiz name). Redis baglanti hatasinda job_in_queue ve scheduler.process_running null doner, health_unknown=true eklenir; false uretilmez. Tuketici null degeri calismiyor diye yorumlamaz."
+    "input": "name: string, zorunlu, boş olamaz, en fazla 140 karakter, mevcut Scheduled Job Type adı. Başka parametre kabul edilmez; bilinmeyen parametre yok sayılmaz, ValidationError verir.",
+    "output": "version=native-schedule.status.v1; name, method, frequency, cron_format, stopped (0/1), queue, last_execution, next_execution (native get_next_execution değeri değiştirilmeden; saat dilimi yorumu karar gelene kadar iddia edilmez), job_in_queue (bool veya null), scheduler.process_running (bool veya null), scheduler.inactive (bool), catch_up=native_last_execution_coalesce_unverified, timezone_source=unknown, Redis hatasında health_unknown=true. Zarf biçimi kernel-envelope--contract v1 ile hizalanır; bu belge zarf alanlarını tanımlamaz. Yanıt yalnız JSON veri modelidir; ReactNode veya callback taşımaz. Kaynak registry ile GenUI capability registry ayrıdır; bu davranış GenUI capability tanımlamaz. React/Ant Design tüketici ekranı bu sözleşmenin parçası değildir.",
+    "authorization": "Native site sınırı içinde çalışır; site ile tenant eşlemesi decisionsPending içindeki tenant topolojisi kararına bağlıdır ve iddia edilmez. frappe.get_doc ardından doc.check_permission read uygulanır; native DocType izinleri yalnız System Manager rolünü tanımlar. Yeni rol veya izin üretilmez. İleride System Manager dışı bir rol gerekirse ayrı rehberde ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy altındaki explicitPermissionFlags ortak kaynağına bağlanır. ignore_permissions, ham SQL veya izin denetimsiz toplu sorgu yok. Alan düzeyinde ek maske yok; dönen tüm alanlar DocType read iznine tabidir.",
+    "persistence": "Salt okunur. Yazma, commit, enqueue, Document.save veya DDL yok. stopped/queue değişikliği bu davranışta sunulmaz; native Document.save yolu ve native izinleri ayrı kalır. Hiçbir servis, production ortamı, şema veya veri bu sözleşmeyle değiştirilemez.",
+    "failure": "frappe.PermissionError -> HTTP 403, tüketici yetki yok durumunu gösterir; frappe.DoesNotExistError -> 404; frappe.ValidationError -> 417 (Cron olmayan frequency, geçersiz veya fazla parametre). Redis bağlantı hatasında job_in_queue ve scheduler.process_running null döner, health_unknown=true eklenir; false üretilmez. Tüketici null değeri çalışmıyor diye yorumlamaz."
   },
   "development": {
     "dependencies": [
-      "native-schedule--contract",
       "kernel-envelope--contract",
-      "native-user-policy--contract",
-      "local pilot frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6, nativeAuth cookie/CSRF"
+      "native-schedule--contract",
+      "native-user-policy--contract"
     ],
-    "admission": "T-00 hedef baz ve R-00 yeniden kullanim eslemesi gerekir. Yerel Frappe17-dev/suite.localhost yalniz yerel kanittir; uzak urun baz ve Suite HEAD unknown. suite/suite/hooks.py icindeki cron girdisinden olusan bir Cron Scheduled Job Type kaydinin yerel sitede var oldugu calistirilarak dogrulanmadi.",
+    "admission": "Uygulama durumu: uygulanmadı. Ortak kabul: T-00 hedef baz ve R-00 yeniden kullanım eşlemesi; izinli veri tüketicisi olduğu için R-01 de gerekir; tek dar davranış gerçek RED/GREEN kanıtıyla uygulanır. Özel önkoşullar: (1) hedef sürüm kararı ve kanıt satırlarının o baza yeniden eşlenmesi; (2) hedef sitede suite hooks scheduler_events içindeki bir cron girdisinden oluşmuş Cron frequency'li Scheduled Job Type kaydının varlığının doğrulanması (doğrulanmadı); (3) kernel-envelope--contract ve native-user-policy--contract sözleşmelerinin zarf ve kullanıcı/izin bağlamını sağlaması. Kanıtlar önceki salt okunur kaynak anlık görüntülerinden gelir; çalışan site veya ürün kabulü yoktur.",
     "steps": [
-      "Sahip olunan adapter dosyasina @frappe.whitelist(methods=[GET]) get_schedule_status(name) ekle.",
-      "Kaydi frappe.get_doc ile al, check_permission read uygula, frequency Cron degilse frappe.throw.",
-      "next_execution icin doc.get_next_execution, job_in_queue icin doc.is_job_in_queue, saglik icin is_scheduler_process_running ve is_scheduler_inactive(verbose=False) cagir; Redis hatasini null + health_unknown ile esle.",
-      "hooks.py, scheduler ayari, cron veya worker durumuna dokunma."
+      "R-00: reuse.evidence ve requirementGuidance kanıtlarındaki her native parçayı hedef bazda satır bazında yeniden doğrula; eşleşmeyen satırı remainingGaps içine taşı.",
+      "Sahip olunan adapter dosyasında @frappe.whitelist(methods=[GET]) ile tek get_schedule_status(name) fonksiyonu tanımla; ek parametrede ValidationError ver.",
+      "Kaydı frappe.get_doc(Scheduled Job Type, name) ile al, doc.check_permission read uygula; frequency Cron değilse frappe.throw ile ValidationError ver.",
+      "next_execution için doc.get_next_execution, job_in_queue için doc.is_job_in_queue, sağlık için is_scheduler_process_running ve pause_scheduler kontrolünü içeren native scheduler etkinlik fonksiyonunu çağır (imzası R-00'da doğrulanır); Redis bağlantı hatasında ilgili alanları null ve health_unknown=true yap.",
+      "catch_up ve timezone_source alanlarını sabit işaretlerle döndür; decisionsPending kararları gelmeden değerlerini değiştirme.",
+      "hooks.py, scheduler_events, pause_scheduler, cron_format, worker veya kuyruk ayarına dokunma; sharedIntegrationFiles değişikliği gerekirse ana entegrasyon sahibine seri birleştirme notu olarak bildir."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "Yerel test sitesinde mevcut bir Cron Scheduled Job Type icin System Manager get_schedule_status cagirir; yanit version=native-schedule.status.v1, frequency=Cron, next_execution == doc.get_next_execution() ve scheduler.inactive bool icerir; ayni cagri System Manager rolu olmayan test kullanicisiyla PermissionError verir. Test scheduler baslatmaz, enqueue etmez.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Ayni test, ayni komutla uygulama sonrasi gecer. Komut repo betiklerinden bulunur; burada calistirilmadi."
+      "oneScenario": "Test sitesinde mevcut bir Cron Scheduled Job Type için System Manager get_schedule_status çağırır; yanıt version=native-schedule.status.v1, frequency=Cron, next_execution == doc.get_next_execution() ve scheduler.inactive bool içerir; aynı çağrı System Manager rolü olmayan test kullanıcısıyla PermissionError verir ve kaydın modified, stopped, last_execution değerleri değişmez. Test scheduler başlatmaz, enqueue etmez.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış oneScenario'dur. RED, fonksiyon çağrılabilir durumdayken oneScenario assertion'ının davranış farkıyla başarısız olmasıdır (yetkisiz çağrı PermissionError vermez veya next_execution native değerle eşleşmez). ImportError, AttributeError, eksik site/Redis altyapısı veya native davranışı bozarak üretilen hata RED sayılmaz; native geçen davranışa RED uydurulmaz. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "Uygulamadan sonra aynı senaryo, değişmeyen assertion ve aynı komutla geçmelidir. Komut repo betiklerinden bulunur; burada çalıştırılmadı. Bu sözleşme veya biçim kontrolü ürün GREEN'i değildir."
     },
-    "rollback": "Sahip olunan adapter fonksiyonunu geri al. Veri veya sema degisikligi yok. Production izni yok."
+    "rollback": "Sahip olunan adapter fonksiyonunu geri al. Veri veya şema değişikliği yok. Herhangi bir ortamdaki CI, deploy ve rollback teknik sahibi Hüseyin Cengiz'dir; bu sözleşme production veya servis değişikliği yetkisi vermez."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "jobs-1",
+      "sourceStage": "mvp",
+      "existing": "Native parçalar: Suite scheduler_events hook tanımı; Scheduled Job Type kaydında croniter ile cron doğrulaması; rq_job_id ile tek RQ işine tekilleştirme; cron_format alanı salt okunur; DocType izinleri yalnız System Manager; scheduler heartbeat kontrolü ve pause_scheduler ayarı. automation_engine process_cron ayrı bir cron yoludur. Bunlar bütün davranışın var olduğunu göstermez.",
+      "gap": "İzinli headless okuma yanıtı yok. Headless stopped/queue yazımının kapsamı yazılmamış; cron_format/frequency hook ile tanımlı ve salt okunur. Worker sağlık sözleşmesi yok; yalnız scheduler heartbeat görülüyor. Tenant tanımı ve hedef sürüm eşlemesi açık. get_next_execution içinde maintenance_offset hesaplanıp dönüş değerinde kullanılmıyor gibi görünüyor; çalıştırılarak doğrulanmadı.",
+      "completionSteps": [
+        "Hedef sürüm kararı sonrası bu maddedeki kanıtları R-00 eşlemesine yaz.",
+        "Yalnız development.steps içindeki tek whitelisted salt okunur fonksiyonu sahip dosyada uygula; izin native check_permission read ile alınır.",
+        "job_in_queue değerini rq_job_id tekilliğine dayanan native is_job_in_queue sonucundan al; ayrı tekilleştirme yazma.",
+        "Scheduler sağlığını heartbeat ve pause_scheduler kaynaklı native fonksiyonlardan döndür; worker sağlığını iddia etme, remainingGaps içinde tut.",
+        "stopped/queue yazımı gerekirse ayrı sözleşme olarak öner: native Document.save, DocType write izni ve explicitPermissionFlags ortak kaynağı; bu davranışa ekleme.",
+        "maintenance_offset gözlemini hedef bazda kaynak notu olarak yeniden kontrol et; bu davranışta native hesaplamayı değiştirme."
+      ],
+      "dependencies": [
+        "native-schedule--contract",
+        "kernel-envelope--contract",
+        "native-user-policy--contract"
+      ],
+      "acceptance": "Mevcut talimat kabulü: test job'ı beklenen dönemde bir kez çalışmalı; scheduler/worker kapalı durumu izlenebilmeli. Bu davranışın gelecekteki tek kabulü: System Manager için alanlar native değerlerle birebir eşleşir, yetkisiz kullanıcı PermissionError alır ve kayıt değişmez, Redis hatasında null + health_unknown döner. Tek çalışma doğrulaması ve worker kapalı izleme bu davranışla karşılanmaz; runtime kabulü not_run.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/core/doctype/scheduled_job_type/scheduled_job_type.py",
+          "line": 67,
+          "quote": "croniter(self.cron_format)"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/scheduled_job_type/scheduled_job_type.py",
+          "line": 114,
+          "quote": "return f\"scheduled_job||{self.name}\""
+        },
+        {
+          "path": "frappe/frappe/core/doctype/scheduled_job_type/scheduled_job_type.json",
+          "line": 71,
+          "quote": "\"read_only\": 1"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/scheduled_job_type/scheduled_job_type.json",
+          "line": 145,
+          "quote": "\"role\": \"System Manager\","
+        },
+        {
+          "path": "frappe/frappe/utils/scheduler.py",
+          "line": 93,
+          "quote": "def is_scheduler_process_running() -> bool:"
+        },
+        {
+          "path": "frappe/frappe/utils/scheduler.py",
+          "line": 186,
+          "quote": "if frappe.local.conf.pause_scheduler:"
+        },
+        {
+          "path": "frappe/frappe/automation_engine/scheduler.py",
+          "line": 18,
+          "quote": "def process_cron(now: datetime | None = None):"
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 289,
+          "quote": "scheduler_events = {"
+        }
+      ]
+    },
+    {
+      "requirementId": "jobs-6",
+      "sourceStage": "mvp",
+      "existing": "Native parçalar: sonraki çalışma last_execution (yoksa creation) üzerinden parse_cron ile hesaplanır; vade now_datetime ile karşılaştırılır; scheduler tick hizası UTC saatine göre yapılır; automation_engine yalnız en son cron tetiklemesini kuyruğa alır; Skip Next Execution native server action olarak vardır. Kesinti sonrası davranış coalesce'e benziyor; çalışma zamanında doğrulanmadı.",
+      "gap": "Catch-up politikası (coalesce/atla/tekrar oynat), DST ileri/geri geçişinde çalışma sayısı ve saat dilimi kaynağı (sistem veya kiracı) ürün kararı olarak yok. UTC tick ile now_datetime vadesi arasındaki ilişki ele alınmamış. Skip Next Execution bir politikaya bağlı değil. Kabuldeki beklenen çalışma sayısı tanımsız.",
+      "completionSteps": [
+        "Yanıtta catch_up=native_last_execution_coalesce_unverified ve timezone_source=unknown işaretlerini döndür; karar gelmeden değer üretme.",
+        "next_execution değerini yalnız native get_next_execution'dan al; DST veya saat dilimi düzeltmesi ekleme.",
+        "Kararlar geldikten sonra kesinti sonrası catch-up, DST ileri ve DST geri senaryolarını ortak test bütçesinde aday not olarak yaz; bu turda test yazma.",
+        "Skip Next Execution'ı native action olarak bırak; headless sunumu ayrı yazma sözleşmesi ve explicitPermissionFlags ortak kaynağına bağlı olarak önerilir."
+      ],
+      "dependencies": [
+        "native-schedule--contract",
+        "kernel-envelope--contract",
+        "native-user-policy--contract"
+      ],
+      "acceptance": "Mevcut talimat kabulü: DST ileri/geri geçişi, saat dilimi değişimi ve scheduler kesintisinde beklenen sayıda çalışma doğrulanmalı. Beklenen sayı ancak decisionsPending kararlarıyla tanımlanır. Bu davranışın kabulü yalnız next_execution'ın native değerle birebir eşleşmesi ve catch_up/timezone_source işaretlerinin dönmesidir; runtime kabulü not_run.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/core/doctype/scheduled_job_type/scheduled_job_type.py",
+          "line": 149,
+          "quote": "last_execution = get_datetime(self.last_execution or self.creation)"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/scheduled_job_type/scheduled_job_type.py",
+          "line": 154,
+          "quote": "return parse_cron(self.cron_format).get_next(datetime, start_time=last_execution)"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/scheduled_job_type/scheduled_job_type.py",
+          "line": 106,
+          "quote": "return self.get_next_execution() <= (current_time or now_datetime())"
+        },
+        {
+          "path": "frappe/frappe/utils/scheduler.py",
+          "line": 107,
+          "quote": "now = datetime.datetime.now(datetime.UTC)"
+        },
+        {
+          "path": "frappe/frappe/automation_engine/scheduler.py",
+          "line": 19,
+          "quote": "\"\"\"Queue each due Scheduled automation once for its latest cron fire.\"\"\""
+        },
+        {
+          "path": "frappe/frappe/core/doctype/scheduled_job_type/scheduled_job_type.json",
+          "line": 13,
+          "quote": "\"label\": \"Skip Next Execution\""
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "Worker saglik sozlesmesi yok; yalniz scheduler heartbeat gorunuyor. Worker kapali durumu izlenemiyor.",
-    "Headless stopped/queue yazimi ve Skip Next Execution politikasi bu davranisa dahil degil.",
-    "Catch-up coalesce native davranisa benziyor ama dogrulanmadi. DST cift/eksik saat sayisi ve saat dilimi kaynagi (sistem veya kiraci) urun karari olarak acik.",
-    "maintenance_offset hesaplaniyor ama donus degerinde kullanilmiyor; etkisi dogrulanmadi.",
-    "automation_engine process_cron ayri cron yolu; kapsam disi.",
-    "Site ici tenant baglami yok; tenant global modeli secilmedi.",
-    "v17.0.0-dev kaynak eslemesi ve uzak baz unknown.",
-    "Uzak ortamda scheduler/worker etkinlestirme, cron calistirma veya deploy bu sozlesmenin parcasi degil; teknik sahibi Huseyin Cengiz."
+    "Worker sağlık sözleşmesi yok; yalnız scheduler heartbeat görülüyor. Worker kapalı durumu izlenemiyor.",
+    "Headless stopped/queue yazımı ve Skip Next Execution politikası bu davranışa dahil değil.",
+    "Catch-up coalesce native davranışa benziyor ama doğrulanmadı; DST çift/eksik saat sayısı ve saat dilimi kaynağı açık.",
+    "maintenance_offset hesaplanıyor ama dönüş değerinde kullanılmıyor gibi görünüyor; etkisi doğrulanmadı.",
+    "automation_engine process_cron ayrı cron yolu; bu davranışın kapsamı dışında.",
+    "Site içi tenant bağlamı yok; tenant topolojisi seçilmedi.",
+    "Hedef sürüm eşlemesi ve hedef baz bilinmiyor; kanıtlar önceki kaynak anlık görüntüsüdür.",
+    "Hedef ortamda scheduler/worker etkinleştirme, cron çalıştırma veya deploy bu sözleşmenin parçası değil; teknik sahibi Hüseyin Cengiz."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Tenant topolojisi: site = tenant mı, site içi tenant mı",
+      "requirementIds": ["jobs-1", "jobs-6"],
+      "blocks": "Yanıtta tenant kapsamı iddiası ve kiracı saat dilimi seçeneği",
+      "docStepUntilDecided": "Davranışı native site sınırında, tenant iddiası olmadan tanımlı tut."
+    },
+    {
+      "decision": "Hedef sürüm ve baz (T-00)",
+      "requirementIds": ["jobs-1", "jobs-6"],
+      "blocks": "R-00 satır eşlemesi ve implementation admission",
+      "docStepUntilDecided": "Kanıtları kaynak anlık görüntüsü gözlemi olarak işaretli tut."
+    },
+    {
+      "decision": "Catch-up politikası: coalesce, atla veya tekrar oynat",
+      "requirementIds": ["jobs-6"],
+      "blocks": "catch_up alanının nihai değeri ve kesinti senaryosundaki beklenen çalışma sayısı",
+      "docStepUntilDecided": "Native gözlemi unverified işaretiyle belgele."
+    },
+    {
+      "decision": "DST ileri/geri geçişinde duvar saati cron çalışma sayısı",
+      "requirementIds": ["jobs-6"],
+      "blocks": "DST aday senaryolarının kabul ölçütü",
+      "docStepUntilDecided": "İki geçiş senaryosunu sayı belirtmeden aday not olarak tanımla."
+    },
+    {
+      "decision": "Saat dilimi kaynağı: sistem veya kiracı",
+      "requirementIds": ["jobs-6"],
+      "blocks": "timezone_source değeri ve next_execution yorumu",
+      "docStepUntilDecided": "timezone_source=unknown tut; tenant kararına bağımlılığı not et."
+    },
+    {
+      "decision": "Headless yazma kapsamı (stopped, queue, Skip Next Execution) ve gerekli rol",
+      "requirementIds": ["jobs-1", "jobs-6"],
+      "blocks": "Her türlü headless zamanlama yazma davranışı",
+      "docStepUntilDecided": "Ayrı sözleşme taslağında native Document.save ve explicitPermissionFlags bağını tarif et; bu davranışa ekleme."
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "jobs-1": "mvp",
-    "jobs-6": "mvp"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,

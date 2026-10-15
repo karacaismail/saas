@@ -1,0 +1,272 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "ui-family-08",
+  "canonicalTaskIds": [
+    "ui-family-08--implementation-post-mvp",
+    "ui-family-09--implementation-post-mvp",
+    "ui-view-gallery--implementation",
+    "ui-view-gantt--implementation-post-mvp",
+    "ui-view-graph--implementation-post-mvp",
+    "ui-view-kanban--implementation-post-mvp",
+    "ui-view-list--implementation-post-mvp",
+    "ui-view-map--implementation-post-mvp",
+    "ui-view-table--implementation",
+    "ui-view-timeline--implementation-post-mvp",
+    "ui-view-tree--implementation-post-mvp"
+  ],
+  "requirementIds": ["views-2"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "views-2": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Gorunum gecisinde veri korunur; Kanban durum tasimasi backend yetkisiyle dogrulanir ve reddedilirse geri alinir",
+    "trigger": "Kullanici ayni DocType sorgusu uzerinde onerilen ViewSwitcher bileseniyle (custom_proposed) tablo, liste, kart veya Kanban gorunumune gecer ya da Kanban'da bir karti baska durum sutununa tasir (isaretci ile surukle-birak veya klavye ile erisilebilir 'tasi' eylemi).",
+    "expected": "Gecis sirasinda ayni filtre, siralama, secili kayitlar ve yuklenmis kayit kumesi korunur; gorunume ozel ek alanlar yalniz izinli sorguyla istenir. Kanban sutun sayilari native get_group_by_count izinli sorgusundan gelir. Tasima native mutasyon yoluyla sunucuya gider (Select alani icin frappe.client.set_value; workflow alani icin native-workflow--contract geçis yolu). Kart yalniz sunucunun dondurdugu kayda gore kalici sutununa yerlesir. Uygulama durumu: uygulanmadı.",
+    "denied": "Sunucu yazmayi reddederse (izin yok, gecerli workflow gecisi yok, dogrulama hatasi veya eszamanlilik cakismasi) kart onceki sutununa geri alinir, sunucudaki kayit degismeden kalir ve native hata mesaji gosterilir. Istemci tarafinda yetki varsayimi, ignore_permissions, dogrudan SQL veya baska bypass yolu kullanilmaz."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native parcalar: whitelisted get_group_by_count izinli sorguyla (ignore_permissions=False) alan bazli grup sayimi verir ve Kanban sutun sayilari icin yeniden kullanilir; frappe.client.set_value tek alan guncellemesi icin native yazma yoludur. Bu kanitlar yalniz bu iki parcayi gosterir; bagimsiz React/Ant Design gorunum bilesenleri, gorunumden bagimsiz veri koruma, durum eslemesi, geri alma, eszamanlilik kurali ve Kanban Board DocType kaynagi bu kanitla gosterilmez. Desk liste/Kanban yetenekleri Desk'e ozgudur; Desk veya Vue/Frappe UI kaynagi React/AntD uygulama kaniti degildir. Aranan yollar kapsamli yokluk iddiasi degildir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/desk/listview.py",
+        "line": 36,
+        "quote": "def get_group_by_count(doctype: str, current_filters: str | list, field: str) -> list[dict]:"
+      },
+      {
+        "path": "frappe/frappe/desk/listview.py",
+        "line": 47,
+        "quote": "ignore_permissions=False,"
+      },
+      {
+        "path": "frappe/frappe/client.py",
+        "line": 183,
+        "quote": "def set_value(doctype: str, name: str | int, fieldname: str | dict[str, Any]"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/client.py",
+      "frappe/frappe/desk/listview.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/ui-family-08.json",
+    "plannedProduction": [
+      "frontend/packages/ui/src/components/ui-family-08/post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-family-09/post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-view-gallery/index.tsx",
+      "frontend/packages/ui/src/components/ui-view-gantt/post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-view-graph/post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-view-kanban/post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-view-list/post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-view-map/post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-view-table/index.tsx",
+      "frontend/packages/ui/src/components/ui-view-timeline/post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-view-tree/post_mvp.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "DocType adi; gorunumden bagimsiz ortak sorgu durumu (filtreler, siralama, sayfa, temel alan listesi); etkin gorunum kimligi (table | list | card | kanban); Kanban icin sutun alani (groupByField) ve tasima istegi (doctype, name, fieldname, value). Etkin gorunum ve sorgu durumu TanStack Router arama parametrelerinde, kayit verisi TanStack Query onbelleginde gorunum kimligini icermeyen tek sorgu anahtariyla tutulur.",
+    "output": "Gorunum degisse de ayni kayit kumesi ve ayni secim; Kanban icin sutun basina sayim (get_group_by_count ciktisi) ve kartlar; tasima sonrasi sunucunun dondurdugu guncel kayit. Sunucu yaniti olmadan iyimser (optimistic) durum kalici sayilmaz.",
+    "authorization": "Okuma ve sayim native izinli sorgu ile (get_group_by_count icinde ignore_permissions=False); yazma native set_value veya native workflow gecisi ile sunucuda dogrulanir. Istemci yalniz UI ipucu uretir (or. yetkisiz kullanicida tasima kontrolunu pasif gostermek), yetki karari vermez. Bu rehber rol veya izin uretmez; yeni izin bayragi gerekirse explicitPermissionFlags ortak kaynagina baglanir ve tek kabul senaryosu reddedilen yazma ile degismeyen kaydi kapsar.",
+    "persistence": "Yeni DocType, sema, ORM katmani veya CRUD motoru yok. Kalicilik yalniz native kayit yoluyla olur. Gorunum tercihi (etkin gorunum, sutun alani) yalniz URL/istemci durumunda tutulur; sunucuda saklanmasi ayri karar gerektirir ve bu sozlesmenin kapsami degildir.",
+    "failure": "Ag hatasi, izin reddi, gecersiz workflow gecisi, dogrulama hatasi ve modified cakismasi ayni geri alma yolunu kullanir: onbellek tasima oncesi anlik goruntuye doner, ilgili sorgu gecersiz kilinip yeniden cekilir, hata kernel-envelope--contract ve api-middleware--contract zarfiyla gosterilir. Cakismada sessiz uzerine yazma yapilmaz; native cakisma denetiminin set_value yolundaki davranisi T-00 baseline'da kaynak kanitiyla dogrulanmadan varsayilmaz."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "asset-rendition--contract",
+      "client-rule-parity--contract",
+      "kernel-envelope--contract",
+      "native-calendar-event--contract",
+      "native-file--contract",
+      "native-workflow--contract",
+      "ui-family-08--contract",
+      "ui-family-08--implementation",
+      "ui-family-09--contract",
+      "ui-family-09--implementation",
+      "ui-family-12--contract",
+      "ui-view-gallery--contract",
+      "ui-view-gantt--contract",
+      "ui-view-gantt--implementation",
+      "ui-view-graph--contract",
+      "ui-view-graph--implementation",
+      "ui-view-kanban--contract",
+      "ui-view-kanban--implementation",
+      "ui-view-list--contract",
+      "ui-view-list--implementation",
+      "ui-view-map--contract",
+      "ui-view-map--implementation",
+      "ui-view-table--contract",
+      "ui-view-timeline--contract",
+      "ui-view-timeline--implementation",
+      "ui-view-tree--contract",
+      "ui-view-tree--implementation"
+    ],
+    "admission": {
+      "prerequisite": "T-00 target baseline and R-00 reuse mapping; permissioned data consumers also use R-01; implement one narrow behavior with real RED/GREEN evidence",
+      "existingDependencies": [
+        {
+          "taskId": "ui-family-08--contract",
+          "type": "contract"
+        },
+        {
+          "taskId": "ui-family-08--implementation",
+          "type": "implementation"
+        },
+        {
+          "taskId": "kernel-envelope--contract",
+          "type": "contract"
+        },
+        {
+          "taskId": "api-middleware--contract",
+          "type": "contract"
+        },
+        {
+          "taskId": "client-rule-parity--contract",
+          "type": "contract"
+        },
+        {
+          "taskId": "ui-family-12--contract",
+          "type": "contract"
+        }
+      ],
+      "orderAuthority": "existing task dependencies and stage; cluster order is presentation, not a new serial DAG",
+      "blockedByDecisions": [
+        "Grid kutuphanesi (tablo gorunumu)",
+        "Kanban sutun baglama modeli (Kanban tasimasi)"
+      ],
+      "note": "Uygulama durumu: uygulanmadı. Bu sozlesme uretim kabulu vermez; kabul ortak yurutme politikasi ve yukaridaki on kosullarla ayrica alinir."
+    },
+    "steps": [
+      "T-00/R-00/R-01: hedef Frappe surumunde get_group_by_count ve set_value imzalarini ve izin davranisini kaynakta yeniden dogrula; kanit yoksa yeniden kullanim iddiasi kurma.",
+      "Gorunumden bagimsiz sorgu modeli: tek TanStack Query anahtari (doctype, filtreler, siralama, sayfa); gorunume ozel alanlar ek alan listesi olarak istenir; etkin gorunum TanStack Router arama parametresinde tutulur, gecis veri sorgusunu sifirlamaz.",
+      "Liste ve kart: Ant Design / Pro bilesenleriyle ayni kayit kumesini sunar; kart gorseli native-file--contract ve asset-rendition--contract sinirina baglanir.",
+      "Tablo: grid karari gelene kadar yalniz sutun/veri sozlesmesi belgelenir; secilen grid ayni sorgu anahtarini tuketir. Tablo kendi kapsayicisinda yatay kayar, sutunlar icerige gore minimum genislik korur, kelime ortasindan bolme yapilmaz.",
+      "Kanban sutun baglama: alan turune gore tek yol secilir; Select alaninda set_value, workflow_state alaninda native-workflow--contract gecis yolu. Kanban Board DocType kaynagi kanitlanmadikca kullanilmaz.",
+      "Tasima: iyimser gecici durum + sunucu yanitiyla onay; ret veya hata durumunda anlik goruntuye geri alma ve sorgu yenileme. Isaretci etkilesimi ortak Pointer Events mantigiyla; klavye ve dokunma icin surukleme disi 'tasi' eylemi bulunur.",
+      "Eszamanlilik: istemcinin bildigi modified degeri karsilastirma kaynagi olarak tutulur; politika decisionsPending'deki karara gore uygulanir.",
+      "Arayuz kurallari: 320 CSS px'ten baslayan mobil oncelik, en az 14 CSS px metin, cevreleyen odak halkasi olmadan gorunur klavye odagi, merkezi hareket tokenlari ve reduced-motion istisnasi.",
+      "Kayit: bilesenler frontend/packages/ui/src/registry.ts kaynak bilesen kaydina eklenir; GenUI capability registry ile karistirilmaz, JSON model siniri ile yerel ReactNode/callback ayri tutulur.",
+      "Post-MVP gorunumler (gantt, graph, map, timeline, tree, ui-family-09): bu sozlesme yalniz ortak ViewSwitcher veri koruma kuralini verir; davranislari kendi sozlesmelerinde tanimlanir, yeni motor tasarlanmaz."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Select alanina bagli Kanban'da yazma izni olmayan kullanici bir karti baska sutuna tasir; sunucu set_value istegini reddeder; kart onceki sutuna doner ve kaydin alan degeri ile modified degeri degismez.",
+      "red": "Geri alma olmadan yalniz iyimser tasima uygulanmis haliyle senaryo calistirildiginda kartin yeni sutunda kaldigi gozlenir ve 'kart onceki sutunda' iddiasi basarisiz olur. RED; import/altyapi hatasiyla veya native set_value/izin davranisi bozularak uretilmez.",
+      "green": "Sunucu reddinde anlik goruntuye donus ve sorgu yenileme eklendikten sonra kart onceki sutundadir, native hata gosterilir, sunucudaki kayit degismemistir; izinli kullanici icin ayni tasima kaydi gunceller. Bu turda test yazilmaz ve calistirilmaz."
+    },
+    "rollback": "Planlanan degisiklik frontend gorunum bilesenleri ve kaynak registry kaydiyla sinirlidir; geri alma kaydin kaldirilmasi ve onceki surumun dagitilmasidir. Sema veya veri degisikligi yoktur. CI/deploy/rollback teknik sahibi Huseyin Cengiz'dir. Bu sozlesme hicbir servis, production ortami, sema veya veriyi degistirme yetkisi vermez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "views-2",
+      "sourceStage": "post_mvp",
+      "existing": "Native parcalar: whitelisted get_group_by_count (frappe/frappe/desk/listview.py:36) izinli sorguyla (ignore_permissions=False, satir 47) alan bazli grup sayimi verir; frappe.client.set_value (frappe/frappe/client.py:183) native alan guncelleme yoludur. Desk liste/Kanban gorunumleri bagimsiz React/AntD frontend'e tasinamaz. Kanban Board DocType kaynagi bu kanitta gorunmuyor.",
+      "gap": "Bagimsiz frontend icin tablo/liste/kart/Kanban bilesenleri ve gorunumden bagimsiz veri koruma yok. Kanban sutununun Select alani, workflow_state veya Kanban Board'a baglanmasi ve workflow gecisi ile set_value farki tanimsiz. Surukle-birak icin mutasyon yolu, ret durumunda geri alma ve modified cakisma kurali yok. Tablo gorunumu acik grid kararina bagli. 10 gorunum gorevi icin MVP alt kumesi secilmemis.",
+      "completionSteps": [
+        "Gorunum kimligini icermeyen tek sorgu anahtari ve URL'de etkin gorunum durumu tanimla; gecis ayni kayit kumesini, filtreleri, siralamayi ve secimi korusun.",
+        "Liste ve kart gorunumlerini Ant Design / Pro ile ayni sorgu ciktisi uzerine kur; tablo icin grid karari gelene kadar yalniz sutun/veri sozlesmesini belgele.",
+        "Kanban sutun sayilarini get_group_by_count ile al; istemcide ayri sayim veya izin filtresi uretme.",
+        "Sutun alanina gore tek mutasyon yolu bagla: Select icin set_value, workflow_state icin native-workflow--contract gecis yolu; iki yolu ayni alanda karistirma.",
+        "Iyimser tasima + sunucu onayi + retde anlik goruntuye geri alma ve sorgu yenileme uygula; hatayi kernel-envelope--contract zarfiyla goster.",
+        "Klavye/dokunma icin surukleme disi tasima eylemi ekle; 320 CSS px, 14 CSS px metin, cevreleyen halkasiz odak ve hareket tokeni kurallarini uygula."
+      ],
+      "dependencies": [
+        "ui-family-08--contract",
+        "kernel-envelope--contract",
+        "api-middleware--contract",
+        "client-rule-parity--contract",
+        "ui-family-12--contract",
+        "native-workflow--contract",
+        "native-file--contract",
+        "asset-rendition--contract",
+        "ui-view-table--contract",
+        "ui-view-list--contract",
+        "ui-view-gallery--contract",
+        "ui-view-kanban--contract"
+      ],
+      "acceptance": "Ayni veri tablo/liste/kart/Kanban gecisinde korunur (kayit kumesi, filtre, siralama ve secim degismez); Kanban durum tasimasi backend'de yetkilendirilir; reddedilen yazmada kart geri alinir ve sunucudaki kayit degismez; tasimanin klavye yolu vardir; 320 CSS px'te tablo kendi kapsayicisinda kayar ve metin 14 CSS px altina inmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/desk/listview.py",
+          "line": 36,
+          "quote": "def get_group_by_count(doctype: str, current_filters: str | list, field: str) -> list[dict]:"
+        },
+        {
+          "path": "frappe/frappe/desk/listview.py",
+          "line": 47,
+          "quote": "ignore_permissions=False,"
+        },
+        {
+          "path": "frappe/frappe/client.py",
+          "line": 183,
+          "quote": "def set_value(doctype: str, name: str | int, fieldname: str | dict[str, Any]"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Bagimsiz React/AntD gorunum bilesenleri ve ViewSwitcher yok; Uygulama durumu: uygulanmadı.",
+    "Kanban sutun baglama modeli ve workflow gecisi ile set_value ayrimi tanimsiz.",
+    "Tasima reddinde geri alma ve modified cakisma kurali tanimsiz; native cakisma denetimi kaynakta dogrulanmadi.",
+    "Kanban Board DocType kaynagi kanitlanmadi.",
+    "Tablo gorunumu grid kararina bagli.",
+    "MVP alt kumesi onaylanmadi."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Grid kutuphanesi secimi",
+      "requirementIds": ["views-2"],
+      "blocks": "Tablo gorunumu bileseninin uygulanmasi (ui-view-table--implementation)",
+      "docStepUntilDecided": "Kutuphaneden bagimsiz sutun/veri sozlesmesini, yatay kaydirma ve minimum sutun genisligi kabul olcutlerini belgele."
+    },
+    {
+      "decision": "Kanban sutun baglama modeli: Select alani, workflow_state veya Kanban Board (DocType bazinda)",
+      "requirementIds": ["views-2"],
+      "blocks": "Kanban tasima mutasyon yolunun baglanmasi (ui-view-kanban--implementation-post-mvp)",
+      "docStepUntilDecided": "Her model icin native yol, ret davranisi ve geri alma sozlesmesini ayri ayri belgele; Kanban Board icin kaynak kaniti R-00'da ara."
+    },
+    {
+      "decision": "MVP alt kumesi onayi (onerilen: tablo, liste, kart; Kanban post-MVP)",
+      "requirementIds": ["views-2"],
+      "blocks": "Gorunum gorevlerinin asama atamasinin kesinlesmesi",
+      "docStepUntilDecided": "Ortak veri koruma kuralini tum gorunumler icin gecerli tek sozlesme olarak tut; asama atamasini degistirme."
+    },
+    {
+      "decision": "Eszamanlilik politikasi (cakismada geri al ve yenile ya da kullaniciya karsilastirma sun)",
+      "requirementIds": ["views-2"],
+      "blocks": "Tasima hata yolunun kesinlesmesi",
+      "docStepUntilDecided": "Sessiz uzerine yazmayi yasaklayan asgari kurali ve native cakisma davranisinin T-00'da dogrulanmasi gerektigini belgele."
+    },
+    {
+      "decision": "Hedef Frappe surumu (T-00 target baseline)",
+      "requirementIds": ["views-2"],
+      "blocks": "get_group_by_count ve set_value imza/izin davranisinin kabul edilmesi",
+      "docStepUntilDecided": "Mevcut kanitlari onceki salt okunur kaynak anlik goruntusune ait olarak isaretle; canli site veya urun kabulu iddiasi kurma."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

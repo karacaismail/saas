@@ -1,0 +1,450 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "payment-attempt",
+  "canonicalTaskIds": ["payment-attempt--implementation"],
+  "requirementIds": [
+    "payments-2",
+    "payments-3",
+    "payments-4",
+    "payments-5",
+    "payments-6"
+  ],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "payments-2": "post_mvp",
+    "payments-3": "post_mvp",
+    "payments-4": "post_mvp",
+    "payments-5": "post_mvp",
+    "payments-6": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Odeme denemesi (Payment Attempt) durumunun yalniz dogrulanmis, idempotent ve monotonik gecislerle ilerlemesi; yanlis Paid olusmamasi. Uygulama durumu: uygulanmadı.",
+    "trigger": "Tenant kapsamli tahsilat istegi (idempotency anahtariyla), imzasi dogrulanacak saglayici bildirimi veya askidaki deneme icin uzlastirma sorgusunun sonucu.",
+    "expected": "Ayni tenant ve idempotency anahtari tek Payment Attempt ve tek saglayici tahsilat cagrisi uretir. Durum yalniz izinli gecis tablosuna gore ilerler; Paid yalniz dogrulanmis saglayici sonucu veya uzlastirma ile olusur. Iade ve itiraz ayri kayitlarla izlenir; bakiye ve hak etkisi tek esleme kuralindan turetilir. Backend, log ve export icinde yalniz saglayici referansi ve izinli metadata bulunur.",
+    "denied": "Imzasi gecersiz veya zaman toleransi disindaki bildirim, yinelenen provider_event_id, Paid kaydini geri ceviren eski veya sirasiz olay, baska tenant'in anahtariyla istek, PAN/CVV benzeri girdi, yakalanan tutari asan kismi iade toplami ve native izni olmayan kullanici yazimi reddedilir; reddedilen islemde mevcut kayit degismez."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Yalniz native Frappe parcalari yeniden kullanilir: Server Script olay listesindeki odeme olay adlari ve bu olaylari tetikleyen PaymentController'in Frappe Payments uygulamasinda oldugu bilgisi (olaylar is mantigi icin kullanilmaz); Integration Request DocType'i yalniz maskelenmis ham istek/yanit gunlugu olarak; background_jobs.enqueue deduplicate ve job_id ile uzlastirma isinin tekillestirilmesi; /api/method RPC yolu uzerinden whitelisted metot; native DocType izinleri, validate/save ve transaction. Frappe Cloud billing proxy'si sitenin kendi Frappe Cloud faturasi icindir ve is mantigi Central'dadir; tenant tahsilati icin temel degildir, yalniz hosted checkout ve referansla onay deseni ornegidir. Payments uygulamasi kurulu degilse odeme ag gecidi DocType'lari patch ile silinir; tenant gateway entegrasyonu yerel kaynakta yoktur. Bir kanitin native bir parcayi gostermesi davranisin tamaminin var oldugu anlamina gelmez.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/core/doctype/server_script/server_script_utils.py",
+        "line": 25,
+        "quote": "\"on_payment_paid\": \"On Payment Paid\","
+      },
+      {
+        "path": "frappe/frappe/core/doctype/server_script/server_script.js",
+        "line": 70,
+        "quote": "PaymentController in Frappe Payments"
+      },
+      {
+        "path": "frappe/frappe/patches/v14_0/delete_payment_gateways.py",
+        "line": 5,
+        "quote": "if \"payments\" in frappe.get_installed_apps():"
+      },
+      {
+        "path": "frappe/frappe/integrations/doctype/integration_request/integration_request.py",
+        "line": 33,
+        "quote": "status: DF.Literal[\"\", \"Queued\", \"Authorized\", \"Completed\", \"Cancelled\", \"Failed\"]"
+      },
+      {
+        "path": "frappe/frappe/utils/background_jobs.py",
+        "line": 165,
+        "quote": ":param deduplicate: do not re-queue job if it's already queued, requires job_id."
+      },
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 152,
+        "quote": "Rule(\"/method/<path:method>\", endpoint=handle_rpc_call),"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "frappe/frappe/core/doctype/server_script/server_script.js",
+      "frappe/frappe/core/doctype/server_script/server_script.json",
+      "frappe/frappe/core/doctype/server_script/server_script_utils.py",
+      "frappe/frappe/integrations/doctype/integration_request/integration_request.json",
+      "frappe/frappe/integrations/doctype/integration_request/integration_request.py",
+      "frappe/frappe/integrations/frappe_providers/cloud_billing.py",
+      "frappe/frappe/integrations/frappe_providers/cloud_settings.py",
+      "frappe/frappe/patches/v14_0/delete_payment_gateways.py",
+      "frappe/frappe/utils/background_jobs.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/payment-attempt.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/commercial/doctype/payment_attempt/payment_attempt.py"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Tahsilat baslatma: tenant (tenant-registry--contract), idempotency_key, tutar, para birimi ve saglayici odeme yontemi referansi; kernel-envelope--contract zarfi icinde. Saglayici bildirimi: ham govde, imza basligi, zaman damgasi, provider_event_id ve olay turu (odeme, iade, itiraz). Uzlastirma: askidaki denemenin adi ve saglayici referansi. Kart numarasi, CVV/CVC veya ham kart verisi hicbir girdide kabul edilmez.",
+    "output": "Payment Attempt adi, durum (oneri: pending, requires_action, authorized, paid, failed, timeout; kesin adlar payment-attempt--contract gorevinde belirlenir), saglayici referansi ve izinli metadata (brand, last4, exp_month, exp_year). Yinelenen istekte mevcut kayit doner. Reddedilen bildirimde kaydi degistirmeyen hata yaniti doner. Her durum degisiminde outbox--contract olayi ve audit-envelope--contract kaydi uretilir.",
+    "authorization": "Kullanici cagrilari native DocType izinleri ve native-user-policy--contract ile denetlenir; rol/izin bayraklari explicitPermissionFlags ortak kaynagina baglanir, bu sozlesme yeni rol uretmez. Tenant kapsami her okuma ve yazmada dogrulanir. Saglayici bildirimi kullanici kimligi tasimaz; imza dogrulamasindan sonra yalniz ilgili denemeye sinirli sistem islemi olarak calisir. ignore_permissions, ham SQL ile yetki atlama, Server Script odeme olaylari ve Server Script API allow_guest kisayolu kullanilmaz. Yetenek tanimi capability-definition--contract kaynak registry'sine aittir; ayri kullanici projesi olan GenUI capability registry'si ile karistirilmaz.",
+    "persistence": "Payment Attempt DocType'i (canonicalArtifact PaymentAttempt, onerilen) payment-attempt--schema gorevinde tanimlanir: (tenant, idempotency_key) ve provider_event_id icin benzersizlik, durum alani, saglayici referansi ve izinli metadata. Iade ve itiraz kaydinin bicimi ayni sema gorevinde belirlenir. Integration Request yalniz maskelenmis gunluktur, dogruluk kaynagi degildir. Saklama sureleri decisionsPending'dedir. Yazim native save ve transaction icinde yapilir; durum degisimi, outbox olayi ve audit kaydi ayni transaction'da tutulur.",
+    "failure": "Gecersiz imza: reddedilir, kayit degismez, audit'e ret yazilir; secret veya ham imza degeri yazilmaz. Yinelenen olay: ilk islemin sonucu doner, ikinci etki olusmaz. Geri yonlu gecis: uygulanmaz, audit'e yazilir. Saglayici zaman asimi veya baglanti kopmasi: deneme timeout olur, Paid varsayilmaz, uzlastirma isi saglayiciyi sorgular. Kismi iade asimi: validate hatasi, kayit degismez. PAN/CVV benzeri girdi: validate hatasi, deger hicbir gunluge yazilmaz."
+  },
+  "development": {
+    "dependencies": [
+      "audit-envelope--contract",
+      "capability-definition--contract",
+      "kernel-envelope--contract",
+      "native-user-policy--contract",
+      "outbox--contract",
+      "payment-attempt--contract",
+      "payment-attempt--schema",
+      "tenant-registry--contract"
+    ],
+    "admission": {
+      "prerequisites": [
+        "T-00 hedef surum tabani ve R-00 yeniden kullanim eslemesi; izinli veri tuketicileri icin ek olarak R-01.",
+        "payment-attempt--contract ve payment-attempt--schema gorevleri ile kernel-envelope, tenant-registry, native-user-policy, capability-definition, outbox ve audit-envelope sozlesmelerinin hazir olmasi.",
+        "Ilgili dilimi engelleyen decisionsPending kararlarinin o dilimden once yazili olmasi.",
+        "Her seferde tek dar davranis; gercek RED ve GREEN kaniti."
+      ],
+      "orderAuthority": "Mevcut gorev bagimliliklari ve stage; kume sirasi yalniz sunumdur, yeni seri bagimlilik zinciri degildir.",
+      "note": "Bu sozlesme uretim, sema, servis veya veri degisikligi yetkisi vermez. Teknik CI, deploy ve rollback sahibi Hüseyin Cengiz; DNS veya GoDaddy gereksinimi cikarsa uygulama sahibi Asistan Hüseyin."
+    },
+    "steps": [
+      "payment-attempt--contract icinde izinli durum gecisleri, Paid'den geri donus yasagi, timeout ve retry kurallari saglayicidan bagimsiz tek tablo olarak yazilir.",
+      "Ayni sozlesmede idempotency kapsami (tenant ve anahtar), provider_event_id tekilligi, uzlastirma catisma kurali ve kart verisi yasagi yazilir.",
+      "payment-attempt--schema icinde benzersizlik kisitlari ve izinli alanlar tanimlanir; DocType izinleri explicitPermissionFlags ortak kaynagina baglanir.",
+      "payment-attempt--implementation ilk dilimi: idempotent tahsilat istegi (tdd.oneScenario).",
+      "Sonraki dilim: webhook sahibi karari sonrasi imza dogrulamali bildirim alicisi ve olay tekillestirme.",
+      "Sonraki dilim: sirasiz ve gecikmis olaylar icin monotonik gecis korumasi.",
+      "Sonraki dilim: askidaki denemeler icin enqueue deduplicate ve job_id ile uzlastirma isi.",
+      "Sonraki dilim: kart verisi validate korumasi ve Integration Request, Error Log, export maskeleme.",
+      "Sonraki dilimler: iade kaydi ve kismi iade toplam kurali; ardindan itiraz/ters ibraz durum makinesi ve bakiye/hak eslemesi.",
+      "Istemci dilimi: React/Ant Design yuzeyleri (Vite/PWA, Tauri2, WXT/MV3) saglayicinin hosted checkout, iframe veya SDK yuzeyini kullanir, durumu TanStack Query ile whitelisted API'den okur; kart alani hicbir ReactNode formuna veya JSON model mesajina girmez."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Ayni tenant ve ayni idempotency_key ile gelen ikinci tahsilat istegi yeni Payment Attempt olusturmaz, ilk kaydi dondurur ve saglayici tahsilat adaptoru yalniz bir kez cagrilir; baska tenant'tan ayni anahtarla gelen istek reddedilir ve mevcut kayit degismez.",
+      "red": "Gelecekte yazilacak test, saglayici adaptorunu test cifti ile degistirip ayni istegi iki kez gonderir; tek kayit ve tek adaptor cagrisi bekler. Idempotency kontrolu yokken ikinci kayit veya ikinci cagri olustugu icin davranis iddiasi basarisiz olur. RED import hatasi, eksik altyapi veya native davranisi bozarak uretilmez. Bu turda test yazilmaz ve kosulmaz.",
+      "green": "Controller native save ve transaction icinde (tenant, idempotency_key) benzersizligine dayanarak mevcut kaydi dondurur ve adaptoru cagirmaz; tenant uyusmazliginda native izin hatasi verir. ignore_permissions veya SQL ile yetki atlama kullanilmaz."
+    },
+    "rollback": "Bu sozlesme hicbir seyi degistirmez; geri alinacak uretim degisikligi yoktur. Gelecekteki her dilim tek davranis olarak ayri geri alinabilir tutulur; sema ve deploy geri alma plani Hüseyin Cengiz tarafindan onaylanir. Mevcut Paid, iade ve audit kayitlari silinmez veya geri cevrilmez. Bildirim alicisi geri alinirsa kacan olaylar uzlastirma isiyle telafi edilir; saglayicinin yeniden teslim davranisi saglayici kararina baglidir."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "payments-2",
+      "sourceStage": "post_mvp",
+      "existing": "Native Frappe core Server Script olay listesinde odeme olay adlari (On Payment Authorization, On Payment Failed, On Payment Paid) tanimlidir. Bu olaylari tetikleyen PaymentController kurulu olmayan Frappe Payments uygulamasindadir; On Payment Failed yalniz hata mesajini tasir. Tekrar deneme ve basarisiz tahsilat takibi kaynakta gorulmedi.",
+      "gap": "Durum makinesi (pending, authorized, requires_action, paid, failed, timeout) tanimsiz; retry politikasi (aralik, ust sinir, dunning) ve zaman asimi sozlesmesi yok; olayin hangi uygulamadan tetiklenecegi ve izin siniri belirsiz; Server Script odeme olaylarinin kisayol olarak kullanilmayacagi yazilmamis.",
+      "completionSteps": [
+        "payment-attempt--contract icinde durumlar ve izinli gecisler tek tabloya yazilir; requires_action ve timeout hicbir yoldan dogrudan Paid uretmez.",
+        "Retry ve dunning alanlari (aralik, ust sinir, adimlar) tabloya parametre olarak eklenir; degerler decisionsPending kararindan gelir.",
+        "Basarisiz tahsilat takibi icin failed ve timeout denemelerinde maskelenmis hata nedeni ve deneme sayisi tutulur; yeni deneme ayni idempotency kuralina tabidir.",
+        "Olay isleme Server Script olaylarina degil, Payment Attempt controller'ina ve native DocType izinlerine baglanir; yasak talimata acikca yazilir.",
+        "Olay kaynagi webhook sahibi kararina baglanir."
+      ],
+      "dependencies": [
+        "payment-attempt--contract",
+        "payment-attempt--schema",
+        "native-user-policy--contract",
+        "outbox--contract",
+        "audit-envelope--contract"
+      ],
+      "acceptance": "Ek dogrulama, zaman asimi ve basarisiz odeme senaryolarinda yanlis Paid durumu olusmamali; retry ust siniri asildiginda yeni tahsilat cagrisi yapilmamali.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/core/doctype/server_script/server_script_utils.py",
+          "line": 27,
+          "quote": "\"on_payment_authorized\": \"On Payment Authorization\","
+        },
+        {
+          "path": "frappe/frappe/core/doctype/server_script/server_script_utils.py",
+          "line": 26,
+          "quote": "\"on_payment_failed\": \"On Payment Failed\","
+        },
+        {
+          "path": "frappe/frappe/core/doctype/server_script/server_script.js",
+          "line": 70,
+          "quote": "PaymentController in Frappe Payments"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/server_script/server_script.js",
+          "line": 97,
+          "quote": "The <i>On Payment Failed</i> (<code>on_payment_failed</code>) event only transports the error message"
+        }
+      ]
+    },
+    {
+      "requirementId": "payments-3",
+      "sourceStage": "post_mvp",
+      "existing": "Taranan yerel kaynakta tam/kismi iade, ters ibraz veya itiraz icin DocType, controller, API veya webhook isleyicisi gorulmedi. Frappe Cloud billing proxy'si sitenin kendi Frappe Cloud faturasi icin Central'a iletim yapar (or. top-up checkout); iade veya itiraz ucu yoktur ve tenant tahsilati icin temel alinmaz. Payments uygulamasi kurulu degilse ag gecidi DocType'lari silinir. ERPNext kurulu olmadigindan Credit Note veya muhasebe defteri primitifi yoktur.",
+      "gap": "Payment Attempt'e bagli, tenant kapsamli iade kaydi ve kismi iade toplam kurali; iade idempotency'si; itiraz/ters ibraz yasam dongusu; imza dogrulamali, idempotent ve outbox'a yayinlanan iade/itiraz bildirim alicisi; bakiye, alacak ve hak etkisi eslemesi; finans defteri karari; audit ve tenant yetkili API sozlesmesi yok.",
+      "completionSteps": [
+        "Finans defteri veya duzeltme kaydi karari ilk iade diliminden once yazili kayda alinir.",
+        "payment-attempt--schema icinde Payment Attempt'e bagli, tenant kapsamli iade kaydi tanimlanir: tutar, durum, saglayici iade referansi ve bu referansa gore tekillik.",
+        "Ilk iade dilimi: kismi iadelerin toplami yakalanan tutari asamaz kurali validate'te; once RED.",
+        "Sonraki dilim: imza dogrulamali, idempotent iade bildirimi; outbox ve audit kaydiyla.",
+        "Ayri dilim: itiraz durumlari (acildi, kanit gonderildi, kazanildi, kaybedildi) ve bakiye/hak eslemesi; askiya alma kurali karara baglidir.",
+        "Iade baslatma/sorgulama ve itiraz durumu icin whitelisted API sozlesmesi: native izin, tenant dogrulamasi, audit-envelope."
+      ],
+      "dependencies": [
+        "payment-attempt--contract",
+        "payment-attempt--schema",
+        "kernel-envelope--contract",
+        "tenant-registry--contract",
+        "native-user-policy--contract",
+        "outbox--contract",
+        "audit-envelope--contract"
+      ],
+      "acceptance": "Kismi/tam iade ve ters ibraz olaylari bakiye/hizmet kararini tutarli guncellemeli; ayni iade bildirimi ikinci kez islendiginde bakiye degismemeli; asan kismi iade reddedilmeli.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/integrations/frappe_providers/cloud_billing.py",
+          "line": 4,
+          "quote": "credential. Formatting and business logic live in Central."
+        },
+        {
+          "path": "frappe/frappe/integrations/frappe_providers/cloud_billing.py",
+          "line": 73,
+          "quote": "def create_topup_checkout(client, amount, redirect_url: str) -> dict:"
+        },
+        {
+          "path": "frappe/frappe/integrations/frappe_providers/cloud_settings.py",
+          "line": 324,
+          "quote": "@frappe.whitelist(methods=[\"GET\"])"
+        },
+        {
+          "path": "frappe/frappe/patches/v14_0/delete_payment_gateways.py",
+          "line": 5,
+          "quote": "if \"payments\" in frappe.get_installed_apps():"
+        },
+        {
+          "path": "frappe/frappe/patches/v14_0/delete_payment_gateways.py",
+          "line": 14,
+          "quote": "\"Stripe Settings\","
+        }
+      ]
+    },
+    {
+      "requirementId": "payments-4",
+      "sourceStage": "post_mvp",
+      "existing": "Integration Request DocType'inda request_id alani ve Queued/Authorized/Completed/Cancelled/Failed durum alani vardir; request_id icin benzersizlik veya ikinci tahsilati engelleyen kontrol gorulmedi. background_jobs.enqueue deduplicate ve job_id ile ayni isin yeniden kuyruga alinmasini engeller. reconcile_payment_setup yalniz Central'a vekil cagridir.",
+      "gap": "Tenant tahsilati icin Payment Attempt ve durum makinesi yok; kalici idempotency anahtari (kaynak, tenant kapsami, saklama, benzersizlik) yok; webhook alicisi, imza dogrulama ve event-id tekillestirme yok; yerel uzlastirma isi ve catisma kurali yok.",
+      "completionSteps": [
+        "payment-attempt--contract icinde (tenant, idempotency_key) birlesik anahtari, provider_event_id tekilligi ve uzlastirma catisma kurali yazilir: saglayici sonucu yerel gecis tablosunda izinliyse uygulanir, degilse audit'e catisma yazilir ve Paid geri cevrilmez.",
+        "payment-attempt--schema icinde bu iki anahtar icin benzersiz index; Integration Request yalniz ham istek/yanit gunlugu olarak kalir.",
+        "Ilk dilim: ayni anahtarla ikinci istek mevcut denemeyi dondurur, ikinci tahsilat cagrisi yapilmaz (tdd.oneScenario).",
+        "Sonraki dilim: yinelenen webhook provider_event_id tekillestirmesi.",
+        "Son dilim: askidaki denemeler icin enqueue deduplicate ve job_id ile uzlastirma isi; sonuclar outbox ve audit sozlesmelerine baglanir."
+      ],
+      "dependencies": [
+        "payment-attempt--contract",
+        "payment-attempt--schema",
+        "kernel-envelope--contract",
+        "tenant-registry--contract",
+        "outbox--contract",
+        "audit-envelope--contract"
+      ],
+      "acceptance": "Ayni istek ve yinelenen webhook tek tahsilat uretmeli; baglanti kopunca saglayici durumu uzlastirilmali.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/integrations/doctype/integration_request/integration_request.py",
+          "line": 33,
+          "quote": "status: DF.Literal[\"\", \"Queued\", \"Authorized\", \"Completed\", \"Cancelled\", \"Failed\"]"
+        },
+        {
+          "path": "frappe/frappe/integrations/doctype/integration_request/integration_request.json",
+          "line": 90,
+          "quote": "\"fieldname\": \"request_id\","
+        },
+        {
+          "path": "frappe/frappe/utils/background_jobs.py",
+          "line": 165,
+          "quote": ":param deduplicate: do not re-queue job if it's already queued, requires job_id."
+        },
+        {
+          "path": "frappe/frappe/integrations/frappe_providers/cloud_billing.py",
+          "line": 4,
+          "quote": "credential. Formatting and business logic live in Central."
+        },
+        {
+          "path": "frappe/frappe/integrations/frappe_providers/cloud_billing.py",
+          "line": 70,
+          "quote": "return client.post(_path(client, \"reconcile_payment_setup\"), {})"
+        },
+        {
+          "path": "frappe/frappe/patches/v14_0/delete_payment_gateways.py",
+          "line": 5,
+          "quote": "if \"payments\" in frappe.get_installed_apps():"
+        }
+      ]
+    },
+    {
+      "requirementId": "payments-5",
+      "sourceStage": "post_mvp",
+      "existing": "Frappe Cloud billing proxy'si kart eklemeyi hosted setup checkout'a yonlendirir; sonrasinda yalniz reference veya gateway SDK'sinin tokenize ettigi callback iletilir, PAN/CVV alani yoktur. Bu yol sitenin kendi Frappe Cloud aboneligi icindir ve Central'a baglidir; tenant odemelerinde yalniz desen ornegidir. Integration Request'te Request Data kod alani vardir, maskeleme gorulmedi. Ag gecidi DocType'lari Payments kurulu degilse silinir.",
+      "gap": "Tenant icin saglayici referansini (provider, payment_method_ref, brand, last4, exp_month, exp_year) saklayan sema yok; PAN/CVV reddeden validate korumasi yok; Integration Request, Error Log ve Data Import/Export icin maskeleme yok; istemciler icin saglayicinin guvenli toplama yuzeyi ve API sozlesmesi yok.",
+      "completionSteps": [
+        "payment-attempt--contract'a kural eklenir: kart verisi backend'e girmez; saklanabilecek alanlar yalniz provider, provider_payment_method_ref, brand, last4, exp_month, exp_year.",
+        "payment-attempt--schema'da bu alanlarla dar tenant semasi; once RED: validate 13-19 haneli PAN benzeri degerleri ve cvv/cvc alanlarini reddetmeli.",
+        "Saglayici referansi yalniz imza dogrulamali bildirim veya referansla onay uzerinden kaydedilir.",
+        "Integration Request ve Error Log'a yazilan payload'lar maskelenir; export referans ve izinli metadata ile sinirlanir.",
+        "Vite/PWA, Tauri2 ve WXT/MV3 istemcileri saglayicinin hosted checkout, iframe veya SDK yuzeyini kullanir; React/Ant Design formlarinda ve JSON model mesajlarinda kart alani bulunmaz."
+      ],
+      "dependencies": [
+        "payment-attempt--contract",
+        "payment-attempt--schema",
+        "native-user-policy--contract",
+        "capability-definition--contract",
+        "audit-envelope--contract"
+      ],
+      "acceptance": "Backend, log ve export icinde PAN/CVV bulunmamali; yalniz saglayici referansi ve izinli metadata saklanmali.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/integrations/frappe_providers/cloud_billing.py",
+          "line": 57,
+          "quote": "\"\"\"Start adding a card via hosted setup checkout; returns the checkout URL to open.\"\"\""
+        },
+        {
+          "path": "frappe/frappe/integrations/frappe_providers/cloud_billing.py",
+          "line": 65,
+          "quote": "return client.post(_path(client, \"confirm_payment_method_checkout\"), {\"reference\": reference})"
+        },
+        {
+          "path": "frappe/frappe/integrations/frappe_providers/cloud_settings.py",
+          "line": 384,
+          "quote": "\"\"\"Finalize a payment method the gateway SDK tokenised (e.g. the Razorpay"
+        },
+        {
+          "path": "frappe/frappe/integrations/doctype/integration_request/integration_request.json",
+          "line": 47,
+          "quote": "\"label\": \"Request Data\","
+        },
+        {
+          "path": "frappe/frappe/patches/v14_0/delete_payment_gateways.py",
+          "line": 5,
+          "quote": "if \"payments\" in frappe.get_installed_apps():"
+        }
+      ]
+    },
+    {
+      "requirementId": "payments-6",
+      "sourceStage": "post_mvp",
+      "existing": "Core'da genel /api/method RPC yolu vardir. Server Script API'de allow_guest alani bulunur; bu guvenli bir webhook sozlesmesi degildir. On Payment Paid olay adi tanimlidir. Imza dogrulama, siralama ve monotonik durum korumasi gorulmedi.",
+      "gap": "Webhook ucunun sahibi ve guest erisim siniri tanimsiz; imza dogrulama, zaman damgasi toleransi ve secret rotasyonu kurali yok; Paid'den geri donus yasagi yazilmamis; Server Script API allow_guest kisayol yasagi belirtilmemis.",
+      "completionSteps": [
+        "Uc, webhook sahibi kararina gore Payments uygulamasina veya imza dogrulayan whitelisted metoda baglanir.",
+        "Imza, ham govde uzerinde herhangi bir yazimdan once dogrulanir; zaman damgasi toleransi saglayici kararindan gelir; secret kaynak koddan ayri tutulur.",
+        "provider_event_id tekilligi ile yinelenen olay ikinci etki uretmez.",
+        "Monotonik kural: mevcut durumdan geriye giden veya daha eski olay uygulanmaz, audit'e yazilir; Paid hicbir bildirimle pending, authorized, failed veya timeout'a donmez.",
+        "Server Script API ve allow_guest kisayolu talimatta acikca yasaklanir."
+      ],
+      "dependencies": [
+        "payment-attempt--contract",
+        "payment-attempt--schema",
+        "kernel-envelope--contract",
+        "outbox--contract",
+        "audit-envelope--contract"
+      ],
+      "acceptance": "Yanlis imza reddedilmeli; eski ve yinelenen olay Paid kaydini hatali geriye cevirmemeli.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 152,
+          "quote": "Rule(\"/method/<path:method>\", endpoint=handle_rpc_call),"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/server_script/server_script.json",
+          "line": 73,
+          "quote": "\"fieldname\": \"allow_guest\","
+        },
+        {
+          "path": "frappe/frappe/core/doctype/server_script/server_script_utils.py",
+          "line": 25,
+          "quote": "\"on_payment_paid\": \"On Payment Paid\","
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Uygulama durumu: uygulanmadı. Bu birimdeki hicbir davranis urun kodunda yoktur; runtime kabulu kosulmadi.",
+    "Payment Attempt DocType'i, durum makinesi ve izinli gecis tablosu yok.",
+    "Kalici idempotency, olay tekillestirme, imza dogrulamali bildirim alicisi ve uzlastirma isi yok.",
+    "Iade, itiraz ve ters ibraz kayitlari ile bakiye/hak eslemesi yok.",
+    "Kart verisi korumasi ve Integration Request, Error Log, export maskeleme kurali yok.",
+    "Istemcilerde saglayicinin guvenli toplama yuzeyi entegrasyonu ve odeme API sozlesmesi yok."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Odeme saglayicisi ve odeme yontemleri (payments-1 karari).",
+      "requirementIds": [
+        "payments-2",
+        "payments-3",
+        "payments-4",
+        "payments-5",
+        "payments-6"
+      ],
+      "blocks": "Saglayici adaptoru, imza bicimi, olay turu eslemesi, hosted toplama yuzeyi entegrasyonu.",
+      "allowedUntilDecision": "Saglayicidan bagimsiz durum tablosu, idempotency ve kart verisi yasagi kurallarinin yazilmasi."
+    },
+    {
+      "decision": "Webhook ucu ve PaymentController sahibi: Frappe Payments uygulamasinin kurulmasi mi, imza dogrulayan ozel whitelisted metot mu; T-00 hedef surum uyumu dahil.",
+      "requirementIds": ["payments-2", "payments-4", "payments-6"],
+      "blocks": "Bildirim alicisi ve olay tekillestirme dilimleri.",
+      "allowedUntilDecision": "Imza dogrulama ve monotonik gecis kurallarinin saglayicidan bagimsiz metni."
+    },
+    {
+      "decision": "Retry ve dunning parametreleri (aralik, ust sinir, adimlar) ile zaman asimi suresi.",
+      "requirementIds": ["payments-2"],
+      "blocks": "Retry ve basarisiz tahsilat takibi dilimi.",
+      "allowedUntilDecision": "Parametre alanlarinin degersiz olarak tabloya yazilmasi."
+    },
+    {
+      "decision": "Saklama sureleri: idempotency anahtari, saglayici olay kayitlari ve Integration Request gunlukleri.",
+      "requirementIds": ["payments-4", "payments-5"],
+      "blocks": "Benzersizlik penceresi ve temizlik isi.",
+      "allowedUntilDecision": "Saklama kuralinin sure degeri olmadan yazilmasi."
+    },
+    {
+      "decision": "ERPNext olmadigindan finans defteri veya duzeltme kaydi yaklasimi.",
+      "requirementIds": ["payments-3"],
+      "blocks": "Iade ve ters ibrazin bakiye/alacak etkisi dilimi.",
+      "allowedUntilDecision": "Iade kaydi ve kismi iade toplam kuralinin sozlesmesi."
+    },
+    {
+      "decision": "Itiraz suresince hizmetin veya hakkin askiya alinip alinmayacagi.",
+      "requirementIds": ["payments-3"],
+      "blocks": "Hak eslemesi dilimi.",
+      "allowedUntilDecision": "Itiraz durum makinesinin metni."
+    },
+    {
+      "decision": "Tenant topolojisi: idempotency ve olay tekilliginin tenant siniri (tenant-registry--contract).",
+      "requirementIds": ["payments-3", "payments-4"],
+      "blocks": "payment-attempt--schema benzersizlik kisitlari.",
+      "allowedUntilDecision": "Kurallarin soyut tenant alanina gore yazilmasi."
+    },
+    {
+      "decision": "Webhook secret saklama ve rotasyon proseduru ile zaman damgasi toleransi degeri; teknik sahibi Hüseyin Cengiz. Secret degeri hicbir belgeye yazilmaz.",
+      "requirementIds": ["payments-6"],
+      "blocks": "Imza dogrulama diliminin kabulu.",
+      "allowedUntilDecision": "Dogrulama adimlarinin secret degeri icermeden yazilmasi."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

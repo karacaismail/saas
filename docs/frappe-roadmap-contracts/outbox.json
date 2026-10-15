@@ -1,18 +1,28 @@
 {
   "schemaVersion": "saas-existing-work-contract.v1",
   "canonicalUnitId": "outbox",
-  "canonicalTaskIds": ["outbox--implementation", "outbox--implementation-mvp"],
+  "canonicalTaskIds": [
+    "outbox--implementation",
+    "outbox--implementation-mvp",
+    "ui-provider-offline--implementation"
+  ],
   "requirementIds": ["events-4", "events-6"],
   "stage": "poc",
+  "sourceStages": {
+    "events-4": "poc",
+    "events-6": "mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
-    "title": "Pilot kaydın güncellemesi Outbox satırıyla aynı transactionda yazılır; kuyruk kapalıyken satır Pending kalır, kuyruk açılınca tek iş etkisi oluşur",
-    "trigger": "Yerel pilotta (t08) mevcut tek Data kaydının native Document.save ile güncellenmesi. Pilot DocType adı yerel pilot kanıtından teyit edilecek.",
-    "expected": "Save ve Outbox insert aynı istek transactionında commit olur. enqueue başarısızsa satır Pending kalır. Kuyruk geri geldiğinde dispatch_pending iki kez çağrılsa da tüketici etkisi bir kez oluşur ve satır Delivered olur.",
-    "denied": "İş kaydı rollback olursa Outbox satırı oluşmaz. Outbox insert hatası iş kaydını da geri alır. Okuma yetkisi olmayan kullanıcı Outbox satırını REST ile okuyamaz ya da yazamaz."
+    "title": "Seçilen tek iş kaydının native save ile güncellenmesi Outbox satırını aynı DB transactionında yazar; kuyruk kapalıyken satır Pending kalır, kuyruk açılınca tek iş etkisi oluşur",
+    "trigger": "Olay kaynağı olarak seçilecek tek DocType kaydının native Document.save ile güncellenmesi. DocType seçimi decisionsPending içinde açıktır; bu sözleşme DocType adı uydurmaz.",
+    "expected": "İş kaydının save işlemi ve Outbox satırının native insert işlemi aynı istek transactionında birlikte commit olur. Kuyruk kullanılamıyorken commit edilen satır Pending kalır. Kuyruk geri geldiğinde dispatch_pending iki kez çağrılsa bile tüketici etkisi bir kez oluşur ve satır Delivered olur.",
+    "denied": "İş kaydı rollback olursa Outbox satırı oluşmaz. Outbox insert hatası iş kaydını da geri alır. Outbox izni olmayan kullanıcının REST ile okuma veya yazma denemesi native frappe.PermissionError ile reddedilir; satırın status, attempts ve last_error_code değerleri değişmez."
   },
   "reuse": {
-    "mechanism": "Native: iş kaydı için Document.save ve doc_events on_update; Outbox satırı için aynı transactionda Document.insert; teslim için yalnız taşıyıcı olarak frappe.enqueue; tekil sahiplik için get_doc for_update satır kilidi. Yeni ORM, olay motoru ya da tablo DDL'i yok. Şema outbox--schema görevine aittir.",
+    "status": "KISMI",
+    "mechanism": "Native parçalar: iş kaydı için Document.save; Outbox satırı için aynı transactionda native Document.insert; teslim için yalnız taşıyıcı olarak frappe.enqueue; tekil sahiplik için frappe.get_doc ile for_update=True satır kilidi. Kanıtlar yalnız bu tekil native parçaları gösterir; transactional outbox davranışının bütünü kaynakta yoktur. Suite Calendar davetlerinde iş yazımından sonra enqueue edilen bildirim ve hata durumunda yalnız log_error vardır; bu commit sonrası kuyruğa eklemedir ve dayanıklı outbox yerine geçmez. Suite Meet istemcisindeki sınırlı retry Vue/Suite frontend kaynağıdır; sunucu olay retry kanıtı veya React/Ant Design uygulaması kanıtı değildir. Calendar Event sequence alanı Calendar'a özgüdür ve yalnız aggregate sıra numarası için desen örneğidir. Yeni ORM, olay motoru, tablo DDL'i veya ham SQL yoktur; şema outbox--schema görevine aittir.",
     "evidence": [
       {
         "path": "frappe/frappe/api/v1.py",
@@ -26,66 +36,230 @@
       },
       {
         "path": "suite/suite/calendar/doctype/calendar_event/invitations.py",
+        "line": 10,
+        "quote": "Entry point: `notify_participants(account, action, ...)`, enqueued from the Calendar Event"
+      },
+      {
+        "path": "suite/suite/calendar/doctype/calendar_event/invitations.py",
         "line": 137,
         "quote": "log_error(\"Calendar\", title=_(\"Failed to send event {0} email to {1}\").format(kind, email))"
+      },
+      {
+        "path": "suite/frontend/src/apps/meet/composables/useGuestRealtime.ts",
+        "line": 28,
+        "quote": "const GUEST_SUBSCRIPTION_MAX_RETRIES = 4;"
+      },
+      {
+        "path": "suite/suite/calendar/doctype/calendar_event/calendar_event.json",
+        "line": 198,
+        "quote": "\"description\": \"A monotonically increasing number representing the version of the event.\","
       }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "frappe/frappe/api/v2.py",
+      "suite/frontend/src/apps/meet/composables/useGuestRealtime.ts",
+      "suite/suite/calendar/doctype/calendar_event/calendar_event.json",
+      "suite/suite/calendar/doctype/calendar_event/invitations.py"
     ]
   },
   "ownership": {
     "activeContractFile": "docs/frappe-roadmap-contracts/outbox.json",
     "plannedProduction": [
-      "backend/saas_platform/saas_platform/platform_system/doctype/outbox/outbox.py"
+      "backend/saas_platform/saas_platform/platform_system/doctype/outbox/outbox.py",
+      "backend/saas_platform/saas_platform/services/outbox_mvp.py",
+      "frontend/packages/ui/src/components/ui-provider-offline/index.tsx"
     ],
-    "plannedTestFile": "backend/saas_platform/saas_platform/platform_system/doctype/outbox/test_outbox.py",
+    "plannedTestFile": null,
     "sharedIntegrationFiles": [
       "backend/saas_platform/saas_platform/hooks.py",
-      "backend/saas_platform/saas_platform/platform_system/doctype/outbox/outbox.json",
-      "integration/fragments/outbox--integration.json"
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "record_outbox(doc, event_type: str <=140, payload: dict). Payload yalnız reference_doctype, reference_name, modified ve kernel-envelope v1 alanlarını taşır; alan değeri kopyalanmaz. dispatch_pending(limit: int, 1-50, varsayılan 20).",
-    "output": "Outbox alanları: event_type, reference_doctype, reference_name, status (Pending|Dispatched|Delivered), attempts (Int), last_error_code (Data, ham log yok), envelope_version=1. dispatch_pending sayıları döndürür: {claimed, delivered, skipped}.",
-    "authorization": "İş kaydı yetkisini native save denetler. Outbox insert, sunucu hookundan ignore_permissions bayrağıyla yapılır. Outbox DocType'ı yalnız System Manager okuyabilir. Whitelist ya da REST yazma yolu yoktur; yetkisiz okuma frappe.PermissionError döndürür. Kapsam yerel native site sınırıdır; tenant modeli kapsam dışıdır.",
-    "persistence": "on_update hookunda insert yapılır ve request sonu native commit ile birlikte yazılır; ara frappe.db.commit yasaktır. dispatch_pending her satırı get_doc(for_update=True) ile kilitler; yalnız Pending satırı Dispatched yapar, tüketici Delivered yapar. Tekrar çağrıda Delivered satır atlanır. DDL garantisi verilmez; şema native migrate ile outbox--schema görevinden gelir.",
-    "failure": "Insert ya da doğrulama hatasında frappe.ValidationError ile tüm request rollback olur ve istemci native hata mesajını gösterir. enqueue bağlantı hatasında satır Pending kalır, last_error_code=queue_unavailable yazılır ve save başarısı bozulmaz. Bağlantı hatasının tam istisna tipi v17-dev'de doğrulanmadı."
+    "input": "record_outbox(doc, event_type: str <=140, payload: dict): sunucu tarafı fonksiyondur, whitelist edilmez. Payload yalnız reference_doctype, reference_name, modified ve kernel-envelope v1 alanlarını taşır; iş alanı değerleri kopyalanmaz. dispatch_pending(limit: int, 1-50, varsayılan 20): yalnız test ve yetkili manuel çağrı içindir, scheduler'a bağlanmaz.",
+    "output": "Outbox alanları (şema outbox--schema görevinden gelir): event_type, reference_doctype, reference_name, status (Pending|Dispatched|Delivered), attempts (Int), last_error_code (Data; ham hata metni veya log içeriği yok), envelope_version=1. dispatch_pending {claimed, delivered, skipped} sayılarını döndürür. events-6 durumları (ör. Poison) ve sıra alanı bu PoC çıktısına eklenmez; requirementGuidance içindeki events-6 rehberine aittir.",
+    "authorization": "İş kaydı yetkisini native save izin denetimi belirler; record_outbox iş kaydı izinlerini genişletmez. Outbox insert ignore_permissions bayrağıyla veya ham SQL ile yapılmaz. Outbox DocType rol ve izin satırları explicitPermissionFlags ortak kaynağına bağlanır; bu sözleşme ayrı bayrak veya rol tanımlamaz. Sunucu yolunun Outbox satırını hangi native izinle oluşturacağı decisionsPending içinde açıktır; karar gelene kadar uygulama başlamaz. Outbox için whitelist veya REST yazma yolu açılmaz; yetkisiz REST okuma/yazma native frappe.PermissionError döndürür ve satırı değiştirmez. Tenant modeli bu sözleşmede seçilmez; kapsam tek native site sınırıdır.",
+    "persistence": "record_outbox iş kaydının native on_update aşamasında çağrılır; doc_events bağı hooks.py üzerinden ana entegrasyon sahibince eklenir ve bu girdide kaynak alıntısıyla doğrulanmamıştır. Satır request sonundaki native commit ile iş kaydıyla birlikte yazılır; ara frappe.db.commit yasaktır. dispatch_pending her satırı frappe.get_doc ile for_update=True kullanarak kilitler, yalnız Pending satırı Dispatched yapar ve tüketiciyi frappe.enqueue ile yalnız taşıyıcı olarak kuyruğa ekler. Tüketici satırı yine for_update ile kilitler; satır Delivered ise atlar, değilse iş etkisini ve Delivered geçişini aynı transactionda yazar. Tekrar çağrıda Dispatched veya Delivered satır atlanır. DDL garantisi verilmez; şema native migrate ile outbox--schema görevinden gelir.",
+    "failure": "Outbox insert veya doğrulama hatası frappe.ValidationError ile tüm request'i rollback eder; istemci native hata mesajını gösterir. dispatch_pending içinde enqueue başarısız olursa satır aynı kilitli transactionda Pending'e döner, attempts bir artar ve last_error_code=queue_unavailable yazılır; enqueue save yolunda çağrılmadığı için iş kaydının save başarısı etkilenmez. Kuyruk bağlantı hatasının tam istisna tipi hedef Frappe sürümünde doğrulanmadı; T-00 sonrası teyit edilir. Tüketici hatası bu PoC'de satırı last_error_code=consumer_failed ile Dispatched bırakır; kontrollü retry ve poison geçişi events-6 kapsamındadır."
   },
   "development": {
     "dependencies": [
-      "outbox--contract",
-      "outbox--schema",
+      "client-rule-parity--contract",
+      "device-grant--contract",
+      "inbox--contract",
       "kernel-envelope--contract",
       "native-user-policy--contract",
-      "local pilot t08 (frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6)"
+      "outbox--contract",
+      "outbox--implementation",
+      "outbox--schema",
+      "sync-receipt--contract",
+      "ui-provider-offline--contract"
     ],
-    "admission": "T-00 ve R-00 hazır olmalı, Outbox şeması yerel suite.localhost üzerinde migrate edilmiş olmalı. saas_platform uygulamasının bu sitede kurulu olduğu doğrulanmadı. Yerel kanıt uzak ürün tabanı değildir; Suite HEAD bilinmiyor.",
+    "admission": "Uygulama durumu: uygulanmadı. Bu sözleşme üretim, test, şema, servis, production veya veri değişikliği yetkisi vermez. Kabul öncesi koşullar: T-00 hedef taban ve R-00 yeniden kullanım eşlemesi hazır; izinli veri tüketicisi olduğu için R-01 ve explicitPermissionFlags ortak kaynağı uygulanabilir; outbox--contract, kernel-envelope--contract ve native-user-policy--contract kabul edilmiş; outbox--schema şeması hedef geliştirme sitesinde native migrate ile uygulanmış; saas_platform uygulamasının o sitede kurulu olduğu doğrulanmış; olay kaynağı DocType ve Outbox oluşturma izin yolu kararları verilmiş. events-6 adımları ayrıca outbox--implementation ve inbox--contract kabulünü bekler. Tek dar davranış gerçek RED/GREEN kanıtıyla uygulanır.",
     "steps": [
-      "outbox.py: record_outbox ve dispatch_pending eklenir, tüketici Delivered geçişini kilit altında yapar.",
-      "Codex hooks.py'ye pilot DocType için on_update -> record_outbox bağlar (paylaşılan entegrasyon dosyası).",
-      "Scheduler'a ekleme yapılmaz; dispatch_pending yalnız test ve manuel çağrıyla çalışır."
+      "T-00 hedef Frappe sürümünde Document.insert, doc_events on_update, get_doc for_update ve enqueue davranışını kaynakta teyit edin; doğrulanmamış commit sonrası hook API'sine dayanmayın, yalnız dispatch_pending tarama yolunu kullanın.",
+      "outbox.py: record_outbox ve dispatch_pending eklenir; tüketici Delivered geçişini kilit altında ve iş etkisiyle aynı transactionda yapar.",
+      "Ana entegrasyon sahibi hooks.py'ye seçilen DocType için on_update -> record_outbox bağını seri birleştirme ile ekler (paylaşılan entegrasyon dosyası).",
+      "Scheduler'a ekleme yapılmaz; dispatch_pending yalnız test ve yetkili manuel çağrıyla çalışır. Scheduler, worker ve Redis etkinleştirmesi Hüseyin Cengiz'in teknik kararıdır.",
+      "services/outbox_mvp.py ve ui-provider-offline yolu bu PoC adımında değiştirilmez; events-6 ayrı ve sonraki tek davranış olarak ele alınır."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "Pilot kayıt frappe.enqueue hata verecek şekilde patch edilerek save edilir ve commit olur; Outbox satırı Pending kalır. Patch kaldırılır, dispatch_pending iki kez çağrılır; tüketici mock'u bir kez çağrılmış olmalı ve satır Delivered olmalıdır.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Aynı komut: bench --site suite.localhost run-tests --module saas_platform.platform_system.doctype.outbox.test_outbox (yerel, çalıştırılmadı)."
+      "oneScenario": "Seçilen DocType kaydı native save ile güncellenir ve commit olur; frappe.enqueue hata verecek şekilde patch edilmişken çağrılan dispatch_pending sonrasında Outbox satırı Pending kalır, attempts=1 ve last_error_code=queue_unavailable olur. Patch kaldırılır, dispatch_pending iki kez çağrılır; tüketici etkisi bir kez oluşur ve satır Delivered olur. Aynı kabulde Outbox izni olmayan kullanıcının REST yazma denemesi PermissionError ile reddedilir ve satır değerleri değişmez.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. RED, Outbox şeması migrate edilmiş ve native save çalışırken save sonrası beklenen Pending Outbox satırının bulunmaması assertion'ında başarısız olmalıdır. Import hatası, eksik modül veya altyapı hatası ve native save davranışını bozan test RED sayılmaz; native olarak geçen davranışa RED uydurulmaz. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "Uygulamadan sonra aynı senaryo, değişmeyen assertion ve aynı komutla geçmelidir. Test dosyası yolu ve komut admission sırasında T-00 hedef geliştirme sitesine göre belirlenir; plannedTestFile bu sözleşmede null'dur. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN'i değildir."
     },
-    "rollback": "outbox.py değişikliği ve hooks.py bağı yerelde geri alınır; Outbox satırı silinmez, production yetkisi yoktur."
+    "rollback": "Değişiklik geliştirme dalında kalır: outbox.py değişikliği ve hooks.py bağı geri alınır; Outbox satırları silinmez, şema geri alımı outbox--schema görevine aittir. Bu sözleşme production, deploy veya rollback yetkisi vermez; CI/deploy/rollback teknik sahibi Hüseyin Cengiz'dir."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "events-4",
+      "sourceStage": "poc",
+      "existing": "Native parçalar: frappe.get_doc for_update satır kilidi ve frappe.enqueue kuyruk taşıyıcısı. Suite Calendar davetleri iş yazımından sonra enqueue edilir; bu commit sonrası kuyruğa eklemedir, dayanıklı outbox değildir. Kaynakta Outbox DocType'ı, dağıtıcı ve doğrulanmış commit sonrası hook alıntısı yoktur.",
+      "gap": "Outbox DocType şeması ve native migrate yönetimi, dağıtıcının çalışma biçimi, kilit ve tekil seçim kuralı, Outbox oluşturma izin yolu ve hedef sürümde transaction hook API doğrulaması eksiktir. ui-provider-offline eşlemesi istemci offline kuyruğunu sunucu outbox'ıyla karıştırır.",
+      "completionSteps": [
+        "Outbox'ı outbox--schema görevindeki DocType olarak tanımlayın (doğrudan tablo veya DDL değil); alanlar contract.output listesiyle sınırlı kalsın ve native migrate ile yönetilsin.",
+        "record_outbox'ı iş kaydının native on_update aşamasında aynı transactionda native insert ile çalıştırın; ara commit, ignore_permissions veya ham SQL kullanmayın.",
+        "Dağıtıcıyı (dispatch_pending) tarayıcı olarak tanımlayın: Pending satırları sınırlı limitle seçer, her satırı for_update ile kilitler, enqueue'yu yalnız teslim taşıyıcısı olarak kullanır.",
+        "Tüketicide Delivered kontrolünü ve geçişini kilit altında, iş etkisiyle aynı transactionda yapın.",
+        "Çoklu worker altında SKIP LOCKED davranışı hedef sürümde doğrulanana kadar eşzamanlı dağıtıcı çalıştırmayın.",
+        "ui-provider-offline--implementation için bu davranışta kabul ölçütü tanımlamayın; istemci offline kuyruğu ui-provider-offline--contract ve sync-receipt--contract altında kalır, kanonik eşleme burada değiştirilmez."
+      ],
+      "dependencies": [
+        "outbox--contract",
+        "outbox--schema",
+        "kernel-envelope--contract",
+        "native-user-policy--contract"
+      ],
+      "acceptance": "İş kaydı commit olup kuyruk kapalıyken olay Outbox'ta Pending kalır; kuyruk açılınca dispatch_pending iki kez çağrılsa da tek iş etkisi oluşur ve satır Delivered olur. İş kaydı rollback olursa satır oluşmaz. Yetkisiz kullanıcının Outbox REST yazma denemesi reddedilir ve satır değişmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 56,
+          "quote": "doc = frappe.get_doc(doctype, name, for_update=True)"
+        },
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 293,
+          "quote": "job = frappe.enqueue("
+        },
+        {
+          "path": "suite/suite/calendar/doctype/calendar_event/invitations.py",
+          "line": 10,
+          "quote": "Entry point: `notify_participants(account, action, ...)`, enqueued from the Calendar Event"
+        }
+      ]
+    },
+    {
+      "requirementId": "events-6",
+      "sourceStage": "mvp",
+      "existing": "Sunucu tarafında Suite Calendar davet tesliminde hata yalnız log_error ile kaydedilir; kalıcı retry yoktur. Sınırlı retry yalnız Suite Meet istemci realtime aboneliğinde (Vue/Suite frontend) vardır; sunucu olay retry kanıtı veya React/Ant Design kanıtı değildir. Sıra numarası yalnız Calendar Event'e özgü sequence alanında vardır.",
+      "gap": "Maksimum deneme, backoff ve poison eşiği; sıralama kapsamı (aggregate, tenant veya global); replay yetkisi ve audit kaydı; replay'in inbox idempotency'sine bağımlılığı; inceleme kuyruğunun biçimi ve izinleri tanımsızdır.",
+      "completionSteps": [
+        "outbox--implementation-mvp için politika tablosu yazın: max_attempts, backoff biçimi, poison eşiği, sıralama anahtarı ve replay rolü; sayısal değerler decisionsPending kararından gelir.",
+        "Retry'ı dispatch_pending genişlemesi olarak tanımlayın: attempts eşik altındaysa backoff süresi dolan satırlar yeniden seçilir; eşik aşılınca satır Poison durumuna geçer ve inceleme kuyruğunda görünür. Dispatched durumunda takılan satırın ne zaman yeniden denenebilir sayılacağını aynı tabloda tanımlayın.",
+        "Sıralamayı aggregate (reference_doctype + reference_name) başına monoton sıra numarası olarak önerin; Calendar sequence alanı yalnız desen örneğidir. Aynı aggregate'te önceki satır Delivered olmadan sonraki teslim edilmez. Tenant veya global kapsam tenant topolojisi kararına bağlıdır.",
+        "Replay'i yalnız explicitPermissionFlags ortak kaynağında tanımlanan rolle, native izin denetimi ve audit kaydıyla tanımlayın; inbox--contract idempotency anahtarı kabul edilmeden replay açılmaz.",
+        "İnceleme kuyruğunu karar gelene kadar belge düzeyinde tutun; Error Log seçilirse ham hata metni Outbox'a kopyalanmaz, yalnız last_error_code tutulur.",
+        "Gelecekteki tek kabulde yetkisiz replay denemesinin reddedildiğini ve Poison satırın değişmediğini doğrulayın."
+      ],
+      "dependencies": [
+        "outbox--contract",
+        "outbox--schema",
+        "outbox--implementation",
+        "kernel-envelope--contract",
+        "native-user-policy--contract",
+        "inbox--contract"
+      ],
+      "acceptance": "Hatalı tüketici politika tablosundaki sınır ve backoff ile kontrollü olarak tekrar denenir; eşik aşılınca olay inceleme kuyruğunda görünür; aynı aggregate'in olayları doğru sırada replay edilir; yetkisiz replay reddedilir ve satır değişmez.",
+      "evidence": [
+        {
+          "path": "suite/suite/calendar/doctype/calendar_event/invitations.py",
+          "line": 137,
+          "quote": "log_error(\"Calendar\", title=_(\"Failed to send event {0} email to {1}\").format(kind, email))"
+        },
+        {
+          "path": "suite/frontend/src/apps/meet/composables/useGuestRealtime.ts",
+          "line": 28,
+          "quote": "const GUEST_SUBSCRIPTION_MAX_RETRIES = 4;"
+        },
+        {
+          "path": "suite/suite/calendar/doctype/calendar_event/calendar_event.json",
+          "line": 198,
+          "quote": "\"description\": \"A monotonically increasing number representing the version of the event.\","
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "events-6 (outbox--implementation-mvp, services/outbox_mvp.py) kapsam dışı: maksimum deneme, backoff, poison eşiği, aggregate bazlı sıra kapsamı, yetkili ve audit edilen replay, inceleme kuyruğunun DocType mı Error Log mu olacağı tanımsız. Inbox/idempotency (events-5) bağımlılığının görev kimliği bu girdide yok.",
-    "after_commit uyandırma API'si Frappe v17-dev'de doğrulanmadı; PoC yalnız scanner yoluna dayanır.",
-    "Çoklu worker altında for_update dışında SKIP LOCKED davranışı doğrulanmadı.",
-    "ui-provider-offline destek eşlemesi istemci offline kuyruğunu karıştırıyor; kanonik görev durumu burada değiştirilmedi.",
-    "Scheduler etkinleştirme ve worker/Redis dağıtımı ileride gerekecek; teknik sahibi Hüseyin Cengiz, şu an etkin değil."
+    "Hedef Frappe sürümünde commit sonrası uyandırma veya transaction hook API'si doğrulanmadı; PoC yalnız tarama yoluna dayanır.",
+    "Çoklu worker altında SKIP LOCKED davranışı ve kuyruk bağlantı hatasının istisna tipi doğrulanmadı.",
+    "Dispatched durumunda takılan satırın kurtarılması PoC dışındadır ve events-6 politikasına bağlıdır.",
+    "ui-provider-offline--implementation kanonik eşlemesi istemci offline kuyruğunu sunucu outbox'ıyla karıştırır; bu sözleşme kanonik görev durumunu değiştirmez, düzeltme kanonik görev sahibine aittir. plannedProduction içindeki ui-provider-offline yolu bu davranış için yalnız önerilen gelecekteki sahiplik listesidir.",
+    "Outbox oluşturma izin yolu explicitPermissionFlags ortak kaynağına bağlanmadan uygulama başlamaz.",
+    "Payload'ın kernel-envelope v1 alanları kernel-envelope--contract kabulüne bağlıdır.",
+    "Scheduler, worker ve Redis dağıtımı etkin değildir; teknik sahibi Hüseyin Cengiz'dir."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Olay kaynağı olarak kullanılacak ilk tek DocType.",
+      "requirementIds": ["events-4"],
+      "blocks": "hooks.py on_update bağı ve TDD senaryosunun kurulması.",
+      "documentStepUntilDecided": "Senaryoyu DocType'tan bağımsız yazın; seçim ölçütünü (tek kayıt, native save, izinli kullanıcı) belgeleyin."
+    },
+    {
+      "decision": "Sunucu yolunun Outbox satırını ignore_permissions olmadan hangi native izinle oluşturacağı ve rol satırları.",
+      "requirementIds": ["events-4", "events-6"],
+      "blocks": "record_outbox uygulaması ve replay yetkisi.",
+      "documentStepUntilDecided": "İzin ihtiyacını explicitPermissionFlags ortak kaynağına referansla listeleyin; ayrı bayrak tanımlamayın."
+    },
+    {
+      "decision": "Hedef Frappe sürümü ve transaction hook API kullanımı (T-00).",
+      "requirementIds": ["events-4"],
+      "blocks": "Commit sonrası uyandırma ve kuyruk istisna tipinin kesinleşmesi.",
+      "documentStepUntilDecided": "Yalnız tarama yolunu belgeleyin; API adı uydurmayın."
+    },
+    {
+      "decision": "Sıralama kapsamı: aggregate, tenant veya global (tenant topolojisine bağlı).",
+      "requirementIds": ["events-6"],
+      "blocks": "Sıra alanı şeması ve sıralı replay.",
+      "documentStepUntilDecided": "Aggregate önerisini ve alternatiflerin etkisini politika tablosunda yazın."
+    },
+    {
+      "decision": "max_attempts, backoff ve poison eşiği değerleri.",
+      "requirementIds": ["events-6"],
+      "blocks": "Retry ve Poison geçişinin uygulanması.",
+      "documentStepUntilDecided": "Politika tablosunu değer alanları boş olarak hazırlayın."
+    },
+    {
+      "decision": "İnceleme kuyruğunun ayrı DocType mı yoksa Error Log mu olacağı ve izinleri.",
+      "requirementIds": ["events-6"],
+      "blocks": "Poison olayların görünür kılınması.",
+      "documentStepUntilDecided": "Her iki seçenek için gereken alan ve izin farklarını belgeleyin."
+    },
+    {
+      "decision": "Delivered ve Poison satırları için saklama süresi.",
+      "requirementIds": ["events-4", "events-6"],
+      "blocks": "Temizlik işi ve audit süresi.",
+      "documentStepUntilDecided": "Satır silinmez kuralını koruyun; saklama ihtiyacını kayda alın."
+    },
+    {
+      "decision": "Scheduler/worker etkinleştirme ve Redis dağıtımı (teknik sahibi Hüseyin Cengiz).",
+      "requirementIds": ["events-4", "events-6"],
+      "blocks": "Otomatik dağıtım ve otomatik retry.",
+      "documentStepUntilDecided": "Manuel ve test çağrısıyla sınırlı dağıtımı belgeleyin; teknik gereksinimleri Hüseyin Cengiz'e devir notu olarak yazın."
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "events-4": "poc",
-    "events-6": "mvp"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,

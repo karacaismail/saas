@@ -1,0 +1,240 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "sse-api",
+  "canonicalTaskIds": ["sse-api--implementation"],
+  "requirementIds": ["realtime-2"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "realtime-2": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "SSE ile kimliği doğrulanmış tek kullanıcı odasına canlı olay iletimi ve Last-Event-ID ile kaldığı yerden devam",
+    "trigger": "Socket.IO kullanamayan ve sse-api--contract karar kaydında adıyla belirtilen tek bir tüketici, kimliği doğrulanmış kullanıcı olarak SSE endpoint'ine EventSource ile bağlanır veya bağlantı koptuktan sonra Last-Event-ID başlığıyla yeniden bağlanır.",
+    "expected": "Yanıt text/event-stream içerik türüyle açılır. Her olay outbox--contract sıra numarasından türetilen id, olay adı (event) ve kernel-envelope JSON data alanıyla çerçevelenir. İlk yanıtta retry önerisi gönderilir ve karar kaydındaki aralıkla yorum satırı heartbeat gider. Last-Event-ID verilmişse yalnız o kullanıcının odasına ait ve bu sıradan büyük olaylar sırayla yeniden iletilir, ardından canlı akışa geçilir. Olaylar yalnız transaction commit edildikten sonra görünür; rollback olan işlemin olayı iletilmez.",
+    "denied": "Oturumsuz, geçersiz veya süresi dolmuş biletle gelen istek 401/403 ile reddedilir ve akış açılmaz. Oda istemciden alınmaz, oturum kullanıcısından türetilir; başka kullanıcı, doctype, doc, task veya site odası istenemez. Başka tenant/site namespace'inin olayları iletilmez. Endpoint hiçbir kaydı yazmaz veya değiştirmez. ignore_permissions veya ham SQL ile yetki atlanmaz."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native Frappe realtime yayını yeniden kullanılır. publish_realtime olayı user/doctype/doc/task/site odasına yönlendirir. after_commit seçeneğiyle gönderim commit sonrasına ertelenir, rollback olursa olay atılır. emit_via_redis olayı Redis 'events' kanalına site namespace'iyle yayımlar. frappe/realtime/index.js bu kanala abone olan Node Socket.IO sunucusudur ve olayları odalara emit eder. Taşıma yalnız Socket.IO (WebSocket/long-poll) ile yapılır. SSE çerçeveleme, Last-Event-ID replay, heartbeat/proxy ayarı ve SSE kimlik doğrulaması native parçada yoktur. Suite mail/jmap.py içindeki eventSourceUrl, harici bir JMAP sunucusunun oturum URL'sinin önbelleğidir; SSE sunucusu veya tüketicisi değildir ve yeniden kullanım parçası sayılmaz. Vue/Frappe UI kaynağı, React/Ant Design tüketicisi için kanıt değildir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/realtime/__init__.py",
+        "line": 30,
+        "quote": "def publish_realtime("
+      },
+      {
+        "path": "frappe/frappe/realtime/__init__.py",
+        "line": 83,
+        "quote": "frappe.db.after_commit.add(flush_realtime_log)"
+      },
+      {
+        "path": "frappe/frappe/realtime/__init__.py",
+        "line": 118,
+        "quote": "\"events\","
+      },
+      {
+        "path": "frappe/realtime/index.js",
+        "line": 1,
+        "quote": "const { Server } = require(\"socket.io\");"
+      },
+      {
+        "path": "frappe/realtime/index.js",
+        "line": 81,
+        "quote": "io.of(namespace).to(message.room).emit(message.event, message.message);"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/realtime/__init__.py",
+      "frappe/realtime/index.js",
+      "suite/suite/mail/jmap.py"
+    ],
+    "searchScopeNote": "Aranan yollar yalnız verilen salt okunur kaynak kesitleridir. SSE endpoint'inin yokluğu bu kesitlere dayanır; kaynak ağacının tamamı için kesin bir yokluk iddiası değildir."
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/sse-api.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/adapters/integration_hub/sse_api_post_mvp.py"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "GET isteği. EventSource özel başlık gönderemediği için kimlik, sse-api--contract kararına göre ya oturum cookie'siyle ya da kısa ömürlü bir biletle taşınır. Last-Event-ID başlığı isteğe bağlıdır ve tarayıcı yeniden bağlanırken otomatik gönderir. Oda parametresi kabul edilmez; oda oturum kullanıcısından türetilir. Tenant/site bağlamı tenant-registry--contract ve api-middleware--contract üzerinden çözülür.",
+    "output": "Content-Type: text/event-stream; Cache-Control: no-cache; X-Accel-Buffering: no. Çerçeve sırası: 'id: <outbox sırası>', 'event: <olay adı>', 'data: <kernel-envelope--contract JSON>', ardından boş satır. İlk mesajda 'retry: <ms>' gönderilir. Heartbeat ':' ile başlayan yorum satırıdır. data alanı JSON model sınırında kalır; ReactNode veya callback taşımaz. Kaynak registry'si ile GenUI capability registry'si ayrıdır.",
+    "authorization": "Native Frappe oturumu ve native izin denetimi yeniden kullanılır. Bağlantıyı açan kullanıcı yalnız kendi kullanıcı odasını dinler. Replay edilen her olay, native-user-policy--contract ve capability-definition--contract kurallarına göre bu kullanıcıya görünür olmalıdır. ignore_permissions, ham SQL veya oda adını istemciden alma yasaktır. Bu birim rol veya izin üretmez; ileride bir izin bayrağı gerekirse explicitPermissionFlags ortak kaynağına bağlanır.",
+    "persistence": "Yeni olay deposu, DocType veya şema değişikliği yoktur. Replay kaynağı outbox--contract sıra numarasıdır ve realtime-3 cursor'ıyla hizalanır. Redis 'events' pub/sub kanalı geçicidir ve replay için kullanılmaz. Endpoint salt okunurdur.",
+    "failure": "Last-Event-ID bilinmiyorsa veya replay penceresinin dışındaysa olay sessizce atlanmaz. Karar kaydında tanımlanan bir sıfırlama olayı gönderilir ve tüketiciden tam yeniden yükleme istenir. Outbox veya Redis erişilemezse akış kapatılır ve istemci retry ile yeniden bağlanır. Beklenen heartbeat gelmezse istemci bunu kopma sayar. Yetki iptal edilirse bir sonraki olay veya heartbeat öncesindeki denetimde akış kapatılır. Bağlantı süresinin üst sınırı, web worker tükenmesini önlemek için karar kaydında belirlenir."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "capability-definition--contract",
+      "kernel-envelope--contract",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "outbox--contract",
+      "sse-api--contract",
+      "tenant-registry--contract"
+    ],
+    "admission": {
+      "note": "Uygulama durumu: uygulanmadı. Bu sözleşme üretim kodu, test, şema, servis veya production değişikliği için yetki vermez.",
+      "prerequisites": [
+        "T-00 hedef taban çizgisi (hedef Frappe sürümü) tamamlanmış olmalı",
+        "R-00 yeniden kullanım eşlemesi bu sözleşmedeki native parçaları onaylamış olmalı",
+        "Endpoint izinli veri tükettiği için R-01 kuralı uygulanmalı",
+        "sse-api--contract karar kaydı onaylanmış olmalı (tüketici, kimlik taşıma biçimi, heartbeat, proxy, Last-Event-ID eşlemesi)",
+        "outbox--contract sıra kaynağı ve kernel-envelope--contract zarf biçimi tanımlanmış olmalı",
+        "Tek ve dar bir davranış, gerçek RED/GREEN kanıtıyla uygulanmalı"
+      ],
+      "orderAuthority": "Sırayı mevcut görev bağımlılıkları ve stage belirler; cluster sırası (8) yalnız sunum içindir ve yeni bir seri DAG değildir."
+    },
+    "steps": [
+      "1. sse-api--contract: SSE'yi yalnız Socket.IO kullanamayan somut bir tüketici için açan karar kaydını yaz. Kayıt kimlik taşıma biçimini (cookie ya da kısa ömürlü bilet), heartbeat aralığını, retry değerini, proxy buffering/timeout ayarını, bağlantı üst süresini ve Last-Event-ID'nin outbox sırasına eşlenmesini tanımlasın.",
+      "2. Ayrı olay deposu kurma. Canlı olaylar mevcut publish_realtime/emit_via_redis 'events' akışından, replay ise outbox--contract sıra kaynağından okunsun. after_commit davranışı korunsun; commit edilmemiş olay hiçbir zaman SSE'ye düşmesin.",
+      "3. Önerilen üretim dosyasında tek ve dar bir endpoint tanımla: kimliği doğrulanmış tek kullanıcı odası, text/event-stream başlıkları, id/event/retry/data çerçevelemesi, yorum satırı heartbeat ve Last-Event-ID replay. Kayıt, ortak hooks.py entegrasyonu üzerinden ana entegrasyon sahibince seri olarak yapılsın.",
+      "4. Yetki: oda yalnız oturumdan türetilsin. Replay edilen her olay native izin denetiminden geçsin; site namespace'i tenant bağlamıyla eşleşmeyen olaylar düşürülsün.",
+      "5. Proxy için X-Accel-Buffering, read timeout ve bağlantı süresi ayarlarının teknik gereksinimini belgele. Uygulama ve doğrulama Hüseyin Cengiz'e devredilir; bu sözleşme sunucu yapılandırmasını değiştirmez.",
+      "6. Tüketici tarafı yalnız karar kaydındaki tüketici için yazılsın (ör. frontend/apps/extension, WXT MV3). React/TanStack Query içinde kopma, yeniden bağlanma ve sıfırlama olayı işlenmeli; Socket.IO kullanabilen tüketiciler Socket.IO'da kalır.",
+      "7. Tek TDD senaryosunu RED, ardından GREEN olarak çalıştır ve kanıtı kaydet. Ardından reddedilen istek ile değişmeyen kayıt kabulünü doğrula."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Kimliği doğrulanmış kullanıcı, kendi odası için outbox'ta N, N+1 ve N+2 sıralı olaylar varken Last-Event-ID: N ile yeniden bağlanır. Akışta yalnız id N+1 ve N+2 olayları bu sırayla gelir; ardından heartbeat yorum satırı görünür. Başka kullanıcı odasının olayı akışa düşmez.",
+      "red": "Endpoint ve test altyapısı çalışır durumdayken, akıştan okunan id listesinin [N+1, N+2] olmaması bir assertion hatasıyla başarısız olur (replay yok veya baştan başlıyor). Bu hata import, altyapı veya native realtime davranışını bozmaktan kaynaklanmamalı.",
+      "green": "Last-Event-ID outbox sırasına eşlenir ve yalnız oturum kullanıcısının N'den büyük olayları sırayla çerçevelenir. publish_realtime, after_commit ve Socket.IO davranışı değişmeden kalır."
+    },
+    "rollback": "Endpoint kaydı ortak hooks.py entegrasyonundan kaldırılır veya karar kaydındaki kapatma anahtarıyla devre dışı bırakılır. Tüketici Socket.IO'ya ya da periyodik yenilemeye döner. Şema veya veri değişikliği olmadığı için veri geri alımı gerekmez. Proxy ayarının geri alınması ile deploy/rollback işleminin teknik sahibi Hüseyin Cengiz'dir."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "realtime-2",
+      "sourceStage": "post_mvp",
+      "existing": "Native parça: publish_realtime olayı odaya göre yönlendirir; after_commit ile commit sonrası gönderir ve rollback'te atar; emit_via_redis Redis 'events' kanalına site namespace'iyle yayımlar; Node Socket.IO sunucusu bu kanala abone olur ve odalara emit eder. Bu parçalar canlı iletimin kaynağıdır, SSE taşıması değildir. Suite'teki eventSourceUrl harici JMAP oturum alanıdır; direct_passthrough kullanımları dosya/WebDAV akışıdır, SSE değildir.",
+      "gap": "text/event-stream yanıtı veren bir endpoint ve id/event/retry çerçevelemesi yok. Last-Event-ID ile devam ve kalıcı sıralı replay yok; Redis pub/sub geçicidir. Heartbeat, X-Accel-Buffering ve proxy timeout ayarı yok. SSE için kimlik doğrulama (cookie veya kısa ömürlü bilet) ve oda/izin denetimi yok. SaaS API sözleşmesinde SSE tanımı yok. Suite Vue frontend'inde EventSource tüketicisi yok. SSE'nin hangi tüketici için gerektiği kararı (ör. WXT MV3) yok.",
+      "completionSteps": [
+        "sse-api--contract karar kaydında tüketiciyi, kimlik taşıma biçimini, heartbeat/retry değerlerini, proxy ayarını ve Last-Event-ID ile outbox sırası eşlemesini tanımla.",
+        "Canlı olayları mevcut publish_realtime/'events' akışından al; replay için outbox--contract sırasını kullan; yeni olay deposu kurma.",
+        "Tek kullanıcı odası için text/event-stream endpoint'i tanımla: id/event/retry/data çerçevesi, yorum satırı heartbeat ve Cache-Control/X-Accel-Buffering başlıkları.",
+        "Odayı oturumdan türet; replay edilen her olayı native izinle ve tenant namespace'iyle süz; ignore_permissions kullanma.",
+        "Bilinmeyen Last-Event-ID için sıfırlama olayını ve bağlantı üst süresini karar kaydına göre uygula.",
+        "Proxy gereksinimini Hüseyin Cengiz'e teknik devir olarak yaz.",
+        "Tek RED/GREEN senaryosunu ve reddedilen istek kabulünü çalıştırıp kanıtla."
+      ],
+      "dependencies": [
+        "sse-api--contract",
+        "outbox--contract",
+        "kernel-envelope--contract",
+        "tenant-registry--contract",
+        "native-user-policy--contract",
+        "capability-definition--contract",
+        "native-doctype-schema--contract",
+        "api-middleware--contract"
+      ],
+      "acceptance": "EventSource koptuktan sonra yeniden bağlandığında kimlik, heartbeat ve son olay davranışı tanımlı testten geçer: Last-Event-ID N ile yalnız N'den sonraki kendi olayları sırayla gelir ve heartbeat görünür. Oturumsuz veya başka odayı hedefleyen istek reddedilir, akış açılmaz ve hiçbir kayıt değişmez. Rollback edilen transaction'ın olayı iletilmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/realtime/__init__.py",
+          "line": 30,
+          "quote": "def publish_realtime("
+        },
+        {
+          "path": "frappe/frappe/realtime/__init__.py",
+          "line": 83,
+          "quote": "frappe.db.after_commit.add(flush_realtime_log)"
+        },
+        {
+          "path": "frappe/frappe/realtime/__init__.py",
+          "line": 118,
+          "quote": "\"events\","
+        },
+        {
+          "path": "frappe/realtime/index.js",
+          "line": 1,
+          "quote": "const { Server } = require(\"socket.io\");"
+        },
+        {
+          "path": "frappe/realtime/index.js",
+          "line": 81,
+          "quote": "io.of(namespace).to(message.room).emit(message.event, message.message);"
+        },
+        {
+          "path": "suite/suite/mail/jmap.py",
+          "line": 689,
+          "quote": "\"eventSourceUrl\": session.event_source_url,"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "text/event-stream endpoint'i ve id/event/retry çerçevelemesi yok.",
+    "Last-Event-ID ile devam ve outbox sırasına bağlı replay yok; Redis pub/sub geçicidir.",
+    "Heartbeat yorum satırı, X-Accel-Buffering ve proxy timeout ayarı yok.",
+    "SSE'ye özgü kimlik taşıma (cookie veya kısa ömürlü bilet) ve oda/izin denetimi yok.",
+    "SaaS API sözleşmesinde SSE tanımı ve seçilen tüketicide EventSource istemcisi yok.",
+    "SSE'yi gerektiren tüketici kararı yok."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "SSE'yi gerektiren somut tüketici (ör. WXT MV3 eklentisi) ve bu tüketicinin Socket.IO kullanamama gerekçesi",
+      "requirementIds": ["realtime-2"],
+      "blockedStep": "development.steps 1, 3 ve 6",
+      "interimDocStep": "Seçilmiş istemciler (web, Tauri2, WXT/MV3, PWA) için Socket.IO ve EventSource kısıt tablosunu belgede hazırla."
+    },
+    {
+      "decision": "SSE kimlik taşıma biçimi: mevcut oturum cookie'si mi, kısa ömürlü bilet mi ve biletin ömrü. Kimlik sağlayıcı seçimi bu birimin kapsamı dışındadır.",
+      "requirementIds": ["realtime-2"],
+      "blockedStep": "contract.input ve development.steps 3-4",
+      "interimDocStep": "İki seçeneğin CSRF, sızıntı ve yeniden bağlanma etkilerini karşılaştıran bir karar taslağı yaz."
+    },
+    {
+      "decision": "Heartbeat aralığı, retry değeri, proxy read timeout ve bağlantı üst süresi",
+      "requirementIds": ["realtime-2"],
+      "blockedStep": "development.steps 3 ve 5",
+      "interimDocStep": "Değerleri boş bırakan, Hüseyin Cengiz'e yönelik teknik devir şablonunu hazırla."
+    },
+    {
+      "decision": "Replay penceresi ve outbox olay saklama süresi",
+      "requirementIds": ["realtime-2"],
+      "blockedStep": "contract.failure sıfırlama sınırı ve tdd.oneScenario",
+      "interimDocStep": "Pencere dışı Last-Event-ID için sıfırlama olayının biçimini outbox--contract ile hizalı olarak belgele."
+    },
+    {
+      "decision": "Endpoint'in barındırılması: Frappe web worker içinde süre sınırıyla mı, yoksa mevcut realtime süreci yanında mı",
+      "requirementIds": ["realtime-2"],
+      "blockedStep": "development.steps 3 ve 5",
+      "interimDocStep": "Uzun süreli bağlantının worker kapasitesine etkisini ve kısıtları belgele."
+    },
+    {
+      "decision": "Tenant topolojisi: site namespace'inin tenant sınırıyla eşlenmesi",
+      "requirementIds": ["realtime-2"],
+      "blockedStep": "development.steps 4",
+      "interimDocStep": "Namespace süzme kuralını tenant-registry--contract'a referansla, değeri seçmeden yaz."
+    },
+    {
+      "decision": "Hedef Frappe sürümü (T-00)",
+      "requirementIds": ["realtime-2"],
+      "blockedStep": "development.admission",
+      "interimDocStep": "Bu sözleşmedeki kanıt satırlarını, hedef sürüm belirlendiğinde yeniden doğrulanacak liste olarak işaretle."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

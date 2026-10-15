@@ -1,0 +1,415 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "onboarding-checklist",
+  "canonicalTaskIds": [
+    "onboarding-checklist--implementation",
+    "ui-family-37--implementation"
+  ],
+  "requirementIds": ["crm-6", "support-2", "support-6"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "crm-6": "post_mvp",
+    "support-2": "post_mvp",
+    "support-6": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Sunucuda doğrulanan onboarding kontrol listesi, devam imleci ve bağlamsal yardım",
+    "trigger": "Kimliği doğrulanmış kullanıcı, kernel-envelope uyumlu Frappe whitelisted API ucu üzerinden bir onboarding adımını tamamlandı veya atlandı olarak işaretlemek ister ya da kurulum ekranına yeniden girer. Müşteri kontrol listesi ve yenileme müdahalesi için tetikleyiciler native Automation Flow 'Doc Created' ve 'Date Based' (gerekirse 'Field Value Changed') tetikleyicileridir.",
+    "expected": "Adım durumu yalnız native update_onboarding_step yolundan (can_update_step rol kapısı + throw_if_unfinished iş doğrulaması) yazılır. Başarılı yazmadan sonra kullanıcı/tenant kapsamlı devam imleci aynı istek işleminde güncellenir ve yeniden girişte aynı adımdan okunur. Bağlam anahtarı (route, doctype, stepId) için yardım referansı döner. Yeni müşteride şablondan tek kontrol listesi örneği, yenileme riski oluştuğunda (customer, renewal_period) anahtarlı tek müdahale görevi ve tek sorumlu ataması oluşur. Uygulama durumu: uygulanmadı.",
+    "denied": "Rol kapısını geçmeyen kullanıcının yazması PermissionError ile, işi bitmemiş Create Entry/Update Settings adımının tamamlanması doğrulama hatasıyla reddedilir; Onboarding Step bayrakları ve devam imleci değişmez. İstemcinin gönderdiği adım listesi (frappe.onboarding.update_user_onboarding_status) tamamlanma kanıtı sayılmaz. Aynı müşteri ve dönem için ikinci müdahale görevi, aynı müşteri ve şablon için ikinci checklist örneği oluşturulmaz."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native Frappe parçaları yeniden kullanılır; yeni motor, ORM veya CRUD katmanı yazılmaz. Kullanılacaklar: Module Onboarding ve Onboarding Step, desktop.update_onboarding_step (can_update_step + throw_if_unfinished), get_onboarding_steps okuması, Onboarding Step.is_done, Module Onboarding.required_steps_done, Form Tour rota eşlemesi, Automation Flow 'Doc Created'/'Date Based' tetikleyicileri, CreateDocument (frappe.new_doc) ve AssignToUser (assign_to.add) aksiyonları. Kanıtlar yalnız bu native parçaların varlığını gösterir; müşteri başına kontrol listesi, kullanıcı/tenant devam imleci, bağlam anahtarından yardım çözümlemesi, (customer, renewal_period) tekil müdahale görevi ve React/Ant Design yüzeyi kaynakta yoktur. Suite kaynağındaki is_onboarded bayrağı ve Vue/Frappe UI ilk kurulum kapısı React/Ant Design uygulaması kanıtı değildir. searchedPaths, önceki salt okunur kaynak anlık görüntüsünde bakılan yollardır; kapsamlı yokluk iddiası değildir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/automation/doctype/automation_flow/automation_flow.json",
+        "line": 89,
+        "quote": "\"options\": \"Doc Created"
+      },
+      {
+        "path": "frappe/frappe/automation_engine/scheduler.py",
+        "line": 214,
+        "quote": "if name in handled:"
+      },
+      {
+        "path": "frappe/frappe/automation_engine/actions/core.py",
+        "line": 123,
+        "quote": "target = frappe.new_doc(params[\"doctype\"])"
+      },
+      {
+        "path": "frappe/frappe/automation_engine/actions/core.py",
+        "line": 319,
+        "quote": "from frappe.desk.form.assign_to import add"
+      },
+      {
+        "path": "frappe/frappe/desk/form/assign_to.py",
+        "line": 74,
+        "quote": "if frappe.get_all(\"ToDo\", filters=filters):"
+      },
+      {
+        "path": "frappe/frappe/desk/doctype/module_onboarding/module_onboarding.py",
+        "line": 43,
+        "quote": "def required_steps_done(self) -> bool:"
+      },
+      {
+        "path": "frappe/frappe/desk/desktop.py",
+        "line": 712,
+        "quote": "def update_onboarding_step(name: str | int, field: str, value: int | str):"
+      },
+      {
+        "path": "frappe/frappe/desk/doctype/module_onboarding/module_onboarding.py",
+        "line": 158,
+        "quote": "Progress is shared by the whole site, so the gate is the onboarding's own role list: anyone"
+      },
+      {
+        "path": "frappe/frappe/desk/doctype/onboarding_step/onboarding_step.py",
+        "line": 159,
+        "quote": "def get_onboarding_steps(ob_steps: str | list):"
+      },
+      {
+        "path": "frappe/frappe/onboarding.py",
+        "line": 13,
+        "quote": "def update_user_onboarding_status(steps: str | list | dict, appName: str):"
+      },
+      {
+        "path": "frappe/frappe/desk/doctype/form_tour/form_tour.py",
+        "line": 114,
+        "quote": "ui_tours = frappe.get_all(\"Form Tour\", filters={\"ui_tour\": 1}, fields=[\"page_route\", \"name\"])"
+      },
+      {
+        "path": "suite/suite/api/account.py",
+        "line": 16,
+        "quote": "\"is_onboarded\": bool(frappe.db.get_single_value(\"Suite Settings\", \"is_onboarded\")),"
+      },
+      {
+        "path": "frappe/frappe/desk/desktop.py",
+        "line": 735,
+        "quote": "frappe.get_doc(\"Onboarding Step\", name).throw_if_unfinished()"
+      },
+      {
+        "path": "frappe/frappe/desk/desktop.py",
+        "line": 731,
+        "quote": "if not can_update_step(name):"
+      },
+      {
+        "path": "frappe/frappe/desk/doctype/onboarding_step/onboarding_step.py",
+        "line": 62,
+        "quote": "return bool(self.is_complete or self.is_skipped or self.is_work_done())"
+      },
+      {
+        "path": "frappe/frappe/onboarding.py",
+        "line": 21,
+        "quote": "onboarding_status[appName + \"_onboarding_status\"] = steps"
+      },
+      {
+        "path": "suite/suite/api/account.py",
+        "line": 30,
+        "quote": "frappe.db.set_single_value(\"Suite Settings\", \"is_onboarded\", 1)"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/automation/doctype/automation_flow/automation_flow.json",
+      "frappe/frappe/automation_engine/actions/core.py",
+      "frappe/frappe/automation_engine/scheduler.py",
+      "frappe/frappe/desk/desktop.py",
+      "frappe/frappe/desk/doctype/form_tour/form_tour.py",
+      "frappe/frappe/desk/doctype/module_onboarding/module_onboarding.py",
+      "frappe/frappe/desk/doctype/onboarding_step/onboarding_step.py",
+      "frappe/frappe/desk/form/assign_to.py",
+      "frappe/frappe/onboarding.py",
+      "suite/suite/api/account.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/onboarding-checklist.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/customer_success/doctype/onboarding_checklist/onboarding_checklist.py",
+      "frontend/packages/ui/src/components/ui-family-37/index.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Okuma: kernel-envelope içinde {onboarding: Module Onboarding adı, context: {route, doctype, stepId}}. Yazma: {step: Onboarding Step adı, field: 'is_complete' veya 'is_skipped', value: 0 veya 1}. Tenant kimliği istemciden alınmaz; oturum ve tenant-registry çözümünden gelir. Müşteri akışı: Automation Flow olay yükündeki müşteri kaynak kaydı adı. Yenileme akışı: müşteri, yenileme dönemi ve crm-5 risk çıktısı (karar bekliyor).",
+    "output": "Okuma: get_onboarding_steps biçiminde rol filtreli ve çevrilmiş adımlar, her adım için done durumu, devam imleci (currentStep) ve bağlamsal yardım referansı (Help Article adı, documentation URL veya Form Tour adı) JSON DTO olarak. DTO ReactNode veya callback taşımaz. Yazma: güncel adım durumu ve yeni imleç. Müşteri akışı: oluşan veya zaten var olan checklist örneği adı; müdahale görevi adı ve ToDo ataması.",
+    "authorization": "Native izin yolu yeniden kullanılır: can_update_step rol kapısı, DocType izinleri ve assign_to içindeki check_permission. ignore_permissions, ham SQL veya doğrudan bayrak yazımıyla yetki atlanmaz. Yeni DocType'ların rol/izinleri explicitPermissionFlags ortak kaynağından (policyRef) türetilir. Tenant kapsamı tenant-registry ve native-user-policy sözleşmeleriyle uygulanır. Suite mark_onboarded System Manager sınırı korunur ve bu akış onun yerine geçmez.",
+    "persistence": "Onboarding Step is_complete/is_skipped bayrakları native ve site geneli kalır; upstream DocType'lar değiştirilmez. Devam imleci (user, tenant, module_onboarding) tekil anahtarlı dar alan veya küçük DocType'ta tutulur. Checklist örneği (customer, template), müdahale görevi (customer, renewal_period) tekil kısıtı taşır. Yazmalar native Frappe istek işlemi içinde yapılır; olay yayını gerekirse outbox--contract üzerinden yapılır.",
+    "failure": "PermissionError: rol kapısı veya kayıt izni yok. Doğrulama hatası: throw_if_unfinished işi bitmemiş adımı reddeder. Tenant çözülemezse istek reddedilir. Tekil kısıt ihlalinde mevcut kayıt döner, ikinci kayıt açılmaz. Bağlam anahtarına eşleme yoksa yardım referansı boş döner, hata üretilmez. Her hata durumunda işlem geri alınır; adım bayrağı, imleç ve görev kayıtları değişmez."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "capability-definition--contract",
+      "client-rule-parity--contract",
+      "kernel-envelope--contract",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "native-web-page--contract",
+      "onboarding-checklist--contract",
+      "onboarding-checklist--schema",
+      "outbox--contract",
+      "tenant-registry--contract",
+      "ui-family-37--contract"
+    ],
+    "admission": {
+      "prerequisites": [
+        "T-00 target baseline",
+        "R-00 reuse mapping",
+        "R-01: izinli veri tüketicileri için",
+        "onboarding-checklist--contract ve onboarding-checklist--schema tamamlanmış olmalı",
+        "Gerçek RED/GREEN kanıtıyla tek dar davranış"
+      ],
+      "blockingDecisions": "decisionsPending içindeki ilgili karar kapanmadan o karara bağlı şema veya akış adımı başlatılmaz.",
+      "authority": "Bu sözleşme hiçbir servisi, production ortamını, şemayı veya veriyi değiştirme yetkisi vermez. Teknik CI, deploy ve rollback sahibi Hüseyin Cengiz'dir."
+    },
+    "steps": [
+      "Sözleşme (onboarding-checklist--contract): native yeniden kullanım kararı, bağlam anahtarı {route, doctype, stepId}, okuma/yazma DTO'ları ve hata kodları kernel-envelope biçiminde yazılır.",
+      "Şema (onboarding-checklist--schema): devam imleci, bağlam-yardım eşlemesi, checklist şablon/örnek ve müdahale DocType'ları ilgili kararlar kapandıkça ayrı ayrı tanımlanır. Rol/izinler explicitPermissionFlags ortak kaynağından türetilir; upstream DocType değiştirilmez.",
+      "Backend: planlanan onboarding_checklist.py altında iki dar whitelisted uç yazılır; yalnız get_onboarding_steps ve update_onboarding_step sarmalanır. ignore_permissions, ham SQL veya frappe.db.set_value ile adım bayrağı yazımı yapılmaz. hooks.py değişikliği ana entegrasyon sahibiyle seri olarak birleştirilir.",
+      "development.tdd içindeki tek dar davranış RED/GREEN ile uygulanır; diğer davranışların her biri sonradan ayrı RED/GREEN döngüsüyle gelir.",
+      "crm-6 Automation Flow kayıtları (Doc Created + CreateDocument; Date Based veya Field Value Changed + AssignToUser), müşteri kaynağı ve yenileme kararları kapandıktan sonra eklenir.",
+      "ui-family-37--implementation: React/Ant Design bileşeni planlanan ui-family-37 yolunda yazılır. frontend/packages/ui/src/registry.ts kaynak bileşen registry'sidir, GenUI capability registry değildir. Rota frontend/apps/web/src/routes.tsx içinde TanStack Router ile, veri TanStack Query ile alınır. Global UI kuralları uygulanır: Outfit, en az 14 CSS px metin, çevrelemeyen odak göstergesi, 320 CSS px öncelikli düzen ve hareket sözleşmesi. Tauri2/WXT paylaşımlı dosyaları yalnız gerekirse ve ana entegrasyon sahibiyle değişir.",
+      "CI kurulumu, deploy ve rollback Hüseyin Cengiz tarafından yürütülür. Bu davranış DNS veya GoDaddy değişikliği gerektirmez; ileride gerekirse GoDaddy tarafının uygulama sahibi Asistan Hüseyin'dir."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "support-6: Kullanıcı bir Module Onboarding akışında işi bitmemiş Create Entry adımını tamamlandı olarak işaretlemeye çalışır. İstek reddedilir; Onboarding Step is_complete bayrağı ve kullanıcının devam imleci değişmez, yeniden okumada imleç aynı adımı gösterir.",
+      "red": "Şema ve uç imzası hazırken yazma ucu native update_onboarding_step'i çağırır ama imleci kalıcılaştırmaz ve okumaz. Test, reddedilen yazmadan sonra kalıcı kayıttan aynı adımın dönmesini ve kayıt sayısının değişmemesini bekler; davranışsal assertion hatasıyla düşer. Import veya altyapı hatası RED sayılmaz; RED üretmek için native update_onboarding_step davranışı bozulmaz.",
+      "green": "Yazma ucu önce update_onboarding_step'i çağırır (can_update_step + throw_if_unfinished). Native çağrı hata fırlatırsa istek işlemi geri alınır ve imleç yazılmaz; başarılı olursa imleç aynı işlemde sonraki bitmemiş adıma ilerletilir. Okuma ucu imleci kalıcı kayıttan döndürür. ignore_permissions veya ham SQL kullanılmaz. Bu turda test yazılmaz ve koşulmaz."
+    },
+    "rollback": "Gelecekteki geri alma: whitelisted uçlar ve ek DocType'lar önceki sürüme dönülerek kaldırılır. Native Onboarding Step bayraklarına bu davranış dışında dokunulmadığı için native veri dönüşümü gerekmez. İmleç, checklist ve müdahale kayıtlarının silinmesi ayrı bir veri kararıdır, otomatik yapılmaz. Rollback'i Hüseyin Cengiz yürütür ve servis sonucunu doğrular."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "crm-6",
+      "sourceStage": "post_mvp",
+      "existing": "Native Automation Flow 'Doc Created' ve 'Date Based' tetikleyicileri var; Date Based zamanlayıcısı aynı gün işlenmiş kaydı atlar. CreateDocument aksiyonu frappe.new_doc ile kayıt oluşturur. AssignToUser assign_to.add ile atar ve aynı referans/kullanıcı için açık ToDo varsa yenisini açmaz. Module Onboarding required_steps_done ile adım tabanlı tamamlanma sunar, ancak site genelinde çalışır.",
+      "gap": "Kurulu kaynakta müşteri DocType'ı ve yeni müşteri olayı yok. Müşteri başına örneklenen kontrol listesi şablonu ve tamamlanma modeli yok. Yenileme tarihi/risk alanı ve crm-5 entegrasyonu yok. Müşteri+dönem anahtarlı kalıcı tekil müdahale görevi yok; mevcut tekrar önleme gün ve açık ToDo/kullanıcı kapsamlı. Bu kurallar için Automation Flow kaydı, API sözleşmesi ve React/Ant Design UI yok.",
+      "completionSteps": [
+        "Müşteri kaynak DocType kararı gelmeden şema yazılmaz; sözleşmede yalnız alan gereksinimleri belgelenir.",
+        "onboarding-checklist--schema: Customer Onboarding Template/Item ve müşteri başına checklist örneği DocType'ları tanımlanır. Örneğe (customer, template) tekil kısıtı konur; satırlar is_complete/is_skipped taşır, örnek zorunlu satırlar bitince tamamlanır (required_steps_done mantığına paralel).",
+        "Müdahale kaydı için (customer, renewal_period) tekil kısıtı tanımlanır; tekillik açık ToDo durumuna değil bu kısıta dayanır.",
+        "Automation Flow: müşteri DocType'ında 'Doc Created' tetikleyicisi CreateDocument ile checklist örneğini oluşturur. Tekil kısıt ihlalinde mevcut örnek korunur, ikinci örnek açılmaz.",
+        "Yenileme ve crm-5 kararı sonrası 'Date Based' veya 'Field Value Changed' akışı müdahale kaydını tekil anahtarla oluşturur ve AssignToUser ile tek sorumluya atar; atama native izin kontrolünden geçer.",
+        "Checklist ve müdahale okuma/yazma uçları kernel-envelope uyumlu whitelisted API olarak eklenir; ui-family-37 bu DTO'ları gösterir."
+      ],
+      "dependencies": [
+        "onboarding-checklist--contract",
+        "onboarding-checklist--schema",
+        "native-doctype-schema--contract",
+        "native-user-policy--contract",
+        "tenant-registry--contract",
+        "kernel-envelope--contract",
+        "outbox--contract",
+        "capability-definition--contract"
+      ],
+      "acceptance": "Gelecekteki kabul: yeni müşteri kaydında doğru şablondan tek checklist örneği açılır; olay tekrarlandığında ikinci örnek oluşmaz. Yenileme riski oluşunca aynı müşteri ve dönem için tek müdahale görevi ve tek sorumlu ataması oluşur; görev kapanıp akış yeniden tetiklense de aynı dönem için yeni görev açılmaz. İzni olmayan kullanıcının checklist satırı yazması reddedilir ve satır değişmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/automation/doctype/automation_flow/automation_flow.json",
+          "line": 89,
+          "quote": "\"options\": \"Doc Created"
+        },
+        {
+          "path": "frappe/frappe/automation_engine/scheduler.py",
+          "line": 214,
+          "quote": "if name in handled:"
+        },
+        {
+          "path": "frappe/frappe/automation_engine/actions/core.py",
+          "line": 123,
+          "quote": "target = frappe.new_doc(params[\"doctype\"])"
+        },
+        {
+          "path": "frappe/frappe/automation_engine/actions/core.py",
+          "line": 319,
+          "quote": "from frappe.desk.form.assign_to import add"
+        },
+        {
+          "path": "frappe/frappe/desk/form/assign_to.py",
+          "line": 74,
+          "quote": "if frappe.get_all(\"ToDo\", filters=filters):"
+        },
+        {
+          "path": "frappe/frappe/desk/doctype/module_onboarding/module_onboarding.py",
+          "line": 43,
+          "quote": "def required_steps_done(self) -> bool:"
+        }
+      ]
+    },
+    {
+      "requirementId": "support-2",
+      "sourceStage": "post_mvp",
+      "existing": "Module Onboarding/Onboarding Step adım modeli var (Create Entry, Update Settings, Show Form Tour, View Docs gibi eylemler; açıklama, video, path, route_options). Whitelisted update_onboarding_step yalnız is_complete/is_skipped yazar ve can_update_step rol kapısı uygular. get_onboarding_steps rol filtreli adımları döner. Form Tour page_route ile rota eşler. frappe.onboarding uygulama bazlı kullanıcı durumu tutar. Help Article/Help Category /kb portalında bilgi tabanı sunar.",
+      "gap": "Bağlam anahtarından (route, DocType, stepId) yardım içeriğine çözümleme yok; Help Article Onboarding Step/Form Tour ile bağlı değil. Module Onboarding ilerlemesi site geneli; kullanıcı ilerlemesi yalnız şemasız User.onboarding_status JSON'unda. Tenant bağı yok. Kernel-envelope uyumlu uç ve React/Ant Design bileşeni yok. Helpdesk KB kurulu değil, içerik kaynağı kararı yok.",
+      "completionSteps": [
+        "onboarding-checklist--contract: bağlam anahtarı biçimi {route, doctype, stepId} olarak kaydedilir; içerik kaynağı kararı beklenir; upstream DocType'lar değiştirilmez.",
+        "onboarding-checklist--schema: bağlam anahtarını yardım referansına (Help Article adı, DocType.documentation, documentation_url veya Form Tour adı) eşleyen tek dar eşleme tablosu tanımlanır; kayıt tenant kapsamını taşır.",
+        "Okuma ucu: get_onboarding_steps ve can_update_step çağrılarak adımlar ve bağlama eşlenen yardım referansı DTO olarak döner; kullanıcının okuyamadığı Help Article atlanır.",
+        "Yazma ucu yalnız update_onboarding_step'i çağırır; alan ve değer doğrulaması native kalır.",
+        "ui-family-37: React/Ant Design bileşeni adım listesini ve bağlamsal yardım panelini TanStack Query ile okur; yardım bağlantısı JSON DTO'dan gelir, ReactNode/callback bileşen içinde kalır."
+      ],
+      "dependencies": [
+        "onboarding-checklist--contract",
+        "onboarding-checklist--schema",
+        "kernel-envelope--contract",
+        "api-middleware--contract",
+        "native-web-page--contract",
+        "tenant-registry--contract",
+        "ui-family-37--contract",
+        "client-rule-parity--contract"
+      ],
+      "acceptance": "Gelecekteki kabul: yeni kullanıcı belirli bir route/DocType/adımda doğru yardım içeriğine ulaşır; tamamlanan adım saklanır ve yeniden okunduğunda tamamlanmış görünür. Rol kapısını geçmeyen kullanıcının adım yazması PermissionError ile reddedilir ve adım bayrağı değişmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/desk/desktop.py",
+          "line": 712,
+          "quote": "def update_onboarding_step(name: str | int, field: str, value: int | str):"
+        },
+        {
+          "path": "frappe/frappe/desk/doctype/module_onboarding/module_onboarding.py",
+          "line": 158,
+          "quote": "Progress is shared by the whole site, so the gate is the onboarding's own role list: anyone"
+        },
+        {
+          "path": "frappe/frappe/desk/doctype/onboarding_step/onboarding_step.py",
+          "line": 159,
+          "quote": "def get_onboarding_steps(ob_steps: str | list):"
+        },
+        {
+          "path": "frappe/frappe/onboarding.py",
+          "line": 13,
+          "quote": "def update_user_onboarding_status(steps: str | list | dict, appName: str):"
+        },
+        {
+          "path": "frappe/frappe/desk/doctype/form_tour/form_tour.py",
+          "line": 114,
+          "quote": "ui_tours = frappe.get_all(\"Form Tour\", filters={\"ui_tour\": 1}, fields=[\"page_route\", \"name\"])"
+        },
+        {
+          "path": "suite/suite/api/account.py",
+          "line": 16,
+          "quote": "\"is_onboarded\": bool(frappe.db.get_single_value(\"Suite Settings\", \"is_onboarded\")),"
+        }
+      ]
+    },
+    {
+      "requirementId": "support-6",
+      "sourceStage": "post_mvp",
+      "existing": "update_onboarding_step önce can_update_step, sonra is_complete için throw_if_unfinished çalıştırır. is_done tamamlanmış, atlanmış veya işi yapılmış adımı bitmiş sayar. İlerleme adım bayraklarında kalıcı olduğundan yeniden girişte tamamlanmış adımlar korunur. Suite kaynağında tekil is_onboarded bayrağı ve System Manager'a sınırlı mark_onboarded var; Vue router kapısı React/Ant Design kanıtı değildir.",
+      "gap": "Kullanıcı/tenant kapsamlı devam imleci yok; aynı adımdan devam yalnız bayraklardan dolaylı çıkarılabiliyor. update_user_onboarding_status istemci verisini sunucu doğrulaması olmadan User.onboarding_status'a yazdığı için tamamlanma kanıtı sayılmaz. Rota kimliğiyle eşleşen yardım modeli, tenant bağlı durum modeli, SaaS ürün adım seti ve React/Ant Design/X istemcisi için uç/DTO yok.",
+      "completionSteps": [
+        "onboarding-checklist--contract: Module Onboarding/Onboarding Step yeniden kullanımı ve update_user_onboarding_status'un tamamlanma kanıtı olarak kullanılmaması kaydedilir.",
+        "onboarding-checklist--schema: yalnız eksik devam imleci için (user, tenant, module_onboarding) tekil anahtarlı dar alan veya küçük DocType tanımlanır; current_step yalnız sunucu tarafından yazılır.",
+        "Okuma ucu: get_onboarding_steps sarmalanır, adımlar ve imleç döner; imleç yoksa ilk bitmemiş zorunlu adım is_done ile hesaplanır.",
+        "Yazma ucu update_onboarding_step'i çağırır; native çağrı başarılıysa imleç aynı işlemde ilerletilir, hata durumunda işlem geri alınır ve imleç değişmez.",
+        "Zorunlu adımlar bitince tamamlanma Module Onboarding required_steps_done ile sunucuda belirlenir; istemci tamamlanma bayrağı gönderemez.",
+        "ui-family-37 kurulum akışı imleçten devam eder; Suite is_onboarded kapısı bu akışın yerine geçmez ve değiştirilmez."
+      ],
+      "dependencies": [
+        "onboarding-checklist--contract",
+        "onboarding-checklist--schema",
+        "kernel-envelope--contract",
+        "tenant-registry--contract",
+        "native-user-policy--contract",
+        "native-doctype-schema--contract",
+        "client-rule-parity--contract",
+        "ui-family-37--contract"
+      ],
+      "acceptance": "Gelecekteki kabul: yarıda bırakılan kurulum yeniden girişte aynı adımdan sürer. İşi bitmemiş Create Entry adımının tamamlanması reddedilir; Onboarding Step bayrağı ve imleç değişmez. Tamamlanma sunucuda doğrulanır.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/desk/desktop.py",
+          "line": 735,
+          "quote": "frappe.get_doc(\"Onboarding Step\", name).throw_if_unfinished()"
+        },
+        {
+          "path": "frappe/frappe/desk/desktop.py",
+          "line": 731,
+          "quote": "if not can_update_step(name):"
+        },
+        {
+          "path": "frappe/frappe/desk/doctype/onboarding_step/onboarding_step.py",
+          "line": 62,
+          "quote": "return bool(self.is_complete or self.is_skipped or self.is_work_done())"
+        },
+        {
+          "path": "frappe/frappe/desk/doctype/module_onboarding/module_onboarding.py",
+          "line": 158,
+          "quote": "Progress is shared by the whole site, so the gate is the onboarding's own role list: anyone"
+        },
+        {
+          "path": "frappe/frappe/onboarding.py",
+          "line": 21,
+          "quote": "onboarding_status[appName + \"_onboarding_status\"] = steps"
+        },
+        {
+          "path": "suite/suite/api/account.py",
+          "line": 30,
+          "quote": "frappe.db.set_single_value(\"Suite Settings\", \"is_onboarded\", 1)"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Uygulama durumu: uygulanmadı. Bu dosya yalnız gelecekteki geliştirme rehberidir; ürün kodu, şema, test veya servis değişikliği içermez.",
+    "Müşteri başına checklist örneği, (customer, renewal_period) tekil müdahale görevi ve kullanıcı/tenant devam imleci için şema yok.",
+    "Bağlam anahtarından yardım içeriğine eşleme modeli yok.",
+    "Kernel-envelope uyumlu okuma/yazma uçları ve React/Ant Design ui-family-37 bileşeni yok.",
+    "Onboarding durumu ile tenant-registry arasında bağ yok.",
+    "Runtime kabulü not_run; hiçbir davranış çalışır durumda doğrulanmadı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Müşteri kaynak DocType'ı ve onu sağlayacak uygulama (Frappe CRM, ERPNext veya ürün içi DocType); seçim yapılmadı.",
+      "requirementIds": ["crm-6"],
+      "blocksStep": "Checklist şablon/örnek şeması ve 'Doc Created' Automation Flow kaydı.",
+      "allowedDocumentationStep": "(customer, template) tekil kısıtı ve satır tamamlanma alanlarını kaynak DocType'tan bağımsız olarak belgelemek."
+    },
+    {
+      "decision": "Yenileme dönemi tanımı, yenileme tarihi alanı, crm-5 risk çıktısının biçimi ve müdahale sorumlusunun belirlenme kuralı.",
+      "requirementIds": ["crm-6"],
+      "blocksStep": "Müdahale görevi şeması ve 'Date Based'/'Field Value Changed' akışı.",
+      "allowedDocumentationStep": "(customer, renewal_period) tekil anahtar biçimini ve tek sorumlu atama kabulünü belgelemek."
+    },
+    {
+      "decision": "Onboarding ilerleme kapsamı (kullanıcı mı tenant mı) ve tenant topolojisiyle bağı.",
+      "requirementIds": ["support-2", "support-6"],
+      "blocksStep": "Devam imleci şeması ve okuma/yazma uçlarının tenant çözümlemesi.",
+      "allowedDocumentationStep": "Her iki kapsam seçeneği için imleç DTO alanlarını ve tekil anahtar adaylarını belgelemek."
+    },
+    {
+      "decision": "Yardım içeriğinin kaynağı (Frappe Help Article, Helpdesk KB kurulumu veya başka kaynak).",
+      "requirementIds": ["support-2", "support-6"],
+      "blocksStep": "Bağlam-yardım eşleme tablosu şeması.",
+      "allowedDocumentationStep": "Bağlam anahtarı {route, doctype, stepId} biçimini ve boş eşleme davranışını belgelemek."
+    },
+    {
+      "decision": "SaaS ürününe ait onboarding adım seti ve içerik sahibi.",
+      "requirementIds": ["support-2", "support-6"],
+      "blocksStep": "Ürüne özgü Module Onboarding ve Onboarding Step kayıtlarının tanımı.",
+      "allowedDocumentationStep": "Adım eylem türlerini (Create Entry, Update Settings, Show Form Tour, View Docs) ve zorunlu/isteğe bağlı ayrımını belgelemek."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

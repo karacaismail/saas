@@ -1,0 +1,226 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "release-note",
+  "canonicalTaskIds": ["release-note--implementation"],
+  "requirementIds": ["content-5"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "content-5": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Neler yeni: hedef kullanıcıya yayınlanmış sürüm duyurusunu gösterme ve okundu işaretleme",
+    "trigger": "Oturum açmış kullanıcı React/Ant Design müşteri panelinde Neler yeni alanını açar ya da görünen bir duyuruyu okundu olarak işaretler.",
+    "expected": "Sunucu, native izin denetimiyle yalnız şu Release Note kayıtlarını döndürür: durumu Published olan, yayın tarihi gelmiş olan ve hedef kitlesi kullanıcının rolleriyle kesişen kayıtlar. Her kayda kullanıcının kendi okundu bilgisi eklenir. Okundu işaretleme, yalnız kullanıcının görebildiği bir kayıt için ve yalnız oturum kullanıcısı adına tek bir okundu kaydı oluşturur. Aynı kayıt için tekrar işaretleme yapılırsa ikinci bir kayıt oluşmaz.",
+    "denied": "Taslak, yayın tarihi gelmemiş veya rol kesişimi olmayan duyuru ne listede ne de tekil okumada döner. Böyle bir kayıt için okundu işaretleme izin hatasıyla reddedilir ve hiçbir okundu kaydı oluşmaz ya da değişmez. Başka bir kullanıcı adına okundu yazılamaz. Okuyucu rolü Release Note oluşturamaz, düzenleyemez ve yayınlayamaz."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native Frappe'de uygulama düzeyinde bir changelog var. get_change_log_for_app, kurulu uygulamanın change_log klasöründeki markdown dosyalarını okur. User.last_known_versions alanı kullanıcı başına sürüme dayalı görüldü durumunu tutar. sessions.py bootinfo.change_log değerini Desk'e taşır. desk.js diyalog kapanınca update_last_known_versions yöntemini çağırır. Güncelleme bildirimi yalnız System Manager rolündeki kullanıcılara gider. Bu parçalar geliştirici sürüm notu olarak olduğu gibi korunur. Release Note bunlara yazmaz ve onların yerini almaz. Bu parçalar kayıt düzeyinde yönetici duyurusu, hedef kitle filtresi, duyuru başına okundu kaydı veya React panel API'si sağlamaz. Release Note için yeniden kullanılacak olanlar native DocType izinleri, native liste izin denetimi, transaction ve save/hook akışıdır. ignore_permissions veya ham SQL ile yetki atlanmaz. Suite hooks.py dosyasındaki /api/ engeli native Suite kaynağına aittir; nasıl uygulandığı okunmadı ve saas_platform'da eşdeğer bir kural olduğu varsayılmaz. Kanıtlar tek tek native parçaları gösterir, bütün davranışın var olduğunu göstermez. Aranan yollar kapsamlı bir yokluk iddiası değildir. Alıntılar önceki salt okunur Frappe/Suite kaynak anlık görüntülerinden alınmıştır; canlı site veya ürün kabulü değildir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/utils/change_log.py",
+        "line": 64,
+        "quote": "change_log_folder = os.path.join(frappe.get_app_path(app), \"change_log\")"
+      },
+      {
+        "path": "frappe/frappe/utils/change_log.py",
+        "line": 26,
+        "quote": "json.loads(frappe.db.get_value(\"User\", user, \"last_known_versions\") or \"{}\")"
+      },
+      {
+        "path": "frappe/frappe/sessions.py",
+        "line": 190,
+        "quote": "bootinfo[\"change_log\"] = get_change_log()"
+      },
+      {
+        "path": "frappe/frappe/public/js/frappe/desk.js",
+        "line": 529,
+        "quote": "method: \"frappe.utils.change_log.update_last_known_versions\","
+      },
+      {
+        "path": "frappe/frappe/utils/change_log.py",
+        "line": 366,
+        "quote": "system_managers = [user for user in user_list if \"System Manager\" in frappe.get_roles(user)]"
+      },
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 466,
+        "quote": "\"/api/\","
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/public/js/frappe/desk.js",
+      "frappe/frappe/sessions.py",
+      "frappe/frappe/utils/change_log.py",
+      "suite/suite/hooks.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/release-note.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/content_growth/doctype/release_note/release_note.py"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Liste: kullanıcı kimliği istemciden alınmaz, sunucu tarafında oturum kullanıcısı kullanılır. İsteğe bağlı sayfalama ve yalnız okunmamışlar filtresi alınır. Okundu işaretleme: tek bir Release Note adı alınır. Tenant ve plan hedeflemesi, ilgili karar kapanana kadar girdi değildir. Yöntem yolları ve parametre adları release-note--contract içinde sabitlenir; bu rehber onları uydurmaz.",
+    "output": "Liste: her kayıt için ad, başlık, temizlenmiş gövde, yayın tarihi ve okundu bilgisi; ayrıca okunmamış sayısı. Okundu işaretleme: kayıt adı ve okundu bilgisi döner, işlem idempotenttir. Çıktı yalnız JSON veri modelidir. ReactNode ve callback'ler yerel React bileşeninde üretilir; sunucudan bileşen veya kod gelmez. Gövde HTML/markdown olarak gösterilmeden önce temizlenir; temizleme mekanizması release-note--contract içinde belirlenir.",
+    "authorization": "Okuma izni sunucuda native DocType izni ve rol kesişimi filtresiyle uygulanır. Filtre, native liste izin denetiminin içinde çalışır; hangi native mekanizmanın kullanılacağı release-note--schema içinde sabitlenir. İstemci filtresine güvenilmez. Rol ve izin tanımları ortak explicitPermissionFlags kaynağına bağlanır; bu rehber yeni bir bayrak tanımlamaz. Oluşturma ve yayınlama yalnız native izni olan yönetici rolüne açıktır. Okundu kaydı yalnız oturum kullanıcısı adına ve yalnız görünen kayıt için yazılır. Okuma uçları saas_platform hooks.py dosyasındaki izinli yol listesine açıkça eklenir; geniş joker izin verilmez. ignore_permissions veya ham SQL kullanılmaz.",
+    "persistence": "Release Note DocType alanları: başlık, gövde, durum (Draft/Published), yayın tarihi ve hedef roller. Tenant ve plan alanları karar bekler. Okundu kaydı duyuru başına ve kullanıcı başına tutulur; release_note ile user çifti tekildir. Modeli karar bekler. Yazımlar native insert/save ve transaction ile yapılır. Yayınlama ve okundu olayları audit-envelope ve outbox sözleşmelerinin zarfıyla kaydedilir. User.last_known_versions alanına ve change_log markdown dosyalarına yazılmaz.",
+    "failure": "Görünmeyen veya var olmayan bir kayıt için okundu isteği aynı genel izin/bulunamadı yanıtını alır; kaydın var olup olmadığı açığa çıkmaz ve hiçbir yazım yapılmaz. Geçersiz durum geçişi native doğrulama hatası döndürür. Transaction hatasında kısmi okundu kaydı geri alınır. Panel yükleme hatasında boş liste veya uydurma okunmamış sayısı yerine hata durumu gösterilir."
+  },
+  "development": {
+    "dependencies": [
+      "audit-envelope--contract",
+      "capability-definition--contract",
+      "kernel-envelope--contract",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "outbox--contract",
+      "release-note--contract",
+      "release-note--schema"
+    ],
+    "admission": {
+      "status": "NOT_ADMITTED",
+      "implementationNote": "Uygulama durumu: uygulanmadı",
+      "prerequisites": [
+        "T-00 hedef sürüm tabanı ve R-00 yeniden kullanım eşlemesi",
+        "İzinli veri tüketicisi olduğu için R-01",
+        "release-note--contract ve release-note--schema görevlerinin kabul edilmiş olması",
+        "kernel-envelope, audit-envelope, outbox, capability-definition, native-doctype-schema ve native-user-policy sözleşmelerinin kabul edilmiş olması",
+        "decisionsPending içindeki okundu modeli kararının kapanması"
+      ],
+      "rule": "Tek dar davranış uygulanır ve gerçek RED/GREEN kanıtı istenir. Sırayı mevcut görev bağımlılıkları ve aşama belirler; küme sırası yalnız sunumdur, yeni bir seri bağımlılık zinciri değildir."
+    },
+    "steps": [
+      "release-note--contract: alanlar, durumlar, hedef kitle ve uç girdi/çıktısı sabitlenir. Upstream change_log, ayrı bir geliştirici sürüm notu kanalı olarak kalır.",
+      "release-note--schema: DocType ve native permission kuralları tanımlanır. Liste filtresi Published durumu, gelmiş yayın tarihi ve rol kesişimi koşullarını native izin denetimi içinde uygular.",
+      "release-note--implementation: liste ve okundu işaretleme uçları whitelist yöntem olarak eklenir ve saas_platform hooks.py izinli yol listesine yazılır. Okundu işaretleme, yazmadan önce aynı görünürlük denetimini yeniden kullanır.",
+      "Yayınlama ve okundu olayları audit ve outbox zarflarıyla bağlanır; zarf alanları ilgili sözleşmelerden alınır.",
+      "React paneli: routes.tsx içinde bir route eklenir; veri TanStack Query ile alınır ve markalı Ant Design liste ile rozetle gösterilir. Semantik tokenlar, en az 14 CSS px metin, çevrelemeyen odak göstergesi ve merkezi hareket tokenları kullanılır. Tasarım 320 CSS px'ten başlar. Tauri ve WXT kabukları aynı API istemcisini kullanır; ayrı bir backend yoktur. Bu panel deterministik bir bileşendir; GenUI capability registry'ye eklenmez ve kaynak registry'den ayrı tutulur."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Okuyucu rolündeki kullanıcı Neler yeni listesini ister. Sistemde üç kayıt vardır: hedef rolü eşleşen bir Published duyuru, bir Draft duyuru ve başka bir role kısıtlı bir Published duyuru. Yalnız ilk kayıt döner.",
+      "red": "DocType ve liste ucu varken görünürlük filtresi henüz eklenmemiştir; yanıtta Draft ve kısıtlı kayıt da bulunur. Test bu iki kaydın yokluğunu doğruladığı için assertion hatasıyla başarısız olur. Import hatası, eksik altyapı veya native izin davranışını bozmak RED sayılmaz.",
+      "green": "Filtre native liste izin denetiminin içine eklenir ve yalnız ilk kayıt döner. Native izin davranışı ve diğer DocType davranışları değişmez. Bu turda test yazılmaz ve koşulmaz."
+    },
+    "rollback": "Bu sözleşme yalnız belgedir; geri alınması, belge değişikliğinin geri alınması demektir. Gelecekteki uygulamada sıra şöyledir: önce panel route'u kaldırılır, sonra okuma uçları izinli yol listesinden çıkarılır. DocType geri alımı ve veri koruma, Hüseyin Cengiz'in teknik deploy/rollback sürecinde planlanır. Veri silmek için ayrıca açık onay gerekir. Bu sözleşme hiçbir servisi, production ortamını, şemayı veya veriyi değiştirme yetkisi vermez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "content-5",
+      "sourceStage": "post_mvp",
+      "existing": "Native parçalar: uygulama düzeyinde markdown changelog okuma, User.last_known_versions ile kullanıcı başına sürüm bazlı görüldü durumu, bootinfo üzerinden Desk diyaloğu ve kapanınca sürümün güncellenmesi, yalnız System Manager rolüne giden güncelleme bildirimi. Bunlar geliştirici sürüm notu olarak kalır. Girdi gerekçesi announcement_widget ve Notification Log parçalarından da söz eder; ancak bu sözleşmede doğrulanmış alıntıları yoktur, bu yüzden aday olarak kabul edilir ve doğrulanmaları gerekir. Suite Vue kaynağında changelog bulunmaması, React/Ant Design uygulaması için bir kanıt değildir.",
+      "gap": "Eksikler: (1) Taslak/yayınlandı durumu, yayın tarihi ve hedef kitlesi olan, kayıt düzeyinde bir duyuru DocType'ı yok. (2) Taslak ve kısıtlı duyuruyu gizleyen sunucu filtresi yok. (3) Duyuru başına okundu kaydı yok. (4) React/Ant Design paneli için okuma ve okundu API sözleşmesi yok. (5) Uçlar için izinli yol kaydı yok. (6) Tenant/plan hedeflemesi ve kernel/audit/outbox entegrasyonu yok.",
+      "completionSteps": [
+        "Release Note alanlarını ve Draft'tan Published'a geçiş kuralını release-note--contract içinde sabitle.",
+        "Hedef rol alanını ve native permission kurallarını release-note--schema içinde tanımla; görünürlük filtresini native liste izin denetiminin içine koy.",
+        "Liste ucunu oturum kullanıcısına bağla ve her kayda okundu bilgisini ekle.",
+        "Okundu ucu yazmadan önce görünürlüğü native denetimle doğrulasın; release_note ile user çifti tekil olsun ve işlem idempotent kalsın.",
+        "Uçları saas_platform hooks.py izinli yol listesine tek tek ekle.",
+        "Yayınlama ve okundu olaylarını audit/outbox zarflarına bağla.",
+        "React panel route'unu ekle; liste ile okunmamış rozetini markalı Ant Design bileşenleriyle oluştur ve hata durumunu açıkça göster."
+      ],
+      "dependencies": [
+        "release-note--contract",
+        "release-note--schema",
+        "kernel-envelope--contract",
+        "native-user-policy--contract",
+        "capability-definition--contract",
+        "native-doctype-schema--contract",
+        "outbox--contract",
+        "audit-envelope--contract"
+      ],
+      "acceptance": "Yayınlanmış ve hedef rolü eşleşen duyuru hedef kullanıcının panelinde görünür. Taslak ve erişimi kısıtlı duyuru, listede ve tekil okumada gizli kalır. Görünmeyen bir duyuru için okundu yazımı reddedilir ve okundu kayıtları değişmez. Okuyucu rolünün Release Note yazma denemesi reddedilir. Bu kabul henüz koşulmadı.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/utils/change_log.py",
+          "line": 64,
+          "quote": "change_log_folder = os.path.join(frappe.get_app_path(app), \"change_log\")"
+        },
+        {
+          "path": "frappe/frappe/utils/change_log.py",
+          "line": 26,
+          "quote": "json.loads(frappe.db.get_value(\"User\", user, \"last_known_versions\") or \"{}\")"
+        },
+        {
+          "path": "frappe/frappe/sessions.py",
+          "line": 190,
+          "quote": "bootinfo[\"change_log\"] = get_change_log()"
+        },
+        {
+          "path": "frappe/frappe/public/js/frappe/desk.js",
+          "line": 529,
+          "quote": "method: \"frappe.utils.change_log.update_last_known_versions\","
+        },
+        {
+          "path": "frappe/frappe/utils/change_log.py",
+          "line": 366,
+          "quote": "system_managers = [user for user in user_list if \"System Manager\" in frappe.get_roles(user)]"
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 466,
+          "quote": "\"/api/\","
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Release Note DocType'ı ve native permission kuralları yok.",
+    "Taslak ve kısıtlı duyuruyu gizleyen sunucu filtresi yok.",
+    "Duyuru başına okundu kaydı yok; modeli karar bekliyor.",
+    "React panel için okuma ve okundu uçları ile izinli yol kaydı yok.",
+    "Suite'teki /api/ engelinin nasıl uygulandığı ve saas_platform'da eşdeğer bir kural olup olmadığı doğrulanmadı.",
+    "Tenant/plan hedeflemesi ile audit/outbox zarf entegrasyonu yok.",
+    "Uygulama yapılmadı; runtime kabulü koşulmadı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Tenant topolojisi ve tenant/plan hedeflemesinin kapsamı",
+      "requirementIds": ["content-5"],
+      "blocksStep": "Tenant/plan alanları ve bunlara göre görünürlük filtresi",
+      "documentStepUntilDecided": "Rol bazlı hedeflemeyi belgeleyin; tenant ve plan alanlarını sözleşmede karar bekler olarak işaretleyin."
+    },
+    {
+      "decision": "Okundu modeli: ayrı bir okundu DocType'ı mı, Notification Log'un yeniden kullanımı mı",
+      "requirementIds": ["content-5"],
+      "blocksStep": "Okundu kalıcılık şeması ve okundu ucu",
+      "documentStepUntilDecided": "Her iki seçenek için tekillik, izin ve oturum kullanıcısı kısıtlarını belgeleyin; seçim yapmayın."
+    },
+    {
+      "decision": "Okundu kayıtları ve yayından kaldırılan duyurular için saklama süresi",
+      "requirementIds": ["content-5"],
+      "blocksStep": "Arşivleme ve temizlik adımı",
+      "documentStepUntilDecided": "Saklama süresini açık bırakın; otomatik silme tanımlamayın."
+    },
+    {
+      "decision": "Hedef Frappe sürümü: kanıtlar v17 dev anlık görüntüsünden, kaynak bağlantısı ise version-15'ten",
+      "requirementIds": ["content-5"],
+      "blocksStep": "Native API uyumunun T-00 tabanında doğrulanması",
+      "documentStepUntilDecided": "Sözleşmeyi sürümden bağımsız native kavramlarla yazın; sürüme bağlı yöntem adlarını doğrulanmamış olarak işaretleyin."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

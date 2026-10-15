@@ -1,0 +1,230 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "ui-theme",
+  "canonicalTaskIds": ["ui-theme--implementation"],
+  "requirementIds": ["shell-5", "shell-8"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "shell-5": "post_mvp",
+    "shell-8": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Sunucu tarafında doğrulanmış host'a göre tenant markasının semantik tema tokenlarına eşlenip yönetim paneli ve frontpage'e uygulanması",
+    "trigger": "React istemcisi (Vite/PWA web, Tauri2, WXT/MV3) açılırken, login öncesi de dahil, tek genel marka okuma isteği gönderir. Ayrıca yetkili bir kullanıcı tenant marka ayarını kaydeder.",
+    "expected": "Sunucu, tenant kimliğini yalnız doğrulanmış host'tan türetir ve sadece allowlist'teki marka alanlarını döndürür. İstemci bu değerleri sabit bir semantik token şeması üzerinden Ant Design ConfigProvider'a eşler. Ant Design Pro, X ve X Cards yüzeyleri aynı sağlayıcıyı kullanır. Tema her kontrol durumuna uygulanır (hover, active, focus-visible, disabled, selected, invalid). Kontrast WCAG 2.2 AA düzeyinde kalır, metin en az 14 CSS px olur, font listesi Outfit ile başlar, hareket easeInOut Cubic tokenlarıyla yapılır ve klavye odağı çevrelemeyen tek bir göstergeyle görünür kalır.",
+    "denied": "Hatalı veya eşlenmemiş bir host başka bir tenant'ın logosunu, adını, rengini veya özel verisini almaz. İstemcinin gönderdiği tenant/site parametresine güvenilmez. Yetkisiz kullanıcının marka kaydı Frappe'nin native izin kontrolüyle reddedilir ve kayıt değişmeden kalır. Kontrast veya minimum metin kuralını bozan bir renk kaydı doğrulama aşamasında reddedilir."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Kaynakta yalnız parçalar var. Frappe Desk'te kullanıcıya ait bir tema değiştirici (ThemeSwitcher) bulunuyor; bu bir Desk yüzeyidir ve React istemcide kullanılmaz. Frappe hooks.py dosyası uygulama düzeyinde varsayılan bir logo tanımlıyor; bu tenant'a özgü değildir. Suite'in Vue/frappe-ui istemcisi çalışma alanı adını ve logosunu bir boot global'inden veya get_workspace çağrısından alıyor. Bu Vue kaynağı React/Ant Design uygulamasının kanıtı değildir. get_workspace'in yetki davranışı da görülmediği için R-00 eşlemesinde doğrulanmadan yeniden kullanılmaz. Semantik token şeması, host doğrulaması ve tenant marka depolaması için kanıt yok.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/patches/v13_0/add_switch_theme_to_navbar_settings.py",
+        "line": 18,
+        "quote": "\"action\": \"new frappe.ui.ThemeSwitcher().show()\","
+      },
+      {
+        "path": "suite/frontend/src/shell/useWorkspace.ts",
+        "line": 12,
+        "quote": "const workspaceLogo = ref(window.suite_workspace_logo ?? '')"
+      },
+      {
+        "path": "suite/frontend/src/shell/useWorkspace.ts",
+        "line": 25,
+        "quote": "createResource({ url: 'suite.api.account.get_workspace', auto: true, onSuccess: setWorkspace })"
+      },
+      {
+        "path": "frappe/frappe/hooks.py",
+        "line": 10,
+        "quote": "app_logo_url = \"/assets/frappe/images/frappe-framework-logo.svg\""
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/hooks.py",
+      "frappe/frappe/patches/v13_0/add_switch_theme_to_navbar_settings.py",
+      "suite/frontend/src/shell/useWorkspace.ts"
+    ],
+    "searchScopeNote": "Arama yalnız bu yollarla sınırlı. Bulunmayan bir parça, kaynakta hiç olmadığı anlamına gelmez; bu kapsamlı bir yokluk iddiası değildir."
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/ui-theme.json",
+    "plannedProduction": [
+      "frontend/packages/ui/src/components/ui-theme/index.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": {
+      "brandRead": "Tenant kimliği yalnız sunucunun doğruladığı host'tan gelir. İstemcinin gönderdiği tenant/site parametresi, başlığı veya gövde alanı yok sayılır. Tauri2 ve WXT kabukları yapılandırılmış site taban URL'sine istek atar; doğrulama yine sunucuda yapılır. Eklenti bağlamındaki tarayıcı origin'ine güvenilmez.",
+      "brandWrite": "Önerilen allowlist alanları şunlardır: görünen marka adı, logo dosya referansı, birincil renk, vurgu rengi ve token şema sürümü. Kesin alan listesi depolama kararıyla birlikte netleşir."
+    },
+    "output": {
+      "brandRead": "Yalnız allowlist'teki genel alanlar döner: marka adı, logo URL'si, renk rolleri ve token şema sürümü. Yanıt kernel-envelope--contract zarfına uyar. Kullanıcı, rol, e-posta veya tenant'a ait başka bir özel veri döndürülmez.",
+      "clientTheme": "TenantTheme yerel bir React bileşenidir: ConfigProvider theme (token/components/algorithm) üzerinden semantik tokenları uygular. Tema; ReactNode ve callback'ler gibi yerel bir sınırdır. GenUI JSON model sınırına veya GenUI capability registry'ye tema değiştirme yeteneği olarak eklenmez. frontend/packages/ui/src/registry.ts dosyası kaynak bileşen registry'si olarak kalır."
+    },
+    "authorization": "Okuma ucu herkese açıktır, ancak yalnız allowlist alanlarını döndürür. Yazma işlemi native DocType izinleri ve native save akışı üzerinden yapılır. Marka ayarını değiştirebilecek rol, explicitPermissionFlags ortak kaynağına bağlanır; bu sözleşme yeni bir rol veya izin bayrağı tanımlamaz. ignore_permissions, SQL ile yazma veya izin atlatma yasaktır.",
+    "persistence": "Depolama yeri (Single ya da DocType) karar bekliyor. Karar verilse bile yazma işlemi native validate/save/transaction ile yapılır ve logo native File kaydı olarak tutulur. Bu sözleşme hiçbir şema, veri veya servis değişikliğine yetki vermez.",
+    "failure": "Eşlenmemiş host için, katman kararına göre ya site bulunamadı yanıtı ya da nötr varsayılan marka döner; iki durumda da başka bir tenant'ın verisi dönmez. Kontrast kuralını ihlal eden renk doğrulama hatasıyla reddedilir ve kayıt değişmez. Ağ hatasında nötr varsayılan tokenlar kullanılır; önceki host'un önbellekteki markası gösterilmez."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "client-rule-parity--contract",
+      "kernel-envelope--contract",
+      "ui-theme--contract"
+    ],
+    "admission": {
+      "statement": "Uygulama durumu: uygulanmadı. Bu birim kabul edilmedi ve üretim kiralaması yok.",
+      "prerequisites": [
+        "T-00 hedef taban çizgisi; hedef sürümler karar bekliyor.",
+        "R-00 yeniden kullanım eşlemesi; get_workspace'in yetki davranışı burada doğrulanır.",
+        "R-01, marka yazan izinli veri tüketicileri için gereklidir.",
+        "Listelenen dört sözleşme bağımlılığı.",
+        "decisionsPending listesindeki host doğrulama katmanı ve depolama kararları."
+      ],
+      "rule": "Gerçek RED/GREEN kanıtıyla tek ve dar bir davranış uygulanır. Kapsam koşullu olduğundan ürün kararı gelmeden başlanmaz."
+    },
+    "steps": [
+      "Semantik token şeması belgesini ve ConfigProvider eşleme tablosunu yazın (shell-5).",
+      "Kalıcı UI kurallarını kabul ölçütüne bağlayın: çevreleyen odak halkası yasağı, 14 CSS px, Outfit, easeInOut ve reduced-motion.",
+      "Host doğrulama kararı geldikten sonra tek genel marka okuma ucunun allowlist'ini ve hatalı host senaryosunu yazın (shell-8).",
+      "Depolama kararı geldikten sonra native izinle yazmayı, kontrast doğrulamasını ve reddedilen yazma senaryosunu yazın.",
+      "İstemci önbellek anahtarlarını site/origin'e bağlayan kuralı yazın.",
+      "Tek davranış için RED, ardından GREEN; tarayıcı ve viewport matrisi gelecekteki kabulde ayrıca raporlanır."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Hatalı/eşlenmemiş host ile yapılan marka okuma isteği, A tenant'ının logosunu, adını veya renklerini döndürmez.",
+      "red": "İki tenant'lı test ortamında marka okuma ilk olarak host doğrulanmadan varsayılan siteden yapılır. Eşlenmemiş host ile istek atıldığında yanıtta A'nın logo URL'si ve adı bulunur. Test bunların bulunmamasını beklediği için davranış nedeniyle başarısız olur; import veya altyapı hatası RED sayılmaz.",
+      "green": "Sunucu tarafında host'tan site'e doğrulama eklenir. Eşlenmemiş host tenant verisi taşımayan tanımlı sonucu alır; meşru A host'u yalnız A'nın allowlist alanlarını alır; A'nın kaydı değişmez. Native izin ve kayıt davranışı bozulmaz."
+    },
+    "rollback": "Gelecekte TenantTheme sağlayıcısı kaldırılırsa istemci nötr varsayılan tokenlara döner; marka kayıtları silinmez. Şema veya veri geri alma, deploy ve rollback işlerinin teknik sahibi Hüseyin Cengiz'dir. Bu sözleşme rollback yetkisi vermez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "shell-5",
+      "sourceStage": "post_mvp",
+      "existing": "Frappe'de Desk'e ait kullanıcı tema değiştirici (native) var. Suite'te Vue tabanlı çalışma alanı logosu var. İkisi de headless bir tema motoru değil ve React/AntD uygulamasını kanıtlamaz.",
+      "gap": "Semantik token şeması ve ConfigProvider eşlemesi yok. Tenant marka depolama yeri ve markayı kimin değiştirebileceği tanımsız. Odak, 14 CSS px, Outfit ve hareket kuralları kabul ölçütünde yer almıyor. Yönetim paneli ile frontpage arasındaki token sınırı tanımlı değil.",
+      "completionSteps": [
+        "Token şemasını yazın. Renk rolleri: yüzey katmanları, metin, birincil, vurgu, tehlike, işlevsel kenarlık. Tipografi: font listesi Outfit ile başlar. Boşluk, köşe yarıçapı ve gölge tokenları ekleyin. Görünür kontrol boyutu ile dokunma alanını ayrı token yapın. Her durum için ayrı tokenlar tanımlayın: hover, active, focus-visible, disabled, selected, invalid.",
+        "Eşleme tablosunu yazın: her semantik token, ConfigProvider theme.token veya components alanına eşlenir. AntD'nin varsayılan değerinden 14 px'in altında kalan fontSizeSM gibi tokenları en az 14 CSS px'e çekin. Bileşenlerde sabit değer kullanılmaz.",
+        "Hareket: motion* süre ve ease tokenlarının tümünü cubic-bezier(.65, 0, .35, 1) değerine ve iki yönde pozitif sürelere bağlayın. prefers-reduced-motion istisnasını yazın.",
+        "Odak: AntD'nin çevreleyen focus outline veya box-shadow davranışını ortak token kaynağında kaldırın, yerine çevrelemeyen tek bir gösterge koyun. Klavye odağı görünmez kalmamalıdır.",
+        "Sınır: marka renkleri, font, hareket ve odak iki yüzeyde ortak olur. Yoğunluk (comfortable/compact/dense) yalnız yönetim panelinde, sayfa düzeni tokenları yalnız frontpage'de kullanılır. Frontpage token seti kapsam kararına kadar taslak kalır.",
+        "Tenant renkleri kaydedilirken WCAG 2.2 AA kontrolü yapılır: metin için 4.5:1, kontrol ve odak göstergesi için 3:1. İhlal durumunda kayıt reddedilir ve kayıt değişmez.",
+        "Marka yazma yetkisini explicitPermissionFlags ortak kaynağına bağlayın. Yetkisiz yazmanın reddedildiği ve kaydın değişmediği senaryoyu kabul ölçütüne ekleyin."
+      ],
+      "dependencies": [
+        "ui-theme--contract",
+        "client-rule-parity--contract",
+        "kernel-envelope--contract"
+      ],
+      "acceptance": "Tema değişimi AntD, Pro, X ve X Cards kontrollerinin her durumuna uygulanır. Kontrast AA düzeyindedir. Hesaplanan bütün metinler en az 14 CSS px'tir. Klavyeyle gezinirken (Tab ve Shift+Tab) odak çevrelemeyen bir göstergeyle görünür. Çevreleyen halka veya görünmez odak, FAIL sayılır. Hareket tokenları ve reduced-motion uygulanır. Kontrol 320, 360, 375, 390 px, tablet ve masaüstünde, Chromium, Firefox ve WebKit'te yapılır. Yetkisiz marka yazma reddedilir ve kayıt değişmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/patches/v13_0/add_switch_theme_to_navbar_settings.py",
+          "line": 18,
+          "quote": "\"action\": \"new frappe.ui.ThemeSwitcher().show()\","
+        },
+        {
+          "path": "suite/frontend/src/shell/useWorkspace.ts",
+          "line": 12,
+          "quote": "const workspaceLogo = ref(window.suite_workspace_logo ?? '')"
+        }
+      ]
+    },
+    {
+      "requirementId": "shell-8",
+      "sourceStage": "post_mvp",
+      "existing": "Suite'in Vue istemcisi çalışma alanı adını ve logosunu boot global'inden veya get_workspace çağrısından okuyor. Frappe uygulama düzeyinde varsayılan bir logo tanımlıyor. Bunlar tenant'a özgü, host'a bağlı bir React marka akışı değil.",
+      "gap": "Host doğrulama sözleşmesi yok. Marka token şeması ve markanın kaynağı tanımsız. Login öncesi ve sonrası marka ayrımı ile önbelleğin host'a bağlanması belirsiz. get_workspace'in yetki davranışı bilinmiyor. Tenant renkleri için kontrast ve metin boyutu kabulü yok.",
+      "completionSteps": [
+        "Kural: tenant kimliği yalnız sunucuda doğrulanan host'tan türetilir. Hangi katmanda doğrulanacağı karar bekliyor; karar gelene kadar bu kural katmandan bağımsız bir değişmez olarak yazılır.",
+        "Tek bir genel marka okuma ucu tanımlayın: yanıt yalnız allowlist alanlarını içerir ve kernel-envelope--contract zarfını kullanır. Ara katman davranışı api-middleware--contract'a bağlanır. get_workspace, R-00'da yetki davranışı doğrulanmadan yeniden kullanılmaz.",
+        "Login öncesi yalnız genel allowlist döner. Login sonrası ek marka verisi bu birimin kapsamı dışındadır.",
+        "TanStack Query anahtarı ve PWA service worker önbelleği site/origin'e bağlanır. Logout, host veya site değişiminde marka önbelleği temizlenir.",
+        "Tauri2 ve WXT kabukları yapılandırılmış site URL'sini kullanır; doğrulama sunucuda yapılır.",
+        "Marka değerleri shell-5 token şemasına ve shell-10'un semantik tokenlarına eşlenir. shell-10 bu birimin kapsamına alınmaz; kontrast kontrolü shell-5'teki doğrulamayı yeniden kullanır.",
+        "Özel alan adı gerekirse: DNS gereksinimini Hüseyin Cengiz hazırlar, GoDaddy'de Asistan Hüseyin uygular, sonucu Hüseyin Cengiz doğrular. Bu sözleşme DNS değişikliğine yetki vermez."
+      ],
+      "dependencies": [
+        "ui-theme--contract",
+        "api-middleware--contract",
+        "kernel-envelope--contract"
+      ],
+      "acceptance": "Hatalı veya eşlenmemiş host başka bir tenant'ın logosunu, adını, rengini veya özel verisini görmez. İstemcinin gönderdiği tenant parametresi sonucu değiştirmez. Host değiştiğinde önbellekteki önceki marka gösterilmez. Tenant renkleri kontrast ve 14 CSS px kurallarına uyar.",
+      "evidence": [
+        {
+          "path": "suite/frontend/src/shell/useWorkspace.ts",
+          "line": 12,
+          "quote": "const workspaceLogo = ref(window.suite_workspace_logo ?? '')"
+        },
+        {
+          "path": "suite/frontend/src/shell/useWorkspace.ts",
+          "line": 25,
+          "quote": "createResource({ url: 'suite.api.account.get_workspace', auto: true, onSuccess: setWorkspace })"
+        },
+        {
+          "path": "frappe/frappe/hooks.py",
+          "line": 10,
+          "quote": "app_logo_url = \"/assets/frappe/images/frappe-framework-logo.svg\""
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Uygulama durumu: uygulanmadı. Hiçbir üretim veya test dosyası yok.",
+    "Token şeması ve ConfigProvider eşlemesi yalnız rehber düzeyinde.",
+    "Host doğrulama katmanı ve marka depolama yeri kararsız.",
+    "get_workspace'in yetki davranışı doğrulanmadı.",
+    "Tarayıcı, viewport ve giriş yöntemi matrisi not_run."
+  ],
+  "decisionsPending": [
+    {
+      "karar": "Host'tan site'e eşlemenin hangi katmanda doğrulanacağı: Bench/proxy site çözümlemesi mi, uygulama katmanı mı, Keycloak realm/issuer eşlemesi mi (tenant topolojisi).",
+      "requirementIds": ["shell-8"],
+      "blocks": "Marka okuma ucunun gerçekleştirilmesi, hatalı host yanıtının biçimi ve RED/GREEN senaryosu.",
+      "docStepUntilDecision": "Katmandan bağımsız değişmezi, allowlist alanlarını ve hatalı host kabul senaryosunu yazın."
+    },
+    {
+      "karar": "Tenant markasının nerede saklanacağı (Single ya da DocType) ve hangi rolün değiştirebileceği.",
+      "requirementIds": ["shell-5", "shell-8"],
+      "blocks": "Kalıcılık, yazma yetkisi ve reddedilen yazma kabulü.",
+      "docStepUntilDecision": "Alan listesini, kontrast doğrulama kuralını ve explicitPermissionFlags bağını yazın."
+    },
+    {
+      "karar": "Frontpage kapsamı (koşullu ürün kararı).",
+      "requirementIds": ["shell-5"],
+      "blocks": "Frontpage'e özgü token seti ve frontpage kabulü.",
+      "docStepUntilDecision": "Ortak token sınırı ile yönetim paneline özgü token sınırını yazın."
+    },
+    {
+      "karar": "Hedef Frappe ve Ant Design ailesi sürümleri (T-00).",
+      "requirementIds": ["shell-5"],
+      "blocks": "ConfigProvider token adlarının kesinleşmesi.",
+      "docStepUntilDecision": "Eşleme tablosunu sürümden bağımsız semantik adlarla yazın."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

@@ -3,126 +3,448 @@
   "canonicalUnitId": "ui-family-01",
   "canonicalTaskIds": [
     "ui-family-01--implementation",
-    "ui-family-01--implementation-mvp"
+    "ui-family-01--implementation-mvp",
+    "ui-family-07--implementation",
+    "ui-family-09--implementation",
+    "ui-family-39--implementation",
+    "ui-provider-registry--implementation",
+    "ui-view-list--implementation"
   ],
   "requirementIds": ["shell-10", "channels-4", "channels-5", "channels-6"],
   "stage": "poc",
-  "deliveryKind": "instruction_contract",
-  "behavior": {
-    "title": "Mevcut genui-saas-panel tema kaynağı, ApplicationShell ve kalan UI tüketicileri için tek token kaynağı olarak yeniden kullanılır; yeni shell/tema kaynağı yazılmaz",
-    "trigger": "Bir ui-family-01 tüketicisi (kabuk veya kalan UI ailesi) AntD bileşeni render eder.",
-    "expected": "Tüketici yalnız buildTheme(mode) ve interactionCssTokens kullanır: Outfit ilk sırada, fontSize 14 ve --nx-font-min 14px, simetrik Cubic cubic-bezier(0.65, 0, 0.35, 1) ve pozitif 0.16s, lineWidthFocus 0 ile çevrelemeyen tek alt çizgi odak, Input sınırı >=3:1. 320 px testi kullanıcı tarafından mevcut olarak onaylandı; test yolu bu pakette sağlanmadı.",
-    "denied": "İkinci ThemeConfig/ConfigProvider, Espresso --focus-* halka veya 11-13px tokenlarının kopyalanması, bileşen içi sabit değer ve AntD varsayılanına karşı üretilmiş sahte RED."
-  },
-  "reuse": {
-    "mechanism": "reuse_existing: genui-saas-panel src/theme.ts ve src/interactionTokens.ts zaten AntD6 ThemeConfig ile CSS adapter tokenlarını sağlıyor. Yeni kaynak, config veya adapter gerekmiyor. Espresso yalnız karşı örnek; Vue fieldtype ve GenUI registry kapsam dışı.",
-    "evidence": [
-      {
-        "path": "src/theme.ts",
-        "line": 20,
-        "quote": "  fontSize: 14,",
-        "repository": "genui-saas-panel@6ea301c"
-      },
-      {
-        "path": "src/theme.ts",
-        "line": 24,
-        "quote": "  lineWidthFocus: 0,",
-        "repository": "genui-saas-panel@6ea301c"
-      },
-      {
-        "path": "src/theme.ts",
-        "line": 112,
-        "quote": "      // Unfocused functional boundary ≥3:1 on light and dark surfaces; focus keeps the single underline.",
-        "repository": "genui-saas-panel@6ea301c"
-      },
-      {
-        "path": "src/interactionTokens.ts",
-        "line": 3,
-        "quote": " fontFamily: \"Outfit, 'Segoe UI', system-ui, -apple-system, sans-serif\",",
-        "repository": "genui-saas-panel@6ea301c"
-      },
-      {
-        "path": "src/interactionTokens.ts",
-        "line": 4,
-        "quote": " motionEasing: 'cubic-bezier(0.65, 0, 0.35, 1)',",
-        "repository": "genui-saas-panel@6ea301c"
-      },
-      {
-        "path": "src/interactionTokens.ts",
-        "line": 11,
-        "quote": " '--nx-font-min': '14px',",
-        "repository": "genui-saas-panel@6ea301c"
-      },
-      {
-        "path": "package.json",
-        "line": 31,
-        "quote": "    \"antd\": \"^6.6.5\",",
-        "repository": "genui-saas-panel@6ea301c"
-      },
-      {
-        "path": "frappe_provider/headless_provider/records.py",
-        "line": 55,
-        "quote": "\t\t\tfrappe.TimestampMismatchError,",
-        "repository": "genui-saas-panel@6ea301c"
-      }
-    ]
-  },
-  "ownership": {
-    "activeContractFile": "docs/frappe-roadmap-contracts/ui-family-01.json",
-    "plannedProduction": [],
-    "plannedTestFile": null,
-    "sharedIntegrationFiles": [
-      "src/theme.ts",
-      "src/interactionTokens.ts",
-      "frontend/packages/ui/src/index.ts",
-      "frontend/packages/ui/src/registry.ts"
-    ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
-  },
-  "contract": {
-    "input": "buildTheme(mode: 'light'|'dark'): ThemeConfig ve interactionCssTokens: Record<string,string>; uygulama kökü .nx-theme sınıfını taşır. Yeni prop veya alan yok.",
-    "output": "ThemeConfig (cssVar prefix nx, key nx-theme, hashed false). Sürüm: panel 1.0.0, antd aralığı ^6.6.5; lockfile çözümü bilinmiyor. Ayrı katalog sürümü yok.",
-    "authorization": "Yalnız UI teması; veri veya izin üretmez. Veri tüketicileri native cookie/CSRF ve records.py izinlerine bağlıdır; gizlenen UI izin sayılmaz.",
-    "persistence": "Yok. DocType, Document.save, hook veya DDL yok.",
-    "failure": "Tema bağlanmazsa tüketici AntD varsayılanına düşer; bu bir entegrasyon hatasıdır, yeni kaynak gerekçesi değildir. records.py TimestampMismatchError ve _forbidden yanıtlarının erişilebilir sunumu kalan iştir."
-  },
-  "development": {
-    "dependencies": [
-      "ui-family-01--contract",
-      "kernel-envelope--contract",
-      "api-middleware--contract",
-      "client-rule-parity--contract",
-      "local pilot: genui-saas-panel React19/AntD6/TanStack, Frappe17-dev suite.localhost"
-    ],
-    "admission": "Kalan bir tüketiciye geçmeden önce o tüketicinin panelde gerçekten eksik olduğu kaynak okunarak doğrulanmalı; varsa reuse edilir ve RED üretilmez. CSS adapter yolu, 320 test yolu, index.html viewport içeriği ve lockfile bu pakette yok: bilinmiyor. Remote baseline ve Suite HEAD bilinmiyor.",
-    "steps": [
-      "Şimdi kod değişikliği yok; sözleşme theme.ts ve interactionTokens.ts dosyalarını ui-family-01 token kaynağı olarak eşler.",
-      "Canonical owns yolları (frontend/packages/ui/src/components/ui-family-01/index.tsx, mvp.tsx) ile gerçek src/ düzeni arasındaki eşlemeyi Codex entegrasyonda karara bağlar; yeni dosya açılmaz.",
-      "Somut eksik tüketici bulunursa yalnız o tüketici aynı tokenları kullanır; tema genişletilmez."
-    ],
-    "tdd": {
-      "status": "not_run",
-      "oneScenario": "Gelecek ve koşullu (channels-6/channels-5): kayıt formu save_record çağrısından TimestampMismatchError aldığında hata özeti role=alert ile ikon ve metin içerir, odak özete taşınır, metin >=14px olur.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Aynı Playwright testi aynı test:e2e komutuyla tüketici uygulandıktan sonra geçer; Chromium dışı motorlar ayrı raporlanır."
-    },
-    "rollback": "Yalnız bu sözleşme dosyası yerelde geri alınır; kaynak, servis veya production değişikliği yok."
-  },
-  "remainingGaps": [
-    "shell-10: sürümlü onaylı katalog mevcut ui-provider-registry--implementation görevinde kalıyor; markalı Select'in bu temayı kullandığına dair kanıt sağlanmadı.",
-    "channels-4: 360/375/390, yatay telefon, %400 zoom, tablo kapsayıcısı içinde kaydırma ve panel viewport'unda user-scalable/maximum-scale bulunmaması doğrulanmadı (ui-family-09, ui-view-list).",
-    "channels-5: atlama bağlantısı, main landmark, TanStack route sonrası odak, role=status/alert ve axe kanıtı sağlanmadı.",
-    "channels-6: reduced-motion istisnası (CSS adapter sağlanmadı), runtime kontrast ölçümü, exc_type/_server_messages hatalarının alan veya özet odağına eşlenmesi ve HTML mesajların güvenli metne çevrilmesi eksik.",
-    "Mevcut pilot tüm UI ailesinin tamamlandığı anlamına gelmez; Firefox, WebKit, gerçek Safari ve bağımsız QA not_run."
-  ],
-  "status": "integrated_contract_only",
-  "runtimeAcceptance": "not_run",
   "sourceStages": {
     "shell-10": "poc",
     "channels-4": "mvp",
     "channels-5": "mvp",
     "channels-6": "mvp"
   },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "React/Ant Design panelinde tek semantik token kaynağı ve erişilebilir etkileşim sözleşmesi: tüm ui-family-01 tüketicileri aynı tema, odak, metin boyutu ve hareket kurallarını kullanır",
+    "trigger": "Bir ui-family-01 tüketicisi (uygulama kabuğu, ui-family-07/09/39, ui-view-list veya onaylı katalogdaki bir bileşen) Ant Design/Pro/X bileşeni render eder ya da kullanıcı bu bileşenle klavye, dokunma veya fareyle etkileşir.",
+    "expected": "Uygulama durumu: uygulanmadı. Gelecekte tüketici yalnız tek ConfigProvider/ThemeConfig kökünü ve aynı semantik token adlarından türetilen CSS custom property katmanını kullanır. Font listesinde Outfit ilk sıradadır. Hesaplanmış okunabilir metin 14 CSS px altına inmez ve kök yazı boyutu küçültülmez. Klavye odağı çevrelemeyen tek bir görünür göstergeyle (ör. alt çizgi tokenı) gösterilir; çevreleyen outline veya box-shadow çizilmez. Geçişler merkezi motion tokenını kullanır: simetrik easeInOut Cubic cubic-bezier(.65, 0, .35, 1), iki yönde pozitif süre, anında semantik durum güncellemesi ve prefers-reduced-motion istisnası. Durum bilgisi yalnız renkle değil, ikon ve metinle de aktarılır. 320 CSS px'de sayfa yatay taşmaz ve zoom engellenmez.",
+    "denied": "İkinci bir ThemeConfig/ConfigProvider veya ikinci token kaynağı açılmaz. Espresso --focus-* halka değerleri ve 11/12/13px tipografi tokenları kopyalanmaz. Ant Design'ın varsayılan odak halkası olduğu gibi bırakılmaz. Bileşen içinde sabit renk, boyut veya süre yazılmaz. Viewport'ta user-scalable=no veya maximum-scale kullanılmaz. Durum yalnız renkle aktarılmaz. Suite Vue veya Desk dosyaları değiştirilmez. Kaynak/bileşen kataloğu GenUI capability registry ile birleştirilmez. Import veya altyapı hatası RED sayılmaz."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native Frappe Desk/Espresso ve Suite Vue/frappe-ui kaynakları yalnız örüntü ve karşı örnek olarak kullanılır. Espresso semantik token adları (surface/ink/outline/text/radius/spacing) eşleme tablosunun ad kaynağıdır; değerleri alınmaz. frappe-ui preset'i Suite için tek token kaynağıdır ama React/Ant Design tüketicisi değildir. frappe/ui fieldtype kayıt defteri Vue'ya özgüdür ve sürüm alanı yoktur. Desk atlama bağlantısı ile alert ikon+metin örüntüsü referanstır; kod kopyalanmaz. Espresso odak tokenları ve 11-13px tokenlar politikayla çelişir, bu yüzden alınmaz. Sunucu tarafında native Frappe izin kontrolü ve frappe.throw hata üretimi olduğu gibi korunur; UI yalnız sunar. Kanıtlar native parçaların var olduğunu gösterir; React/Ant Design davranışının var olduğunu göstermez. searchedPaths kapsamlı bir yokluk iddiası değildir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/public/css/espresso/components/button.css",
+        "line": 4,
+        "quote": " * `.es-button` class + data-attributes, binding only to the semantic token"
+      },
+      {
+        "path": "frappe/frappe/public/css/espresso/effects.css",
+        "line": 27,
+        "quote": "  --focus-default: 0px 0px 0px 2px #c9c9c9e5;"
+      },
+      {
+        "path": "frappe/frappe/public/css/espresso/components/button.css",
+        "line": 207,
+        "quote": "    outline: var(--bt-focus);"
+      },
+      {
+        "path": "frappe/frappe/public/css/espresso/typography.css",
+        "line": 16,
+        "quote": "  --text-sm: 13px;"
+      },
+      {
+        "path": "suite/frontend/tailwind.config.js",
+        "line": 5,
+        "quote": "  // Single design-token source for the whole suite: the frappe-ui preset"
+      },
+      {
+        "path": "frappe/ui/src/components/Fields/fieldTypes.ts",
+        "line": 27,
+        "quote": "/** Process-global fieldtype → component registry. */"
+      },
+      {
+        "path": "suite/frontend/src/composables/useScreenSize.ts",
+        "line": 16,
+        "quote": "const isMobile = ref(window.innerWidth < 640)"
+      },
+      {
+        "path": "suite/frontend/index.html",
+        "line": 25,
+        "quote": "content=\"width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content\""
+      },
+      {
+        "path": "frappe/frappe/www/desk.html",
+        "line": 15,
+        "quote": "maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, minimal-ui, viewport-fit=cover"
+      },
+      {
+        "path": "frappe/frappe/public/scss/desk/list.scss",
+        "line": 765,
+        "quote": "overflow-x: auto;"
+      },
+      {
+        "path": "frappe/frappe/public/js/frappe/utils/utils.js",
+        "line": 206,
+        "quote": "return $(document).width() < 768;"
+      },
+      {
+        "path": "frappe/frappe/public/js/frappe/ui/page.js",
+        "line": 235,
+        "quote": ".text(__(\"Navigate to main content\"))"
+      },
+      {
+        "path": "frappe/frappe/public/js/frappe/ui/page.js",
+        "line": 241,
+        "quote": "main.focus();"
+      },
+      {
+        "path": "frappe/frappe/public/js/frappe/ui/components/alert.js",
+        "line": 43,
+        "quote": "const attrs = ['role=\"alert\"'];"
+      },
+      {
+        "path": "frappe/frappe/public/js/frappe/ui/components/alert.js",
+        "line": 26,
+        "quote": "red: \"circle-x\","
+      },
+      {
+        "path": "suite/frontend/src/shell/SuiteCommandPalette.vue",
+        "line": 75,
+        "quote": "@keydown.enter.space.prevent=\"activateMailFilter(filter.key)\""
+      },
+      {
+        "path": "frappe/frappe/client.py",
+        "line": 177,
+        "quote": "frappe.throw(_(\"No permission for {0}\").format(_(doctype)), frappe.PermissionError)"
+      },
+      {
+        "path": "frappe/frappe/website/doctype/website_theme/website_theme.py",
+        "line": 137,
+        "quote": "frappe.throw(f'<div style=\"font-family: monospace;\">{stderr}</div>')"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/client.py",
+      "frappe/frappe/public/css/espresso/components/button.css",
+      "frappe/frappe/public/css/espresso/effects.css",
+      "frappe/frappe/public/css/espresso/typography.css",
+      "frappe/frappe/public/js/frappe/ui/components/alert.js",
+      "frappe/frappe/public/js/frappe/ui/page.js",
+      "frappe/frappe/public/js/frappe/utils/utils.js",
+      "frappe/frappe/public/scss/desk/list.scss",
+      "frappe/frappe/website/doctype/website_theme/website_theme.py",
+      "frappe/frappe/www/desk.html",
+      "frappe/ui/src/components/Fields/fieldTypes.ts",
+      "suite/frontend/index.html",
+      "suite/frontend/src/composables/useScreenSize.ts",
+      "suite/frontend/src/shell/SuiteCommandPalette.vue",
+      "suite/frontend/tailwind.config.js"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/ui-family-01.json",
+    "plannedProduction": [
+      "frontend/packages/genui/src/components/ui-family-39/index.tsx",
+      "frontend/packages/genui/src/components/ui-provider-registry/index.tsx",
+      "frontend/packages/ui/src/components/ui-family-01/index.tsx",
+      "frontend/packages/ui/src/components/ui-family-01/mvp.tsx",
+      "frontend/packages/ui/src/components/ui-family-07/index.tsx",
+      "frontend/packages/ui/src/components/ui-family-09/index.tsx",
+      "frontend/packages/ui/src/components/ui-view-list/index.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Girdiler üç gruptur. (1) Semantik token adları: yüzey/mürekkep/kenar rengi, metin ölçeği, boşluk, köşe, gölge, odak göstergesi, motion süresi/eğrisi ve renk şeması modu. (2) ui-provider-registry--contract'ın tanımlayacağı sürümlü katalog girişi. (3) api-middleware--contract üzerinden gelen native Frappe hata yanıtı (exc_type, _server_messages, PermissionError). Yeni backend alanı veya DocType girdisi yoktur.",
+    "output": "Çıktılar: tek ThemeConfig ve aynı token adlarından türetilen CSS custom property katmanı; onaylı bileşen kataloğunda sürüm alanlı girişler; hata yanıtından türetilen alan hatası ve özet hata sunumu (role=alert veya role=status, ikon+metin, belirli odak hedefi). JSON model sınırından yalnız serileştirilebilir token ve katalog verisi geçer. ReactNode ve callback'ler yerel bileşen tarafında kalır.",
+    "authorization": "Yalnız sunum katmanıdır; veri, rol veya izin üretmez. Bu yüzden explicitPermissionFlags ortak kaynağına yeni bayrak eklemez. Veri gösteren tüketiciler native Frappe oturum/CSRF ve has_permission kontrollerine dayanır. Gizlenen veya devre dışı bırakılan UI yetki sayılmaz. ignore_permissions veya SQL ile bypass yapılmaz. PermissionError değiştirilmeden, yalnız erişilebilir biçimde sunulur.",
+    "persistence": "Yok. DocType, Document.save, hook, şema veya veri değişikliği yapılmaz. Token ve tema yalnız istemci build çıktısında yer alır.",
+    "failure": "Tema bağlanmazsa tüketici Ant Design varsayılanına düşer. Bu bir entegrasyon hatasıdır ve kabul testi FAIL olmalıdır; ikinci bir kaynak açmanın gerekçesi değildir. Alan düzeyine eşlenemeyen sunucu hatası özet hata bölgesinde gösterilir ve odak oraya taşınır. HTML içeren sunucu mesajı HTML olarak enjekte edilmez, güvenli metne çevrilir. Sunucu doğrulaması istemcide atlanmaz."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "capability-definition--contract",
+      "client-rule-parity--contract",
+      "event-dispatch--contract",
+      "kernel-envelope--contract",
+      "native-user-policy--contract",
+      "page-record-list--contract",
+      "page-super-admin--contract",
+      "page-tenant-admin--contract",
+      "ui-family-01--contract",
+      "ui-family-01--implementation",
+      "ui-family-07--contract",
+      "ui-family-09--contract",
+      "ui-family-39--contract",
+      "ui-provider-registry--contract",
+      "ui-view-list--contract"
+    ],
+    "admission": "Genel kabul kuralları: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy. Bu birime özgü önkoşullar şunlardır. T-00 hedef temel çizgisi ve R-00 yeniden kullanım eşlemesi tamamlanmış olmalıdır; izinli veri tüketen dilimler için R-01 de gerekir. ui-family-01--contract, kernel-envelope--contract, api-middleware--contract ve client-rule-parity--contract entegre olmalıdır. Hedef frontend paketinin gerçek dizin düzeni, React/Ant Design sürüm aralığı ve lockfile çözümü bilinmiyor; doğrulanana kadar plannedProduction yolları yalnız öneridir. Tek dar davranış (development.tdd.oneScenario) gerçek RED/GREEN kanıtıyla uygulanmadan sonraki tüketiciye geçilmez.",
+    "steps": [
+      "Uygulama durumu: uygulanmadı. Bu turda kod, test, config veya servis değişikliği yapılmaz.",
+      "ui-family-01--contract içinde token eşleme tablosu yazılır. Tablo Espresso semantik adlarını Ant Design ThemeConfig alanlarına eşler; değerler değil, yalnız adlar alınır. 14 CSS px minimum, çevrelemeyen odak, motion tokenı ve kontrast eşikleri tabloya kural olarak yazılır.",
+      "Uygulamada tek bir ConfigProvider kökü kurulur ve tüm tüketiciler buna bağlanır. İkinci ThemeConfig ve bileşen içi sabit değer, projenin mevcut lint/inceleme kapısında reddedilir.",
+      "Ant Design'ın odak çizgisi/gölge tokenları kaynağında çevrelemeyen tek göstergeye çevrilir. Global odak gizleme veya blur() kullanılmaz.",
+      "Merkezi motion tokenı ve reduced-motion istisnası tanımlanır; bileşenlerdeki dağınık geçişler bu tokena bağlanır.",
+      "ui-provider-registry--implementation sürüm alanlı onaylı bileşen kataloğunu tanımlar. Frappe tarafı yalnız provider sözleşmesi sağlar; Suite Vue ve GenUI capability registry bu katalogla birleştirilmez.",
+      "Markalı Select/dropdown, Ant Design Select üzerinden token kullanılarak kurulur. Native işletim sistemi menüsü kullanılmaz; klavye, dokunma ve ekran okuyucu davranışı korunur.",
+      "ui-family-07, ui-family-39, ui-family-09 ve ui-view-list aynı token ve katalog sözleşmesine bağlanır; temayı genişletmezler."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Uygulama kabuğunda render edilen tek bir Ant Design Button'a Tab ile odaklanıldığında beklenenler: hesaplanmış font-size en az 14px; çevreleyen outline ve box-shadow yok; çevrelemeyen odak göstergesi görünür; 320 CSS px görünümde belgede yatay taşma yok.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. RED, kabuk ve bileşen render edilebiliyorken bu assertion'lardan en az birinin davranış nedeniyle başarısız olmasıdır. Import, derleme veya altyapı hatası RED sayılmaz; native Frappe davranışı bozularak RED üretilmez. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "Tema kökü bağlandıktan sonra aynı senaryo, değişmeyen assertion'lar ve aynı komutla geçmelidir. Chromium, Firefox ve WebKit sonuçları ayrı raporlanır; gerçek Safari ve cihaz kontrolleri emülasyondan ayrı kaydedilir. Şu anda not_run durumundadır; bu sözleşme ürün GREEN'i değildir."
+    },
+    "rollback": "Bu sözleşme dosyasını yalnız ana entegrasyon sahibi geri alır. Gelecekteki ürün dilimi, tek ConfigProvider kökünü getiren değişiklik geri alınarak döndürülür. Servis, production, şema veya veri değişikliği olmadığından veri geri dönüşü gerekmez. CI/deploy/rollback'in teknik sahibi Hüseyin Cengiz'dir."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "shell-10",
+      "sourceStage": "poc",
+      "existing": "Native parçalar şunlardır: Frappe Desk'te düz CSS ile yazılmış Espresso semantik token katmanı ve bu tokenlara bağlanan .es-button stili; Suite Vue ön yüzünde tek token kaynağı olan frappe-ui Tailwind preset'i; frappe/ui içinde Vue fieldtype→bileşen kayıt defteri. Bunların hiçbiri React/Ant Design token, tema veya katalog kaynağı değildir. Espresso odak tokenları çevreleyen halka çizer, tipografi tokenları 11-13px içerir.",
+      "gap": "Eksikler: Ant Design ThemeConfig eşlemesi ve tek token kaynağı; sürümlü onaylı katalog ve provider sözleşmesi; çevrelemeyen odak, 14px minimum ve merkezi motion tokenı; markalı Select; 320 px, zoom ve hata durumu kabulleri; görsel/DOM/ARIA/hesaplanmış font kanıt türleri.",
+      "completionSteps": [
+        "Espresso adlarını kaynak alan eşleme tablosunu ui-family-01--contract'a yaz; 11-13px ve halka değerlerini açıkça hariç tut.",
+        "Tek ConfigProvider kökünü ve token'dan türetilen CSS custom property katmanını tanımla.",
+        "ui-provider-registry--contract'ta katalog girişine sürüm alanı ve onay durumu ekle; GenUI capability registry'yi ayrı tut.",
+        "Button ve markalı Select için oneScenario'daki RED/GREEN akışını uygula."
+      ],
+      "dependencies": [
+        "ui-family-01--contract",
+        "kernel-envelope--contract",
+        "api-middleware--contract",
+        "client-rule-parity--contract",
+        "ui-provider-registry--contract",
+        "ui-family-07--contract",
+        "ui-family-39--contract"
+      ],
+      "acceptance": "Kabul ölçütleri: ortak bileşenler aynı semantik tokenları kullanır; bileşen kataloğu sürümlüdür; hesaplanmış metin en az 14px'tir; odak çevreleyen halka olmadan görünür; 320 px, klavye odağı, hata ve büyütme durumları doğrulanır. Hazır tema tek başına kabul kanıtı sayılmaz.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/public/css/espresso/components/button.css",
+          "line": 4,
+          "quote": " * `.es-button` class + data-attributes, binding only to the semantic token"
+        },
+        {
+          "path": "frappe/frappe/public/css/espresso/effects.css",
+          "line": 27,
+          "quote": "  --focus-default: 0px 0px 0px 2px #c9c9c9e5;"
+        },
+        {
+          "path": "frappe/frappe/public/css/espresso/components/button.css",
+          "line": 207,
+          "quote": "    outline: var(--bt-focus);"
+        },
+        {
+          "path": "frappe/frappe/public/css/espresso/typography.css",
+          "line": 16,
+          "quote": "  --text-sm: 13px;"
+        },
+        {
+          "path": "suite/frontend/tailwind.config.js",
+          "line": 5,
+          "quote": "  // Single design-token source for the whole suite: the frappe-ui preset"
+        },
+        {
+          "path": "frappe/ui/src/components/Fields/fieldTypes.ts",
+          "line": 27,
+          "quote": "/** Process-global fieldtype → component registry. */"
+        }
+      ]
+    },
+    {
+      "requirementId": "channels-4",
+      "sourceStage": "mvp",
+      "existing": "Mevcut parçalar: Suite Vue sayfa yüklenirken 640px eşiğine göre ayrı bir mobil ağaç seçer ve bu seçim yeniden boyutlandırmayı izlemez. Desk'te 768/991px eşikleri ve liste kapsayıcısında overflow-x: auto bulunur. Suite ve Desk viewport'larında user-scalable=no, Desk'te ayrıca maximum-scale=1.0 vardır; bunlar zoom kabulüne karşı birer sinyaldir. React/Ant Design panelinde yerleşim kaynağı yoktur.",
+      "gap": "Eksikler: 320/360/375/390 px ve yatay telefon kabulü; zoom engellemeyen viewport; yeniden boyutlandırma ve yön değişiminde uyarlama; tablo kapsayıcısı içinde kaydırma; 14px ve odak kapısı.",
+      "completionSteps": [
+        "Tek ana yolculuk tanımla: liste → kayıt formu. Veri api-middleware--contract ve page-record-list--contract üzerinden gelir.",
+        "Bu yolculuk için 320 px ve %400 zoom'da RED Playwright senaryosu yaz. Senaryo sayfada yatay taşma olmamasını, tablonun kendi kapsayıcısında kaydırılmasını, metnin en az 14px olmasını ve odağın çevrelemeyen göstergeyle görünmesini doğrular.",
+        "Panel viewport'unda user-scalable/maximum-scale kullanmadan akışkan Grid/Flex ve container query ile GREEN yap. Cihaz adı veya tek isMobile bayrağıyla ağaç seçme. Yön değişiminde form verisi ve odak korunur.",
+        "360/375/390 px, yatay telefon ve tablet için N−1/N/N+1 kabulünü ui-family-09 ve ui-view-list görevlerine bırak. Suite Vue ve Desk viewport dosyalarına dokunma."
+      ],
+      "dependencies": [
+        "ui-family-01--contract",
+        "ui-family-01--implementation",
+        "kernel-envelope--contract",
+        "api-middleware--contract",
+        "client-rule-parity--contract",
+        "page-super-admin--contract",
+        "page-tenant-admin--contract",
+        "page-record-list--contract",
+        "ui-family-09--contract",
+        "ui-view-list--contract"
+      ],
+      "acceptance": "320/360/375/390 px, yatay telefon ve %400 zoom'da ana yolculuk içerik kaybı olmadan yeniden akar. Sayfa genelinde yatay taşma olmaz. Tablo başlıkları kelime ortasından bölünmez.",
+      "evidence": [
+        {
+          "path": "suite/frontend/src/composables/useScreenSize.ts",
+          "line": 16,
+          "quote": "const isMobile = ref(window.innerWidth < 640)"
+        },
+        {
+          "path": "suite/frontend/index.html",
+          "line": 25,
+          "quote": "content=\"width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content\""
+        },
+        {
+          "path": "frappe/frappe/www/desk.html",
+          "line": 15,
+          "quote": "maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, minimal-ui, viewport-fit=cover"
+        },
+        {
+          "path": "frappe/frappe/public/scss/desk/list.scss",
+          "line": 765,
+          "quote": "overflow-x: auto;"
+        },
+        {
+          "path": "frappe/frappe/public/js/frappe/utils/utils.js",
+          "line": 206,
+          "quote": "return $(document).width() < 768;"
+        }
+      ]
+    },
+    {
+      "requirementId": "channels-5",
+      "sourceStage": "mvp",
+      "existing": "Örüntüler yalnız Desk ve Suite Vue'da vardır: Desk Page'de odağı main bölgesine taşıyan 'ana içeriğe git' bağlantısı; role=alert ile ikon ve metin başlığı veren frappe.ui.alert; Suite komut paletinde Enter/Space ile klavye etkinleştirmesi. Desk odak tokenı çevreleyen halka çizer ve örnek alınmaz. Mevcut Playwright testleri yalnız okunmuştur, davranış kanıtı sayılmaz.",
+      "gap": "Eksikler: React panelinde atlama bağlantısı, main landmark, TanStack route sonrası odak, role=status/alert canlı bölge sözleşmesi, ikon+metin durum tokenları, Ant Design odak stilinin token kaynağında düzeltilmesi, axe ve tarayıcılar arası klavye testi, WCAG 2.2 AA eşikleri.",
+      "completionSteps": [
+        "ui-family-01--contract kabul metnine şunları ekle: WCAG 2.2 AA hedefi, çevrelemeyen odak tokenı, route değişiminde odağın h1/main öğesine taşınması, ikon+metin durum kuralı ve role=status/alert sözleşmesi.",
+        "implementation-mvp dilimi: atlama bağlantısı, main landmark, route sonrası odak yönetimi ve tek durum bildirimi bileşeni. Desk örüntüsü yalnız referans olarak kullanılır, kod kopyalanmaz.",
+        "Tab/Shift+Tab, Enter, Escape ve axe kontrolü içeren tek bir senaryoyu önce RED, sonra GREEN yap; sıra contract → implementation-mvp → ui-family-09."
+      ],
+      "dependencies": [
+        "ui-family-01--contract",
+        "ui-family-01--implementation",
+        "kernel-envelope--contract",
+        "api-middleware--contract",
+        "client-rule-parity--contract",
+        "page-super-admin--contract",
+        "page-tenant-admin--contract",
+        "ui-family-09--contract"
+      ],
+      "acceptance": "Tab/Shift+Tab, odak sırası ve ekran okuyucu adları doğrulanır. Durum yalnız renkle aktarılmaz. Çevreleyen halka çıkarsa veya klavye odağı görünmezse test FAIL olur. Frappe izinleri erişilebilir frontend kanıtı sayılmaz.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/public/js/frappe/ui/page.js",
+          "line": 235,
+          "quote": ".text(__(\"Navigate to main content\"))"
+        },
+        {
+          "path": "frappe/frappe/public/js/frappe/ui/page.js",
+          "line": 241,
+          "quote": "main.focus();"
+        },
+        {
+          "path": "frappe/frappe/public/js/frappe/ui/components/alert.js",
+          "line": 43,
+          "quote": "const attrs = ['role=\"alert\"'];"
+        },
+        {
+          "path": "frappe/frappe/public/js/frappe/ui/components/alert.js",
+          "line": 26,
+          "quote": "red: \"circle-x\","
+        },
+        {
+          "path": "frappe/frappe/public/css/espresso/effects.css",
+          "line": 27,
+          "quote": "--focus-default: 0px 0px 0px 2px #c9c9c9e5;"
+        },
+        {
+          "path": "suite/frontend/src/shell/SuiteCommandPalette.vue",
+          "line": 75,
+          "quote": "@keydown.enter.space.prevent=\"activateMailFilter(filter.key)\""
+        }
+      ]
+    },
+    {
+      "requirementId": "channels-6",
+      "sourceStage": "mvp",
+      "existing": "Frappe sunucu hatalarını exception/mesaj olarak üretir (ör. has_permission başarısız olunca PermissionError). Bazı mesajlar HTML içerir. Kontrast ve hareket UI sorumluluğudur; mevcut kabul metninde sayısal eşik yoktur.",
+      "gap": "Eksikler: kontrast eşikleri (4.5:1 metin, 3:1 UI sınırı), 14 CSS px, %200 metin büyütme ve 320 px reflow ölçütleri; motion tokenı ve reduced-motion referansı; exc_type/_server_messages/PermissionError'ın alan hatasına ve odak hedefine eşlenmesi; HTML mesajların güvenli metne çevrilmesi.",
+      "completionSteps": [
+        "Kabul metnine sayısal eşikleri ve merkezi motion tokenı referansını ekle.",
+        "Tek bir istemci hata adaptörü sözleşmesi yaz: alan hatası aria-invalid ve aria-describedby ile bağlanır; eşlenemeyen hata role=alert özetine gider ve odak özete taşınır.",
+        "HTML içeren sunucu mesajını metne çevir. Sunucu doğrulaması ve izin kontrolü değişmez; UI yalnız sunar."
+      ],
+      "dependencies": [
+        "ui-family-01--contract",
+        "ui-family-01--implementation",
+        "kernel-envelope--contract",
+        "api-middleware--contract",
+        "client-rule-parity--contract",
+        "page-super-admin--contract",
+        "page-tenant-admin--contract"
+      ],
+      "acceptance": "Metin büyütme, reduced motion, ölçülen kontrast ve hata odağı gerçek etkileşimlerle doğrulanır. PermissionError yanıtında kayıt değişmez ve özet hata ikon+metinle, en az 14px boyutta sunulur.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/client.py",
+          "line": 177,
+          "quote": "frappe.throw(_(\"No permission for {0}\").format(_(doctype)), frappe.PermissionError)"
+        },
+        {
+          "path": "frappe/frappe/website/doctype/website_theme/website_theme.py",
+          "line": 137,
+          "quote": "frappe.throw(f'<div style=\"font-family: monospace;\">{stderr}</div>')"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Uygulama durumu: uygulanmadı. React/Ant Design panelinde bu dört madde için kaynak yoktur.",
+    "shell-10: token eşleme tablosu, tek ConfigProvider kökü, sürümlü katalog, markalı Select ve çevrelemeyen odak tanımlanmadı.",
+    "channels-4: 320/360/375/390 px, yatay telefon, %400 zoom, tablo kapsayıcısında kaydırma ve zoom engellemeyen viewport doğrulanmadı.",
+    "channels-5: atlama bağlantısı, main landmark, route sonrası odak, canlı bölge ve axe kanıtı yok.",
+    "channels-6: kontrast ölçümü, reduced-motion istisnası, hata adaptörü ve HTML mesaj sanitizasyonu tanımlanmadı.",
+    "Chromium, Firefox, WebKit, gerçek Safari/cihaz kontrolleri ve bağımsız QA: not_run."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Veri ızgarası (grid) bileşeni seçimi açık.",
+      "requirementIds": ["channels-4"],
+      "blocks": "Tablo kapsayıcısında kaydırma kabulünün belirli bir bileşene bağlanması (ui-view-list--implementation).",
+      "interimDocStep": "Kabul ölçütünü bileşenden bağımsız yaz: kapsayıcı içinde yatay kaydırma, içeriğe göre minimum sütun genişliği, kelime ortasından bölmeme."
+    },
+    {
+      "decision": "React/Ant Design/Pro/X hedef sürümü ve lockfile çözümü.",
+      "requirementIds": ["shell-10"],
+      "blocks": "Eşleme tablosunun sürüme özgü ThemeConfig alanlarına bağlanması ve ilk implementation lease.",
+      "interimDocStep": "Eşlemeyi semantik ad düzeyinde yaz; sürüme özgü alanları 'doğrulanacak' olarak işaretle."
+    },
+    {
+      "decision": "Marka kimliği ve renk paleti değerleri (açık/koyu şema kapsamı dahil).",
+      "requirementIds": ["shell-10", "channels-6"],
+      "blocks": "Kontrast ölçümü ve görsel referans onayı.",
+      "interimDocStep": "Token adlarını ve kontrast eşiklerini yaz; değerleri boş bırak."
+    },
+    {
+      "decision": "Outfit font dosyalarının teslim yöntemi.",
+      "requirementIds": ["shell-10"],
+      "blocks": "Font yükleme ve ağ kanıtı.",
+      "interimDocStep": "font-family sırasını Outfit ilk sırada olacak şekilde belgele."
+    },
+    {
+      "decision": "Tarayıcı/cihaz test matrisinin yürütme ortamı ve CI kapsamı; teknik sahibi Hüseyin Cengiz.",
+      "requirementIds": ["shell-10", "channels-4", "channels-5", "channels-6"],
+      "blocks": "Firefox/WebKit/gerçek Safari kanıtı ve CI kapısı.",
+      "interimDocStep": "Test matrisini ve pass/fail/not_run/not_applicable kayıt biçimini belgele."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,

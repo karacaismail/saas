@@ -1,0 +1,181 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "tenant-restore",
+  "canonicalTaskIds": ["tenant-restore--implementation"],
+  "requirementIds": ["backup-3"],
+  "stage": "scale",
+  "sourceStages": {
+    "backup-3": "scale"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Kiracı bazlı ve belirli zamana geri yükleme. Uygulama durumu: uygulanmadı.",
+    "trigger": "Yetkili DevOps operatörü (teknik sahip Hüseyin Cengiz) tek bir kiracı için saat dilimi açık bir hedef zaman damgası, temel yedek referansı ve motor arşiv aralığı belirterek izole bir DB örneği ve izole hedef sitede geri yükleme provası başlatır.",
+    "expected": "Kiracı=site eşlemesi kararlaştırılmışsa yalnız o kiracının sitesi izole hedef sitede geri yüklenir ve seçilen DB motorunun arşivi hedef zamana kadar uygulanır. Hedef zamandan önce yazılan işaret kaydı bulunur, sonra yazılan işaret kaydı bulunmaz. Diğer kiracı sitelerinin verisi değişmez. Sonuç doğrulama raporu olarak kaydedilir ve production ortamına otomatik terfi edilmez.",
+    "denied": "Yetkisiz kullanıcı veya uygulama içi istek geri yükleme başlatamaz ve hiçbir site değişmez. Arşivde boşluk varsa, hedef zaman saklama aralığı dışındaysa, motor yedekle uyuşmuyorsa veya site_restore kilidi doluysa işlem kısmi sonuç üretmeden durur. include/exclude doctype kısmi yedeği ve Sheets belge snapshot geri yüklemesi kiracı geri yüklemesi olarak kabul edilmez."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native parçalar şunlardır: site bütününü site_restore dosya kilidi altında geri yükleme, site config ile doctype/tablo düzeyinde kısmi yedek (partial bayrağı), site kurulumunda mariadb/postgres/sqlite DB tipi seçeneği ve Suite Sheets'te tek belge düzeyinde snapshot geri yükleme. Bu parçalar kiracıya ait satırları ayırmaz ve belirli zamana geri yükleme sağlamaz. Sheets snapshot geri yüklemesi felaket kurtarma değildir. PITR motor düzeyinde binlog/WAL arşivine bağlıdır ve Frappe dışındadır. Bir native parçanın varlığı bütün davranışın var olduğu anlamına gelmez. Kanıtlar önceki salt okunur kaynak anlık görüntülerinden alınmıştır; canlı site veya ürün kabulü yoktur. Vue/Frappe UI kaynağı React/AntD uygulamasının kanıtı sayılmaz.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/commands/site.py",
+        "line": 26,
+        "quote": "type=click.Choice([\"mariadb\", \"postgres\", \"sqlite\"]),"
+      },
+      {
+        "path": "frappe/frappe/utils/backups.py",
+        "line": 154,
+        "quote": "self.partial = (self.backup_includes or self.backup_excludes) and not self.ignore_conf"
+      },
+      {
+        "path": "frappe/frappe/commands/site.py",
+        "line": 230,
+        "quote": "with filelock(\"site_restore\", timeout=1):"
+      },
+      {
+        "path": "suite/suite/sheets/versioning/state.py",
+        "line": 3,
+        "quote": "Snapshots are the unit of restore."
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/commands/site.py",
+      "frappe/frappe/utils/backups.py",
+      "suite/suite/sheets/versioning/state.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/tenant-restore.json",
+    "plannedProduction": ["operations/tenant-restore/tenant_restore_scale.yml"],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Girdiler: kiracı kimliği (kiracı=site kararı verilirse site adı), saat dilimi açık hedef zaman damgası, temel tam yedek referansı, motor arşiv aralığı referansı (binlog veya WAL), izole DB örneği ve hedef site adı, operasyon onay kaydı referansı. Secret, parola veya bağlantı bilgisi sözleşmeye ya da prosedür dosyasına yazılmaz.",
+    "output": "Çıktılar: izole hedef sitede geri yüklenmiş kiracı verisi ve bir doğrulama raporu. Raporda ulaşılan zaman, hedef zamandan önceki ve sonraki işaret kayıtlarının sonucu, diğer kiracı sitelerinde prova öncesi ve sonrası karşılaştırma ve kullanılan yedek/arşiv referansları yer alır. Production sitesine otomatik yazım veya terfi yoktur.",
+    "authorization": "Geri yükleme bench/sunucu düzeyinde bir operasyon işidir; teknik sahibi Hüseyin Cengiz'dir. Bu rehber yeni rol veya izin üretmez. İleride uygulama içi bir tetikleyici tasarlanırsa explicitPermissionFlags ortak kaynağına bağlanır ve o tetikleyicinin tek kabulünde reddedilen yazma ile değişmeyen kayıt yer alır. Native izin, transaction, save ve hook akışı yeniden kullanılır. İzin atlatma bayrağı veya ham SQL ile yetki bypass edilmez.",
+    "persistence": "Yeni DocType, şema, ORM veya CRUD katmanı yoktur. Kalıcılık mevcut bench yedek dosyalarında ve Frappe dışındaki motor arşivinde kalır. Prosedür gelecekte operations/tenant-restore/tenant_restore_scale.yml önerisi altında belgelenebilir; bu görevde yazılmaz. Saklama süresi, arşiv satıcısı ve veri yerleşimi için karar yoktur.",
+    "failure": "site_restore kilidi alınamazsa ikinci geri yükleme hemen başarısız olur ve kilit atlatılmaz. Arşivde segment eksikse veya hedef zaman saklama aralığı dışındaysa işlem durur; kısmi geri yükleme yapılmaz. Yedeğin DB tipi seçilen motorla uyuşmazsa işlem reddedilir. Doğrulamada başka bir kiracının verisinde fark bulunursa izole site ve DB örneği atılır, olay Hüseyin Cengiz'e raporlanır."
+  },
+  "development": {
+    "dependencies": ["tenant-restore--contract"],
+    "admission": "Uygulama durumu: uygulanmadı. Ön koşullar: T-00 hedef taban sürümü, R-00 yeniden kullanım eşlemesi, izinli veri tüketicisi tasarlanırsa R-01, kiracı topolojisi ve DB motoru kararları, tek dar davranış için gerçek RED/GREEN kanıtı. Sıra yetkisi mevcut görev bağımlılıklarına ve stage değerine aittir; küme sırası yeni bir seri DAG değildir. Bu sözleşme hiçbir servisi, production ortamını, şemayı veya veriyi değiştirme yetkisi vermez.",
+    "steps": [
+      "Kiracı topolojisi kararını decisionsPending üzerinden al: her kiracı ayrı site mi, yoksa site içinde iş kiracısı mı? Kiracı=site değilse seçici geri yükleme bu birimin dışında ayrı bir tasarım gereksinimi olarak kaydedilir; yeni motor veya ORM tasarlanmaz.",
+      "DB motoru kararını al (mariadb, postgres veya sqlite). Motor seçilmeden hedef zaman veya kurtarma noktası hedefi varsayılmaz.",
+      "Seçilen motor için Frappe dışındaki arşiv bağımlılığını yaz: mariadb için binlog arşivi, postgres için temel yedek ve sürekli WAL arşivi. sqlite seçilirse PITR yolu ayrıca değerlendirilir ve varsayılmaz. Saklama süresi ile arşiv yerleşimi kararlardan gelir.",
+      "Motor düzeyindeki PITR tüm DB örneğini hedefleyebileceği için provayı ayrı bir DB örneği ve izole bir hedef sitede tarif et. Temel adım olarak native site geri yüklemeyi site_restore kilidi altında yeniden kullan.",
+      "Arşivi hedef zamana kadar uygulayan prova prosedürünü operations/tenant-restore/tenant_restore_scale.yml önerisi için tarif et. Bu gelecekteki sahipliktir; bu görevde yazılmaz.",
+      "Doğrulamayı tanımla: hedef zamandan önce ve sonra yazılmış işaret kayıtları, diğer kiracı sitelerinde prova öncesi ve sonrası satır sayısı veya sağlama toplamı karşılaştırması.",
+      "Belgeye açık not düş: include/exclude doctype kısmi yedeği ve Sheets snapshot geri yüklemesi kiracı geri yüklemesi veya felaket kurtarma sayılmaz.",
+      "Production ortamına uygulama, deploy ve rollback; Hüseyin Cengiz'in onayına bağlı ayrı bir değişiklik olarak ele alınır."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Kiracı=site ve seçilen motorla, izole DB örneği ve hedef sitede kiracı A için T zamanına PITR provası yapılır. T öncesinde yazılan işaret kaydı bulunur, T sonrasında yazılan işaret kaydı bulunmaz ve kiracı B sitesinin verisi değişmez.",
+      "red": "Yalnız native tam site geri yüklemesiyle yapılan provada sonuç son tam yedek anını yansıtır. Yedekten sonra ama T öncesinde yazılan işaret kaydı bulunmaz, yani beklenen davranış karşılanmaz. RED; import hatası, altyapı hatası veya native davranışı bozarak üretilmez.",
+      "green": "Motor arşivi T'ye kadar uygulandıktan sonra T öncesi işaret kaydı bulunur, T sonrası bulunmaz ve kiracı B'nin prova öncesi ve sonrası sağlama toplamı eşittir. Bu turda test yazılmaz ve koşulmaz."
+    },
+    "rollback": "Prova yalnız izole DB örneği ve hedef sitede yapılır; geri alma, izole site ile DB örneğinin atılmasıdır. Gelecekte production sitesinde geri yükleme yapılırsa önce hedef sitenin güncel yedeği alınır; teknik geri dönüş kararı Hüseyin Cengiz'e aittir. Bu sözleşme production geri alma veya veri değişikliği yetkisi vermez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "backup-3",
+      "sourceStage": "scale",
+      "existing": "Native parçalar: site bütününü site_restore dosya kilidi altında geri yükleme, site config ile doctype/tablo düzeyinde kısmi yedek (partial bayrağı), site kurulumunda mariadb/postgres/sqlite DB tipi seçeneği ve Suite Sheets'te snapshot'ın geri yükleme birimi olması. Bu parçalar bütün davranışın var olduğunu göstermez.",
+      "gap": "Kiracı modeli bağlanmadan seçici geri yükleme tanımlanamaz. PITR için gereken Frappe dışı binlog/WAL arşivi, motor seçimine bağlı bir bağımlılık olarak yazılmamış. include/exclude doctype kısmi yedeğinin kiracı geri yüklemesi sayılmadığı belirtilmemiş. Sheets snapshot yalnız tek belge düzeyindedir ve felaket kurtarma değildir.",
+      "completionSteps": [
+        "Kiracı topolojisi ve DB motoru kararlarını decisionsPending üzerinden bağla.",
+        "Kiracı=site seçilirse native site geri yüklemeyi kiracı geri yüklemesinin temel adımı olarak belgelendir.",
+        "Seçilen motorun binlog veya WAL arşivini Frappe dışı bağımlılık olarak, saklama süresi kararına bağlı biçimde yaz.",
+        "Ayrı DB örneği ve izole hedef sitede hedef zamana prova prosedürünü ve işaret kaydı kontrolünü tanımla.",
+        "Diğer kiracı sitelerinde prova öncesi ve sonrası karşılaştırma ile etkilenmeme kontrolünü tanımla.",
+        "Kısmi doctype yedeğinin ve Sheets snapshot geri yüklemesinin kiracı geri yüklemesi sayılmadığını açıkça yaz."
+      ],
+      "dependencies": ["tenant-restore--contract"],
+      "acceptance": "Seçilen DB motorunda hedef zamana geri yükleme provası izole sitede geçer. Geri yüklenen kapsam yalnız hedef kiracıdır; diğer kiracıların etkilenmediği prova öncesi ve sonrası karşılaştırmayla doğrulanır. Yetkisiz tetikleme reddedilir ve kayıt değişmez. Bu kabul şu an not_run durumundadır.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/commands/site.py",
+          "line": 26,
+          "quote": "type=click.Choice([\"mariadb\", \"postgres\", \"sqlite\"]),"
+        },
+        {
+          "path": "frappe/frappe/utils/backups.py",
+          "line": 154,
+          "quote": "self.partial = (self.backup_includes or self.backup_excludes) and not self.ignore_conf"
+        },
+        {
+          "path": "frappe/frappe/commands/site.py",
+          "line": 230,
+          "quote": "with filelock(\"site_restore\", timeout=1):"
+        },
+        {
+          "path": "suite/suite/sheets/versioning/state.py",
+          "line": 3,
+          "quote": "Snapshots are the unit of restore."
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Kiracı topolojisi bağlanmadığı için seçici geri yükleme kapsamı tanımsız.",
+    "PITR için binlog/WAL arşivi Frappe dışında kalıyor ve motor kararı verilmediği için arşiv bağımlılığı belirsiz.",
+    "Saklama süresi verilmediği için ulaşılabilir hedef zaman aralığı belirsiz.",
+    "Site içi iş kiracısı modeli seçilirse kiracıya ait satırları ayıran geri yükleme için ayrı tasarım gerekir; bu birimde tasarlanmaz.",
+    "Diğer kiracıların etkilenmediğini gösteren kontrol yalnız prosedür olarak tanımlı; çalıştırılmadı.",
+    "Kaynak kanıtları önceki salt okunur anlık görüntülerden geliyor; T-00 hedef sürümüyle yeniden doğrulanmadı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Kiracı topolojisi: her kiracı ayrı site mi, yoksa site içinde iş kiracısı mı?",
+      "requirementIds": ["backup-3"],
+      "blocks": "Seçici geri yükleme kapsamının tanımı, prova prosedürü ve diğer kiracıların etkilenmeme kontrolü.",
+      "allowedUntilDecided": "İki seçeneğin sınırlarını ve native site geri yüklemenin yalnız kiracı=site durumunda kiracı geri yüklemesine denk düştüğünü belgelemek."
+    },
+    {
+      "decision": "DB motoru: mariadb, postgres veya sqlite.",
+      "requirementIds": ["backup-3"],
+      "blocks": "PITR arşiv mekanizmasının (binlog veya WAL) seçimi ve hedef zaman provası.",
+      "allowedUntilDecided": "Her motor için Frappe dışı arşiv gereksinimini motordan bağımsız bir kontrol listesi olarak yazmak; hedef zaman varsaymamak."
+    },
+    {
+      "decision": "Hedef Frappe/Suite sürümü (T-00 taban sürümü).",
+      "requirementIds": ["backup-3"],
+      "blocks": "Kaynak kanıtlarının ve geri yükleme komut seçeneklerinin hedef sürümde doğrulanması.",
+      "allowedUntilDecided": "Kanıtları anlık görüntü kaynaklı olarak işaretlemek ve sürüme bağlı noktaları listelemek."
+    },
+    {
+      "decision": "Arşivin saklama süresi ve kurtarma noktası hedefi.",
+      "requirementIds": ["backup-3"],
+      "blocks": "Ulaşılabilir hedef zaman aralığı ve saklama aralığı dışındaki istek için ret kuralının sınırı.",
+      "allowedUntilDecided": "Ret kuralını parametre olarak, değer içermeden yazmak."
+    },
+    {
+      "decision": "Arşiv depolama satıcısı ve veri yerleşimi.",
+      "requirementIds": ["backup-3"],
+      "blocks": "Arşivin nerede ve hangi bölgede tutulacağı, prova ortamının arşive erişimi.",
+      "allowedUntilDecided": "Depolama gereksinim alanlarını (konum, erişim, şifreleme ihtiyacı) satıcı seçmeden listelemek."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

@@ -1,0 +1,351 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "search-query",
+  "canonicalTaskIds": [
+    "search-query--implementation",
+    "ui-family-10--implementation-post-mvp",
+    "ui-family-11--implementation",
+    "ui-family-18--implementation-post-mvp"
+  ],
+  "requirementIds": ["search-2", "search-4", "search-6"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "search-2": "post_mvp",
+    "search-4": "post_mvp",
+    "search-6": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "İzin kapsamlı arama sorgusu: sonuç, toplam sayı, facet sayısı, snippet ve öneriler tek izin/tenant predikatından türetilir. Uygulama durumu: uygulanmadı.",
+    "trigger": "Oturum açmış kullanıcı, ui-family-10/11/18 kapsamındaki React/Ant Design arama yüzeyinden sorgu metni, isteğe bağlı facet filtreleri ve sayfa bilgisiyle search-query adaptörünü çağırır.",
+    "expected": "Adaptör, Frappe oturumundaki kullanıcıdan ve kernel zarfındaki tenant bağlamından tek bir izin predikatı kurar. Sonuç listesi, toplam sayı, her facet değerinin sayısı, otomatik tamamlama ve yazım önerileri yalnız bu predikatı geçen aday kümesinden üretilir. Snippet ve indekslenen içerik yalnız permlevel 0 alanlardan gelir. Sıralama aynı aday kümesi üzerinde yapılır; sıralama veya öneri adımı aday kümesini genişletemez.",
+    "denied": "Okuma izni olmayan kayıt, başka tenant kaydı veya permlevel>0 alan değeri; sonuçta, toplam sayıda, facet sayısında, snippet'te veya öneride görünmez. İndekslenmeyen ya da izin verilmeyen facet alanı istenirse sorgu sessizce genişletilmez, açık hata döner. Arama uç noktası salt okunurdur: yazma parametresi içeren istek reddedilir ve ilgili kayıt değişmeden kalır."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native parçalar yeniden kullanılır, yeniden yazılmaz: frappe/frappe/client.py içindeki group_by parametresi ve get_count facet gruplama/sayımı için; SQLiteSearch get_search_filters sorgu düzeyinde izin süzmesi için; apply_fieldlevel_read_permissions alan düzeyi okuma kuralının referansı için; SQLiteSearch trigram yazım düzeltmesi ve edit mesafesi sabiti öneri için. Suite Writer'ın get_search_filters içinde boş filtre döndürüp sonradan süzmesi izlenecek değil, kaçınılacak post-filter örneğidir. Calendar ve SearchStore kaynakları native Suite/Vue davranış kanıtıdır; React/Ant Design uygulaması kanıtı değildir. Bir native parçanın kanıtı bütün davranışın var olduğu anlamına gelmez. searchedPaths yalnız bu sözleşme için incelenen yollardır; kapsamlı yokluk iddiası değildir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/client.py",
+        "line": 30,
+        "quote": "group_by: str | list[str] | None = None,"
+      },
+      {
+        "path": "frappe/frappe/client.py",
+        "line": 78,
+        "quote": "def get_count("
+      },
+      {
+        "path": "suite/frontend/src/apps/calendar/composables/useCalendarSearchFilters.ts",
+        "line": 37,
+        "quote": "Only filters the server actually indexes are offered."
+      },
+      {
+        "path": "frappe/frappe/search/sqlite_search.py",
+        "line": 117,
+        "quote": "- Permission-aware search results via query-level filtering"
+      },
+      {
+        "path": "frappe/frappe/search/sqlite_search.py",
+        "line": 251,
+        "quote": "def get_search_filters(self):"
+      },
+      {
+        "path": "suite/suite/writer/search.py",
+        "line": 23,
+        "quote": "# Results are permission-filtered in suite.writer.api.general.search."
+      },
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 84,
+        "quote": "doc.apply_fieldlevel_read_permissions()"
+      },
+      {
+        "path": "frappe/frappe/search/sqlite_search.py",
+        "line": 112,
+        "quote": "- Spelling correction using trigram similarity"
+      },
+      {
+        "path": "frappe/frappe/search/sqlite_search.py",
+        "line": 86,
+        "quote": "MAX_EDIT_DISTANCE = 3"
+      },
+      {
+        "path": "suite/suite/store/search_store.py",
+        "line": 221,
+        "quote": "hits come back in index order: ranking them is the caller's job (see"
+      },
+      {
+        "path": "frappe/frappe/query_builder/custom.py",
+        "line": 138,
+        "quote": "super().__init__(\"TO_TSVECTOR\", \"english\", column, *args, alias=alias)"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "frappe/frappe/client.py",
+      "frappe/frappe/query_builder/custom.py",
+      "frappe/frappe/search/sqlite_search.py",
+      "suite/frontend/src/apps/calendar/composables/useCalendarSearchFilters.ts",
+      "suite/suite/store/search_store.py",
+      "suite/suite/writer/search.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/search-query.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/adapters/search_discovery/search_query_post_mvp.py",
+      "frontend/packages/ui/src/components/ui-family-10/post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-family-11/index.tsx",
+      "frontend/packages/ui/src/components/ui-family-18/post_mvp.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "query (metin), filters (yalnız izinli ve indekslenen facet alanları için alan-değer listesi), facetFields (istenen facet alanları), page ve pageSize, istek kimliği. Kullanıcı ve tenant istemciden parametre olarak alınmaz; Frappe oturumundan ve kernel-envelope--contract zarfından okunur.",
+    "output": "Kernel zarfı içinde: results (doctype, name, title, snippet, score), total (aynı predikatla sayım), facets (alan başına değer ve sayı listesi), suggestions (otomatik tamamlama ve yazım önerisi), appliedFilters. UI'ya giden çıktı JSON modelidir; ReactNode veya callback taşımaz, bunlar istemcideki yerel bileşen sınırında kalır.",
+    "authorization": "Tek izin predikatı Frappe native kayıt izni, paylaşım (share), kullanıcı izni ve tenant bağlamından türetilir; sonuç, sayı, facet ve öneri aynı predikatı kullanır. ignore_permissions içeren yardımcılar veya ham SQL ile izin atlama yasaktır ve bunlar arama API'sinden dışarı açılmaz. Alan izni için apply_fieldlevel_read_permissions anlayışı esas alınır; permlevel>0 alanlar indekse ve snippet'e girmez. Bu rehber yeni rol veya izin bayrağı üretmez; ileride gerekirse explicitPermissionFlags ortak kaynağına bağlanır.",
+    "persistence": "Sorgu yolu salt okunurdur; şema, DocType, veri veya indeks yazmaz. İndeks içeriği ve izin/paylaşım değişikliğinin indekse yansıması search-index--contract ve outbox--contract sahipliğindedir. Eş anlamlı sözlüğünün depolama yeri karar bekler.",
+    "failure": "Bilinmeyen veya indekslenmeyen facet alanı açık doğrulama hatası verir, sessiz genişletme olmaz. İzin predikatı kurulamazsa açık yetki hatası döner; izinsiz sorguya geri düşülmez. Motor erişilemezse açık hata döner; izinsiz bir alternatif yola düşülmez. Yazma parametresi reddedilir, kayıt değişmez. Hata gövdesi kernel zarfı biçimindedir ve gizli kayıt ya da alan sayısını sızdırmaz."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "client-rule-parity--contract",
+      "kernel-envelope--contract",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "outbox--contract",
+      "search-index--contract",
+      "search-query--contract",
+      "ui-family-10--contract",
+      "ui-family-10--implementation",
+      "ui-family-11--contract",
+      "ui-family-12--contract",
+      "ui-family-18--contract",
+      "ui-family-18--implementation"
+    ],
+    "admission": "Ön koşullar: T-00 hedef taban çizgisi ve R-00 yeniden kullanım eşlemesi; izinli veri tüketicisi olduğu için R-01. Hedef sürüm, DB motoru ve harici motor kararları decisionsPending'de kapanmadan üretim kodu başlamaz. Tek dar davranış (izin predikatının tek kaynaktan gelmesi) gerçek RED/GREEN kanıtıyla uygulanır. CI, deploy ve rollback teknik sahibi Hüseyin Cengiz'dir. Bu sözleşme hiçbir servisi, production ortamını, şemayı veya veriyi değiştirme yetkisi vermez.",
+    "steps": [
+      "R-00 eşlemesinde native parçaları (group_by, get_count, get_search_filters, apply_fieldlevel_read_permissions, SQLiteSearch yazım düzeltmesi) hedef sürümde yeniden doğrula; hedef sürüm kararı gelene kadar durumu 'verify' bırak.",
+      "search_query_post_mvp.py için tek bir izin predikatı kurucusu tasarla: girdisi oturum kullanıcısı ve tenant zarfı, çıktısı hem get_search_filters uzantısına hem gruplama/sayım çağrılarına verilen aynı filtre nesnesi.",
+      "Facet sayılarını bu filtreyle group_by ve sayım üzerinden üret; harici motor seçilirse aynı predikat motor filtresine çevrilir, ayrı izin mantığı yazılmaz.",
+      "Facet olarak sunulabilecek alanları indekslenen alanlarla sınırla; liste dışı isteği reddet.",
+      "permlevel>0 alanların indeksten dışlanmasını ve share/izin iptalinin yansımasını search-index--contract ve outbox--contract tarafına gereksinim olarak devret; bu adaptör yalnız sorgu tarafıdır.",
+      "Öneri ve sıralamayı izinli aday kümesine uygula; Türkçe altın sorgu taslağını kabul metnine ekle.",
+      "ui-family-10/11/18 bileşenleri JSON çıktıyı Ant Design bileşenleriyle gösterir; facet sayısı yalnız sunucudan gelir, istemci hesaplamaz. registry.ts kaynak registry kaydıdır; GenUI capability registry'den ayrıdır. Grid kararı açıktır, bu sözleşme grid seçmez.",
+      "hooks.py, routes.tsx ve registry.ts gibi paylaşımlı dosya değişikliklerini ana entegrasyon sahibi üzerinden seri birleştirmeye sun."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Kullanıcı A'nın okuma izni olmayan ve sorguyla eşleşen bir kayıt; A'nın sorgusunda sonuç listesinde, total değerinde ve ilgili facet değerinin sayısında yer almaz.",
+      "red": "Gelecekteki adaptörde sayım veya facet izinden önce hesaplanırsa (Writer'daki post-filter deseni) total ve facet sayısı gizli kaydı içerir ve davranış doğrulaması başarısız olur. RED import ya da altyapı hatası değildir, native izin davranışını bozarak da üretilmez.",
+      "green": "Sonuç, total ve facet aynı predikat nesnesinden üretilir; gizli kayıt üçünde de görünmez, izinli kayıt görünür kalır, native izin kodu değiştirilmez. Bu tur test yazılmaz ve koşulmaz."
+    },
+    "rollback": "Adaptör ekleme niteliğindedir; geri alma, hooks.py kaydının ve routes.tsx rotasının kaldırılmasıyla yapılır. Şema veya veri değişikliği olmadığı için veri geri yükleme gerekmez. Harici motor kullanılıyorsa motor filtre eşlemesi kapatılır, izinsiz bir alternatif yola düşülmez. Teknik CI/deploy/rollback adımları Hüseyin Cengiz sahipliğindedir; DNS/GoDaddy adımı gerekmez, gerekirse uygulama sahibi Asistan Hüseyin'dir."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "search-2",
+      "sourceStage": "post_mvp",
+      "existing": "Native parça: izin kapsamlı listeleme group_by ile gruplayabiliyor, get_count sayım sağlıyor. Suite Calendar yalnız sunucunun indekslediği filtreleri sunma kuralını uyguluyor (Vue kaynağı; React/AntD kanıtı değil). Birleşik facet servisi veya facet sayısı API'si görülmedi.",
+      "gap": "Facet sayılarının sonuç sorgusuyla aynı izin ve tenant predikatından üretileceğine dair sözleşme yok. Yalnız indekslenen alanların facet olarak sunulması kuralı yazılmamış. Facet alan seçiminin DocField metadata'sından mı geleceği yoksa sabit mi olacağı belirsiz.",
+      "completionSteps": [
+        "Facet sayısını sonuç sorgusuyla aynı predikat nesnesinden türet; ayrı veya izinsiz sayım yolu açma.",
+        "Facet alanlarını indekslenen alanlarla sınırla; liste dışı istekte açık hata döndür, sorguyu genişletme.",
+        "Alan seçimi kaynağı karara bağlanana kadar her iki seçenekte de aynı izinli ve indeksli alan doğrulamasını zorunlu tut.",
+        "Çoklu facet filtresini sonuç ve sayım için aynı filtre nesnesiyle kesişim olarak uygula.",
+        "Harici motor seçilirse aynı predikatı motor filtresine çevir ve örnek sorgularda motor sayısını native sayımla karşılaştır."
+      ],
+      "dependencies": [
+        "search-query--contract",
+        "native-user-policy--contract",
+        "native-doctype-schema--contract",
+        "search-index--contract",
+        "kernel-envelope--contract"
+      ],
+      "acceptance": "Facet sayıları yetkisiz kayıtları ifşa etmez; çoklu filtre sonuçla aynı kapsamı kullanır. Gizli kayıt içeren bir değerin sayısı yalnız görünür kayıtları gösterir; indekslenmeyen alan facet olarak istenince açık hata döner.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/client.py",
+          "line": 30,
+          "quote": "group_by: str | list[str] | None = None,"
+        },
+        {
+          "path": "frappe/frappe/client.py",
+          "line": 78,
+          "quote": "def get_count("
+        },
+        {
+          "path": "suite/frontend/src/apps/calendar/composables/useCalendarSearchFilters.ts",
+          "line": 37,
+          "quote": "Only filters the server actually indexes are offered."
+        }
+      ]
+    },
+    {
+      "requirementId": "search-4",
+      "sourceStage": "post_mvp",
+      "existing": "Native parça: SQLiteSearch, get_search_filters üzerinden sorgu düzeyinde izin süzmesi sağlıyor; tekil belge okumada apply_fieldlevel_read_permissions alan iznini uyguluyor. Suite Writer filtreyi boş döndürüp izni sonradan uyguluyor; bu yüzden sayı ve snippet izinden önce hesaplanabiliyor.",
+      "gap": "Pre-filter ile post-filter seçimi ve bunun sayı ve snippet'lere etkisi kurala bağlanmamış. permlevel alan izninin indekslenen içeriğe ve snippet'e nasıl uygulanacağı tanımsız. Share veya izin geri alındığında sonuçların ne kadar sürede güncelleneceği belirtilmemiş. ignore_permissions içeren yardımcıların arama API'sinden dışarı açılmayacağı açıkça yazılmamış.",
+      "completionSteps": [
+        "Pre-filter kuralını yaz: predikat get_search_filters uzantısında sorgu düzeyinde uygulanır; boş filtre ve sonradan süzme deseni bu adaptörde kullanılmaz.",
+        "Paylaşılan belgelerin aranabilir kalması gereksinimini predikata share kapsamı ekleyerek karşıla; post-filter'a dönme.",
+        "permlevel>0 alanları indeks ve snippet dışında tut; indeks tarafını search-index--contract'a gereksinim olarak devret.",
+        "Share iptali kabul örneğini mevcut senaryo bütçesinde tek senaryo olarak planla; yansıma süresi hedefi karar bekler.",
+        "Kod inceleme kontrol listesine, ignore_permissions içeren yardımcıların ve ham SQL'in whitelist arama yolundan çağrılmadığını ekle."
+      ],
+      "dependencies": [
+        "search-query--contract",
+        "native-user-policy--contract",
+        "kernel-envelope--contract",
+        "search-index--contract",
+        "outbox--contract",
+        "api-middleware--contract"
+      ],
+      "acceptance": "Sonuç, snippet, facet ve sayılar gizli alan veya kurum verisini sızdırmaz; izin kaldırılması sonuçlara yansır.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/search/sqlite_search.py",
+          "line": 117,
+          "quote": "- Permission-aware search results via query-level filtering"
+        },
+        {
+          "path": "frappe/frappe/search/sqlite_search.py",
+          "line": 251,
+          "quote": "def get_search_filters(self):"
+        },
+        {
+          "path": "suite/suite/writer/search.py",
+          "line": 23,
+          "quote": "# Results are permission-filtered in suite.writer.api.general.search."
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 84,
+          "quote": "doc.apply_fieldlevel_read_permissions()"
+        }
+      ]
+    },
+    {
+      "requirementId": "search-6",
+      "sourceStage": "post_mvp",
+      "existing": "Native parça: SQLiteSearch trigram tabanlı yazım düzeltmesi ve sınırlı edit mesafesi sunuyor. Suite SearchStore prefix tabanlı tamamlama yapıyor ama sıralamayı çağırana bırakıyor. Postgres tsvector 'english' sabitine bağlı. Eş anlamlı sözlüğü görülmedi.",
+      "gap": "Türkçe altın sorgu seti (yazım hatası, eş anlamlı, prefix) ve ölçüt eşiği tanımlı değil. Eş anlamlı sözlüğünün sahibi ve depolama yeri tanımsız. Postgres FTS'in 'english' regconfig'i Türkçe için uygun değil ve DB motoru seçimi kayda bağlanmamış. MIN_WORD_LENGTH gibi sabitlerin kısa Türkçe sorgulara etkisi değerlendirilmemiş. 'verify' durumu hedef sürüme bağlı değil.",
+      "completionSteps": [
+        "'verify' durumunu hedef sürüm kararına bağla (öneri: v17-dev SQLiteSearch); karar gelene kadar doğrulanacak sabitleri listele.",
+        "Öneri ve sıralamayı yalnız izinli aday kümesi üzerinde çalıştır; yazım önerisi kelime dağarcığının gizli kayıtlardan terim sızdırıp sızdırmadığını doğrulama maddesi olarak ekle.",
+        "Prefix sonuçları puanlanmadan döndüğünde sıralamayı adaptörde yap; sayfalamayı sıralamadan sonra uygula.",
+        "Kabul metnine küçük bir Türkçe altın sorgu listesi ekle: yazım hatası, prefix, dört harften kısa sorgu ve eş anlamlı örnekleri.",
+        "Eş anlamlıları ayrı ve koşullu bir alt adım olarak tut; sahibi ve depolama yeri belli olmadan uygulama yapma.",
+        "Postgres seçilirse 'english' regconfig yerine Türkçeye uygun yapılandırma ihtiyacını DB motoru kararına bağla."
+      ],
+      "dependencies": [
+        "search-query--contract",
+        "search-index--contract",
+        "native-doctype-schema--contract"
+      ],
+      "acceptance": "Türkçe yazım hatası, eş anlamlı ve otomatik tamamlama örnekleri seçilen motor ve sürüm üzerinde ölçülür; öneriler izinsiz kayıtlardan terim göstermez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/search/sqlite_search.py",
+          "line": 112,
+          "quote": "- Spelling correction using trigram similarity"
+        },
+        {
+          "path": "frappe/frappe/search/sqlite_search.py",
+          "line": 86,
+          "quote": "MAX_EDIT_DISTANCE = 3"
+        },
+        {
+          "path": "suite/suite/store/search_store.py",
+          "line": 221,
+          "quote": "hits come back in index order: ranking them is the caller's job (see"
+        },
+        {
+          "path": "frappe/frappe/query_builder/custom.py",
+          "line": 138,
+          "quote": "super().__init__(\"TO_TSVECTOR\", \"english\", column, *args, alias=alias)"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Birleşik facet servisi ve facet sayısı API'si yok; tek predikattan türetme kuralı yalnız bu sözleşmede tanımlı.",
+    "permlevel>0 alanların indeks ve snippet dışında tutulması indeks tarafında tanımlanmamış (search-index--contract).",
+    "Share ve izin iptalinin indekse yansıma süresi tanımsız.",
+    "Yazım önerisi kelime dağarcığının izin kapsamı doğrulanmamış.",
+    "Türkçe altın sorgu seti, ölçüt eşiği ve eş anlamlı sözlüğü yok.",
+    "Kaynak alıntıları önceki salt okunur kaynak anlık görüntülerinden alındı; canlı site veya ürün kabulü yapılmadı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Hedef Frappe sürümü ('verify' durumunun v17-dev SQLiteSearch'e bağlanması önerisi)",
+      "requirementIds": ["search-4", "search-6"],
+      "blocks": "verify durumunun kapatılması ve üretim kodunun başlaması",
+      "allowedUntilDecision": "Doğrulanacak sabitlerin ve native parçaların listesini belgeye yazmak"
+    },
+    {
+      "decision": "Harici arama motoru kullanılıp kullanılmayacağı ve hangisinin kullanılacağı",
+      "requirementIds": ["search-2", "search-6"],
+      "blocks": "Predikatın motor filtresine çevrilmesi ve motor sayısının karşılaştırılması",
+      "allowedUntilDecision": "Predikat sözleşmesini motordan bağımsız yazmak"
+    },
+    {
+      "decision": "DB motoru ve FTS dil yapılandırması",
+      "requirementIds": ["search-6"],
+      "blocks": "Türkçe tam metin aramanın ölçülmesi",
+      "allowedUntilDecision": "'english' regconfig riskini kabul metnine not etmek"
+    },
+    {
+      "decision": "Eş anlamlı sözlüğünün sahibi ve depolama yeri",
+      "requirementIds": ["search-6"],
+      "blocks": "Eş anlamlı alt adımı",
+      "allowedUntilDecision": "Altın sorgu setine eş anlamlı örneklerini taslak olarak eklemek"
+    },
+    {
+      "decision": "Facet alanı seçiminin kaynağı (DocField metadata veya sabit liste)",
+      "requirementIds": ["search-2"],
+      "blocks": "Facet alan listesinin üretimi",
+      "allowedUntilDecision": "Her iki seçenekte geçerli olacak izinli ve indeksli alan doğrulama kuralını yazmak"
+    },
+    {
+      "decision": "Share ve izin iptalinin sonuçlara yansıma süresi hedefi",
+      "requirementIds": ["search-4"],
+      "blocks": "İptal kabul senaryosunun eşiği",
+      "allowedUntilDecision": "Senaryoyu eşiksiz, yalnız yön olarak tanımlamak"
+    },
+    {
+      "decision": "Türkçe altın sorgu setinin ölçüt eşiği",
+      "requirementIds": ["search-6"],
+      "blocks": "Öneri ve sıralama kabulü",
+      "allowedUntilDecision": "Sorgu örneklerini eşiksiz listelemek"
+    },
+    {
+      "decision": "Tenant topolojisi (tenant predikatının kaynağı)",
+      "requirementIds": ["search-2", "search-4"],
+      "blocks": "Tenant koşulunun predikata eklenmesi",
+      "allowedUntilDecision": "Tenant bağlamını kernel zarfından okunan soyut bir girdi olarak belgelemek"
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

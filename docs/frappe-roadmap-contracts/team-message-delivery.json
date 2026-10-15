@@ -1,0 +1,222 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "team-message-delivery",
+  "canonicalTaskIds": ["team-message-delivery--implementation"],
+  "requirementIds": ["notifications-9"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "notifications-9": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "İptal edilmiş, yeniden yetki bekleyen veya izinsiz kanala bağlı ekip mesajı teslimi dış gönderimden önce kesilir",
+    "trigger": "outbox--contract üzerinden kuyruğa alınmış bir ekip mesajı teslim kaydı; kiracıya ait bir Slack veya Teams bağlantısı ve hedef kanal anahtarı ile worker tarafından işlenir.",
+    "expected": "Worker, dış HTTP çağrısından hemen önce bağlantının teslim kaydıyla aynı kiracıya ait olduğunu, durumunun active olduğunu ve hedef kanalın bağlantının izinli kanal listesinde bulunduğunu yeniden doğrular. Koşullar sağlanırsa açık timeout ile tek gönderim yapar ve sonucu teslim kaydına yazar.",
+    "denied": "Bağlantı revoked veya needs_reauth ise, kiracı uyuşmuyorsa ya da kanal izinli listede değilse dış HTTP çağrısı yapılmaz. Teslim kaydı engellendi sonucu ve sebep koduyla kapanır; bağlantı kaydı ve izinli kanal listesi değişmeden kalır."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Upstream Frappe Notification DocType'ının Slack kanalı ve Slack Webhook URL kaydı tek seferlik webhook POST ve Error Log kaydı sağlar; Notification değerlendirmesi enqueue ile arka plana alınabilir. Bu parçalar Slack webhook gönderiminin native temelidir. Kiracıya ait bağlantı, izinli kanal politikası, bağlantı yaşam döngüsü, hız sınırı ve tekrar, kalıcı teslim kaydı ve Teams bağlayıcısı aranan yollarda bulunmadı. Mevcut Slack Webhook URL ve Notification davranışı değiştirilmez ve monkeypatch edilmez; yeni katman additive olarak yanına eklenir. Kanıtın bir native parçayı göstermesi davranışın tamamının var olduğu anlamına gelmez. Kaynak değerlendirmesi ürün uygulaması değildir. Uygulama durumu: uygulanmadı.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/integrations/doctype/slack_webhook_url/slack_webhook_url.py",
+        "line": 63,
+        "quote": "r = requests.post(slack_url, data=json.dumps(data))"
+      },
+      {
+        "path": "frappe/frappe/integrations/doctype/slack_webhook_url/slack_webhook_url.py",
+        "line": 67,
+        "quote": "frappe.log_error(message, _(\"Slack Webhook Error\"))"
+      },
+      {
+        "path": "frappe/frappe/integrations/doctype/slack_webhook_url/slack_webhook_url.json",
+        "line": 27,
+        "quote": "\"label\": \"Webhook URL\","
+      },
+      {
+        "path": "frappe/frappe/email/doctype/notification/notification.json",
+        "line": 76,
+        "quote": "\"options\": \"Email\\nSlack\\nSystem Notification\\nSMS\","
+      },
+      {
+        "path": "frappe/frappe/email/doctype/notification/notification.py",
+        "line": 438,
+        "quote": "self.send_a_slack_msg(doc, context)"
+      },
+      {
+        "path": "frappe/frappe/email/doctype/notification/notification.py",
+        "line": 385,
+        "quote": "\"frappe.email.doctype.notification.notification.evaluate_alert\","
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/email/doctype/notification/notification.json",
+      "frappe/frappe/email/doctype/notification/notification.py",
+      "frappe/frappe/integrations/doctype/slack_webhook_url/slack_webhook_url.json",
+      "frappe/frappe/integrations/doctype/slack_webhook_url/slack_webhook_url.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/team-message-delivery.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/adapters/notifications/team_message_delivery_post_mvp.py"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "kernel-envelope--contract zarfı (tenant, actor, correlation ve idempotency anahtarı), outbox--contract teslim kaydı referansı, bağlantı referansı, hedef kanal anahtarı ve email-template--contract ile işlenmiş, sağlayıcıdan bağımsız mesaj gövdesi (metin ve isteğe bağlı belge bağlantısı). Secret değeri girdi veya kuyruk yükü olarak taşınmaz; worker bağlantı kaydından native izin kapsamında okur.",
+    "output": "Teslim kaydı sonucu: sent; blocked (revoked, needs_reauth, channel_not_allowed, tenant_mismatch sebeplerinden biri); retry_scheduled (deneme sayısı ve sonraki deneme zamanı); failed (kalıcı hata sınıfı). Sağlayıcı yanıt gövdesi, webhook URL ve token sonuçta yer almaz. React/Ant Design istemcilerine yalnız JSON model sınırından durum alanları olarak açılır; ReactNode veya callback taşınmaz. Kaynak registry ile GenUI capability registry ayrı kalır; GenUI ayrı kullanıcı projesidir.",
+    "authorization": "Bağlantı ve izinli kanal kayıtlarının oluşturma, değiştirme ve iptal yetkisi native DocPerm ve User Permission ile verilir; rol ve izin bayrakları explicitPermissionFlags ortak kaynağından türetilir, bu rehber yeni rol tanımlamaz. Kiracı ve sahip kapsamı native-user-policy--contract, kanala gönderme yeteneği capability-definition--contract ile tanımlanır. ignore_permissions, ham SQL ile yetki atlama veya mevcut System Manager iznini kiracı kullanıcılarına genelleştirme yasaktır. Kuyruğa alma anındaki kontrol yeterli sayılmaz; worker kiracı, durum ve izinli kanal kontrolünü gönderimden hemen önce yeniden yapar.",
+    "persistence": "Bu adapter kendi DocType, ORM veya CRUD katmanını tanımlamaz. Bağlantı alanları (tenant, sahip, provider, Password tipinde secret, active/revoked/needs_reauth durumu, izinli kanallar) team-message-delivery--contract içinde; teslim ve deneme kaydı outbox--contract içinde tanımlanır. Teslim kaydı durum geçişleri native transaction, save ve hook zincirinden geçer; doğrudan SQL update yapılmaz. Mevcut Slack Webhook URL kaydı değiştirilmez. Saklama süresi açık karardır.",
+    "failure": "Dış çağrı açık timeout ile yapılır. Zaman aşımı, bağlantı hatası ve 5xx geçici sayılır; 429 yanıtında Retry-After okunur ve deneme sınırlı backoff ile yeniden planlanır. 429 dışındaki 4xx kalıcı sayılır; hangi sağlayıcı kodunun bağlantıyı needs_reauth durumuna alacağı hedef sağlayıcı belgesiyle sürüm bazında doğrulanır. Deneme ve backoff sınır değerleri team-message-delivery--contract içinde sabitlenir. Her deneme ve sonucu teslim kaydında izlenebilir; Error Log yalnız ek tanılamadır ve webhook URL, token veya mesaj gövdesi loglanmaz. Deneme sınırı aşılınca teslim failed olur ve başka bir kanala sessizce yönlendirilmez."
+  },
+  "development": {
+    "dependencies": [
+      "capability-definition--contract",
+      "email-template--contract",
+      "kernel-envelope--contract",
+      "native-user-policy--contract",
+      "outbox--contract",
+      "team-message-delivery--contract"
+    ],
+    "admission": "Uygulama durumu: uygulanmadı. Gelecekteki kabul önkoşulları: T-00 hedef taban ve R-00 yeniden kullanım eşlemesi; izinli veri tüketicisi olduğu için R-01; listelenen bağımlı sözleşmelerin entegre olması; tek dar davranış için gerçek RED/GREEN kanıtı. Teams adımı, Teams hedef API kararı verilmeden açılmaz. Sıra yetkisi mevcut görev bağımlılıkları ve stage değeridir; küme sırası yeni bir seri DAG değildir. Ortak politika implementationAdmission.policyRef ile bağlıdır.",
+    "steps": [
+      "Bağımlı sözleşmelerden bağlantı alanlarını (team-message-delivery--contract), teslim ve deneme durumlarını (outbox--contract), zarfı (kernel-envelope--contract), kiracı/sahip kapsamını (native-user-policy--contract) ve kanal yeteneğini (capability-definition--contract) oku. Eksik alan varsa bu rehbere ekleme; ilgili sözleşmeye geri bildir.",
+      "T-00 hedef Frappe sürümünde Slack Webhook URL alanlarını, Notification Slack kanalını ve enqueue yolunu yeniden doğrula. Buradaki kanıt satırları önceki salt-okunur kaynak anlık görüntüsüne aittir; canlı site kabulü değildir.",
+      "tdd.oneScenario için tek testi yaz ve tdd.red tanımındaki davranışsal başarısızlığı gözle.",
+      "plannedProduction yolunda sağlayıcıdan bağımsız ön-gönderim kontrolünü ekle: kiracı eşleşmesi, active durum ve izinli kanal. Dış HTTP göndericiyi tek bir çağrı noktası arkasında tut ki test sahte gönderici kullanabilsin. tdd.green ile doğrula.",
+      "Slack sağlayıcısı: native send_slack_message timeout içermeyen bir POST yapar ve durum kodunu çağırana döndürmez; bu nedenle adapter aynı webhook POST biçimini kendi açık timeout ve durum kodu sınıflandırmasıyla yapar. Native fonksiyon değiştirilmez.",
+      "Geçici hata, 429 ve Retry-After işlemeyi ve sınırlı backoff'u outbox--contract deneme alanlarına bağla; her denemenin sonucunu teslim kaydına yaz.",
+      "Sahip ayrıldığında bağlantıyı needs_reauth durumuna alma işini, native-user-policy--contract'ın sağladığı kullanıcı devre dışı sinyaline bağla. Bu sinyal o sözleşmede tanımlı değilse adım bloklanır; yeni hook uydurulmaz. Durum değişimi bağlantı sahibine ve kiracı yöneticisine görünür olmalıdır.",
+      "Bağlantı ve teslim durumunu React/Ant Design istemcilerine native izin kontrollü Frappe API üzerinden JSON alanları olarak aç. Ön yüz route ve registry kaydı ortak entegrasyon dosyalarında entegrasyon sahibince seri yapılır. Vue/Frappe UI kaynağı React/AntD uygulaması kanıtı sayılmaz.",
+      "Teams sağlayıcısını yalnız hedef API kararı sonrasında, aynı ön-gönderim kontrolü ve teslim kaydıyla ikinci provider olarak bağla."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Kiracı A'ya ait, active durumdaki bir Slack bağlantısının izinli kanalına bir teslim kaydı kuyruklanır; ardından bağlantı yetkili kullanıcı tarafından revoked yapılır ve worker kaydı işler. Beklenen: sahte HTTP gönderici hiç çağrılmaz, teslim kaydı blocked sonucu ve revoked sebebiyle kapanır, bağlantı kaydı ve izinli kanal listesi değişmez.",
+      "red": "İlk iskelet worker teslim kaydını durum kontrolü yapmadan sahte göndericiye iletir; test 'gönderici çağrılmadı' ve 'sonuç blocked/revoked' doğrulamalarında davranışsal olarak başarısız olur. Import hatası, eksik fixture veya altyapı hatası ya da native Slack Webhook URL veya Notification davranışını bozarak elde edilen kırmızı RED sayılmaz. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "Gönderimden hemen önce kiracı, durum ve izinli kanal kontrolü eklenir; aynı test geçer. Native Notification Slack yolu ve Slack Webhook URL kaydı değişmeden kalır; ignore_permissions veya SQL ile yetki atlama kullanılmaz."
+    },
+    "rollback": "Değişiklik additive tasarlanır: adapter kaydı hooks.py'den kaldırılarak devre dışı bırakılır, kuyrukta bekleyen teslimler gönderilmeden blocked durumda kalır ve veri silinmez. Native Notification Slack yolu ve Slack Webhook URL etkilenmez. Şema geri alma bağımlı sözleşmelerin kapsamındadır. Teknik CI, deploy ve rollback sahibi Hüseyin Cengiz'dir. Bu sözleşme hiçbir servis, production ortamı, şema veya veriyi değiştirme yetkisi vermez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "notifications-9",
+      "sourceStage": "post_mvp",
+      "existing": "Native parçalar: Notification DocType'ında Slack kanal seçeneği ve send_a_slack_msg çağrısı; Slack Webhook URL kaydında webhook URL alanı ve requests.post ile tek seferlik JSON gönderimi; hata halinde frappe.log_error; Notification değerlendirmesinin enqueue ile arka plana alınması. Bunlar yalnız bir bildirimi Slack webhook kanalına eşleme davranışını kısmen karşılar; uçtan uca bağlayıcı kabul edilmez.",
+      "gap": "Aranan yollarda Teams bağlayıcısı yok (kapsamlı yokluk iddiası değildir). Bağlantıda kiracı ve sahip alanı, kiracı kapsamlı izin ve User Permission yok. Webhook URL Password değil Data alanında saklanıyor ve liste görünümünde çıkıyor. İzinli kanal politikası yok. Timeout, 429/Retry-After, backoff ve kalıcı teslim/deneme kaydı yok. active/revoked/needs_reauth yaşam döngüsü, sahip ayrılınca yeniden yetkilendirme görünürlüğü ve iptal edilen bağlantıda kuyruğu kesen kontrol yok. Slack OAuth/bot token yolu yok. İstemcilere bağlantı ve teslim durumunu açan API sözleşmesi yok.",
+      "completionSteps": [
+        "Bağlantı modelini team-message-delivery--contract içinde tanımlat: tenant, sahip, provider, Password tipinde secret, durum ve izinli kanallar; mevcut Slack Webhook URL'den additive yeniden kullanım.",
+        "Teslimi outbox--contract teslim kaydına bağla; worker gönderimden hemen önce kiracı, durum ve izinli kanal kontrolü yapsın (tdd.oneScenario).",
+        "Aynı worker'a açık timeout, 429/Retry-After ve sınırlı backoff ekle; her denemeyi teslim kaydında izle.",
+        "Sahip ayrılınca needs_reauth geçişini native-user-policy--contract sinyaline bağla ve görünür kıl.",
+        "Teams sağlayıcısını karar sonrasında aynı sözleşmeye ikinci provider olarak ekle.",
+        "Durum alanlarını native izin kontrollü API ile React/Ant Design istemcilerine JSON olarak aç."
+      ],
+      "dependencies": [
+        "capability-definition--contract",
+        "email-template--contract",
+        "kernel-envelope--contract",
+        "native-user-policy--contract",
+        "outbox--contract",
+        "team-message-delivery--contract"
+      ],
+      "acceptance": "Kiracıya ait bağlantı yalnız izinli kanala göndersin; hız sınırı ve geçici hata tekrarları teslim kaydında izlenebilsin; sahip ayrılınca bağlantı sürekliliği veya yeniden yetkilendirme ihtiyacı görünür olsun; bağlantı iptali kuyruktaki gönderimi kessin. Yetkisiz kullanıcının revoked bağlantıyı active yapma veya izinli kanal listesini değiştirme denemesi native izinle reddedilsin ve kayıt değişmeden kalsın. Frappe hazır uçtan uca bağlayıcı kabul edilmez; Teams hedef API, sahiplik ve izinler sürüm bazında doğrulanır.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/integrations/doctype/slack_webhook_url/slack_webhook_url.py",
+          "line": 63,
+          "quote": "r = requests.post(slack_url, data=json.dumps(data))"
+        },
+        {
+          "path": "frappe/frappe/integrations/doctype/slack_webhook_url/slack_webhook_url.py",
+          "line": 67,
+          "quote": "frappe.log_error(message, _(\"Slack Webhook Error\"))"
+        },
+        {
+          "path": "frappe/frappe/integrations/doctype/slack_webhook_url/slack_webhook_url.json",
+          "line": 27,
+          "quote": "\"label\": \"Webhook URL\","
+        },
+        {
+          "path": "frappe/frappe/email/doctype/notification/notification.json",
+          "line": 76,
+          "quote": "\"options\": \"Email\\nSlack\\nSystem Notification\\nSMS\","
+        },
+        {
+          "path": "frappe/frappe/email/doctype/notification/notification.py",
+          "line": 438,
+          "quote": "self.send_a_slack_msg(doc, context)"
+        },
+        {
+          "path": "frappe/frappe/email/doctype/notification/notification.py",
+          "line": 385,
+          "quote": "\"frappe.email.doctype.notification.notification.evaluate_alert\","
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Microsoft Teams bağlayıcısı (Workflows/Power Automate webhook veya bot/Graph yolu) aranan yollarda yok.",
+    "Kiracıya ait bağlantı modeli, sahip alanı ve kiracı/sahip bazında izin ile User Permission kapsamı yok; mevcut DocPerm yalnız System Manager'a tanımlı.",
+    "Webhook URL secret olarak saklanmıyor ve liste görünümünde çıkıyor.",
+    "Kiracı, rol ve kanal bazında izinli kanal politikası yok.",
+    "Timeout, 429/Retry-After, backoff ve kalıcı teslim/deneme kaydı yok; yalnız Error Log var.",
+    "Bağlantı yaşam döngüsü (active/revoked/needs_reauth), sahip ayrılınca devir veya yeniden yetkilendirme görünürlüğü ve iptal edilen bağlantıda kuyruğu kesen kontrol yok.",
+    "Slack OAuth/bot token yolu yok.",
+    "React/Ant Design istemcilerine bağlantı ve teslim durumunu açan API sözleşmesi yok.",
+    "Runtime ve ürün kabulü yapılmadı; kanıtlar yalnız önceki salt-okunur kaynak anlık görüntüsüne dayanır."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Teams hedef API'si: Workflows/Power Automate webhook mu, bot/Graph yolu mu; hedef sürüm, sahiplik ve izinler.",
+      "requirementIds": ["notifications-9"],
+      "blocks": "Teams sağlayıcısının bağlanması.",
+      "allowedDocWorkUntilDecided": "Sağlayıcıdan bağımsız ön-gönderim kontrolünü, teslim sonuç kodlarını ve Slack yolunu belgeleyebilir."
+    },
+    {
+      "decision": "Slack kimlik yolu: yalnız incoming webhook mu sürdürülecek, yoksa OAuth/bot token yolu da eklenecek mi.",
+      "requirementIds": ["notifications-9"],
+      "blocks": "needs_reauth ve yeniden yetkilendirme akışının sağlayıcı tarafı.",
+      "allowedDocWorkUntilDecided": "Webhook tabanlı revoked kontrolünü ve sağlayıcıdan bağımsız durum modelini belgeleyebilir."
+    },
+    {
+      "decision": "Tenant topolojisi: kiracı izolasyonunun site, veritabanı veya kayıt düzeyinde nasıl kurulacağı.",
+      "requirementIds": ["notifications-9"],
+      "blocks": "Bağlantı tenant alanı, User Permission kapsamı ve tenant_mismatch kontrolünün somut biçimi.",
+      "allowedDocWorkUntilDecided": "Kiracı eşleşmesini kernel-envelope--contract zarfı üzerinden soyut kural olarak belgeleyebilir."
+    },
+    {
+      "decision": "Teslim ve deneme kayıtlarının saklama süresi; dış sağlayıcıya giden mesaj içeriği için veri yerleşimi.",
+      "requirementIds": ["notifications-9"],
+      "blocks": "Teslim kaydı temizleme kuralı ve kabul ölçütündeki saklama doğrulaması.",
+      "allowedDocWorkUntilDecided": "Teslim kaydının hangi alanları tuttuğunu ve secret ile mesaj gövdesinin loglanmayacağını belgeleyebilir."
+    },
+    {
+      "decision": "Hedef Frappe sürümü (T-00 tabanı).",
+      "requirementIds": ["notifications-9"],
+      "blocks": "Native Slack Webhook URL, Notification ve enqueue yeniden kullanımının sürüm doğrulaması.",
+      "allowedDocWorkUntilDecided": "Kanıt satırlarını önceki kaynak anlık görüntüsüne ait olarak işaretleyip eşlemeyi belgeleyebilir."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

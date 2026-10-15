@@ -1,0 +1,197 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "ui-family-29",
+  "canonicalTaskIds": [
+    "ui-family-29--implementation",
+    "ui-view-chart--implementation"
+  ],
+  "requirementIds": ["shell-3"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "shell-3": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Dashboard: tenant kapsamli, izin denetimli ozet metrik paneli. Uygulama durumu: uygulanmadı.",
+    "trigger": "Conditional kapsami acan urun karari verildikten sonra oturum acmis kullanicinin React/Ant Design on yuzunde Dashboard rotasini acmasi veya tek bir metrik kartini yenilemesi.",
+    "expected": "Onaylanmis 3-5 metriklik listedeki her metrik, Frappe native izin yolu (get_count veya mevcut Dashboard Chart/Number Card kaydi) uzerinden yalniz kullanicinin okuma yetkisi olan ve aktif tenant kapsamindaki veriden hesaplanir; deger, kaynak referansi ve hesaplanma zaman damgasi (computedAt) ile gosterilir. Bos, gecikmis (tazelik esigi asilmis) ve hatali veri durumlari birbirinden ve sifir degerden ayri, metin etiketiyle acik gosterilir. Sahte deger, tahmini deger veya sahte ilerleme gosterilmez.",
+    "denied": "Okuma izni olmayan DocType veya Dashboard Chart/Number Card kaydi icin metrik degeri donmez ve render edilmez; istek native PermissionError/403 ile reddedilir, panel erisim yok durumunu gosterir ve hicbir kayit degismez. Panel yazma, kayit olusturma veya ayar degistirme yapmaz; ignore_permissions, ham SQL veya suzgecsiz sayim ile izin atlatma yoktur."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Kaynak degerlendirmesine gore native Frappe parcalari: whitelisted frappe.client.get_count sayim ucu; hooks.py has_permission eslemesindeki Dashboard Chart ve Number Card izin kancalari; Workspace verisindeki number_cards yapisi. Bu parcalar Desk'e baglidir ve tek baslarina bagimsiz Dashboard davranisinin var oldugunu gostermez. Metrik sozlesmesi, tazelik modeli, tenant kapsami ve React/Ant Design gorsellestirmesi eksiktir. Vue/Frappe UI veya Desk kaynagi React/Ant Design uygulama kaniti sayilmaz.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/client.py",
+        "line": 78,
+        "quote": "def get_count("
+      },
+      {
+        "path": "frappe/frappe/hooks.py",
+        "line": 168,
+        "quote": "\"Dashboard Chart\": \"frappe.desk.doctype.dashboard_chart.dashboard_chart.has_permission\","
+      },
+      {
+        "path": "frappe/frappe/gettext/extractors/workspace.py",
+        "line": 28,
+        "quote": "for number_card in data.get(\"number_cards\", [])"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/client.py",
+      "frappe/frappe/gettext/extractors/workspace.py",
+      "frappe/frappe/hooks.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/ui-family-29.json",
+    "plannedProduction": [
+      "frontend/packages/ui/src/components/ui-family-29/index.tsx",
+      "frontend/packages/ui/src/components/ui-view-chart/index.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "metricId (onayli metrik listesinden), yalniz metrik tanimimin izin verdigi alanlarda istege bagli filtreler, kernel-envelope--contract ile gelen oturum ve tenant baglami. Istemciden gelen tenant, rol veya izin degeri yetki kaynagi sayilmaz.",
+    "output": "Metrik basina {metricId, label, value|null, unit, sourceRef (DocType veya Dashboard Chart/Number Card adi), computedAt, freshness: fresh|stale|empty|error|denied, errorCode|null}. Gorsellestirme bilesen registry'sine JSON model olarak gecer; ReactNode ve callback'ler JSON model disinda yerel bilesen tarafinda kalir. Kaynak registry'si GenUI capability registry'sinden ayridir; GenUI ayri kullanici projesidir.",
+    "authorization": "Okuma yalniz native Frappe izin yoluyla yapilir: get_count icin kaynak degerlendirmesindeki izin denetimi (gelecekteki uygulamada kaynak satirindan dogrulanir), Dashboard Chart ve Number Card icin hooks.py has_permission kancalari. api-middleware--contract kimlik ve hata zarfini saglar; client-rule-parity--contract istemci tarafi gorunurlugun sunucu kararini taklit etmesini, yerine gecmemesini saglar. Bu rehber rol veya izin uretmez; ileride gerekirse explicitPermissionFlags ortak kaynagina baglanir. ignore_permissions, ham SQL ve izin suzgeci olmayan sayim yasaktir.",
+    "persistence": "Yeni DocType, sema, alan veya veri yazimi yok. Mevcut Dashboard Chart/Number Card kayitlari yalniz okunur. Onbellek gerekiyorsa tazelik kararindan sonra computedAt ile birlikte tasarlanir; bu sozlesme onbellek altyapisi secmez.",
+    "failure": "Izin reddi: deger gizlenir, denied durumu gosterilir. Kaynak hatasi veya zaman asimi: error durumu ve yeniden dene eylemi; son basarili deger varsa stale etiketi ve computedAt ile. Kayit yok: empty durumu, sifir degerden ayirt edilir. Tazelik esigi asilirsa stale. Hicbir durumda tahmini veya sahte deger gosterilmez; hata metni ic ayrinti veya baska tenant verisi sizdirmaz."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "client-rule-parity--contract",
+      "kernel-envelope--contract",
+      "native-report--contract",
+      "ui-family-29--contract",
+      "ui-view-chart--contract"
+    ],
+    "admission": {
+      "prerequisites": [
+        "T-00 hedef taban ve R-00 yeniden kullanim eslemesi tamamlanmis olmali; izinli veri tuketicisi oldugu icin R-01 de uygulanir.",
+        "Bagimli sozlesmeler kabul edilmis olmali: ui-family-29--contract, ui-view-chart--contract, kernel-envelope--contract, api-middleware--contract, client-rule-parity--contract, native-report--contract.",
+        "decisionsPending icindeki metrik listesi, tazelik esigi ve conditional kapsam acilis karari verilmis olmali.",
+        "Tek dar davranis gercek RED/GREEN kanitiyla uygulanir; bu sozlesme uretim, test, servis, sema veya veri degisikligi yetkisi vermez."
+      ],
+      "orderAuthority": "Mevcut gorev bagimliliklari ve post_mvp asamasi; kume sirasi (6) yalniz sunumdur, yeni seri DAG degildir."
+    },
+    "steps": [
+      "1. Urun karari ile conditional kapsam acildiktan sonra ui-family-29--implementation altina 3-5 metriklik liste yazilir; her metrik icin kaynak, izin yolu, tenant suzgeci, tazelik esigi ve computedAt kaynagi doldurulur.",
+      "2. Kaynak secim kurali: tekil sayim icin get_count; tek deger karti icin mevcut Number Card; zaman serisi icin mevcut Dashboard Chart; ozel aggregate yalniz native-report--contract kapsaminda ve native izinle. Yeni rapor motoru, ORM veya CRUD katmani tasarlanmaz.",
+      "3. Backend erisimi api-middleware--contract zarfi uzerinden native whitelisted uclara yapilir. Ek whitelisted metot gerekirse backend/saas_platform/saas_platform/hooks.py paylasilan entegrasyon sahibine seri birlestirme icin onerilir ve native izin denetimini yeniden kullanir.",
+      "4. Tazelik: computedAt sunucuda uretilir, stale hesabi onayli esige gore sunucu zamaniyla yapilir; istemci saati karar kaynagi degildir.",
+      "5. On yuz: TanStack Query ile metrik basina sorgu, TanStack Router ile Dashboard rotasi (frontend/apps/web/src/routes.tsx entegrasyon sahibi uzerinden). Tek deger kartlari Ant Design/Pro bilesenleriyle; grafik yalniz ui-view-chart--contract kabul edildikten sonra eklenir.",
+      "6. Registry: bilesen frontend/packages/ui/src/registry.ts kaynak registry'sine JSON model sinirindan kaydedilir; GenUI capability registry'sine kayit yapilmaz.",
+      "7. Arayuz kurallari: 320 CSS px oncelikli akiskan yerlesim, tum metin en az 14 CSS px, Outfit, semantik tasarim tokenlari, cevreleyen odak halkasi yok, merkezi hareket tokenlari ve reduced-motion; durumlar yalniz renge dayanmaz, metin etiketi tasir.",
+      "8. Tauri2 ve WXT/MV3 kabuklari ayni paylasilan bileseni kullanir; wxt.config.ts ve tauri.conf.json degisiklikleri yalniz entegrasyon sahibi uzerinden yapilir."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Okuma izni olmayan kullanici onayli tek bir get_count metrigini istediginde deger donmez, panelde denied durumu gorunur ve hicbir kayit degismez.",
+      "red": "Gelecekte yazilacak davranis testi, metrik adaptorunun native izin reddini denied durumuna eslemedigini veya deger render ettigini iddia duzeyinde gosterir. Import/altyapi hatasi veya native izin kancasini bozmak RED sayilmaz. Bu turda test yazilmaz ve kosulmaz.",
+      "green": "Adaptor native izin reddini degistirmeden yuzeye tasir; yetkili kullanici icin ayni metrik deger ve computedAt ile doner; ignore_permissions veya ham SQL kullanilmaz."
+    },
+    "rollback": "Bu sozlesme belge duzeyindedir; geri alma belge degisikliginin geri alinmasidir. Gelecekteki uygulamada sema/veri degisikligi olmadigi icin geri alma Dashboard rotasi ve registry girisinin kaldirilmasi veya kapatilmasidir; native Dashboard Chart/Number Card kayitlari degistirilmez. CI, deploy ve rollback teknik sahibi Hüseyin Cengiz."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "shell-3",
+      "sourceStage": "post_mvp",
+      "existing": "Native parcalar (kaynak degerlendirmesi): whitelisted get_count sayim ucu; Dashboard Chart ve Number Card has_permission kancalari; Workspace number_cards yapisi. Hepsi Desk'e baglidir; bagimsiz Dashboard teslimi sayilmaz. Uygulama durumu: uygulanmadı.",
+      "gap": "Gosterilecek metrikler ve kaynaklari (Dashboard Chart/Number Card ile ozel aggregate arasindaki secim) belirtilmemis; gecikmis veri icin tazelik esigi ve zaman damgasi alani yok; conditional kapsami acacak urun karari olculebilir degil; Ant Design X/Pro grafik bileseni ve ui-view-chart bagimlilik sirasi yazilmamis.",
+      "completionSteps": [
+        "Metrik tablosu: metricId, label, kaynak (get_count, Number Card veya Dashboard Chart), izin yolu, tenant suzgeci, tazelik esigi, computedAt kaynagi; 3-5 satirla sinirli.",
+        "Ozel aggregate gerekiyorsa native-report--contract'a yonlendir; bu birimde yeni hesaplama motoru yazma.",
+        "Tazelik modeli: fresh/stale/empty/error/denied durumlari ve sunucu tarafli computedAt.",
+        "Siralama: once tek deger kartlari (get_count/Number Card), ui-view-chart--contract kabul edildikten sonra grafik varyanti.",
+        "Conditional kapsam: acilis tetikleyicisi urun kararina baglanana kadar uygulama kabulune girme."
+      ],
+      "dependencies": [
+        "ui-family-29--contract",
+        "ui-view-chart--contract",
+        "kernel-envelope--contract",
+        "api-middleware--contract",
+        "client-rule-parity--contract",
+        "native-report--contract"
+      ],
+      "acceptance": "Metrik tenant kapsamina uyar; bos, gecikmis ve hatali veri durumlari acik gosterilir; yetkisiz okuma native izinle reddedilir, deger gorunmez ve kayit degismez; 320 CSS px'de okunur ve metin 14 CSS px altina inmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/client.py",
+          "line": 78,
+          "quote": "def get_count("
+        },
+        {
+          "path": "frappe/frappe/hooks.py",
+          "line": 168,
+          "quote": "\"Dashboard Chart\": \"frappe.desk.doctype.dashboard_chart.dashboard_chart.has_permission\","
+        },
+        {
+          "path": "frappe/frappe/gettext/extractors/workspace.py",
+          "line": 28,
+          "quote": "for number_card in data.get(\"number_cards\", [])"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Metrik listesi ve her metrigin kaynagi tanimsiz.",
+    "Gecikmis veri icin tazelik esigi ve computedAt alani tanimsiz.",
+    "Conditional kapsam acilis tetikleyicisi olculebilir degil.",
+    "Grafik bileseni ve ui-view-chart bagimlilik sirasi yalniz bu rehberde onerildi; ui-view-chart--contract kabulu bekleniyor.",
+    "get_count izin denetimi kaynak degerlendirmesine dayanir; kanit yalniz imza satirini gosterir, izin yolu uygulama oncesi kaynaktan dogrulanmalidir."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Gosterilecek 3-5 metrik ve her birinin kaynagi",
+      "requirementIds": ["shell-3"],
+      "blocksStep": "development.steps 1-2 ve uygulama kabulu",
+      "allowedDocStepUntilDecision": "Bos metrik tablosu sablonu ve alan basliklari belgelenir; metrik secilmez."
+    },
+    {
+      "decision": "Tazelik esigi ve computedAt kaynagi",
+      "requirementIds": ["shell-3"],
+      "blocksStep": "development.steps 4, stale durumu kabulu",
+      "allowedDocStepUntilDecision": "Durum modeli (fresh/stale/empty/error/denied) esik degeri olmadan belgelenir."
+    },
+    {
+      "decision": "Conditional kapsami acan urun karari ve olculebilir tetikleyici",
+      "requirementIds": ["shell-3"],
+      "blocksStep": "implementationAdmission",
+      "allowedDocStepUntilDecision": "Rehber integrated_contract_only olarak kalir; tetikleyici icin olculebilirlik kriteri sorusu belgelenir."
+    },
+    {
+      "decision": "Ant Design ailesi icinde grafik paketi ve hedef surumu",
+      "requirementIds": ["shell-3"],
+      "blocksStep": "development.steps 5 grafik varyanti",
+      "allowedDocStepUntilDecision": "Tek deger kartlari icin rehber tamamlanir; grafik JSON model alanlari paket secmeden taslaklanir."
+    },
+    {
+      "decision": "Tenant topolojisi (metrik tenant suzgecinin hangi katmanda uygulanacagi)",
+      "requirementIds": ["shell-3"],
+      "blocksStep": "contract.authorization tenant suzgeci ve kabul",
+      "allowedDocStepUntilDecision": "Tenant baglaminin kernel-envelope--contract'tan gelmesi ve istemci degerinin yetki kaynagi olmamasi kurali belgelenir."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}
