@@ -1,0 +1,226 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "partner-referral",
+  "canonicalTaskIds": ["partner-referral--implementation"],
+  "requirementIds": ["campaigns-6"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "campaigns-6": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Referans ve iş ortağı programı: sunucu tarafı atıf, tek seferlik hak ediş ve suistimal denetimi. Uygulama durumu: uygulanmadı.",
+    "trigger": "Yetkili iş ortağına sunucu tarafında üretilmiş bir referans bağlantısı verilir. Bu bağlantıyla gelen kullanıcı hesap veya tenant oluşturduğunda atıf sunucu tarafında kaydedilir. Hak ediş, karara bağlanacak tetikleyici olayda (ödeme veya etkinleşme) değerlendirilir.",
+    "expected": "Atıf, UTM veya Web Page View verisinden değil, sunucu tarafında oluşturulan ayrı ve denetlenebilir bir PartnerReferral kaydından gelir. Atıf yalnız tanımlı pencere ve çakışma kuralıyla ilişkilendirilir. Ödül, geçerli tetikleyici olayda hesap veya tenant başına bir kez doğar. İptal veya iade, kaydı silmeden düzeltme kaydıyla işlenir. Kendi kendine referans reddedilir. Her durum değişikliği denetim zarfına yazılır.",
+    "denied": "Yetkisiz kullanıcı başka bir iş ortağı adına atıf veya hak ediş kaydı oluşturamaz ya da değiştiremez. Misafir veya istemci tarafı sinyal (UTM parametresi, visitor_id, Web Page View) tek başına atıf kanıtı sayılmaz. Aynı tetikleyici olayın ikinci kez işlenmesi ikinci bir hak ediş doğurmaz. Kendi kendine referans hak ediş üretmez. Reddedilen her denemede kayıt değişmeden kalır."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native Frappe tarafında yalnız pazarlama izleme parçaları vardır: misafire açık make_view_log uç noktası, 180 günlük temizlik (clear_old_logs), istemci betiğinin UTM parametrelerini visitor_id ile göndermesi ve UTM Campaign DocType'ı. Bu parçalar yalnız bilgi amaçlı pazarlama sinyali olarak kullanılabilir. Misafirce yazılabildikleri, fingerprint tabanlı oldukları ve 180 günde silindikleri için atıf veya hak ediş kanıtı değildir. Bu kanıtlar bütün davranışın var olduğunu göstermez. Girdi değerlendirmesine göre ERPNext Sales Partner incelenen kaynakta kurulu değildir; benimsenmesi açık bir karardır. Aranan yollar listesi kapsamlı bir yokluk iddiası değildir. Kaynak alıntıları önceki salt okunur Frappe/Suite kaynak anlık görüntülerinden alınmıştır; canlı site veya ürün kabulü yoktur.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/website/doctype/web_page_view/web_page_view.py",
+        "line": 46,
+        "quote": "@frappe.whitelist(allow_guest=True)"
+      },
+      {
+        "path": "frappe/frappe/website/doctype/web_page_view/web_page_view.py",
+        "line": 38,
+        "quote": "def clear_old_logs(days=180):"
+      },
+      {
+        "path": "frappe/frappe/www/website_script.js",
+        "line": 37,
+        "quote": "campaign: query_params.campaign || query_params.utm_campaign,"
+      },
+      {
+        "path": "frappe/frappe/website/doctype/utm_campaign/utm_campaign.json",
+        "line": 34,
+        "quote": "\"name\": \"UTM Campaign\","
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/website/doctype/utm_campaign/utm_campaign.json",
+      "frappe/frappe/website/doctype/web_page_view/web_page_view.py",
+      "frappe/frappe/www/website_script.js"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/partner-referral.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/content_growth/doctype/partner_referral/partner_referral.py"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "(1) İş ortağının referans bağlantısı talebi: kimliği doğrulanmış kullanıcı. Bağlantı kodu sunucuda üretilir, tahmin edilemez ve imzalı ya da kayıtla eşleşen bir değerdir; istemci kod üretmez. (2) Hesap veya tenant oluşturma anında sunucuya ulaşan referans kodu: yalnız sunucu doğrular ve atıf kaydını oluşturur. UTM alanları en fazla isteğe bağlı bilgi bağlantısı olarak saklanabilir. (3) Tetikleyici olay (ödeme veya etkinleşme; karar bekliyor): kernel-envelope--contract zarfıyla ve olay kimliğiyle gelir. (4) İptal veya iade olayı: ilgili hak edişe referansla gelir.",
+    "output": "PartnerReferral kaydı (canonicalArtifact: PartnerReferral DocType, status 'proposed'). İçerik: iş ortağı, atfedilen hesap veya tenant, atıf zamanı ve kaynağı (sunucu), geçerlilik durumu, hak ediş durumu ve düzeltme bağlantısı. Kesin alanlar partner-referral--schema görevinde native-doctype-schema--contract ile belirlenir. Hak ediş ve düzeltme olayları outbox--contract üzerinden yayılır. İstemciye dönen yanıt yalnız JSON model sınırındaki veridir; ReactNode veya callback JSON'a girmez.",
+    "authorization": "Native Frappe izin modeli kullanılır: DocType izinleri, User Permission ve native-user-policy--contract. İş ortağı yalnız kendi kayıtlarını okur. Hak ediş onayı, düzeltme ve denetim görüntüleme ayrı roller ister. Rol ve izin bayrakları sharedExecutionPolicy içindeki explicitPermissionFlags ortak kaynağına bağlanır; bu sözleşme yeni bayrak adı uydurmaz. ignore_permissions, ham SQL ile yazma ya da izin denetimini atlayan yol yasaktır. Gelecekteki tek kabul, yetkisiz yazmanın reddedildiğini ve kaydın değişmeden kaldığını gösterir.",
+    "persistence": "Yazma işlemleri native belge yaşam döngüsünden geçer: insert/save, validate ve on_submit/on_cancel benzeri belge hook'ları, istek transaction'ı. Tek seferlik hak ediş, atfedilen hesap/tenant ile tetikleyici olay kimliği çiftinin DocType düzeyinde tekil tutulmasıyla sağlanır; tekillik biçimi şema görevinde belirlenir. İade, kaydı silmez; ters veya düzeltme kaydı ve durum geçişiyle işlenir. Her değişiklik audit-envelope--contract zarfıyla denetlenebilir kalır. Saklama süresi karar bekliyor; Web Page View'ın 180 günlük temizliği bu kayda uygulanmaz.",
+    "failure": "Geçersiz, süresi dolmuş veya bilinmeyen referans kodunda atıf oluşmaz ve hesap oluşturma akışı engellenmez. Kendi kendine referansta atıf reddedilir ya da 'geçersiz' durumda denetim için tutulur; hak ediş doğmaz. Yinelenen tetikleyici olayda mevcut hak ediş döner, yeni kayıt oluşmaz. Yetki hatasında native PermissionError döner ve kayıt değişmez. Outbox yayını başarısız olursa transaction geri alınır ya da outbox--contract yeniden deneme kuralı uygulanır; yarım hak ediş kalmaz."
+  },
+  "development": {
+    "dependencies": [
+      "audit-envelope--contract",
+      "capability-definition--contract",
+      "kernel-envelope--contract",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "outbox--contract",
+      "partner-referral--contract",
+      "partner-referral--schema"
+    ],
+    "admission": "Ön koşullar: T-00 hedef temel çizgisi ve R-00 yeniden kullanım eşlemesi. İzinli veri tüketicisi olduğu için R-01 de gerekir. Listelenen bağımlılık sözleşmeleri ve partner-referral--schema hazır olmalıdır. Ürün stratejisi kararı gelene kadar görev koşullu kalır. Hak ediş adımları; atıf penceresi, çakışma kuralı ve ödül tetikleyicisi kararlarına bağlıdır. Tek ve dar bir davranış, gerçek RED/GREEN kanıtıyla uygulanır. Sıralama mevcut görev bağımlılıkları ve aşamadan gelir; küme sırası (9) yalnız sunumdur, yeni bir seri DAG değildir.",
+    "steps": [
+      "1. partner-referral--schema ile PartnerReferral DocType alanlarını, tekillik anahtarını ve durum geçişlerini native-doctype-schema--contract'a göre netleştir.",
+      "2. İzin matrisini (iş ortağı, onaylayıcı, denetçi) explicitPermissionFlags ortak kaynağına ve native-user-policy--contract'a bağla.",
+      "3. Referans kodu üretimini ve doğrulamasını yalnız sunucu tarafında tanımla. İstemci tarafı UTM ve visitor_id verisini kanıt dışı bırak.",
+      "4. Atıf penceresi ve çakışma kuralı kararı geldikten sonra hesap/tenant oluşturma anındaki atıf yazımını belge yaşam döngüsü üzerinden tanımla.",
+      "5. Ödül tetikleyicisi kararı geldikten sonra idempotent hak edişi ve outbox--contract olayını tanımla.",
+      "6. İptal/iade düzeltmesini ve kendi kendine referans kontrolünü, kararlaşan ölçütlerle validate aşamasında tanımla.",
+      "7. Tüm geçişleri audit-envelope--contract ile denetlenebilir kıl.",
+      "8. Gelecekteki React/Ant Design iş ortağı ekranı yalnız capability-definition--contract ve JSON model sınırı üzerinden bağlanır. Kaynak registry ile GenUI capability registry ayrıdır; GenUI ayrı kullanıcı projesidir."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "İş ortağı rolü olmayan veya başka bir iş ortağına ait kaydı hedefleyen kullanıcı PartnerReferral atıf kaydı yazmaya çalıştığında istek reddedilir ve kayıt değişmeden kalır.",
+      "red": "DocType partner-referral--schema ile mevcutken izin kuralı henüz tanımlı olmadığı için yetkisiz yazma kabul edilir. Bu yüzden 'reddedildi ve kayıt değişmedi' doğrulaması başarısız olur. RED; import, altyapı hatası ya da native davranışı bozarak elde edilmez.",
+      "green": "Native DocType izinleri ve User Permission, explicitPermissionFlags ile tanımlanır. Yetkisiz yazma PermissionError ile reddedilir, kayıt değişmez. ignore_permissions veya SQL atlaması kullanılmaz. Bu tur test yazılmaz ve koşulmaz."
+    },
+    "rollback": "Bu sözleşme yalnız belgedir; servis, production, şema veya veri değiştirme yetkisi vermez. Gelecekteki uygulamanın geri alınması kod değişikliğinin geri alınmasıyla yapılır. Hak ediş ve atıf kayıtları silinmez; düzeltme kaydıyla nötrlenir. CI, deploy ve rollback teknik sahibi Hüseyin Cengiz'dir. Referans bağlantısı için alan adı veya DNS kaydı gerekirse teknik gereksinimi Hüseyin Cengiz hazırlar, GoDaddy tarafında Asistan Hüseyin uygular, sonucu Hüseyin Cengiz doğrular."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "campaigns-6",
+      "sourceStage": "post_mvp",
+      "existing": "Native parça olarak yalnız UTM/ziyaret izleme vardır. make_view_log misafire açıktır; Web Page View 180 günde temizlenir; website_script.js UTM parametrelerini visitor_id ile gönderir; UTM Campaign DocType'ı vardır. Bunlar pazarlama sinyalidir, hak ediş kanıtı değildir. Girdi değerlendirmesine göre ERPNext Sales Partner incelenen kaynakta kurulu değildir; komisyon kaydı için yalnız olası bir başlangıç olarak not edilmiştir.",
+      "gap": [
+        "Referans bağlantısı ile hesap veya tenant arasında imzalı, kalıcı bir atıf modeli yok.",
+        "Atıf süresi ve çakışmada kazanan kural (ilk/son dokunuş) tanımsız.",
+        "Ödülün tetiklendiği olay (ödeme veya etkinleşme) ve tek seferlik idempotency tanımsız.",
+        "Kendi kendine referans tespit ölçütleri (aynı kimlik, ödeme aracı, tenant) belirsiz.",
+        "Web Page View misafirce yazılabildiği ve 180 günde silindiği halde, denetim için kullanılamayacağı belirtilmemiş."
+      ],
+      "completionSteps": [
+        "Atıf modeli: PartnerReferral DocType'ında sunucuda üretilen referans koduna ve atfedilen hesap/tenant bağlantısına dayalı kalıcı kayıt tanımla (partner-referral--schema).",
+        "Atıf penceresi ve çakışma: karar gelince süre ve ilk/son dokunuş kuralını validate aşamasına yaz; karar gelene kadar yalnız kural yerini belgele.",
+        "Tetikleyici ve idempotency: karar gelince olay kimliğiyle tekil hak edişi tanımla; olayı outbox--contract ile yayınla.",
+        "İade düzeltmesi: iptal/iade olayında düzeltme kaydı ve durum geçişi tanımla; kayıt silme yok.",
+        "Kendi kendine referans: kararlaşan ölçütleri validate aşamasında uygula; reddi audit-envelope--contract ile kaydet.",
+        "Denetim kaynağı: rehberde Web Page View ve UTM'nin atıf/hak ediş kanıtı olmadığını açıkça belirt; isteğe bağlı UTM Campaign bağlantısı yalnız bilgi alanıdır.",
+        "İzin: rolleri explicitPermissionFlags ve native-user-policy--contract'a bağla; ret kabulünü tek senaryoyla belgele."
+      ],
+      "dependencies": [
+        "partner-referral--contract",
+        "partner-referral--schema",
+        "kernel-envelope--contract",
+        "native-user-policy--contract",
+        "capability-definition--contract",
+        "native-doctype-schema--contract",
+        "outbox--contract",
+        "audit-envelope--contract"
+      ],
+      "acceptance": "Referans yalnız tanımlı atıf kuralıyla ilişkilensin. Ödül geçerli satış veya etkinleşme koşulunda bir kez doğsun. İptal/iade ve kendi kendine referans doğru işlensin. Hak ediş denetlenebilsin. Ek olarak yetkisiz yazma reddedilsin ve kayıt değişmesin; UTM veya Web Page View tek başına atıf oluşturmasın.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/website/doctype/web_page_view/web_page_view.py",
+          "line": 46,
+          "quote": "@frappe.whitelist(allow_guest=True)"
+        },
+        {
+          "path": "frappe/frappe/website/doctype/web_page_view/web_page_view.py",
+          "line": 38,
+          "quote": "def clear_old_logs(days=180):"
+        },
+        {
+          "path": "frappe/frappe/www/website_script.js",
+          "line": 37,
+          "quote": "campaign: query_params.campaign || query_params.utm_campaign,"
+        },
+        {
+          "path": "frappe/frappe/website/doctype/utm_campaign/utm_campaign.json",
+          "line": 34,
+          "quote": "\"name\": \"UTM Campaign\","
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "İmzalı ve kalıcı atıf modeli tasarlanmadı ve uygulanmadı.",
+    "Atıf penceresi ve ilk/son dokunuş kuralı karar bekliyor.",
+    "Ödül tetikleyicisi ve tek seferlik idempotency karar bekliyor.",
+    "Kendi kendine referans ölçütleri karar bekliyor.",
+    "Atıf ve hak ediş kayıtlarının saklama süresi karar bekliyor.",
+    "Gerçek RED/GREEN kanıtı ve çalışma zamanı kabulü yok (not_run)."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Ürün stratejisi: referans ve iş ortağı programının kapsamı ve başlatılıp başlatılmayacağı.",
+      "requirementIds": ["campaigns-6"],
+      "blocks": "partner-referral--implementation görevinin kabulü.",
+      "allowedUntilDecision": "Sözleşmeyi koşullu tutmak; atıfın UTM/Web Page View'dan değil sunucu kaydından geleceği notunu görev tanımına eklemek."
+    },
+    {
+      "decision": "Atıf penceresinin süresi ve çakışmada kazanan kural (ilk veya son dokunuş).",
+      "requirementIds": ["campaigns-6"],
+      "blocks": "development.steps 4 (atıf yazımı).",
+      "allowedUntilDecision": "Kural yerini ve kabul senaryosu şablonunu değer seçmeden belgelemek."
+    },
+    {
+      "decision": "Ödül tetikleyicisi (ödeme veya etkinleşme), ödül türü ve tarifesi.",
+      "requirementIds": ["campaigns-6"],
+      "blocks": "development.steps 5 (hak ediş ve outbox olayı).",
+      "allowedUntilDecision": "Olay kimliğine dayalı idempotency ilkesini tarife ve tutar seçmeden belgelemek."
+    },
+    {
+      "decision": "Kendi kendine referans ölçütleri (aynı kimlik, ödeme aracı, tenant) ve bu ölçütler için hangi kişisel/ödeme verisinin işleneceği.",
+      "requirementIds": ["campaigns-6"],
+      "blocks": "development.steps 6 (suistimal denetimi).",
+      "allowedUntilDecision": "Reddin denetim zarfına yazılacağını ve kaydın değişmeyeceğini belgelemek."
+    },
+    {
+      "decision": "Hak ediş ödeme yöntemi ve ödeme akışının sahibi.",
+      "requirementIds": ["campaigns-6"],
+      "blocks": "Hak edişin ödemeye dönüştürülmesi.",
+      "allowedUntilDecision": "Hak edişi yalnız denetlenebilir bir durum kaydı olarak tanımlamak."
+    },
+    {
+      "decision": "Atıf ve hak ediş kayıtlarının saklama süresi ve veri yerleşimi.",
+      "requirementIds": ["campaigns-6"],
+      "blocks": "Şema görevindeki temizlik ve arşiv kuralı.",
+      "allowedUntilDecision": "Web Page View'ın 180 günlük temizliğinin bu kayda uygulanmayacağını belgelemek."
+    },
+    {
+      "decision": "Atıfın hesaba mı tenant'a mı bağlanacağı (tenant topolojisi).",
+      "requirementIds": ["campaigns-6"],
+      "blocks": "development.steps 1 (tekillik anahtarı).",
+      "allowedUntilDecision": "Anahtarın atfedilen birim ile olay kimliği çifti olacağını birim seçmeden belgelemek."
+    },
+    {
+      "decision": "ERPNext Sales Partner'ın benimsenip benimsenmeyeceği ve hedef sürümü.",
+      "requirementIds": ["campaigns-6"],
+      "blocks": "Komisyon kaydının ERPNext üzerinden mi yoksa PartnerReferral üzerinden mi tutulacağı.",
+      "allowedUntilDecision": "PartnerReferral sözleşmesini ERPNext kurulumuna bağımlı kılmadan sürdürmek."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

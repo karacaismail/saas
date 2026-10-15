@@ -4,15 +4,20 @@
   "canonicalTaskIds": ["installation-health--implementation"],
   "requirementIds": ["deployment-6"],
   "stage": "mvp",
+  "sourceStages": {
+    "deployment-6": "mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
     "title": "Zorunlu site ayarlarının salt okunur ve secret içermeyen varlık denetimi",
-    "trigger": "System Manager rolündeki oturum açmış kullanıcı installation-health v1 sağlık metodunu çağırır.",
-    "expected": "Sahip olunan YAML tablosundaki her zorunlu anahtar (db_type, db_name, encryption_key, redis_queue, redis_cache) için component=config, key, status ok|fail, reason missing|empty|null döner. Ortam override'ları native birleştirilmiş config üzerinden okunur. Hiçbir değer, uzunluk ya da hash döndürülmez.",
-    "denied": "System Manager olmayan veya Guest kullanıcı native yetki hatası alır ve hiçbir anahtar adı ya da durum bilgisi dönmez. Bu sürümde DB/Redis/worker/realtime/Keycloak için status not_run döner; ok sayılmaz."
+    "trigger": "System Manager rolündeki oturum açmış kullanıcı installation-health v1 sağlık metodunu parametresiz çağırır.",
+    "expected": "Sahip olunan YAML tablosundaki her zorunlu anahtar için (aday liste: db_type, db_name, encryption_key, redis_queue, redis_cache; kesin liste karar bekliyor) component=config, key, status ok|fail, reason missing|empty|null döner. Ortam override'ları native birleştirilmiş site config üzerinden okunur. Hiçbir değer, uzunluk, önek ya da hash döndürülmez. DB, Redis, worker, realtime ve Keycloak kontrolleri bu davranışta status=not_run döner ve ok sayılmaz.",
+    "denied": "System Manager olmayan oturum veya Guest native yetki hatası alır. Yanıtta anahtar adı, durum ya da site bilgisi yer almaz. Çağrı hiçbir kaydı veya site_config dosyasını değiştirmez."
   },
   "reuse": {
-    "mechanism": "Native önce: config okuma için native birleştirilmiş site config (env override dahil) kullanılır, show-config'in tam dökümü kullanılmaz. Native whitelisted method deseni kullanılır. Yeni DocType, DDL, CRUD, ORM kopyası ya da event motoru yazılmaz. Gözlenen açık maskeli ve rol kısıtlı bir özet olduğu için en küçük adaptör tek bir okuma fonksiyonudur.",
+    "status": "KISMI",
+    "mechanism": "Önce native kullanılır. Config okuma için native birleştirilmiş site config (env override dahil) kullanılır. show-config'in tam dökümü kullanılmaz ve çıktısı aktarılmaz. Native whitelisted method ve native rol kontrolü kullanılır. Yeni DocType, DDL, CRUD, ORM kopyası, event motoru ya da zamanlanmış iş yazılmaz. Gerekli olan, maskeli ve rol kısıtlı bir özet döndüren tek bir okuma adaptörüdür. Kanıtlar native yapı taşlarını gösterir; headless sihirbazın veya birleşik sağlık sözleşmesinin var olduğunu göstermez.",
     "evidence": [
       {
         "path": "frappe/frappe/config.py",
@@ -30,63 +35,170 @@
         "quote": "def make_site_config("
       },
       {
+        "path": "frappe/frappe/commands/site.py",
+        "line": 19,
+        "quote": "@click.command(\"new-site\")"
+      },
+      {
         "path": "frappe/frappe/commands/scheduler.py",
         "line": 134,
         "quote": "\"Get diagnostic info about background workers\""
+      },
+      {
+        "path": "frappe/frappe/integrations/doctype/connected_app/connected_app.py",
+        "line": 56,
+        "quote": "def get_openid_configuration(self):"
       }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/commands/scheduler.py",
+      "frappe/frappe/commands/site.py",
+      "frappe/frappe/commands/utils.py",
+      "frappe/frappe/config.py",
+      "frappe/frappe/installer.py",
+      "frappe/frappe/integrations/doctype/connected_app/connected_app.py"
     ]
   },
   "ownership": {
     "activeContractFile": "docs/frappe-roadmap-contracts/installation-health.json",
     "plannedProduction": [
-      "operations/installation-health/installation_health_mvp.yml",
-      "backend/saas_platform/saas_platform/installation_health/api.py (planlanan; görevin owns listesinde yok, integration sahibi onayı gerekir)"
+      "operations/installation-health/installation_health_mvp.yml"
     ],
-    "plannedTestFile": "backend/saas_platform/saas_platform/installation_health/test_installation_health.py",
+    "plannedTestFile": null,
     "sharedIntegrationFiles": [
-      "integration/fragments/installation-health--integration.json",
-      "contracts/installation-health.v1.json"
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "Parametresiz GET /api/method/<planlanan dotted path>. Gövde yok. İstemciden gelen anahtar listesi kabul edilmez, liste yalnız sahip olunan YAML'dan okunur (en fazla 32 anahtar, yalnız [a-z_] karakterleri).",
-    "output": "{version:'installation-health.v1', site:string, checks:[{component:'config'|'db'|'redis'|'worker'|'realtime'|'keycloak', key:string|null, status:'ok'|'fail'|'not_run', reason:string|null}]}. Değer alanı hiçbir zaman yoktur.",
-    "authorization": "Native site sınırı, cookie/CSRF oturumu ve System Manager rol kontrolü kullanılır. Native rol kontrolü yardımcısının adı (ör. frappe.only_for) bu snapshot'ta alıntılanmadı, admission'da doğrulanacak. Kayıt ya da alan düzeyinde kapsam uygulanmaz. Reddedilen çağrı native yetki hatasıyla biter.",
-    "persistence": "Salt okunur. Yazma, commit, DocType, Custom Field ya da DDL yoktur. site_config dosyası değiştirilmez.",
-    "failure": "Yetkisiz çağrıda native PermissionError oluşur (HTTP kodu bu snapshot'ta doğrulanmadı). YAML okunamazsa tek bir check {component:'config', status:'fail', reason:'required_table_unreadable'} döner. AntD 6 tüketicisi fail ve not_run durumlarını ok'tan ayrı gösterir. Ekranın kendisi bu sözleşmenin kapsamında değildir."
+    "input": "Parametresiz GET /api/method/<entegrasyon sahibinin atayacağı dotted path>. Gövde yok. İstemciden anahtar listesi alınmaz. Liste yalnız sahip olunan YAML'dan okunur: en fazla 32 anahtar, anahtar adlarında yalnız [a-z_] karakterleri, her satırda yalnız anahtar adı ve blocking:true|false bulunur. YAML'da değer, örnek ya da varsayılan yazılmaz.",
+    "output": "{version:'installation-health.v1', site:string, checks:[{component:'config'|'db'|'redis'|'worker'|'realtime'|'keycloak', key:string|null, status:'ok'|'fail'|'not_run', reason:string|null}]}. Hiçbir zaman değer alanı bulunmaz. reason yalnız sabit kodlardan biri olur (missing, empty, required_table_unreadable, not_implemented). Hata metni, bağlantı dizesi ya da stack trace döndürülmez.",
+    "authorization": "Native site sınırı, cookie/CSRF oturumu ve System Manager rol kontrolü kullanılır. Native rol yardımcısının adı bu snapshot'ta alıntılanmadı, admission sırasında doğrulanacak. ignore_permissions, ham SQL ya da Administrator taklidiyle yetki atlatılmaz. Bu davranış yeni rol veya izin üretmez. Üretmesi gerekirse ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy içindeki explicitPermissionFlags ortak kaynağına bağlanır.",
+    "persistence": "Salt okunur. Yazma, commit, DocType, Custom Field, DDL ya da patch yoktur. site_config ve common_site_config dosyaları değiştirilmez. Çağrı sonucu saklanmaz.",
+    "failure": "Yetkisiz çağrıda native yetki hatası oluşur. HTTP kodu bu snapshot'ta doğrulanmadı. YAML okunamazsa tek bir check {component:'config', key:null, status:'fail', reason:'required_table_unreadable'} döner. Beklenmeyen hatada değer sızdırmayan native hata akışı kullanılır. React/Ant Design tüketicisi fail ve not_run durumlarını ok'tan ayrı gösterir. Ekranın kendisi bu sözleşmenin kapsamında değildir."
   },
   "development": {
-    "dependencies": [
-      "installation-health--contract",
-      "localPilot frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6 (suite.localhost, nativeAuth cookie/CSRF)"
-    ],
-    "admission": "T-00 hedef baseline ve R-00 yeniden kullanım eşlemesi gerekir. Integration sahibi api.py yolunu onaylamalıdır. Yerel ortamda YAML yükleyicinin varlığı, native rol kontrolü ve site config ile common config birleşimi doğrulanmalıdır. saas_platform app'inin yerel varlığı, uzak ürün baseline'ı ve Suite HEAD unknown. Yerel kanıt uzak baseline yerine geçmez.",
+    "dependencies": ["installation-health--contract"],
+    "admission": "Uygulama durumu: uygulanmadı. Önkoşullar: T-00 hedef baseline ve R-00 yeniden kullanım eşlemesi. Hedef sürüm eşlemesi ve engelleyici anahtar listesi kararı. Entegrasyon sahibinin backend adaptör yolunu sahiplik listesine onaylaması (bu yol şu anda plannedProduction içinde yok). Admission sırasında doğrulanacaklar: hedef baseline'da YAML okuyucunun varlığı, native rol kontrolü yardımcısı, site config ile common config ve env birleşimi. saas_platform app'inin hedef ortamdaki varlığı ve uzak ürün baseline'ı bilinmiyor.",
     "steps": [
-      "Sahip olunan YAML'a zorunlu anahtar tablosunu yaz (anahtar ve engelleyici mi bilgisi, değer yok).",
-      "Native birleştirilmiş config'i okuyup yalnız varlık durumunu döndüren tek bir whitelisted fonksiyon ekle. Diğer bileşenler not_run döner.",
-      "hooks.py, patches.txt ve modules.txt'ye dokunma. Zamanlanmış iş ekleme."
+      "operations/installation-health/installation_health_mvp.yml dosyasına zorunlu anahtar tablosunu yaz. Her satırda yalnız anahtar adı ve blocking bilgisi olur, değer olmaz.",
+      "Native birleştirilmiş site config'i okuyan, yalnız varlık durumunu döndüren tek bir whitelisted okuma fonksiyonu ekle. db, redis, worker, realtime ve keycloak satırları reason=not_implemented ile not_run döner.",
+      "Çıktı şemasını installation-health.v1 olarak sabitle ve değer alanının hiçbir yolda bulunmadığını tek senaryoda doğrula.",
+      "hooks.py, patches.txt ve modules.txt dosyalarına dokunma. Zamanlanmış iş ya da yeni rol ekleme. Paylaşılan entegrasyon dosyalarındaki değişiklikleri yalnız entegrasyon sahibi seri olarak birleştirir."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "System Manager oturumunda, native config kopyasından encryption_key çıkarılmış (test içinde patch, site_config dosyası değişmez) çağrı yapılır. checks içinde key=encryption_key status=fail döner ve JSON çıktısı patch edilmiş hiçbir config değerini içermez.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Uygulamadan sonra aynı test aynı yerel komutla suite.localhost üzerinde geçer. Native davranış RED olarak gösterilmez."
+      "oneScenario": "System Manager oturumunda, encryption_key anahtarı çıkarılmış native config kopasıyla (test içinde patch edilir, site_config dosyası değişmez) çağrı yapılır. checks içinde key=encryption_key, status=fail, reason=missing döner. JSON çıktısı patch edilmiş config değerlerinin hiçbirini içermez.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. RED, yukarıdaki oneScenario'nun davranış assertion'ında görülmelidir: encryption_key için fail satırı yoktur ya da çıktıda değer bulunur. Import hatası, eksik altyapı ya da native davranışın bozulması RED sayılmaz. Native olarak zaten geçen bir davranış için RED uydurulmaz.",
+      "green": "Uygulamadan sonra aynı senaryo, değiştirilmemiş assertion'larla hedef baseline üzerinde geçmelidir. Şu anda not_run. Bu sözleşme veya biçim kontrolü ürün GREEN'i değildir."
     },
-    "rollback": "Yerelde api.py ve YAML değişikliği geri alınır. Veri ya da şema değişmediği için geri alma yeterlidir. Production yetkisi yoktur."
+    "rollback": "Uygulama değişikliği (YAML ve okuma fonksiyonu) geri alınır. Veri ve şema değişmediği için yeterlidir. Bu sözleşme hiçbir servis, production, şema ya da veri değişikliğine yetki vermez. Uzak deploy ve rollback'in teknik sahibi Hüseyin Cengiz'dir."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "deployment-6",
+      "sourceStage": "mvp",
+      "existing": "Native parçalar CLI temellidir. new-site komutu site kurulumunu başlatır. make_site_config site config üretir. config.py env değişkenleriyle config override uygular (db_type örneği). get_site_config birleştirilmiş config'i okur, ancak show-config bunu tam döker. doctor yalnız background worker tanısı verir. Connected App get_openid_configuration discovery okur; kaynak bağlamında write izni kontrolü görülür. Bu parçalar headless sihirbaz ya da birleşik sağlık sözleşmesi değildir.",
+      "gap": "Zorunlu ayar listesi ve engelleyicilik kuralı yok. Sağlık sonucunun biçimi, yetkisi, zaman aşımı ve yeniden deneme kuralı tanımsız. DB, Redis, realtime ve Keycloak için bileşen bazlı ölçüt yok. show-config değerleri döktüğü için secret maskeleme kuralı yok. Hedef sürüm eşlemesi yok. Bu snapshot'ta HTTP sağlık uç noktası görülmedi (unknown). Eksik ayarın kurulumu durdurması ve headless sihirbaz yok.",
+      "completionSteps": [
+        "Bu sözleşmedeki tek davranışla başla: YAML zorunlu anahtar tablosu ve değer döndürmeyen, System Manager'a özel config varlık denetimi.",
+        "Bileşen ölçütleri kararı geldikten sonra her bileşen için ayrı tek davranışlı sözleşme aç: worker için doctor çıktısının ok/fail eşlemesi, DB/Redis/realtime için salt okunur bağlantı denetimi, zaman aşımı ve yeniden deneme. Karar gelene kadar bunlar not_run kalır.",
+        "Keycloak kararı gelirse kontrolü yalnız discovery okumasıyla sınırla. Connected App yolu seçilirse write izni gereksinimi ile System Manager'a özel salt okunur sözleşme arasındaki uyumu admission'da çöz.",
+        "Kurulum engelleme: new-site ve make_site_config akışı değiştirilmez. Eksik engelleyici anahtar, kurulum sonrası sağlık sonucunda fail olarak görünür. Kurulumu durduran bir kapı istenirse ayrı davranış olarak ve Hüseyin Cengiz'in teknik onayıyla tanımlanır.",
+        "Headless sihirbaz ekranı ayrı bir UI davranışıdır. Bu sağlık çıktısını tüketir; yeni backend motoru gerektirmez."
+      ],
+      "dependencies": ["installation-health--contract"],
+      "acceptance": "Gelecekteki tek kabul: System Manager oturumunda eksik engelleyici anahtar fail olarak görünür, çıktıda hiçbir config değeri bulunmaz, uygulanmamış bileşenler not_run döner. Yetkisiz çağrı native yetki hatası alır ve hiçbir anahtar bilgisi almaz. Çağrı öncesi ve sonrası site_config değişmeden kalır.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/commands/site.py",
+          "line": 19,
+          "quote": "@click.command(\"new-site\")"
+        },
+        {
+          "path": "frappe/frappe/installer.py",
+          "line": 752,
+          "quote": "def make_site_config("
+        },
+        {
+          "path": "frappe/frappe/config.py",
+          "line": 76,
+          "quote": "config[\"db_type\"] = os.environ.get(\"FRAPPE_DB_TYPE\") or config.get(\"db_type\") or \"mariadb\""
+        },
+        {
+          "path": "frappe/frappe/commands/scheduler.py",
+          "line": 134,
+          "quote": "\"Get diagnostic info about background workers\""
+        },
+        {
+          "path": "frappe/frappe/integrations/doctype/connected_app/connected_app.py",
+          "line": 56,
+          "quote": "def get_openid_configuration(self):"
+        },
+        {
+          "path": "frappe/frappe/commands/utils.py",
+          "line": 228,
+          "quote": "configuration = frappe.get_site_config(sites_path=sites_path, site_path=site)"
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
     "Eksik ayarın new-site/kurulumu durdurması ve headless sihirbaz bu davranışta yok.",
-    "DB, Redis, worker (doctor), realtime bağlantı ölçütleri, zaman aşımı ve yeniden deneme kuralı tanımsız. Bu sürümde not_run döner.",
-    "Keycloak kontrolü Connected App get_openid_configuration discovery ile sınırlanacak. O metot write izni ister ve dış istek yapar, bu yüzden Keycloak kararı beklenir.",
+    "DB, Redis, worker (doctor), realtime ve Keycloak bağlantı ölçütleri, zaman aşımı ve yeniden deneme kuralı tanımsız. Bu davranışta not_run döner.",
+    "Keycloak kontrolünün bağlanacağı katman belirsiz. Connected App get_openid_configuration write izni kontrol eder; salt okunur sağlık sözleşmesiyle uyumu çözülmedi.",
     "HTTP sağlık uç noktası bu snapshot'ta görülmedi (unknown).",
-    "Uzak dağıtım gereksinimleri teknik açıdan Hüseyin Cengiz'e bağımlıdır. DNS işi gerekirse Asistan Hüseyin'e bağımlıdır."
+    "v17.0.0-dev (sourceHead adf1fd0c) hedef sürüm eşlemesi yok.",
+    "Backend okuma adaptörünün dosya yolu plannedProduction içinde yok; entegrasyon sahibi onayı gerekir.",
+    "Uzak dağıtım gereksinimlerinin teknik sahibi Hüseyin Cengiz'dir. DNS işi gerekirse GoDaddy uygulama sahibi Asistan Hüseyin'dir."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Hedef Frappe sürümü ve baseline eşlemesi",
+      "requirementIds": ["deployment-6"],
+      "blocks": "Admission ve native API adlarının doğrulanması",
+      "doableUntilDecision": "Sözleşme metnini sürümden bağımsız tutmak ve doğrulanacak native yardımcıları listelemek."
+    },
+    {
+      "decision": "Hangi zorunlu anahtarların engelleyici olduğu",
+      "requirementIds": ["deployment-6"],
+      "blocks": "YAML tablosunun kesinleşmesi ve kurulum engelleme davranışı",
+      "doableUntilDecision": "Aday anahtar listesini değer içermeden belgelemek."
+    },
+    {
+      "decision": "Keycloak bağlantı testinin Connected App'e mi, ayrı bir OIDC katmanına mı bağlanacağı",
+      "requirementIds": ["deployment-6"],
+      "blocks": "keycloak bileşeninin not_run dışına çıkması",
+      "doableUntilDecision": "Keycloak satırını not_run olarak tutmak ve discovery ile sınırlı kapsamı belgelemek."
+    },
+    {
+      "decision": "DB/Redis/worker/realtime ölçütleri, zaman aşımı ve yeniden deneme kuralı (teknik öneri Hüseyin Cengiz)",
+      "requirementIds": ["deployment-6"],
+      "blocks": "Bileşen sağlık davranışları",
+      "doableUntilDecision": "Bileşen başına ok/fail tanım şablonunu belgelemek."
+    },
+    {
+      "decision": "Sağlık sonucunun ayrı bir HTTP uç noktası olarak dışa açılıp açılmayacağı (teknik sahip Hüseyin Cengiz)",
+      "requirementIds": ["deployment-6"],
+      "blocks": "Kimliksiz izleme entegrasyonu",
+      "doableUntilDecision": "Yalnız oturumlu System Manager metodunu belgelemek."
+    },
+    {
+      "decision": "Backend okuma adaptörü dosya yolunun sahiplik listesine eklenmesi (entegrasyon sahibi)",
+      "requirementIds": ["deployment-6"],
+      "blocks": "Üretim lease'i ve gelecekteki test dosyası ataması",
+      "doableUntilDecision": "Yalnız YAML tablosu biçimini belgelemek."
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "deployment-6": "mvp"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,

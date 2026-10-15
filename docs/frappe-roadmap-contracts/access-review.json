@@ -1,0 +1,216 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "access-review",
+  "canonicalTaskIds": [
+    "access-review--implementation",
+    "ui-family-34--implementation-enterprise"
+  ],
+  "requirementIds": ["access-8"],
+  "stage": "enterprise",
+  "sourceStages": {
+    "access-8": "enterprise"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Periyodik erişim gözden geçirme: sahip onayı, süreli istisna ve reddedilen yetkinin native yolla kaldırılması",
+    "trigger": "Yetkili gözden geçirme yöneticisi bir tenant için gözden geçirme dönemi açar; dönemin atanmış sahibi her yetki kalemi için sürdür, reddet veya süreli istisna kararı verir.",
+    "expected": "Dönem sonunda üyelik ve ayrıcalıklı yetki listesi sahibine sunulur; süreli istisna bitiş tarihi ve gerekçesiyle kaydedilir; reddedilen yetki Keycloak ve backend kapsamından kalkar; her karar ve kaldırma için denetim izi oluşur. Backend tarafında kaldırma yalnız native Frappe doküman API'si, native izin kontrolü ve request transaction'ı ile yapılır.",
+    "denied": "Dönemin sahibi olmayan veya explicitPermissionFlags ortak kaynağında karar ya da iptal yürütme yetkisi bulunmayan kullanıcının girişimi PermissionError ile reddedilir; hedef yetki kaydı ve gözden geçirme kalemi değişmeden kalır. Bitiş tarihi olmayan istisna kararı ValidationError ile reddedilir."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Kaynakta native parçalar görülür: frappe.get_roles ile rol okuma, User altındaki Has Role satırları ve Sheets okuma yetkisini besleyen DocShare deposu. Aynı kaynakta Suite migration patch'leri Has Role kayıtlarını frappe.db.delete ve frappe.db.bulk_insert ile doküman geçmişi dışında değiştirir; Sheets izin sorgusu DocShare'i ham SQL ile okur. Bu üç kalıp yeniden kullanılacak yol değildir; envanter ve denetim açığının kanıtıdır. Yeniden kullanılacak olan native rol okuma, native doküman kaydetme/silme ve native izin kontrolüdür. Kanıtın native bir parçayı göstermesi gözden geçirme davranışının var olduğu anlamına gelmez; AccessReview davranışı kaynakta yoktur. Kanıtlar önceki salt okunur Frappe/Suite kaynak anlık görüntülerindendir; canlı site veya ürün kabulü değildir. Vue/Frappe UI kaynağı React/Ant Design uygulaması kanıtı sayılmaz.",
+    "evidence": [
+      {
+        "path": "suite/suite/drive/patches/switch_drive_roles_to_suite_roles.py",
+        "line": 45,
+        "quote": "frappe.db.delete(\"Has Role\", {\"parenttype\": \"User\", \"role\": (\"in\", list(ROLE_MAP.keys()))})"
+      },
+      {
+        "path": "suite/suite/mail/patches/create_suite_user_role.py",
+        "line": 95,
+        "quote": "frappe.db.bulk_insert("
+      },
+      {
+        "path": "suite/suite/sheets/permissions.py",
+        "line": 53,
+        "quote": "f\"WHERE share_doctype = 'Sheet' AND user = {user_lit} AND `read` = 1\""
+      },
+      {
+        "path": "suite/suite/drive/api/permissions.py",
+        "line": 33,
+        "quote": "return user == \"Administrator\" or \"Suite Admin\" in frappe.get_roles(user)"
+      }
+    ],
+    "searchedPaths": [
+      "suite/suite/drive/api/permissions.py",
+      "suite/suite/drive/patches/switch_drive_roles_to_suite_roles.py",
+      "suite/suite/mail/patches/create_suite_user_role.py",
+      "suite/suite/sheets/permissions.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/access-review.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/authorization/doctype/access_review/access_review.py",
+      "frontend/packages/ui/src/components/ui-family-34/enterprise.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Dönem açma: tenant kimliği (kernel-envelope ve tenant-registry sözleşmelerindeki zarf), dönem başlangıç ve bitiş tarihi, kapsamdaki yetki depoları, dönem sahibi. Kalem kararı: kalem kimliği, karar (keep, revoke, exception), exception için zorunlu bitiş tarihi, gerekçe metni. Alan adları ve tipleri access-review--schema sözleşmesinden alınır; bu sözleşme yeni alan tanımlamaz.",
+    "output": "Dönem özeti ve kalem listesi; her kalemde kaynak depo, kullanıcı, yetki, ayrıcalıklı olup olmadığı, karar, istisna bitiş tarihi ve durum (pending, kept, exception, revoked, revoke_pending_remote, revoke_failed). Her karar ve kaldırma için denetim kaydı referansı. JSON model sınırında yalnız serileştirilebilir veri döner; ReactNode ve callback yalnız istemci tarafında yerel kalır.",
+    "authorization": "Gözden geçirme sahibinin kararı ile iptalin yürütülmesi ayrıdır. Karar yalnız kalemin atanmış sahibi tarafından, AccessReview üzerinde native frappe.has_permission kontrolüyle verilir. İptal, hedef depoda (User/Has Role, User Permission, DocShare, Drive Permission) native yazma veya silme izni olan kullanıcının oturumunda yürütülür; bu rol explicitPermissionFlags ortak kaynağına bağlanır, bu sözleşme yeni bayrak tanımlamaz. ignore_permissions, doğrudan SQL, frappe.db.delete veya bulk yazma ile yetki kaldırma yasaktır. Envanter okuması izin denetimli native sorgularla yapılır; Sheets izin modülündeki ham SQL kalıbı kopyalanmaz.",
+    "persistence": "AccessReview ve kalemleri native doküman kaydıyla tutulur; değişiklik izi native Version kaydından gelir. Frappe tarafındaki iptaller aynı request transaction'ı içinde native doküman kaydetme veya silme yoluyla yapılır; elle frappe.db.commit yok. Keycloak tarafı transaction dışıdır ve keycloak-scim--contract sözleşmesinin tanımladığı yolla uygulanır. Hiçbir migration, şema veya veri değişikliği bu sözleşmeyle yetkilendirilmez.",
+    "failure": "Yetkisiz karar veya iptal: PermissionError, hiçbir kayıt değişmez. Eksik istisna tarihi: ValidationError. Aynı istekteki Frappe deposu iptallerinden biri başarısızsa transaction geri alınır ve kalem revoke_failed olarak kalır. Keycloak iptali başarısızsa kalem revoke_pending_remote durumunda kalır ve dönem kapatılamaz; iki tarafta uzlaşma sağlanmadan tamamlandı sayılmaz."
+  },
+  "development": {
+    "dependencies": [
+      "access-review--contract",
+      "access-review--schema",
+      "api-middleware--contract",
+      "client-rule-parity--contract",
+      "kernel-envelope--contract",
+      "keycloak-scim--contract",
+      "tenant-registry--contract",
+      "ui-family-34--contract",
+      "ui-family-34--implementation"
+    ],
+    "admission": "Uygulama durumu: uygulanmadı. Kabul önkoşulları: T-00 hedef sürüm temeli ve R-00 yeniden kullanım eşlemesi; izinli veri tüketicisi olduğu için R-01. Mevcut görev bağımlılıkları ve aşama sırayı belirler; küme sırası yeni seri bağımlılık oluşturmaz. Karar ve iptal rolleri explicitPermissionFlags ortak kaynağında tanımlanmadan üretim adımı açılmaz. Tek dar davranış gerçek RED/GREEN kanıtıyla uygulanır. Bu sözleşme hiçbir servis, production, şema veya veriyi değiştirme yetkisi vermez; CI, deploy ve rollback teknik sahibi Hüseyin Cengiz'dir.",
+    "steps": [
+      "T-00 kaynağında hedef Frappe sürümündeki User rol satırı kaldırma, DocShare kaldırma ve User Permission silme için native yardımcıların adlarını ve izin kontrolü davranışını doğrula; doğrulanmayan yardımcı kullanılmaz, yerine native doc.save ve frappe.delete_doc yolu seçilir.",
+      "Yetki envanteri belgesini yaz: Has Role, User Permission, DocShare, Drive Permission (yalnız Suite modülü hedef dağıtımda varsa), API anahtarı taşıyan kullanıcılar ve keycloak-scim--contract üzerinden Keycloak grup ve rolleri; her depo için okuma yolu, ayrıcalıklı sayılma kuralı ve native kaldırma yolu.",
+      "access-review--schema alanlarıyla AccessReview kontrolcüsünde dönem açılışını uygula: envanter izin denetimli native sorgularla anlık görüntü olarak kaleme dönüşür; süresi dolmuş istisnalar yeniden pending kalem olur.",
+      "Kalem kararını uygula: sahip kontrolü, istisna bitiş tarihi doğrulaması, karar Version iziyle kaydedilir.",
+      "Reddet kararının yürütülmesini uygula: Frappe depolarında native yolla aynı transaction'da kaldırma; Keycloak tarafı keycloak-scim--contract yoluyla; durum geçişleri contract.failure'a uyar.",
+      "Doğrudan DB ile yapılan rol değişikliklerini görünür kıl: dönem açılışında önceki dönem anlık görüntüsüyle karşılaştırılıp Version izi olmayan farklar ayrı işaretle kaleme eklenir; yöntem karar bekliyor.",
+      "ui-family-34 enterprise yüzeyini React ve Ant Design/Pro ile, TanStack Router ve Query üzerinden kur: dönem listesi, kalem karar formu, istisna tarihi alanı, revoke_pending_remote görünürlüğü. Bileşen kaynak registry'sine (registry.ts) kaydedilir; GenUI capability registry'si ayrıdır ve bu iş kapsamında değildir. Grid kararı açık; bu rehber grid seçmez.",
+      "Paylaşılan entegrasyon dosyalarındaki (hooks.py, routes.tsx, registry.ts, paket dosyaları) değişiklikler ana entegrasyon sahibine seri birleştirme için önerilir; bu adımlar bağımsız yazılmaz."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Dönemin atanmış sahibi bir Has Role kalemini reddettiğinde ve iptal yetkili oturumda yürütüldüğünde rol User kaydından native yolla kalkar ve bu değişiklik için Version kaydı oluşur.",
+      "red": "Kurulu AccessReview ve kalem fixture'ıyla reddet kararı yürütüldükten sonra kullanıcının frappe.get_roles çıktısında rol hâlâ bulunur veya Version kaydı yoktur; assertion davranış eksikliği nedeniyle düşer, import veya altyapı hatasıyla değil, native davranış bozulmadan.",
+      "green": "Kontrolcüde reddet yürütmesi User belgesinden rol satırını kaldırıp native save ile kaydeder; rol frappe.get_roles çıktısından çıkar ve Version kaydı oluşur. Aynı test dosyasında sahibi olmayan kullanıcının girişimi PermissionError alır ve rol değişmeden kalır."
+    },
+    "rollback": "Kod geri alımı AccessReview modülünü ve ui-family-34 yüzeyini devre dışı bırakır; dönem ve denetim kayıtları silinmez. Reddedilmiş yetkiler otomatik geri verilmez; geri verme yeni bir onaylı kararla native API üzerinden yapılır. DocType kaldırma veya migration geri alımı Hüseyin Cengiz'in deploy ve rollback prosedürüne aittir; bu sözleşme bunu yetkilendirmez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "access-8",
+      "sourceStage": "enterprise",
+      "existing": "Native parçalar: frappe.get_roles ile rol okuma (Drive admin kontrolü), Has Role satırları ve Sheets okuma yetkisi için DocShare deposu. Mevcut yönerge (data/clusters/01.json satır 590, /groups/2/items/7) Keycloak rol ve kullanıcı yönetimi ile Frappe izinlerinin mevcut yetkileri temsil ettiğini, dönemsel sahip onayı, kanıt ve iki tarafta iptal uzlaştırmasının ayrıca geliştirilmesi gerektiğini belirtir. Gözden geçirme dönemi, sahip kararı, süreli istisna ve iptal yürütmesi kaynakta yoktur.",
+      "gap": "Yetki envanteri eksik (Has Role, User Permission, DocShare, Drive Permission, API anahtarları, Keycloak grup ve rolleri). Uzlaştırmada asıl kaynak ve çakışma kuralı tanımsız. Suite patch'lerinin doğrudan DB ile yaptığı rol değişikliklerinin denetim izine yansıması tanımsız. Dönem, sahip kimliği ve istisna süre sınırı tanımsız. ui-family-34 destek görevinin kapsam sınırı belirtilmemiş.",
+      "completionSteps": [
+        "access-review--implementation görevine yetki kaynağı envanteri ve uzlaştırma yönü bölümü ekle; uzlaştırma yönü karar gelene kadar iki yönün etkisi yan yana yazılır.",
+        "Her depo için native kaldırma yolunu belgele ve T-00 hedef sürüm kaynağında doğrula; doğrudan SQL ve ignore_permissions yasağını kabul ölçütüne koy.",
+        "AccessReview dönem açılışı, kalem kararı ve süreli istisnayı access-review--schema alanlarıyla uygula; istisna bitiş tarihini zorunlu tut.",
+        "Reddet yürütmesini Frappe depolarında native transaction ile, Keycloak tarafında keycloak-scim--contract yoluyla uygula; iki tarafta uzlaşmadan dönem kapanmasın.",
+        "Version izi olmayan rol farklarını dönem açılışında anlık görüntü karşılaştırmasıyla işaretle.",
+        "ui-family-34 enterprise yüzeyini kapsam kararı sonrası dönem listesi ve kalem karar formuyla sınırla."
+      ],
+      "dependencies": [
+        "access-review--contract",
+        "access-review--schema",
+        "keycloak-scim--contract",
+        "kernel-envelope--contract",
+        "tenant-registry--contract",
+        "ui-family-34--implementation"
+      ],
+      "acceptance": "Dönem sonunda üyelik ve ayrıcalıklı yetki listesi sahibine sunulur; süreli istisna bitiş tarihiyle kaydedilir; reddedilen yetki her Frappe deposunda native API ile (doğrudan SQL ile değil) ve Keycloak tarafında kaldırılır; her kaldırma için denetim kaydı oluşur. Sahibi olmayan kullanıcının reddet girişimi PermissionError alır ve hedef Has Role kaydı ile kalem değişmeden kalır. Kabul bu sözleşmede not_run durumundadır.",
+      "evidence": [
+        {
+          "path": "suite/suite/drive/patches/switch_drive_roles_to_suite_roles.py",
+          "line": 45,
+          "quote": "frappe.db.delete(\"Has Role\", {\"parenttype\": \"User\", \"role\": (\"in\", list(ROLE_MAP.keys()))})"
+        },
+        {
+          "path": "suite/suite/mail/patches/create_suite_user_role.py",
+          "line": 95,
+          "quote": "frappe.db.bulk_insert("
+        },
+        {
+          "path": "suite/suite/sheets/permissions.py",
+          "line": 53,
+          "quote": "f\"WHERE share_doctype = 'Sheet' AND user = {user_lit} AND `read` = 1\""
+        },
+        {
+          "path": "suite/suite/drive/api/permissions.py",
+          "line": 33,
+          "quote": "return user == \"Administrator\" or \"Suite Admin\" in frappe.get_roles(user)"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "AccessReview davranışı, envanter okuma ve iptal yürütmesi uygulanmadı; runtime kabulü yapılmadı.",
+    "Drive Permission ve API anahtarı depolarının native kaldırma yolu doğrulanmış kanıtla desteklenmiyor; T-00 doğrulaması gerekir.",
+    "Suite patch'lerinin doğrudan DB rol değişiklikleri Version izi bırakmaz; görünür kılma yöntemi karar bekliyor.",
+    "Keycloak tarafı iptal ve uzlaştırma keycloak-scim--contract uygulanmadan doğrulanamaz.",
+    "explicitPermissionFlags ortak kaynağında karar ve iptal rollerinin tanımı bekleniyor."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Uzlaştırmada asıl kaynak (Keycloak'tan Frappe'ye veya tersi) ve çakışma kuralı.",
+      "requirementIds": ["access-8"],
+      "blocksStep": "Reddet yürütmesinin iki tarafa uygulanma sırası ve dönem kapanış koşulu.",
+      "documentationStepUntilDecided": "İki yönün etkisini, depo bazında çakışma örnekleriyle yan yana belgelemek."
+    },
+    {
+      "decision": "Gözden geçirme dönemi sıklığı, sahip kimliğini belirleme kuralı ve istisna azami süresi.",
+      "requirementIds": ["access-8"],
+      "blocksStep": "Dönem açılışı ve istisna doğrulaması.",
+      "documentationStepUntilDecided": "Alanları parametrik olarak tanımlayıp değer seçmeden kabul ölçütünü yazmak."
+    },
+    {
+      "decision": "Denetim ve dönem kayıtlarının saklama süresi.",
+      "requirementIds": ["access-8"],
+      "blocksStep": "Denetim kaydı temizleme veya arşivleme kuralı.",
+      "documentationStepUntilDecided": "Kayıtların silinmeyeceğini varsayan geçici kuralı ve açık soruyu belgelemek."
+    },
+    {
+      "decision": "Envanter kapsamı: API anahtarları ve Keycloak grupları dahil mi; Suite modülü (Drive Permission) hedef tenant dağıtımında yer alıyor mu.",
+      "requirementIds": ["access-8"],
+      "blocksStep": "Envanter okuma adaptörlerinin listesi.",
+      "documentationStepUntilDecided": "Her aday depo için okuma ve native kaldırma yolunu koşullu olarak belgelemek."
+    },
+    {
+      "decision": "Doğrudan DB ile yapılan rol değişikliklerinin denetim izine yansıtılma yöntemi.",
+      "requirementIds": ["access-8"],
+      "blocksStep": "Version izi olmayan farkların işaretlenmesi.",
+      "documentationStepUntilDecided": "Kanıtlanan patch kalıplarını ve anlık görüntü karşılaştırma önerisini belgelemek."
+    },
+    {
+      "decision": "ui-family-34--implementation-enterprise kapsam sınırı.",
+      "requirementIds": ["access-8"],
+      "blocksStep": "Enterprise UI yüzeyi.",
+      "documentationStepUntilDecided": "Dönem listesi ve kalem karar formunu asgari kapsam önerisi olarak yazmak."
+    },
+    {
+      "decision": "Hedef Frappe ve Keycloak sürümü (T-00).",
+      "requirementIds": ["access-8"],
+      "blocksStep": "Native kaldırma yardımcılarının doğrulanması.",
+      "documentationStepUntilDecided": "Sürümden bağımsız native doc.save ve frappe.delete_doc yolunu temel almak."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

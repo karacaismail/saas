@@ -1,0 +1,327 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "moderation-case",
+  "canonicalTaskIds": [
+    "moderation-case--implementation",
+    "ui-family-23--implementation-post-mvp"
+  ],
+  "requirementIds": ["content-4", "content-8"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "content-4": "post_mvp",
+    "content-8": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Moderasyon vakası: bekleyen içerik yayına kapalı kalır, karar gerekçeyle kaydedilir, itiraz önceki kararı değiştirmeden bağlı yeni vaka olarak açılır",
+    "trigger": "Kapsamdaki bir içerik veya yorum moderasyona düştüğünde ya da reddedilmiş bir karara içerik sahibi gerekçeyle itiraz ettiğinde. Kapsam kararı beklenmektedir; öneri Web Page ve Frappe Comment ile sınırlıdır.",
+    "expected": "Moderation Case kaydı reference_doctype/reference_name ile içeriğe bağlanır ve Kuyrukta durumundaki içerik yayınlanmaz. Moderatör rolü native Workflow geçişiyle zorunlu gerekçeli karar verir; karar submit edilir. Reddedilen vakaya itiraz, appeal_of ile önceki vakaya bağlı ve gerekçesi zorunlu yeni bir vaka olarak açılır; itirazı ayrı itiraz inceleyicisi rolü sonuçlandırır. Önceki karar, gerekçe, Version geçmişi ve ihlal geçmişi değişmeden okunabilir kalır.",
+    "denied": "Yetkisiz kullanıcı veya rol geçiş yapamaz, karar veremez ve ihlal geçmişini okuyamaz. Gerekçesiz karar veya itiraz, reddedilmemiş ya da submit edilmemiş vakaya itiraz, kendi kararını onaylama ve submit edilmiş vakanın karar/gerekçe alanını değiştirme reddedilir. Reddedilen her denemede vaka kaydı ve içeriğin yayın durumu değişmez."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Yalnız genel native Frappe/Suite parçaları kanıtlıdır: has_permission izin denetimi; Workflow geçişlerinin mevcut duruma ve kullanıcı rolüne göre süzülmesi; has_approval_access ile kendi kendini onaylama engeli; validate_update_after_submit ve allow_on_submit tabanlı submit sonrası alan değişmezliği; save_version ile track_changes geçmişi; Suite hooks.py içindeki doc_events kayıt noktası. Writer yorumları için kanıt, moderasyon durumu olmayan ycomments alanına frappe.db.set_value ile doğrudan yazım ve allow_guest uç noktasında yalnız comment izni kontrolüdür. Bu parçalar moderasyon kuyruğu, karar, itiraz veya ihlal geçmişinin var olduğunu göstermez; davranış uygulanmamıştır.",
+    "evidence": [
+      {
+        "path": "suite/suite/writer/doctype/writer_document/writer_document.py",
+        "line": 112,
+        "quote": "frappe.db.set_value(\"Writer Document\", self.name, \"ycomments\", data)"
+      },
+      {
+        "path": "suite/suite/writer/api/docs.py",
+        "line": 121,
+        "quote": "@frappe.whitelist(allow_guest=True)"
+      },
+      {
+        "path": "suite/suite/writer/api/docs.py",
+        "line": 124,
+        "quote": "if not user_has_permission(file, \"comment\"):"
+      },
+      {
+        "path": "frappe/frappe/permissions.py",
+        "line": 82,
+        "quote": "def has_permission("
+      },
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 224,
+        "quote": "doc_events = {"
+      },
+      {
+        "path": "frappe/frappe/model/workflow.py",
+        "line": 72,
+        "quote": "if transition.state == current_state and transition.allowed in roles:"
+      },
+      {
+        "path": "frappe/frappe/model/workflow.py",
+        "line": 136,
+        "quote": "if not has_approval_access(user, doc, transition):"
+      },
+      {
+        "path": "frappe/frappe/model/document.py",
+        "line": 1485,
+        "quote": "def validate_update_after_submit(self):"
+      },
+      {
+        "path": "frappe/frappe/model/base_document.py",
+        "line": 1350,
+        "quote": "if df and not df.allow_on_submit and not df.is_virtual and (self.get(key) or db_value):"
+      },
+      {
+        "path": "frappe/frappe/model/document.py",
+        "line": 2038,
+        "quote": "def save_version(self):"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/model/base_document.py",
+      "frappe/frappe/model/document.py",
+      "frappe/frappe/model/workflow.py",
+      "frappe/frappe/permissions.py",
+      "suite/suite/hooks.py",
+      "suite/suite/writer/api/docs.py",
+      "suite/suite/writer/doctype/writer_document/writer_document.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/moderation-case.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/content_growth/doctype/moderation_case/moderation_case.py",
+      "frontend/packages/ui/src/components/ui-family-23/post_mvp.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Vaka açma: reference_doctype ve reference_name (Dynamic Link; izinli DocType listesi kapsam kararıyla sınırlı), reason (zorunlu metin) ve kapsam/tenant bağlamı (alan biçimi tenant topolojisi kararına bağlı). Karar: Workflow eylemi ve zorunlu reason. İtiraz: appeal_of (submit edilmiş ve Reddedildi kararlı önceki vaka) ve zorunlu reason. İhlal geçmişi: içerik referansı veya kullanıcıya göre salt okunur filtre.",
+    "output": "Vaka adı, workflow durumu (öneri: Kuyrukta, Onaylandı, Reddedildi, İtirazda, Kesinleşti), karar, gerekçe, appeal_of zinciri ve Version geçmişi. İhlal geçmişi okuma iznine göre süzülmüş, değiştirilemeyen kayıt listesi olarak döner. Arayüze giden çıktı JSON veri modelidir; React bileşeni, ReactNode veya callback sözleşmede taşınmaz.",
+    "authorization": "Native DocPerm, has_permission ve Workflow geçiş rolleri yeniden kullanılır. Moderatör ve itiraz inceleyicisi ayrı Role olarak önerilir; rol ve izin bayrakları explicitPermissionFlags ortak kaynağına ve native-user-policy--contract sözleşmesine bağlanır. Kendi kendini onaylama has_approval_access ve Workflow ayarıyla kapalı kalır. ignore_permissions, flags.ignore_validate_update_after_submit, doğrudan SQL veya frappe.db.set_value ile yetki ya da değişmezlik atlatılamaz. allow_guest uç noktası moderasyon kararı veya ihlal geçmişi okuma için kullanılmaz.",
+    "persistence": "Native insert/save/submit transaction yolu kullanılır; DocType submittable, track_changes açık, karar alanlarında allow_on_submit kapalıdır. İtiraz yeni belge olarak eklenir, önceki vaka güncellenmez. Outbox ve audit-envelope kayıtları ilgili sözleşmeler kabul edildikten sonra aynı transaction içine bağlanır. Bu sözleşme hiçbir şemayı, veriyi, servisi veya production ortamını değiştirme yetkisi vermez.",
+    "failure": "Yetki hatası PermissionError, kural ihlali ValidationError veya WorkflowTransitionError ile döner; transaction geri alınır, vaka ve içeriğin yayın durumu değişmez, outbox/audit olayı üretilmez. Hata mesajı içerik metnini veya başka kullanıcının ihlal bilgisini sızdırmaz."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "audit-envelope--contract",
+      "capability-definition--contract",
+      "client-rule-parity--contract",
+      "kernel-envelope--contract",
+      "moderation-case--contract",
+      "moderation-case--schema",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "native-web-page--contract",
+      "outbox--contract",
+      "ui-family-23--contract",
+      "ui-family-23--implementation"
+    ],
+    "admission": {
+      "statusText": "Uygulama durumu: uygulanmadı. Bu dosya yalnız gelecekteki geliştirme rehberidir; üretim veya test yazma kiralaması yoktur.",
+      "prerequisites": [
+        "T-00 hedef taban çizgisi ve R-00 yeniden kullanım eşlemesi doğrulanmış olmalı; izinli veri tüketicisi olduğu için R-01 de uygulanır.",
+        "moderation-case--contract ve moderation-case--schema görevleri kendi kabullerine ulaşmış olmalı.",
+        "İlk dar davranış kapsam, tenant topolojisi ve saklama kararlarından bağımsız tutulmalı; bağımlı adımlar decisionsPending kapanana kadar başlamaz.",
+        "Tek dar davranış için gerçek RED/GREEN kanıtıyla başlanır."
+      ],
+      "orderAuthority": "Mevcut görev bağımlılıkları ve post_mvp aşaması belirler; küme sırası 11 yalnız sunumdur, yeni seri DAG değildir."
+    },
+    "steps": [
+      "Hedef sürümde Comment, Web Page, Workflow ve Version kaynaklarını salt okunur doğrula; bu kesitlerde görülmeyen yayın alanı, API veya hook varsayılmaz.",
+      "moderation-case--contract: durumlar, gerekçe zorunluluğu, itiraz bağı, kapsam alanı ve hata sözleşmesini bu dosyanın contract bölümüyle hizala.",
+      "moderation-case--schema: önerilen moderation_case yolunda submittable Moderation Case; reference_doctype/reference_name Dynamic Link, zorunlu reason, decision, appeal_of Link, kapsam alanı; track_changes açık, karar alanlarında allow_on_submit kapalı.",
+      "Native Workflow: durum ve geçişleri moderatör ve itiraz inceleyicisi rollerine bağla; kendi kendini onaylamayı kapalı tut.",
+      "Controller validate: reason boş olamaz; appeal_of yalnız submit edilmiş ve Reddedildi kararlı vakayı gösterebilir. Değişmezlik için ayrı kod yazılmaz, native validate_update_after_submit kullanılır.",
+      "Yayın kapısı: kapsam kararıyla seçilen ilk içerik türü için doc_events kaydı paylaşımlı backend hooks.py dosyasında ana entegrasyon sahibiyle seri birleştirilir; açık vakası olan içerik yayın durumuna geçemez.",
+      "İhlal geçmişi: misafire kapalı, has_permission kontrollü, salt okunur whitelisted sorgu; api-middleware--contract, kernel-envelope--contract ve capability-definition--contract ile hizalanır.",
+      "Outbox ve audit: karar, itiraz ve kesinleşme olayları outbox--contract ve audit-envelope--contract kabulünden sonra aynı transaction'a bağlanır.",
+      "ui-family-23: React/Ant Design kuyruk, karar ve itiraz yüzeyi önerilen post_mvp.tsx yolunda; registry.ts kaynak bileşen registry'si GenUI capability registry'den ayrıdır; istemci kuralları client-rule-parity--contract ile sunucuyu yansıtır, yetki kararı vermez. Kalıcı UI kuralları (320 CSS px önceliği, minimum 14 CSS px, Outfit, çevreleyen odak halkası yok) uygulanır. Suite Vue arayüzü React/Ant Design kanıtı sayılmaz.",
+      "CI kapısı ve deploy/rollback tasarımı Hüseyin Cengiz'e teknik devir olarak hazırlanır; bu sözleşme CI, deploy veya production değişikliği yapmaz."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Submit edilmiş Reddedildi kararlı vakaya gerekçeli itiraz, appeal_of ile bağlı yeni vaka olarak açılır; önceki vakanın decision veya reason alanını değiştirme denemesi reddedilir ve önceki vaka değişmeden kalır.",
+      "red": "Şema ve Workflow yüklüyken, itiraz doğrulaması yoksa test gerekçesiz itirazın veya Onaylandı kararlı vakaya bağlanan itirazın kabul edildiğini gözleyerek başarısız olur. RED import hatası, eksik altyapı veya native submit değişmezliğini kapatarak üretilmez.",
+      "green": "Controller validate yalnız gerekçe ve appeal_of hedef kuralını ekler; değişmezlik native validate_update_after_submit ile sağlanır; ignore_permissions veya bayrak kullanılmadan test geçer. Bu turda test yazılmaz ve koşulmaz."
+    },
+    "rollback": "Bu turda geri alınacak üretim değişikliği yoktur. Gelecekte tek davranış değişikliği kod düzeyinde geri alınır; DocType veya Workflow kaldırma ve veri silme ayrı açık onay ister, vaka ve ihlal kayıtları rollback sırasında silinmez. Deploy ve rollback teknik sahibi Hüseyin Cengiz'dir."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "content-4",
+      "sourceStage": "post_mvp",
+      "existing": "Native parça: has_permission ve Suite doc_events kayıt noktası. Writer yorumları ycomments alanında moderasyon durumu olmadan saklanır; allow_guest uç noktası yalnız comment izni kontrol eder. Frappe Comment, Workflow ve Version bu madde kesitlerinde görülmedi; Blog kurulu değil.",
+      "gap": "Kapsamdaki nesneler (Web Page, Frappe Comment, Writer ycomments) belirsiz; pending/approved/rejected durum modeli, Workflow ve track_changes yeniden kullanımı karara bağlanmamış; moderatör rolü ve izin seviyesi yok; Writer yorumlarında sunucu tarafı yayın kapısı yok; gerekçe kaydının yeri belirtilmemiş.",
+      "completionSteps": [
+        "Kapsamı kararla Web Page ve Frappe Comment ile sınırla; Writer ycomments açıkça kapsam dışı veya ayrı karar olarak işaretlenir.",
+        "Hedef sürümde Comment ve Web Page yayın alanlarını kaynaktan doğrula; doğrulanmamış alan adı kullanılmaz.",
+        "Kapsamdaki tür oluşturulduğunda Kuyrukta durumlu Moderation Case açan ve vaka onaylanmadan yayını engelleyen doc_events/validate kuralını native save yoluyla tasarla.",
+        "Moderatör rolü ve DocPerm eşlemesini explicitPermissionFlags ortak kaynağına bağla; yetkisiz karar denemesi reddedilir.",
+        "Karar ve gerekçeyi Moderation Case decision/reason alanlarında, değişiklik geçmişini track_changes ile Version kaydında tut.",
+        "Writer kapsama alınırsa yayın kapısı ayrı tasarlanır: frappe.db.set_value yolunun doküman doğrulamasını atlayıp atlamadığı kaynakla doğrulanır; allow_guest uç noktası moderasyon kararı için kullanılmaz."
+      ],
+      "dependencies": [
+        "moderation-case--contract",
+        "moderation-case--schema",
+        "native-web-page--contract",
+        "native-user-policy--contract",
+        "native-doctype-schema--contract",
+        "audit-envelope--contract"
+      ],
+      "acceptance": "Bekleyen yorum yayınlanmaz; moderatör kararı ve gerekçesi denetlenebilir kayda geçer; yetkisiz moderasyon denemesi reddedilir ve içerik durumu değişmez.",
+      "evidence": [
+        {
+          "path": "suite/suite/writer/doctype/writer_document/writer_document.py",
+          "line": 112,
+          "quote": "frappe.db.set_value(\"Writer Document\", self.name, \"ycomments\", data)"
+        },
+        {
+          "path": "suite/suite/writer/api/docs.py",
+          "line": 121,
+          "quote": "@frappe.whitelist(allow_guest=True)"
+        },
+        {
+          "path": "suite/suite/writer/api/docs.py",
+          "line": 124,
+          "quote": "if not user_has_permission(file, \"comment\"):"
+        },
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 82,
+          "quote": "def has_permission("
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 224,
+          "quote": "doc_events = {"
+        }
+      ]
+    },
+    {
+      "requirementId": "content-8",
+      "sourceStage": "post_mvp",
+      "existing": "Native parça: Workflow geçişlerinin mevcut durum ve role göre süzülmesi, has_approval_access ile kendi kendini onaylama engeli, validate_update_after_submit ve allow_on_submit tabanlı submit sonrası değişmezlik, save_version ile Version geçmişi. Suite Screened Email Address ve Spam Check Log posta göndericisi süzme işlevidir, içerik moderasyonu değildir. Moderasyon kuyruğu, gerekçe, itiraz veya ihlal geçmişi için DocType, controller, API veya hook bulunmadı.",
+      "gap": "Moderation Case DocType'ı (Dynamic Link, kapsam, durum, zorunlu gerekçe) yok; Kuyrukta, Reddedildi, İtirazda, Kesinleşti Workflow tanımı ve geçiş rolleri yok; moderatör ile itiraz inceleyicisi rol ayrımı ve DocPerm eşlemesi yok; önceki karara bağlı itiraz kaydı yok; değişmez ihlal geçmişi ve sorgu API'si yok; içerik türü entegrasyonu yok; API, outbox ve audit-envelope bağlantısı yok; React/Ant Design moderasyon arayüzü yok.",
+      "completionSteps": [
+        "Submittable Moderation Case şemasını reference_doctype/reference_name, zorunlu reason, decision, appeal_of ve kapsam alanıyla, track_changes açık olarak tanımla.",
+        "Native Workflow geçişlerini moderatör ve itiraz inceleyicisi rollerine bağla; rol bayraklarını explicitPermissionFlags ortak kaynağına bağla.",
+        "İtirazı önceki kararı güncellemeden appeal_of ile bağlı yeni vaka olarak aç; hedef vakanın submit edilmiş ve Reddedildi olduğunu validate içinde doğrula.",
+        "İhlal geçmişini submit edilmiş Reddedildi ve Kesinleşti vakaların salt okunur, izin süzmeli sorgusuyla sun; ayrı ihlal kaydı tutma kararı yoksa vaka zinciri temel alınır.",
+        "API yüzeyini api-middleware--contract, kernel-envelope--contract ve capability-definition--contract ile; olayları outbox--contract ve audit-envelope--contract ile bağla.",
+        "ui-family-23 kuyruk, karar ve itiraz yüzeyini React/Ant Design ile JSON veri modeli sınırında kur; istemci kuralları client-rule-parity--contract ile sunucuyu yansıtır."
+      ],
+      "dependencies": [
+        "moderation-case--contract",
+        "moderation-case--schema",
+        "native-doctype-schema--contract",
+        "native-user-policy--contract",
+        "capability-definition--contract",
+        "api-middleware--contract",
+        "kernel-envelope--contract",
+        "outbox--contract",
+        "audit-envelope--contract",
+        "client-rule-parity--contract",
+        "ui-family-23--contract",
+        "ui-family-23--implementation"
+      ],
+      "acceptance": "Reddedilen içerik gerekçeyle itiraz edilebilir; önceki karar ve ihlaller değişmeden izlenebilir; submit edilmiş karara yazma denemesi reddedilir ve kayıt değişmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/model/workflow.py",
+          "line": 72,
+          "quote": "if transition.state == current_state and transition.allowed in roles:"
+        },
+        {
+          "path": "frappe/frappe/model/workflow.py",
+          "line": 136,
+          "quote": "if not has_approval_access(user, doc, transition):"
+        },
+        {
+          "path": "frappe/frappe/model/document.py",
+          "line": 1485,
+          "quote": "def validate_update_after_submit(self):"
+        },
+        {
+          "path": "frappe/frappe/model/base_document.py",
+          "line": 1350,
+          "quote": "if df and not df.allow_on_submit and not df.is_virtual and (self.get(key) or db_value):"
+        },
+        {
+          "path": "frappe/frappe/model/document.py",
+          "line": 2038,
+          "quote": "def save_version(self):"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Moderation Case DocType, Workflow tanımı, roller ve DocPerm eşlemesi yok.",
+    "Kapsamdaki içerik türleri için yayın kapısı yok; Frappe Comment ve Web Page yayın alanları kaynakta doğrulanmadı.",
+    "İtiraz bağı ve değişmez ihlal geçmişi sorgusu yok.",
+    "API, outbox ve audit-envelope bağlantısı yok.",
+    "React/Ant Design moderasyon arayüzü (ui-family-23) yok.",
+    "Writer ycomments için sunucu tarafı yayın kapısı yok ve kapsam kararı bekliyor."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Moderasyon kapsamındaki içerik türleri (Web Page, Frappe Comment, Writer ycomments)",
+      "requirementIds": ["content-4", "content-8"],
+      "blocks": "Dynamic Link izinli DocType listesi ve doc_events yayın kapısı",
+      "documentStepUntilDecided": "Kapsamdan bağımsız Moderation Case şeması ve itiraz davranışı belgelenir; öneri Web Page ve Frappe Comment olarak işaretli kalır."
+    },
+    {
+      "decision": "Writer yorumlarında ön moderasyon yapılıp yapılmayacağı",
+      "requirementIds": ["content-4"],
+      "blocks": "Writer yayın kapısı tasarımı",
+      "documentStepUntilDecided": "Writer kapsam dışı işaretlenir; mevcut allow_guest ve comment izni davranışı kanıtla belgelenir."
+    },
+    {
+      "decision": "Tenant topolojisi ve vaka kapsam alanının biçimi",
+      "requirementIds": ["content-4", "content-8"],
+      "blocks": "Kapsam alanı tanımı ve tenant bazlı izin süzme",
+      "documentStepUntilDecided": "Alan soyut kapsam bağlamı olarak belgelenir; topoloji seçilmez."
+    },
+    {
+      "decision": "İhlal geçmişi saklama süresi ve silme/anonimleştirme politikası",
+      "requirementIds": ["content-8"],
+      "blocks": "İhlal geçmişi kabul ölçütünün süre boyutu ve rollback veri kuralı",
+      "documentStepUntilDecided": "Değişmezlik ve okuma yetkisi belgelenir; süre yazılmaz."
+    },
+    {
+      "decision": "Moderatör ve itiraz inceleyicisi rol adları ile aynı kişinin iki rolü taşıyıp taşıyamayacağı",
+      "requirementIds": ["content-4", "content-8"],
+      "blocks": "Workflow geçiş rolleri ve DocPerm eşlemesi",
+      "documentStepUntilDecided": "Rol ayrımı explicitPermissionFlags ortak kaynağına bağlı soyut kural olarak belgelenir."
+    },
+    {
+      "decision": "Gerekçe kaydının yeri: Moderation Case alanı ve Version geçmişi önerisinin onayı ya da ayrı DocType",
+      "requirementIds": ["content-4"],
+      "blocks": "Şemanın kesinleşmesi",
+      "documentStepUntilDecided": "Öneri alanı (zorunlu reason ve track_changes) belgelenir."
+    },
+    {
+      "decision": "Hedef Frappe sürümü (T-00 taban çizgisi)",
+      "requirementIds": ["content-4", "content-8"],
+      "blocks": "Kaynak satır kanıtlarının hedef sürümde doğrulanması",
+      "documentStepUntilDecided": "Kanıtlar önceki salt okunur kaynak kesitlerine ait olarak işaretli kalır."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

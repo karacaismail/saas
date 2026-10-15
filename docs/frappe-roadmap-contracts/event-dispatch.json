@@ -1,18 +1,30 @@
 {
   "schemaVersion": "saas-existing-work-contract.v1",
   "canonicalUnitId": "event-dispatch",
-  "canonicalTaskIds": ["event-dispatch--implementation"],
+  "canonicalTaskIds": [
+    "event-dispatch--implementation",
+    "ui-provider-realtime--implementation",
+    "ui-provider-registry--implementation"
+  ],
   "requirementIds": ["events-1", "events-2", "events-3", "events-7"],
   "stage": "poc",
+  "sourceStages": {
+    "events-1": "poc",
+    "events-2": "poc",
+    "events-3": "poc",
+    "events-7": "poc"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
-    "title": "Site sinirinda olay zarfi dogrulamasi ve correlation_id korunarak native kuyruga aktarim",
-    "trigger": "Sunucu tarafi Python kodu event_dispatch_poc.dispatch(envelope) cagirir (whitelist edilmez, /method ile disariya acilmaz).",
-    "expected": "Zarf gecerliyse frappe.enqueue ile tek abone isi kuyruga alinir; is kwargs icinde ayni event_id ve correlation_id tasinir ve donus {event_id, correlation_id, job_id} olur.",
-    "denied": "schema_version eksik veya desteklenmeyen, site alani eksik veya frappe.local.site ile esit degil, correlation_id eksik ise frappe.ValidationError atilir ve hicbir is kuyruga alinmaz."
+    "title": "Olay zarfı doğrulaması ve correlation_id korunarak native kuyruğa tek abone aktarımı",
+    "trigger": "Sunucu tarafı Python kodu event_dispatch_poc.dispatch(envelope) çağırır; fonksiyon whitelist edilmez ve /method üzerinden dışarı açılmaz.",
+    "expected": "Zarf geçerliyse native frappe.enqueue ile tek abone işi kuyruğa alınır; iş kwargs içinde aynı event_id ve correlation_id taşınır; dönüş {event_id, correlation_id, job_id, schema_version} olur.",
+    "denied": "schema_version eksik veya desteklenmeyen, site alanı eksik veya frappe.local.site ile eşit değil ya da correlation_id eksikse frappe.ValidationError; çağıran Guest ise frappe.PermissionError atılır. Her iki durumda hiçbir iş kuyruğa alınmaz ve kısmi durum kalmaz."
   },
   "reuse": {
-    "mechanism": "Native frappe.enqueue ve native site siniri yeniden kullanilir; yeni bus, DocType, ORM, Event Streaming veya ayri altyapi kurulmaz. Tek ince adapter yalniz kaynakta gorulmeyen ortak zarf dogrulamasi icin gerekir. Tenant yalniz yerel kanit icin site olarak ele alinir; global tenant modeli secilmez.",
+    "status": "KISMI",
+    "mechanism": "Native frappe.enqueue, native site sınırı, whitelist/is_whitelisted yayımlama yolu ve doc_events hookları yeniden kullanılır. Yeni bus altyapısı, DocType, ORM, CRUD veya Event Streaming kurulmaz. Tek ince adapter yalnız kaynakta görülmeyen ortak zarf doğrulamasını ekler. Kanıtlar yalnız native parçaları gösterir; dayanıklı bus, komut/sorgu/olay katalogu veya ortak zarfın var olduğunu göstermez. suite/frontend altındaki alıntılar Vue/Frappe UI kaynağıdır ve React/Ant Design uygulamasının kanıtı değildir.",
     "evidence": [
       {
         "path": "frappe/frappe/api/v2.py",
@@ -38,67 +50,292 @@
         "path": "frappe/frappe/api/v2.py",
         "line": 8,
         "quote": "internal implementation can change without treating it as \"breaking change\"."
+      },
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 152,
+        "quote": "Rule(\"/method/<path:method>\", endpoint=handle_rpc_call),"
+      },
+      {
+        "path": "frappe/frappe/api/v2.py",
+        "line": 259,
+        "quote": "doc.is_whitelisted(method)"
+      },
+      {
+        "path": "suite/frontend/src/apps/sheets/collab/realtime-adapter.js",
+        "line": 6,
+        "quote": "that calls `frappe.publish_realtime` on the server side"
       }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "frappe/frappe/api/v2.py",
+      "frappe/pyproject.toml",
+      "suite/frontend/src/apps/sheets/collab/frappe-realtime-init.js",
+      "suite/frontend/src/apps/sheets/collab/realtime-adapter.js",
+      "suite/suite/calendar/doctype/calendar_event/invitations.py",
+      "suite/suite/calendar/doctype/calendar_event/mailing_lists.py",
+      "suite/suite/calendar/doctype/event_notification/event_notification.json",
+      "suite/suite/hooks.py",
+      "suite/suite/mail/events.py",
+      "suite/suite/writer/doctype/writer_document/writer_document.py"
     ]
   },
   "ownership": {
     "activeContractFile": "docs/frappe-roadmap-contracts/event-dispatch.json",
     "plannedProduction": [
-      "backend/saas_platform/saas_platform/adapters/async_runtime/event_dispatch_poc.py"
+      "backend/saas_platform/saas_platform/adapters/async_runtime/event_dispatch_poc.py",
+      "frontend/packages/genui/src/components/ui-provider-registry/index.tsx",
+      "frontend/packages/ui/src/components/ui-provider-realtime/index.tsx"
     ],
-    "plannedTestFile": "backend/saas_platform/saas_platform/adapters/async_runtime/test_event_dispatch_poc.py",
+    "plannedTestFile": null,
     "sharedIntegrationFiles": [
-      "integration/fragments/event-dispatch--integration.json",
-      "contracts/kernel-envelope.v1.json",
-      "backend/saas_platform/saas_platform/hooks.py"
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "envelope dict: event_id str<=64 zorunlu; site str zorunlu; correlation_id str<=140 zorunlu; causation_id str<=140 opsiyonel; schema_version int zorunlu, PoC destek kumesi {1}; event_type str<=140 zorunlu; occurred_at ISO-8601 str zorunlu; payload dict, PoC siniri serilestirilmis 64 KB. Alan adlari kernel-envelope--contract ile celisirse kernel-envelope kazanir.",
-    "output": "{event_id, correlation_id, job_id} ve schema_version=1. Payload icerigi donuste geri yansitilmaz; payload belge referansi tasiyorsa okuma yetkisi native-user-policy--contract ile cozulur.",
-    "authorization": "Native site siniri: zarf.site != frappe.local.site ise reddedilir. Cagiran frappe.session.user Guest ise frappe.PermissionError. Kuyruktaki isin hangi kullanici baglaminda calistigi v17-dev kaynaginda dogrulanmadi; bilinmiyor olarak isaretlidir.",
-    "persistence": "Yeni DocType, DDL veya tablo yoktur. Is yalniz native frappe.enqueue ile kuyruga alinir. Commit sonrasi kuyruklama parametresinin v17-dev kaynaginda varligi bu kanitta dogrulanmadi; kullanimdan once kaynakta teyit edilmelidir. Yeniden baslatmada kayipsizlik bu davranisin garantisi degildir.",
-    "failure": "Gecersiz zarf: frappe.ValidationError, enqueue cagrilmaz, kismi durum kalmaz; tuketici hatayi cagiranin transaction'ina yayar. Guest: frappe.PermissionError. Redis/kuyruk erisim hatasi native istisna olarak yukari tasinir ve yutulmaz."
+    "input": "envelope dict: event_id str<=64 zorunlu; site str zorunlu; correlation_id str<=140 zorunlu; causation_id str<=140 opsiyonel; schema_version int zorunlu, PoC destek kümesi {1}; event_type str<=140 zorunlu; occurred_at ISO-8601 str zorunlu; payload dict, PoC sınırı serileştirilmiş 64 KB. Alan adları kernel-envelope--contract ile çelişirse kernel-envelope kazanır. Tenant alanının anlamı karar bekliyor; bu davranış yalnız native site alanını doğrular.",
+    "output": "{event_id, correlation_id, job_id, schema_version=1}. Payload içeriği dönüşte geri yansıtılmaz; payload belge referansı taşıyorsa okuma yetkisi native-user-policy--contract ile çözülür.",
+    "authorization": "Yetki native sınırlarla çözülür: zarf.site frappe.local.site ile eşit değilse ret; frappe.session.user Guest ise frappe.PermissionError. ignore_permissions, ham SQL veya başka yetki bypass kullanılmaz. Payload belge referansı taşırsa okuma native has_permission ve native-user-policy--contract ile denetlenir. Bu davranış rol veya izin üretmez; events-2 modül izinleri ileride rol/izin üretirse explicitPermissionFlags ortak kaynağına bağlanır ve o rehberin tek kabulünde reddedilen yazma ile değişmeyen kayıt yer alır. Kuyruktaki işin hangi kullanıcı bağlamında çalıştığı hedef kaynakta doğrulanmadı; bilinmiyor olarak işaretlidir.",
+    "persistence": "Yeni DocType, DDL veya tablo yoktur. İş yalnız native frappe.enqueue ile kuyruğa alınır. Commit sonrası kuyruklama parametresinin hedef sürümde varlığı doğrulanmadı; kullanımdan önce T-00 baz kaynağında teyit edilmelidir. Yeniden başlatmada kayıpsızlık bu davranışın garantisi değildir; events-4/5/6 rehberlerine aittir.",
+    "failure": "Geçersiz zarf: frappe.ValidationError, enqueue çağrılmaz, kısmi durum kalmaz; hata çağıranın transaction'ına yayılır ve native rollback uygulanır. Guest: frappe.PermissionError. Redis/kuyruk erişim hatası native istisna olarak yukarı taşınır ve yutulmaz."
   },
   "development": {
     "dependencies": [
+      "capability-definition--contract",
+      "device-grant--contract",
       "event-dispatch--contract",
       "kernel-envelope--contract",
       "native-user-policy--contract",
-      "local pilot frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6 (suiteSourceHead unknown)"
+      "sync-receipt--contract",
+      "ui-family-01--contract",
+      "ui-provider-realtime--contract",
+      "ui-provider-registry--contract"
     ],
-    "admission": "T-00 hedef baz ve R-00 yeniden kullanim eslemesi ile kernel-envelope--contract alan adlari gereklidir. Yerel Frappe17-dev/suite.localhost kaniti uzak urun bazi degildir; uzak baz ve Suite HEAD bilinmiyor.",
+    "admission": "Uygulama durumu: uygulanmadı. Giriş için T-00 hedef baz ve R-00 yeniden kullanım eşlemesi, izinli veri tüketen adımlar için R-01, kernel-envelope--contract alan adları ve ortak yürütme politikası gerekir. Hedef Frappe sürümü ve Suite baz commiti karar bekliyor; kaynak alıntıları önceki salt okunur kaynak anlık görüntülerindendir, ürün bazı veya canlı site kabulü değildir. Bu sözleşme hiçbir servis, production, şema veya veriyi değiştirme yetkisi vermez.",
     "steps": [
-      "kernel-envelope.v1 alan adlarini oku ve zarf dogrulamasini bu adlarla hizala.",
-      "event_dispatch_poc.py icinde dispatch(envelope): alan/limit dogrulamasi, site esitligi, schema_version destek kontrolu.",
-      "Gecerli zarfta frappe.enqueue ile tek abone isini event_id ve correlation_id kwargs ile kuyruga al; hooks.py ve zamanlayiciya dokunma.",
-      "Abone yolu ve hooks kaydi gerekiyorsa yalniz integration fragment uzerinden Codex'e oner."
+      "kernel-envelope--contract alan adlarını oku ve zarf doğrulamasını bu adlarla hizala; çelişkide kernel-envelope kazanır.",
+      "event_dispatch_poc.py içinde dispatch(envelope): zorunlu alan ve uzunluk doğrulaması, schema_version destek kümesi {1}, site eşitliği ve Guest reddi.",
+      "Geçerli zarfta native frappe.enqueue ile tek abone işini event_id ve correlation_id kwargs ile kuyruğa al; hooks.py, zamanlayıcı ve kuyruk yapılandırmasına dokunma.",
+      "Abone yolu veya hooks kaydı gerekiyorsa paylaşılan entegrasyon dosyası değişikliğini yalnız ana entegrasyon sahibine öner.",
+      "ui-provider-realtime ve ui-provider-registry görevlerini bu adaptere kod bağımlılığı olmadan requirementGuidance içindeki events-2 ve events-3 sınırlarıyla yürüt."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "suite.localhost uzerinde schema_version eksik zarfla dispatch cagrisi frappe.ValidationError atar ve enqueue hic cagrilmaz; ayni zarf schema_version=1 ile verildiginde enqueue tam bir kez, ayni correlation_id ile cagrilir.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Ayni test ayni bench run-tests komutuyla uygulama sonrasinda gecer. Native enqueue davranisi tek basina RED uretmek icin kullanilmaz."
+      "oneScenario": "schema_version alanı eksik, diğer alanları geçerli bir zarfla dispatch çağrılır: frappe.ValidationError atılır ve frappe.enqueue hiç çağrılmaz.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. RED, dispatch doğrulaması yokken bu senaryonun assertion düzeyinde başarısız olmasıdır (ValidationError beklenir, enqueue çağrısı gözlenir). Import, modül bulunamadı veya altyapı hatası RED sayılmaz; native enqueue veya site davranışı bozularak RED üretilmez. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "Uygulamadan sonra aynı senaryo, değişmeyen assertion ve aynı komutla geçmelidir. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN'i değildir."
     },
-    "rollback": "Yalniz planlanan event_dispatch_poc.py ve test dosyasinin yerel geri alinmasi. Uretim, servis yeniden baslatma, cron veya kayit silme yetkisi yoktur."
+    "rollback": "Yalnız gelecekte eklenecek event_dispatch_poc.py ve ilgili testin yerel değişikliğinin geri alınması. Production, servis yeniden başlatma, cron, kuyruk veya kayıt silme yetkisi yoktur. Uzak CI, deploy ve rollback teknik sahibi Hüseyin Cengiz'dir."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "events-1",
+      "sourceStage": "poc",
+      "existing": "Native parçalar: doc_events hookları, Socket.IO realtime bağımlılığı ve frappe.enqueue arka plan işi. Bunlar temel araçlardır; dayanıklı bir event bus değildir.",
+      "gap": "Yeniden başlatmada kayıpsızlık, abone izolasyonu ve tekrar işleme yok. Bus'ın outbox/inbox/retry (events-4/5/6) üzerinde ince dağıtıcı olacağı, abone kaydının yeri ve modül sahipliği yazılı değil. Event Streaming'in hedef sürümdeki durumu kaynakta doğrulanmadı.",
+      "completionSteps": [
+        "event-dispatch--implementation tanımına bus'ın outbox ve inbox üzerinde çalışan ince bir dağıtıcı olduğu, yeni altyapı olmadığı cümlesini yaz.",
+        "Bu rehberin dispatch davranışını yalnız zarf doğrulaması ve tek abone aktarımı ile sınırla; kayıpsızlık iddiasını events-4/5/6 rehberlerine bırak.",
+        "Pilot olay adayı olarak Calendar Event davetini yaz; abone kaydı sahibini decisionsPending kararına bağla.",
+        "Event Streaming'in hedef Frappe sürümündeki durumunu T-00 baz kaynağında doğrula; doğrulanana kadar dışlamayı yalnız dokümana dayalı olarak işaretle."
+      ],
+      "dependencies": ["event-dispatch--contract", "kernel-envelope--contract"],
+      "acceptance": "Yayınlanan olay süreç yeniden başlatılınca kaybolmaz; abone izolasyonu ve tekrar işleme doğrulanır. Bu ölçüt outbox/inbox/retry tamamlanmadan bu davranışla karşılanmış sayılmaz.",
+      "evidence": [
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 224,
+          "quote": "doc_events = {"
+        },
+        {
+          "path": "frappe/pyproject.toml",
+          "line": 97,
+          "quote": "\"python-socketio~=5.16.2\","
+        },
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 293,
+          "quote": "job = frappe.enqueue("
+        },
+        {
+          "path": "suite/frontend/src/apps/sheets/collab/realtime-adapter.js",
+          "line": 6,
+          "quote": "that calls `frappe.publish_realtime` on the server side"
+        }
+      ]
+    },
+    {
+      "requirementId": "events-2",
+      "sourceStage": "poc",
+      "existing": "Native yayımlama parçaları: /method RPC kuralı, doc.is_whitelisted kontrolü ve override_whitelisted_methods hook'u. v2.py kendi iç uygulamasını kararlı sözleşme saymaz.",
+      "gap": "Command/query/event katalog şeması, sürüm uyumluluk kuralı ve ret kodu tanımsız. Hangi sınırın yayımlanmış API olduğu, katalogun UI provider ve GenUI registry'lerinden ayrılığı ve modül izinlerinin native DocType izinleriyle eşlenmesi yazılı değil.",
+      "completionSteps": [
+        "Sınır cümlesi ekle: sunucu command/query/event katalogu backend modül sözleşmesidir; UI provider registry ve GenUI capability registry ile birleştirilmez; JSON model sınırı ile yerel ReactNode/callback ayrı tutulur.",
+        "Yayımlanmış sınırı whitelisted method adı olarak tanımla; v2.py iç fonksiyonlarını katalog girdisi yapma.",
+        "Katalog girdisi alanlarını (ad, tür command/query/event, schema_version) ve sürüm uyumsuzluğunda verilecek ret kodunu karar geldikten sonra yaz.",
+        "Yetki için native whitelist ve has_permission kullan; modül izni rol/izin üretirse explicitPermissionFlags ortak kaynağına bağla.",
+        "ui-provider-registry--implementation için: frontend registry yalnız React/Ant Design UI sağlayıcısını tanımlar, sunucu katalogunu kopyalamaz; GenUI ayrı kullanıcı projesidir."
+      ],
+      "dependencies": [
+        "event-dispatch--contract",
+        "native-user-policy--contract",
+        "capability-definition--contract",
+        "ui-provider-registry--contract"
+      ],
+      "acceptance": "Yalnız kayıtlı ve izinli komut çalışır; katalog sürümü tüketiciyle uyumsuzsa çağrı reddedilir; kayıtsız veya izinsiz çağrıda yazma reddedilir ve kayıt değişmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 152,
+          "quote": "Rule(\"/method/<path:method>\", endpoint=handle_rpc_call),"
+        },
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 259,
+          "quote": "doc.is_whitelisted(method)"
+        },
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 8,
+          "quote": "internal implementation can change without treating it as \"breaking change\"."
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 202,
+          "quote": "override_whitelisted_methods = {"
+        }
+      ]
+    },
+    {
+      "requirementId": "events-3",
+      "sourceStage": "poc",
+      "existing": "Dağınık parçalar: site bazlı Socket.IO namespace, ad-hoc job_id, alan-özel realtime payload biçimi ve sanal (is_virtual) bildirim DocType'ı. Ortak zarf görülmüyor.",
+      "gap": "Tenant tanımı yok. Zarf alanları ve şema kayıt yeri tanımsız. Correlation kimliğinin HTTP isteğinden enqueue edilen işe taşınması belirtilmemiş. UI realtime taşıması dayanıklı olay zarfıyla karışma riski taşıyor.",
+      "completionSteps": [
+        "Zarf alanlarını kernel-envelope--contract ile hizala: event_id, site, correlation_id, causation_id, schema_version, event_type, occurred_at, payload.",
+        "Tenant alanının anlamını decisionsPending kararına bırak; karar gelene kadar yalnız native site eşitliği doğrulanır ve bu bir tenant topolojisi seçimi sayılmaz.",
+        "correlation_id'nin enqueue kwargs ile işe taşındığını bu davranışta doğrula; HTTP isteğinden alınma kaynağını kernel-envelope kararına bağla.",
+        "ui-provider-realtime--implementation için: realtime yayını bu zarfın projeksiyonudur, dayanıklılık garantisi taşımaz; yayın izni sunucuda kalır."
+      ],
+      "dependencies": [
+        "kernel-envelope--contract",
+        "event-dispatch--contract",
+        "ui-provider-realtime--contract"
+      ],
+      "acceptance": "Eksik tenant/site veya şema sürümü olan olay reddedilir ve kuyruğa iş alınmaz; zincirde correlation_id korunur.",
+      "evidence": [
+        {
+          "path": "suite/frontend/src/apps/sheets/collab/frappe-realtime-init.js",
+          "line": 17,
+          "quote": "// Frappe scopes its socketio rooms by *site* via a socket.io namespace"
+        },
+        {
+          "path": "suite/suite/writer/doctype/writer_document/writer_document.py",
+          "line": 125,
+          "quote": "job_id=f\"doc_comments_{self.name}_{comment_id}\","
+        },
+        {
+          "path": "suite/frontend/src/apps/sheets/collab/realtime-adapter.js",
+          "line": 10,
+          "quote": "// Server payloads arrive as `{ sheet, user, payload }`. We unwrap `payload`"
+        },
+        {
+          "path": "suite/suite/calendar/doctype/event_notification/event_notification.json",
+          "line": 187,
+          "quote": "\"is_virtual\": 1,"
+        }
+      ]
+    },
+    {
+      "requirementId": "events-7",
+      "sourceStage": "poc",
+      "existing": "Hata izolasyonu desenleri: execute_with_logging, takvim olayını dış dizin hatası yüzünden başarısız etmeme yaklaşımı, JMAP yazımından sonra enqueue edilen davet bildirimi ve eşiğe bağlı async bulk işlem.",
+      "gap": "Senkron/asenkron seçim kriteri, modül veya dış servis başına kuyruk ve timeout ataması, senkron komut tazmin sonucu ve hook içindeki dış çağrı hatasının ana transaction'a etkisi yazılı değil. Kuyruk adları ve timeout değerleri doğrulanmadı.",
+      "completionSteps": [
+        "Kısa karar tablosu yaz: senkron (kullanıcının sonucu beklediği ve aynı transaction tutarlılığı gereken yazım), outbox/async (bildirim, yan etki), dış servis için ayrı kuyruk.",
+        "Calendar invite örneğini tabloya işle: JMAP yazımı senkron, katılımcı bildirimi async; bu sınıflandırma kaynak alıntısına dayanır, ürün kabulü değildir.",
+        "Native kuyruk adlarını ve timeout değerlerini T-00 baz kaynağında doğrula; doğrulanmadan kuyruk adı veya değer yazma.",
+        "Senkron komut hatasında sonucu tanımla: çağıranın transaction'ı native rollback ile geri döner ve kuyruklanan iş oluşmaz; dış çağrı hatasının günlüklenip yutulmasının hangi yan etkilerde kabul edildiğini yaz.",
+        "Uzak ortamda ayrı kuyruk/worker gerekirse teknik sahip Hüseyin Cengiz'dir; bu sözleşme yapılandırma değişikliği yetkisi vermez."
+      ],
+      "dependencies": ["event-dispatch--contract", "kernel-envelope--contract"],
+      "acceptance": "Yavaş dış servis diğer modül kuyruklarını kilitlemez; senkron komutun hata ve tazmin sonucu belirlidir.",
+      "evidence": [
+        {
+          "path": "suite/suite/mail/events.py",
+          "line": 191,
+          "quote": "execute_with_logging("
+        },
+        {
+          "path": "suite/suite/calendar/doctype/calendar_event/mailing_lists.py",
+          "line": 47,
+          "quote": "reached — a calendar event is never worth failing over this."
+        },
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 32,
+          "quote": "conf = frappe.conf.get(\"bulk_operation_async_threshold\", 20)"
+        },
+        {
+          "path": "suite/suite/calendar/doctype/calendar_event/invitations.py",
+          "line": 11,
+          "quote": "API after the event is written to JMAP."
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "events-1: yeniden baslatmada kayipsizlik, abone izolasyonu ve tekrar isleme outbox/inbox/retry (events-4/5/6) olmadan saglanmaz; bus bunlarin uzerinde ince dagitici olacak, abone kaydi sahibi karar bekliyor.",
-    "events-2: command/query/event katalog semasi ve surum ret kodu tanimsiz; katalog UI provider ve GenUI registry'lerinden ayri backend sozlesmesidir, v2.py ic uygulamasi kararli sinir sayilmaz.",
-    "events-3: tenant modeli karar bekliyor (site disi model secilmedi); HTTP isteginden kuyruk isine correlation tasima mekanizmasi ve realtime projeksiyonu dogrulanmadi.",
-    "events-7: modul/dis servis basina kuyruk-timeout atamasi ve senkron komut tazmin kurali yok; Calendar invite ornegi pilot olarak dogrulanmadi.",
-    "Event Streaming modulunun v17.0.0-dev durumu kaynakta dogrulanmadi.",
-    "Uzak dagitimda worker/Redis gereksinimi bagimlilik olarak Huseyin Cengiz'e aittir; hicbir zamanlama etkinlestirilmez."
+    "events-1: yeniden başlatmada kayıpsızlık, abone izolasyonu ve tekrar işleme outbox/inbox/retry (events-4/5/6) olmadan sağlanmaz; abone kaydı sahibi karar bekliyor.",
+    "events-2: katalog şeması ve sürüm ret kodu tanımsız; katalog UI provider ve GenUI registry'lerinden ayrı backend sözleşmesidir; v2.py iç uygulaması kararlı sınır sayılmaz.",
+    "events-3: tenant modeli karar bekliyor; HTTP isteğinden kuyruk işine correlation taşıma kaynağı ve realtime projeksiyonu doğrulanmadı.",
+    "events-7: modül/dış servis başına kuyruk-timeout ataması ve senkron komut tazmin kuralı yok; Calendar invite sınıflandırması ürün kabulü değildir.",
+    "Event Streaming modülünün hedef sürümdeki durumu, commit sonrası kuyruklama parametresi ve kuyruktaki işin kullanıcı bağlamı kaynakta doğrulanmadı.",
+    "plannedProduction içindeki frontend yolları yalnız gelecekteki öneridir; GenUI ayrı kullanıcı projesidir ve bu sözleşme oraya yazma yetkisi vermez.",
+    "Uzak dağıtımda worker/Redis gereksinimi Hüseyin Cengiz'e aittir; hiçbir zamanlama etkinleştirilmez."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Tenant topolojisi: site düzeyi mi, site içi kiracı mı",
+      "requirementIds": ["events-3", "events-1"],
+      "blocks": "Zarfta tenant alanının zorunluluğu, anlamı ve tenant eksikliğine dayalı ret kuralı",
+      "interimDocStep": "Native site eşitliğini sınır olarak belgele; tenant alanını karar bekliyor olarak işaretle."
+    },
+    {
+      "decision": "Hedef Frappe sürümü ve Suite baz commiti (T-00)",
+      "requirementIds": ["events-1", "events-7"],
+      "blocks": "Event Streaming durumu, kuyruk adları ve timeout değerleri, commit sonrası kuyruklama parametresi doğrulaması",
+      "interimDocStep": "İlgili maddeleri doğrulanmadı olarak işaretle ve doğrulanacak kaynak listesini yaz."
+    },
+    {
+      "decision": "Abone kaydının yeri ve modül sahipliği",
+      "requirementIds": ["events-1"],
+      "blocks": "Birden fazla abone kaydı ve abone izolasyonu adımı",
+      "interimDocStep": "Davranışı tek abone iş yoluyla sınırlı tarif et."
+    },
+    {
+      "decision": "Katalog sürüm uyumluluk kuralı ve ret kodu",
+      "requirementIds": ["events-2"],
+      "blocks": "Katalog şeması ve sürüm uyumsuzluğu ret kabulü",
+      "interimDocStep": "Sınır cümlesini ve katalog alan listesi taslağını yaz."
+    },
+    {
+      "decision": "Olay saklama süresi (tekrar işleme penceresi)",
+      "requirementIds": ["events-1"],
+      "blocks": "Kayıpsızlık ve tekrar işleme kabulü",
+      "interimDocStep": "Değeri boş bırak; events-4/5 rehberlerine referans ver."
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "events-1": "poc",
-    "events-2": "poc",
-    "events-3": "poc",
-    "events-7": "poc"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,

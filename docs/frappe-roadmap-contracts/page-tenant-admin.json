@@ -1,18 +1,26 @@
 {
   "schemaVersion": "saas-existing-work-contract.v1",
   "canonicalUnitId": "page-tenant-admin",
-  "canonicalTaskIds": ["page-tenant-admin--implementation"],
+  "canonicalTaskIds": [
+    "page-tenant-admin--implementation",
+    "ui-family-01--implementation-mvp"
+  ],
   "requirementIds": ["shell-2"],
   "stage": "mvp",
+  "sourceStages": {
+    "shell-2": "mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
-    "title": "Etkin write iznine göre yönetici güncelleme eylemini gösterme veya gizleme ve gizli eylemin API reddi",
-    "trigger": "TenantAdminPage yüklenir veya oturum kullanıcısı değişir. Sayfa, yerel pilot DocType için oturum kullanıcısının etkin izinlerini okur.",
-    "expected": "Müşteri yöneticisi rolünde (yerel pilotta admin kapsamı) write=1 ise kayıt güncelleme eylemi görünür ve native kayıt yolu başarılı olur. Son kullanıcı rolünde (yerel pilotta reader kapsamı) yalnız read yüzeyi görünür.",
-    "denied": "Reader kullanıcı arayüzde gizlenen güncellemeyi doğrudan native REST ile denediğinde Frappe, Document.save izin kontrolünde PermissionError (HTTP 403) döndürür. Kayıt değişmez. Arayüz, kullanıcıya bu işlem için yetkisi olmadığını belirten bir mesaj gösterir."
+    "title": "Etkin write iznine göre müşteri yöneticisi güncelleme eylemini gösterme veya gizleme ve gizlenen eylemin native API tarafından reddi",
+    "trigger": "TenantAdminPage yüklenir ya da oturum kullanıcısı veya rolü değişip oturum yeniden kurulur. Sayfa, rol matrisinde seçilen ana DocType için oturum kullanıcısının etkin izinlerini salt okunur bir adapter üzerinden okur.",
+    "expected": "Müşteri yöneticisi rolünde ilgili DocType için write=true ise kayıt güncelleme eylemi görünür ve güncelleme native kayıt yolu ile başarılı olur. Son kullanıcı rolünde write=false ise yalnız okuma yüzeyi görünür ve güncelleme eylemi DOM'a render edilmez.",
+    "denied": "Son kullanıcı arayüzde gizlenen güncellemeyi doğrudan native REST ile denediğinde Frappe'nin native izin kontrolü PermissionError (HTTP 403) döndürür ve kayıt değişmez. Arayüz, kullanıcıya bu işlem için yetkisi olmadığını belirten bir mesaj gösterir. UI gizleme yalnız sunumdur, yetki kaynağı değildir."
   },
   "reuse": {
-    "mechanism": "Yetki zorlaması tamamen native kalır: DocPerm/Custom DocPerm, get_valid_perms, has_permission hook zinciri ve Document.save. Etkin izni okuyan whitelisted bir native method, sağlanan kanıtta yok ve unknown sayılır. Bu nedenle tek gerekli adapter, yalnız frappe.session.user için get_valid_perms(doctype) sonucundan read/write/create/delete bayraklarını döndüren salt okunur bir whitelisted fonksiyondur. user/roles parametresi almaz ve ignore_permissions içermez. Suite Vue SPA'sı React kabuğu olarak yeniden kullanılmaz.",
+    "status": "KISMI",
+    "mechanism": "Native parça: yetki zorlaması Frappe tarafında kalır. Kayıt düzeyi kararlar has_permission hook zinciriyle verilir (permissions.py:496), DocType düzeyi geçerli izinler get_valid_perms ile okunur (permissions.py:512). Native kayıt ve izin hatası yolu (Document.save, frappe.PermissionError, /api/resource) sağlanan kanıtta satır olarak yoktur ve T-00 hedef tabanında doğrulanmalıdır. Eksik parça: oturum kullanıcısının etkin izinlerini döndüren whitelisted bir native method sağlanan kanıtta yoktur. Bu nedenle tek gereken adapter, yalnız frappe.session.user için get_valid_perms(doctype) sonucundan read/write/create/delete bayraklarını türeten salt okunur bir whitelisted fonksiyondur. Adapter user/roles parametresi almaz, ignore_permissions veya ham SQL içermez. Suite kabuğu Vue Router tabanlıdır (suite/suite/hooks.py:44); bu kaynak React/Ant Design uygulamasının kanıtı değildir ve React kabuğu olarak yeniden kullanılmaz. Kanıtın bu native parçaları göstermesi, bütün davranışın var olduğu anlamına gelmez.",
     "evidence": [
       {
         "path": "frappe/frappe/permissions.py",
@@ -29,64 +37,138 @@
         "line": 44,
         "quote": "Vue Router takes over client-side"
       }
-    ]
+    ],
+    "searchedPaths": ["frappe/frappe/permissions.py", "suite/suite/hooks.py"]
   },
   "ownership": {
     "activeContractFile": "docs/frappe-roadmap-contracts/page-tenant-admin.json",
     "plannedProduction": [
+      "frontend/packages/ui/src/components/ui-family-01/mvp.tsx",
       "frontend/packages/ui/src/pages/page-tenant-admin/index.tsx"
     ],
-    "plannedTestFile": "frontend/packages/ui/src/pages/page-tenant-admin/index.e2e.spec.ts (yalnız planlı; e2e dizin düzeni unknown, entegrasyon sahibi kesinleştirir)",
+    "plannedTestFile": null,
     "sharedIntegrationFiles": [
-      "backend/saas_platform/saas_platform/api (etkin izin okuma adapter'ı; tam yol api-middleware--contract ile entegrasyon sahibince belirlenir)",
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
       "frontend/apps/web/src/routes.tsx",
-      "frontend/packages/ui/src/index.ts",
-      "frontend/packages/ui/src/navigation.ts"
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "Adapter girdisi: doctype:string. Zorunludur, yalnız mevcut DocType adı kabul edilir ve 140 karakteri aşamaz. Kullanıcı her zaman oturumdan alınır. Güncelleme girdisi: native PUT /api/resource/{doctype}/{name}, gövdede yalnız pilot Data alanı; cookie ve X-Frappe-CSRF-Token zorunludur.",
-    "output": "Adapter çıktısı: {version:1, doctype, user, perms:{read, write, create, delete: boolean}}. Kayıt verisi veya başka kullanıcı bilgisi dönmez. Güncellemenin native yanıtı, yalnız okuma iznine tabi alanlarla dönen dokümandır.",
-    "authorization": "Yetki kapsamı native site sınırı içinde kalır; rol kapsamı DocPerm ile, kayıt kapsamı has_permission hook zinciriyle belirlenir. Hook'lar yalnız reddedebilir. UI gizleme yalnız sunumdur, yetki kaynağı değildir. Guest kullanıcı adapter'a erişemez.",
-    "persistence": "Adapter yalnız okuma yapar. Güncelleme yalnız native Document.save transaction'ı ile yapılır. Yeni DocType, alan, hook veya DDL yoktur; hooks.py değişmez.",
-    "failure": "Reddedilen güncellemede frappe.PermissionError döner (HTTP 403) ve consumer bunu salt okunur durum olarak gösterir. Adapter okuması 401/403 verirse yönetici yüzeyi gösterilmez (fail-closed). Ağ ve 5xx hatalarında yeniden dene seçeneği sunulur; eylemler gizli kalır."
+    "input": "Adapter girdisi: doctype:string. Zorunludur, yalnız mevcut bir DocType adı kabul edilir ve 140 karakteri aşamaz. Kullanıcı her zaman oturumdan alınır; istemciden user veya roles kabul edilmez. Güncelleme girdisi: native PUT /api/resource/{doctype}/{name}. Gövdede yalnız rol matrisinde write için listelenen alanlar bulunur; cookie oturumu ve X-Frappe-CSRF-Token zorunludur.",
+    "output": "Adapter çıktısı: {version:1, doctype, user, perms:{read, write, create, delete: boolean}}. Kayıt verisi veya başka kullanıcıya ait bilgi dönmez. Güncellemenin yanıtı native doküman yanıtıdır ve okuma iznine tabidir. Bu sözleşme yeni bir yanıt zarfı tanımlamaz; zarf biçimi kernel-envelope--contract ve api-middleware--contract ile hizalanır.",
+    "authorization": "Rol kapsamı DocPerm/Custom DocPerm ile, kayıt kapsamı has_permission hook zinciriyle belirlenir. Bu zincire eklenen hook'lar yalnız reddedebilir, yetki genişletemez. ignore_permissions, ham SQL veya kullanıcı taklidiyle yetki atlatılmaz. Guest kullanıcı adapter'a erişemez. Müşteri yöneticisi ve son kullanıcı rol/DocType/ptype matrisi explicitPermissionFlags ortak kaynağına bağlanır. Bu kaynak ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy altındadır; tam işaretçiyi entegrasyon sahibi doğrular. İstemci tarafı görünürlük kuralları client-rule-parity--contract ile sunucu sonucunu yansıtır, sunucu kararının yerine geçmez.",
+    "persistence": "Adapter yalnız okuma yapar. Güncelleme yalnız native Document.save transaction'ı ile yapılır. Bu davranış yeni DocType, alan, hook veya DDL gerektirmez. hooks.py yalnız paylaşılan entegrasyon dosyasıdır ve bu davranış onu değiştirmez. Bu sözleşme hiçbir servis, production ortamı, şema veya veri üzerinde değişiklik yetkisi vermez.",
+    "failure": "Reddedilen güncellemede native frappe.PermissionError (HTTP 403) döner. İstemci bunu salt okunur durum mesajına eşler ve etkin izin sorgusunu geçersiz kılıp yeniden okur. Adapter okuması 401/403 verirse yönetici yüzeyi gösterilmez (fail-closed). Ağ hatası ve 5xx durumunda yeniden dene seçeneği sunulur; bu sırada eylemler gizli kalır. Doğrulanmamış doctype girdisi reddedilir ve izin bayrağı dönmez."
   },
   "development": {
     "dependencies": [
-      "page-tenant-admin--contract",
-      "kernel-envelope--contract",
       "api-middleware--contract",
       "client-rule-parity--contract",
-      "yerel pilot t08: mevcut tek Data kaydının native admin/reader kapsamlarıyla okunup güncellenmesi"
+      "kernel-envelope--contract",
+      "page-super-admin--contract",
+      "page-tenant-admin--contract",
+      "ui-family-01--contract",
+      "ui-family-01--implementation"
     ],
-    "admission": "T-00 hedef tabanı ve R-00/R-01 eşlemesi gereklidir. Yerel kanıt Frappe17-dev/suite.localhost, frappe adf1fd0c üzerindedir. Suite source HEAD ve uzak ürün tabanı unknown; yerel kanıt uzak taban yerine geçmez.",
+    "admission": "Uygulama durumu: uygulanmadı. Kabul önkoşulları şunlardır: T-00 hedef taban ve R-00 yeniden kullanım eşlemesi tamamlanmalı; izinli veri tükettiği için R-01 eşlemesi uygulanmalı; rol/DocType/ptype matrisi decisionsPending kararlarıyla kesinleşmeli. Ardından yalnız tek dar davranış, gerçek RED/GREEN kanıtıyla uygulanır. Native Frappe/Suite kaynak alıntıları önceki salt okunur kaynak anlık görüntülerinden alınmıştır ve hedef taban yerine geçmez. Ortak kural: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy.",
     "steps": [
-      "Entegrasyon sahibi, salt okunur etkin izin adapter'ını get_valid_perms üzerine ekler.",
-      "index.tsx'te TanStack Query anahtarı ['effective-perms', sessionUser, doctype] ile izinler okunur. Oturum kullanıcısı değişince bu anahtar invalidate edilir.",
-      "Güncelleme eylemi yalnız write=true ise mevcut AntD bileşenleriyle render edilir. Metin en az 14px ve Outfit'tir; düzen 320px önceliklidir; çevreleyen odak halkası yoktur; hareketler simetrik pozitif Cubic eğrisini kullanır.",
-      "403 yanıtı, salt okunur durum mesajına eşlenir."
+      "Rol matrisi kesinleşince entegrasyon sahibi, get_valid_perms üzerine salt okunur etkin izin adapter'ını api-middleware--contract'ın belirlediği yolda ekler. Adapter yalnız frappe.session.user kullanır; ignore_permissions içermez.",
+      "index.tsx'te etkin izinler TanStack Query ile ['effective-perms', sessionUser, doctype] anahtarıyla okunur. Oturum kullanıcısı değiştiğinde ve herhangi bir 403 yanıtında bu anahtar geçersiz kılınıp yeniden okunur.",
+      "Güncelleme eylemi yalnız perms.write=true ise mevcut Ant Design/Pro bileşenleriyle render edilir. Bu eylem sunumu ui-family-01 mvp.tsx sınırında tutulur; yeni form motoru veya CRUD katmanı yazılmaz.",
+      "UI kuralları: tüm metin en az 14 CSS px ve Outfit fontuyla, semantik tokenlar üzerinden yazılır. Yerleşim 320 CSS px önceliklidir. Çevreleyen odak halkası kullanılmaz; çevrelemeyen görünür klavye odağı korunur. Hareketler merkezi token ile simetrik cubic-bezier(.65, 0, .35, 1) eğrisini kullanır.",
+      "Sayfa route kaydı routes.tsx'e, bileşen kaydı registry.ts'e entegrasyon sahibince eklenir. registry.ts kaynak/bileşen registry'sidir; GenUI capability registry'si değildir ve JSON model sınırına yerel ReactNode/callback taşınmaz.",
+      "403 yanıtı salt okunur durum mesajına, 401 yanıtı oturum yenileme durumuna eşlenir."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "Aynı yerel hesap admin kapsamında güncelleme eylemini görür. Rol reader yapılıp sayfa yeniden yüklendiğinde eylem DOM'da bulunmaz. Aynı kullanıcı native PUT çağrısı yaptığında 403 PermissionError alır ve kayıt değişmez.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Uygulamadan sonra aynı test aynı komutla çalıştırılır ve tüm assertion'lar geçer."
+      "oneScenario": "Son kullanıcı rolündeki hesap TenantAdminPage'de güncelleme eylemini göremez. Aynı hesap native PUT /api/resource/{doctype}/{name} ile güncellemeyi denediğinde 403 PermissionError alır ve kaydın değeri ile modified zaman damgası değişmez. Karşı durum olarak müşteri yöneticisi rolündeki hesap aynı eylemi görür.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. RED, eylem görünürlüğü henüz etkin izne bağlanmadığı için 'son kullanıcıda eylem DOM'da yok' assertion'ının başarısız olmasıdır. Modül bulunamadı veya altyapı hatası RED sayılmaz. Native 403 reddi zaten geçen davranıştır; bu kısım için RED uydurulmaz ve native davranış bozulmaz.",
+      "green": "Uygulamadan sonra aynı senaryo, değiştirilmemiş assertion'lar ve aynı komutla geçmelidir. Şu anda not_run durumundadır. Bu sözleşme veya biçim kontrolü ürün GREEN'i sayılmaz."
     },
-    "rollback": "Yalnız index.tsx ve adapter yerelde geri alınır. Pilot rol ataması eski haline getirilir. Production değişikliği ve yetkisi yoktur."
+    "rollback": "Yalnız index.tsx, mvp.tsx'teki eylem sunumu ve adapter, geliştirme ortamında geri alınır. Rol ataması yapıldıysa eski haline getirilir. Bu sözleşme production değişikliği yetkisi vermez. Teknik CI, deploy ve rollback sahibi Hüseyin Cengiz'dir."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "shell-2",
+      "sourceStage": "mvp",
+      "existing": "Native parçalar: has_permission hook zinciri ve DocPerm/Custom DocPerm tabanlı get_valid_perms. Suite kabuğu Vue Router tabanlıdır ve React kabuğu olarak yeniden kullanılamaz.",
+      "gap": "Eksikler: müşteri yöneticisi ve son kullanıcı için rol/DocType/ptype matrisi yok; rol değişiminde oturum ve TanStack Query önbelleğinin yenilenme kuralı tanımsız; etkin izni okuyan whitelisted uç nokta tanımlı değil; Suite Vue kabuğunun React kabuğuyla ilişkisi karara bağlanmadı.",
+      "completionSteps": [
+        "2 rol × ana DocType × ptype (read/write/create/delete) matrisini explicitPermissionFlags ortak kaynağına bağlı bir tablo olarak yazın. Rol adları karar gelene kadar yer tutucu kalır.",
+        "Etkin izni yalnız oturum kullanıcısı için get_valid_perms üzerinden döndüren salt okunur whitelisted adapter'ı tanımlayın. ignore_permissions içeren bir yardımcı açılmamalıdır.",
+        "Önbellek kuralını yazın: sorgu anahtarı oturum kullanıcısını içerir; oturum değişiminde ve 403 yanıtında geçersiz kılınır. Oturum içinde canlı rol itme bu kapsamda yoktur.",
+        "Müşteri yöneticisi ve son kullanıcı yüzeylerini aynı React kabuğunda etkin izinle ayırın; Suite Vue kabuğuyla ilişki kararını bekleyin.",
+        "Kabule 'gizlenen işlemin API çağrısı PermissionError döndürür ve kayıt değişmez' kontrolünü ekleyin. Bu ret senaryosu paylaşılan bütçedeki 3 senaryodan biri olarak kullanılabilir."
+      ],
+      "dependencies": [
+        "page-tenant-admin--contract",
+        "kernel-envelope--contract",
+        "api-middleware--contract",
+        "client-rule-parity--contract",
+        "ui-family-01--implementation"
+      ],
+      "acceptance": "Aynı hesap rol değişiminden ve oturum yenilemesinden sonra rolüne uygun yüzeyi görür. Gizlenen güncellemenin native API çağrısı 403 PermissionError ile reddedilir ve kayıt değişmez. Adapter yalnız oturum kullanıcısının bayraklarını döndürür. Uygulama durumu: uygulanmadı; runtimeAcceptance not_run.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 496,
+          "quote": "hooks = frappe.get_hooks(\"has_permission\")"
+        },
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 512,
+          "quote": "def get_valid_perms(doctype=None, user=None, roles=None):"
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 44,
+          "quote": "Vue Router takes over client-side"
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "Müşteri yöneticisi ve son kullanıcı rol adları ile tam DocType/ptype matrisi karara bağlı. Burada yalnız pilot DocType × admin/reader matrisi var; tenant global modeli seçilmedi.",
-    "Rol değişimi yalnız sayfa yeniden yüklenince yansır. Canlı itme veya oturum içi rol değişimi tanımsız.",
-    "Suite Vue/frappe-ui kabuğunun React kabuğuyla ilişkisi (ayrı mı, yan yana mı) karara bağlanmadı.",
-    "Etkin izni döndüren whitelisted bir native method kanıtlanmadı. Adapter'ın yolu entegrasyon sahibine bırakıldı.",
-    "Keycloak not_run. Uzak deploy, Hüseyin Cengiz'in teknik bağımlılığıdır."
+    "Müşteri yöneticisi ve son kullanıcı rol adları ile tam DocType/ptype matrisi karar bekliyor.",
+    "Oturum içi canlı rol değişimi tanımsız; rol değişimi oturum yenilemesiyle veya 403 sonrası yeniden okumayla yansır.",
+    "Etkin izni döndüren whitelisted bir native method kanıtlanmadı; adapter'ın yolunu entegrasyon sahibi api-middleware--contract ile belirler.",
+    "Document.save izin kontrolü ve PermissionError/403 eşlemesi sağlanan kanıtta satır olarak yok; T-00 hedef tabanında doğrulanmalıdır.",
+    "Suite Vue kabuğunun React kabuğuyla ilişkisi (ayrı veya yan yana) karara bağlanmadı.",
+    "explicitPermissionFlags ortak kaynağının tam JSON işaretçisi doğrulanmadı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Müşteri yöneticisi ve son kullanıcı rol adları ile kapsanacak ana DocType listesi",
+      "requirementIds": ["shell-2"],
+      "blocks": "Rol matrisinin kesinleşmesi, adapter kabul verisi ve TDD senaryosunun DocType seçimi",
+      "documentStepUntilDecision": "Matris şablonunu yer tutucu rol ve DocType sütunlarıyla, explicitPermissionFlags kaynağına bağlı olarak belgeleyin."
+    },
+    {
+      "decision": "Tenant topolojisi",
+      "requirementIds": ["shell-2"],
+      "blocks": "Yetki kapsamının site sınırı mı yoksa kayıt düzeyi kapsam mı olacağının kesinleşmesi",
+      "documentStepUntilDecision": "Yetki sözleşmesini topolojiden bağımsız biçimde DocPerm ve has_permission üzerinden yazın; topolojiye bağlı maddeleri açık olarak işaretleyin."
+    },
+    {
+      "decision": "Suite Vue/frappe-ui kabuğu ile React kabuğunun ilişkisi (ayrı veya yan yana)",
+      "requirementIds": ["shell-2"],
+      "blocks": "Route ve navigasyon entegrasyonu ile kullanıcının hangi kabuğa yönleneceği",
+      "documentStepUntilDecision": "React sayfasının bağımsız route sözleşmesini belgeleyin; Suite yönlendirmesini açık bırakın."
+    },
+    {
+      "decision": "Hedef Frappe/Suite sürüm tabanı (T-00)",
+      "requirementIds": ["shell-2"],
+      "blocks": "Native izin ve kayıt yolunun hedef tabanda doğrulanması ve uygulama kabulü",
+      "documentStepUntilDecision": "Doğrulanacak native noktaları (get_valid_perms, has_permission zinciri, kayıt izin hatası) kontrol listesi olarak belgeleyin."
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "shell-2": "mvp"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,

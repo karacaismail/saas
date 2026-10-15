@@ -1,0 +1,310 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "client-channel-continuity",
+  "canonicalTaskIds": [
+    "client-channel-continuity--implementation",
+    "ui-family-02--implementation-post-mvp",
+    "ui-family-12--implementation",
+    "ui-family-26--implementation",
+    "ui-provider-viewstate--implementation-post-mvp"
+  ],
+  "requirementIds": ["channels-2", "channels-8"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "channels-2": "post_mvp",
+    "channels-8": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Kanal login callback'i sonrası state'e bağlı göreli returnTo ile aynı yetkili kayda devam. Uygulama durumu: uygulanmadı.",
+    "trigger": "Oturumu olmayan kullanıcı bir kanalda kanonik kayıt bağlantısını açar ve OIDC/OAuth2 girişine yönlendirilir. İlk dar davranış web kanalıdır; Tauri2 masaüstü/mobil ve WXT/MV3 eklenti aynı kuralı kullanan ayrı sonraki davranışlardır.",
+    "expected": "Callback state ve PKCE doğrulamasından geçer; state'e bağlı göreli returnTo izinli rota önekleri listesine göre yeniden doğrulanır; kullanıcı aynı kanonik kayıt rotasına döner ve kayıt yalnız native sunucu read izni ile alan düzeyi okuma izinleri uygulanmış yanıtla gösterilir.",
+    "denied": "Mutlak, protokol göreli ('//' ile başlayan), ters eğik çizgi, şema veya kontrol karakteri içeren returnTo atılır ve varsayılan güvenli sayfaya gidilir. State uyuşmazlığında callback reddedilir, oturum kurulmaz. Kayıt yoksa, read izni yoksa veya başka tenant'a aitse kullanıcıya aynı 'kayıt açılamadı' durumu gösterilir; kaydın varlığı ayırt edilemez ve hiçbir kayıt değişmez."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native Frappe parçaları yeniden kullanılır: Suite hooks.py içinde referanslanan Frappe OAuth2 authorize/get_token/openid_profile uçları; REST v1 kayıt okumasındaki doc.check_permission('read') ve alan düzeyi okuma izni; website yönlendirmesinde sorgu parametresi taşıma seçeneği. Suite'in SPA deep link rota eşlemesi, çerez göndermeyen soket yapılandırması, service worker tabanlı offlineCopy ve URL'yi görünüm durumunun tek doğruluk kaynağı sayan mobileView deseni Vue/Frappe UI kaynağıdır; React/Ant Design, TanStack Router, Tauri2 veya WXT uygulaması kanıtı değildir. Her kanıt yalnız tek bir native parçayı gösterir; returnTo doğrulama, OIDC state bağlama, tenant uyuşmazlığı yanıtı ve kanal callback'leri kaynakta yoktur.",
+    "evidence": [
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 417,
+        "quote": "\"/api/method/frappe.integrations.oauth2.get_token\","
+      },
+      {
+        "path": "suite/frontend/src/apps/meet/utils/media/SignalChannel.ts",
+        "line": 68,
+        "quote": "withCredentials: false,"
+      },
+      {
+        "path": "suite/frontend/src/apps/slides/stores/offlineCopy.js",
+        "line": 175,
+        "quote": "if (!(await waitForController())) {"
+      },
+      {
+        "path": "suite/frontend/src/apps/slides/stores/offlineCopy.js",
+        "line": 189,
+        "quote": "navigator.storage?.persist?.().catch(() => {})"
+      },
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 83,
+        "quote": "doc.check_permission(\"read\")"
+      },
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 45,
+        "quote": "# Both the bare prefix and the sub-path are mapped so deep links + launcher"
+      },
+      {
+        "path": "frappe/frappe/website/path_resolver.py",
+        "line": 133,
+        "quote": "def raise_redirect(redirect_location, status_code=301, forward_query_params=False):"
+      },
+      {
+        "path": "suite/frontend/src/apps/calendar/utils/mobileView.ts",
+        "line": 26,
+        "quote": "The URL is the source of truth"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "frappe/frappe/website/path_resolver.py",
+      "suite/frontend/src/apps/calendar/utils/mobileView.ts",
+      "suite/frontend/src/apps/meet/utils/media/SignalChannel.ts",
+      "suite/frontend/src/apps/slides/stores/offlineCopy.js",
+      "suite/suite/hooks.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/client-channel-continuity.json",
+    "plannedProduction": [
+      "frontend/packages/platform/src/client-channel-continuity/client_channel_continuity_post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-family-02/post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-family-12/index.tsx",
+      "frontend/packages/ui/src/components/ui-family-26/index.tsx",
+      "frontend/packages/ui/src/components/ui-provider-viewstate/post_mvp.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Kanonik kayıt URL'si: TanStack Router rotasında DocType ve name iki ayrı yol segmentidir; her segment yüzde-kodlanır, name içindeki '/', '?', '#', '%' ve boşluk kodlanmış taşınır ve çözümleme tek kez yapılır. Oturumsuz girişte returnTo bu URL'nin yalnız yol ve sorgu kısmıdır, OIDC state ile bağlanır; URL'de token taşınmaz.",
+    "output": "Başarıda: aynı kayıt rotası, alan düzeyi okuma izinleri uygulanmış native REST okuma yanıtı ve kernel-envelope--contract zarfında tek görünüm durumu. Reddedilmede: tek tip 'kayıt açılamadı' görünüm durumu; mesajda DocType, name veya tenant bilgisi yansıtılmaz.",
+    "authorization": "Yetki kararı yalnız sunucuda native izinle verilir (doc.check_permission('read') ve alan düzeyi okuma izinleri). Rota, deep link veya kanal türü yetki kaynağı değildir. ignore_permissions, ham SQL veya istemci tarafı izin taklidi yasaktır. Bu davranış rol veya izin üretmez; ileride üretirse explicitPermissionFlags ortak kaynağına bağlanır. Tenant uyuşmazlık kontrolü tenant topolojisi kararına bağlıdır ve kayıt gösterilmeden önce yapılır.",
+    "persistence": "Yeni DocType, şema, migration veya veri yazımı yok. returnTo ve PKCE doğrulayıcı yalnız callback tamamlanana kadar kanal başına kısa ömürlü, tek kullanımlık istemci kaydında tutulur ve callback sonrası silinir. Token saklama yeri kanal tablosundaki karara bırakılır; token URL'ye, loga veya analitiğe yazılmaz.",
+    "failure": "Geçersiz returnTo: atılır, varsayılan güvenli sayfa. State/PKCE uyuşmazlığı: callback reddi, oturum yok, yeniden giriş önerisi. Native izin reddi, bulunmayan kayıt ve tenant uyuşmazlığı: aynı görünüm durumu. Ağ yok: önbellekten kayıt gösterildiği iddia edilmez; çevrimdışı davranış sync-receipt--contract ve kanal tablosuna bağlıdır. Callback zaman aşımı: kısa ömürlü kayıt temizlenir."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "client-channel-continuity--contract",
+      "client-rule-parity--contract",
+      "device-grant--contract",
+      "kernel-envelope--contract",
+      "notification-message--contract",
+      "notification-preference--contract",
+      "sync-receipt--contract",
+      "ui-family-02--contract",
+      "ui-family-02--implementation",
+      "ui-family-12--contract",
+      "ui-family-14--contract",
+      "ui-family-26--contract",
+      "ui-provider-viewstate--contract",
+      "ui-provider-viewstate--implementation"
+    ],
+    "admission": {
+      "prerequisites": [
+        "T-00 hedef sürüm tabanı",
+        "R-00 yeniden kullanım eşlemesi",
+        "R-01: kayıt okuması izinli veri tükettiği için zorunlu",
+        "client-channel-continuity--contract, kernel-envelope--contract, sync-receipt--contract ve device-grant--contract sözleşmelerinin kabulü",
+        "channels-8 için koşullu kapsamı açan ürün kararı",
+        "Tek dar davranış için gerçek RED/GREEN kanıtı"
+      ],
+      "orderAuthority": "Mevcut görev bağımlılıkları ve post_mvp aşaması; küme sırası yalnız sunumdur, yeni seri DAG değildir.",
+      "note": "Bu sözleşme hiçbir servis, production, şema veya veriyi değiştirme ya da üretim dosyası yazma yetkisi vermez."
+    },
+    "steps": [
+      "1. Kanal tablosunu belge olarak hazırla: web, Tauri2 masaüstü, mobil (paketleme kararı bekliyor), WXT/MV3 eklenti satırları; sütunlar callback türü, redirect URI, PKCE, token saklama yeri, güncelleme kanalı, çevrimdışı kapsam, izin modeli. Karar gerektiren hücreleri decisionsPending maddelerine bağla.",
+      "2. Kanonik kayıt URL şemasını yaz; TanStack Router parametresi ile DocType/name kodlamasının gidiş-dönüş örneklerini (özel karakterli, uzun name dahil) sözleşmeye ekle.",
+      "3. returnTo doğrulama kuralını tek ortak kural olarak tanımla: yalnız tek '/' ile başlayan, '//' ile başlamayan, ters eğik çizgi, şema veya kontrol karakteri içermeyen ve izinli rota önekleri listesinde olan yol; aksi varsayılan sayfa.",
+      "4. OIDC/OAuth2 akışında state'i returnTo ve PKCE doğrulayıcı ile bağla; callback'te state eşleşmezse reddet. Native Frappe OAuth2 uçlarını yeniden kullan, yeni token ucu yazma.",
+      "5. Girişten sonra kaydı native REST okuma ile getir; izin reddi, bulunmama ve tenant uyuşmazlığını tek görünüm durumuna eşle. ui-provider-viewstate URL'yi görünüm durumunun kaynağı olarak tutar; ui-family-02/12/26 bileşenleri yalnız bu tek durumu gösterir.",
+      "6. Web kabulünden sonra Tauri2 (custom scheme veya universal link) ve WXT/MV3 (eklenti callback'i, host_permissions sınırı, service worker yaşam döngüsü) için aynı returnTo kuralını kullanan ayrı dar davranışlar aç."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Web kanalında oturumsuz kullanıcı, okuma izni olduğu bir kaydın kanonik URL'sini açar, girişi tamamlar ve aynı kayıt rotasına döner.",
+      "red": "Gelecekte yazılacak test, girişten sonra kullanıcının varsayılan sayfaya düştüğünü ve kayıt rotasına dönmediğini gösteren davranış iddiasıyla başarısız olmalıdır; import, altyapı hatası veya native izin davranışını bozmak RED sayılmaz.",
+      "green": "State'e bağlı göreli returnTo ve doğrulama eklenince aynı test geçer; native read izni değişmeden kalır. Bu turda test yazılmaz ve koşulmaz."
+    },
+    "rollback": "Gelecekteki uygulama istemci rota/callback katmanında kaldığından geri alma, returnTo işlemeyi kaldırıp varsayılan giriş sonrası sayfaya dönmektir; şema veya veri geri alımı gerekmez. CI, deploy ve rollback teknik sahibi Hüseyin Cengiz'dir. Universal link veya alan doğrulaması için DNS kaydı gerekirse teknik değerleri Hüseyin Cengiz hazırlar, GoDaddy tarafında Asistan Hüseyin uygular, sonucu Hüseyin Cengiz doğrular."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "channels-2",
+      "sourceStage": "post_mvp",
+      "existing": "Native: Frappe OAuth2 authorize/get_token/openid_profile uçları Suite hooks.py içinde referanslanır. Suite (Vue) kaynağı: çerez göndermeyen soket yapılandırması ve service worker denetimi ile kalıcı depolama isteği kullanan, yalnız medya önbelleği olan offlineCopy. Tauri2 ve WXT/MV3 paketleri ile O0–O3 planı kaynakta yoktur.",
+      "gap": "O0–O3 kanal planı ve görev eşlemesi yok; kanal başına redirect URI, PKCE ve deep-link callback sözleşmesi yok; çevrimdışı veri, çakışma ve senkronizasyon sözleşmesi yok; MV3 service worker yaşam döngüsü ve host_permissions sınırları tanımsız.",
+      "completionSteps": [
+        "O0–O3 planı sağlandığında client-channel-continuity--implementation görevine bağla; sağlanana kadar kanal tablosunu aday sütunlarla hazırla.",
+        "Her kanal satırına callback türü (web redirect, Tauri2 custom scheme veya universal link, WXT eklenti callback'i), redirect URI ve zorunlu PKCE yaz; tümü behavior bölümündeki ortak state/returnTo kuralını kullanır.",
+        "Token saklama yerini kanal bazında karar bekleyen hücre olarak bırak; token'ın URL'de taşınmaması ve eklenti içerik betiklerine verilmemesi kuralını yaz.",
+        "MV3 için service worker'ın her an sonlandırılabileceğini varsay: akış durumu bellekte değil kısa ömürlü depolamada tutulur; host_permissions yalnız seçilmiş API kökeniyle sınırlanır.",
+        "offlineCopy desenini yalnız referans al; Vite/PWA çevrimdışı kapsamını ve çakışma kuralını sync-receipt--contract üzerinden ayrı sözleşmeye bırak.",
+        "Kurulum/güncelleme kanalını ve mobil paketleme yolunu (Tauri2 mobil veya Vite/PWA) karar bekleyen olarak kaydet; Capacitor veya başka backend ekleme."
+      ],
+      "dependencies": [
+        "client-channel-continuity--contract",
+        "device-grant--contract",
+        "sync-receipt--contract",
+        "kernel-envelope--contract"
+      ],
+      "acceptance": "Her hedef kanalın kurulum/güncelleme, login callback ve izin modeli ayrı doğrulanmalı. İlk dar kabul: web callback'i state uyuşmazlığında oturum kurmaz, geçerli state ile göreli returnTo'ya döner. Tauri2 ve WXT aynı kuralı kendi ayrı kabulleriyle karşılar.",
+      "evidence": [
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 417,
+          "quote": "\"/api/method/frappe.integrations.oauth2.get_token\","
+        },
+        {
+          "path": "suite/frontend/src/apps/meet/utils/media/SignalChannel.ts",
+          "line": 68,
+          "quote": "withCredentials: false,"
+        },
+        {
+          "path": "suite/frontend/src/apps/slides/stores/offlineCopy.js",
+          "line": 175,
+          "quote": "if (!(await waitForController())) {"
+        },
+        {
+          "path": "suite/frontend/src/apps/slides/stores/offlineCopy.js",
+          "line": 189,
+          "quote": "navigator.storage?.persist?.().catch(() => {})"
+        }
+      ]
+    },
+    {
+      "requirementId": "channels-8",
+      "sourceStage": "post_mvp",
+      "existing": "Native: REST v1 kayıt okumasında sunucu tarafı read izni ve alan düzeyi okuma izni; Frappe website yönlendirmesi sorgu parametresini taşıyabilir. Suite (Vue) kaynağı: SPA deep link rotalarını hook ile eşler; mobileView URL'yi görünüm durumunun tek doğruluk kaynağı sayar.",
+      "gap": "Göreli/izinli returnTo sınırı ve OIDC state taşınması tanımsız; başka tenant'ın Frappe site ve kimlik organizasyonu eşlemesi ve 403/404 varlık sızıntısı kararı yok; TanStack Router ile DocType/name kodlama eşlemesi yok; Tauri/WXT bağlantı şeması ve koşullu kapsamı açacak ürün kararı tanımsız.",
+      "completionSteps": [
+        "Koşullu kapsamı açacak ürün kararını decisionsPending üzerinden kaydet.",
+        "Web için kanonik kayıt URL'sini ve DocType/name kodlama kuralını contract.input'a göre yaz.",
+        "Göreli returnTo'yu izinli önek listesiyle doğrula ve OIDC state'e bağla; Frappe yönlendirmesiyle taşınan sorgu parametreleri güvenilmez girdi sayılır ve yeniden doğrulanır.",
+        "Girişten sonra kaydı native read izniyle oku; izin reddi, bulunmama ve tenant uyuşmazlığını aynı görünüm durumuna eşle.",
+        "Tenant bağlamayı tenant topolojisi kararından sonra ekle; karar gelene kadar uyuşmazlıkta varlık sızdırmama kuralını yaz.",
+        "Tauri/WXT bağlantı şemasını ayrı adım olarak bırak."
+      ],
+      "dependencies": [
+        "client-channel-continuity--contract",
+        "kernel-envelope--contract",
+        "api-middleware--contract",
+        "ui-provider-viewstate--contract"
+      ],
+      "acceptance": "Oturumsuz deep link girişten sonra aynı yetkili kayda dönmeli; başka tenant kaydını açmamalı. Ayrıca yetkisiz, bulunmayan ve başka tenant kaydı kullanıcıya ayırt edilemez aynı durumla döner; mutlak veya protokol göreli returnTo yönlendirme yapmaz; reddedilen erişimde hiçbir kayıt değişmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 83,
+          "quote": "doc.check_permission(\"read\")"
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 45,
+          "quote": "# Both the bare prefix and the sub-path are mapped so deep links + launcher"
+        },
+        {
+          "path": "frappe/frappe/website/path_resolver.py",
+          "line": 133,
+          "quote": "def raise_redirect(redirect_location, status_code=301, forward_query_params=False):"
+        },
+        {
+          "path": "suite/frontend/src/apps/calendar/utils/mobileView.ts",
+          "line": 26,
+          "quote": "The URL is the source of truth"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "O0–O3 kanal planının içeriği ve görev eşlemesi sağlanmamış.",
+    "Kanal başına redirect URI, PKCE ve deep-link callback sözleşmesi yok.",
+    "Çevrimdışı veri, çakışma ve senkronizasyon sözleşmesi yok; Suite offlineCopy Vue'ya özgü ve yalnız medya önbelleği.",
+    "MV3 service worker yaşam döngüsü ve host_permissions sınırları tanımsız.",
+    "returnTo için open redirect koruması ve OIDC state taşınması tanımsız.",
+    "Başka tenant'ın Frappe site ve kimlik organizasyonu eşlemesi ile yetkisiz kayıt yanıtı belirsiz.",
+    "TanStack Router URL şeması ile DocType/name kodlama eşlemesi yok.",
+    "Tauri custom scheme/universal link ve WXT bağlantı davranışı ile koşullu kapsamın açılma ölçütü tanımsız."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "O0–O3 kanal planının içeriği ve görev eşlemesi",
+      "requirementIds": ["channels-2"],
+      "blocks": "Kanal tablosunun kesinleşmesi ve Tauri2/WXT dar davranışlarına giriş",
+      "allowedBeforeDecision": "Kanal tablosunu aday sütunlarla ve karar bekleyen hücrelerle belgelemek"
+    },
+    {
+      "decision": "channels-8 koşullu kapsamını açacak ürün kararı",
+      "requirementIds": ["channels-8"],
+      "blocks": "channels-8 uygulama kabulü",
+      "allowedBeforeDecision": "Web deep link sözleşme taslağını ve returnTo kuralını yazmak"
+    },
+    {
+      "decision": "Tenant topolojisi: başka tenant'ın Frappe site ve kimlik sağlayıcı organizasyonuyla eşlemesi",
+      "requirementIds": ["channels-8"],
+      "blocks": "Tenant uyuşmazlık kontrolünün yeri ve kabul testi",
+      "allowedBeforeDecision": "Uyuşmazlıkta varlık sızdırmayan tek tip yanıt kuralını belgelemek"
+    },
+    {
+      "decision": "Yetkisiz, bulunmayan ve başka tenant kaydı için tek HTTP durum kodu ve sunucu tarafı tekdüzeleştirme gereği",
+      "requirementIds": ["channels-8"],
+      "blocks": "Sunucu yanıt sözleşmesi ve backend hooks.py paylaşımlı değişikliği",
+      "allowedBeforeDecision": "İstemci görünüm durumunun ayırt edilemez olmasını belgelemek"
+    },
+    {
+      "decision": "Hedef sürümler (Frappe, Tauri2, WXT, hedef tarayıcılar) ve T-00 tabanı",
+      "requirementIds": ["channels-2", "channels-8"],
+      "blocks": "Admission ve API seçimi",
+      "allowedBeforeDecision": "Sürümden bağımsız davranış sözleşmesini yazmak"
+    },
+    {
+      "decision": "Kanal başına token saklama yeri ile kurulum/güncelleme ve dağıtım kanalı",
+      "requirementIds": ["channels-2"],
+      "blocks": "Tauri2, mobil ve WXT kanal kabulleri",
+      "allowedBeforeDecision": "Token'ın URL ve içerik betiklerine verilmeme kuralını belgelemek"
+    },
+    {
+      "decision": "Mobil kanal paketleme yolu: Tauri2 mobil veya Vite/PWA",
+      "requirementIds": ["channels-2"],
+      "blocks": "Mobil satırının callback türü ve kabulü",
+      "allowedBeforeDecision": "Mobil satırını ortak returnTo kuralına bağlı aday olarak yazmak"
+    },
+    {
+      "decision": "Çevrimdışı veri kapsamı ve saklama süresi",
+      "requirementIds": ["channels-2"],
+      "blocks": "Çevrimdışı ve senkronizasyon davranışı",
+      "allowedBeforeDecision": "Ağ yokken önbellekten kayıt gösterme iddiası olmadığını belgelemek"
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

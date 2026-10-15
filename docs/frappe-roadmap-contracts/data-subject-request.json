@@ -4,15 +4,20 @@
   "canonicalTaskIds": ["data-subject-request--implementation"],
   "requirementIds": ["governance-4"],
   "stage": "mvp",
+  "sourceStages": {
+    "governance-4": "mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
-    "title": "Erisim talebi icin izin filtreli JSON disa aktarim (yalniz frappe+suite, File haric)",
-    "trigger": "Oturumdaki kullanici, kendi olusturdugu request_type=access olan DataSubjectRequest kaydinda controller'daki whitelisted build_access_export metodunu cagirir.",
-    "expected": "Kapsam listesindeki her kurulu DocType icin ilgili kisiye bagli kayitlar kullanicinin kendi oturumuyla okunur; her kayit doc.check_permission(\"read\") ve doc.apply_fieldlevel_read_permissions() gectikten sonra as_dict olarak pakete girer.",
-    "denied": "Okuma izni olmayan kayitlar pakete girmez (sayisi da donmez); permlevel ile kisitli alanlar yer almaz; baskasinin DSR kaydi icin cagri PermissionError verir; ignore_permissions kullanilmaz; File/Drive verisi bu davranista disa aktarilmaz."
+    "title": "Erişim talebi için izin filtreli JSON dışa aktarım (yalnız frappe+suite, File hariç). Uygulama durumu: uygulanmadı.",
+    "trigger": "Native Frappe oturumundaki kullanıcı, kendi oluşturduğu request_type='access' olan DataSubjectRequest kaydı için controller'da önerilen whitelisted build_access_export metodunu çağırır.",
+    "expected": "Kapsam listesindeki her kurulu DocType için ilgili kişiye bağlı kayıtlar kullanıcının kendi oturumuyla okunur; her kayıt doc.check_permission('read') ve doc.apply_fieldlevel_read_permissions() geçtikten sonra as_dict olarak pakete girer. Kurulu olmayan DocType skipped_reason ile işaretlenir.",
+    "denied": "Okuma izni olmayan kayıtlar pakete girmez (sayısı da dönmez); permlevel ile kısıtlı alanlar yer almaz; başkasının DSR kaydı için çağrı PermissionError verir ve hiçbir kayıt değişmez; ignore_permissions veya ham SQL kullanılmaz; File/Drive verisi bu davranışta dışa aktarılmaz."
   },
   "reuse": {
-    "mechanism": "Native: v2 read_doc ile ayni izin sirasi controller icinde yeniden kullanilir; yeni izin motoru, ORM, kuyruk veya event motoru yok. Suite'te File izni Drive'a devredildigi icin File kapsam disi. Kapsam listesi data-subject-request--contract sozlesmesinden okunur; hooks.py degismez. v17-dev cekirdek Personal Data Download Request dogrulanirsa once o kullanilir, bu adaptor daraltilir.",
+    "status": "KISMI",
+    "mechanism": "Native: frappe/api/v2.py read_doc içindeki izin sırası (check_permission('read') ardından apply_fieldlevel_read_permissions) controller içinde aynen yeniden kullanılır; yeni izin motoru, ORM, CRUD, kuyruk veya event motoru yok. Suite'te File izni Drive'a devredildiği için (ignore_file_permissions = True) File bu davranışta kapsam dışıdır. Kapsam listesi data-subject-request--contract sözleşmesinden okunur; hooks.py bu davranışla değişmez. Çekirdek Personal Data Download/Deletion Request için yalnız version-15 kaynak URL'si var; v17-dev karşılığı salt okumayla doğrulanırsa önce o kullanılır ve bu adaptör daraltılır. Kanıt yalnız izinli tekil okuma parçasını gösterir; erişim, düzeltme, silme ve taşınabilirlik davranışının tamamı var demek değildir.",
     "evidence": [
       {
         "path": "frappe/frappe/api/v2.py",
@@ -29,64 +34,155 @@
         "line": 117,
         "quote": "ignore_file_permissions = True"
       }
-    ]
+    ],
+    "searchedPaths": ["frappe/frappe/api/v2.py", "suite/suite/hooks.py"]
   },
   "ownership": {
     "activeContractFile": "docs/frappe-roadmap-contracts/data-subject-request.json",
     "plannedProduction": [
       "backend/saas_platform/saas_platform/audit_governance/doctype/data_subject_request/data_subject_request.py"
     ],
-    "plannedTestFile": "backend/saas_platform/saas_platform/audit_governance/doctype/data_subject_request/test_data_subject_request.py",
+    "plannedTestFile": null,
     "sharedIntegrationFiles": [
-      "integration/fragments/data-subject-request--integration.json"
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "name: str (mevcut DataSubjectRequest). request_type='access' zorunlu; alan adi ve secenekleri data-subject-request--schema ile kesinlesir (su an unknown). Kapsam: contracts/data-subject-request.v1.json icinde {doctype, subject_link_field} listesi. DocType basina onerilen ust sinir 500 kayit (sozlesmede onaylanmali); asimda truncated=true.",
-    "output": "{contract_version:'data-subject-request.v1', request:name, generated_for:session user, sections:[{doctype, records:[izin filtreli as_dict], truncated:bool, skipped_reason:null|'doctype_not_installed'}]}. Yanit yalniz cagirana doner; dosya olarak saklanmaz.",
-    "authorization": "Native cookie/CSRF oturumu (Keycloak not_run, kapsam disi). DSR kaydinda check_permission('read') ve owner == oturum kullanicisi; aksi PermissionError. Kayit duzeyi: her hedef kayitta check_permission('read'); alan duzeyi: apply_fieldlevel_read_permissions. Site siniri yalniz yerel kanit icindir; tenant modeli tenant-registry--contract'a baglidir.",
-    "persistence": "Salt okuma: hedef kayitlara yazilmaz, DDL yok, paket File/Drive'a yazilmaz, Document.save cagrilmaz. DSR durum gecisi ve denetim kaydi bu davranisin parcasi degildir.",
-    "failure": "frappe.DoesNotExistError: DSR yok. frappe.PermissionError: DSR okunamiyor veya sahibi degil. frappe.ValidationError: request_type access degil veya kapsam sozlesmesi eksik. Kurulu olmayan DocType (ERPNext/HRMS) hata degil, skipped_reason olur. Tuketici hatayi mevcut AntD uyari bileseniyle gosterir, otomatik yeniden deneme yapmaz."
+    "input": "name: str (mevcut DataSubjectRequest). request_type='access' zorunlu; alan adı ve seçenekleri data-subject-request--schema ile kesinleşir (şu an unknown). Kapsam: data-subject-request--contract görevinin tanımlayacağı {doctype, subject_link_field} listesi; liste yalnız kurulu frappe+suite DocType'larını içerir. DocType başına önerilen üst sınır 500 kayıt (karar bekliyor); aşımda truncated=true.",
+    "output": "{contract_version:'data-subject-request.v1', request:name, generated_for:oturum kullanıcısı, sections:[{doctype, records:[izin filtreli as_dict], truncated:bool, skipped_reason:null|'doctype_not_installed'}]}. Yanıt yalnız çağırana döner; dosya olarak saklanmaz. Bu JSON yanıt veri sözleşmesidir; React tüketicisindeki ReactNode/callback bu sınırın dışında kalır.",
+    "authorization": "Native cookie/CSRF oturumu; Keycloak bu davranışta kapsam dışı ve not_run. DSR kaydında check_permission('read') ve owner == oturum kullanıcısı; aksi PermissionError. Kayıt düzeyi: her hedef kayıtta check_permission('read'); alan düzeyi: apply_fieldlevel_read_permissions. Liste aşaması permission_query_conditions uygulayan native liste sorgusuyla yapılır. Bu davranış rol veya izin üretmez; DSR DocType izinleri data-subject-request--schema görevinde tanımlanır ve ortak explicitPermissionFlags kaynağına bağlanır. Tenant sınırı tenant-registry--contract sözleşmesine bağlıdır.",
+    "persistence": "Salt okuma: hedef kayıtlara yazılmaz, DDL yok, paket File/Drive'a yazılmaz, Document.save çağrılmaz. DSR durum geçişi ve denetim kaydı bu davranışın parçası değildir (kernel-envelope--contract ve native-user-policy--contract). Bu sözleşme hiçbir servis, şema, veri veya production ortamını değiştirme yetkisi vermez.",
+    "failure": "frappe.DoesNotExistError: DSR yok. frappe.PermissionError: DSR okunamıyor veya sahibi değil. frappe.ValidationError: request_type access değil veya kapsam sözleşmesi eksik. Kurulu olmayan DocType (ERPNext/HRMS) hata değil, skipped_reason olur. Tüketici hatayı mevcut Ant Design uyarı bileşeniyle gösterir, otomatik yeniden deneme yapmaz."
   },
   "development": {
     "dependencies": [
       "data-subject-request--contract",
       "data-subject-request--schema",
       "kernel-envelope--contract",
-      "tenant-registry--contract",
       "native-user-policy--contract",
-      "localPilot t08: frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6, native admin/reader kapsamlari"
+      "tenant-registry--contract"
     ],
-    "admission": "T-00 baseline ve R-00/R-01 eslemesi; DSR DocType JSON'u (schema gorevi) ve kapsam listesi (contract gorevi) mevcut olmali. v17-dev cekirdek DSR kaynagi once salt okumayla dogrulanmali. Izinli liste sorgusu API adi v17-dev'de dogrulanmadi (unknown). Suite HEAD ve uzak urun baseline unknown; yerel Frappe17-dev/suite.localhost kaniti uzak baseline degildir.",
+    "admission": "Uygulama durumu: uygulanmadı. Ön koşullar: T-00 hedef baseline ve R-00 yeniden kullanım eşlemesi; izinli veri tüketicisi olduğu için R-01. DSR DocType JSON'u (schema görevi) ve kapsam listesi (contract görevi) mevcut olmalı. v17-dev çekirdek Personal Data Download/Deletion Request kaynağı önce salt okumayla doğrulanmalı. İzinli liste sorgusu API adı v17-dev'de doğrulanmadı (unknown). Suite HEAD ve ürün baseline unknown. Tek dar davranış, gerçek RED/GREEN kanıtıyla uygulanır.",
     "steps": [
-      "v17-dev'de Personal Data Download Request kaynagini salt okumayla dogrula; native karsilik yeterliyse onu cagir.",
-      "Controller'a whitelisted build_access_export ekle: DSR izin+sahiplik kontrolu, kapsam dongusu, permission_query_conditions uygulayan native liste sorgusu, her kayitta get_doc + check_permission + apply_fieldlevel_read_permissions.",
-      "Codex entegrasyon fragmentini gunceller; ortak dosyalara bu gorev yazmaz."
+      "v17-dev'de Personal Data Download Request ve Personal Data Deletion Request kaynağını salt okumayla doğrula; native karşılık bu davranışı karşılıyorsa yeni kod yazma, onu çağır.",
+      "Kapsam listesini data-subject-request--contract içinden governance-1 envanterinden türetilmiş haliyle oku; yalnız kurulu frappe+suite DocType'larını dahil et, File'ı dışarıda bırak.",
+      "Controller'a whitelisted build_access_export öner: DSR check_permission('read') ve sahiplik kontrolü, request_type doğrulaması, kapsam döngüsü, permission_query_conditions uygulayan native liste sorgusu, her kayıtta get_doc + check_permission('read') + apply_fieldlevel_read_permissions + as_dict.",
+      "DocType başına üst sınırı uygula ve truncated işaretle; kurulu olmayan DocType için skipped_reason yaz.",
+      "Ortak entegrasyon dosyalarına bu görev yazmaz; gerekli kayıt ana entegrasyon sahibine seri birleştirme için devredilir."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "Yerel pilot sitede FrappeTestCase geri alimiyla iki test kullanicisi A ve B; kapsamdaki bir DocType'ta A'ya ve B'ye bagli birer test kaydi ve permlevel 1 bir alan. A oturumuyla A'nin access DSR'inda build_access_export: paket A kaydini permlevel 1 alani olmadan icerir, B kaydini icermez.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Ayni test, proje script/CI'dan kesfedilecek ayni bench run-tests komutuyla, uygulamadan sonra gecer."
+      "oneScenario": "FrappeTestCase geri alımıyla iki test kullanıcısı A ve B; kapsamdaki bir DocType'ta A'ya ve B'ye bağlı birer test kaydı ve permlevel 1 bir alan. A oturumuyla A'nın access DSR'ında build_access_export: paket A kaydını permlevel 1 alanı olmadan içerir, B kaydını içermez; B oturumuyla A'nın DSR'ı için çağrı PermissionError verir ve hedef kayıtların modified değeri değişmez.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. RED, metodun yokluğundan doğan import/AttributeError veya altyapı hatası değil; oneScenario assertion'larının (A kaydı alan filtreli var, B kaydı yok, reddedilen çağrı kayıt değiştirmez) başarısız olmasıdır. Native davranış bozulmaz; native karşılık senaryoyu zaten geçiyorsa RED uydurulmaz ve kod yazılmaz.",
+      "green": "Uygulamadan sonra aynı senaryo, değişmeyen assertion'lar ve proje script/CI'dan keşfedilecek aynı bench run-tests komutuyla geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN'i değildir. Bu turda test yazılmaz ve koşulmaz."
     },
-    "rollback": "Yalniz data_subject_request.py icindeki metot ve planli test dosyasi yerelde geri alinir; veri yazilmadigi icin veri geri alma gerekmez; production izni yok."
+    "rollback": "Yalnız data_subject_request.py içindeki önerilen metot ve ona ait test aynı değişiklikle geri alınır; veri yazılmadığı için veri geri alma gerekmez. Teknik CI/deploy/rollback sahibi Hüseyin Cengiz'dir; bu sözleşme production izni vermez. DNS/GoDaddy işlemi gerekmez; gerekirse uygulama sahibi Asistan Hüseyin'dir."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "governance-4",
+      "sourceStage": "mvp",
+      "existing": "Native parça: v2 read_doc tekil kayıt için okuma izni ve alan düzeyi okuma filtresi uygular; Suite File izinlerini Drive'a devreder. Çekirdek kişisel veri indirme/silme isteği için yalnız version-15 kaynak URL'si var, v17-dev'de doğrulanmadı. Bu parçalar yalnız erişim talebinin izinli okuma kısmını destekler.",
+      "gap": "Erişim: kapsam listesi ve toplu izinli liste sorgusu tanımlı değil. Düzeltme: akış ve format yok. Silme: v17-dev çekirdek silme isteği doğrulanmadı, istisnalar tanımsız. Taşınabilirlik: format tanımlı değil. Kimlik doğrulama adımı belirsiz. Drive File ve Sheet/Writer/Mail dışa aktarma kapsamı listelenmedi. ERPNext/HRMS kurulu değil; kapsam yalnız frappe+suite.",
+      "completionSteps": [
+        "Erişim: v17-dev çekirdek DSR kaynağını salt okumayla doğrula; yetmiyorsa bu sözleşmedeki build_access_export davranışını tek dar adım olarak uygula.",
+        "Kapsam: governance-1 envanterinden {doctype, subject_link_field} listesini data-subject-request--contract içine yazdır; File'ı Drive izin katmanı kararı gelene kadar dışarıda tut.",
+        "Düzeltme: ayrı sonraki dar adımda talep kaydını native Document.save ve native yazma izni üzerinden işle; ignore_permissions yok; reddedilen yazma kayıt değiştirmez.",
+        "Silme: doğrulanırsa native Personal Data Deletion Request akışını yeniden kullan; istisnalar ve saklama gereksinimleri karar gelene kadar yalnız belgede listelenir.",
+        "Taşınabilirlik: format kararı sonrası erişim çıktısının makinece okunabilir biçimi olarak tanımla; yeni dışa aktarma motoru kurma.",
+        "Drive verisi: dışa aktarma yalnız Drive izin katmanı üzerinden yapılır; ignore_permissions yardımcıları dışarı açılmaz."
+      ],
+      "dependencies": [
+        "data-subject-request--contract",
+        "data-subject-request--schema",
+        "kernel-envelope--contract",
+        "native-user-policy--contract",
+        "tenant-registry--contract"
+      ],
+      "acceptance": "Doğrulanmış kişinin tüm kapsamlı verisi izin ve alan filtresiyle indirilsin; başka kullanıcının kaydı ve kısıtlı alan pakete girmesin; başkasının DSR'ı için çağrı reddedilsin ve kayıt değişmesin; düzeltme/silme talebi yetki ve istisnalarla sonuçlansın. Şu an not_run.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 86,
+          "quote": "doc.check_permission(\"read\")"
+        },
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 87,
+          "quote": "doc.apply_fieldlevel_read_permissions()"
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 117,
+          "quote": "ignore_file_permissions = True"
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "v17-dev cekirdek Personal Data Download/Deletion Request kaynagi dogrulanmadi (yalniz v15 URL var).",
-    "Duzeltme, silme ve tasinabilirlik formati bu davranista yok; ayni gorevde sonraki dar adimlardir.",
-    "Kimlik dogrulama adimi (Keycloak oturumu vs e-posta dogrulamasi) karar bekliyor; Keycloak kapsam disi.",
-    "Drive File izin modeli ve Sheet/Writer/Mail verisinin disa aktarma kapsami listelenmedi.",
-    "ERPNext/HRMS kurulu degil; kapsam yalniz frappe+suite, kurulum yapilmaz.",
-    "Denetim kaydi ve DSR durum akisi kernel-envelope/native-user-policy sozlesmelerine bagli.",
-    "Tuketici UI eklenirse mevcut AntD, Outfit 14px, 320-first, cevreleyen odak halkasi yok ve simetrik pozitif Cubic hareket korunur; bu adimda UI yok.",
-    "Uzak dagitim gereksinimleri dependency olarak Huseyin Cengiz'e aittir; bu sozlesme hicbir sey etkinlestirmez."
+    "v17-dev çekirdek Personal Data Download/Deletion Request kaynağı doğrulanmadı (yalnız version-15 URL var).",
+    "Düzeltme, silme ve taşınabilirlik formatı bu davranışta yok; aynı görevde sonraki dar adımlardır.",
+    "Kimlik doğrulama adımı karar bekliyor; bu davranış native oturumla sınırlı.",
+    "Drive File izin modeli ve Sheet/Writer/Mail verisinin dışa aktarma kapsamı listelenmedi.",
+    "ERPNext/HRMS kurulu değil; kapsam yalnız frappe+suite, kurulum yapılmaz.",
+    "Denetim kaydı ve DSR durum akışı kernel-envelope--contract ve native-user-policy--contract sözleşmelerine bağlı.",
+    "Tüketici UI eklenirse mevcut Ant Design ailesi, Outfit, en az 14 CSS px metin, 320-first, çevreleyen odak halkası yok ve simetrik pozitif Cubic hareket korunur; bu adımda UI yok.",
+    "Dağıtım gereksinimleri Hüseyin Cengiz'e aittir; bu sözleşme hiçbir şeyi etkinleştirmez."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Kimlik doğrulama adımı: Keycloak oturumu veya e-posta doğrulaması",
+      "requirementIds": ["governance-4"],
+      "blocks": "Doğrulanmış kişi kabulü ve oturumsuz talep akışı",
+      "interimDocStep": "Native oturumla sınırlı erişim davranışını belgele; seçenekleri karar olmadan listele."
+    },
+    {
+      "decision": "Taşınabilirlik çıktı formatı",
+      "requirementIds": ["governance-4"],
+      "blocks": "Taşınabilirlik adımı",
+      "interimDocStep": "Erişim JSON çıktısını referans veri sözleşmesi olarak belgele."
+    },
+    {
+      "decision": "DocType başına kayıt üst sınırı (önerilen 500)",
+      "requirementIds": ["governance-4"],
+      "blocks": "build_access_export truncated davranışının kesinleşmesi",
+      "interimDocStep": "Sınırı öneri olarak işaretle."
+    },
+    {
+      "decision": "Silme/düzeltme istisnaları ve saklama gereksinimleri",
+      "requirementIds": ["governance-4"],
+      "blocks": "Silme ve düzeltme adımları",
+      "interimDocStep": "İstisna kategorilerini süre seçmeden listele."
+    },
+    {
+      "decision": "Drive File ile Sheet/Writer/Mail dışa aktarma kapsamı",
+      "requirementIds": ["governance-4"],
+      "blocks": "Kapsam listesine Drive verisinin eklenmesi",
+      "interimDocStep": "File'ı kapsam dışı tut; Drive izin katmanı gereksinimini belgele."
+    },
+    {
+      "decision": "Hedef Frappe/Suite sürüm baseline'ı",
+      "requirementIds": ["governance-4"],
+      "blocks": "v17-dev çekirdek DSR doğrulaması ve T-00",
+      "interimDocStep": "version-15 URL'sini doğrulanmamış referans olarak tut."
+    },
+    {
+      "decision": "Tenant topolojisi",
+      "requirementIds": ["governance-4"],
+      "blocks": "Tenant sınırının yetkilendirmeye bağlanması",
+      "interimDocStep": "tenant-registry--contract bağımlılığını belgele."
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "governance-4": "mvp"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,

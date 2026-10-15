@@ -1,0 +1,313 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "helpdesk-ticket-bridge",
+  "canonicalTaskIds": [
+    "helpdesk-ticket-bridge--implementation",
+    "ui-family-25--implementation"
+  ],
+  "requirementIds": ["support-5", "support-8"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "support-5": "post_mvp",
+    "support-8": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Destek talebi köprüsü: Kiracı kapsamındaki destek talebi (doğrudan açılmış ya da tek bir sohbetten dönüşmüş) native izinlerle atanır; durumu ve etiketi güncellenir; müşteri API yanıtında iç not yer almaz. Uygulama durumu: uygulanmadı.",
+    "trigger": "Yetkili temsilci ya da otomasyon, kiracı bağlamında bir destek talebine atama, durum, etiket, iç not veya eskalasyon işlemi uygular. Ya da yetkili temsilci tek bir sohbet görüşmesini destek talebine dönüştürür. Ya da müşteri kendi talebini API üzerinden okur.",
+    "expected": "Her yazma işlemi native izin denetiminden, doküman kaydından ve istek transaction'ından geçer. Atama Assignment Rule ve ToDo üzerinden, etiket _user_tags mekanizmasıyla yapılır. Sohbet, communication_medium='Chat' olan bir Communication kaydı olarak timeline_links ile tam olarak bir talebe bağlanır. Müşteri okuması check_permission('read') ve ardından apply_fieldlevel_read_permissions ile süzülür; permlevel>0 olan iç not alanı yanıtta yer almaz. Eskalasyon olayı outbox sözleşmesi üzerinden yayımlanır.",
+    "denied": "Şunlar reddedilir: yetkisiz kullanıcının işlemleri, başka kiracıya ait talep veya görüşmeye erişim, permlevel erişimi olmayan rolün iç notu okuması ya da yazması, izin denetimini atlayan iç Communication yönteminin dışa açılması, ignore_permissions veya ham SQL ile yazma. Reddedilen yazmada kayıt değişmez ve outbox olayı oluşmaz. Aynı görüşme için ikinci dönüşüm isteği yeni talep açmaz."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Yalnızca native Frappe çekirdeği yapı taşları kullanılır: Communication içinde Assignment Rule apply içe aktarımı, ToDo, _user_tags alanı, communication_medium içindeki 'Chat' seçeneği, timeline_links tablosu, REST v1 okumasında apply_fieldlevel_read_permissions, permissions.py içindeki permlevel denetimi ve email.py içindeki ptype='email' izin denetimi. Suite paket açıklamasında Helpdesk yer almıyor. Helpdesk (önerilen HD Ticket hedefi) incelenen kaynak anlık görüntülerinde bulunmadı. Bu parçalar kuyruk, SLA, eskalasyon motoru, canlı oturum veya temsilciye aktarma davranışının var olduğunu göstermez. Vue/Frappe UI kaynağı, React/Ant Design uygulamasının kanıtı sayılmaz. Aranan yollar listesi kapsamlı bir yokluk iddiası değildir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/core/doctype/communication/communication.py",
+        "line": 12,
+        "quote": "from frappe.automation.doctype.assignment_rule.assignment_rule import ("
+      },
+      {
+        "path": "frappe/frappe/core/doctype/communication/mixins.py",
+        "line": 7,
+        "quote": "from frappe.desk.doctype.todo.todo import ToDo"
+      },
+      {
+        "path": "frappe/frappe/core/doctype/communication/communication.py",
+        "line": 46,
+        "quote": "_user_tags: DF.Data | None"
+      },
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 84,
+        "quote": "doc.apply_fieldlevel_read_permissions()"
+      },
+      {
+        "path": "frappe/frappe/permissions.py",
+        "line": 894,
+        "quote": "if permlevel > 0 and permlevel not in accessible_permlevels:"
+      },
+      {
+        "path": "suite/pyproject.toml",
+        "line": 6,
+        "quote": "Drive, Slides, Writer, Sheets, Meet, Mail, Calendar in one app."
+      },
+      {
+        "path": "frappe/frappe/core/doctype/communication/communication.py",
+        "line": 51,
+        "quote": "\"\", \"Email\", \"Chat\", \"Phone\", \"SMS\", \"Event\", \"Meeting\", \"Visit\", \"Other\""
+      },
+      {
+        "path": "frappe/frappe/core/doctype/communication/communication.py",
+        "line": 95,
+        "quote": "timeline_links: DF.Table[CommunicationLink]"
+      },
+      {
+        "path": "frappe/frappe/core/doctype/communication/email.py",
+        "line": 94,
+        "quote": "frappe.has_permission(doctype, doc=name, ptype=\"email\", throw=True)"
+      },
+      {
+        "path": "frappe/frappe/core/doctype/communication/email.py",
+        "line": 173,
+        "quote": "\"\"\"Internal method to make a new communication that ignores Permission checks.\"\"\""
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "frappe/frappe/core/doctype/communication/communication.py",
+      "frappe/frappe/core/doctype/communication/email.py",
+      "frappe/frappe/core/doctype/communication/mixins.py",
+      "frappe/frappe/permissions.py",
+      "suite/pyproject.toml"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/helpdesk-ticket-bridge.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/adapters/customer_success/helpdesk_ticket_bridge_post_mvp.py",
+      "frontend/packages/ui/src/components/ui-family-25/index.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Kernel envelope (kernel-envelope--contract) içinde şunlar taşınır: kiracı kimliği, oturum kullanıcısı ve işlem türü (assign | set_status | tag | add_internal_note | escalate | convert_chat | read_customer). Hedef talep adı da verilir; hedef DocType Helpdesk kurulum kararına bağlıdır ve HD Ticket yalnızca öneridir. convert_chat için görüşme kimliği ve mesaj geçmişi referansı verilir. Sağlayıcıya özgü alanlar karar gelene kadar tanımsızdır ve uydurulmaz.",
+    "output": "Yazma işlemlerinde, native olarak kaydedilmiş dokümanın izinle süzülmüş görünümü ve varsa outbox olay referansı döner. read_customer, apply_fieldlevel_read_permissions sonrasında kalan alanları döndürür. convert_chat tek bir talep adı döndürür; aynı görüşme için yapılan tekrar çağrılar aynı talebi döndürür. ui-family-25 bileşeni yalnızca bu JSON çıktısını tüketir; yerel ReactNode ve callback'ler JSON model sınırının dışında kalır. Kaynak bileşen registry'si ile GenUI capability registry'si ayrıdır.",
+    "authorization": "Doküman izni frappe.has_permission ve doc.check_permission ile denetlenir. İç not permlevel>0 ile korunur ve yalnızca temsilci rollerine açılır. Rol ve izin satırları explicitPermissionFlags ortak kaynağına bağlanır; bu birimin gelecekteki tek kabulü, reddedilen yazmayı ve değişmeyen kaydı kanıtlar. Kiracı sınırı tenant-registry--contract ve native-user-policy--contract'tan gelir. ignore_permissions, flag ile izin atlama ve ham SQL yazma yasaktır. İzin denetimini atlayan iç Communication yöntemi whitelist ya da route ile dışa açılmaz.",
+    "persistence": "Yeni motor, ORM veya CRUD katmanı eklenmez. Native insert/save ve istek transaction'ı kullanılır. Atama ToDo ile, etiket _user_tags ile tutulur. Sohbet, communication_medium='Chat' olan ve timeline_links ile tek bir talebe bağlanan Communication kaydıdır. İç not, native-comment--contract ve karar sonucu belirlenecek modelde saklanır. Eskalasyon olayları outbox--contract'a uyar. Şema, Custom Field veya rol değişikliği bu sözleşmeyle yetkilendirilmez; gerekirse native-doctype-schema--contract üzerinden ayrıca onaylanır.",
+    "failure": "İzin hatasında PermissionError döner; kayıt değişmez ve outbox olayı oluşmaz. Hedef DocType kurulu değilse ya da karar kapanmamışsa açık bir yetenek-yok hatası döner; sessiz geri dönüş yazması yapılmaz. Sohbet sağlayıcı kararı yoksa convert_chat devre dışıdır. Kısmi hata transaction ile geri alınır. Olay teslimi outbox sözleşmesinin kuralına uyar."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "capability-definition--contract",
+      "client-rule-parity--contract",
+      "crm-interaction--contract",
+      "helpdesk-ticket-bridge--contract",
+      "kernel-envelope--contract",
+      "native-assignment--contract",
+      "native-comment--contract",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "outbox--contract",
+      "tenant-registry--contract",
+      "ui-family-25--contract"
+    ],
+    "admission": {
+      "prerequisites": [
+        "T-00 hedef temel (target baseline) ve R-00 yeniden kullanım eşlemesi tamamlanmış olmalı. İzinli veri tüketicisi olduğu için R-01 de geçerlidir.",
+        "decisionsPending listesindeki Helpdesk kurulumu/hedef sürüm kararı kapanmadan hiçbir yazma adımı başlamaz.",
+        "Sohbet alt sözleşmesi, sağlayıcı ile saklama/silme kararları kapanmadan kabul edilmez.",
+        "Gerçek RED/GREEN kanıtıyla tek bir dar davranış uygulanır (bkz. tdd).",
+        "Teknik CI, deploy ve rollback sahibi Hüseyin Cengiz'dir. Bu sözleşme hiçbir servis, production, şema veya veri değişikliğine yetki vermez."
+      ],
+      "orderAuthority": "Sıralamayı mevcut görev bağımlılıkları ve aşama belirler; küme sırası yalnızca sunum içindir ve yeni bir seri DAG oluşturmaz."
+    },
+    "steps": [
+      "1. T-00: Frappe 17.0.0-dev ile Helpdesk uyumunu yalnızca belge olarak değerlendir; kurulum ya da çekirdek yol seçimini karar sahibine bırak.",
+      "2. R-00/R-01: reuse.evidence satırlarını madde bazında native parça ve eksik olarak eşle; izinli okuma tüketicisini R-01'e bağla.",
+      "3. İlk dar davranış: Müşteri okumasında iç notu süz (tdd.oneScenario). Önceden tanımlı rollerle check_permission ve apply_fieldlevel_read_permissions yolunu kullan.",
+      "4. Atama, durum ve etiket işlemlerini adapter içinde native yollarla ayrı ayrı ekle; her birinin kendi reddedilen yazma senaryosu olsun.",
+      "5. Eskalasyonu, karar kapandıktan sonra seçilen SLA kaynağına bağla ve olayı outbox ile yayımla; ayrı bir zamanlayıcı motoru yazma.",
+      "6. Sohbet alt sözleşmesi: Kararlar kapandıktan sonra izin denetimli yol, communication_medium='Chat' ve timeline_links ile tek talebe bağlanmayı uygula.",
+      "7. ui-family-25: React/Ant Design (Pro) bileşenini ve kaynak registry kaydını ekle. Veri TanStack Query üzerinden adapter JSON'undan gelir. 320 CSS px öncelikli yerleşim, en az 14 CSS px metin, çevrelemeyen odak, Outfit ve hareket sözleşmesi ortak UI politikasından uygulanır.",
+      "8. CI, deploy ve rollback devrini Hüseyin Cengiz'e teknik olarak hazırla; DNS veya alan adı gerekmez."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Müşteri rolündeki kullanıcı kendi kiracısındaki bir talebi köprünün okuma yolundan aldığında permlevel 1 olan iç not alanı yanıtta yer almaz; temsilci rolü aynı alanı görür.",
+      "red": "Köprü okuma fonksiyonu dokümanı alan düzeyinde süzme yapmadan döndürür. Test müşteri yanıtında iç not anahtarını bulur ve davranış nedeniyle başarısız olur. Bu, import ya da altyapı hatası değildir ve native davranış değiştirilmez.",
+      "green": "Okuma check_permission('read') ve apply_fieldlevel_read_permissions çağrılarından geçer. Müşteri yanıtında iç not yoktur, temsilci yanıtında vardır. Müşteri rolünün iç not yazma denemesi reddedilir ve kayıt değişmez."
+    },
+    "rollback": "Bu sözleşme yalnızca belgedir; geri alma, bu dosyanın önceki hâline dönmek demektir. Gelecekte adapter, ui-family-25, registry ve hooks.py eklemeleri tek bir PR revert'üyle geri alınacak şekilde birlikte tutulur. Rol, permlevel veya şema değişiklikleri ayrı onaylı bir adımda yapılır ve geri alma planını Hüseyin Cengiz hazırlar. Communication ve ToDo kayıtları silinmez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "support-5",
+      "sourceStage": "post_mvp",
+      "existing": "Native parçalar: Communication içinde Assignment Rule apply içe aktarımı, ToDo, _user_tags, REST v1 okumasında apply_fieldlevel_read_permissions ve permlevel denetimi. Suite açıklamasında Helpdesk yok. Kuyruk, SLA ve eskalasyon motoru kaynakta görülmedi.",
+      "gap": "Şunlar eksik: Helpdesk kurulum ve sürüm kararı, iç not modeli, müşteri API'si için filtreleme sözleşmesi, kuyruk, etiket ve eskalasyon kuralları, gecikme eşikleri. Köprünün sınırı (atama, durum, not) support-8'den ayrılmamış.",
+      "completionSteps": [
+        "Karar kapandığında hedef DocType'ı ve alan eşlemesini (atanan, durum, etiket, iç not, ekip/kuyruk) T-00 belgesine yaz.",
+        "'Öncelikli talep doğru ekibe atanır' kuralını Assignment Rule koşulu ve ToDo ile kur; kural içeriği karara bağlıdır.",
+        "Durum değişikliğini doc.save ile yap; izin hatasında kayıt değişmez.",
+        "Etiketi _user_tags native mekanizmasıyla tut; ayrı bir etiket tablosu açma.",
+        "İç notu seçilen modelde permlevel>0 ile koru; müşteri okumasını check_permission('read') ve apply_fieldlevel_read_permissions üzerinden geçir; rol satırlarını explicitPermissionFlags kaynağına bağla.",
+        "Eskalasyonu seçilen SLA kaynağına bağla; eşik aşımında outbox olayı yayımla."
+      ],
+      "dependencies": [
+        "helpdesk-ticket-bridge--contract",
+        "native-assignment--contract",
+        "native-comment--contract",
+        "native-user-policy--contract",
+        "native-doctype-schema--contract",
+        "tenant-registry--contract",
+        "api-middleware--contract",
+        "kernel-envelope--contract",
+        "capability-definition--contract",
+        "outbox--contract"
+      ],
+      "acceptance": "Öncelikli talep doğru ekibe atanır. İç not müşteri API yanıtında görünmez, temsilci yanıtında görünür. Gecikme eskalasyonu tanımlı eşikte bir outbox olayı üretir. Müşteri rolünün iç not yazma denemesi reddedilir ve kayıt değişmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/core/doctype/communication/communication.py",
+          "line": 12,
+          "quote": "from frappe.automation.doctype.assignment_rule.assignment_rule import ("
+        },
+        {
+          "path": "frappe/frappe/core/doctype/communication/mixins.py",
+          "line": 7,
+          "quote": "from frappe.desk.doctype.todo.todo import ToDo"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/communication/communication.py",
+          "line": 46,
+          "quote": "_user_tags: DF.Data | None"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 84,
+          "quote": "doc.apply_fieldlevel_read_permissions()"
+        },
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 894,
+          "quote": "if permlevel > 0 and permlevel not in accessible_permlevels:"
+        },
+        {
+          "path": "suite/pyproject.toml",
+          "line": 6,
+          "quote": "Drive, Slides, Writer, Sheets, Meet, Mail, Calendar in one app."
+        }
+      ]
+    },
+    {
+      "requirementId": "support-8",
+      "sourceStage": "post_mvp",
+      "existing": "Native parçalar: communication_medium içindeki 'Chat' seçeneği, timeline_links tablosu ve email.py'de ptype='email' izin denetimi. email.py'deki iç yöntem izin denetimini atlıyor. Canlı oturum, temsilciye aktarma, çevrimdışı talep alma ve saklama politikası kaynakta yok.",
+      "gap": "Sohbet hizmeti mi yoksa özel uygulama mı kullanılacağına karar verilmemiş; dış veri akışının ve saklamanın sahibi belirsiz. Ayrı bir uygulama görevi yok. İzinli dönüşüm yolu belirtilmemiş. Aktarma, çevrimdışı durum ve saklama süresi parametreleri tanımsız.",
+      "completionSteps": [
+        "Sohbeti bu köprü içinde ayrı bir alt sözleşme bölümü olarak tut; yeni kanonik görev açma kararı ana entegrasyon sahibine aittir.",
+        "Sağlayıcı kararı kapanana kadar convert_chat'i devre dışı tut ve sağlayıcı alanlarını uydurma.",
+        "Dönüşümde ptype='email' izin denetimi yapan yolu kullan; izin atlayan iç yöntemi dışa açma.",
+        "Communication kaydını communication_medium='Chat' ile oluştur ve timeline_links ile tam olarak bir talebe bağla; aynı görüşme için tekrar çağrı mevcut talebi döndürür.",
+        "Temsilci görünürlüğünü kiracı sınırı ve doküman izniyle kısıtla.",
+        "Çevrimdışı durumda görüşmeyi talep olarak kabul et; aktarma ve çevrimdışı parametrelerini karardan al.",
+        "Karar kapandıktan sonra saklama/silme politikasını native izinli silme yoluyla geçmişe uygula; süreyi kendin seçme."
+      ],
+      "dependencies": [
+        "helpdesk-ticket-bridge--contract",
+        "crm-interaction--contract",
+        "tenant-registry--contract",
+        "native-user-policy--contract",
+        "api-middleware--contract",
+        "kernel-envelope--contract",
+        "outbox--contract",
+        "ui-family-25--contract"
+      ],
+      "acceptance": "Yetkili temsilci yalnızca doğru kiracının görüşmesini görür; başka kiracıya ait görüşme reddedilir. Çevrimdışı durumda talep alınır. Sohbet tek bir destek talebine bağlanır. Saklama ve silme politikası geçmiş kayıtlara uygulanır.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/core/doctype/communication/communication.py",
+          "line": 51,
+          "quote": "\"\", \"Email\", \"Chat\", \"Phone\", \"SMS\", \"Event\", \"Meeting\", \"Visit\", \"Other\""
+        },
+        {
+          "path": "frappe/frappe/core/doctype/communication/communication.py",
+          "line": 95,
+          "quote": "timeline_links: DF.Table[CommunicationLink]"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/communication/email.py",
+          "line": 94,
+          "quote": "frappe.has_permission(doctype, doc=name, ptype=\"email\", throw=True)"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/communication/email.py",
+          "line": 173,
+          "quote": "\"\"\"Internal method to make a new communication that ignores Permission checks.\"\"\""
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Kuyruk, SLA ve eskalasyon motoru kaynakta görülmedi.",
+    "İç not modeli ve müşteri API'si için filtreleme sözleşmesi tanımsız.",
+    "Canlı oturum ve temsilciye aktarma için native kaynak yok.",
+    "Sohbetin ayrı bir uygulama görevi yok; support-5 ile aynı köprüyü paylaşıyor.",
+    "explicitPermissionFlags ortak kaynağındaki kesin JSON işaretçisini ana entegrasyon sahibi doğrulamalı.",
+    "Hiçbir davranış çalışma zamanında doğrulanmadı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Helpdesk uygulaması kurulacak mı, yoksa çekirdekteki ToDo/Assignment Rule yoluyla mı ilerlenecek? Kurulacaksa Frappe 17.0.0-dev ile uyumlu hedef sürüm ve lisans değerlendirmesi ne olacak?",
+      "requirementIds": ["support-5", "support-8"],
+      "blocks": "Hedef DocType, alan eşlemesi ve tüm yazma adımları",
+      "docStepUntilDecision": "İki seçenek için alan eşleme tablosunu belge olarak hazırla"
+    },
+    {
+      "decision": "İç not modeli: HD yorumu mu, Comment mi, yoksa permlevel>0 alan mı?",
+      "requirementIds": ["support-5"],
+      "blocks": "İç not yazma/okuma adımı ve tdd senaryosunun hedef alanı",
+      "docStepUntilDecision": "Her seçenekte müşteri okumasının apply_fieldlevel_read_permissions yolundan geçeceğini belgeye işle"
+    },
+    {
+      "decision": "Kuyruk ve ekip yapısı, etiket kümesi, eskalasyon kuralları, gecikme eşikleri ve SLA kaynağı",
+      "requirementIds": ["support-5"],
+      "blocks": "Atama kuralı içeriği ve eskalasyon adımı",
+      "docStepUntilDecision": "Kural alanlarını değer içermeyen boş bir şablon olarak listele"
+    },
+    {
+      "decision": "Sohbet hizmeti mi özel uygulama mı? Sağlayıcı, tarife, veri yerleşimi ve dış veri akışının sahibi kim olacak?",
+      "requirementIds": ["support-8"],
+      "blocks": "convert_chat girdisi ve sohbet alt sözleşmesinin tamamı",
+      "docStepUntilDecision": "Sağlayıcıdan bağımsız Communication/timeline_links dönüşüm sözleşmesini belgele"
+    },
+    {
+      "decision": "Sohbet geçmişinin saklama süresi ve silme politikası; temsilciye aktarma ve çevrimdışı durum parametreleri",
+      "requirementIds": ["support-8"],
+      "blocks": "Saklama/silme uygulaması, aktarma ve çevrimdışı kabulü",
+      "docStepUntilDecision": "Parametre adlarını değer seçmeden listele"
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

@@ -4,20 +4,45 @@
   "canonicalTaskIds": ["encryption-profile--implementation"],
   "requirementIds": ["security-6"],
   "stage": "mvp",
+  "sourceStages": {
+    "security-6": "mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
     "title": "Password tipli alan değeri native Fernet ile __Auth tablosunda şifreli saklanır ve yalnız sunucu tarafında çözülür",
-    "trigger": "Yerel pilotta (suite.localhost) Password tipli alanı olan bir kayıt native Document.save ile kaydedilir.",
-    "expected": "__Auth içinde (doctype, name, fieldname) için encrypted=1 satırı oluşur veya güncellenir; saklanan değer düz metne eşit değildir; get_decrypted_password aynı düz metni döndürür.",
-    "denied": "Geçersiz veya değişmiş encryption_key ile çözme InvalidToken sonrası frappe.throw ile reddedilir, düz metin dönmez; raise_exception=False ise None döner."
+    "trigger": "T-00 ile belirlenen test sitesinde write izni olan bir kullanıcı, Password tipli alanı olan bir kaydı native Document.save ile kaydeder.",
+    "expected": "__Auth içinde (doctype, name, fieldname) için encrypted=1 satırı oluşur veya güncellenir; saklanan değer düz metne eşit değildir; sunucu tarafı native çözme yolu (get_decrypted_password) aynı düz metni döndürür.",
+    "denied": "write izni olmayan kullanıcının aynı kaydı kaydetmesi native izin denetimiyle PermissionError ile reddedilir ve __Auth satırı değişmez. Geçersiz veya değişmiş encryption_key ile çözme InvalidToken sonrası frappe.throw ile reddedilir; düz metin dönmez."
   },
   "reuse": {
-    "mechanism": "reuse_existing: native frappe/utils/password.py (set_encrypted_password, get_decrypted_password, Fernet encrypt/decrypt, site_config encryption_key). Kripto kodu, adaptör, kopya ORM veya DDL yok. permlevel okuma süzmesi yetkilendirmedir, şifreleme değildir; yerel T08 ile kanıtlıdır ve burada tekrar pilotlanmaz.",
+    "status": "KISMI",
+    "mechanism": "reuse_existing: native frappe/utils/password.py Fernet saklama ve çözme yolu (__Auth upsert encrypted=1, encrypt/decrypt, site_config encryption_key) ile native permlevel ve has_permission yetki denetimleri. Kripto kodu, adaptör, kopya ORM, DDL, ignore_permissions veya SQL ile yetki atlama yok. permlevel okuma süzmesi yetkilendirmedir, şifreleme değildir. Kanıtlar yalnız native parçaları gösterir; security-6 davranışının bütünüyle var olduğunu göstermez.",
     "evidence": [
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 84,
+        "quote": "doc.apply_fieldlevel_read_permissions()"
+      },
+      {
+        "path": "frappe/frappe/permissions.py",
+        "line": 322,
+        "quote": "return perm.role in roles and cint(perm.permlevel) == 0"
+      },
+      {
+        "path": "frappe/frappe/client.py",
+        "line": 134,
+        "quote": "if not frappe.has_permission(doctype, parent_doctype=parent):"
+      },
       {
         "path": "frappe/frappe/utils/password.py",
         "line": 4,
         "quote": "from cryptography.fernet import Fernet, InvalidToken"
+      },
+      {
+        "path": "suite/pyproject.toml",
+        "line": 15,
+        "quote": "\"boto3~=1.43.29\","
       },
       {
         "path": "frappe/frappe/utils/password.py",
@@ -49,6 +74,13 @@
         "line": 251,
         "quote": "if \"encryption_key\" not in frappe.local.conf:"
       }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "frappe/frappe/client.py",
+      "frappe/frappe/permissions.py",
+      "frappe/frappe/utils/password.py",
+      "suite/pyproject.toml"
     ]
   },
   "ownership": {
@@ -56,49 +88,139 @@
     "plannedProduction": [
       "operations/encryption-profile/encryption_profile_mvp.yml"
     ],
-    "plannedTestFile": "backend/saas_platform/saas_platform/tests/test_encryption_profile_secret_storage.py",
-    "sharedIntegrationFiles": [],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "Native Document.save; Password alanı string. Uzunluk sınırı native: DataError -> 'Most probably your password is too long.' (password.py:79). Pilot doctype ve alan adı yerel metadatadan seçilir; şu an bilinmiyor.",
-    "output": "Sunucu tarafı get_decrypted_password(doctype, name, fieldname) düz metin döndürür. API/rapor yanıtında Password alanının nasıl göründüğü sağlanan kaynakta yok; bilinmiyor. Sürüm: yerel Frappe HEAD adf1fd0c; uzak taban ve Suite HEAD bilinmiyor.",
-    "authorization": "Yazma native site ve kayıt write izniyle. get_decrypted_password (satır 23-48) izin kontrolü yapmaz; yalnız güvenilir sunucu kodu çağırır, whitelisted uç noktadan istemciye açılmaz. Alan görünürlüğü T08 permlevel yetkilendirmesine bırakılır.",
-    "persistence": "set_encrypted_password mariadb dalında encrypted=1 ile upsert yapar; istek transaction'ına katıldığı varsayılır, doğrulanmadı. __Auth native create_auth_table ile oluşur; DDL garantisi yok. Document.save -> set_encrypted_password bağlantısı sağlanan kaynakta görülmedi; tek test bunu doğrular.",
-    "failure": "Geçersiz anahtar formatı: 'Encryption key is in invalid format!'; değişmiş anahtar: InvalidToken -> 'Encryption key is invalid! Please check site_config.json'; kayıt yok: 'Password not found ...'. Mevcut React19/AntD6/TanStack tüketicisi native hata mesajını mevcut AntD yüzeyinde gösterir, düz metni yansıtmaz (Outfit 14px, 320-first, çevreleyen odak halkası yok, simetrik pozitif Cubic hareket)."
+    "input": "Native Document.save; Password alanı string. Uzunluk sınırı ve hata metni native kaynaktadır; satır ve metin hedef sürümde T-00 sırasında doğrulanır. Test doctype ve alan adı hedef metadatadan seçilir; şu an bilinmiyor.",
+    "output": "Native çözme yolu düz metni yalnız güvenilir sunucu koduna döndürür. Password alanının API ve rapor yanıtlarında nasıl göründüğü sağlanan kaynakta yok; bilinmiyor. Hedef Frappe ve Suite sürümü T-00 ile belirlenir; bilinmiyor.",
+    "authorization": "Yazma native site ve kayıt write izniyle yapılır; ignore_permissions kullanılmaz. Önceki sözleşmeye göre native çözme yolu izin kontrolü yapmaz (hedef kaynakta doğrulanacak); bu yüzden yalnız güvenilir sunucu kodu çağırır, whitelisted uç noktadan istemciye açılmaz. Hassas alan görünürlüğü native permlevel yetkilendirmesine bırakılır (permissions.py:322 permlevel 0 süzmesi, api/v1.py:84 apply_fieldlevel_read_permissions). permlevel veya rol ataması üreten her adım ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy altındaki ortak explicitPermissionFlags kaynağına bağlanır.",
+    "persistence": "MariaDB dalında encrypted=1 ile upsert yapılır (password.py:62). İstek transaction'ına katıldığı varsayılır, doğrulanmadı. __Auth tablosu native kurulumla oluşur; bu sözleşme DDL, şema veya veri değişikliği yetkisi vermez. Document.save ile şifreli saklama arasındaki bağlantı sağlanan kaynakta görülmedi; gelecekteki tek test bunu doğrular. Test kendi kaydını rollback ile geri alır; müşteri verisine dokunulmaz.",
+    "failure": "Geçersiz anahtar formatı: 'Encryption key is in invalid format!' (password.py:225 öncesi). Değişmiş anahtar: InvalidToken yakalanır ve frappe.throw ile reddedilir (password.py:234); tam mesaj metni hedef sürümde doğrulanır. Kayıt yoksa native bulunamadı hatası döner; metin doğrulanacak. Gelecekteki React/Ant Design tüketicisi native hata mesajını AntD yüzeyinde gösterir; düz metni veya anahtarı yansıtmaz. Arayüz kuralları uygulanır: Outfit, en az 14 CSS px, 320 öncelikli, çevreleyen odak halkası yok, simetrik pozitif Cubic hareket. Şu anda tüketici yok."
   },
   "development": {
-    "dependencies": [
-      "encryption-profile--contract",
-      "local pilot t08: permlevel read_doc yetkilendirme kanıtı (yalnız referans, tekrar yok)"
-    ],
-    "admission": "T-00 hedef tabanı ve R-00 yeniden kullanım eşlemesi. Yerel sitede encryption_key varlığı değeri yazdırılmadan doğrulanmalı; yoksa get_encryption_key site_config dosyasına anahtar yazar, bu nedenle test koşmaz ve durulur. Password alanlı pilot doctype bilinmiyor. Yerel kanıt uzak ürün tabanı değildir.",
+    "dependencies": ["encryption-profile--contract"],
+    "admission": "Uygulama durumu: uygulanmadı. Önkoşullar: T-00 hedef tabanı ve R-00 yeniden kullanım eşlemesi; permlevel ile korunan alanları tüketen yollar için ayrıca R-01. Test sitesinde encryption_key varlığı değer yazdırılmadan doğrulanır. Anahtar yoksa native get_encryption_key site_config içine yeni anahtar yazar (password.py:251); bu durumda test koşmaz ve durulur. Password alanlı test doctype bilinmiyor. Tek dar davranış gerçek RED/GREEN kanıtıyla uygulanır. Bu sözleşme servis, production, şema veya veri değiştirme yetkisi vermez.",
     "steps": [
-      "reuse_existing: password.py Fernet saklama yolu olduğu gibi kullanılır; kod yazılmaz.",
-      "Yerel metadatada mevcut Password alanlı doctype seçilir; yoksa yalnız yerel pilot doctype'a native Custom Field (fieldtype Password) eklenir.",
-      "operations/encryption-profile/encryption_profile_mvp.yml içinde profil belgelenir: kapsam uygulama düzeyi secret alanı, anahtar konumu site_config (değer yok), açık dağıtım boşlukları ve sahipleri.",
-      "Tek test yazılıp çalıştırılır; native geçerse reuse_existing kabul kanıtı olarak kaydedilir."
+      "reuse_existing: password.py Fernet saklama yolu olduğu gibi kullanılır; kripto kodu yazılmaz.",
+      "T-00 hedef metadatasında mevcut Password alanlı bir doctype seçilir. Yoksa yalnız test sitesinde native Custom Field (fieldtype Password) önerilir; kabulden sonra geri alınır.",
+      "operations/encryption-profile/encryption_profile_mvp.yml önerisi belgelenir: kapsam uygulama düzeyi secret alanıdır; anahtar konumu site_config'tir (değer yazılmaz); hassas alan listesi için karar referansı, açık dağıtım boşlukları ve sahipleri eklenir.",
+      "Hassas alan permlevel ataması ayrı bir davranıştır. Custom Field/Property Setter ile permlevel ve rol izni önerisi explicitPermissionFlags ortak kaynağına bağlanır. Kendi tek kabulünde yetkisiz kullanıcının permlevel alanına yazması reddedilir ve kayıt değişmez.",
+      "Teknik devir: TLS sonlandırma, iç trafik, MariaDB/yedek at-rest ve S3/Drive dosya şifrelemesi Hüseyin Cengiz'e teknik gereksinim belgesi olarak yazılır. DNS kaydı gerekirse kayıt türü, adı ve değerini Hüseyin Cengiz hazırlar, Asistan Hüseyin GoDaddy'de uygular, sonucu Hüseyin Cengiz doğrular.",
+      "Admission sonrası tek test yazılıp koşulur; native davranış geçerse sonuç reuse_existing kabul kanıtı olarak kaydedilir."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "Test kendi kaydını Password alanıyla Document.save ile kaydeder; __Auth encrypted=1 satırı vardır, saklanan değer düz metne eşit değildir, get_decrypted_password aynı değeri döner. Test kendi kaydını transaction rollback ile geri alır.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Aynı test aynı komutla geçer. Test komutu yerel pilotta doğrulanmadı; bilinmiyor."
+      "oneScenario": "Test kendi kaydını write izinli kullanıcıyla Password alanı dolu olarak Document.save ile kaydeder. Beklenen: __Auth içinde encrypted=1 satırı vardır, saklanan değer düz metne eşit değildir, sunucu tarafı çözme aynı değeri döner. Aynı kaydı write izni olmayan kullanıcı kaydetmeye çalışınca PermissionError alınır ve __Auth değeri değişmez. Test kendi kaydını rollback ile geri alır.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. Import veya altyapı hatası, native davranışı bozmak ya da uydurma assertion RED sayılmaz. Native davranış ilk koşuda geçerse RED uydurulmaz; sonuç reuse_existing kabul kanıtı olarak kaydedilir.",
+      "green": "Admission sonrası aynı senaryo, değişmeyen assertion ve aynı komutla geçmelidir. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN'i değildir. Test komutu ve test sitesi bilinmiyor; T-00 ile belirlenir."
     },
-    "rollback": "Yalnız yerel pilot Custom Field (eklendiyse), yml ve test dosyası geri alınır; müşteri kaydı silinmez, encryption_key değiştirilmez, production izni yok."
+    "rollback": "Test sitesinde eklendiyse yalnız Custom Field, yml önerisi ve test dosyası geri alınır. Müşteri kaydı silinmez; encryption_key değiştirilmez veya yeniden üretilmez; production değişikliği yoktur. Teknik CI/deploy/rollback sahibi Hüseyin Cengiz'dir."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "security-6",
+      "sourceStage": "mvp",
+      "existing": "Kaynakta görülen native parçalar: tekil doküman okumasında alan düzeyi okuma süzmesi (api/v1.py:84), permlevel 0 izin uygulanabilirliği (permissions.py:322), get_value yolunda doctype düzeyi has_permission (client.py:134), Fernet ile __Auth şifreli saklama (password.py), Suite içinde boto3 bağımlılığı (suite/pyproject.toml:15; S3 şifreleme ayarı görülmedi). Kapsam ayrımı: TLS harici, at-rest ayrı tasarım, deneysel Data Masking hariç.",
+      "gap": "Hassas alan sınıflandırması ve permlevel ataması tanımsız. Kabul metni yalnız read_doc'u değil get_list, get_value, rapor ve expand_links yollarını da saymıyor. MariaDB at-rest, yedek ve S3/Drive dosya şifrelemesi için seçim ve sahip yok. TLS sonlandırma noktası ve iç trafik (realtime->web loopback, recorder/SFU) kararı yok.",
+      "completionSteps": [
+        "Secret saklama: native Fernet/__Auth yolu yeniden kullanılır; development.tdd.oneScenario admission sonrası tek kabul olarak koşulur.",
+        "Sınıflandırma: hassas alan listesi kararı gelince yml önerisine DocType ve alan bazında yazılır. Her alan için Custom Field/Property Setter ile permlevel değeri ve rol izni önerilir; rol bayrakları explicitPermissionFlags ortak kaynağına bağlanır.",
+        "Yanıt yolları: kabul listesi read_doc, expand_links dalı, get_list, get_value ve rapor olarak açıkça yazılır. Her yol için yetkisiz kullanıcı yanıtında hassas alanın bulunmadığı ayrı assertion tanımlanır. client.py:134 yalnız doctype düzeyi izin gösterdiği için get_value alan süzmesi hedef kaynakta doğrulanır. Native süzme bulunmayan yol için kopya ORM yazılmaz; native permlevel destekli yolun kullanılması veya o yolun hassas DocType için kapatılması karara bağlanır.",
+        "At-rest: MariaDB, yedek ve S3/Drive için Hüseyin Cengiz'e teknik gereksinim belgesi yazılır (şifrelenecek varlık, anahtar sahipliği, doğrulama yöntemi). Satıcı veya yöntem bu sözleşmede seçilmez.",
+        "TLS: Bench HTTPS dokümanı referans alınarak sonlandırma noktası ve iç trafik soruları Hüseyin Cengiz'e devredilir; DNS gerekirse Asistan Hüseyin uygular.",
+        "encryption_key: yedek ve geri yüklemede taşınma, rotasyon ve erişim gereksinimi değer yazılmadan belgelenir.",
+        "Deneysel Data Masking varsayılmaz ve kabule dahil edilmez."
+      ],
+      "dependencies": ["encryption-profile--contract"],
+      "acceptance": "Password alanı __Auth içinde şifreli saklanır ve düz metin istemciye dönmez. Hassas alan, yetkisiz kullanıcının read_doc, expand_links, get_list, get_value ve rapor yanıtlarında görünmez; yetkisiz yazma reddedilir ve kayıt değişmez. TLS ve seçilen at-rest şifreleme Hüseyin Cengiz tarafından doğrulanır. Her parça kendi admission'ı ve tek senaryosuyla kabul edilir; bu sözleşme kabul değildir.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 84,
+          "quote": "doc.apply_fieldlevel_read_permissions()"
+        },
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 322,
+          "quote": "return perm.role in roles and cint(perm.permlevel) == 0"
+        },
+        {
+          "path": "frappe/frappe/client.py",
+          "line": 134,
+          "quote": "if not frappe.has_permission(doctype, parent_doctype=parent):"
+        },
+        {
+          "path": "frappe/frappe/utils/password.py",
+          "line": 4,
+          "quote": "from cryptography.fernet import Fernet, InvalidToken"
+        },
+        {
+          "path": "suite/pyproject.toml",
+          "line": 15,
+          "quote": "\"boto3~=1.43.29\","
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "Yanıt yolu görünürlüğü yetkilendirmedir: read_doc T08 ile kanıtlı; get_list, get_value (client.py:134 doctype düzeyi), rapor ve expand_links ayrı kabul ister; ikinci permlevel pilotu yapılmaz.",
-    "Hassas alan sınıflandırma listesi tanımsız; deneysel masking hariç.",
+    "Yanıt yolu görünürlüğü yetkilendirmedir: read_doc için native süzme kaynakta görülüyor ama uçtan uca doğrulanmadı; get_list, get_value (client.py:134 doctype düzeyi), rapor ve expand_links ayrı kabul ister.",
+    "Hassas alan sınıflandırma listesi tanımsız; deneysel Data Masking hariç.",
     "encryption_key site_config içinde: yedek ve geri yüklemede taşınması, rotasyonu ve erişimi kararsız; teknik devir Hüseyin Cengiz.",
     "MariaDB at-rest, yedek şifreleme ve S3/Drive dosyaları (suite/pyproject.toml:15 boto3) için seçim yok; teknik devir Hüseyin Cengiz.",
-    "TLS sonlandırma ve iç trafik (realtime->web loopback, recorder/SFU) kararı yok; teknik devir Hüseyin Cengiz, DNS gerekirse Asistan Hüseyin."
+    "TLS sonlandırma ve iç trafik (realtime->web loopback, recorder/SFU) kararı yok; teknik devir Hüseyin Cengiz, DNS gerekirse Asistan Hüseyin.",
+    "Hedef Frappe/Suite sürümü bilinmiyor; Document.save ile şifreli saklama bağlantısı, hata metinleri ve Password alanının API/rapor görünümü hedef kaynakta doğrulanmadı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Hassas alan sınıflandırması: hangi DocType alanları hassas sayılır ve hangi roller okuyabilir veya yazabilir.",
+      "requirementIds": ["security-6"],
+      "blocks": "permlevel atama önerisi ve yanıt yolu kabulleri.",
+      "interimDocStep": "yml önerisinde alan adı içermeyen sınıflandırma şablonu ve explicitPermissionFlags bağlantısı belgelenir."
+    },
+    {
+      "decision": "TLS sonlandırma noktası ve iç trafik (realtime->web loopback, recorder/SFU) şifreleme yöntemi.",
+      "requirementIds": ["security-6"],
+      "blocks": "TLS kabulü ve gerekirse DNS adımı.",
+      "interimDocStep": "Hüseyin Cengiz için teknik soru listesi ve Bench HTTPS referansı yazılır."
+    },
+    {
+      "decision": "MariaDB at-rest ve yedek şifreleme yöntemi ile anahtar sahipliği.",
+      "requirementIds": ["security-6"],
+      "blocks": "Veritabanı ve yedek at-rest kabulü.",
+      "interimDocStep": "Şifrelenecek varlıklar ve doğrulama ölçütü yöntem seçilmeden belgelenir."
+    },
+    {
+      "decision": "S3/Drive dosya deposu at-rest şifrelemesi: sağlayıcı, anahtar yönetimi ve veri yerleşimi.",
+      "requirementIds": ["security-6"],
+      "blocks": "Dosya at-rest kabulü.",
+      "interimDocStep": "boto3 bağımlılığı kanıtı ve açık sorular satıcı seçilmeden kaydedilir."
+    },
+    {
+      "decision": "encryption_key yaşam döngüsü: yedek, geri yükleme, rotasyon ve erişim politikası.",
+      "requirementIds": ["security-6"],
+      "blocks": "Anahtar rotasyonu ve geri yükleme kabulü; test sitesinde anahtar yoksa test admission'ı.",
+      "interimDocStep": "Gereksinimler değer yazılmadan ve secret yönetim aracı seçilmeden belgelenir."
+    },
+    {
+      "decision": "Hedef Frappe ve Suite sürümü (T-00).",
+      "requirementIds": ["security-6"],
+      "blocks": "Test komutu, test sitesi ve kaynak satır/hata metni doğrulaması.",
+      "interimDocStep": "Kanıtlar önceki salt okunur kaynak kesitine bağlı ve doğrulanmamış olarak işaretli tutulur."
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "security-6": "mvp"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,

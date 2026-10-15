@@ -1,0 +1,225 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "agent-capability",
+  "canonicalTaskIds": [
+    "agent-capability--implementation",
+    "ui-family-39--implementation-scale",
+    "ui-provider-registry--implementation-scale"
+  ],
+  "requirementIds": ["agents-2"],
+  "stage": "scale",
+  "sourceStages": {
+    "agents-2": "scale"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Ajan rolü, insan onaylı araç kataloğu ve izin verilen işlem kapsamı. Uygulama durumu: uygulanmadı.",
+    "trigger": "Sunucu oturumu olan bir ajan kimliği, katalogdaki bir aracı native Frappe API ucu üzerinden çağırır.",
+    "expected": "Çağrı yalnız ajan rolüne bağlı ve insan onaylı allowlist kaydında aktif olan araç için native uca iletilir. Aynı çağrıda native Frappe izin denetimi yeniden uygulanır (v2 için HTTP yöntemi-ptype eşlemesi PERMISSION_MAP, belge yöntemleri için is_whitelisted). Tenant kapsamı istemci parametresinden değil sunucu tarafındaki oturum ve site bağlamından türetilir.",
+    "denied": "Allowlist'te olmayan, iptal edilmiş, allow_guest işaretli, ignore_permissions kullanan yardımcıya dayanan veya File/Drive izin eşlemesi belgelenmemiş araç çağrısı reddedilir. Native izin hatası değiştirilmeden döner. Tenant parametresiyle kapsam genişletme denemesi yetki girdisi sayılmaz ve erişimi genişletmez. Reddedilen yazma çağrısında hedef kayıt değişmez."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native parçalar: discovery katalog çıktısı (yalnız System Manager), discovery içindeki allow_guest bilgisi, v2 PERMISSION_MAP yöntem-ptype eşlemesi, v1 belge yöntemi whitelist denetimi ve Suite'in File iznini Drive mantığına devrettiği hook ayarı. Ajan rolü-araç allowlist kaydı, katalogdan dışlama kuralları ve tenant parametresini yok sayma kuralı aranan yollarda gösterilmedi; bunlar önerilen AgentCapability kaydı ve bu rehberdeki adımlarla tamamlanacak. Kanıtın native parçaları göstermesi bütün davranışın var olduğu anlamına gelmez. Aranan yollar sınırlıdır; eksik parçalar için kapsamlı yokluk iddiası yapılmaz. Kaynaklar önceki salt okunur Frappe/Suite kaynak anlık görüntülerindendir; canlı site veya ürün kabulü değildir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/api/discovery.py",
+        "line": 29,
+        "quote": "frappe.only_for(\"System Manager\")"
+      },
+      {
+        "path": "frappe/frappe/api/discovery.py",
+        "line": 264,
+        "quote": "\"allow_guest\": fn in frappe.guest_methods,"
+      },
+      {
+        "path": "frappe/frappe/api/v2.py",
+        "line": 24,
+        "quote": "PERMISSION_MAP = {"
+      },
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 121,
+        "quote": "doc.is_whitelisted(method)"
+      },
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 117,
+        "quote": "ignore_file_permissions = True"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/discovery.py",
+      "frappe/frappe/api/v1.py",
+      "frappe/frappe/api/v2.py",
+      "suite/suite/hooks.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/agent-capability.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/ai_orchestration/doctype/agent_capability/agent_capability.py",
+      "frontend/packages/genui/src/components/ui-family-39/scale.tsx",
+      "frontend/packages/genui/src/components/ui-provider-registry/scale.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Ajan kimliği yalnız sunucu oturumundan (native Frappe User) gelir. Çağrı girdisi: onaylı araç anahtarı ve JSON parametreler. İstemciden gelen tenant, site veya kullanıcı parametresi yetki girdisi sayılmaz. Katalog kaydı JSON model sınırında kalır; yerel ReactNode veya callback taşımaz.",
+    "output": "İzinli çağrıda native Frappe yanıtı değiştirilmeden döner. Ret durumunda makine okunur ret nedeni (öneri: bilinmeyen_arac, iptal_edilmis, katalog_disi, native_izin_reddi) ve audit-envelope--contract uyumlu kayıt referansı döner. Ret kodlarının kesin adları capability-definition--contract ile hizalanır.",
+    "authorization": "İki katman: önce allowlist denetimi (deny-first), sonra native Frappe izinleri aynı çağrıda yeniden uygulanır; allowlist native izni genişletmez, yalnız daraltır. Ajana System Manager verilmez; discovery yalnız yönetici tarafında aday liste üretmek için kullanılır. ignore_permissions, doğrudan SQL veya native denetimi kopyalayan paralel izin mantığıyla yetki bypass yasaktır. Ajan rolü ve izinleri explicitPermissionFlags ortak kaynağına ve native-user-policy--contract'a bağlanır; bu rehber ayrı rol/izin bayrağı icat etmez. File işlemlerinde yetki Suite'in devrettiği Drive izniyle değerlendirilir.",
+    "persistence": "Önerilen AgentCapability DocType kayıtları (availability custom_proposed) native save, validate, hook ve transaction ile yazılır; doğrudan SQL yok. Araç çağrısı allowlist kaydını değiştirmez. Audit ve yan etkili bildirim yalnız audit-envelope--contract ve outbox--contract üzerinden; yeni motor, ORM veya CRUD katmanı tasarlanmaz. Bu sözleşme hiçbir servis, production ortamı, şema veya veriyi değiştirme yetkisi vermez.",
+    "failure": "Bilinmeyen veya iptal edilmiş araç: ret, native uca gidilmez. Katalog kaydı allow_guest, ignore_permissions veya Drive eşlemesiz File işareti taşıyorsa: onaya alınmaz, çağrı reddedilir. Native PermissionError veya whitelist hatası: değiştirilmeden döner. Tenant parametresi oturum bağlamıyla çelişirse: parametre yok sayılır, kapsam genişlemez. Discovery erişilemezse: mevcut onaylı katalog değişmez, yeni giriş eklenmez. Audit yazılamazsa davranış audit-envelope--contract hata politikasına uyar."
+  },
+  "development": {
+    "dependencies": [
+      "agent-capability--contract",
+      "agent-capability--schema",
+      "audit-envelope--contract",
+      "capability-definition--contract",
+      "human-decision--contract",
+      "kernel-envelope--contract",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "outbox--contract",
+      "ui-family-01--contract",
+      "ui-family-39--contract",
+      "ui-family-39--implementation",
+      "ui-provider-registry--contract",
+      "ui-provider-registry--implementation"
+    ],
+    "admission": "T-00 hedef taban çizgisi ve R-00 yeniden kullanım eşlemesi gerekir; izinli veri tüketicileri R-01'i de kullanır. Tenant topolojisi ve ajan kimlik modeli kararları gelmeden tenant ve rol atama adımları kabul edilmez. Tek dar davranış gerçek RED/GREEN kanıtıyla uygulanır. Sıralama otoritesi mevcut görev bağımlılıkları ve stage'dir; küme sırası yeni seri DAG değildir.",
+    "steps": [
+      "Önkoşulları doğrula: T-00, R-00, R-01 ile agent-capability--contract, agent-capability--schema, native-user-policy--contract ve capability-definition--contract sözleşmelerinin onaylı durumunu kontrol et; açık kararları decisionsPending üzerinden takip et.",
+      "AgentCapability alanlarını agent-capability--schema ve native-doctype-schema--contract ile hizala: ajan rolü (native Role bağlantısı), araç anahtarı, uç türü (v2 method, belge yöntemi, kaynak), doctype, ptype, izinli HTTP yöntemleri, durum (taslak, onaylı, iptal), onaylayan ve gerekçe. Alan adları öneridir; şema sözleşmesi kesinleştirir.",
+      "Katalog üretimini yönetici tarafına sınırla: discovery çıktısı yalnız System Manager oturumunda aday liste olarak alınır; ajan çalışma zamanı discovery çağırmaz.",
+      "Aday listeye dışlama kurallarını uygula ve onayı human-decision--contract akışına bağla.",
+      "Çağrı yolunu tanımla: allowlist denetimi, ardından ajan oturumuyla native Frappe API çağrısı; native izin denetimi atlanmaz veya kopyalanmaz.",
+      "Tenant kuralını yaz: kapsam sunucu bağlamından türetilir, istemci tenant parametresi yetki girdisi değildir; topoloji kararına göre site veya User Permission sınırına bağlanır.",
+      "İzinli ve reddedilen çağrıları audit-envelope--contract ile kaydet; yan etkili bildirim gerekiyorsa outbox--contract kullan.",
+      "ui-family-39 ve ui-provider-registry ölçek görevlerinde katalog durumunu yalnız JSON model üzerinden salt okunur göster; kaynak registry, GenUI capability registry ve UI provider registry birleştirilmez."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Native write iznine sahip ama ilgili aracı allowlist'inde taşımayan ajan bir yazma aracını çağırdığında çağrı reddedilir ve hedef kaydın alanları ile modified değeri değişmez.",
+      "red": "Gelecekte yazılacak test, allowlist denetimi olmadığı için çağrının native uca ulaşıp kaydı değiştirmesi nedeniyle davranış iddiasında başarısız olmalıdır; import, fixture veya altyapı hatası RED sayılmaz ve native izin davranışı bozularak RED üretilmez.",
+      "green": "En küçük değişiklik: native uca gitmeden önce ajan rolü-araç allowlist denetimi eklenir; native izin denetimi aynen korunur, test reddi ve değişmeyen kaydı doğrular. Bu turda test yazılmaz ve koşulmaz."
+    },
+    "rollback": "Bu tur yalnız belge: geri alma, entegrasyon sahibinin bu sözleşme dosyasını önceki onaylı haline seri olarak döndürmesidir; başkalarının değişiklikleri geri alınmaz. Gelecekteki uygulamada allowlist denetimi yalnız daraltıcı olduğundan geri alma native izin davranışını değiştirmemelidir; CI, deploy ve rollback teknik sahibi Hüseyin Cengiz'dir. Bu sözleşme veri, şema veya servis değişikliği yetkisi vermez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "agents-2",
+      "sourceStage": "scale",
+      "existing": "Native parçalar: discovery katalog verisi System Manager ile sınırlı ve her yöntem için allow_guest bilgisini veriyor; v2'de HTTP yöntemi-ptype eşlemesi (PERMISSION_MAP) var; v1 belge yöntemi çağrısında is_whitelisted denetimi var; Suite, File izin mantığını Drive'a devrediyor. 'Her çağrıda sunucu izni yeniden uygulanır' ilkesi bu native parçalarla uyumludur.",
+      "gap": "Katalog kaynağı tanımsız ve discovery'nin System Manager şartı ajan rolüyle çelişiyor; tenant sınırı (site veya User Permission) ve tenant parametresinin sunucuda yok sayılma kuralı yazılmamış; allow_guest uçlar (ör. writer docs) ve ignore_permissions kullanan yardımcılar için dışlama kuralı yok; Suite'in ignore_file_permissions ile File iznini Drive'a devretmesi hesaba katılmamış.",
+      "completionSteps": [
+        "Katalog kaynağı: discovery çıktısını yalnız yönetici tarafında aday liste olarak kullan; ajanın gördüğü tek kaynak insan onaylı AgentCapability allowlist kaydı olsun; ajana System Manager verme.",
+        "Her allowlist girdisi için doctype ve ptype eşlemesini v2 PERMISSION_MAP ile belgele; belge yöntemleri için is_whitelisted gereksinimini kayıtta belirt.",
+        "allow_guest değeri true olan uçları otomatik olarak onaydan dışla.",
+        "ignore_permissions kullanan yardımcılar discovery çıktısından anlaşılamadığı için onay sırasında kaynak incelemesi kanıtı iste; kanıt yoksa girdi onaylanmaz.",
+        "File işlemleri için Drive izin eşlemesini belgele; eşleme doğrulanana kadar File araçlarını katalog dışında tut.",
+        "Tenant parametresini yetki girdisi saymayan sunucu kuralını yaz; sınırı tenant topolojisi kararına göre site veya User Permission'a bağla.",
+        "Rol ve izin tanımını explicitPermissionFlags ortak kaynağına ve native-user-policy--contract'a bağla; ui-* kayıt defterleriyle birleştirme."
+      ],
+      "dependencies": [
+        "agent-capability--contract",
+        "agent-capability--schema",
+        "native-user-policy--contract",
+        "capability-definition--contract",
+        "native-doctype-schema--contract",
+        "kernel-envelope--contract",
+        "human-decision--contract",
+        "audit-envelope--contract",
+        "outbox--contract"
+      ],
+      "acceptance": "Yetkisi olmayan ajan aracı çağıramaz; reddedilen yazma çağrısında hedef kayıt değişmez. Araç parametresi tenantı değiştirerek erişimi genişletemez. allow_guest, ignore_permissions dayanaklı ve Drive eşlemesiz File araçları katalogda aktif olamaz. Ajan kimliği System Manager taşımaz. Kabul gelecekte gerçek RED/GREEN kanıtıyla verilir; bu sözleşmede runtime kabulü not_run'dır.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/discovery.py",
+          "line": 29,
+          "quote": "frappe.only_for(\"System Manager\")"
+        },
+        {
+          "path": "frappe/frappe/api/discovery.py",
+          "line": 264,
+          "quote": "\"allow_guest\": fn in frappe.guest_methods,"
+        },
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 24,
+          "quote": "PERMISSION_MAP = {"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 121,
+          "quote": "doc.is_whitelisted(method)"
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 117,
+          "quote": "ignore_file_permissions = True"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Ajan rolü-araç allowlist kaydı yalnız önerilen AgentCapability DocType olarak var; alanlar agent-capability--schema ile kesinleşmedi.",
+    "ignore_permissions kullanan yardımcıları tespit etmenin native bir işareti aranan yollarda gösterilmedi; onay sırasında elle kaynak incelemesi gerekir.",
+    "Drive izninin File işlemlerine nasıl eşlendiği bu sözleşmenin kanıtlarında gösterilmedi; ayrı kaynak incelemesi gerekir.",
+    "Tenant sınırı ve ajan kimlik modeli karar bekliyor.",
+    "Kaynaklar salt okunur anlık görüntülerdir; hedef sürümde discovery ucunun varlığı T-00 ile doğrulanmadı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Tenant topolojisi: tenant başına ayrı site mi, aynı site içinde User Permission sınırı mı.",
+      "requirementIds": ["agents-2"],
+      "blocks": "Tenant parametresini yok sayma kuralının uygulanması ve kabulü.",
+      "untilDecided": "Kuralı topolojiden bağımsız biçimde belgele: kapsam yalnız sunucu bağlamından türetilir, istemci parametresi yetki girdisi değildir; iki seçenek için kabul ölçütünü taslak olarak yaz."
+    },
+    {
+      "decision": "Ajan kimlik modeli: ajan başına ayrı Frappe User mı, insan kullanıcı adına sınırlı yetki devri mi.",
+      "requirementIds": ["agents-2"],
+      "blocks": "Ajan rolünün atanması ve native izin denetiminin hangi kullanıcı üzerinden yapılacağı.",
+      "untilDecided": "Her iki modelde de System Manager verilmeyeceğini ve allowlist'in native izni yalnız daraltacağını belgele."
+    },
+    {
+      "decision": "Allowlist girdisini onaylayacak insan rolü ve onay akışı.",
+      "requirementIds": ["agents-2"],
+      "blocks": "Katalog girdilerinin onaylı duruma geçmesi.",
+      "untilDecided": "Onay kaydı alanlarını human-decision--contract ile hizalı taslak olarak belgele; tüm girdiler taslak durumunda kalır."
+    },
+    {
+      "decision": "AI katmanı sağlayıcısı ve model satıcısı.",
+      "requirementIds": ["agents-2"],
+      "blocks": "Araç şemalarının belirli bir AI katmanına bağlanması.",
+      "untilDecided": "Katalog kaydını sağlayıcıdan bağımsız JSON şema olarak belgele."
+    },
+    {
+      "decision": "Hedef Frappe ve Suite sürümü.",
+      "requirementIds": ["agents-2"],
+      "blocks": "Discovery tabanlı aday liste üretimi ve kanıt satırlarının hedef sürümde geçerliliği.",
+      "untilDecided": "Kanıtları anlık görüntü kaynağı olarak işaretli tut; T-00 doğrulama adımını admission'da koru."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

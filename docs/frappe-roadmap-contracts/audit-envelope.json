@@ -1,18 +1,31 @@
 {
   "schemaVersion": "saas-existing-work-contract.v1",
   "canonicalUnitId": "audit-envelope",
-  "canonicalTaskIds": ["audit-envelope--implementation"],
+  "canonicalTaskIds": [
+    "audit-envelope--implementation",
+    "ui-family-27--implementation",
+    "ui-view-feed--implementation"
+  ],
   "requirementIds": ["audit-1", "audit-2", "audit-3", "audit-4", "audit-5"],
   "stage": "mvp",
+  "sourceStages": {
+    "audit-1": "mvp",
+    "audit-2": "mvp",
+    "audit-3": "mvp",
+    "audit-4": "mvp",
+    "audit-5": "mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
-    "title": "AuditEnvelope kaydi eklendikten sonra Document.save ile guncellenemez (append-only)",
-    "trigger": "Var olan bir AuditEnvelope belgesi uzerinde herhangi bir alan degistirilip Document.save cagrilmasi (REST v1 update_doc dahil, cunku o yol doc.save() kullanir).",
-    "expected": "Yeni kayit Document.insert ile native DocPerm cercevesinde olusur; ref Version, gerekce ve kaynak alanlari bir kez yazilir ve sonradan degismez.",
-    "denied": "is_new olmayan belgede validate asamasinda frappe.throw ile islem durur, transaction geri alinir; Administrator dahil controller yolundan gecen hicbir kullanici kaydi degistiremez."
+    "title": "AuditEnvelope kaydı eklendikten sonra Document.save ile güncellenemez (append-only)",
+    "trigger": "Var olan bir AuditEnvelope belgesinde herhangi bir alan değiştirilip Document.save çağrılması. REST v1 güncelleme yolu doc.save() kullandığı için bu tetikleyiciye girer.",
+    "expected": "Yeni kayıt Document.insert ile native DocPerm çerçevesinde oluşur. ref Version, gerekçe ve kaynak alanları bir kez yazılır, sonradan değişmez. Uygulama durumu: uygulanmadı.",
+    "denied": "is_new olmayan belgede validate aşamasında frappe.throw ile işlem durur ve istek transaction'ı geri alınır. Controller yolundan geçen hiçbir kullanıcı, Administrator dahil, kaydı değiştiremez. Controller'ı atlayan yollar (frappe.db.set_value, doğrudan SQL) bu davranışın dışındadır ve remainingGaps içinde izlenir."
   },
   "reuse": {
-    "mechanism": "Native Version eski/yeni deger ve aktor izinin kaynagi olarak kalir; ikinci degisiklik gecmisi kurulmaz. Zarf yalniz Version'a referans veren ek kayittir. REST v1 istemciden gelen flags alanini sildigi icin gerekce/kaynak Version.updater_reference uzerinden istemciden tasinamaz; bu nedenle sahip olunan controller'da en kucuk koruma eklenir. Administrator izin kontrolunu atladigi icin koruma izin katmanina degil controller validate'ine konur.",
+    "status": "KISMI",
+    "mechanism": "Native Version, eski/yeni değer ve aktör izinin kaynağı olarak kalır. İkinci bir değişiklik geçmişi kurulmaz; ORM veya Version kopyalanmaz. Zarf yalnız Version'a referans veren ek kayıttır. REST v1 istemciden gelen flags alanını sildiği için gerekçe/kaynak, Version.updater_reference üzerinden istemciden taşınamaz. Administrator izin kontrolünü koşulsuz geçtiği için koruma izin katmanına değil, sahip olunan controller'ın validate adımına konur. Kanıtlar native parçaları gösterir, bütün davranışın var olduğunu göstermez. Suite'in Vue/Frappe UI kaynağı, React/Ant Design uygulamasının kanıtı değildir.",
     "evidence": [
       {
         "path": "frappe/frappe/api/v1.py",
@@ -39,69 +52,333 @@
         "line": 109,
         "quote": "if user == \"Administrator\":"
       }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "frappe/frappe/api/v2.py",
+      "frappe/frappe/core/doctype/document_naming_rule/document_naming_rule.json",
+      "frappe/frappe/core/doctype/document_naming_settings/document_naming_settings.py",
+      "frappe/frappe/core/doctype/version/version.py",
+      "frappe/frappe/permissions.py",
+      "suite/frontend/src/apps/sheets/services/versions.js",
+      "suite/suite/hooks.py",
+      "suite/suite/writer/doctype/writer_document/writer_document.py"
     ]
   },
   "ownership": {
     "activeContractFile": "docs/frappe-roadmap-contracts/audit-envelope.json",
     "plannedProduction": [
-      "backend/saas_platform/saas_platform/audit_governance/doctype/audit_envelope/audit_envelope.py"
+      "backend/saas_platform/saas_platform/audit_governance/doctype/audit_envelope/audit_envelope.py",
+      "frontend/packages/ui/src/components/ui-family-27/index.tsx",
+      "frontend/packages/ui/src/components/ui-view-feed/index.tsx"
     ],
-    "plannedTestFile": "backend/saas_platform/saas_platform/audit_governance/doctype/audit_envelope/test_audit_envelope.py",
+    "plannedTestFile": null,
     "sharedIntegrationFiles": [
-      "backend/saas_platform/saas_platform/audit_governance/doctype/audit_envelope/audit_envelope.json",
       "backend/saas_platform/saas_platform/hooks.py",
-      "integration/fragments/audit-envelope--integration.json"
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "Insert: ref Version (Link, zorunlu), gerekce (metin, bos olamaz), kaynak (ui|api|job|import). Alan adlari ve uzunluk siniri audit-envelope--schema sozlesmesine baglidir; su an bilinmiyor. Tenant alani tenant-registry--contract kararina kadar bos birakilir.",
-    "output": "Native REST okuma yolu: check_permission(read) ve apply_fieldlevel_read_permissions sonrasi alanlar; contract-audit-envelope v1.",
-    "authorization": "Yerel site sinirinda native DocPerm (create/read; write ve delete rolleri schema sozlesmesinde). Controller korumasi izinden bagimsiz calisir; Administrator bypass'i controller'i atlamaz.",
-    "persistence": "Native Document.insert/save transaction'i; red durumunda istek transaction'i geri alinir. Yeni tablo veya DDL garantisi bu sozlesmede yok; DocType kurulumu schema gorevine aittir.",
-    "failure": "Guncellemede frappe.throw ile ValidationError ailesinden hata; kesin sinif ve HTTP durum kodu yerel v17'de dogrulanacak (bilinmiyor). Tuketici 2xx olmayan yaniti exc_type ile okuyup kaydi yeniden yuklemeli, tekrar denememeli."
+    "input": "Insert alanları: ref Version (Link, zorunlu), gerekçe (metin, boş olamaz), kaynak (ui|api|job|import). Alan adları ve uzunluk sınırı audit-envelope--schema sözleşmesine bağlıdır ve şu an bilinmiyor. Tenant alanı tenant-registry--contract kararına kadar tanımlanmaz. Güncelleme girdisi kabul edilmez.",
+    "output": "Native REST okuma yolu kullanılır: check_permission(read) ve apply_fieldlevel_read_permissions sonrasında kalan alanlar döner. ui-view-feed ve ui-family-27 yalnız bu JSON çıktısını okur. ReactNode ve callback'ler istemcide yerel kalır, JSON model sınırından geçmez.",
+    "authorization": "Native DocPerm geçerlidir (create/read; write ve delete rolleri schema sözleşmesinde). Rol ve izin tanımları, ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy altındaki explicitPermissionFlags ortak kaynağına bağlanır; bu rehber yeni rol üretmez. ignore_permissions veya SQL ile yetki atlanmaz. Controller koruması izin sonucundan bağımsız çalışır.",
+    "persistence": "Native Document.insert/save transaction'ı kullanılır; red durumunda istek transaction'ı geri alınır. Bu sözleşmede yeni tablo veya DDL yoktur; DocType kurulumu audit-envelope--schema görevine aittir. Bu sözleşme hiçbir servisi, şemayı, veriyi veya production ortamını değiştirme yetkisi vermez.",
+    "failure": "Güncelleme denemesinde frappe.throw ile ValidationError ailesinden bir hata oluşur. Kesin hata sınıfı ve HTTP durum kodu bilinmiyor; hedef sürümde doğrulanacak. Tüketici, 2xx olmayan yanıtı exc_type ile okur, kaydı yeniden yükler ve isteği tekrar denemez. Arayüz düzenleme eylemi sunmaz."
   },
   "development": {
     "dependencies": [
+      "api-middleware--contract",
       "audit-envelope--contract",
       "audit-envelope--schema",
+      "client-rule-parity--contract",
       "kernel-envelope--contract",
-      "tenant-registry--contract",
       "native-user-policy--contract",
-      "local pilot: Frappe adf1fd0c on suite.localhost (t08 native admin/reader scopes)"
+      "tenant-registry--contract",
+      "ui-family-27--contract",
+      "ui-view-feed--contract"
     ],
-    "admission": "AuditEnvelope DocType'i schema gorevi ile yerel siteye kurulmus olmali; T-00 ve R-00 tamam olmali. Uzak urun baseline'i ve Suite HEAD bilinmiyor; yerel kanit uzak baseline degildir.",
+    "admission": "Uygulama durumu: uygulanmadı. Ön koşullar: T-00 hedef baseline ve R-00 yeniden kullanım eşlemesi tamamlanmış olmalı. İzinli veri tüketicileri için R-01 de gerekir. AuditEnvelope DocType'ı audit-envelope--schema ile kurulmuş, hedef Frappe sürümü kararı verilmiş olmalı. Ürün baseline'ı ve Suite HEAD bilinmiyor; okunan kaynak anlık görüntüleri ürün kabulü yerine geçmez. Kabul edilene kadar yalnız belge adımları yapılır.",
     "steps": [
-      "audit_envelope.py controller'ina validate ekle: is_new degilse frappe.throw.",
-      "Insert'te ref Version varligini native Link dogrulamasina birak; ek kopya yazma.",
-      "hooks.py'a dokunma; entegrasyon Codex'te."
+      "audit_envelope.py controller'ına validate ekle: belge is_new değilse frappe.throw çağır. Başka iş kuralı ekleme.",
+      "Insert sırasında ref Version varlığının kontrolünü native Link doğrulamasına bırak. Version verisini zarfa kopyalama.",
+      "Insert yolunda ignore_permissions kullanma. İzin native DocPerm ile kontrol edilir.",
+      "Backend davranışı kabul edildikten sonra ui-view-feed bileşenini React ve Ant Design ile salt okunur denetim akışı olarak kur. Veri, TanStack Query ile native REST okuma yolundan gelir. Bileşende düzenleme veya silme eylemi bulunmaz. Gerçek ve etkin aktör, kaynak ve gerekçe görünür olur. ui-family-27 aynı JSON çıktısını kullanan destekleyici bileşendir. Grid kararı açık olduğundan tablo/grid bileşeni seçilmez.",
+      "hooks.py, registry.ts, routes.tsx ve diğer paylaşımlı entegrasyon dosyalarına dokunma. Değişiklik önerisi, seri birleştirme için entegrasyon sahibine döner. Kaynak registry kaydı, GenUI capability registry kaydı değildir; GenUI ayrı bir kullanıcı projesidir."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "Izinli kullanici bir AuditEnvelope ekler, gerekceyi degistirip save cagirir; islem hata ile reddedilmeli ve veritabanindaki gerekce degismemeli.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Ayni test, ayni bench run-tests komutu ile controller korumasi eklendikten sonra gecer."
+      "oneScenario": "İzinli bir kullanıcı AuditEnvelope ekler, ardından gerekçeyi değiştirip save çağırır. İşlem hata ile reddedilmeli ve veritabanındaki gerekçe değişmemeli.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. RED, controller koruması yokken güncellemenin kabul edilmesi ve gerekçenin değişmesidir. Import/altyapı hatası veya native davranışı bozmak RED sayılmaz. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "Koruma eklendikten sonra aynı senaryo, değişmeyen assertion ve aynı komutla geçmeli: güncelleme reddedilir, gerekçe değişmez. Şu anda not_run durumunda; bu sözleşme veya biçim kontrolü ürün GREEN'i sayılmaz."
     },
-    "rollback": "Yalniz audit_envelope.py icindeki validate degisikligini yerelde geri al; production yetkisi yok."
+    "rollback": "Yalnız audit_envelope.py içindeki validate değişikliği geri alınır. UI bileşenleri salt okunur olduğundan veri geri dönüşü gerekmez. Bu sözleşme production yetkisi vermez; CI/deploy/rollback teknik sahibi Hüseyin Cengiz'dir."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "audit-1",
+      "sourceStage": "mvp",
+      "existing": "Version diff'i Document yaşam döngüsünde üretilir. REST v1 güncellemesi doc.save() üzerinden geçer. v2 toplu silme işlemi eşik aşılırsa enqueue edilir. Writer save_doc, check_permission sonrasında frappe.db.set_value ile yazar. track_changes DocType bazında açılır.",
+      "gap": "Hangi yazma yollarının zarfa gireceği listelenmemiş. set_value yaşam döngüsünü atlar. version-15 belge atıfları, okunan kaynak anlık görüntüsüyle (17.0.0.dev0 olarak raporlanmış) eşlenmemiş. Activity Log, Access Log ve Audit Trail kaynakları görülmedi. track_changes kapsamı kararı yok.",
+      "completionSteps": [
+        "audit-envelope--implementation kabulüne yazma yolu tablosu ekle. Document.save yolu Version üretir ve kaynak=ui|api olur. frappe.db.set_value yolu Version üretmez ve zarf kapsamı dışında kalır. v2 bulk delete enqueue yolunda kaynak=job olur. Suite op-log yolu da tabloya girer ve saklama kararına bağlanır.",
+        "Hedef sürüm kararından sonra Activity Log, Access Log ve Audit Trail kaynaklarını salt okunur incele; path:line kanıtıyla eşle.",
+        "track_changes açılacak DocType listesini decisionsPending kaydına bağla. Suite kodunu değiştirme ve yeni görev açma."
+      ],
+      "dependencies": ["audit-envelope--contract", "kernel-envelope--contract"],
+      "acceptance": "UI, API ve arka plan işindeki kritik değişikliklerin kullanıcı ve işlem izi bulunabilsin. Kapsam dışı yazma yolları tabloda açıkça işaretli olsun.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 61,
+          "quote": "doc.save()"
+        },
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 293,
+          "quote": "job = frappe.enqueue("
+        },
+        {
+          "path": "suite/suite/writer/doctype/writer_document/writer_document.py",
+          "line": 32,
+          "quote": "frappe.db.set_value(\"Writer Document\", self.name, \"content\", data)"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/document_naming_rule/document_naming_rule.json",
+          "line": 119,
+          "quote": "\"track_changes\": 1"
+        }
+      ]
+    },
+    {
+      "requirementId": "audit-2",
+      "sourceStage": "mvp",
+      "existing": "Version.data alan bazında eski ve yeni değeri tutar. via_data_import ve updater_reference kaynak bilgisi yakalanır. ignore_versioning_fields diff'ten çıkarılır.",
+      "gap": "Zarf şeması (tenant, kaynak, gerekçe, korelasyon kimliği) ve bu şemanın updater_reference ile ilişkisi tanımsız. Tenant topolojisi belirsiz. Gerekçenin hangi işlemlerde zorunlu olduğu ve eksikse ne yapılacağı tanımsız. Versiyonlanmayan alanlar ve büyük metin alanları için politika yok.",
+      "completionSteps": [
+        "Zarf alanlarını, Version Link artı gerekçe artı kaynak enum'u olarak audit-envelope--schema sözleşmesine bağla. via_data_import için kaynak=import eşlemesini yaz.",
+        "REST v1 istemci flags alanını sildiği için kaynak ve gerekçeyi yalnız sahip olunan sunucu kodunda ayarla. Bu sınırı api-middleware--contract'a not et.",
+        "Tenant alanını tenant-registry--contract kararına kadar tanımsız bırak. Gerekçe zorunluluğu kuralını decisionsPending kaydına bağla.",
+        "ignore_versioning_fields içindeki alanların değerini zarfa kopyalama; yalnız alanın izlenmediğini belgele."
+      ],
+      "dependencies": [
+        "audit-envelope--schema",
+        "tenant-registry--contract",
+        "kernel-envelope--contract",
+        "api-middleware--contract"
+      ],
+      "acceptance": "Bir kritik değişiklik eski/yeni değer, gerçek aktör, tenant, kaynak ve gerekçeyle sorgulanabilsin. Eklenmiş zarf kaydı sonradan değiştirilemesin.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/core/doctype/version/version.py",
+          "line": 110,
+          "quote": "[[fieldname1, old, new], [fieldname2, old, new]]"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/version/version.py",
+          "line": 143,
+          "quote": "updater_reference = new.flags.updater_reference"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/version/version.py",
+          "line": 142,
+          "quote": "data_import = new.flags.via_data_import"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/version/version.py",
+          "line": 129,
+          "quote": "for fieldname in row.meta.ignore_versioning_fields:"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 57,
+          "quote": "if \"flags\" in data:"
+        }
+      ]
+    },
+    {
+      "requirementId": "audit-3",
+      "sourceStage": "mvp",
+      "existing": "Version, oturumdaki impersonated_by ve audit_user değerlerini kaydeder. Document Naming Settings, sayaç değişikliği için Version'ı elle ve ignore_permissions ile yazar; bu yalnız native iç admin akışıdır.",
+      "gap": "Destek erişiminin başlatılması ve bitirilmesi için talimat yok. Role ve Has Role değişikliklerinin izlenme kapsamı belirsiz. ignore_permissions ile yapılan Version yazımının dışa açılmayacağı yazılı değil. Keycloak korelasyonu bu sözleşmenin kapsamı dışında.",
+      "completionSteps": [
+        "Zarf okuma çıktısında gerçek aktörü impersonated_by/audit_user, etkin aktörü ise Version kaydını oluşturan oturum kullanıcısı olarak eşle. Bu eşleme hedef sürümde doğrulanacak.",
+        "Role ve Has Role için track_changes durumunu hedef sürümde salt okunur doğrula; sonucu kabul metnine yaz.",
+        "ignore_permissions ile Version yazımının native iç akışta kaldığını, zarf API'sinin bu davranışı kopyalamadığını ve dışa açmadığını yaz.",
+        "Destek erişimini başlatma/bitirme talimatını native-user-policy--contract'a bağla."
+      ],
+      "dependencies": [
+        "native-user-policy--contract",
+        "audit-envelope--contract"
+      ],
+      "acceptance": "Destek erişimi zaman ve gerçek aktörle izlenebilsin. Müşteri adına yapılan işlem, gerçek/etkin aktör ayrımıyla ayırt edilsin.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/core/doctype/version/version.py",
+          "line": 43,
+          "quote": "if impersonator := frappe.session.data.get(\"impersonated_by\"):"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/version/version.py",
+          "line": 46,
+          "quote": "if audit_user := frappe.session.data.get(\"audit_user\"):"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/document_naming_settings/document_naming_settings.py",
+          "line": 222,
+          "quote": "self.create_version_log_for_change(naming_series.get_prefix(), previous_value, self.current_value)"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/document_naming_settings/document_naming_settings.py",
+          "line": 236,
+          "quote": "version.flags.ignore_permissions = True"
+        }
+      ]
+    },
+    {
+      "requirementId": "audit-4",
+      "sourceStage": "mvp",
+      "existing": "Administrator izin kontrolünü koşulsuz geçer. Suite log DocType'ları için permission_query hook'ları vardır. Sheet op log'u zamanlanmış görevle kırpılır. Writer Version kayıtları, doküman silinince silinir.",
+      "gap": "Saklama süresi ve hangi log türlerine uygulanacağı belirsiz. truncate ve silme davranışlarının saklama ile çakışması ele alınmamış. Korumalı kopyanın hedefi ve kabul ölçütü yok. Yönetici müdahalesinin nasıl iz bırakacağı tanımsız.",
+      "completionSteps": [
+        "Bu sözleşmedeki append-only validate davranışını ilk parça olarak uygula. on_trash koruması saklama kararından sonra ayrı bir tek davranış olarak ele alınır.",
+        "Saklama matrisi (log türü, süre, korumalı kopya hedefi) iskeletini değerleri boş bırakarak yaz.",
+        "Suite truncate_op_log ve Writer Version silme davranışlarını, saklama kararına kadar audit kapsamı dışında olarak işaretle. Suite kodunu değiştirme.",
+        "Korumalı kopya altyapısını kabul ölçütüyle Hüseyin Cengiz'e devret. Administrator'ın set_value/SQL ile yapabileceği değişikliklere karşı tek kanıt bu kopyadır."
+      ],
+      "dependencies": [
+        "audit-envelope--schema",
+        "native-user-policy--contract"
+      ],
+      "acceptance": "Normal kullanıcı log değiştiremesin. Korumalı kopya saklama süresi boyunca silinemesin. Yönetici müdahalesi iz bıraksın.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 109,
+          "quote": "if user == \"Administrator\":"
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 298,
+          "quote": "\"suite.sheets.versioning.tasks.truncate_op_log\","
+        },
+        {
+          "path": "suite/suite/writer/doctype/writer_document/writer_document.py",
+          "line": 26,
+          "quote": "frappe.db.delete(\"Writer Version\", {\"doc\": self.name})"
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 128,
+          "quote": "\"Drive Entity Activity Log\": \"suite.drive.utils.overrides.filter_activity_log\","
+        }
+      ]
+    },
+    {
+      "requirementId": "audit-5",
+      "sourceStage": "mvp",
+      "existing": "Version üzerinde ref_doctype+docname indeksi, export izin türü ve v1 okumada check_permission ile apply_fieldlevel_read_permissions vardır. Suite sheets versions.js aktörü eşler; bu Vue kaynağıdır ve React/Ant Design kanıtı değildir.",
+      "gap": "Data Masking hedef sürümde doğrulanmadı. Hassas alan listesi ve kapsanacak çıktı yolları (REST, CSV/JSON export, Query Report) tanımsız. Version.data içindeki değerler için maskeleme kuralı yok. Tenant veya aktör bazlı arama için indeks ve filtre sözleşmesi yok.",
+      "completionSteps": [
+        "Hedef sürüm kararından sonra Data Masking ile report/export yollarını salt okunur incele.",
+        "Kabule çıktı yolu × maskeleme tablosunu ekle. Version.data için maskeleme kuralını hassas alan kararına bağla.",
+        "ui-view-feed ve ui-family-27 yalnız native izinli REST okuma yolunu kullansın; raw SQL kısayolu açılmasın. İstemci tarafı kural eşliği client-rule-parity--contract'a bağlanır.",
+        "Yeni indeks önerisini audit-envelope--schema sözleşmesine bırak."
+      ],
+      "dependencies": [
+        "audit-envelope--schema",
+        "ui-view-feed--contract",
+        "ui-family-27--contract",
+        "client-rule-parity--contract",
+        "api-middleware--contract"
+      ],
+      "acceptance": "Seçilen sürümde arama, JSON/CSV export ve SQL raporunda aynı hassas alan politikası geçsin.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/core/doctype/version/version.py",
+          "line": 256,
+          "quote": "frappe.db.add_index(\"Version\", [\"ref_doctype\", \"docname\"])"
+        },
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 27,
+          "quote": "\"export\","
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 84,
+          "quote": "doc.apply_fieldlevel_read_permissions()"
+        },
+        {
+          "path": "suite/frontend/src/apps/sheets/services/versions.js",
+          "line": 119,
+          "quote": "o.actor"
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "frappe.db.set_value ve dogrudan SQL controller'i atlar; Administrator bunlarla kaydi degistirebilir. Yonetici korumasi WORM kopya ister; hedef ve kurulum Huseyin Cengiz bagimliligi, karar bekliyor.",
-    "Silme (on_trash) korumasi ve saklama suresi bu davranista yok; saklama suresi karari verilmedi.",
-    "Yazma yolu envanteri (Writer set_value, v2 bulk delete enqueue, Suite op-log truncate) zarfa baglanmadi.",
-    "Tenant modeli, gerekce zorunlulugu kapsami ve korelasyon kimligi diger sozlesmelere bagli.",
-    "Keycloak admin event korelasyonu karar bekliyor ve kapsam disinda; destek erisimi baslat/bitir talimati yok.",
-    "Data Masking'in yerel v17 durumu ve export/Query Report maskeleme dogrulanmadi.",
-    "Activity Log, Access Log ve Audit Trail icin v17 surum eslemesi yok."
+    "frappe.db.set_value ve doğrudan SQL controller'ı atlar; Administrator bu yollarla kaydı değiştirebilir. Yöneticiye karşı kanıt için korumalı kopya gerekir. Kopya hedefi karar bekliyor; kurulum Hüseyin Cengiz'e devredilir.",
+    "Silme (on_trash) koruması ve saklama süresi bu davranışın kapsamında yok.",
+    "Yazma yolu envanteri (Writer set_value, v2 bulk delete enqueue, Suite op-log truncate) henüz zarfa bağlanmadı.",
+    "Tenant modeli, gerekçe zorunluluğu ve korelasyon kimliği, karara veya diğer sözleşmelere bağlı.",
+    "Keycloak admin event korelasyonu bu sözleşmenin kapsamı dışında. Destek erişimini başlatma/bitirme talimatı native-user-policy--contract'a bağlı.",
+    "Data Masking'in hedef sürümdeki durumu ve export/Query Report maskelemesi doğrulanmadı.",
+    "Activity Log, Access Log ve Audit Trail için hedef sürüm kaynak eşlemesi yok.",
+    "Sunucu tarafı kodun validate adımını atlatabilecek bayrakları hedef sürümde doğrulanmadı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Saklama süresi ve uygulanacağı log türleri",
+      "requirementIds": ["audit-4"],
+      "blockedStep": "Saklama matrisinin kabulü ve on_trash davranışı",
+      "documentationStepUntilDecision": "Matris sütunlarını değerleri boş bırakarak belgele"
+    },
+    {
+      "decision": "Korumalı (WORM) kopya hedefi ve sağlayıcısı",
+      "requirementIds": ["audit-4"],
+      "blockedStep": "Hüseyin Cengiz'e altyapı devri",
+      "documentationStepUntilDecision": "Kabul ölçütünü yaz: normal kullanıcı değiştiremez, kopya saklama süresinde silinemez, yönetici müdahalesi iz bırakır"
+    },
+    {
+      "decision": "Tenant topolojisi (site veya kayıt alanı)",
+      "requirementIds": ["audit-2"],
+      "blockedStep": "Zarf tenant alanı ve tenant bazlı arama",
+      "documentationStepUntilDecision": "Alanı tanımsız bırak ve tenant-registry--contract'a bağla"
+    },
+    {
+      "decision": "Hedef Frappe sürümü",
+      "requirementIds": ["audit-1", "audit-5"],
+      "blockedStep": "Activity/Access Log, Audit Trail ve Data Masking doğrulaması",
+      "documentationStepUntilDecision": "version-15 atıflarını doğrulanmamış olarak işaretle"
+    },
+    {
+      "decision": "Gerekçenin zorunlu olduğu işlemler ve eksik gerekçede red mi uyarı mı uygulanacağı",
+      "requirementIds": ["audit-2"],
+      "blockedStep": "Gerekçe doğrulama kuralı",
+      "documentationStepUntilDecision": "Aday işlem listesini kural belirlemeden tut"
+    },
+    {
+      "decision": "track_changes açık olacak DocType listesi",
+      "requirementIds": ["audit-1"],
+      "blockedStep": "Version kapsamı kabulü",
+      "documentationStepUntilDecision": "Aday DocType listesini yaz"
+    },
+    {
+      "decision": "Hassas alan listesi ve maskelenecek çıktı yolları",
+      "requirementIds": ["audit-5"],
+      "blockedStep": "Maskeleme tablosunun kabulü",
+      "documentationStepUntilDecision": "Çıktı yolu × maskeleme tablosunun boş iskeletini yaz"
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "audit-1": "mvp",
-    "audit-2": "mvp",
-    "audit-3": "mvp",
-    "audit-4": "mvp",
-    "audit-5": "mvp"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,

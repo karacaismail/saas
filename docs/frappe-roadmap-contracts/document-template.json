@@ -1,0 +1,244 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "document-template",
+  "canonicalTaskIds": [
+    "document-template--implementation",
+    "ui-family-31--implementation-post-mvp"
+  ],
+  "requirementIds": ["reports-9"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "reports-9": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Sürümlü belge şablonuyla yetkili önizleme, aynı sürümden PDF/indirme ve toplu belge üretimi",
+    "trigger": "Kullanıcı headless istemcideki React/Ant Design yüzeyinde bir kayıt ya da kayıt listesi için belge şablonu seçer; ardından önizleme, tekil PDF/indirme veya toplu üretim ister.",
+    "expected": "Önizleme ve nihai belge aynı yayımlanmış şablon sürümünü ve aynı yetkili veriyi kullanır. Yanıt şablon kimliğini, sürümünü ve içerik özetini taşır. Tekil PDF özel dosya olarak üretilir ve yalnız kiracıya bağlı, süreli, yetki kontrollü yoldan indirilir. Toplu üretim native arka plan işiyle ilerler ve kayıt bazlı hata sunar. Aynı tekrar anahtarıyla yinelenen istek yeni iş açmaz, mevcut iş kimliğini döndürür.",
+    "denied": "Şu istekler reddedilir: print izni olmayan kayıt, bulk_actions bayrağı olmayan kullanıcının toplu isteği, adet limiti veya hız sınırı aşımı, başka kiracıya ait belge kimliği, süresi geçmiş indirme, yayımlanmamış ya da bulunmayan şablon sürümü, System Manager olmayan kullanıcının ham Jinja render isteği. Reddedilen istekte dosya veya iş oluşmaz; şablon kaydı değişmez."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Uygulama durumu: uygulanmadı. Yeniden kullanılacak native Frappe yazdırma parçaları şunlardır: printview standalone yolundaki validate_print_permission; print_format_generator içindeki System Manager sınırı ve doc.check_permission('print'); print_format.py içindeki bulk_actions bayrağı, adet limiti, hız sınırı ve arka plan işi; Print Settings pdf_generator seçimi. Bu kanıtlar yalnız tek tek native parçaları gösterir, davranışın tamamının var olduğunu göstermez. Şablon sürümünün sabitlenmesi, kiracıya bağlı süreli indirme, tekrar isteğe karşı anahtar ve headless önizleme sözleşmesi kaynakta görülmedi. Vue/Frappe UI kaynağı, React/Ant Design uygulamasının kanıtı sayılmaz.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/www/printview.py",
+        "line": 92,
+        "quote": "validate_print_permission(doc)"
+      },
+      {
+        "path": "frappe/frappe/www/printpreview.py",
+        "line": 19,
+        "quote": "doc = frappe.get_doc(doctype, docname)"
+      },
+      {
+        "path": "frappe/frappe/utils/print_format.py",
+        "line": 99,
+        "quote": "if not frappe.get_cached_value(\"User\", frappe.session.user, \"bulk_actions\"):"
+      },
+      {
+        "path": "frappe/frappe/utils/print_format.py",
+        "line": 109,
+        "quote": "task_id = str(uuid.uuid4())"
+      },
+      {
+        "path": "frappe/frappe/utils/print_format_generator.py",
+        "line": 18,
+        "quote": "frappe.only_for(\"System Manager\")"
+      },
+      {
+        "path": "frappe/frappe/printing/doctype/print_settings/print_settings.py",
+        "line": 31,
+        "quote": "pdf_generator: DF.Literal[\"wkhtmltopdf\", \"chrome\"]"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/printing/doctype/print_settings/print_settings.py",
+      "frappe/frappe/utils/print_format.py",
+      "frappe/frappe/utils/print_format_generator.py",
+      "frappe/frappe/www/printpreview.py",
+      "frappe/frappe/www/printview.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/document-template.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/reporting/doctype/document_template/document_template.py",
+      "frontend/packages/ui/src/components/ui-family-31/post_mvp.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Önizleme isteği doctype, name, documentTemplate, templateVersion, dil ve antetli kâğıt ayarlarını içerir. templateVersion boşsa son yayımlanmış sürüm çözülür ve yanıtta sabitlenir. Tekil PDF isteği önizlemeyle aynı alanları taşır, ancak templateVersion zorunludur. Toplu istek doctype, names[], documentTemplate, templateVersion ve idempotencyKey alanlarını içerir. İstekler kernel-envelope--contract ve api-middleware--contract zarfıyla gelir. Kiracı bağlamı tenant topolojisi kararına göre sunucu tarafında çözülür; istemci gövdesindeki bir alan yetki kaynağı sayılmaz.",
+    "output": "Önizleme yanıtı render edilmiş HTML ile birlikte documentTemplate, templateVersion ve contentHash döner. Tekil PDF yanıtı özel dosya referansı ve son geçerlilik zamanı döner; dosya içeriği yalnız yetki kontrolünden geçen indirme yolundan akar. Toplu istek yanıtı taskId, job-state--contract biçiminde durum ve kayıt bazlı hata listesi döner; iş tamamlandığında özel dosya referansı eklenir. JSON model sınırından yalnız veri geçer; ReactNode veya callback taşınmaz.",
+    "authorization": "Her kayıt için native print izni (validate_print_permission / doc.check_permission('print')) çağrılır. Toplu istekte kullanıcının bulk_actions bayrağı native kontrolle doğrulanır. Ham Jinja render System Manager sınırında kalır; istemci script'leri bu sınırı genişletemez. DocumentTemplate oluşturma ve yayımlama yetkileri explicitPermissionFlags ortak kaynağına bağlanır; bu rehber yeni rol üretmez. ignore_permissions, flag ile atlama veya doğrudan SQL ile yetki atlatma yasaktır. Alan düzeyi izinli alanlar ve özel ekler çıktıya sızmaz.",
+    "persistence": "DocumentTemplate (önerilen DocType) native Document save/validate/hook akışıyla yazılır. Yayımlanmış sürüm değişmez; her değişiklik yeni sürüm üretir. Üretilen PDF native özel dosya olarak saklanır; saklama süresi, silme ve veri yerleşimi karar bekler. idempotencyKey ile taskId eşlemesi kiracı ve kullanıcı kapsamında tutulur. İş durumu job-state--contract üzerinden, tamamlanma olayı outbox--contract üzerinden ilerler. Bu sözleşme şema, veri veya servis değişikliğine yetki vermez.",
+    "failure": "İzin eksikliği, bulk_actions eksikliği ve kiracı uyuşmazlığı PermissionError döner. Bulunamayan veya yayımlanmamış sürüm ile adet limiti aşımı doğrulama hatası döner. Hız sınırı aşımı ayrı bir hata olarak bildirilir. Renderer bağımlılığı eksikse açık hata döner; sessizce başka bir renderer'a geçilmez. Toplu işte kayıt bazlı hata listesi tutulur; kısmi başarısızlık işin tamamını gizlemez. Hata yanıtı kernel-envelope hata biçimini kullanır ve yetkisiz kaydın varlığını ifşa etmez."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "client-rule-parity--contract",
+      "document-template--contract",
+      "document-template--schema",
+      "job-state--contract",
+      "kernel-envelope--contract",
+      "native-doctype-schema--contract",
+      "native-report--contract",
+      "native-user-policy--contract",
+      "outbox--contract",
+      "ui-family-31--contract",
+      "ui-family-31--implementation"
+    ],
+    "admission": "T-00 hedef taban çizgisi ve R-00 yeniden kullanım eşlemesi tamamlanmadan uygulama başlamaz. Davranış izinli veri tükettiği için R-01 de gerekir. Bağımlılık sözleşmelerinin kabul edilmiş olması ve decisionsPending içindeki engelleyici kararların verilmiş olması gerekir. Tek dar davranış gerçek RED/GREEN kanıtıyla uygulanır. Bu sözleşme üretim kiralaması vermez.",
+    "steps": [
+      "1. Hedef sürüm kararından sonra searchedPaths içindeki native dosyalar ve kaynak değerlendirmesinde anılan download_pdf yolu yeniden okunur; printpreview izin akışı doğrulanır.",
+      "2. document-template--schema kapsamında DocumentTemplate alanları ve yayımlanmış sürümün değişmezlik kuralı önerilir.",
+      "3. Headless önizleme, izin kontrollü native render yoluna api-middleware ve kernel-envelope üzerinden bağlanır.",
+      "4. Tekil PDF aynı sürümle üretilir; özel, kiracıya bağlı ve süreli indirme yolu tanımlanır.",
+      "5. Toplu üretim native toplu asenkron PDF yolunu sarar; native sınırlar korunur, tekrar anahtarı, kayıt bazlı hata ve outbox olayı eklenir.",
+      "6. Renderer bağımlılığı hedef container'da doğrulanır; teknik sahip Hüseyin Cengiz'dir.",
+      "7. ui-family-31 post_mvp yüzeyi React/Ant Design ile kurulur; kaynak registry ile GenUI capability registry ayrı tutulur."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Şablon sürüm 1 ile önizleme alındıktan sonra sürüm 2 yayımlansa bile, templateVersion=1 ile istenen tekil PDF sürüm 1 içeriğinden ve aynı yetkili kayıttan üretilir. Yanıt templateVersion=1 ile sürüm 1'in contentHash değerini taşır.",
+      "red": "Test, DocumentTemplate şeması ve servis iskeleti var olduktan sonra yazılır. Çıktıda sürüm 1 işaretleyicisini ve yanıtta templateVersion=1 değerini bekler. Sürüm sabitlenmeden servis güncel Print Format'ı kullanır; bu yüzden sürüm 2 işaretleyicisi göründüğünde doğrulama başarısız olur. Import hatası, eksik altyapı veya native printview davranışını bozmak RED sayılmaz.",
+      "green": "Servis, istenen yayımlanmış sürümün değişmez içeriğini native render yoluna verir ve print iznini native kontrolle doğrular. Bu durumda test geçer, mevcut native yazdırma davranışı değişmez. Bu turda test yazılmaz ve koşulmaz."
+    },
+    "rollback": "Gelecekteki teslimde headless rota ve UI girişi kapatılır; native Desk yazdırma yolu değişmeden kalır. DocumentTemplate kayıtları silinmez. Üretilmiş özel dosyalar saklama kararına göre ele alınır. Deploy ve rollback'in teknik sahibi Hüseyin Cengiz'dir; bu sözleşme rollback çalıştırma yetkisi vermez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "reports-9",
+      "sourceStage": "post_mvp",
+      "existing": "Native parçalar şunlardır: printview standalone yolunda validate_print_permission; printpreview'de get_doc ile kaydın yüklenip print format'ın çözülmesi; print_format.py toplu PDF yolunda bulk_actions bayrağı, adet limiti, hız sınırı ve arka plan işi; ham Jinja render için System Manager sınırı ve print izni; Print Settings'te wkhtmltopdf/chrome seçimi. Kaynak değerlendirmesi download_pdf yolunu ve Typst seçeneğini de anar, ancak bu kesitte ikisi için doğrulanmış alıntı yoktur.",
+      "gap": "Şablon sürümünü sabitleyen bir mekanizma yok. printpreview kesitinde get_doc sonrasında açık bir izin kontrolü görünmüyor. Toplu PDF task_id ile yayımlanıyor; özel/süreli saklama ve kiracı bağlaması görülmedi. Her çağrı yeni bir uuid task_id ürettiği için tekrar istek çift üretime yol açabilir. Renderer bağımlılıkları container'da doğrulanmadı ve varsayılan wkhtmltopdf bakımsız olarak işaretli. Headless önizleme sözleşmesi yok.",
+      "completionSteps": [
+        "printpreview.py hedef sürümde get_doc sonrası izin akışı için okunur. Açık bir print izni kontrolü bulunmazsa headless önizleme bu yola bağlanmaz; validate_print_permission kullanan yola bağlanır. Bulgu, R-00 eşlemesine kaynak satırıyla yazılır.",
+        "DocumentTemplate için şu alanlar önerilir: Print Format bağlantısı, sürüm numarası, taslak/yayımlanmış durumu, değişmez içerik anlık görüntüsü ve içerik özeti. Yayımlanmış sürüme yazma denemesi native validate içinde reddedilir.",
+        "Önizleme uç noktası her kayıt için native print iznini çağırır. Yanıt documentTemplate, templateVersion ve contentHash döner; önizleme HTML'i istemcide script çalıştırmayan izole bir çerçevede gösterilir.",
+        "Tekil PDF yalnız istekteki templateVersion ile üretilir ve native özel dosya olarak saklanır. İndirme, oturum ve kiracı eşleşmesini, print iznini ve son geçerlilik zamanını kontrol eden yoldan yapılır; herkese açık URL üretilmez.",
+        "Toplu üretimde print_format.py toplu asenkron yolu çağrılmadan önce kiracı ve kullanıcı kapsamında idempotencyKey ile taskId eşlemesi aranır. Eşleşme varsa mevcut taskId döner. Native bulk_actions, adet limiti ve hız sınırı aynen korunur.",
+        "Toplu iş ilerlemesi ve kayıt bazlı hatalar job-state--contract biçiminde, tamamlanma olayı outbox--contract üzerinden sunulur. Yetkisiz kayıtlar sessizce atlanmaz; kayıt bazlı izin hatası olarak raporlanır.",
+        "Renderer seçimi karara bırakılır. Hüseyin Cengiz hedef container'da Chromium, wkhtmltopdf ve Typst bağımlılıklarını doğrular. Seçilen renderer yoksa açık hata kodu döner.",
+        "Headless şablon düzenleme ham Jinja render'ın System Manager sınırını korur. İstemci script'i veya istemci tarafı rol kontrolü bu sınırın yerine geçmez; istemci kural eşliği client-rule-parity--contract'a bağlanır.",
+        "ui-family-31 post_mvp yüzeyi kurulur. Şablon ve sürüm seçimi markalı, erişilebilir Ant Design Select ile yapılır. Önizleme, indirme ve toplu ilerleme TanStack Query ile yönetilir. Bileşen kaynak registry'ye eklenir; GenUI capability registry'den ayrı tutulur. Tauri ve WXT istemcileri aynı yetkili indirme yolunu kullanır."
+      ],
+      "dependencies": [
+        "document-template--contract",
+        "document-template--schema",
+        "kernel-envelope--contract",
+        "api-middleware--contract",
+        "native-user-policy--contract",
+        "native-doctype-schema--contract",
+        "native-report--contract",
+        "job-state--contract",
+        "outbox--contract",
+        "client-rule-parity--contract",
+        "ui-family-31--contract",
+        "ui-family-31--implementation"
+      ],
+      "acceptance": "Seçilen şablonun sürümüyle önizleme ve nihai belge aynı yetkili veriyi kullanır. Para, tarih, dil ve sayfa taşması gerçek uzun içerikle doğrulanır. PDF veya indirme yetkisiz alan ya da özel ek göstermez. Başka kiracıya ait belge kimliğiyle erişim reddedilir. Toplu üretim arka planda ilerleme ve kayıt bazlı hata sunar; tekrar deneme istem dışı çoğaltma yapmaz. Çıktıyı yalnız yetkili kullanıcı, geçerli süre içinde indirebilir. Yetkisiz kullanıcının yayımlanmış bir DocumentTemplate sürümünü değiştirme denemesi PermissionError ile reddedilir ve kayıt değişmeden kalır. Arayüz 320 CSS px'ten başlayarak, en az 14 CSS px metinle ve çevrelemeyen odak göstergesiyle doğrulanır.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/www/printview.py",
+          "line": 92,
+          "quote": "validate_print_permission(doc)"
+        },
+        {
+          "path": "frappe/frappe/www/printpreview.py",
+          "line": 19,
+          "quote": "doc = frappe.get_doc(doctype, docname)"
+        },
+        {
+          "path": "frappe/frappe/utils/print_format.py",
+          "line": 99,
+          "quote": "if not frappe.get_cached_value(\"User\", frappe.session.user, \"bulk_actions\"):"
+        },
+        {
+          "path": "frappe/frappe/utils/print_format.py",
+          "line": 109,
+          "quote": "task_id = str(uuid.uuid4())"
+        },
+        {
+          "path": "frappe/frappe/utils/print_format_generator.py",
+          "line": 18,
+          "quote": "frappe.only_for(\"System Manager\")"
+        },
+        {
+          "path": "frappe/frappe/printing/doctype/print_settings/print_settings.py",
+          "line": 31,
+          "quote": "pdf_generator: DF.Literal[\"wkhtmltopdf\", \"chrome\"]"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Önizleme ve nihai PDF için şablon sürümünü sabitleyen mekanizma yok.",
+    "printpreview izin akışı hedef sürüm kaynağında doğrulanmadı.",
+    "Toplu PDF dosyasının özel/süreli saklama, silme ve kiracı bağlama politikası tanımlı değil.",
+    "Tekrar isteğe karşı anahtar yok; her çağrı yeni task_id üretiyor.",
+    "Renderer bağımlılıkları hedef container'da doğrulanmadı; varsayılan wkhtmltopdf bakımsız olarak işaretli.",
+    "Headless önizleme ve indirme sözleşmesi ile React/Ant Design yüzeyi yok.",
+    "download_pdf yolu ve Typst seçeneği için doğrulanmış kaynak alıntısı yok."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Doğrulamanın yapılacağı hedef Frappe sürümü",
+      "requirementIds": ["reports-9"],
+      "blocks": "printpreview izin doğrulaması ve native uç noktaların headless eşlemesi",
+      "allowedBeforeDecision": "Okunacak native dosyalar ve kontrol maddeleri belgede listelenir."
+    },
+    {
+      "decision": "PDF renderer seçimi (chrome, wkhtmltopdf veya Typst); hedef ortamda bağımlılık kontrolüyle ve teknik doğrulama Hüseyin Cengiz tarafından yapılarak kesinleşir",
+      "requirementIds": ["reports-9"],
+      "blocks": "Renderer adımı ile sayfa taşması ve dil kabulü",
+      "allowedBeforeDecision": "Renderer'dan bağımsız istek/yanıt sözleşmesi ve eksik bağımlılık hata kodu belgelenir."
+    },
+    {
+      "decision": "Üretilmiş belgelerin ve tekrar anahtarı eşlemesinin saklama süresi ile silme politikası",
+      "requirementIds": ["reports-9"],
+      "blocks": "Süreli indirme, temizlik işi ve tekrar anahtarı penceresi",
+      "allowedBeforeDecision": "Süre, sözleşmede değeri seçilmemiş bir parametre olarak tanımlanır."
+    },
+    {
+      "decision": "Üretilmiş dosyalar için veri yerleşimi",
+      "requirementIds": ["reports-9"],
+      "blocks": "Özel dosya depolama konumu",
+      "allowedBeforeDecision": "Teslim, native özel dosya soyutlaması üzerinden konumdan bağımsız tanımlanır."
+    },
+    {
+      "decision": "Tenant topolojisi ve kiracı bağlamının çözülme biçimi",
+      "requirementIds": ["reports-9"],
+      "blocks": "Dosya ve tekrar anahtarının kiracıya bağlanması, çapraz kiracı kabulü",
+      "allowedBeforeDecision": "Kiracı uyuşmazlığında red davranışı topolojiden bağımsız olarak belgelenir."
+    },
+    {
+      "decision": "Şablon sürümünü sabitleme biçiminin document-template--contract içinde onaylanması",
+      "requirementIds": ["reports-9"],
+      "blocks": "DocumentTemplate şeması ve TDD senaryosu",
+      "allowedBeforeDecision": "Değişmez anlık görüntü ve içerik özeti önerisi belgede gerekçesiyle tutulur."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

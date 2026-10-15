@@ -4,15 +4,22 @@
   "canonicalTaskIds": ["cache-policy--implementation"],
   "requirementIds": ["performance-1", "performance-2", "performance-3"],
   "stage": "mvp",
+  "sourceStages": {
+    "performance-1": "mvp",
+    "performance-2": "mvp",
+    "performance-3": "mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
     "title": "Rate Limit kaydı Document.save ile güncellenince rate_limits önbellek girdisi tazelenir",
-    "trigger": "Mevcut Rate Limit kaydının limit alanı Document.save ile değiştirilir, ardından aynı site ve method_path için get_rate_limits çağrılır.",
-    "expected": "get_rate_limits kaydedilen yeni limiti döndürür; rate_limits hash girdisi bayat değer taşımaz. Tazelik kuralı TTL değil, olay tabanlı geçersizleştirmedir (hdel).",
-    "denied": "Rate Limit yazma yetkisi olmayan kullanıcının save çağrısı native frappe.PermissionError ile reddedilir, önbellek değişmez. Aynı IP hem allowed hem blocked ise validate frappe.throw ile kaydı reddeder."
+    "trigger": "Mevcut bir Rate Limit kaydının limit alanı native Document.save ile değiştirilir; ardından aynı site ve aynı method_path için rate_limits önbelleğini okuyan sunucu fonksiyonu çağrılır.",
+    "expected": "Okuma kaydedilen yeni limiti döndürür; rate_limits hash girdisi bayat değer taşımaz. Bu veri sınıfında tazelik kuralı TTL değil, olay tabanlı geçersizleştirmedir (hdel). Uygulama durumu: uygulanmadı.",
+    "denied": "Rate Limit yazma izni olmayan kullanıcının save çağrısı native frappe.PermissionError ile reddedilir; kayıt ve rate_limits girdisi değişmez. Aynı IP hem izinli hem engelli listedeyse kayıt native doğrulama ile reddedilir; bu mevcut sözleşme beyanıdır, doğrulama kodu verilen alıntılarda görülmüyor."
   },
   "reuse": {
-    "mechanism": "Native/source reuse: suite Rate Limit içindeki frappe.cache.hget generator ve clear_cache içindeki hdel deseni tek veri sınıfı için politika referansıdır. Yeni cache katmanı, adapter veya hook yazılmaz; sahip olunan YAML yalnız bu veri sınıfının anahtar, tazelik ve geçersizleştirme beyanını taşır. clear_cache metodunun save akışında çağrıldığı verilen excerptte görülmüyor; doğrulanmadı.",
+    "status": "KISMI",
+    "mechanism": "Uygulama durumu: uygulanmadı. Native/kaynak yeniden kullanımı: Suite Rate Limit içindeki frappe.cache.hget generator okuması ve clear_cache içindeki hdel deseni, tek veri sınıfı (rate_limits) için politika referansıdır. frappe rate_limiter içindeki setex ve make_key desenleri TTL ve anahtar örneğidir. Yeni cache katmanı, adapter, ORM, CRUD veya hook tasarlanmaz. Planlı YAML yalnız bu veri sınıfının anahtar, tazelik ve geçersizleştirme beyanını taşır. Kanıt native parçaları gösterir, bütün davranışın var olduğunu göstermez: clear_cache metodunun save akışında çağrıldığı alıntılarda görülmüyor ve doğrulanmadı. Alıntılar önceki salt okunur Frappe/Suite kaynak anlık görüntülerindendir; canlı site veya ürün kabulü değildir. Vue/Frappe UI kaynağı React/Ant Design uygulaması kanıtı sayılmaz.",
     "evidence": [
       {
         "path": "suite/suite/suite_core/doctype/rate_limit/rate_limit.py",
@@ -29,58 +36,213 @@
         "line": 180,
         "quote": "frappe.cache.setex(cache_key, seconds, 0)"
       }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/desk/query_report.py",
+      "frappe/frappe/permissions.py",
+      "frappe/frappe/rate_limiter.py",
+      "suite/suite/hooks.py",
+      "suite/suite/suite_core/doctype/rate_limit/rate_limit.py"
     ]
   },
   "ownership": {
     "activeContractFile": "docs/frappe-roadmap-contracts/cache-policy.json",
     "plannedProduction": ["operations/cache-policy/cache_policy_mvp.yml"],
-    "plannedTestFile": "backend/saas_platform/saas_platform/tests/test_cache_policy_rate_limit.py",
+    "plannedTestFile": null,
     "sharedIntegrationFiles": [
-      "integration/fragments/cache-policy--integration.json"
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "method_path: str (Rate Limit kaydındaki dotted path, boş olamaz); güncellenen alan limit: int > 0; seconds: int > 0 (create_rate_limit varsayılanı 86400). Yeni alan veya DocType yok.",
-    "output": "get_rate_limits(method_path) -> list; öğeler methods (ALL veya liste), ip_based: bool, allowed_ips/blocked_ips: list ve kayıttaki limit/seconds. Sürüm alanı yok; tazelik ölçütü son kaydedilmiş değerdir. Whitelisted HTTP API olduğu kanıtlanmadı; sunucu içi tüketim varsayılır.",
-    "authorization": "Native site sınırı frappe.cache bağlamıyla; make_key site önekini nasıl uyguladığı doğrulanmadı. Kayıt yazma native DocType izinleriyle; create_rate_limit ignore_permissions=True kullandığından fixture yetki kanıtı sayılmaz. Alan düzeyi kısıt yok.",
-    "persistence": "Document.save native istek transaction'ı içinde, geçersizleştirme hdel ile. hdel'in commit öncesi/sonrası çalışması ve rollback'te önbellek tutarlılığı doğrulanmadı. DDL, patch, şema değişikliği yok.",
-    "failure": "Yetkisiz yazma: frappe.PermissionError. Çakışan IP: frappe.throw ValidationError. Sınır aşımı: frappe.RateLimitExceededError tüketicide tekrar-deneme mesajıyla gösterilir. HTTP kodları bu kaynakta doğrulanmadı. Redis bağlantı hatası altyapı hatasıdır."
+    "input": "method_path: str (Rate Limit kaydındaki dotted path, boş olamaz); güncellenen alan limit: int > 0; seconds: int > 0. Varsayılan seconds değeri alıntılarda görülmüyor; T-00 hedef kaynağında doğrulanır. Yeni alan, DocType, şema veya patch yok.",
+    "output": "rate_limits önbelleğini method_path ile okuyan fonksiyon (rate_limit.py satır 145) bu yol için kayıtlı kuralların listesini döndürür. Öğe alan adları (methods, ip_based, allowed_ips, blocked_ips, limit, seconds) mevcut sözleşme beyanıdır; R-00 eşlemesinde kaynaktan doğrulanır. Fonksiyon adı alıntıda görülmüyor. Sürüm alanı yok; tazelik ölçütü son kaydedilmiş değerdir. Whitelisted HTTP API olduğu kanıtlanmadı; yalnız sunucu içi tüketim varsayılır.",
+    "authorization": "Site sınırı native frappe.cache bağlamıyla sağlanır; make_key'in site önekini nasıl uyguladığı doğrulanmadı. Kayıt yazma yalnız native DocType izinleri, Document.save ve native hook zinciriyle yapılır. ignore_permissions, doğrudan SQL veya önbelleğe doğrudan yazma ile yetki bypass yok. Bu rehber rol veya izin üretmez; ileride gerekirse explicitPermissionFlags ortak kaynağına bağlanır. create_rate_limit yardımcısının izin davranışı alıntılarda görülmüyor; test verisi oluşturma yolu yetki kanıtı sayılmaz. Alan düzeyi kısıt yok.",
+    "persistence": "Document.save native istek transaction'ı içinde çalışır; geçersizleştirme hdel ile yapılır. hdel'in commit öncesinde mi sonrasında mı çalıştığı ve rollback durumunda önbellek tutarlılığı doğrulanmadı; T-00/R-00 kaynak okumasında netleştirilir. DDL, patch, şema veya veri değişikliği yok. Bu sözleşme hiçbir servis, production, şema veya veriyi değiştirme yetkisi vermez.",
+    "failure": "Yetkisiz yazma: frappe.PermissionError; önbellek değişmez. Çakışan IP: native ValidationError. Sınır aşımı: rate limiter sınır hatası tüketicide tekrar deneme mesajıyla gösterilir; hata sınıfı adı alıntılarda görülmüyor. HTTP durum kodları doğrulanmadı. Redis bağlantı hatası altyapı hatasıdır; uygulama katmanında sessizce yutulmaz, teknik inceleme Hüseyin Cengiz'e devredilir."
   },
   "development": {
-    "dependencies": [
-      "cache-policy--contract",
-      "local pilot: frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6, suite.localhost; suiteSourceHead unknown"
-    ],
-    "admission": "cache-policy--contract tamamlanmış, T-00/R-00 kabul edilmiş olmalı. Suite'in suite.localhost'ta kurulu olduğu ve saas_platform test modülünün çalıştığı yerelde doğrulanmalı; planlı test yolu canonical owns listesinde değil, Codex entegrasyon onayı gerekir. Yerel kanıt uzak ürün baseline'ı değildir.",
+    "dependencies": ["cache-policy--contract"],
+    "admission": "Ortak politika ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy geçerlidir. Özel önkoşullar: cache-policy--contract tamamlanmış olmalı; T-00 hedef baseline ve R-00 yeniden kullanım eşlemesi kabul edilmiş olmalı; izinli veri tüketicileri için R-01 de uygulanır. Hedef Frappe/Suite sürümü bu sözleşmede seçilmez, T-00 kararıdır. Entegrasyon sahibi test dosyası yolunu ve test ortamını atamadan üretim veya test sahipliği başlamaz (plannedTestFile=null). Tek dar davranış gerçek RED/GREEN kanıtıyla uygulanır.",
     "steps": [
-      "Planlı tek testi yaz, yerel suite.localhost'ta çalıştır, sonucu kaydet.",
-      "Test bayat değer nedeniyle başarısızsa kök neden save akışında clear_cache çağrısının eksikliğidir; düzeltme suite kaynağında olduğundan sahiplik dışıdır, entegrasyon sahibine aktarılır.",
-      "cache_policy_mvp.yml içine yalnız rate_limits sınıfını yaz: anahtar rate_limits/method_path, TTL yok (olay tabanlı), geçersizleştirme Rate Limit save, sahip Backend önbellek.",
-      "Zamanlayıcı, cron, servis yeniden başlatma veya Redis topoloji değişikliği yapılmaz."
+      "T-00/R-00: Hedef kaynakta rate_limit.py satır 80'deki hdel çağrısının Document.save yaşam döngüsünde çağrılıp çağrılmadığını ve satır 145'teki okumayı yapan fonksiyonun adını salt okunur doğrula; sonucu R-00 eşlemesine yaz.",
+      "Entegrasyon sahibi test yolunu atadıktan sonra tdd.oneScenario için tek test yaz. Native izin ve save akışını kullan; ignore_permissions ile yetki kanıtı üretme.",
+      "Test bayat değer nedeniyle başarısızsa kök neden, save akışında geçersizleştirmenin eksik olmasıdır. Düzeltme Suite kaynağına ait ve bu sözleşmenin sahipliği dışında olduğu için entegrasyon sahibine aktarılır. Native davranış zaten geçiyorsa RED uydurulmaz; sonuç native yeniden kullanım teyidi olarak kaydedilir.",
+      "operations/cache-policy/cache_policy_mvp.yml içine yalnız rate_limits veri sınıfını yaz: anahtar rate_limits hash'i ve alan method_path; TTL yok (olay tabanlı); geçersizleştirme Rate Limit save sonrası hdel; sahip Backend önbellek. Başka veri sınıfı eklenmez.",
+      "Zamanlayıcı, cron, servis yeniden başlatma, Redis topoloji veya yapılandırma değişikliği yapılmaz. Topoloji ihtiyacı Hüseyin Cengiz'e teknik devir notu olarak yazılır.",
+      "performance-1 ve performance-3 için yalnız requirementGuidance'taki belge adımları yürütülür; bunlar bu davranışın kapsamına eklenmez."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "Test transaction'ında Rate Limit (limit=5) oluştur, get_rate_limits ile önbelleği doldur, get_doc + limit=7 + save ile güncelle, get_rate_limits'in 7 döndürdüğünü assert et.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Aynı test, aynı bench --site suite.localhost run-tests --module komutu ve aynı siteyle, onaylı düzeltmeden sonra geçmelidir."
+      "oneScenario": "Test transaction'ında limit=5 olan bir Rate Limit kaydı oluştur ve method_path için rate_limits okumasıyla önbelleği doldur. Kaydı get_doc ile al, limit=7 yapıp save et; aynı okumanın 7 döndürdüğünü assert et.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. RED yalnız bayat 5 değerinin dönmesi olabilir; import hatası, altyapı hatası veya native davranışı bozarak üretilen hata RED sayılmaz. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "Onaylı düzeltmeden sonra aynı senaryo, değişmeyen assertion ve T-00'da sabitlenen aynı komut ve ortamla geçmelidir. Şu an not_run; bu sözleşme veya biçim kontrolü ürün GREEN'i değildir."
     },
-    "rollback": "Yerelde YAML girdisi ve planlı test geri alınır; test verisi test transaction'ıyla geri döner. Müşteri kaydı silinmez, production yetkisi yoktur."
+    "rollback": "Gelecekte uygulanırsa YAML girdisi ve test, sahip olunan değişiklik olarak geri alınır; test verisi test transaction'ıyla geri döner. Müşteri kaydı silinmez. Production yetkisi yoktur; CI/deploy/rollback teknik adımlarının sahibi Hüseyin Cengiz'dir."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "performance-1",
+      "sourceStage": "mvp",
+      "existing": "Native parça: rapor çalıştırmada monitor'a veri ekleme importu ve rapor çalışma süresinin önbellekten okunması. Bunlar teşhis sinyalidir, ürün performans programı değildir.",
+      "gap": "Kritik yolculuk listesi, sayısal p95/hata/kaynak bütçesi, temsilî yük profili (tenant sayısı, veri hacmi) ve ölçüm kaynağı tanımlı değil. Birincil görev eşlemesi cache-policy--implementation ile uyuşmuyor.",
+      "completionSteps": [
+        "Mevcut görev kaydına yalnız performance-1 için 2-3 aday kritik yol yaz (girdideki adaylar: list/get_list, rapor, Drive/Sheets autosave); sayısal hedefler karar gelene kadar boş kalır.",
+        "Karar gelince her yol için p95, hata oranı ve kaynak hedefini aynı kayda yaz; temsilî yük profilini ölçüm koşuluyla birlikte belgeye ekle.",
+        "T-00 baseline'da hedef kaynakta frappe.monitor ve rapor çalışma süresi önbelleğinin varlığını salt okunur doğrula; ölçüm aracını seçme.",
+        "Görev eşlemesi uyuşmazlığını yeni kanonik görev veya registry açmadan entegrasyon sahibine düzeltme notu olarak ilet."
+      ],
+      "dependencies": ["cache-policy--contract"],
+      "acceptance": "Kritik yolun p95, hata ve kaynak hedefi seçilmiş olur; temsilî yükte ölçüm ve darboğaz kaydı alınır. Bu turda ölçüm yapılmaz.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/desk/query_report.py",
+          "line": 20,
+          "quote": "from frappe.monitor import add_data_to_monitor"
+        },
+        {
+          "path": "frappe/frappe/desk/query_report.py",
+          "line": 175,
+          "quote": "frappe.cache.hget(\"report_execution_time\""
+        }
+      ]
+    },
+    {
+      "requirementId": "performance-2",
+      "sourceStage": "mvp",
+      "existing": "Native parça: Redis cache ile istek sayacı, setex ile TTL'li anahtar, Suite'te hget generator okuması ve hdel ile temizleme.",
+      "gap": "Önbelleğe alınacak veri sınıfları ve her birinin TTL/tazelik kuralı, hit/miss metriğinin kaynağı, Redis topolojisi (cache/queue ayrımı, HA) tanımsız. SQLite yolundaki frappe.client_cache ile Redis cache ayrımı not edilmemiş; client_cache doğrulanmış alıntılarda görülmüyor.",
+      "completionSteps": [
+        "Politika belgesinde hget/setex/hdel desenlerini referans olarak göster; yeni cache API'si tanımlama.",
+        "cache_policy_mvp.yml içinde tek veri sınıfı olarak rate_limits'i yaz: olay tabanlı tazelik, Rate Limit save sonrası hdel ile geçersizleştirme (development.steps).",
+        "Hit/miss ölçüm yöntemi kararı gelene kadar belgeye iki adayı ölçüm koşuluyla yaz; seçim yapma.",
+        "Redis topoloji gereksinimini Hüseyin Cengiz'e teknik devir notu olarak bağla; yapılandırma değişikliği yapma.",
+        "client_cache ile Redis cache ayrımını T-00 hedef kaynağında doğrula ve sonucu yalnız not olarak ekle."
+      ],
+      "dependencies": ["cache-policy--contract"],
+      "acceptance": "Cache hit/miss ve TTL ölçülür; aynı veri kaynağı güncellenince uygulama belirlenen tazelik kuralını korur. rate_limits için kabul tdd.oneScenario'dur.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/rate_limiter.py",
+          "line": 116,
+          "quote": "Uses redis cache to track request counts."
+        },
+        {
+          "path": "frappe/frappe/rate_limiter.py",
+          "line": 180,
+          "quote": "frappe.cache.setex(cache_key, seconds, 0)"
+        },
+        {
+          "path": "suite/suite/suite_core/doctype/rate_limit/rate_limit.py",
+          "line": 145,
+          "quote": "return frappe.cache.hget(\"rate_limits\", method_path, generator)"
+        },
+        {
+          "path": "suite/suite/suite_core/doctype/rate_limit/rate_limit.py",
+          "line": 80,
+          "quote": "frappe.cache.hdel(\"rate_limits\", self.method_path)"
+        }
+      ]
+    },
+    {
+      "requirementId": "performance-3",
+      "sourceStage": "mvp",
+      "existing": "Native parça: make_key ile anahtar üretimi, kullanıcı/doctype bazlı izin önbellek anahtarı ve Suite hooks doc_events üzerinden on_update ile önbellek temizleme deseni.",
+      "gap": "Mevcut anahtarlarda site içi iş tenant boyutu yok. Tenant modeli ve tenant kimliğinin kaynağı kararlaştırılmamış. Domain invalidation için kullanılacak doc_events listelenmemiş. make_key'in site önekini nasıl uyguladığı doğrulanmadı.",
+      "completionSteps": [
+        "Tenant modeli kararı gelene kadar iki seçeneğin anahtar kapsamına etkisini mevcut mimari kaydına yaz: site başına tenantta make_key site öneki yeterli olabilir; site içi tenantta anahtar öneki sözleşmesi gerekir.",
+        "T-00'da make_key'in site önekini hedef kaynakta salt okunur doğrula; doğrulanmadan iki sitenin veri karıştırmadığı iddia edilmez.",
+        "Karar site içi tenant olursa anahtar şablonunu tenant:domain:id biçiminde tek domain için belgeye yaz.",
+        "Aynı domain için invalidation kancasını hooks.py satır 229'daki on_update/on_trash doc_events desenine referansla belgele; yeni hook kodu yazma."
+      ],
+      "dependencies": ["cache-policy--contract"],
+      "acceptance": "Aynı anahtar adı iki tenantta veri karıştırmaz; yazma veya silme sonrası ilgili anahtar geçersizleşir. Bu turda doğrulanmaz.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/rate_limiter.py",
+          "line": 173,
+          "quote": "cache_key = frappe.cache.make_key(f\"rl:{counter}:{identity}\")"
+        },
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 309,
+          "quote": "cache_key = (doctype_meta.name, user, bool(is_owner))"
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 229,
+          "quote": "\"on_update\": \"suite.drive.utils.clear_user_group_cache\","
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "performance-1: kritik yol listesi, sayısal p95/hata/kaynak bütçesi, temsilî yük profili ve ölçüm kaynağı (frappe.monitor ya da dış APM) kararı yok; query_report.py:20 ve :175 yalnız kaynak sinyalidir. Görev eşlemesi cache-policy ile karışık; yeni görev açılmadı, düzeltme mevcut kayıtta entegrasyon sahibine aittir.",
-    "performance-2: hit/miss metrik kaynağı (Redis INFO veya uygulama sayacı) ve diğer veri sınıflarının TTL kuralları tanımsız. Redis cache/queue ayrımı ve HA topolojisi Hüseyin Cengiz'e teknik bağımlılıktır.",
-    "performance-3: tenant modeli kararı kapsam dışı; site içi tenant anahtar öneki tanımlanmadı. make_key'in iki sitede veri karıştırmadığı doğrulanmadı. suite hooks.py:229 clear_user_group_cache deseni yalnız domain invalidation referansıdır.",
-    "UI değişikliği yok; ileride gerekirse Outfit 14px, 320-first, çevreleyen odak halkası yok, simetrik pozitif Cubic hareket ve mevcut AntD korunur.",
-    "Planlı test dosyası canonical owns listesinde değil; entegrasyon onayı gerekir."
+    "performance-1: kritik yol listesi, sayısal p95/hata/kaynak bütçesi, temsilî yük profili ve ölçüm kaynağı tanımsız; query_report.py satır 20 ve 175 yalnız kaynak sinyalidir. Görev eşlemesi cache-policy ile karışık; yeni görev açılmaz, düzeltme mevcut kayıtta entegrasyon sahibine aittir.",
+    "performance-2: hit/miss metrik kaynağı ve rate_limits dışındaki veri sınıflarının TTL kuralları tanımsız. Redis cache/queue ayrımı ve HA topolojisi Hüseyin Cengiz'e teknik bağımlılıktır.",
+    "performance-3: tenant modeli kararı yok; site içi tenant anahtar öneki tanımlanmadı. make_key'in iki sitede veri karıştırmadığı doğrulanmadı. hooks.py satır 229 deseni yalnız domain invalidation referansıdır.",
+    "clear_cache'in save akışında çağrıldığı, hdel'in commit/rollback ilişkisi ve okuma fonksiyonunun adı doğrulanmadı.",
+    "Test dosyası yolu atanmadı (plannedTestFile=null); entegrasyon sahibinin ataması gerekir.",
+    "UI değişikliği yok; ileride gerekirse Outfit, minimum 14 CSS px, 320-first, çevreleyen odak halkası olmaması, simetrik pozitif Cubic hareket ve mevcut Ant Design ailesi korunur."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Kritik yolculuk listesi, sayısal p95/hata/kaynak bütçesi ve temsilî yük profili",
+      "requirementIds": ["performance-1"],
+      "blocks": "performance-1 kabul ölçümü ve darboğaz kaydı",
+      "interimDocStep": "Aday yolları mevcut görev kaydına sayısal değer olmadan yaz."
+    },
+    {
+      "decision": "Ölçüm kaynağı: Frappe monitor/recorder veya dış APM (satıcı seçimi)",
+      "requirementIds": ["performance-1"],
+      "blocks": "Ölçüm yönteminin belgeye bağlanması",
+      "interimDocStep": "frappe.monitor'un hedef kaynakta varlığını T-00 baseline ile salt okunur doğrula; seçim yapma."
+    },
+    {
+      "decision": "Hedef Frappe/Suite sürümü (T-00 kararı)",
+      "requirementIds": ["performance-1", "performance-2", "performance-3"],
+      "blocks": "Alıntılanan kaynak satırlarının hedefte geçerli sayılması ve uygulamaya kabul",
+      "interimDocStep": "Alıntıları önceki anlık görüntü kanıtı olarak işaretli tut."
+    },
+    {
+      "decision": "Hit/miss metrik kaynağı: Redis INFO veya uygulama sayacı",
+      "requirementIds": ["performance-2"],
+      "blocks": "performance-2 hit/miss kabul ölçümü",
+      "interimDocStep": "İki adayı ölçüm koşuluyla belgeye yaz."
+    },
+    {
+      "decision": "rate_limits dışındaki veri sınıfları ve TTL/saklama süreleri",
+      "requirementIds": ["performance-2"],
+      "blocks": "cache_policy_mvp.yml'nin ikinci veri sınıfına genişlemesi",
+      "interimDocStep": "YAML kapsamını yalnız rate_limits ile sınırlı tut."
+    },
+    {
+      "decision": "Redis topolojisi: cache/queue ayrımı ve HA (teknik sahip Hüseyin Cengiz)",
+      "requirementIds": ["performance-2"],
+      "blocks": "Altyapı düzeyindeki önbellek kabulü",
+      "interimDocStep": "Teknik devir notunda gereksinimleri listele; yapılandırma değişikliği yapma."
+    },
+    {
+      "decision": "Tenant topolojisi: site başına tenant veya site içi tenant",
+      "requirementIds": ["performance-3"],
+      "blocks": "Anahtar şablonu ve iki tenantta veri karışmama kabulü",
+      "interimDocStep": "İki seçeneğin anahtar kapsamına etkisini mevcut mimari kaydına yaz."
+    },
+    {
+      "decision": "Tenant kimliğinin kaynağı",
+      "requirementIds": ["performance-3"],
+      "blocks": "Site içi tenant olursa anahtar önekinin doldurulması",
+      "interimDocStep": "Girdideki adayları seçim yapmadan belgeye not et."
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "performance-1": "mvp",
-    "performance-2": "mvp",
-    "performance-3": "mvp"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,

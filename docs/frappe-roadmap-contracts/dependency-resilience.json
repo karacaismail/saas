@@ -4,16 +4,51 @@
   "canonicalTaskIds": ["dependency-resilience--implementation"],
   "requirementIds": ["performance-5"],
   "stage": "mvp",
+  "sourceStages": {
+    "performance-5": "mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
-    "title": "Sheets AI Anthropic cagrisi icin acik timeout ve site anahtarli devre kesici",
-    "trigger": "generate_actions icinde client.messages.create art arda esik sayisi kadar APIConnectionError (timeout dahil) veya 5xx APIStatusError ile basarisiz olur.",
-    "expected": "Istemci acik connect/read timeout ile kurulur; esik asilinca devre acilir ve acik kalma suresi boyunca sonraki cagrilar messages.create cagrilmadan sabit mesajli frappe.throw ile reddedilir; sure bitince tek deneme (yari acik) yapilir, basarida sayac sifirlanir, hatada devre yeniden acilir.",
-    "denied": "AuthenticationError, RateLimitError ve 4xx hatalari sayaca eklenmez; hata govdesi, API anahtari veya istem icerigi mesaja ya da cache anahtarina yazilmaz; Automation Flow breaker'i ve baska moduller degismez."
+    "title": "Sheets AI Anthropic çağrısı için açık timeout ve site anahtarlı devre kesici. Uygulama durumu: uygulanmadı.",
+    "trigger": "generate_actions içinde client.messages.create art arda eşik sayısı kadar bağlantı/timeout hatası (APIConnectionError) veya 5xx HTTP durum hatasıyla başarısız olur.",
+    "expected": "İstemci açık connect/read timeout ile kurulur; eşik aşılınca devre açılır ve açık kalma süresi boyunca sonraki çağrılar messages.create çağrılmadan sabit mesajlı frappe.throw ile reddedilir; süre bitince tek deneme (yarı açık) yapılır, başarıda sayaç sıfırlanır, hatada devre yeniden açılır.",
+    "denied": "Kimlik doğrulama, rate limit ve diğer 4xx hataları sayaca eklenmez; hata gövdesi, API anahtarı veya istem içeriği mesaja, loga ya da cache anahtarına yazılmaz; Automation Flow kural breaker'ı, JMAP, link_preview ve make_request davranışı değişmez; mevcut yetki kontrolü atlanmaz."
   },
   "reuse": {
-    "mechanism": "Native once: mevcut try/except hata eslemesi ve frappe.throw korunur; durum automation_engine'deki site anahtarli frappe.cache.incr sayac deseniyle frappe.cache'te tutulur. Yeni DocType, ORM, kuyruk veya breaker kutuphanesi yok; kaynakta bagimlilik breaker'i bulunmadigi icin yalniz client.py icinde kucuk ozel yardimcilar (en kucuk adapter) eklenir.",
+    "status": "KISMI",
+    "mechanism": "Native önce: client.py'deki mevcut Anthropic istemci kurulumu, try/except hata eşlemesi ve frappe.throw korunur; breaker durumu automation_engine'deki site anahtarlı frappe.cache.incr sayaç deseniyle frappe.cache'te tutulur. Kanıtlar yalnız parçaları gösterir (RQ kuyruk timeout'u, DB statement timeout, JMAP sınırlı retry, link_preview tek bağlantılı havuz, kural bazlı hata sayacı, AI çağrısı hata eşlemesi); bağımlılık başına circuit breaker aranan yollarda bulunmadı ve bu kapsamlı yokluk iddiası değildir. Yeni DocType, ORM, kuyruk, CRUD veya üçüncü taraf breaker kütüphanesi önerilmez; eksik yalnız Anthropic çağrısını saran küçük özel yardımcılarla kapatılır. Alıntılar önceki salt okunur Frappe/Suite kaynak anlık görüntülerindendir; ürün kabulü değildir.",
     "evidence": [
+      {
+        "path": "frappe/frappe/utils/background_jobs.py",
+        "line": 117,
+        "quote": "\"long\": 1500,"
+      },
+      {
+        "path": "frappe/frappe/database/database.py",
+        "line": 1692,
+        "quote": "timeout = frappe.conf.http_timeout or 300"
+      },
+      {
+        "path": "suite/suite/mail/jmap.py",
+        "line": 308,
+        "quote": "RETRY_POLICY = RetryPolicy(max_attempts=2, max_retry_after=5.0)"
+      },
+      {
+        "path": "suite/suite/sheets/link_preview.py",
+        "line": 134,
+        "quote": "return urllib3.HTTPConnectionPool(ip, port=port, maxsize=1, retries=False, timeout=timeout)"
+      },
+      {
+        "path": "frappe/frappe/automation_engine/runner.py",
+        "line": 596,
+        "quote": "def _failure_key(rule_name) -> str:"
+      },
+      {
+        "path": "frappe/frappe/automation_engine/runner.py",
+        "line": 602,
+        "quote": "if frappe.cache.incr(_failure_key(rule.name)) >= threshold:"
+      },
       {
         "path": "suite/suite/sheets/ai/client.py",
         "line": 88,
@@ -28,67 +63,157 @@
         "path": "suite/suite/sheets/ai/client.py",
         "line": 108,
         "quote": "except anthropic.APIConnectionError:"
-      },
-      {
-        "path": "frappe/frappe/automation_engine/runner.py",
-        "line": 596,
-        "quote": "def _failure_key(rule_name) -> str:"
-      },
-      {
-        "path": "frappe/frappe/automation_engine/runner.py",
-        "line": 602,
-        "quote": "if frappe.cache.incr(_failure_key(rule.name)) >= threshold:"
       }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/automation_engine/runner.py",
+      "frappe/frappe/database/database.py",
+      "frappe/frappe/utils/background_jobs.py",
+      "suite/suite/mail/jmap.py",
+      "suite/suite/sheets/ai/client.py",
+      "suite/suite/sheets/link_preview.py"
     ]
   },
   "ownership": {
     "activeContractFile": "docs/frappe-roadmap-contracts/dependency-resilience.json",
-    "plannedProduction": ["suite/suite/sheets/ai/client.py"],
-    "plannedTestFile": "suite/suite/sheets/ai/test_client.py",
-    "sharedIntegrationFiles": [
-      "integration/fragments/dependency-resilience--integration.json"
+    "plannedProduction": [
+      "operations/dependency-resilience/dependency_resilience_mvp.yml"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "generate_actions(prompt: str, context: dict, api_key: str, model: str) imzasi degismez. Opsiyonel frappe.conf anahtarlari (oneri): ai_anthropic_timeout_connect sn, ai_anthropic_timeout_read sn, ai_anthropic_breaker_threshold int>=1, ai_anthropic_breaker_open_seconds int>=1. Onerilen varsayilanlar 5/60/5/60; kesinlesmesi Codex entegrasyonuna aittir.",
-    "output": "Basarida mevcut ham actions listesi aynen doner; sema ve surum degismez. Devre acikken sabit mesaj: 'The AI service is temporarily unavailable. Try again shortly.' Yanitta durum, sayac veya hata govdesi yer almaz.",
-    "authorization": "Yetki degismez: generate_actions'i cagiran whitelisted giris noktasinin mevcut site/kullanici/kayit kontrolleri gecerlidir (giris noktasi kaynagi saglanmadi, bilinmiyor). Breaker kapsami site + bagimliliktir; kiraci modeli secilmez. Yetkisiz istek once mevcut kontrolde reddedilir.",
-    "persistence": "DB yazimi, Document.save, hook veya DDL yok. Yalniz frappe.cache: sayac anahtari ai_breaker::{site}::anthropic (incr) ve TTL'li acik-devre anahtari. TTL'li set API'sinin kurulu Frappe imzasi dogrulanmali (bilinmiyor). Redis erisilemezse breaker fail-open olur; cagri timeout ile sinirli devam eder.",
-    "failure": "Mevcut esleme korunur: APIConnectionError -> 'Could not reach the AI service...', APIStatusError -> 'The AI request failed (HTTP n).' Devre acik -> frappe.throw (varsayilan frappe.ValidationError) sabit mesaj; tuketici mevcut AI hata bildirimiyle gosterir, otomatik yeniden denemez. SDK timeout istisnasinin APIConnectionError alt sinifi oldugu kurulu surumde dogrulanmali."
+    "input": "generate_actions(prompt, context, api_key, model) imzası değişmez (imza önceki sözleşmeden; kaynak alıntıları yalnız 88-108 satırlarını kapsar). Önerilen opsiyonel yapılandırma anahtarları: ai_anthropic_timeout_connect (sn), ai_anthropic_timeout_read (sn), ai_anthropic_breaker_threshold (int>=1), ai_anthropic_breaker_open_seconds (int>=1). Değerler ve yapılandırma kaynağı decisionsPending içindedir; önceki 5/60/5/60 yalnız başlangıç önerisidir.",
+    "output": "Başarıda mevcut ham actions listesi aynen döner; şema ve sürüm değişmez. Devre açıkken sabit mesaj: 'The AI service is temporarily unavailable. Try again shortly.' Yanıtta breaker durumu, sayaç veya hata gövdesi yer almaz.",
+    "authorization": "Yetki modeli değişmez: generate_actions'ı çağıran whitelisted giriş noktasının mevcut site/kullanıcı/kayıt kontrolleri geçerlidir (giriş noktası kaynağı sağlanmadı, bilinmiyor). Yetkisiz istek breaker'a ulaşmadan mevcut kontrolde reddedilir. ignore_permissions, ham SQL veya izin bypass'ı yok. Bu davranış rol/izin üretmez; ileride üretirse explicitPermissionFlags ortak kaynağına bağlanmalı ve kendi kabulünde reddedilen yazma/değişmeyen kayıt senaryosu bulunmalıdır. Breaker kapsamı site + bağımlılıktır; kiracı topolojisi seçilmez.",
+    "persistence": "DB yazımı, Document.save, doc event hook, şema/DDL veya veri değişikliği yok. Yalnız frappe.cache: sayaç anahtarı ai_breaker::{site}::anthropic (incr, runner.py _failure_key deseni) ve TTL'li açık-devre anahtarı. TTL'li set API'sinin kurulu Frappe imzası doğrulanmalı (bilinmiyor). Redis erişilemezse breaker fail-open olur; çağrı açık timeout ile sınırlı devam eder.",
+    "failure": "Mevcut eşleme korunur: APIConnectionError -> 'Could not reach the AI service. Check the server's network access.'; HTTP durum hatası -> 'The AI request failed (HTTP n).' (gövde yankılanmaz). Devre açık -> frappe.throw (varsayılan ValidationError) sabit mesaj; tüketici arayüz varsa mevcut hata bildirimiyle gösterir ve otomatik yeniden denemez; bu sözleşme UI değişikliği içermez. SDK timeout istisnasının APIConnectionError alt sınıfı olduğu ve Anthropic(timeout=...) desteği kurulu SDK sürümünde doğrulanmalı (bilinmiyor)."
   },
   "development": {
-    "dependencies": [
-      "dependency-resilience--contract",
-      "local pilot: frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6, suiteSourceHead unknown"
-    ],
-    "admission": "dependency-resilience--contract kabulu, T-00 hedef baseline ve R-00 reuse eslemesi; kurulu anthropic surumu (pyproject >=0.40) ve Anthropic(timeout=...) destegi yerelde okunmali. Yerel suite.localhost kaniti uzak urun baseline'i degildir; Suite HEAD bilinmiyor.",
+    "dependencies": ["dependency-resilience--contract"],
+    "admission": "dependency-resilience--contract kabulü; T-00 hedef baseline ve R-00 reuse eşlemesi; client.py ve test dosyası için ayrı üretim/test sahipliği onayı (bu sözleşmenin plannedProduction alanı yalnız operations/dependency-resilience/dependency_resilience_mvp.yml'dir); kurulu anthropic SDK sürümü, Anthropic(timeout=...) desteği ve timeout istisna hiyerarşisi hedef kaynakta okunmuş olmalı; TTL'li cache set imzası kurulu Frappe'de doğrulanmış olmalı; tek dar davranış için gerçek RED/GREEN kanıtı. Önceki salt okunur kaynak alıntıları hedef ürün baseline'ı değildir.",
     "steps": [
-      "client.py: anthropic.Anthropic(api_key=api_key, timeout=...) ile acik connect/read timeout ver.",
-      "client.py: runner.py _failure_key desenine gore _breaker_key/_is_open/_record_failure/_reset yardimcilarini ekle; messages.create oncesi acik devre kontrolu, sonrasi basari/hata kaydi.",
-      "Mevcut except sirasi ve mesajlari korunur; sayac yalniz baglanti/timeout ve 5xx hatalarinda artar."
+      "1. Kapsam yalnız suite/suite/sheets/ai/client.py içindeki Anthropic çağrısıdır; JMAP, make_request ve link_preview bu birimde değişmez.",
+      "2. dependency_resilience_mvp.yml envanter önerisinde anthropic kaydı için connect/read timeout, eşik, açık kalma süresi, yarı açık deneme sayısı (1) ve sayılan hata sınıfları alanlarını belge olarak tanımla; değerler decisionsPending kararına bağlıdır.",
+      "3. client.py: anthropic.Anthropic(api_key=api_key, timeout=...) ile açık connect/read timeout ver; SDK'nın kabul ettiği timeout tipi hedef sürümde doğrulanır.",
+      "4. client.py: runner.py _failure_key desenine göre site anahtarlı özel yardımcılar (anahtar üretimi, açık mı kontrolü, hata kaydı, sıfırlama) ekle; messages.create öncesi açık devre kontrolü, sonrası başarı/hata kaydı yap.",
+      "5. Mevcut except sırası ve mesajları korunur; sayaç yalnız bağlantı/timeout ve 5xx hatalarında artar; 4xx, kimlik doğrulama ve rate limit artırmaz.",
+      "6. Yarı açık: açık-devre anahtarının TTL'i dolunca ilk çağrı geçer; başarı sayaç ve açık anahtarı siler, hata devreyi yeniden açar.",
+      "7. Mesajlara, loglara ve cache anahtarlarına API anahtarı, istem veya hata gövdesi yazılmadığını gözden geçir."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "anthropic.Anthropic mock'lanir, messages.create her cagrida APIConnectionError firlatir; generate_actions esik+1 kez cagrilir. Beklenti: esik+1'inci cagri 'temporarily unavailable' mesajiyla reddedilir, messages.create toplam esik kadar cagrilmistir ve Anthropic(...) timeout argumani almistir.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Ayni test ve ayni komut (bench --site suite.localhost run-tests --module suite.sheets.ai.test_client) uygulamadan sonra gecer; test cache anahtarlarini baslangicta ve sonda temizler."
+      "oneScenario": "anthropic.Anthropic mock'lanır, messages.create her çağrıda APIConnectionError fırlatır; generate_actions eşik+1 kez çağrılır. Beklenti: eşik+1'inci çağrı 'temporarily unavailable' mesajıyla reddedilir, messages.create toplam eşik kadar çağrılmıştır ve Anthropic(...) açık timeout argümanı almıştır.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. Beklenen RED davranışsaldır: breaker olmadığı için eşik+1'inci çağrı da messages.create'e ulaşır ve 'Could not reach' mesajı döner; Anthropic(...) timeout argümanı almaz. Import/altyapı hatası veya native davranışı bozmak RED sayılmaz. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "Uygulamadan sonra aynı senaryo, değişmeyen assertion ve aynı komutla geçmelidir; komut hedef Suite test düzeni ve uygulama sahibince onaylı test sitesine göre belirlenir. Test breaker cache anahtarlarını başta ve sonda temizler. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN'i değildir."
     },
-    "rollback": "client.py ve test degisikligi yerelde geri alinir, yerel cache anahtarlari silinir. Production, site_config veya servis degisikligi yok."
+    "rollback": "Gelecekteki değişiklik client.py ve test değişikliğinin geri alınması ve ilgili breaker cache anahtarlarının silinmesiyle geri alınır; şema/veri geri dönüşü gerekmez. Production yapılandırma dağıtımı ve geri dönüşünün teknik sahibi Hüseyin Cengiz'dir; DNS/GoDaddy işlemi öngörülmez (gerekirse uygulama sahibi Asistan Hüseyin). Bu sözleşme production, site_config, servis, şema veya veri değişikliği yetkisi vermez."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "performance-5",
+      "sourceStage": "mvp",
+      "existing": "Native parçalar: RQ kuyruk timeout'ları (long 1500 sn, özel worker timeout'u); DB statement timeout (HTTP isteğinde http_timeout veya 300 sn, job'da job.timeout tabanlı); Suite JMAP sınırlı RetryPolicy (max_attempts=2); link_preview tek bağlantılı havuz ve retries=False; automation_engine site anahtarlı kural bazlı hata sayacı (bağımlılık breaker'ı değil, iş akışı kuralı breaker'ı); Sheets AI çağrısında bağlantı ve HTTP hata eşlemesi. Suite Vue istemci retry'ı React/Ant Design uygulama kanıtı değildir.",
+      "gap": "Dış bağımlılık başına kapalı/açık/yarı açık durumlu circuit breaker yok; Anthropic çağrısında açık timeout yok (SDK varsayılanı); make_request varsayılanı timeout=None ve merkezi timeout bütçesi/bağımlılık envanteri yok; bağımlılık başına paylaşımlı eşzamanlı bağlantı sınırı politikası yok; runtime kabul not_run.",
+      "completionSteps": [
+        "Anthropic çağrısı için development.steps 1-7 uygulanır; tek dar davranış, gerçek RED/GREEN.",
+        "dependency_resilience_mvp.yml envanter önerisi anthropic kaydıyla başlar; JMAP ve make_request çağrı noktaları 'kapsam dışı, sonraki genişletme' olarak not edilir.",
+        "Sonraki genişletmede aynı yardımcı deseni JMAP ve make_request çağrı noktalarına ayrı görev ve ayrı RED/GREEN ile taşınır; JMAP'in yazmaları yeniden göndermeme kuralı korunur.",
+        "Bağımlılık başına eşzamanlı bağlantı sınırı, link_preview'daki havuz yaklaşımı örnek alınarak envanterde ayrı karar olarak bırakılır; bu birimde uygulanmaz."
+      ],
+      "dependencies": ["dependency-resilience--contract"],
+      "acceptance": "Arızalı Anthropic bağımlılığına çağrı belirlenen timeout içinde kesilir; eşik aşılınca açık kalma süresince yeni çağrılar messages.create çağrılmadan sabit mesajla reddedilir; süre sonunda tek yarı açık deneme yapılır; 4xx/kimlik doğrulama hataları sayacı artırmaz; yetki ve mevcut hata mesajları değişmez. Durum: not_run.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/utils/background_jobs.py",
+          "line": 117,
+          "quote": "\"long\": 1500,"
+        },
+        {
+          "path": "frappe/frappe/database/database.py",
+          "line": 1692,
+          "quote": "timeout = frappe.conf.http_timeout or 300"
+        },
+        {
+          "path": "suite/suite/mail/jmap.py",
+          "line": 308,
+          "quote": "RETRY_POLICY = RetryPolicy(max_attempts=2, max_retry_after=5.0)"
+        },
+        {
+          "path": "suite/suite/sheets/link_preview.py",
+          "line": 134,
+          "quote": "return urllib3.HTTPConnectionPool(ip, port=port, maxsize=1, retries=False, timeout=timeout)"
+        },
+        {
+          "path": "frappe/frappe/automation_engine/runner.py",
+          "line": 602,
+          "quote": "if frappe.cache.incr(_failure_key(rule.name)) >= threshold:"
+        },
+        {
+          "path": "suite/suite/sheets/ai/client.py",
+          "line": 88,
+          "quote": "client = anthropic.Anthropic(api_key=api_key)"
+        },
+        {
+          "path": "suite/suite/sheets/ai/client.py",
+          "line": 92,
+          "quote": "resp = client.messages.create("
+        },
+        {
+          "path": "suite/suite/sheets/ai/client.py",
+          "line": 108,
+          "quote": "except anthropic.APIConnectionError:"
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "Gorevin owns alani yalniz operations/dependency-resilience/dependency_resilience_mvp.yml; client.py ve test dosyasi yazimi Codex entegrasyon onayi gerektirir.",
-    "Yari acik deneme coklu worker'da atomik degil; es zamanli birden fazla deneme olabilir.",
-    "JMAP ve make_request (timeout=None) cagri noktalari, bagimlilik envanteri ve merkezi timeout butcesi kapsam disi; ayni sarmalayiciyla sonraki genisletme.",
-    "Bagimlilik basina es zamanli baglanti siniri politikasi ve headless provider dayaniklilik yuzeyi yok.",
-    "Production timeout/esik degerleri ve site_config dagitimi Huseyin Cengiz teknik bagimliligi; plan urun GREEN'i degildir.",
-    "Test dosyasinin varligi ve suite test duzeni bilinmiyor; varsa tek test ayni dosyaya eklenir."
+    "Uygulama durumu: uygulanmadı. Runtime kabul not_run; ürün GREEN kanıtı yok.",
+    "Planlanan üretim alanı yalnız operations/dependency-resilience/dependency_resilience_mvp.yml; client.py ve test dosyası yazımı ayrı sahiplik ve entegrasyon onayı gerektirir.",
+    "Yarı açık deneme çoklu worker'da atomik değil; eşzamanlı birden fazla deneme olabilir.",
+    "JMAP ve make_request (timeout=None) çağrı noktaları, merkezi timeout bütçesi ve tam bağımlılık envanteri bu birimin kapsamı dışında.",
+    "Bağımlılık başına eşzamanlı bağlantı sınırı politikası yok.",
+    "generate_actions'ı çağıran whitelisted giriş noktası ve Suite test düzeni kaynakta doğrulanmadı.",
+    "Kurulu anthropic SDK sürümü, timeout istisna hiyerarşisi ve Frappe TTL'li cache set imzası bilinmiyor."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Production connect/read timeout, hata eşiği ve açık kalma süresi değerleri (5/60/5/60 yalnız öneri).",
+      "requirementIds": ["performance-5"],
+      "blockedStep": "development.steps 2-3 değerlerinin kesinleşmesi ve production yapılandırma dağıtımı (teknik sahip Hüseyin Cengiz).",
+      "documentStepUntilDecided": "Envanter alanlarını değer 'öneri' işaretli olarak belgeleyin; test senaryosunda değerleri parametre olarak tanımlayın."
+    },
+    {
+      "decision": "Yapılandırma kaynağı: frappe.conf anahtarları, dependency_resilience_mvp.yml envanteri veya ikisinin ilişkisi.",
+      "requirementIds": ["performance-5"],
+      "blockedStep": "development.steps 2 ve contract.input anahtarlarının kesinleşmesi.",
+      "documentStepUntilDecided": "Anahtar adlarını ve envanter alanlarını aynı adlarla öneri olarak eşleyin."
+    },
+    {
+      "decision": "Hedef Frappe/Suite ve anthropic SDK sürümü (T-00 baseline).",
+      "requirementIds": ["performance-5"],
+      "blockedStep": "development.admission; timeout parametresi, istisna hiyerarşisi ve TTL'li cache API'sinin doğrulanması.",
+      "documentStepUntilDecided": "Doğrulanacak imzaları admission içinde açık soru olarak tutun."
+    },
+    {
+      "decision": "Kiracı topolojisi: breaker kapsamının site + bağımlılık dışında ayrışıp ayrışmayacağı.",
+      "requirementIds": ["performance-5"],
+      "blockedStep": "Cache anahtar şemasının kesinleşmesi (development.steps 4).",
+      "documentStepUntilDecided": "Site + bağımlılık anahtarını varsayılan öneri olarak belgeleyin; kiracı alanı eklemeyin."
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "performance-5": "mvp"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,

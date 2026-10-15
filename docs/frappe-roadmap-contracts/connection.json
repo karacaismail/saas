@@ -3,20 +3,34 @@
   "canonicalUnitId": "connection",
   "canonicalTaskIds": [
     "connection--implementation",
-    "connection--implementation-mvp"
+    "connection--implementation-mvp",
+    "ui-family-36--implementation",
+    "ui-family-36--implementation-mvp",
+    "ui-provider-data--implementation"
   ],
   "requirementIds": ["integration-1", "integration-7"],
   "stage": "poc",
+  "sourceStages": {
+    "integration-1": "poc",
+    "integration-7": "mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
-    "title": "Connection.run_command('read_document'): sunucu izin listesindeki tek sabit Frappe hedefine tek onayli salt okuma",
-    "trigger": "POST /api/resource/Connection/<name>/ ile run_method=run_command (native execute_doc_method); girdi yalniz command, doctype, docname, idempotency_key.",
-    "expected": "Istek yalniz kaydin destination_id degerinin kod sabitindeki tam kokune gider: GET <sabit kok>/api/resource/<izinli doctype>/<kodlanmis docname>. Yonlendirme izlenmez; cagiranin cookie/CSRF/basliklari iletilmez; Authorization yalniz bu kaydin Password alanindan cozulur; ortak zarf doner, sir ve hedef URL zarfta/hatada/logda yok.",
-    "denied": "Connection write izni yoksa frappe.PermissionError (403), sir cozulmez, HTTP yok. base_url/url/method/args/headers/cookie anahtari: invalid_input; listede olmayan destination_id/doctype/command: not_allowed; ikisinde de HTTP yok."
+    "title": "Connection.run_command('read_document'): sunucu izin listesindeki tek onaylı Frappe hedefine tek, salt okunur belge okuma",
+    "trigger": "POST /api/resource/Connection/<name>/ ile run_method=run_command (native execute_doc_method rotası); girdi yalnız command, doctype, docname, idempotency_key.",
+    "expected": "İstek yalnız kaydın destination_id değerinin sunucu kod sabitindeki tam köküne gider: GET <sabit kök>/api/resource/<onaylı doctype>/<kodlanmış docname>. Yönlendirme izlenmez; çağıranın cookie/CSRF/başlıkları iletilmez; Authorization yalnız bu kaydın Password alanından çözülür; ortak zarf döner; sır ve hedef URL zarfta, hata mesajında ve logda yer almaz. Connection kaydı değişmez.",
+    "denied": "Connection write izni yoksa frappe.PermissionError (403): sır çözülmez, HTTP çağrısı yapılmaz, kayıt değişmez. base_url/url/method/args/headers/cookie veya başka fazla anahtar: invalid_input; sabitte olmayan destination_id/doctype/command: not_allowed; her iki durumda HTTP çağrısı yok."
   },
   "reuse": {
-    "mechanism": "Native: whitelisted doc metodu execute_doc_method ile cagrilir; uzakta native read_doc kendi read ve alan izinlerini uygular; sir mevcut Connection Password alani + get_decrypted_password (yeni registry/app veya sir mekanizmasi yok); HTTP icin mevcut requests bagimliligi. Hedef/islem/doctype izin listeleri connection.py kod sabiti; URL kullanici veya kayit alanindan gelmez. En kucuk adaptor.",
+    "status": "KISMI",
+    "mechanism": "Native parçalar: whitelisted doc metodu native execute_doc_method rotasıyla çağrılır; uzak tarafta native read_doc kendi read ve alan izinlerini uygular; sır Connection DocType'ının Password alanında tutulur ve native get_decrypted_password ile çözülür (Social Login Key örüntüsü); HTTP için Frappe'nin mevcut requests bağımlılığı kullanılır. Yeni registry, sır mekanizması, motor veya ORM yok. Hedef, işlem ve doctype izin listeleri connection.py kod sabitidir; URL kullanıcıdan veya kayıt alanından gelmez. Kanıtlar yalnız native parçaları gösterir; ortak adaptör sözleşmesi, kimlik bilgisi/sağlık modeli ve eşitleme searchedPaths içinde bulunmadı. Bu kapsamlı bir yokluk iddiası değildir.",
     "evidence": [
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 158,
+        "quote": "Rule(\"/resource/<doctype>/<path:name>/\", methods=[\"POST\", \"QUERY\"], endpoint=execute_doc_method),"
+      },
       {
         "path": "frappe/frappe/api/v1.py",
         "line": 155,
@@ -28,11 +42,6 @@
         "quote": "doc.check_permission(\"read\")"
       },
       {
-        "path": "frappe/frappe/api/v1.py",
-        "line": 158,
-        "quote": "Rule(\"/resource/<doctype>/<path:name>/\", methods=[\"POST\", \"QUERY\"], endpoint=execute_doc_method),"
-      },
-      {
         "path": "frappe/frappe/utils/oauth.py",
         "line": 147,
         "quote": "\"client_secret\": get_decrypted_password(\"Social Login Key\", provider, \"client_secret\"),"
@@ -42,70 +51,260 @@
         "line": 68,
         "quote": "\"requests~=2.34.2\","
       }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "frappe/frappe/api/v2.py",
+      "frappe/frappe/utils/oauth.py",
+      "frappe/pyproject.toml",
+      "suite/suite/hooks.py"
     ]
   },
   "ownership": {
     "activeContractFile": "docs/frappe-roadmap-contracts/connection.json",
     "plannedProduction": [
-      "backend/saas_platform/saas_platform/integration_hub/doctype/connection/connection.py"
+      "backend/saas_platform/saas_platform/integration_hub/doctype/connection/connection.py",
+      "backend/saas_platform/saas_platform/services/connection_mvp.py",
+      "frontend/packages/ui/src/components/ui-family-36/index.tsx",
+      "frontend/packages/ui/src/components/ui-family-36/mvp.tsx",
+      "frontend/packages/ui/src/components/ui-provider-data/index.tsx"
     ],
-    "plannedTestFile": "backend/saas_platform/saas_platform/integration_hub/doctype/connection/test_connection.py",
+    "plannedTestFile": null,
     "sharedIntegrationFiles": [
-      "backend/saas_platform/saas_platform/integration_hub/doctype/connection/connection.json",
-      "contracts/connection.v1.json",
-      "integration/fragments/connection--integration.json"
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "command: yalniz 'read_document'; doctype: APPROVED_DOCTYPES sabitinde (PoC: yerel pilot t08 DocType'i, adi bilinmiyor, entegrasyonda yerel kanittan sabitlenir); docname: str 1-140, '/', '\\\\', '..', '?', '#', '%' ve kontrol karakteri yok, safe='' ile yuzde kodlanir; idempotency_key: str 8-64, yalniz yanki. Fazla anahtar invalid_input. Kayit alanlari (connection--schema, varligi bilinmiyor): destination_id Select (sabitten), api_key Data, api_secret Password; base_url alani yok.",
-    "output": "contract_version 1, connection, destination_id, command, idempotency_key, ok, http_status|null, data: uzak JSON 'data' nesnesi|null (uzak izinle filtreli, en fazla 256 KB), error_code: null|invalid_input|not_allowed|credential_missing|timeout|auth_failed|not_found|redirect_blocked|response_too_large|remote_error|invalid_response, retryable. Sir ve hedef URL donmez.",
-    "authorization": "Native site siniri; doc.check_permission('write') dogrulama ve sir cozumunden once. Sir kapsami tek kayit. Uzakta servis kullanicisinin native read/alan izni gecerli; cagiran kullanici kimligi aktarilmaz. Tenant modeli secilmez.",
-    "persistence": "Salt okunur: for_update yok, yazma/commit yok, dis cagri DB kilidi tutmaz; DDL garantisi yok.",
-    "failure": "DESTINATIONS tek giris: local_frappe_dev = sabit loopback 127.0.0.1:<yerel bench portu, bilinmiyor> + Host 'suite.localhost'; baska loopback/ozel/dis adres eslesmez. requests.Session(trust_env=False), allow_redirects=False, sabit timeout, stream ile 256 KB sinir. Bos sir: credential_missing. 3xx: redirect_blocked. 401/403: auth_failed. 404: not_found. 5xx: remote_error, retryable=true; diger 4xx: remote_error. Timeout/baglanti: timeout, retryable=true. JSON degil: invalid_response. IP/DNS/ozel ag filtresi varsayilmaz; tek koruma tam sabit kok eslesmesi. Tuketici ok=false'u is hatasi, 403'u istek hatasi sayar."
+    "input": "command: yalnız 'read_document'. doctype: APPROVED_DOCTYPES sabitinde olmalı (değer decisionsPending kararıyla sabitlenir). docname: str 1-140; '/', '\\', '..', '?', '#', '%' ve kontrol karakteri içermez; safe='' ile yüzde kodlanır. idempotency_key: str 8-64, yalnız zarfta yansıtılır (tekilleştirme bu davranışta yok). Fazla anahtar: invalid_input. Kayıt alanları connection--schema'dan beklenir (varlığı doğrulanmadı): destination_id Select (seçenekler DESTINATIONS sabitinden), api_key Data, api_secret Password; base_url alanı yok.",
+    "output": "contract_version 1, connection, destination_id, command, idempotency_key, ok, http_status|null, data: uzak JSON 'data' nesnesi|null (uzak izinle filtreli, en fazla 256 KB), error_code: null|invalid_input|not_allowed|credential_missing|timeout|auth_failed|not_found|redirect_blocked|response_too_large|remote_error|invalid_response, retryable. Sır ve hedef URL dönmez. Alan adları kernel-envelope--contract ve api-response--contract ile çelişirse ortak sözleşme kazanır.",
+    "authorization": "Native site sınırı; doc.check_permission('write') girdi doğrulaması, sır çözümü ve HTTP'den önce çalışır. ignore_permissions veya SQL ile yetki atlama yok. Connection rol izinleri explicitPermissionFlags ortak kaynağına (native-user-policy--contract) bağlanır; bu rehber rol veya izin üretmez. Sır kapsamı tek kayıttır. Uzakta servis kullanıcısının native read/alan izni geçerlidir; çağıran kullanıcı kimliği aktarılmaz. Tenant modeli seçilmez.",
+    "persistence": "Salt okunur: for_update yok, yazma/commit yok, dış çağrı sırasında DB kilidi tutulmaz; DDL veya veri değişikliği yok.",
+    "failure": "DESTINATIONS sabiti tek girişle başlar; kök değeri (şema+host+port) decisionsPending kararından sonra entegrasyon sahibi tarafından kod sabitine yazılır, kullanıcı veya kayıt alanından türetilmez; sabit dışı her kök eşleşmez. requests.Session() ile session.trust_env=False, allow_redirects=False, sabit timeout, stream=True ile en fazla 256 KB okuma. Boş sır: credential_missing. 3xx: redirect_blocked. 401/403: auth_failed. 404: not_found. 5xx: remote_error, retryable=true; diğer 4xx: remote_error, retryable=false. Timeout/bağlantı hatası: timeout, retryable=true. Boyut aşımı: response_too_large. JSON değil veya 'data' nesnesi yok: invalid_response. IP/DNS/özel ağ filtresi varsayılmaz; tek koruma tam sabit kök eşleşmesidir, çıkış kuralı teknik sahibi Hüseyin Cengiz'dir. Tüketici ok=false'u iş hatası, 403'ü istek hatası sayar."
   },
   "development": {
     "dependencies": [
-      "connection--contract",
-      "connection--schema",
-      "kernel-envelope--contract",
-      "tenant-registry--contract",
-      "native-user-policy--contract",
       "api-middleware--contract",
-      "local pilot frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6 / suite.localhost (t08 native admin/reader kapsamlari)"
+      "api-response--contract",
+      "capability-definition--contract",
+      "client-rule-parity--contract",
+      "connection--contract",
+      "connection--implementation",
+      "connection--schema",
+      "device-grant--contract",
+      "kernel-envelope--contract",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "outbox--contract",
+      "rest-api--contract",
+      "sync-receipt--contract",
+      "tenant-registry--contract",
+      "ui-family-36--contract",
+      "ui-family-36--implementation",
+      "ui-provider-data--contract"
     ],
-    "admission": "connection--schema alanlari yerel sitede olmali (bilinmiyor); t08 DocType adi ve yerel bench portu yerel kanitla sabitlenmeli; servis kullanicisi anahtari operator tarafindan yerelde girilir, deger yazilmaz. Yerel kanit uzak tabani kanitlamaz; uzak taban ve Suite HEAD bilinmiyor.",
+    "admission": "Ortak önkoşullar: T-00 hedef taban çizgisi ve R-00 yeniden kullanım eşlemesi; izinli veri tüketicisi olduğu için R-01. Özel önkoşullar: connection--schema alanları (destination_id, api_key, api_secret) hedef ortamda doğrulanmış olmalı (şu an bilinmiyor); onaylı hedef kökü ve APPROVED_DOCTYPES değeri decisionsPending kararlarıyla sabitlenmeli; hedef Frappe sürümü T-00'da gözlemlenmeli; servis kullanıcısı anahtarı yetkili operatör tarafından girilir, değeri hiçbir belgeye, Git'e veya çıktıya yazılmaz; gerçek test komutu ve çalışma dizini T-00'da keşfedilmeli. Bu sözleşme hiçbir servis, production, şema veya veriyi değiştirme yetkisi vermez.",
     "steps": [
-      "connection.py: DESTINATIONS (tek giris), APPROVED_OPERATIONS {'read_document': 'GET'}, APPROVED_DOCTYPES sabitleri; validate destination_id'yi sabitle sinirlar",
-      "@frappe.whitelist() run_command: write izni, kati anahtar dogrulama, URL yalniz sabitten, get_decrypted_password('Connection', self.name, 'api_secret', raise_exception=False)",
-      "Tek GET: yalniz Authorization 'token <key>:<secret>', Accept, Host basliklari; yonlendirme kapali, proxy env yok sayilir",
-      "Hata siniflama; log ve mesajlarda sir/URL yok"
+      "connection.py: DESTINATIONS (tek giriş), APPROVED_OPERATIONS {'read_document': 'GET'}, APPROVED_DOCTYPES sabitleri; native validate destination_id'yi sabitle sınırlar.",
+      "@frappe.whitelist() run_command: önce self.check_permission('write'), sonra katı anahtar doğrulaması; URL yalnız sabit kök + kodlanmış yol; sır get_decrypted_password('Connection', self.name, 'api_secret', raise_exception=False) ile çözülür.",
+      "Tek GET: yalnız Authorization 'token <api_key>:<api_secret>', Accept ve sabitten gelen Host başlıkları; session.trust_env=False, allow_redirects=False, sabit timeout, stream=True ve 256 KB sınırı.",
+      "Hata sınıflaması contract.failure tablosuyla birebir; log ve mesajlarda sır ve URL yok.",
+      "Zarf alanlarını kernel-envelope--contract ve api-response--contract ile karşılaştır; çelişki varsa bu dosyayı güncelle, ortak sözleşmeyi değiştirme."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "local_frappe_dev hedefli Connection'da Session.get mock'lanir (dis I/O yok): izinli istekte URL tam sabit kok + /api/resource/<doctype>/<kodlanmis ad>, allow_redirects=False, Cookie/CSRF basligi yok, Authorization yalniz bu kaydin sirri, zarfta sir/URL yok; ayni testte base_url ekli istek invalid_input, listede olmayan doctype not_allowed doner, reader PermissionError alir; bu uc durumda mock cagrilmaz.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Ayni test, ayni bench run-tests --module ...connection.test_connection komutu (bicim yerelde dogrulanmadi) uygulamadan sonra gecer; native Password maskelemesi icin RED uretilmez."
+      "oneScenario": "Onaylı hedefli Connection kaydında requests Session.get mock'lanır (dış I/O yok): izinli istekte URL tam sabit kök + /api/resource/<doctype>/<kodlanmış ad>, allow_redirects=False, Cookie/CSRF başlığı yok, Authorization yalnız bu kaydın sırrı, zarfta sır/URL yok; aynı testte base_url ekli istek invalid_input, listede olmayan doctype not_allowed döner, write izni olmayan kullanıcı PermissionError alır ve Connection kaydının modified değeri değişmez; bu üç durumda mock çağrılmaz.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. Connection DocType ve şema alanları mevcutken, run_command henüz URL'yi sabitten kurmadığı ve fazla anahtarı reddetmediği için assertion başarısız olmalıdır. Import/altyapı hatası, eksik DocType veya native Password maskelemesini ya da izin kontrolünü bozmak RED sayılmaz. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "Uygulamadan sonra aynı senaryo, değişmeyen assertion'lar ve T-00'da keşfedilen aynı test komutuyla geçmelidir. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN'i değildir."
     },
-    "rollback": "connection.py ve test dosyasini yerelde geri al; veri/sema degismez. Production izni yok."
+    "rollback": "Gelecekte yalnız connection.py ve tek test dosyası değişikliği geri alınır; davranış salt okunur olduğu için veri/şema değişmez. Production izni yok; CI/deploy/rollback teknik sahibi Hüseyin Cengiz."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "integration-1",
+      "sourceStage": "poc",
+      "existing": "Native parçalar: /api/method RPC ve /api/resource CRUD rotaları (v1.py), whitelisted doc metodu için execute_doc_method, read_doc'ta native read izni, Password alanı + get_decrypted_password örüntüsü, requests bağımlılığı. v2 modülü iç fonksiyonlarının Python'dan çağrılmaması gerektiğini kendisi belirtir. Suite, Framework File izin mantığını Drive'ınkiyle değiştirir.",
+      "gap": "Ortak adaptör arayüzü (komut, hata, yeniden deneme, idempotency), kimlik bilgisi modeli, sağlık modeli ve yönetim ekranı yok; tenant sır yerleşimi ve ikinci adaptör seçilmedi; dosya taşıyan adaptörlerin Drive izin sınırı tanımsız; v17-dev eşlemesi yazılmamış.",
+      "completionSteps": [
+        "Adaptör sözleşmesini bu dosyanın contract alanı olarak sabitle: girdi/çıktı zarfı, error_code kümesi, retryable, idempotency_key; kernel-envelope--contract ile hizala.",
+        "İlk adaptör olarak run_command('read_document') davranışını development.steps sırasıyla uygula; sır yalnız Connection Password alanı + get_decrypted_password.",
+        "Uzak Frappe'ye yalnız HTTP sözleşmesiyle bağlan; v2 kullanılacaksa yalnız HTTP uçları, frappe.api.v2 fonksiyonları Python'dan import edilmez; sürüm eşlemesi T-00 gözlemine bağlıdır.",
+        "İkinci adaptörü sağlayıcı kararı sonrası aynı zarfı döndüren ayrı bir sabit giriş olarak ekle; ortak motor yazılmaz.",
+        "Dosya taşıyan komutlar Suite Drive izin sınırına bağlanana kadar kapsam dışı; File izinleri Framework'ten varsayılmaz.",
+        "Yönetim ekranı (ui-family-36, ui-provider-data) ayrı UI teslimidir: yalnız native REST üzerinden Connection listesi ve sonuç zarfı gösterilir, sır istemciye gitmez; React/Ant Design, Outfit, en az 14 CSS px, 320 öncelikli, çevreleyen odak halkası yok, simetrik pozitif Cubic hareket kuralları korunur."
+      ],
+      "dependencies": [
+        "connection--contract",
+        "connection--schema",
+        "kernel-envelope--contract",
+        "tenant-registry--contract",
+        "native-user-policy--contract",
+        "capability-definition--contract",
+        "native-doctype-schema--contract",
+        "outbox--contract",
+        "api-middleware--contract"
+      ],
+      "acceptance": "Aynı run_command zarfı iki adaptörde aynı alanlarla dönsün (ikinci adaptör kararından sonra); bir Connection kaydının sırrı başka kaydın isteğinde kullanılmasın; write izni olmayan kullanıcının isteği reddedilsin ve kayıt değişmesin.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 152,
+          "quote": "Rule(\"/method/<path:method>\", endpoint=handle_rpc_call),"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 155,
+          "quote": "Rule(\"/resource/<doctype>/<path:name>/\", methods=[\"GET\"], endpoint=read_doc),"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 158,
+          "quote": "Rule(\"/resource/<doctype>/<path:name>/\", methods=[\"POST\", \"QUERY\"], endpoint=execute_doc_method),"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 83,
+          "quote": "doc.check_permission(\"read\")"
+        },
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 8,
+          "quote": "internal implementation can change without treating it as \"breaking change\"."
+        },
+        {
+          "path": "frappe/frappe/utils/oauth.py",
+          "line": 147,
+          "quote": "\"client_secret\": get_decrypted_password(\"Social Login Key\", provider, \"client_secret\"),"
+        },
+        {
+          "path": "frappe/pyproject.toml",
+          "line": 68,
+          "quote": "\"requests~=2.34.2\","
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 117,
+          "quote": "ignore_file_permissions = True"
+        }
+      ]
+    },
+    {
+      "requirementId": "integration-7",
+      "sourceStage": "mvp",
+      "existing": "Native parçalar: native update yolu kaydı get_doc(..., for_update=True) ile satır kilidiyle yükler; get_oauth_keys sağlayıcı anahtarını conf veya DB'den okur; tenacity Frappe bağımlılığıdır. Eski Event Streaming v15+ çekirdek çözüm değildir. modified tabanlı native sürüm kontrolü bu kanıtlarla doğrulanmadı.",
+      "gap": "Çakışma kuralı ve modified tabanlı sürüm kontrolü seçilmedi; sürümlü eşleme şeması ve dış kimlik ↔ Frappe name eşleme kaydı yok; sağlık durum makinesi, backoff sınırları ve yeniden yetkilendirmede akışı durdurma yok; 'sekiz model' adlandırılmadı.",
+      "completionSteps": [
+        "integration-1 adaptör zarfını önkoşul al (connection--implementation); eşitleme bu zarfın error_code ve retryable alanlarını tüketir.",
+        "Eşleme kaydı alanlarını connection--schema'ya öneri olarak yaz: connection, external_id, frappe_doctype, frappe_name, mapping_version, last_remote_version, last_local_modified; (connection, external_id) tekil. Şema onayı connection--schema ve native-doctype-schema--contract üzerinden.",
+        "Sağlık durum makinesi: saglikli → bozulmus (retryable hata) → saglikli; auth_failed veya token yenileme başarısızlığı → yetki_suresi_doldu → durduruldu; durduruldu'dan yalnız write izinli kullanıcının yeniden yetkilendirmesiyle çıkılır; geçişler native save ile yapılır.",
+        "Yerel yazımlar native get_doc(for_update=True) + save ile; dış çağrı sırasında kilit tutulmaz. Çakışma kuralı karar gelene kadar kodlanmaz; karar sonrası yalnız seçilen tek kural uygulanır.",
+        "Yeniden deneme yalnız retryable=true hatalarda, mevcut tenacity ile sınırlı deneme ve üstel backoff; sınır değerleri bu sözleşmeye yazılır.",
+        "Dışa giden değişiklik olayları outbox--contract üzerinden; yeni kuyruk motoru yazılmaz."
+      ],
+      "dependencies": [
+        "connection--contract",
+        "connection--schema",
+        "connection--implementation",
+        "kernel-envelope--contract",
+        "tenant-registry--contract",
+        "native-user-policy--contract",
+        "capability-definition--contract",
+        "native-doctype-schema--contract",
+        "outbox--contract",
+        "api-middleware--contract"
+      ],
+      "acceptance": "Çakışan iki güncellemede seçilen tek kural deterministik uygulanır ve sonuç eşleme kaydına yazılır; token yenilenemezse akış durduruldu durumuna geçer, yeni dış çağrı yapılmaz ve hiçbir veri kaydı yazılmaz; write izni olmayan kullanıcı durum geçişi yapamaz ve kayıt değişmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 56,
+          "quote": "doc = frappe.get_doc(doctype, name, for_update=True)"
+        },
+        {
+          "path": "frappe/frappe/utils/oauth.py",
+          "line": 139,
+          "quote": "def get_oauth_keys(provider: str) -> dict[str, str]:"
+        },
+        {
+          "path": "frappe/pyproject.toml",
+          "line": 79,
+          "quote": "\"tenacity~=9.1.2\","
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "integration-1 'ayni komut iki adaptorde' kabulu karsilanmadi; ikinci adaptor yolu kaynakla dogrulanmadi, v2 Python fonksiyonlari import edilmez (v2.py:8).",
-    "Dis hedef politikasi bilinmiyor: yalniz dis mutasyon (POST/PUT/DELETE/call_method) engelli ve bu sozlesmede yok. Dis salt okuma kokunu yalniz entegrasyon sahibi kod sabitine ekleyebilir; IP/DNS/cikis kurali teknik sahip Huseyin Cengiz'e bagli, PoC'de kanitlanmaz.",
-    "local_frappe_dev'i yalniz yerel gelistirme sitesinde etkinlestiren bayrak kaynakla dogrulanmadi.",
-    "Kullanici bazli uzak yetki (Keycloak) karar bekliyor, kapsam disi.",
-    "integration-7 (connection_mvp.py): cakisma kurali, modified surum kontrolu, dis kimlik-name eslemesi, saglik durum makinesi ve token yenilenemezse 'durduruldu' secilmedi; bu zarfin error_code/retryable alanlarina baglanacak.",
-    "Idempotency tekillestirme ve tenacity backoff yok.",
-    "Tenant sir modeli tenant-registry--contract kararina bagli.",
-    "Dosya adaptorleri kapsam disi: suite/suite/hooks.py:117 Drive izin siniri.",
-    "Yonetim ekrani (ui-family-36) kapsam disi; mevcut AntD6, Outfit 14px, 320-first, cevreleyen odak halkasi yok, simetrik pozitif Cubic hareket korunur."
+    "Uygulama durumu: uygulanmadı. Bu dosya yalnız gelecekteki geliştirme rehberidir; ürün kodu, test veya runtime kabulü yoktur.",
+    "integration-1 'aynı komut iki adaptörde' kabulü bu davranışla karşılanmaz; ikinci adaptör sağlayıcı kararına bağlı; frappe.api.v2 Python fonksiyonları import edilmez (v2.py:8).",
+    "Dış hedef ve çıkış politikası bilinmiyor; dış mutasyon (POST/PUT/DELETE/call_method) bu sözleşmede yok. IP/DNS/çıkış kuralı teknik sahibi Hüseyin Cengiz; DNS kaydı gerekirse değerleri Hüseyin Cengiz hazırlar, GoDaddy tarafında Asistan Hüseyin uygular, sonucu Hüseyin Cengiz doğrular.",
+    "Hedefi yalnız geliştirme ortamında etkinleştiren yapılandırma bayrağı kaynakla doğrulanmadı.",
+    "Kullanıcı bazlı uzak yetki ve Keycloak servis hesabı eşlemesi kapsam dışı; karar bekliyor.",
+    "integration-7 (connection_mvp.py): çakışma kuralı, modified sürüm kontrolü, dış kimlik-name eşlemesi, sağlık durum makinesi ve token yenilenemezse durduruldu geçişi uygulanmadı; bu zarfın error_code/retryable alanlarına bağlanacak.",
+    "Idempotency tekilleştirme ve tenacity backoff bu davranışta yok.",
+    "Tenant sır modeli tenant-registry--contract kararına bağlı.",
+    "Dosya adaptörleri kapsam dışı: suite/suite/hooks.py:117 Drive izin sınırı.",
+    "Yönetim ekranı ve sağlayıcı veri bileşeni (ui-family-36, ui-provider-data) bu davranışta yok; frontend yolları yalnız öneri. Grid kararı açık ve bu rehbere bağlanmaz. Kaynak registry ile GenUI capability registry ayrıdır; JSON model sınırı yerel ReactNode/callback'ten ayrı tutulur.",
+    "'Sekiz modeli birleştirir' ifadesindeki modeller adlandırılmadı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Onaylı ilk hedef kökü (şema+host+port) ve çıkış politikası",
+      "requirementIds": ["integration-1"],
+      "blockedStep": "DESTINATIONS sabitinin değeri ve tdd.oneScenario",
+      "documentationStepUntilDecided": "Sabitin biçimini ve tam kök eşleşme kuralını belgede tut; teknik çıkış gereksinimini Hüseyin Cengiz'e devir notu olarak hazırla."
+    },
+    {
+      "decision": "APPROVED_DOCTYPES için onaylı ilk doctype",
+      "requirementIds": ["integration-1"],
+      "blockedStep": "tdd.oneScenario ve development.steps[0]",
+      "documentationStepUntilDecided": "Seçim ölçütünü yaz: uzak servis kullanıcısının native read izniyle okunabilen, sır içermeyen tek doctype."
+    },
+    {
+      "decision": "Tenant topolojisi ve sır yerleşimi (site başı veya satır başı)",
+      "requirementIds": ["integration-1", "integration-7"],
+      "blockedStep": "Çoklu tenant sır ayrımı kabulü",
+      "documentationStepUntilDecided": "Sırrı tek Connection kaydı kapsamında tutan kuralı belgele; tenant-registry--contract kararına referans ver."
+    },
+    {
+      "decision": "Hedef Frappe sürümü ve v1/v2 HTTP uç eşlemesi",
+      "requirementIds": ["integration-1"],
+      "blockedStep": "Uzak URL yolunun kesinleşmesi",
+      "documentationStepUntilDecided": "Yalnız HTTP sözleşmesine bağlanma kuralını ve T-00 gözlem gereğini belgede tut."
+    },
+    {
+      "decision": "İkinci adaptör sağlayıcısı",
+      "requirementIds": ["integration-1"],
+      "blockedStep": "'Aynı komut iki adaptörde' kabulü",
+      "documentationStepUntilDecided": "İkinci adaptörün aynı zarfı döndürmesi gerektiğini ve kabul testinin biçimini yaz."
+    },
+    {
+      "decision": "Çakışma kuralı (son yazan kazanır, alan bazlı veya manuel inceleme)",
+      "requirementIds": ["integration-7"],
+      "blockedStep": "Eşitleme yazma adımı ve integration-7 kabulü",
+      "documentationStepUntilDecided": "Eşleme kaydı alanlarını ve sağlık durum makinesini belgele; kural seçmeden bırak."
+    },
+    {
+      "decision": "Yeniden deneme/backoff sınırları ve sağlık geçiş eşikleri",
+      "requirementIds": ["integration-7"],
+      "blockedStep": "tenacity yapılandırması ve bozulmus → durduruldu eşiği",
+      "documentationStepUntilDecided": "Yalnız retryable=true hatalarda sınırlı deneme kuralını yaz; sayısal değer seçme."
+    },
+    {
+      "decision": "Kullanıcı bazlı uzak yetki ve Keycloak servis hesabı eşlemesi",
+      "requirementIds": ["integration-1"],
+      "blockedStep": "Çağıran kullanıcı kimliğinin uzağa taşınması",
+      "documentationStepUntilDecided": "Servis kullanıcısı modelini ve kimliğin aktarılmadığını belgede tut; Keycloak maddesini bu kapsama ekleme."
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "integration-1": "poc",
-    "integration-7": "mvp"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,

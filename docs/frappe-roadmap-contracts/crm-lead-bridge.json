@@ -1,0 +1,200 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "crm-lead-bridge",
+  "canonicalTaskIds": ["crm-lead-bridge--implementation"],
+  "requirementIds": ["crm-4"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "crm-4": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Mükerrer müşteri kaydının önizlemeli ve yetkili birleştirilmesi ile denetlenen sahiplik değişikliği. Uygulama durumu: uygulanmadı.",
+    "trigger": "Açık birleştirme yetki bayrağına sahip kullanıcı, karar verilmiş eşleşme anahtarlarıyla mükerrer olduğu görülen iki müşteri kaydı için önce salt okunur önizleme ister, ardından alan çakışma seçimlerini ve geri alınamazlık uyarısını onaylayarak birleştirmeyi gönderir; ya da açık sahiplik değiştirme bayrağına sahip kullanıcı bir müşteri kaydının karar verilmiş sahiplik alanını değiştirir.",
+    "expected": "Önizleme hiçbir kaydı değiştirmez; eşleşen anahtarları, alan değer çakışmalarını, birleştirmeden etkilenecek bağlı fırsat ve iletişim kayıt sayılarını ve geri alınamazlık uyarısını gösterir. Onaylı birleştirme native rename_doc merge yolu ile tek istek transaction'ı içinde yapılır; fırsat ve iletişim bağları hayatta kalan kayda taşınır, hiçbiri kaybolmaz. Sahiplik değişikliği track_changes açık DocType üzerinde izinli save ile yapılır ve Version kaydıyla denetlenebilir. Başarılı işlemden sonra olay outbox sözleşmesine göre commit ile birlikte yazılır.",
+    "denied": "Açık birleştirme veya sahiplik bayrağı olmayan (native write izni olsa bile), farklı tenant kapsamındaki, onaysız, önizlemesi eskimiş ya da çakışma seçimi eksik istekler reddedilir; iki kayıt, bağlı fırsat ve iletişim bağları ve sahiplik değişmeden kalır, outbox olayı yazılmaz. ignore_permissions, doğrudan SQL veya native validate/hook zincirini atlayan birleştirme ya da sahiplik yazımı kapsam dışıdır ve yasaktır."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native parça: frappe/frappe/client.py içindeki whitelisted rename_doc, merge parametresiyle frappe.rename_doc çağırır; frappe/frappe/permissions.py uygulanabilir izinlerden if_owner bayrağını hesaplar. Bunlar birleştirme ve sahiplik tabanlı izin için yeniden kullanılacak native yapı taşlarıdır; müşteri eşleşme kuralı, önizleme, çakışma çözümü ve sahiplik denetim sözleşmesi değildir ve bütün davranışın var olduğunu göstermez. suite/suite/mail/store/indexes/email_address.py içindeki adres indeksi yalnız posta adres önerileri içindir; müşteri tekilleştirmesi olarak kullanılmaz. Kaynak alıntıları önceki salt okunur Frappe/Suite kaynak anlık görüntülerindendir; canlı site veya ürün kabulü değildir. Mevcut talimat version-15 kaynağına atıf yapar, alıntılar ise yerel 17.0.0-dev (adf1fd0) kaynağındandır; hedef sürüm kararı açıktır. Vue/Frappe UI kaynağı React/Ant Design uygulamasına kanıt sayılmaz.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/client.py",
+        "line": 265,
+        "quote": "def rename_doc(doctype: str, old_name: str | int, new_name: str | int, merge: bool = False):"
+      },
+      {
+        "path": "frappe/frappe/client.py",
+        "line": 271,
+        "quote": "new_name = frappe.rename_doc(doctype, old_name, new_name, merge=merge)"
+      },
+      {
+        "path": "frappe/frappe/permissions.py",
+        "line": 328,
+        "quote": "has_if_owner_enabled = any(p.get(\"if_owner\", 0) for p in applicable_permissions)"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/client.py",
+      "frappe/frappe/permissions.py",
+      "suite/suite/mail/store/indexes/email_address.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/crm-lead-bridge.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/adapters/customer_success/crm_lead_bridge_post_mvp.py"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "kernel-envelope--contract zarfı içinde tenant kimliği (tenant-registry--contract), çağıran kullanıcı, capability kimliği ve işlem türü: preview, merge_confirm veya owner_change. preview: karar verilmiş müşteri DocType adı, kaynak ve hedef kayıt adı. merge_confirm: aynı kayıt çifti, önizlemede okunan iki kaydın modified değerleri, her çakışan alan için seçilen değer kaynağı (kaynak veya hedef) ve geri alınamazlık onayı. owner_change: kayıt adı, yeni sahip kullanıcı ve gerekçe. Tüm alanlar JSON ile serileştirilebilir; ReactNode veya callback model sınırından geçmez.",
+    "output": "preview: eşleşen anahtarlar, çakışma listesi (alan, kaynak değer, hedef değer), etkilenecek bağlı fırsat ve iletişim sayıları, geri alınamazlık uyarısı ve iki kaydın modified değerleri; yazım yok. merge_confirm: hayatta kalan kayıt adı, taşınan bağ sayıları ve denetim referansı. owner_change: güncellenen kayıt adı ve oluşan Version referansı. Hatalar kernel envelope hata biçiminde kod ve yerelleştirilebilir mesajla döner; kapsam dışı kaydın varlığı sızdırılmaz.",
+    "authorization": "Önce native izinler korunur: kayıtlar için native read/write ve rename_doc yolunun kendi izin denetimi, if_owner kuralları permissions.py hesaplamasıyla uygulanır. Bunun üstüne birleştirme ve sahiplik değişikliği için iki açık yetki bayrağı explicitPermissionFlags ortak kaynağına native-user-policy--contract üzerinden bağlanır; bayrak adı ve rol eşlemesi karar bekliyor. Tenant kapsamı tenant-registry--contract ile doğrulanır. ignore_permissions, doğrudan SQL veya hook atlama ile yetki bypass yasaktır.",
+    "persistence": "preview yazmaz. merge_confirm, seçilen çakışma değerlerini hedef kayda izinli save ile yazar ve ardından aynı istek transaction'ı içinde native rename_doc merge yolunu çağırır; native validate/hook zinciri korunur. owner_change yalnız track_changes açık DocType üzerinde izinli save ile yazar ve Version üretir. Outbox olayı outbox--contract'a göre commit ile birlikte yazılır. Yeni DocType, şema veya veri değişikliği bu sözleşmeyle yetkilendirilmez; şema ihtiyacı native-doctype-schema--contract ile ayrıca kararlaştırılır.",
+    "failure": "Bayrak veya native izin eksik: reddedilir, kayıtlar değişmez. Tenant uyuşmazlığı: bulunamadı olarak reddedilir. Önizleme eskimiş (modified değişmiş): yeniden önizleme istenir. Çakışma seçimi veya geri alınamazlık onayı eksik: doğrulama hatası. Native save veya rename_doc hatası: transaction geri alınır, outbox olayı yazılmaz, native hata envelope biçimine eşlenir. Hedef DocType track_changes kapalıysa sahiplik değişikliği reddedilir; denetimsiz yazım yapılmaz."
+  },
+  "development": {
+    "dependencies": [
+      "capability-definition--contract",
+      "crm-lead-bridge--contract",
+      "kernel-envelope--contract",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "outbox--contract",
+      "tenant-registry--contract"
+    ],
+    "admission": "Uygulama durumu: uygulanmadı. Özel ön koşullar: T-00 hedef taban (hedef sürüm kararı ve kaynağın o sürümde yeniden okunması); R-00 yeniden kullanım eşlemesi (rename_doc merge ve if_owner davranışının hedef sürümde satır kanıtıyla doğrulanması); izinli veri tüketicisi olduğu için R-01; decisionsPending içindeki hedef DocType, eşleşme anahtarları, çakışma politikası, yetkili rol ve sahiplik alanı kararları; bağımlı contract görevlerinin kabulü; tek dar davranış için gerçek RED/GREEN kanıtı. Mevcut görev bağımlılıkları ve post_mvp aşaması sırayı belirler; küme sırası yalnız sunumdur. Ortak kabul politikası implementationAdmission.policyRef altındadır.",
+    "steps": [
+      "T-00: Hedef sürüm kararından sonra client.py rename_doc ve frappe.rename_doc merge yolunu hedef kaynakta yeniden oku; hangi alan değerlerinin korunduğunu, bağların nasıl güncellendiğini ve izin denetiminin nerede yapıldığını satır kanıtıyla R-00 eşlemesine yaz. Doğrulanmadan veri kaybı olmadığı varsayılmaz.",
+      "Mevcut talimat atfının (data/clusters/08.json, /groups/0/items/3) version-15 URL'sinden doğrulanmış hedef kaynağa güncellenmesini ana entegrasyon sahibine öner; bu görevde yazılmaz.",
+      "capability-definition--contract ile preview, merge_confirm ve owner_change için kaynak registry kaydını tanımla; GenUI capability registry'den ayrı tutulur.",
+      "native-user-policy--contract ile birleştirme ve sahiplik bayraklarını explicitPermissionFlags ortak kaynağına bağla; rol eşlemesini karar gelmeden yazma.",
+      "preview: native izinli okuma ile iki kaydı ve bağlı fırsat/iletişim sayılarını getir, çakışma listesini ve modified değerlerini döndür; yazım yapma.",
+      "merge_confirm: doğrulama sırası envelope/tenant, açık bayrak, native izin, önizleme tazeliği, çakışma seçimleri ve onaydır; ardından izinli save ve native rename_doc merge aynı transaction'da, sonra outbox olayı.",
+      "owner_change: track_changes açıklığını doğrula, izinli save ile sahiplik alanını değiştir, Version referansını döndür.",
+      "Sonraki adımda React/Ant Design yüzeyi: önizleme tablosu, çakışma seçimi ve geri alınamazlık onayı yalnız JSON çıktısını tüketir; ortak entegrasyon dosyaları yalnız ana entegrasyon sahibi tarafından seri birleştirilir."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Hedef müşteri DocType üzerinde native write izni olan ama açık birleştirme bayrağı olmayan kullanıcı, iki mükerrer müşteri kaydı için geçerli önizleme ve onayla merge_confirm gönderir; istek reddedilir ve iki kayıt, bağlı fırsat ve iletişim bağları değişmeden kalır, outbox olayı yazılmaz.",
+      "red": "Adaptör giriş noktası mevcutken açık bayrak denetimi henüz yokken native write izni birleştirmeyi geçirdiği için kayıt değişmedi doğrulaması başarısız olur. Import hatası, eksik fixture, altyapı hatası veya native davranışı bozarak elde edilen kırmızı geçerli sayılmaz. Bu tur test yazılmaz ve koşulmaz.",
+      "green": "Açık bayrak denetimi native izin denetiminden önce eklenir; istek envelope hata biçiminde reddedilir, iki kayıt ve bağlar aynı kalır, outbox olayı yoktur. Native rename_doc ve izin davranışı değiştirilmez."
+    },
+    "rollback": "Bu sözleşme hiçbir servis, production, şema veya veriyi değiştirmez; geri alınacak üretim değişikliği yoktur. Gelecekteki uygulamada geri dönüş capability kaydının kapatılması ve adaptör yolunun kaldırılmasıyla yapılır. Native birleştirme geri alınamaz kabul edilir; bu yüzden önizleme ve açık onay zorunludur. Veri geri yükleme bu sözleşmenin kapsamı dışındadır; CI, deploy, rollback ve yedekten geri yükleme teknik sahibi Hüseyin Cengiz'dir. Bu davranış için DNS veya GoDaddy adımı yoktur."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "crm-4",
+      "sourceStage": "post_mvp",
+      "existing": "Native parça: whitelisted rename_doc, merge parametresiyle frappe.rename_doc çağırır; permissions.py if_owner bayrağını uygulanabilir izinlerden hesaplar. Suite e-posta adresi indeksi yalnız posta önerileri için adres tekilliği sağlar, müşteri tekilleştirmesi değildir. Mevcut talimat (data/clusters/08.json satır 89, /groups/0/items/3) desteği kısmi, aksiyonu extend, sahibi CRM ve veri kalitesi olarak değerlendirir ve version-15 kaynağına atıf yapar.",
+      "gap": "Kaynak atfı version-15; yerel commit adf1fd0 (17.0.0-dev) ile eşlenmemiş. Mükerrer eşleşme anahtarları ve birleştirme öncesi önizleme/onay yok. Merge'de alan değeri çakışmalarının çözümü ve geri alınamazlık uyarısı yok. Sahiplik değişikliğinin denetim izi (track_changes/Version) ve yetki rolü tanımsız.",
+      "completionSteps": [
+        "Hedef sürüm kararından sonra kaynak atfını hedef sürümdeki frappe/client.py rename_doc satırlarına güncelle ve merge davranışını R-00'a satır kanıtıyla yaz.",
+        "Karar verilen eşleşme anahtarlarını ve normalizasyonunu önizleme çıktısında görünür kıl; aday listesi yalnız native izinli okuma ile üretilir.",
+        "Önizlemede alan çakışmalarını, bağlı fırsat/iletişim sayılarını ve geri alınamazlık uyarısını döndür; onayda modified tazeliğini ve her çakışma seçimini zorunlu tut.",
+        "Birleştirmeyi izinli save ve native rename_doc merge ile tek transaction'da yap; ignore_permissions veya SQL kullanma.",
+        "Sahiplik değişikliğini track_changes açık DocType üzerinde izinli save ile yap ve Version referansını döndür; yetki rolünü explicitPermissionFlags üzerinden bağla.",
+        "Tek kabul senaryosunda açık bayraksız native write sahibi kullanıcının birleştirme isteğinin reddedildiğini ve kayıtların değişmediğini göster."
+      ],
+      "dependencies": [
+        "capability-definition--contract",
+        "crm-lead-bridge--contract",
+        "kernel-envelope--contract",
+        "native-doctype-schema--contract",
+        "native-user-policy--contract",
+        "outbox--contract",
+        "tenant-registry--contract"
+      ],
+      "acceptance": "İki mükerrer müşteri yetkili ve onaylı biçimde birleşince fırsat ve iletişim bağları hayatta kalan kayda taşınır, hiçbiri kaybolmaz; değişen sahiplik Version kaydıyla denetlenir. Açık birleştirme bayrağı olmayan native write sahibi kullanıcının isteği reddedilir; iki kayıt ve bağları değişmeden kalır.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/client.py",
+          "line": 265,
+          "quote": "def rename_doc(doctype: str, old_name: str | int, new_name: str | int, merge: bool = False):"
+        },
+        {
+          "path": "frappe/frappe/client.py",
+          "line": 271,
+          "quote": "new_name = frappe.rename_doc(doctype, old_name, new_name, merge=merge)"
+        },
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 328,
+          "quote": "has_if_owner_enabled = any(p.get(\"if_owner\", 0) for p in applicable_permissions)"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Kaynak atfı version-15; yerel commit adf1fd0 (17.0.0-dev) ile eşlenmemiş.",
+    "Mükerrer eşleşme anahtarları ve birleştirme öncesi önizleme/onay yok.",
+    "Merge'de alan değeri çakışmalarının çözümü ve geri alınamazlık uyarısı yok.",
+    "Sahiplik değişikliğinin denetim izi (track_changes/Version) ve yetki rolü tanımsız.",
+    "Ürün uygulaması, test ve runtime kabulü yok; runtimeAcceptance not_run."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Hedef Frappe sürümü: mevcut talimattaki version-15 atfı ile yerel 17.0.0-dev (adf1fd0) kaynağı arasında seçim.",
+      "requirementIds": ["crm-4"],
+      "blocks": "T-00 kaynak yeniden okuması, R-00 eşlemesi ve atıf güncellemesi.",
+      "allowedDocumentationStep": "İki kaynakta rename_doc ve if_owner satırlarını karşılaştıran salt okunur belge notu hazırlanabilir."
+    },
+    {
+      "decision": "Müşteri olarak birleştirilecek hedef DocType ve ait olduğu uygulama (canonicalArtifact availability ecosystem_optional).",
+      "requirementIds": ["crm-4"],
+      "blocks": "preview ve merge_confirm girdisi, bağlı fırsat ve iletişim bağlarının listesi.",
+      "allowedDocumentationStep": "Aday DocType'ların bağ alanları belge olarak envanterlenebilir."
+    },
+    {
+      "decision": "Mükerrer eşleşme anahtarları ve normalizasyon kuralları.",
+      "requirementIds": ["crm-4"],
+      "blocks": "Aday bulma ve önizlemedeki eşleşen anahtar çıktısı.",
+      "allowedDocumentationStep": "Aday anahtarlar ve yanlış pozitif riskleri karar notu olarak listelenebilir."
+    },
+    {
+      "decision": "Alan değeri çakışma politikası ve varsayılan seçim davranışı.",
+      "requirementIds": ["crm-4"],
+      "blocks": "merge_confirm doğrulaması ve önizleme çakışma listesi.",
+      "allowedDocumentationStep": "Çakışma türleri ve kullanıcı onay metni taslağı yazılabilir."
+    },
+    {
+      "decision": "Birleştirme ve sahiplik değişikliği yetkili rolü ile explicitPermissionFlags bayrak adları.",
+      "requirementIds": ["crm-4"],
+      "blocks": "Yetki adımı ve tek TDD senaryosunun kullanıcı kurgusu.",
+      "allowedDocumentationStep": "Rol ve bayrak eşleme taslağı native-user-policy--contract'a öneri olarak hazırlanabilir."
+    },
+    {
+      "decision": "Sahiplik alanının anlamı: native owner alanı mı, müşteri sorumlusu veya atama alanı mı.",
+      "requirementIds": ["crm-4"],
+      "blocks": "owner_change girdisi, if_owner etkisi ve Version denetim kapsamı.",
+      "allowedDocumentationStep": "Her seçeneğin if_owner izinlerine etkisi belge olarak karşılaştırılabilir."
+    },
+    {
+      "decision": "Birleştirme öncesi kayıt anlık görüntüsünün tutulup tutulmayacağı ve saklama süresi.",
+      "requirementIds": ["crm-4"],
+      "blocks": "Denetim derinliği ve geri alınamaz birleştirme sonrası inceleme.",
+      "allowedDocumentationStep": "Native Version kapsamı ile ek anlık görüntü ihtiyacı arasındaki fark belgelenebilir."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

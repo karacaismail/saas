@@ -1,0 +1,235 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "approval-decision",
+  "canonicalTaskIds": [
+    "approval-decision--implementation",
+    "ui-family-21--implementation"
+  ],
+  "requirementIds": ["approvals-4"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "approvals-4": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Onay kararı: reddetme, geri gönderme ve geri çekmenin gerekçe kaydıyla sunucu tarafında uygulanması",
+    "trigger": "Yetkili kullanıcı, workflow altındaki bir hedef belge için Reddet, Geri Gönder veya Geri Çek eylemini headless API ya da React/Ant Design karar yüzeyi üzerinden gerekçe metniyle gönderir.",
+    "expected": "Sunucu tarafı sarmalayıcı eylemin gerekçe zorunluluğunu ve geri çekme sahiplik politikasını doğrular, ardından native apply_workflow(doc, action) ile geçişi uygular; gerekçe, eylem, karar veren kullanıcı, rol ve zaman aynı istek işleminde karar kaydına yazılır, hedef belgenin geçmişi korunur.",
+    "denied": "Gerekçesi boş zorunlu-gerekçeli eylem, geçiş rolü olmayan kullanıcı, talep sahibi olmayan kullanıcının geri çekme denemesi veya geçersiz durum geçişi reddedilir; hedef belgenin workflow durumu değişmez ve karar kaydı oluşmaz. ignore_permissions, SQL güncellemesi veya doğrudan durum alanı yazımıyla yetki atlanmaz."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native Frappe Workflow: Workflow Transition satırındaki Action alanı Workflow Action Master'a bağlanır; Reddet, Geri Gönder ve Geri Çek ayrı eylem ve geçiş satırları olarak, her biri ayrı rolle modellenebilir. apply_workflow(doc, action) geçişi uygular. Workflow Action işlemi tamamlayan kullanıcıyı (completed_by) tutar. Gerekçe parametresi, sahip bazlı geri çekme ve hedef DocType geçmişi native kanıtta yoktur; bunlar sunucu sarmalayıcısı ve önerilen ApprovalDecision kaydıyla tamamlanacaktır. Kanıtın native parçaları göstermesi bütün davranışın var olduğu anlamına gelmez. Alıntılar önceki salt okunur Frappe kaynak anlık görüntülerindendir; canlı site veya ürün kabulü değildir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/model/workflow.py",
+        "line": 119,
+        "quote": "def apply_workflow(doc: Document | str | dict, action: str):"
+      },
+      {
+        "path": "frappe/frappe/workflow/doctype/workflow_transition/workflow_transition.json",
+        "line": 38,
+        "quote": "\"options\": \"Workflow Action Master\","
+      },
+      {
+        "path": "frappe/frappe/workflow/doctype/workflow_action/workflow_action.py",
+        "line": 41,
+        "quote": "completed_by: DF.Link | None"
+      },
+      {
+        "path": "frappe/frappe/workflow/doctype/workflow/workflow.json",
+        "line": 140,
+        "quote": "\"track_changes\": 1"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/model/workflow.py",
+      "frappe/frappe/workflow/doctype/workflow/workflow.json",
+      "frappe/frappe/workflow/doctype/workflow_action/workflow_action.py",
+      "frappe/frappe/workflow/doctype/workflow_transition/workflow_transition.json"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/approval-decision.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/workflow_automation/doctype/approval_decision/approval_decision.py",
+      "frontend/packages/ui/src/components/ui-family-21/index.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Hedef DocType ve belge adı; Workflow Action Master'da tanımlı eylem adı; gerekçe metni (alan adı ve uzunluk sınırı approval-decision--schema'da belirlenir). İstek kernel-envelope--contract zarfına ve api-middleware--contract kurallarına uyar.",
+    "output": "Başarıda hedef belgenin yeni workflow durumu ve oluşturulan karar kaydının kimliği. Hatada makine tarafından okunabilir hata türü (gerekçe eksik, yetkisiz, sahip değil, geçersiz geçiş) ve değişmemiş durum; hata mesajı yetkisiz kullanıcıya belge verisi sızdırmaz.",
+    "authorization": "Eylem yetkisi native Workflow Transition rolüyle verilir; Reddet, Geri Gönder ve Geri Çek ayrı geçiş satırları ve ayrı rollerle tanımlanır. Geri çekme ek olarak talep sahibi ilişkisini sarmalayıcıda sunucu tarafında doğrular. Rol ve izin bayrakları explicitPermissionFlags ortak kaynağına ve native-user-policy--contract'a bağlanır; bu rehber yeni rol veya izin bayrağı üretmez. ignore_permissions, SQL ile yazım veya doğrudan durum alanı güncellemesi yasaktır.",
+    "persistence": "Durum geçişi yalnız native apply_workflow ile yapılır. Gerekçe kaydı önerilen ApprovalDecision DocType'ında (canonicalArtifact: proposed, custom_proposed) veya karar sonucunda seçilecek yerde, aynı istek işlemi içinde native save ile yazılır. Hedef DocType için geçmiş (track_changes/Version) açıkça etkinleştirilir; Workflow DocType'ındaki track_changes hedef belgeyi kapsamaz. Denetim olayı audit-envelope--contract, dış bildirim outbox--contract üzerinden. Bu sözleşme şema, veri, servis veya production değişikliği yetkisi vermez.",
+    "failure": "Gerekçe ve sahiplik doğrulaması apply_workflow çağrısından önce hata fırlatır. apply_workflow veya karar kaydı yazımı başarısız olursa ne geçiş ne gerekçe kalıcılaşmalıdır; istisnada istek işleminin geri alındığı varsayımı hedef sürümde (T-00) doğrulanır. Kısmi kayıt (geçiş var, gerekçe yok veya tersi) kabul edilmez."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "approval-chain--contract",
+      "approval-decision--contract",
+      "approval-decision--schema",
+      "audit-envelope--contract",
+      "capability-definition--contract",
+      "client-rule-parity--contract",
+      "kernel-envelope--contract",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "native-workflow--contract",
+      "outbox--contract",
+      "process-definition--contract",
+      "ui-family-21--contract"
+    ],
+    "admission": {
+      "status": "NOT_ADMITTED",
+      "prerequisites": [
+        "T-00 hedef temel çizgi (target baseline)",
+        "R-00 yeniden kullanım eşlemesi",
+        "İzinli veri tüketicisi olduğu için R-01",
+        "Tek dar davranış için gerçek RED/GREEN kanıtı"
+      ],
+      "orderAuthority": "Mevcut görev bağımlılıkları ve post_mvp aşaması belirleyicidir; küme sırası 7 yalnız sunumdur, yeni seri DAG değildir.",
+      "decisionGate": "decisionsPending içindeki gerekçe saklama yeri, zorunlu eylem listesi ve geri çekme sahipliği kararları verilmeden üretim adımı başlamaz."
+    },
+    "steps": [
+      "Uygulama durumu: uygulanmadı. Bu sözleşme yalnız gelecekteki geliştirme rehberidir; kod, test, servis, şema veya veri değişikliği yetkisi vermez.",
+      "T-00 hedef sürümünde apply_workflow imzasını, Workflow Transition Action alanını ve Workflow Action completed_by alanını yeniden doğrula; alıntılar önceki salt okunur anlık görüntüdendir.",
+      "native-workflow--contract kapsamında Reddet, Geri Gönder ve Geri Çek eylemlerini Workflow Action Master kayıtları ve her biri için ayrı rollü Workflow Transition satırları olarak modelle.",
+      "approval-decision--schema ile ApprovalDecision alanlarını kesinleştir: referans DocType ve belge, eylem, gerekçe, karar veren kullanıcı ve rol, zaman.",
+      "approval_decision.py içinde sunucu tarafı sarmalayıcıyı tanımla: gerekçe zorunluluğunu ve geri çekme sahipliğini doğrula, sonra apply_workflow(doc, action) çağır ve karar kaydını aynı işlemde native save ile yaz; ignore_permissions kullanma.",
+      "apply_workflow istemciden doğrudan çağrılabilir bir uç ise, zorunlu-gerekçeli eylemlerde gerekçesiz geçişin bu yoldan da reddedilmesini sağlayan kapatma yöntemini hedef sürüm kaynağında doğrulayarak seç (decisionsPending).",
+      "Hedef DocType için track_changes etkinleştirmesini native-doctype-schema--contract üzerinden tanımla.",
+      "Headless yolu api-middleware--contract ve kernel-envelope--contract ile yalnız sarmalayıcıya bağla; hooks.py ve registry.ts gibi paylaşılan dosyalar yalnız ana entegrasyon sahibinin seri birleştirmesiyle değişir.",
+      "ui-family-21: React/Ant Design karar yüzeyi eylem seçimi ve gerekçe girişi sunar; istemci doğrulaması yalnız kolaylıktır, sunucu reddi yetkili kaynaktır (client-rule-parity--contract). Sunucu reddi değişmemiş durumla gösterilir; sahte ilerleme yoktur. Kaynak registry ile GenUI capability registry ayrıdır; JSON model sınırı ile yerel ReactNode/callback karıştırılmaz.",
+      "Denetim olayını audit-envelope--contract, bildirimi outbox--contract ile bağla; zincir bağlamını approval-chain--contract ve process-definition--contract'tan al."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Reddet eylemi gerekçe zorunlu iken, geçiş rolüne sahip kullanıcı boş gerekçeyle sarmalayıcıyı çağırdığında istek reddedilir, hedef belgenin workflow durumu değişmez ve ApprovalDecision kaydı oluşmaz.",
+      "red": "Sarmalayıcı iskeleti gerekçe kontrolü olmadan apply_workflow'a delege ederken test, boş gerekçeli Reddet çağrısının hata dönmeden durumu değiştirdiğini gözlemleyerek başarısız olur. RED import veya altyapı hatasıyla ya da native workflow davranışını bozarak üretilmez.",
+      "green": "Gerekçe kontrolü apply_workflow çağrısından önce eklenir; aynı test reddi, değişmemiş durumu ve oluşmamış karar kaydını doğrular. Gerekçeli Reddet ve native geçiş davranışı korunur."
+    },
+    "rollback": "Bu turda geri alınacak üretim değişikliği yoktur. Gelecekte sarmalayıcı ve UI kaydı ayrı geri alınabilir değişiklikler olarak birleştirilir; geri alma native apply_workflow yolunu bozmaz. ApprovalDecision şeması ve verisi için geri alma approval-decision--schema'da tanımlanır. CI, deploy ve rollback teknik sahibi Hüseyin Cengiz'dir."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "approvals-4",
+      "sourceStage": "post_mvp",
+      "existing": "Native parçalar: Workflow Transition Action alanı Workflow Action Master'a bağlıdır, ret ve geri gönderme ayrı rollü geçişler olarak modellenebilir; apply_workflow(doc, action) geçişi uygular; Workflow Action completed_by tutar. Mevcut talimat data/clusters/06.json:374 (/groups/2/items/3) desteği partial, eylemi extend olarak değerlendirir.",
+      "gap": [
+        "apply_workflow yalnız doc ve action alır; gerekçe parametresi ve saklama yeri tanımsız, zorunlu eylemler belirtilmemiş.",
+        "Geri çekme talep edene aittir, ancak geçişler yalnız Role'e bağlanabilir; sahip bazlı izin yok.",
+        "Kanıttaki track_changes yalnız Workflow DocType'ına aittir; hedef DocType geçmişi tanımsız.",
+        "Gerekçe kontrolü sunucu tarafında tanımlanmadığı için yalnız UI'da zorunlu kalabilir."
+      ],
+      "completionSteps": [
+        "Gerekçe saklama yerini ve zorunlu eylem listesini karar sonrası approval-decision--schema'ya işle.",
+        "Sunucu sarmalayıcıda gerekçesiz zorunlu eylemi apply_workflow çağrısından önce reddet.",
+        "Geri çekmede rol geçişine ek olarak talep sahibi ilişkisini sunucu tarafında doğrula; talep sahibi olmayanı reddet.",
+        "Hedef DocType için track_changes etkinleştirmesini native-doctype-schema--contract ile tanımla.",
+        "Doğrudan apply_workflow yolunun gerekçe kuralını atlamamasını sağla.",
+        "ui-family-21 yüzeyinde gerekçe girişini sun, sunucu reddini değişmemiş durumla göster."
+      ],
+      "dependencies": [
+        "approval-decision--contract",
+        "approval-decision--schema",
+        "native-workflow--contract",
+        "native-user-policy--contract",
+        "native-doctype-schema--contract",
+        "api-middleware--contract",
+        "client-rule-parity--contract",
+        "audit-envelope--contract",
+        "ui-family-21--contract"
+      ],
+      "acceptance": "Ret, geri gönderme ve geri çekme yetkileri ayrı rollü geçişlerdir; gerekçesiz zorunlu karar headless API'de sunucu tarafında reddedilir ve hedef belge ile karar kaydı değişmez; talep sahibi olmayanın geri çekmesi reddedilir; kabul edilen kararda gerekçe, kullanıcı, rol ve zaman kalıcıdır ve hedef belgenin geçmişi korunur.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/model/workflow.py",
+          "line": 119,
+          "quote": "def apply_workflow(doc: Document | str | dict, action: str):"
+        },
+        {
+          "path": "frappe/frappe/workflow/doctype/workflow_transition/workflow_transition.json",
+          "line": 38,
+          "quote": "\"options\": \"Workflow Action Master\","
+        },
+        {
+          "path": "frappe/frappe/workflow/doctype/workflow_action/workflow_action.py",
+          "line": 41,
+          "quote": "completed_by: DF.Link | None"
+        },
+        {
+          "path": "frappe/frappe/workflow/doctype/workflow/workflow.json",
+          "line": 140,
+          "quote": "\"track_changes\": 1"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Gerekçe saklama yeri ve zorunlu eylem listesi karar bekliyor.",
+    "Geri çekme sahiplik politikası ve izinli olduğu durumlar karar bekliyor.",
+    "Doğrudan apply_workflow çağrısında gerekçe kuralının kapatma yöntemi hedef sürümde doğrulanmadı.",
+    "Hedef DocType geçmişi ve istisnada işlem geri alma davranışı T-00 sürümünde doğrulanmadı.",
+    "Ürün kodu, test ve runtime kabulü yok; runtimeAcceptance not_run."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Gerekçenin saklanacağı yer: ApprovalDecision kaydı, Comment veya hedef DocType ek alanı.",
+      "requirementIds": ["approvals-4"],
+      "blocks": "approval-decision--schema kesinleştirme ve sarmalayıcıdaki kayıt yazımı",
+      "allowedUntilDecided": "Seçeneklerin yetki, geçmiş ve denetim etkisini belgede karşılaştırmak."
+    },
+    {
+      "decision": "Hangi eylemlerde gerekçenin zorunlu olduğu ve asgari içerik kuralı.",
+      "requirementIds": ["approvals-4"],
+      "blocks": "Sarmalayıcı doğrulaması ve TDD senaryosunun kesin girdisi",
+      "allowedUntilDecided": "Reddet örneğiyle senaryo taslağını belgede tutmak."
+    },
+    {
+      "decision": "Geri çekme yetkisinin talep eden mi belge sahibi (owner) mi olduğu ve hangi durumlarda izinli olduğu.",
+      "requirementIds": ["approvals-4"],
+      "blocks": "Geri çekme sahiplik doğrulaması",
+      "allowedUntilDecided": "Rol geçişlerini ve reddedilecek senaryoları belgede listelemek."
+    },
+    {
+      "decision": "Doğrudan apply_workflow çağrısında gerekçe kuralının nasıl zorunlu kılınacağı.",
+      "requirementIds": ["approvals-4"],
+      "blocks": "Headless API kabulü",
+      "allowedUntilDecided": "Hedef sürüm kaynağında aday yöntemleri salt okunur incelemek."
+    },
+    {
+      "decision": "Gerekçe ve karar kayıtlarının saklama süresi.",
+      "requirementIds": ["approvals-4"],
+      "blocks": "Kalıcılık ve silme politikası",
+      "allowedUntilDecided": "Saklama süresini seçmeden alan ve denetim gereksinimini belgelemek."
+    },
+    {
+      "decision": "Hedef Frappe sürümü (T-00).",
+      "requirementIds": ["approvals-4"],
+      "blocks": "Kaynak alıntılarının yeniden doğrulanması ve admission",
+      "allowedUntilDecided": "Alıntıları önceki anlık görüntü kanıtı olarak işaretli tutmak."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

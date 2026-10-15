@@ -1,18 +1,28 @@
 {
   "schemaVersion": "saas-existing-work-contract.v1",
   "canonicalUnitId": "email-template",
-  "canonicalTaskIds": ["email-template--implementation"],
+  "canonicalTaskIds": [
+    "email-template--implementation",
+    "ui-family-24--implementation"
+  ],
   "requirementIds": ["email-1", "email-4", "email-5"],
   "stage": "mvp",
+  "sourceStages": {
+    "email-1": "mvp",
+    "email-4": "mvp",
+    "email-5": "mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
-    "title": "Eksik zorunlu sablon degiskeni varsa onizleme reddedilir; tam baglamda onizleme yerel get_email_template ile salt okunur render doner",
-    "trigger": "Sunucu tarafi urun kodu adaptordeki preview_template_email fonksiyonunu template_name, reference_doctype, reference_name, context ve required_variables ile cagirir.",
-    "expected": "required_variables listesindeki her anahtar context icinde var ve bos degilse konu ve govde yerel get_email_template ile uretilip doner. Email Queue kaydi olusmaz, sendmail cagrilmaz, posta gonderilmez, hicbir zamanlama etkinlestirilmez.",
-    "denied": "Eksik ya da bos degiskende frappe.ValidationError eksik anahtar adlariyla atilir ve render yapilmaz. Email Template veya referans belgede read izni yoksa yerel frappe.PermissionError atilir."
+    "title": "Eksik zorunlu şablon değişkeni varsa önizleme reddedilir; tam bağlamda önizleme native get_email_template ile salt okunur render döner",
+    "trigger": "Sunucu tarafı ürün kodu, gelecekte sahip olunacak adaptördeki preview_template_email fonksiyonunu template_name, reference_doctype, reference_name, context ve required_variables ile çağırır.",
+    "expected": "required_variables listesindeki her anahtar context içinde var ve boş değilse, referans belge read izni doğrulandıktan sonra konu ve gövde native get_email_template ile üretilip döner. Email Queue kaydı oluşmaz, sendmail çağrılmaz, posta gönderilmez, hiçbir zamanlama etkinleştirilmez.",
+    "denied": "Eksik ya da boş değişkende frappe.ValidationError eksik anahtar adlarıyla atılır ve render yapılmaz. Email Template veya referans belgede read izni yoksa native frappe.PermissionError atılır. Her iki ret durumunda Email Queue kayıt sayısı ve referans belge değişmeden kalır."
   },
   "reuse": {
-    "mechanism": "Once yerel mekanizma kullanilir. Render ve sablon read izni icin get_email_template, sablon sozdizimi icin Email Template validate kullanilir. Yeni DocType, Custom Field, hook, kuyruk yazimi veya zamanlanmis is eklenmez. Gozlenen tek eksik render oncesi zorunlu degisken kontroludur; sahip olunan adaptorde en kucuk sarmalayicida yapilir. Email Queue durum ve reference alanlari yalniz sonraki gonderim adimi icin referanstir; bu davranista yazilmaz.",
+    "status": "KISMI",
+    "mechanism": "Önce native mekanizma kullanılır: render ve şablon read izni için whitelist edilmiş get_email_template, şablon sözdizimi için Email Template validate içindeki validate_template. Native parçalar davranışın tamamı değildir; gözlenen eksik, render öncesi zorunlu değişken kontrolü ile referans belge read denetiminin aynı çağrıda birleştirilmesidir ve gelecekteki adaptörde en küçük sarmalayıcıyla yapılır. Yeni DocType, Custom Field, hook, kuyruk yazımı, motor veya zamanlanmış iş eklenmez. Email Queue status ve reference alanları yalnız sonraki gönderim davranışı için referanstır; bu davranışta yazılmaz ve değiştirilmez. Alıntılar önceki salt okunur Frappe kaynak anlık görüntüsündendir; canlı site veya ürün kabulü değildir. Vue/Frappe UI kaynağı React/Ant Design uygulaması kanıtı sayılmaz.",
     "evidence": [
       {
         "path": "frappe/frappe/email/doctype/email_template/email_template.py",
@@ -23,6 +33,11 @@
         "path": "frappe/frappe/email/doctype/email_template/email_template.py",
         "line": 77,
         "quote": "email_template.check_permission(\"read\")"
+      },
+      {
+        "path": "frappe/frappe/email/doctype/email_template/email_template.py",
+        "line": 35,
+        "quote": "validate_template(self.subject)"
       },
       {
         "path": "frappe/frappe/email/doctype/email_template/email_template.py",
@@ -39,63 +54,226 @@
         "line": 77,
         "quote": "status: DF.Literal[\"Not Sent\", \"Sending\", \"Sent\", \"Partially Sent\", \"Error\"]"
       }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/email/doctype/email_queue/email_queue.py",
+      "frappe/frappe/email/doctype/email_queue/email_queue_list.js",
+      "frappe/frappe/email/doctype/email_template/email_template.py",
+      "frappe/frappe/email/queue.py"
     ]
   },
   "ownership": {
     "activeContractFile": "docs/frappe-roadmap-contracts/email-template.json",
     "plannedProduction": [
-      "backend/saas_platform/saas_platform/adapters/message_delivery/email_template_mvp.py"
+      "backend/saas_platform/saas_platform/adapters/message_delivery/email_template_mvp.py",
+      "frontend/packages/ui/src/components/ui-family-24/index.tsx"
     ],
-    "plannedTestFile": "backend/saas_platform/saas_platform/adapters/message_delivery/test_email_template_mvp.py",
+    "plannedTestFile": null,
     "sharedIntegrationFiles": [
-      "integration/fragments/email-template--integration.json"
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "template_name: str, mevcut Email Template adi. reference_doctype: str ve reference_name: str, mevcut belge. context: dict, JSON serilestirilebilir. required_variables: list[str], 0-50 Jinja anahtari. Anahtar yoksa, None ise veya yalniz bosluktan olusan bir string ise eksik sayilir.",
-    "output": "{subject: str, message: str, use_html: bool, template: str, contract_version: 1}. Yalniz read izni olan cagirana doner; alici veya gonderen hesap bilgisi donulmez.",
-    "authorization": "Yerel oturum ve site siniri kullanilir. Email Template read izni get_email_template icinde denetlenir, referans belge read izni yerel belge check_permission ile denetlenir. Fonksiyon bu adimda whitelist edilmez ve headless istemciye acilmaz. Salt okunur sinir: adaptor hicbir DocType'a yazmaz; Email Queue ve Desk Retry Sending davranisi degismez. Tenant ve alici yetki modeli bu sozlesmenin disindadir.",
-    "persistence": "Salt okunur: insert, save, sendmail, commit veya DDL yoktur. Zorunlu degisken kontrolu render oncesi calisir; transaction yerel istek davranisiyla kalir.",
-    "failure": "Eksik degiskende frappe.ValidationError atilir ve mesaj eksik anahtarlari listeler. Izin yoksa frappe.PermissionError, sablon veya belge yoksa frappe.DoesNotExistError atilir. Jinja render hatasi yerel hatayla yukari tasinir. Tuketici urun kodu hatayi yutmaz; sessiz bos onizleme donulmez."
+    "input": "template_name: str, mevcut Email Template adı. reference_doctype: str ve reference_name: str, mevcut belge; yalnız read izni denetimi için yüklenir. context: dict, JSON serileştirilebilir; render bağlamı olarak get_email_template doc parametresine verilir. required_variables: list[str], 0-50 Jinja anahtarı. Anahtar yoksa, None ise veya yalnız boşluktan oluşan bir string ise eksik sayılır.",
+    "output": "{subject: str, message: str, use_html: bool, template: str, contract_version: 1}. subject ve message anahtar adları hedef sürümdeki get_formatted_email çıktısından kabul öncesi kaynakta doğrulanır; use_html native get_email_template dönüşünden gelir. Yalnız read izni olan çağırana döner; alıcı veya gönderen hesap bilgisi dönülmez.",
+    "authorization": "Native oturum ve site sınırı kullanılır. Email Template read izni get_email_template içinde, referans belge read izni native belge check_permission ile denetlenir. ignore_permissions, izin bayrağıyla atlama veya SQL ile yetki bypass yoktur. Fonksiyon bu adımda whitelist edilmez ve headless istemciye açılmaz; headless uç ileride api-middleware--contract ve kernel-envelope--contract üzerinden ayrı davranış olarak tanımlanır. Bu davranış rol veya izin üretmez; ileride rol/izin gerekirse explicitPermissionFlags ortak kaynağına bağlanır. Tenant ve alıcı yetki modeli bu sözleşmenin dışındadır.",
+    "persistence": "Salt okunur: insert, save, sendmail, commit, DDL veya şema/veri değişikliği yoktur. Zorunlu değişken kontrolü render öncesi çalışır; transaction native istek davranışıyla kalır. Email Queue, retry_sending_emails ve Desk Retry Sending davranışı değişmez.",
+    "failure": "Eksik değişkende frappe.ValidationError atılır ve mesaj eksik anahtarları listeler. İzin yoksa frappe.PermissionError, şablon veya belge yoksa frappe.DoesNotExistError atılır. Jinja render hatası native hatayla yukarı taşınır. Tüketici ürün kodu hatayı yutmaz; sessiz boş önizleme dönülmez."
   },
   "development": {
     "dependencies": [
+      "api-middleware--contract",
+      "client-rule-parity--contract",
       "email-template--contract",
-      "localPilot frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6 suite.localhost"
+      "kernel-envelope--contract",
+      "ui-family-24--contract"
     ],
-    "admission": "T-00 hedef taban ve R-00 yeniden kullanim eslemesi hazir olmali. Yerel kanit uzak urun tabanini temsil etmez; Suite HEAD bilinmiyor. Yerel v17'de belge check_permission davranisi ve tanimsiz Jinja degiskeninin render sonucu uygulamadan once kaynakta okunmalidir.",
+    "admission": "Uygulama durumu: uygulanmadı. Ortak kabul politikası implementationAdmission.policyRef altındadır. Bu davranışa özgü önkoşullar: T-00 hedef taban (hedef Frappe sürümü ve kaynak yolları) ve R-00 yeniden kullanım eşlemesi hazır olmalı; referans belge izni okunduğu için R-01 de gerekir. Version-15 kaynak bağlantıları hedef sürüm yollarına eşlenmeli. Hedef sürümde get_email_template imzası, get_formatted_email dönüş anahtarları, belge check_permission davranışı ve tanımsız Jinja değişkeninin render sonucu kaynakta okunmalı. Test dosyası yolu ve production lease kabul anında belirlenir; o zamana kadar planlanan yollar yalnız öneridir.",
     "steps": [
-      "Planlanan tek testi once yaz",
-      "email_template_mvp.py icinde zorunlu degisken kontrolu, referans belge read denetimi ve get_email_template cagrisini ekle",
-      "Ayni test komutunu yalniz yerel suite.localhost sitesinde calistir; scheduler veya posta gonderimi acilmaz"
+      "Kabul sonrası, T-00/R-00 ile belirlenen test yolunda yalnız oneScenario testini yaz ve gerçek RED'i kaydet.",
+      "email_template_mvp.py içinde preview_template_email sırası: required_variables kontrolü, referans belge read denetimi, get_email_template çağrısı. Native Frappe dosyaları değiştirilmez.",
+      "Aynı test komutunu T-00'da belirlenen izole geliştirme ortamında çalıştır; scheduler, SMTP veya posta gönderimi açılmaz.",
+      "ui-family-24 bileşeni bu davranışta bağlanmaz; onaylı headless uç tanımlandıktan sonra ayrı tek davranış olarak ele alınır."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "required_variables=['invoice_no'] ve context={} ile preview_template_email cagrisi icinde 'invoice_no' gecen ValidationError atmali; Email Queue kayit sayisi degismemeli.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Kontrol eklendikten sonra ayni test ayni komutla gecmelidir. Yerel olarak zaten calisan sablon sozdizimi dogrulamasi RED uretmek icin kullanilmaz."
+      "oneScenario": "required_variables=['invoice_no'] ve context={} ile preview_template_email çağrısı mesajında 'invoice_no' geçen ValidationError atmalı; Email Queue kayıt sayısı değişmemeli.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. RED, adaptör fonksiyonu kontrol olmadan yalnız get_email_template'e delege ederken beklenen ValidationError'ın atılmamasıdır. Import hatası, eksik altyapı veya native şablon sözdizimi doğrulamasını bozmak RED sayılmaz. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "Kontrol eklendikten sonra aynı senaryo, değişmeyen assertion ve aynı komutla geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN'i değildir."
     },
-    "rollback": "Yalniz adaptor ve test dosyasi yerelde geri alinir. Production degisikligi, cron etkinlestirme veya servis yeniden baslatma yetkisi yoktur."
+    "rollback": "Yalnız adaptör ve test dosyası geliştirme dalında geri alınır. Native Frappe dosyaları, şema, veri ve servis değişmediği için geri alınacak altyapı yoktur. Bu sözleşme production değişikliği, cron etkinleştirme veya servis yeniden başlatma yetkisi vermez; CI/deploy/rollback teknik sahibi Hüseyin Cengiz'dir."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "email-1",
+      "sourceStage": "mvp",
+      "existing": "Native parça: Email Queue durum modeli (Not Sent, Sending, Sent, Partially Sent, Error), retry_sending_emails ile yeniden deneme ve limit aşımında Error durumu, Email Template validate içinde Jinja doğrulaması, Desk liste görünümünde Retry Sending eylemi. Bu parçalar ürün şablon kataloğu veya headless durum okuması değildir.",
+      "gap": "Kaynak bağlantıları version-15; hedef sürüm yollarıyla eşlenmedi. Ürün sistem şablonlarının adı, sahibi ve gönderen Email Account listesi yok. Headless istemcinin kuyruk durumu ve hatayı okuyacağı izinli uç tanımsız; Desk liste eylemi headless sözleşme değildir. Tenant başına gönderen hesap eşlemesi yok.",
+      "completionSteps": [
+        "email_queue.py, queue.py, email_template.py ve email_queue_list.js için version-15 bağlantılarını T-00 hedef sürüm yollarına eşleyen tabloyu yaz.",
+        "Ürün sistem şablon kataloğunu tek tabloda tanımla: şablon adı, zorunlu değişkenler, iş sahibi, gönderen Email Account; gönderen hesap sütunu tenant kararı gelene kadar karar bekliyor olarak kalır.",
+        "Kuyruk durumu ve hata okumasını yalnız Email Queue DocType read izniyle çalışan okuma sözleşmesi olarak yaz ve api-middleware ile kernel-envelope sözleşmelerine bağla.",
+        "Kuyruğa alma ve yeniden deneme kabulünü bu önizleme davranışından ayrı, onaylı sonraki tek davranış olarak planla; native sendmail ve retry_sending_emails yeniden kullanılır.",
+        "SMTP/DNS teknik gereksinimlerini Hüseyin Cengiz hazırlar, GoDaddy DNS kaydını Asistan Hüseyin uygular, sonucu Hüseyin Cengiz doğrular; bu sözleşme hesap veya DNS değişikliği yetkisi vermez."
+      ],
+      "dependencies": [
+        "email-template--contract",
+        "api-middleware--contract",
+        "kernel-envelope--contract"
+      ],
+      "acceptance": "Şablonlu işlem e-postası kuyruğa alınsın; hata ve yeniden deneme görülsün. Bu sözleşmenin tek davranışı bu kabulü karşılamaz; kuyruk kabulü ayrı davranışta not_run kalır.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/email/doctype/email_queue/email_queue.py",
+          "line": 77,
+          "quote": "status: DF.Literal[\"Not Sent\", \"Sending\", \"Sent\", \"Partially Sent\", \"Error\"]"
+        },
+        {
+          "path": "frappe/frappe/email/queue.py",
+          "line": 185,
+          "quote": "def retry_sending_emails():"
+        },
+        {
+          "path": "frappe/frappe/email/queue.py",
+          "line": 206,
+          "quote": "update_fields.update({\"status\": \"Error\"})"
+        },
+        {
+          "path": "frappe/frappe/email/doctype/email_template/email_template.py",
+          "line": 36,
+          "quote": "validate_template(self.response_)"
+        },
+        {
+          "path": "frappe/frappe/email/doctype/email_queue/email_queue_list.js",
+          "line": 47,
+          "quote": "list_view.page.add_actions_menu_item(__(\"Retry Sending\"), () => {"
+        }
+      ]
+    },
+    {
+      "requirementId": "email-4",
+      "sourceStage": "mvp",
+      "existing": "Native parça: Email Queue reference_doctype ve reference_name alanları gönderimi kaynak belgeye bağlar; Email Template gönderen verilmediğinde belge DocType'ına göre giden Email Account eşlemesi yapar. Notification kaynağı incelenmedi; ERPNext kurulu değil.",
+      "gap": "Senaryo başına olayı üreten ürün DocType'ı ve olay adı yok; ödeme ve fatura ürün modülünden gelmeli. Çift gönderimi önleyecek idempotency anahtarı tanımsız. Tenant ve alıcı yetkisi yazılmamış. Hedef sürüm Notification kaynağı incelenmedi. ui-family-24 rolü açıklanmamış.",
+      "completionSteps": [
+        "Ödeme, fatura, onay, güvenlik ve destek için olay tablosu yaz: kaynak DocType, olay adı, şablon adı, alıcı kuralı; ERPNext DocType'ı varsayılmaz.",
+        "Dedup anahtarını reference_doctype + reference_name + olay adı + şablon olarak öner; native Email Queue alanlarıyla sağlanabilirliği kabul öncesi kaynakta doğrula, yeni tablo veya motor tasarlama.",
+        "Hedef sürüm Notification kaynağını oku; koşullu bildirim senaryoları karşılıyorsa native Notification yapılandırması tercih edilir, yalnız eksik dedup adımı adaptörde kalır.",
+        "Alıcı yetkisini native belge izinlerine bağla; tenant eşlemesi tenant topolojisi kararı gelene kadar tabloda karar bekliyor olarak işaretlenir.",
+        "ui-family-24 rolünü belgele: onaylı headless uç üzerinden önizleme ve gönderim durumunu gösteren React/Ant Design yüzeyi; bu sözleşmede bağlanmaz."
+      ],
+      "dependencies": ["email-template--contract", "ui-family-24--contract"],
+      "acceptance": "Her iş olayında doğru tenant, alıcı ve şablon kullanılsın; tekrar olay çift e-posta üretmesin.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/email/doctype/email_queue/email_queue.py",
+          "line": 71,
+          "quote": "reference_doctype: DF.Link | None"
+        },
+        {
+          "path": "frappe/frappe/email/doctype/email_template/email_template.py",
+          "line": 63,
+          "quote": "kwargs = {\"match_by_doctype\": doc.get(\"doctype\")}"
+        }
+      ]
+    },
+    {
+      "requirementId": "email-5",
+      "sourceStage": "mvp",
+      "existing": "Native parça: Email Template validate konu ve gövde için Jinja sözdizimini doğrular; whitelist get_email_template şablon read iznini denetleyip render eder. Şemada dil, marka veya zorunlu değişken alanı görülmez.",
+      "gap": "Zorunlu değişken şemasının yeri ve gönderim öncesi uygulanması belirtilmemiş. Dil/marka modeli kararı yok. Önizleme ile gönderimin aynı render yolunu kullanacağı garantisi tanımsız. Eksik değişkende Jinja davranışı doğrulanmamış.",
+      "completionSteps": [
+        "Bu sözleşmenin tek davranışı: zorunlu değişken kontrolü preview_template_email içinde render öncesi; required_variables şimdilik çağırandan gelir, katalog tanımlanınca katalogdan okunur.",
+        "Gönderim sarmalayıcısı ayrı davranışta aynı kontrolü ve aynı get_email_template render yolunu kullanır; ikinci render yolu yazılmaz.",
+        "Hedef sürümde tanımsız Jinja değişkeninin render sonucunu kaynakta oku ve admission notuna ekle.",
+        "Dil/marka kararı gelene kadar sürüm seçimini sabitleme; karar sonrası seçili sürümün önizleme ve gönderimde aynı şablonla çözülmesini kabul ölçütüne ekle.",
+        "İstemci ön kontrolünü client-rule-parity sözleşmesine bağla; sunucu kontrolü yetkilidir, istemci kontrolü yalnız erken geri bildirimdir."
+      ],
+      "dependencies": [
+        "email-template--contract",
+        "client-rule-parity--contract",
+        "ui-family-24--contract"
+      ],
+      "acceptance": "Eksik değişken gönderimi engellensin; seçili dil ve marka sürümü önizleme ile aynı olsun. Bu sözleşmenin tek davranışı önizlemedeki eksik değişken reddini kapsar.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/email/doctype/email_template/email_template.py",
+          "line": 35,
+          "quote": "validate_template(self.subject)"
+        },
+        {
+          "path": "frappe/frappe/email/doctype/email_template/email_template.py",
+          "line": 73,
+          "quote": "def get_email_template(template_name: str, doc: str | dict[str, Any], sender: str | None = None):"
+        },
+        {
+          "path": "frappe/frappe/email/doctype/email_template/email_template.py",
+          "line": 77,
+          "quote": "email_template.check_permission(\"read\")"
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "Kuyruga alma ve gonderim bu sozlesmede uygulanmaz; email-1 kabulu (kuyruk, hata, yeniden deneme) ayri onayli adim gerektirir",
-    "Kaynak referanslari version-15'e isaret ediyor; yerel v17 yollarina esleme yapilmadi",
-    "Urun sablon katalogunun ad, degisken, sahip ve gonderen hesap bilgileri tanimsiz; required_variables simdilik cagirandan gelir",
-    "Headless istemcinin kuyruk durumu ve hatasini okuyacagi izinli uc tanimsiz; Desk Retry Sending headless sozlesme degildir",
-    "Tenant basina gonderen hesap ve alici yetkisi tanimsiz; tenant modeli bekleyen bir karar",
-    "Tekrarlanan olayda cift gonderimi onleyecek idempotency anahtari ve email-4 olay kaynaklari tanimsiz; ERPNext yok",
-    "v17 Notification kaynagi incelenmedi; ui-family-24 rolu acik degil",
-    "Dil ve marka surumunun Custom Field mi adlandirma mi olacagi kararsiz",
-    "Zamanlanmis flush ve yeniden deneme yerel davranistir; bu sozlesme hicbir zamanlamayi etkinlestirmez. Uzak SMTP ve DNS teknik gereksinimleri Huseyin Cengiz'de, GoDaddy DNS uygulamasi Asistan Huseyin'dedir."
+    "Kuyruğa alma ve gönderim bu sözleşmede uygulanmaz; email-1 kabulü (kuyruk, hata, yeniden deneme) ayrı onaylı davranış gerektirir.",
+    "Version-15 kaynak bağlantıları hedef sürüm yollarına eşlenmedi.",
+    "Ürün şablon kataloğu (ad, değişken, sahip, gönderen hesap) tanımsız; required_variables şimdilik çağırandan gelir.",
+    "Headless kuyruk durumu ve hata okuma ucu tanımsız; Desk Retry Sending headless sözleşme değildir.",
+    "Tenant başına gönderen hesap ve alıcı yetkisi tanımsız.",
+    "email-4 olay kaynakları ve çift gönderimi önleyen idempotency anahtarı tanımsız; ERPNext yok.",
+    "Hedef sürüm Notification kaynağı incelenmedi.",
+    "ui-family-24 yüzeyi onaylı headless uca bağımlı; bu sözleşmede bağlanmaz.",
+    "Dil ve marka sürüm modeli kararsız.",
+    "Zamanlanmış flush ve yeniden deneme native davranıştır; bu sözleşme hiçbir zamanlamayı etkinleştirmez."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Tenant topolojisi ve tenant başına gönderen Email Account eşlemesi",
+      "requirementIds": ["email-1", "email-4"],
+      "blocks": "Katalogda gönderen hesap ve olay tablosunda tenant/alıcı kuralı",
+      "untilThen": "Katalog ve olay tablosunda ilgili sütunlar karar bekliyor olarak belgelenir; önizleme davranışı gönderen bilgisi döndürmeden ilerleyebilir."
+    },
+    {
+      "decision": "E-posta sağlayıcısı (SMTP satıcısı) ve tarifesi",
+      "requirementIds": ["email-1"],
+      "blocks": "Gerçek gönderim ve kuyruk kabulü",
+      "untilThen": "Hüseyin Cengiz için SMTP/DNS teknik gereksinim listesi taslağı yazılır; secret veya hesap bilgisi belgeye girmez."
+    },
+    {
+      "decision": "Hedef Frappe sürümü (T-00 tabanı)",
+      "requirementIds": ["email-1", "email-4", "email-5"],
+      "blocks": "Kaynak yolu eşlemesi, admission ve RED/GREEN koşusu",
+      "untilThen": "Version-15 bağlantıları için eşleme tablosu iskeleti hazırlanır."
+    },
+    {
+      "decision": "Dil ve marka sürüm modeli (Custom Field veya şablon adlandırması)",
+      "requirementIds": ["email-5"],
+      "blocks": "Seçili dil/marka sürümünün önizleme ile aynı olması kabulü",
+      "untilThen": "Katalogda dil ve marka sütunları karar bekliyor olarak tutulur; zorunlu değişken kontrolü bundan bağımsız ilerler."
+    },
+    {
+      "decision": "Email Queue içerik ve hata kayıtlarının saklama süresi",
+      "requirementIds": ["email-1", "email-4"],
+      "blocks": "Headless kuyruk durumu okuma ucunun döndüreceği alanlar",
+      "untilThen": "Okuma sözleşmesinde yalnız durum ve hata alanları listelenir; ileti içeriği dönülmez."
+    },
+    {
+      "decision": "Ödeme ve fatura olaylarını üreten ürün modülü",
+      "requirementIds": ["email-4"],
+      "blocks": "Senaryo tablosunda kaynak DocType ve olay adı",
+      "untilThen": "Onay, güvenlik ve destek senaryoları tabloya yazılır; ödeme ve fatura satırları karar bekliyor olarak kalır."
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "email-1": "mvp",
-    "email-4": "mvp",
-    "email-5": "mvp"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,

@@ -1,0 +1,197 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "demo-seed",
+  "canonicalTaskIds": ["demo-seed--implementation"],
+  "requirementIds": ["releases-8"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "releases-8": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Demo verisini oluşturma ve sıfırlama; gerçek veriden ayırma",
+    "trigger": "Yetkili operatör, demo olarak işaretlenmiş hedefte demo verisi oluşturma (create) veya sıfırlama (reset) işlemini başlatır. Tetikleyicinin biçimi (CLI, arka plan işi veya endpoint) demo-seed--contract içinde belirlenir.",
+    "expected": "Uygulama durumu: uygulanmadı. Gelecekteki davranış: işlem yalnız demo işareti doğrulanmış hedefte çalışır. Demo kayıtları fixtures dışında, native izin kontrollü insert ile yüklenir. Sıfırlama yalnız demo hedefindeki demo kayıtlarını etkiler. Scheduler, giden e-posta, Mail/JMAP ve ödeme gibi dış servis çağrıları demo hedefinde kapalıdır.",
+    "denied": "Demo işareti olmayan veya doğrulanamayan hedefte oluşturma/sıfırlama reddedilir ve hiçbir kayıt değişmez. Yetkisiz kullanıcının seed yazması reddedilir ve kayıt değişmez. ignore_permissions, ham SQL ile yazma veya demo verisini fixtures üzerinden taşıma kabul edilmez. Dış servis kapatılamıyorsa işlem başlamaz."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native parçalar: Suite hooks.py içindeki fixtures listesi (Presentation şablonları dahil) migrate sırasında sync_fixtures() ile senkronlanır. Bu liste demo verisinin taşıyıcısı olamaz; demo seed'in dokunmaması gereken bir sınırdır. frappe/frappe/client.py içindeki toplu insert yolu istek başına 200 kayıt sınırı uygular; izinli yükleme için yeniden kullanılabilir. Suite Mail tarafında canlı JMAP oturumu gerektiren arka plan işleri vardır; bunlar demo hedefinde kapatılması gereken dış yan etki örneğidir. Demo işareti, reset koruması, dış servis kapatma ve seed yükleyicisi bu kanıtlarda native olarak görünmez; geliştirilecektir. Aranan yollar sınırlıdır; bu, eksik parçalar için kapsamlı bir yokluk iddiası değildir.",
+    "evidence": [
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 353,
+        "quote": "fixtures = ["
+      },
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 359,
+        "quote": "\"dt\": \"Presentation\""
+      },
+      {
+        "path": "frappe/frappe/migrate.py",
+        "line": 175,
+        "quote": "sync_fixtures()"
+      },
+      {
+        "path": "frappe/frappe/client.py",
+        "line": 245,
+        "quote": "if len(docs) > 200:"
+      },
+      {
+        "path": "suite/suite/mail/patches/rebuild_automation_sieve_scripts.py",
+        "line": 28,
+        "quote": "regeneration needs a live JMAP session per account"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/client.py",
+      "frappe/frappe/migrate.py",
+      "suite/suite/hooks.py",
+      "suite/suite/mail/patches/rebuild_automation_sieve_scripts.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/demo-seed.json",
+    "plannedProduction": ["operations/demo-seed/demo_seed_post_mvp.yml"],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Hedef site/tenant tanımlayıcısı; karar verilmiş demo işaretinin değeri; işlem türü (create veya reset); demo veri tanımı (önerilen yer: operations/demo-seed/demo_seed_post_mvp.yml). Tanım sentetik olmalı, kişisel veri, secret veya gerçek tenant verisi içermemelidir.",
+    "output": "DocType bazında oluşturulan/silinen demo kayıt sayısı, kullanılan seed tanımının sürümü veya özeti ve kapalı tutulan dış servislerin listesi. Ret durumunda ret nedeni ve kaydın değişmediğine dair sayım teyidi.",
+    "authorization": "Native Frappe rol ve izin kontrolleri yeniden kullanılır. Seed kayıtları, demo hedefindeki yetkili operatör kimliğiyle izin kontrollü insert üzerinden yazılır. ignore_permissions ve SQL ile yetki bypass edilmez. Demo kullanıcılarına rol veya izin atanması gerekiyorsa explicitPermissionFlags ortak kaynağına bağlanır; bu sözleşme yeni rol tanımı üretmez.",
+    "persistence": "Demo kayıtları yalnız demo hedefinin veritabanına native insert/save ve transaction ile yazılır. Toplu insert yolunda istek başına 200 kayıt sınırına göre partilenir; hatalı parti geri alınır. Fixtures listesine demo kaydı eklenmez. Demo işaretinin saklanacağı yer karar bekler (bkz. decisionsPending).",
+    "failure": "İşaret yok veya doğrulanamıyor: işlem reddedilir, sıfır değişiklik olur. Yetki hatası: native izin hatası döner, kayıt değişmez. Parti hatası: o partinin transaction'ı geri alınır, işlem durur, kısmi durum raporlanır. Dış servis kapatılamıyor: işlem başlamaz. Demo kaydı fixtures senkronuyla çakışıyor: hata raporlanır, fixtures değiştirilmez."
+  },
+  "development": {
+    "dependencies": ["demo-seed--contract"],
+    "admission": {
+      "prerequisites": [
+        "T-00 hedef sürüm baseline'ı",
+        "R-00 reuse eşlemesi",
+        "R-01 (izinli veri tüketicisi olduğu için)",
+        "demo-seed--contract tamamlanmış olmalı",
+        "decisionsPending içindeki tenant topolojisi ve demo işareti kararları verilmiş olmalı"
+      ],
+      "rule": "Tek ve dar bir davranış, gerçek RED/GREEN kanıtıyla uygulanır.",
+      "orderAuthority": "Mevcut görev bağımlılıkları ve stage belirleyicidir; küme sırası (canonicalClusterOrder 1) yalnız sunumdur, yeni bir seri DAG değildir."
+    },
+    "steps": [
+      "Tenant topolojisi ve demo işareti kararlarını demo-seed--contract içine işle. Karar gelmeden üretim adımı başlatma.",
+      "T-00 hedef sürümünde migrate sırasında fixtures senkron davranışını ve demo verisinin fixtures dışında kalmasını R-00 eşlemesiyle kaynakta yeniden doğrula.",
+      "Koruma: create/reset başlangıcında demo işaretini oku. İşaret yoksa açık hatayla reddet; reddetmeden önce hiçbir yazma yapma.",
+      "Dış servis kapatma: scheduler, giden e-posta, Mail/JMAP arka plan işleri ve ödeme çağrıları için hedef sürümdeki native kapatma mekanizmasını R-00 ile eşle. Doğrulanmadan API veya ayar adı yazma.",
+      "Seed yükleyici: demo_seed_post_mvp.yml tanımından izin kontrollü insert kullan; en fazla 200 kayıtlık partiler ve parti başına transaction olsun.",
+      "Reset: yalnız demo hedefindeki demo kayıtlarını native delete ile ya da topoloji kararına göre mevcut yönergede anılan site yaşam döngüsü araçlarıyla sıfırla. Komut adı hedef sürümde doğrulanır. Gerçek hedefe erişim yolu olmamalıdır.",
+      "Ayrı demo sitesi için alan adı gerekirse teknik DNS kaydını Hüseyin Cengiz hazırlar, GoDaddy'de Asistan Hüseyin uygular, sonucu Hüseyin Cengiz doğrular. CI/deploy entegrasyonunun sahibi Hüseyin Cengiz'dir."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Demo işareti olmayan hedefte reset çağrısı reddedilir ve hedefteki kayıt sayısı değişmez.",
+      "red": "Koruma yokken işaretsiz hedefte aynı çağrı kayıt silmeye veya değiştirmeye devam eder. Test, ret hatasının gelmediğini veya kayıt sayısının değiştiğini gösterir. Import ya da altyapı hatası RED sayılmaz; native davranışı bozmak da RED üretmek için kullanılmaz.",
+      "green": "Koruma eklendikten sonra çağrı açık bir ret hatası döner; kayıt sayısı ve örnek kaydın değiştirilme zamanı aynı kalır. Demo işaretli hedefte aynı çağrı yalnız demo kayıtlarını etkiler."
+    },
+    "rollback": "Bu turda yalnız sözleşme dosyası önerilir. Geri alma, ana entegrasyon sahibinin bu dosyayı birleştirmemesi veya geri çevirmesidir. Gelecekteki uygulamada demo hedefinin geri alınması topoloji kararına bağlıdır; CI/deploy/rollback teknik sahibi Hüseyin Cengiz'dir. Reset gerçek hedefe yazamayacağı için gerçek veride geri alma senaryosu öngörülmez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "releases-8",
+      "sourceStage": "post_mvp",
+      "existing": "Mevcut yönerge: data/clusters/12.json:842 (/groups/3/items/7). Destek kısmi, eylem build, sahibi Demo veri ekibi. Bu yönergeye göre fixture ve site yaşam döngüsü araçları başlangıç sağlar. Native parçalar: Suite fixtures listesi ve migrate sırasında sync_fixtures(), izinli toplu insert yolundaki 200 kayıt sınırı, Suite Mail'de canlı JMAP oturumu gerektiren arka plan işleri. Bu kaynak değerlendirmesi native Frappe/Suite parçalarını gösterir; demo davranışının var olduğunu göstermez.",
+      "gap": "Demo işaretinin yeri ve reset'in hangi koşulda reddedileceği tanımsız. Fixture ile demo seed ayrımı yok; fixtures her migrate'te uygulanır. Scheduler, giden e-posta ve Mail/JMAP kapatma mekanizması belirtilmemiş. Seed'in izinli API'ler üzerinden yükleneceği belirtilmemiş, ignore_permissions yasaklanmamış.",
+      "completionSteps": [
+        "Demo işaretinin yeri ve adı, tenant topolojisi kararıyla birlikte demo-seed--contract içinde sabitlenir. Reset ve create, işaret yoksa yazmadan önce reddeder.",
+        "Demo verisi yalnız operations/demo-seed/demo_seed_post_mvp.yml önerisindeki tanımdan yüklenir; hooks fixtures listesine demo kaydı eklenmez ve migrate sonrası demo kaydının fixtures tarafından yeniden yazılmadığı doğrulanır.",
+        "Scheduler, giden e-posta, Mail/JMAP ve ödeme çağrıları için native kapatma mekanizması T-00 sürümünde R-00 ile eşlenir; kapatma doğrulanmadan işlem başlamaz.",
+        "Seed yalnız native izin kontrollü insert ile yüklenir; en fazla 200 kayıtlık partiler ve parti başına transaction kullanılır. ignore_permissions ve ham SQL açıkça yasaklanır."
+      ],
+      "dependencies": ["demo-seed--contract"],
+      "acceptance": "Demo reset yalnız etiketli demo tenantında çalışsın; gerçek veriye ve canlı ödeme/e-posta servislerine dokunmasın. Gelecekteki tek kabul: işaretsiz hedefte reset reddedilir ve kayıt değişmez. Ek ret kontrolü: yetkisiz kullanıcının seed yazması reddedilir ve kayıt değişmez.",
+      "evidence": [
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 353,
+          "quote": "fixtures = ["
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 359,
+          "quote": "\"dt\": \"Presentation\""
+        },
+        {
+          "path": "frappe/frappe/migrate.py",
+          "line": 175,
+          "quote": "sync_fixtures()"
+        },
+        {
+          "path": "frappe/frappe/client.py",
+          "line": 245,
+          "quote": "if len(docs) > 200:"
+        },
+        {
+          "path": "suite/suite/mail/patches/rebuild_automation_sieve_scripts.py",
+          "line": 28,
+          "quote": "regeneration needs a live JMAP session per account"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Uygulama durumu: uygulanmadı. Demo işareti, reset koruması, dış servis kapatma ve seed yükleyicisi için ürün kodu veya test yok.",
+    "Demo işaretinin yeri ve adı tenant topolojisi kararına bağlı.",
+    "Scheduler, giden e-posta, Mail/JMAP ve ödeme çağrılarını kapatan native mekanizma hedef sürüm kaynağında henüz eşlenmedi.",
+    "Demo veri tanımının kapsamı (hangi DocType'lar, hacim) tanımsız."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Tenant topolojisi: demo ayrı bir site mi olacak, yoksa aynı sitede etiketli bir tenant mı?",
+      "requirementIds": ["releases-8"],
+      "blocks": "Demo işaretinin yeri, reset yöntemi (kayıt silme veya site yaşam döngüsü) ve izolasyon kabulü.",
+      "docStepUntilDecision": "İki seçeneğin ret koşullarını ve etkiledikleri adımları demo-seed--contract içinde karşılaştırmalı yaz; seçim yapma."
+    },
+    {
+      "decision": "Demo işaretinin saklanacağı yer ve adı (ör. site_config anahtarı veya başka bir taşıyıcı).",
+      "requirementIds": ["releases-8"],
+      "blocks": "Reset/create korumasının uygulanması ve TDD senaryosu.",
+      "docStepUntilDecision": "Korumanın davranışını taşıyıcıdan bağımsız biçimde yaz: işaret yoksa yazmadan önce ret."
+    },
+    {
+      "decision": "Hedef Frappe/Suite sürümü (T-00).",
+      "requirementIds": ["releases-8"],
+      "blocks": "Fixtures senkronu, toplu insert sınırı ve dış servis kapatma mekanizmasının sürüm bazında doğrulanması.",
+      "docStepUntilDecision": "Mevcut kanıtları yalnız kaynak değerlendirmesi olarak işaretle ve R-00 eşleme listesine ekle."
+    },
+    {
+      "decision": "Ödeme sağlayıcısı ve demo hedefinde nasıl etkisizleştirileceği.",
+      "requirementIds": ["releases-8"],
+      "blocks": "Canlı ödeme servisine dokunmama kabulünün somut kontrolü.",
+      "docStepUntilDecision": "Kabul ölçütünü sağlayıcıdan bağımsız yaz: demo hedefinden hiçbir canlı ödeme çağrısı yapılmaz."
+    },
+    {
+      "decision": "Demo veri kapsamı, sıfırlama sıklığı ve demo verisinin saklama süresi.",
+      "requirementIds": ["releases-8"],
+      "blocks": "demo_seed_post_mvp.yml içeriği ve olası zamanlanmış reset.",
+      "docStepUntilDecision": "Yalnız elle tetiklenen create/reset davranışını ve sentetik veri kuralını belgele."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

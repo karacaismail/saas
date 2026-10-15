@@ -1,0 +1,243 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "file-type-policy",
+  "canonicalTaskIds": [
+    "file-type-policy--implementation",
+    "ui-family-22--implementation-post-mvp"
+  ],
+  "requirementIds": ["files-2"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "files-2": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Sunucu tarafı dosya türü politikası: içerik tabanlı MIME doğrulaması ve sahte uzantı/MIME reddi",
+    "trigger": "Bir kullanıcı veya istemci kapsamdaki bir upload yolu üzerinden dosya gönderdiğinde. Aday yollar: v2 upload_file, Drive upload, WebDAV PUT ve LOCK ile oluşturma, mail upload_attachment. Her yol yerel kaynakta satır kanıtıyla doğrulanmadan kapsama alınmaz.",
+    "expected": "Sunucu dosya baytlarından içerik türünü tespit eder, sonucu bildirilen uzantı ve MIME başlığıyla karşılaştırır ve hedef bağlamın allowlist'ine göre karar verir. İçerik, uzantı ve allowlist uyumluysa yükleme native akışla sürer ve kayda sunucunun tespit ettiği MIME yazılır. Uygulama durumu: uygulanmadı.",
+    "denied": "Uzantısı değiştirilmiş, MIME başlığı sahte veya allowlist dışındaki dosya sunucuda reddedilir. File veya Drive kaydı oluşmaz, geçici (scratch) dosya silinir, hata kernel-envelope--contract zarfıyla döner. Yalnız istemci tarafındaki denetim kabul için yeterli sayılmaz."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native parçalar: Suite WebDAV PUT yolu MIME'ı _detect_mime ile belirler. Kaynak yorumuna göre mimemapper türü uzantıdan tespit eder. Suite mimemapper 0.4.1 sürümüne, frappe filetype ~1.2.0 sürümüne bağımlıdır. filetype içerik tabanlı tespit için bir primitif sağlar, ancak kullanıldığı görülmedi. Bu kanıtlar yalnız tek tek native parçaları gösterir. İçerik doğrulaması yapan ve tüm upload yollarını kapsayan tek bir sunucu politikasının var olduğunu göstermez. _detect_mime ve _run_upload_validators gövdeleri okunmadı. Arama yalnız searchedPaths ile sınırlıdır; bu, kapsamlı bir yokluk iddiası değildir.",
+    "evidence": [
+      {
+        "path": "suite/suite/drive/webdav/put.py",
+        "line": 109,
+        "quote": "# keep the target's extension on the scratch name — mimemapper detects by it"
+      },
+      {
+        "path": "suite/suite/drive/webdav/put.py",
+        "line": 159,
+        "quote": "mime_type = _detect_mime(ctx, scratch)"
+      },
+      {
+        "path": "frappe/pyproject.toml",
+        "line": 15,
+        "quote": "\"filetype~=1.2.0\","
+      },
+      {
+        "path": "suite/pyproject.toml",
+        "line": 13,
+        "quote": "\"mimemapper==0.4.1\","
+      }
+    ],
+    "searchedPaths": [
+      "frappe/pyproject.toml",
+      "suite/pyproject.toml",
+      "suite/suite/drive/webdav/put.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/file-type-policy.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/adapters/assets/file_type_policy_post_mvp.py",
+      "frontend/packages/ui/src/components/ui-family-22/post_mvp.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": [
+      "Dosya baytları veya sunucudaki geçici dosya yolu. Tespit için en azından dosyanın başındaki imza bölümü gerekir.",
+      "İstemcinin bildirdiği dosya adı ve uzantı (güvenilmez girdi)",
+      "İstemcinin bildirdiği MIME başlığı (güvenilmez girdi)",
+      "Hedef bağlam: upload yolu, hedef DocType/alan veya Drive klasörü",
+      "tenant-registry--contract üzerinden tenant kimliği; native oturumdan kullanıcı kimliği"
+    ],
+    "output": [
+      "Kabul: sunucunun tespit ettiği MIME ve normalleştirilmiş uzantı native kayıt akışına aktarılır; istemci başlığı kayda yazılmaz.",
+      "Ret: kernel-envelope--contract hata zarfı döner. Hata kodunun adını o sözleşme belirler; bu rehber yeni kod adı sabitlemez.",
+      "Ret yanıtı dosya içeriğini, sunucu dosya yolunu veya iç tespit ayrıntısını ifşa etmez."
+    ],
+    "authorization": [
+      "Politika yalnız ek bir red katmanıdır. Hiçbir izin vermez, native izin denetimlerini değiştirmez veya atlatmaz.",
+      "Native izin, transaction, save ve hook akışı yeniden kullanılır. ignore_permissions veya SQL ile yetki atlatma yasaktır.",
+      "Bu rehber yeni rol tanımlamaz. Politika yapılandırmasına yazma eklenirse yetki explicitPermissionFlags ortak kaynağına bağlanır. O durumda kabul senaryosunda yetkisiz yazma reddedilmeli ve kayıt değişmemelidir."
+    ],
+    "persistence": [
+      "Bu sözleşme şema, DocType, veri, servis veya production değişikliği yetkisi vermez.",
+      "Reddedilen yüklemede File/Drive kaydı oluşmaz ve geçici dosya temizlenir. Kabul edilen yükleme native kayıt akışını aynen kullanır.",
+      "Allowlist'in saklama yeri açık bir karardır (decisionsPending); karar gelene kadar yalnız belge düzeyinde tanımlanır.",
+      "Ret olayı yayınlanacaksa native transaction içinde outbox--contract üzerinden yayınlanır."
+    ],
+    "failure": [
+      "İçerik tespit edilemez veya tespit hata verirse karar gelene kadar belgelenen öneri reddetmektir (fail-closed). Metin tabanlı türlerin nasıl ele alınacağı açık karardır.",
+      "Ortak kancadan geçmeyen bir upload yolu kapsam dışı sayılmaz. Açık eksik olarak kaydedilir ve kabul verilmez.",
+      "Önerilen sıra: tür politikası malware-scan--contract taramasından önce ucuz bir red katmanı olarak çalışır; tarama sonucunu geçersiz kılmaz.",
+      "Object storage veya rendition üretimi, yalnız politika kabulünden sonra başlar (object-storage--contract, asset-rendition--contract)."
+    ]
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "asset-rendition--contract",
+      "client-rule-parity--contract",
+      "file-type-policy--contract",
+      "kernel-envelope--contract",
+      "malware-scan--contract",
+      "native-doctype-schema--contract",
+      "native-file--contract",
+      "native-user-policy--contract",
+      "object-storage--contract",
+      "outbox--contract",
+      "tauri-device-capability--contract",
+      "tenant-registry--contract",
+      "ui-family-22--contract",
+      "ui-family-22--implementation"
+    ],
+    "admission": {
+      "statement": "Uygulama durumu: uygulanmadı. Bu sözleşme üretim veya test yazımına kabul edilmemiştir; aktif üretim kiralaması yoktur.",
+      "prerequisites": [
+        "T-00 hedef taban çizgisi: yerel Frappe ve Suite kaynak ağacı satır kanıtıyla sabitlenir; version-15 File notu yerel v17-dev kaynağına eşlenir.",
+        "R-00 yeniden kullanım eşlemesi: _detect_mime, _run_upload_validators, yerel File controller ve Drive upload API'si okunur; native parça ile eksik arasındaki ayrım satır kanıtıyla kaydedilir.",
+        "R-01: izinli veri tüketicileri için native izin eşlemesi",
+        "development.dependencies içindeki sözleşmeler mevcut olmalıdır.",
+        "decisionsPending içindeki engelleyici kararlar verilmelidir.",
+        "Tek dar davranış için gerçek RED/GREEN kanıtı gerekir."
+      ]
+    },
+    "steps": [
+      "1. Yerel frappe/core/doctype/file/file.py okunur. version-15 kaynağındaki uzantı denetimi ve dosya adından MIME tahmini yerel satırlara eşlenir; fark varsa kaydedilir.",
+      "2. suite/suite/drive/webdav/put.py içindeki _detect_mime ve _run_upload_validators gövdeleri okunur. İçerik doğrulaması yapılıp yapılmadığı satır kanıtıyla yazılır.",
+      "3. Upload yolu envanteri çıkarılır: v2 upload_file, Drive upload, WebDAV PUT ve LOCK ile oluşturma, mail upload_attachment. Her yol için giriş noktası, oluşturduğu kayıt türü ve mevcut doğrulayıcılar listelenir. Bulunamayan yol, aranan yollarla birlikte 'bulunamadı' olarak kaydedilir.",
+      "4. Tüm yolların geçtiği tek sunucu kancası aranır. Native File kaydının yaşam döngüsü (hooks.py doc_events ile validate/before_insert) bir adaydır. Drive veya WebDAV yolları File kaydı üretmiyorsa ikinci bir bağlama noktasının gerekip gerekmediği kanıtla belirlenir. Kanıt olmadan kanca adı sabitlenmez.",
+      "5. Kural: filetype ile bayt tabanlı tespit yapılır; sonuç bildirilen uzantı ve MIME başlığıyla karşılaştırılır, ardından allowlist ile kesişim denetlenir. mimemapper'ın uzantıdan yaptığı tespit yalnız bildirilen türü normalleştirmek için kullanılır; içerik kanıtı sayılmaz.",
+      "6. Adaptör, planlanan file_type_policy_post_mvp.py dosyasında tek saf karar fonksiyonu ve ince bir bağlama katmanı olarak önerilir. hooks.py yalnız kaydı yapar; native izin, transaction ve save akışı değiştirilmez.",
+      "7. Ret yanıtı kernel-envelope--contract ile, gerekiyorsa ret olayı outbox--contract ile tanımlanır. api-middleware--contract tarafında ayrı bir bypass yolu açılmaz.",
+      "8. ui-family-22: planlanan post_mvp.tsx, sunucunun ret zarfını Ant Design bileşenleriyle gösterir. client-rule-parity--contract'a göre istemci ön kontrolü yalnız bir ipucudur, kabul kararı değildir. Web, Tauri ve WXT istemcileri aynı sunucu yanıtını kullanır; dosya seçimi tauri-device-capability--contract kapsamındadır.",
+      "9. Her envanter yolu için kabul senaryoları belgelenir: sahte uzantı, sahte MIME başlığı ve geçerli dosya. Red sonrasında kayıt sayısı değişmemelidir."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "İçeriği PNG imzası taşımayan, ancak .png uzantılı ve image/png başlıklı bir dosya, T-00/R-00 ile seçilen ilk upload yolunda sunucuda reddedilir ve File kaydı oluşmaz.",
+      "red": "Gelecekteki test, sahte dosyanın reddedilmesini ve kayıt sayısının değişmemesini bekler. Politika bağlanmadan önce dosya kabul edildiği için test davranış iddiasında başarısız olmalıdır. Import hatası, eksik altyapı veya native davranışı bozarak üretilen başarısızlık RED sayılmaz. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "En küçük değişiklik: seçilen ortak sunucu noktasında filetype ile içerik tespiti ve uzantı/MIME karşılaştırması. Aynı test dosyasında gerçek bir PNG kabul edilmeye devam eder; native izin denetimleri değişmez."
+    },
+    "rollback": "Politika, yalnız hooks.py içindeki adaptör kaydı geri alınarak devre dışı bırakılabilir olmalıdır. Şema veya veri göçü yoktur, kabul edilmiş dosyalar etkilenmez. Teknik CI, deploy ve rollback sahibi Hüseyin Cengiz'dir. Bu sözleşme herhangi bir servis veya production değişikliğini yetkilendirmez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "files-2",
+      "sourceStage": "post_mvp",
+      "existing": "Native parça: Suite WebDAV PUT yolu _detect_mime ile MIME belirler; geçici dosya adı uzantıyı korur, çünkü mimemapper uzantıdan tespit eder. frappe pyproject filetype bağımlılığını bildirir, ancak kullanımı görülmedi. version-15 File kaynağı MIME'ı dosya adından tahmin eder ve uzantıyı denetler; bu not yerel kaynağa eşlenmedi.",
+      "gap": "İçerik tabanlı doğrulama kanıtlanmadı. _detect_mime ve _run_upload_validators gövdeleri görülmedi. Yerel v17 file.py ve Drive upload yolu incelenmedi. Tek politikanın kapsayacağı upload yolları listelenmedi. Allowlist ile DocType/alan bazlı politikanın sahibi ve yapılandırma yeri tanımsız.",
+      "completionSteps": [
+        "Yerel file.py ve put.py içindeki iki yardımcının gövdesi okunur; native parça ile eksik satır kanıtıyla ayrılır.",
+        "Dört aday upload yolu yerel kaynakta doğrulanır, her biri için kayıt türü ve bağlama noktası kaydedilir.",
+        "Tüm yolların geçtiği tek sunucu kancası belirlenir; tek kanca yoksa eksik bağlama noktaları açıkça listelenir.",
+        "filetype ile içerik tespiti, bildirilen uzantı ve MIME başlığıyla karşılaştırılır; allowlist dışı veya uyumsuz dosya reddedilir.",
+        "Ret, kernel-envelope--contract zarfıyla döner; UI yalnız sunucu sonucunu gösterir."
+      ],
+      "dependencies": [
+        "file-type-policy--contract",
+        "native-file--contract",
+        "native-user-policy--contract",
+        "native-doctype-schema--contract",
+        "tenant-registry--contract",
+        "kernel-envelope--contract",
+        "malware-scan--contract",
+        "object-storage--contract",
+        "outbox--contract",
+        "client-rule-parity--contract",
+        "ui-family-22--contract"
+      ],
+      "acceptance": "Uzantısı değiştirilmiş veya MIME başlığı sahte dosya politikaya göre reddedilmeli ve denetim sunucuda yapılmalıdır. Envanterdeki her upload yolu aynı kuraldan geçer. Ret sonrası File/Drive kaydı oluşmaz ve geçici dosya kalmaz. Geçerli dosya kabul edilir. Politika yapılandırma yazması eklenirse yetkisiz yazma reddedilir ve kayıt değişmez.",
+      "evidence": [
+        {
+          "path": "suite/suite/drive/webdav/put.py",
+          "line": 109,
+          "quote": "# keep the target's extension on the scratch name — mimemapper detects by it"
+        },
+        {
+          "path": "suite/suite/drive/webdav/put.py",
+          "line": 159,
+          "quote": "mime_type = _detect_mime(ctx, scratch)"
+        },
+        {
+          "path": "frappe/pyproject.toml",
+          "line": 15,
+          "quote": "\"filetype~=1.2.0\","
+        },
+        {
+          "path": "suite/pyproject.toml",
+          "line": 13,
+          "quote": "\"mimemapper==0.4.1\","
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Yerel v17 frappe/core/doctype/file/file.py ve Suite Drive upload yolu incelenmedi; version-15 notu yerel kaynağa eşlenmedi.",
+    "_detect_mime ve _run_upload_validators gövdeleri görülmedi; içerik doğrulaması yapılıp yapılmadığı bilinmiyor.",
+    "Tek politikanın kapsayacağı upload yolları listelenmedi: v2 upload_file, Drive upload, WebDAV PUT/LOCK-create, mail upload_attachment.",
+    "Allowlist ile DocType/alan bazlı politikanın sahibi ve yapılandırma yeri tanımsız.",
+    "filetype bağımlılığının mevcut kullanımı görülmedi; içerik tespitinde kullanılması yalnız bir öneridir.",
+    "ui-family-22 ret gösterimi için React/Ant Design kaynak kanıtı yok; Vue/Frappe UI kaynağı bunun kanıtı sayılmaz."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Hedef Frappe/Suite sürüm tabanı: version-15 kaynak notu ile yerel v17-dev arasında hangisinin esas alınacağı",
+      "requirementIds": ["files-2"],
+      "blocks": "T-00 kabulü ve development.steps 1-2",
+      "interimDocStep": "İki kaynak arasındaki satır farklarını belgeleyen bir karşılaştırma notu hazırlanır; sürüm seçilmez."
+    },
+    {
+      "decision": "Allowlist sahibi ve yapılandırma yeri: global, DocType/alan bazlı veya Drive klasörü bazlı",
+      "requirementIds": ["files-2"],
+      "blocks": "contract.persistence için allowlist saklama yeri ve development.steps 5-6",
+      "interimDocStep": "Aday bağlamlar ve her bağlam için örnek tür listesi yalnız belge olarak taslaklanır; şema önerilmez."
+    },
+    {
+      "decision": "Tenant bazlı politika farklılaşmasına izin verilip verilmeyeceği (tenant topolojisi)",
+      "requirementIds": ["files-2"],
+      "blocks": "Tenant override davranışı ve tenant-registry--contract ile bağlantının ayrıntısı",
+      "interimDocStep": "Tenant kimliği sözleşme girdisinde tutulur; davranış tek ortak politika olarak tanımlanır."
+    },
+    {
+      "decision": "İmzası tespit edilemeyen veya metin tabanlı türlerin (ör. düz metin, CSV, SVG) ele alınışı",
+      "requirementIds": ["files-2"],
+      "blocks": "contract.failure kuralının kesinleşmesi ve kabul senaryolarının tamamlanması",
+      "interimDocStep": "Fail-closed önerisi ve etkilenen örnek türler, gerekçeleriyle belgelenir."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

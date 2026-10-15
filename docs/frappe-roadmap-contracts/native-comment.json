@@ -1,0 +1,247 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "native-comment",
+  "canonicalTaskIds": [
+    "native-comment--implementation",
+    "ui-family-24--implementation-post-mvp",
+    "ui-family-25--implementation",
+    "ui-view-feed--implementation-post-mvp"
+  ],
+  "requirementIds": ["realtime-4"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "realtime-4": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Kayıt üzerinde izin kapsamlı ekip yorumu, bahsetme ve takip",
+    "trigger": "Referans kayıtta read izni olan oturum kullanıcısı React/Ant Design yüzeyinden yorum ekler, kendi yorumunu düzenler, bir kullanıcıyı veya User Group'u bahseder ya da kaydı takip etmeyi açar/kapatır.",
+    "expected": "Yorum native Comment kaydı olarak oturum kullanıcısı adına, native izin/transaction/save/hook zinciriyle oluşur ve içerik native olarak temizlenir. Mention bildirimi yalnız referans kayıtta read izni olan, etkin, System User ve allowed_in_mentions açık alıcılara Notification Log (type=Mention) olarak gider. Takip native Document Follow ile kurulur. Yorum listesi ve docinfo_update olayları yalnız kaydı okuyabilen istemcilere ulaşır; istemciye eşleme kernel envelope sözleşmesine uyar. Mevcut kabul korunur: Mention doğru kişiye ulaşsın; kayda izni olmayan kullanıcı yorumları göremesin.",
+    "denied": "Read izni olmayan kullanıcı yorum ekleyemez, listeleyemez, takip edemez ve kaydın realtime odasına katılamaz. Read izni olmayan bahsedilen kullanıcı için Notification Log ve e-posta oluşmaz. Başkasının yorumunu düzenleme isteği reddedilir ve Comment kaydı değişmeden kalır. İstemciden gelen comment_email/comment_by yazar kimliğini değiştiremez."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native Frappe Comment DocType ve controller'ı, frappe.desk.form.utils add_comment/update_comment uçları, Comment has_permission ve permission query koşulları, Comment.after_insert -> notify_mentions -> Notification Log, Document Follow (follow/unfollow/update_follow) ve realtime doc_subscribe/docinfo_update yeniden kullanılır. Comment ORM'i, izin motoru veya bildirim motoru kopyalanmaz. Kanıtlar native parçaların varlığını gösterir; davranışın tamamını göstermez. Suite Vue Writer/Sheets yorumları ve Desk JS yüzeyi React/Ant Design uygulaması kanıtı değildir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/desk/form/utils.py",
+        "line": 31,
+        "quote": "reference_doc = frappe.get_lazy_doc(reference_doctype, reference_name, check_permission=True)"
+      },
+      {
+        "path": "frappe/frappe/core/doctype/comment/comment.py",
+        "line": 128,
+        "quote": "\"\"\"A comment is readable as far as the document it was written on is.\"\"\""
+      },
+      {
+        "path": "frappe/frappe/desk/notifications.py",
+        "line": 465,
+        "quote": "{\"enabled\": 1, \"name\": name, \"user_type\": \"System User\", \"allowed_in_mentions\": 1},"
+      },
+      {
+        "path": "frappe/frappe/desk/notifications.py",
+        "line": 483,
+        "quote": "\"email_content\": content,"
+      },
+      {
+        "path": "frappe/frappe/desk/form/document_follow.py",
+        "line": 68,
+        "quote": "if not frappe.has_permission(doctype, \"read\", doc=doc_name, user=user):"
+      },
+      {
+        "path": "frappe/frappe/realtime/handlers.py",
+        "line": 76,
+        "quote": "if await socket.has_permission(doctype, docname):"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/core/doctype/comment/comment.py",
+      "frappe/frappe/desk/form/document_follow.py",
+      "frappe/frappe/desk/form/utils.py",
+      "frappe/frappe/desk/notifications.py",
+      "frappe/frappe/realtime/handlers.py"
+    ],
+    "searchNote": "Aranan yollar önceki salt okunur kaynak anlık görüntülerinden alınmıştır. Bu liste kapsamlı yokluk iddiası değildir; satır numaraları hedef sürümde yeniden doğrulanmalıdır."
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/native-comment.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/adapters/customer_success/comment_post_mvp.py",
+      "frontend/packages/ui/src/components/ui-family-24/post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-family-25/index.tsx",
+      "frontend/packages/ui/src/components/ui-view-feed/post_mvp.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Yorum ekleme: reference_doctype, reference_name, content (HTML; .mention data-id işaretleri dahil). Yorum düzenleme: comment name ve yeni content. Takip: doctype, docname, açık/kapalı. Listeleme: doctype, docname. comment_email ve comment_by istemci girdisi olarak güvenilmez; adaptör bunları göndermez, sunucu oturum kullanıcısından türetir. Tenant bağlamı tenant-registry--contract ve api-middleware--contract üzerinden gelir; istemci tenant kimliği seçemez.",
+    "output": "Native Comment kaydının adı ve native alanları; get_document_comments biçiminde izin süzülmüş yorum listesi; takip durumu; for_user'a ait Notification Log (type=Mention) kayıtları. Çıktı JSON model sınırındadır: kaynak registry ve GenUI capability registry ayrıdır; React tarafındaki ReactNode/callback'ler JSON sözleşmesine girmez.",
+    "authorization": "Yalnız native izin yeniden kullanılır: referans kayıtta read izni (add_comment check_permission=True, Comment has_permission, permission query koşulları, Document Follow ve doc_subscribe izin kontrolleri). update_comment yalnız yorum sahibi veya Administrator. Notification Log yalnız for_user tarafından okunur. ignore_permissions, ham SQL veya frappe.db ile yetki bypass yasaktır. Bu sözleşme yeni rol veya izin üretmez; ileride rol/izin gerekirse explicitPermissionFlags ortak kaynağına bağlanmalıdır.",
+    "persistence": "Yalnız native DocType'lar kullanılır: Comment, Notification Log, Document Follow. Yeni DocType, şema alanı veya ORM yoktur. Yazma, native insert/save/hook ve request transaction'ı içinde yapılır; mention bildirimi native kuyrukta (enqueue_create_notification) kalır. Bu sözleşme hiçbir servis, production ortamı, şema veya veri üzerinde değişiklik yetkisi vermez.",
+    "failure": "İzin hatası native PermissionError olarak döner ve kısmi kayıt bırakmaz. Başkasının yorumunu düzenleme reddedilir; Comment değişmez. Read izni olmayan mention alıcısı hata üretmeden sessizce elenir; diğer izinli alıcılar bildirimi alır. Realtime odaya katılma izni yoksa olay iletilmez. Kernel envelope/outbox eşlemesi başarısız olursa native kayıt geçerli kalır ve yeniden teslim outbox--contract kurallarına uyar."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "capability-definition--contract",
+      "client-rule-parity--contract",
+      "crm-interaction--contract",
+      "helpdesk-ticket-bridge--contract",
+      "kernel-envelope--contract",
+      "native-assignment--contract",
+      "native-comment--contract",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "outbox--contract",
+      "tenant-registry--contract",
+      "ui-family-24--contract",
+      "ui-family-24--implementation",
+      "ui-family-25--contract",
+      "ui-view-feed--contract",
+      "ui-view-feed--implementation"
+    ],
+    "admission": {
+      "note": "Uygulama durumu: uygulanmadı. Bu dosya yalnız yönerge sözleşmesidir; üretim veya test yazımı yetkisi vermez.",
+      "prerequisites": [
+        "T-00 hedef baseline: hedef Frappe sürümü belirlenmeli ve kanıt satırları o sürümde yeniden doğrulanmalı.",
+        "R-00 yeniden kullanım eşlemesi bu sözleşmedeki native parçalarla onaylanmalı.",
+        "Yetkili veri tüketicisi olduğu için R-01 uygulanmalı.",
+        "native-comment--contract, kernel-envelope--contract, tenant-registry--contract, native-user-policy--contract, capability-definition--contract, native-doctype-schema--contract ve outbox--contract kabul edilmiş olmalı.",
+        "decisionsPending içindeki mention düzeltme konumu kararı verilmeden GREEN adımına geçilemez.",
+        "Tek dar davranış gerçek RED/GREEN kanıtıyla uygulanmalı."
+      ],
+      "orderAuthority": "Mevcut görev bağımlılıkları ve post_mvp aşaması geçerlidir; küme sırası (8) yalnız sunumdur, yeni seri DAG değildir."
+    },
+    "steps": [
+      "1. Mention izin açığı için tek RED regresyon senaryosu yaz (tdd.oneScenario).",
+      "2. Kararlaştırılan konumda notify_mentions alıcılarını, mevcut alıcı filtresine ek olarak referans kayıtta frappe.has_permission(ref_doctype, 'read', doc=ref_name, user=alıcı) ile süz; GREEN.",
+      "3. Ayrı ve dar bir değişiklikle add_comment yazar kimliğini oturum kullanıcısına sabitle; başkasının adına yorum isteğinin yazarı değiştiremediğini doğrula.",
+      "4. comment_post_mvp.py içinde ince Frappe adaptörü öner: comments.list (get_document_comments), comments.add/update (frappe.desk.form.utils), follow.toggle (update_follow), notifications.list (for_user Notification Log). Her uç native izin zincirini çağırır; kopya ORM yok.",
+      "5. docinfo_update ve kullanıcı notification olaylarını kernel-envelope--contract ve outbox--contract kurallarıyla istemci olaylarına eşle; doc_subscribe izin kontrolünü atlamayan abonelik kullan.",
+      "6. React/Ant Design (Pro/X) yorum akışı, mention girişi ve takip düğmesini ui-family-24, ui-family-25 ve ui-view-feed sözleşmelerine göre planla; veri TanStack Query ile adaptör uçlarından gelsin, yüzey kaynak registry'ye kaydedilsin ve GenUI capability registry'den ayrı tutulsun. UI kabulü ortak UI kurallarına tabidir.",
+      "7. Ortak entegrasyon dosyalarındaki (hooks.py, registry.ts, routes.tsx vb.) değişiklikleri ana entegrasyon sahibine seri birleştirme için bırak."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Referans kayıtta read izni olmayan, etkin ve allowed_in_mentions açık bir System User yorumda bahsedildiğinde o kullanıcı için Notification Log (type=Mention) oluşmamalı ve bildirim e-postası kuyruğa girmemeli; aynı yorumda bahsedilen izinli kullanıcı bildirimi almalı.",
+      "red": "Hedef sürümün native davranışında izinsiz alıcı için Notification Log oluştuğunu ve email_content'in yorum içeriğini taşıdığını gösteren davranışsal assertion başarısızlığı. Import/altyapı hatası veya native davranışı bozarak üretilen hata RED sayılmaz.",
+      "green": "Alıcı süzmesi eklendikten sonra izinsiz alıcı için Notification Log ve e-posta yoktur; izinli alıcı bildirimi alır; mevcut enabled/System User/allowed_in_mentions filtreleri korunur. Bu turda test yazılmaz ve koşulmaz."
+    },
+    "rollback": "Belge düzeyinde: değişiklikler yalnız kod yamasıdır; şema ve veri değişikliği yoktur. Geri alma, mention süzme yamasının ve adaptör uçlarının geri çekilmesiyle yapılır; native Comment, Notification Log ve Document Follow kayıtları korunur. Teknik CI/deploy/rollback sahibi Hüseyin Cengiz'dir. Bu sözleşme rollback yürütme yetkisi vermez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "realtime-4",
+      "sourceStage": "post_mvp",
+      "existing": "Native parçalar: add_comment referans kayıtta read izni ister; update_comment yalnız sahip veya Administrator'a açıktır; Comment okunabilirliği referans kaydın read iznine bağlıdır ve okunamayan DocType yorumları sorguda elenir; içerik sanitize_html ile temizlenir. Comment.after_insert notify_mentions'ı çağırır; mention alıcıları enabled, System User ve allowed_in_mentions ile süzülür ve Notification Log (type=Mention) oluşur; Notification Log'u yalnız for_user okur. Document Follow, read izni, track_changes ve document_follow_notify ister; follow_commented_documents ile otomatik takip mümkündür. docinfo_update kaydın odasına yayınlanır ve doc_subscribe katılmadan önce izin kontrol eder. Suite Vue Writer/Sheets yorumları ve drive notify_mentions ürüne özgüdür; genel kayıt yorumu sağlayıcısı veya React/Ant Design kanıtı değildir.",
+      "gap": "1) notify_mentions bahsedilen kullanıcının referans kayıtta read iznini kontrol etmez ve yorum içeriğini email_content ile Notification Log'a ve e-postaya kopyalar; izinsiz kullanıcı yorumu mention yoluyla görebilir. Bu açık mevcut kabul ölçütünü bozar. 2) add_comment comment_email ve comment_by değerlerini istemciden alır; yazar kimliği oturum kullanıcısına sabit değildir. 3) Yorum listeleme/ekleme/düzenleme, mention bildirimi ve takip için tenant ve izin kapsamlı Frappe adaptör sözleşmesi yoktur. 4) React/Ant Design (Pro/X) yorum, mention ve takip yüzeyi yoktur. 5) docinfo_update ve Notification Log olaylarının kernel envelope/outbox ile istemciye eşlenmesi tanımlı değildir.",
+      "completionSteps": [
+        "Açık 1: tdd.oneScenario ile RED, ardından alıcıları frappe.has_permission(ref_doctype, 'read', doc=ref_name, user=alıcı) ile süzerek GREEN; düzeltmenin konumu decisionsPending kararına bağlıdır.",
+        "Açık 2: add_comment'in comment_email/comment_by değerlerini oturum kullanıcısından türetmesini sağla; başka kullanıcı adına gönderilen değerin yok sayıldığını ayrı bir dar senaryoyla doğrula.",
+        "Açık 3: comment_post_mvp.py için comments.list, comments.add, comments.update, follow.toggle ve notifications.list ince sarmalayıcılarını native uçlara bağla; tenant bağlamını tenant-registry--contract ve api-middleware--contract'tan al.",
+        "Açık 4: ui-family-24, ui-family-25 ve ui-view-feed sözleşmelerine göre Ant Design Pro/X yorum akışı, mention girişi ve takip düğmesi planla; okunamayan kayıtta yüzey boş/izin durumu gösterir, sahte veri göstermez.",
+        "Açık 5: docinfo_update ve notification olaylarını kernel-envelope--contract alanlarına ve outbox--contract teslim kurallarına eşle; abonelik doc_subscribe izin kontrolünü kullanır.",
+        "Ret kabulü: başkasının yorumuna update_comment isteği reddedilir ve Comment içeriği değişmeden kalır."
+      ],
+      "dependencies": [
+        "native-comment--contract",
+        "kernel-envelope--contract",
+        "outbox--contract",
+        "tenant-registry--contract",
+        "native-user-policy--contract",
+        "api-middleware--contract",
+        "ui-family-24--contract",
+        "ui-family-25--contract",
+        "ui-view-feed--contract"
+      ],
+      "acceptance": "Mention doğru kişiye ulaşsın; kayda izni olmayan kullanıcı yorumları göremesin. Read izni olmayan bahsedilen kullanıcı için Notification Log ve e-posta oluşmaz; yorum yazarı her zaman oturum kullanıcısıdır; başkasının yorumunu düzenleme reddedilir ve kayıt değişmez; realtime yorum olayları yalnız kaydı okuyabilen istemcilere ulaşır.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/desk/form/utils.py",
+          "line": 31,
+          "quote": "reference_doc = frappe.get_lazy_doc(reference_doctype, reference_name, check_permission=True)"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/comment/comment.py",
+          "line": 128,
+          "quote": "\"\"\"A comment is readable as far as the document it was written on is.\"\"\""
+        },
+        {
+          "path": "frappe/frappe/desk/notifications.py",
+          "line": 465,
+          "quote": "{\"enabled\": 1, \"name\": name, \"user_type\": \"System User\", \"allowed_in_mentions\": 1},"
+        },
+        {
+          "path": "frappe/frappe/desk/notifications.py",
+          "line": 483,
+          "quote": "\"email_content\": content,"
+        },
+        {
+          "path": "frappe/frappe/desk/form/document_follow.py",
+          "line": 68,
+          "quote": "if not frappe.has_permission(doctype, \"read\", doc=doc_name, user=user):"
+        },
+        {
+          "path": "frappe/frappe/realtime/handlers.py",
+          "line": 76,
+          "quote": "if await socket.has_permission(doctype, docname):"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Uygulama durumu: uygulanmadı.",
+    "Mention alıcılarında referans kayıt read izni süzmesi yok; email_content yorum içeriğini izinsiz alıcıya taşıyabilir.",
+    "add_comment yazar kimliğini istemciden kabul ediyor.",
+    "Tenant ve izin kapsamlı Frappe adaptör uçları tanımlı değil.",
+    "React/Ant Design (Pro/X) yorum, mention ve takip yüzeyi yok.",
+    "docinfo_update ve Notification Log olaylarının kernel envelope/outbox eşlemesi yok.",
+    "Kanıt satırları hedef Frappe sürümünde yeniden doğrulanmadı; canlı site veya ürün kabulü yok."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Hedef Frappe sürümü (T-00 baseline).",
+      "requirementIds": ["realtime-4"],
+      "blocks": "Kanıt satırlarının yeniden doğrulanması ve RED senaryosunun hedef sürümde kurulması.",
+      "interimDocStep": "Kanıtları sürümden bağımsız davranış olarak belgelemek ve yeniden doğrulanacak dosya listesini searchedPaths ile güncel tutmak."
+    },
+    {
+      "decision": "Mention read izni düzeltmesinin konumu: upstream Frappe katkısı mı, uygulama içi Comment sınıfı override'ı mı.",
+      "requirementIds": ["realtime-4"],
+      "blocks": "development.steps adım 2 (GREEN) ve rollback ayrıntısı.",
+      "interimDocStep": "Beklenen davranışı, korunacak mevcut filtreleri ve ret kabulünü bu sözleşmede sabitlemek."
+    },
+    {
+      "decision": "Güvenilir sunucu yollarının (ör. e-posta kaynaklı yorumlar) farklı yazar kimliği atayıp atayamayacağı.",
+      "requirementIds": ["realtime-4"],
+      "blocks": "development.steps adım 3'ün kapsamı.",
+      "interimDocStep": "İstemci uçları için yazarın her zaman oturum kullanıcısı olduğunu belgelemek; istisnaları açık bırakmak."
+    },
+    {
+      "decision": "Tenant topolojisi (tenant-registry--contract kapsamında).",
+      "requirementIds": ["realtime-4"],
+      "blocks": "Adaptör uçlarında tenant bağlamının nasıl çözüleceği ve realtime oda kapsamı.",
+      "interimDocStep": "Adaptörün tenant bağlamını yalnız tenant-registry--contract ve api-middleware--contract üzerinden alacağını ve istemcinin tenant seçemeyeceğini belgelemek."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

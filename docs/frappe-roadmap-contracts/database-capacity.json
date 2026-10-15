@@ -4,15 +4,20 @@
   "canonicalTaskIds": ["database-capacity--implementation"],
   "requirementIds": ["performance-4"],
   "stage": "mvp",
+  "sourceStages": {
+    "performance-4": "mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
-    "title": "Yerel pilot DocType'taki tek kritik liste sorgusunun filtre alanı native indeksle desteklenir ve planı bu indeksi kullanır",
-    "trigger": "Yerel Frappe17-dev/suite.localhost üzerinde bench migrate sırasında DocType modülünün on_doctype_update kancası çalışır; ardından /api/v2 liste sorgusu (filters=[alan,=,değer], limit<=20) çağrılır.",
-    "expected": "Migrate sonrası filtre alanı üzerinde tek bir indeks bulunur; sitenin db_type değerine uygun EXPLAIN çıktısı bu indeksi kullanır; v2 yanıtı en fazla limit kadar satır ve has_next_page döner.",
-    "denied": "Okuma yetkisi olmayan kullanıcı için v2 sorgusu ignore_permissions=False ile native olarak reddedilir; indeks yetki kapsamını değiştirmez. 200'den fazla toplu ekleme native olarak reddedilir."
+    "title": "Seçilen tek kritik liste sorgusunun filtre alanı native indeksle desteklenir ve sorgu planı bu indeksi kullanır",
+    "trigger": "T-00 hedef tabanındaki geliştirme sitesinde bench migrate sırasında, R-00 ile belirlenen DocType modülünün on_doctype_update kancası çalışır; ardından aynı DocType için /api/v2 liste sorgusu filters=[filter_field, =, değer] ve page_limit içinde bir limit ile çağrılır.",
+    "expected": "Migrate sonrası filter_field üzerinde tek bir indeks bulunur; sitenin kayıtlı db_type değerine uygun plan çıktısı (EXPLAIN) bu indeksi kullanır; v2 yanıtı en fazla limit kadar satır döndürür ve sonraki sayfa bilgisini native limit+1 deseniyle verir.",
+    "denied": "Okuma izni olmayan kullanıcı için v2 liste sorgusu ignore_permissions=False ile native olarak reddedilir; indeks yetki kapsamını değiştirmez. Tek istekte 200'den fazla toplu ekleme native frappe.throw ile reddedilir ve kayıt yazılmaz. Yetki ignore_permissions=True veya ham SQL ile atlanmaz."
   },
   "reuse": {
-    "mechanism": "Native: DocType modülündeki on_doctype_update içinde frappe.db index/unique API deseni (rate_limit.py örneği) ve native v2 sayfalama. Yeni ORM, sorgu motoru veya adapter yok. Konfigürasyon yalnız sahip olunan YAML'da kritik sorgu ve plan beklentisini kaydeder.",
+    "status": "KISMI",
+    "mechanism": "Native parçalar: DocType modülünde on_doctype_update içinde frappe.db şema yardımcısı deseni (rate_limit.py add_unique örneği); /api/v2 liste sorgusunda limit+1 sayfalama ve ignore_permissions=False; client toplu ekleme tavanı (200); query builder db_type sabitleri (mariadb, postgres, sqlite). Eksik parçalar: kritik sorgu seçimi, motor bazlı plan doğrulama yöntemi, bağlantı havuzu ve baskı davranışı. Yeni ORM, sorgu motoru, adapter veya CRUD tasarlanmaz; önerilen YAML yalnız kritik sorguyu ve plan beklentisini kaydeder. Kanıtlar tek tek native parçaları gösterir; davranışın tamamının var olduğunu göstermez.",
     "evidence": [
       {
         "path": "suite/suite/suite_core/doctype/rate_limit/rate_limit.py",
@@ -34,6 +39,12 @@
         "line": 41,
         "quote": "SQLITE = \"sqlite\""
       }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v2.py",
+      "frappe/frappe/client.py",
+      "frappe/frappe/query_builder/utils.py",
+      "suite/suite/suite_core/doctype/rate_limit/rate_limit.py"
     ]
   },
   "ownership": {
@@ -41,53 +52,121 @@
     "plannedProduction": [
       "operations/database-capacity/database_capacity_mvp.yml"
     ],
-    "plannedTestFile": "backend/saas_platform/saas_platform/tests/test_database_capacity.py",
+    "plannedTestFile": null,
     "sharedIntegrationFiles": [
-      "integration/fragments/database-capacity--integration.json"
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "YAML: db_type (mariadb|postgres|sqlite, yerel siteden okunur), doctype (pilot t08 Data kaydı DocType'ı), filter_field (tek alan), page_limit (int, 1-20), expected_index (bool). v2 isteği: doctype, fields, filters, limit, start.",
-    "output": "v2: izinli alanlar listesi, en fazla limit satır, frappe.response.has_next_page. Test çıktısı: indeks var/yok ve plan anahtar adı. Sözleşme sürümü contract-database-capacity v1.",
-    "authorization": "Native site sınırı (yalnız suite.localhost yerel kanıt), native kullanıcı/rol ve kayıt izinleri; v2 ignore_permissions=False korunur. Indeks kontrolü test bağlamında yönetici ile, sorgu kontrolü pilot reader kapsamı ile yapılır. Yetkisiz okuma native PermissionError ile reddedilir.",
-    "persistence": "İndeks yalnız migrate sırasında on_doctype_update ile oluşur. DDL'in işlem içinde geri alınacağı garanti edilmez (motor davranışı db_type'a bağlı, doğrulanmadı). Belge kaydı native Document.save ile değişmez.",
-    "failure": "Geçersiz order_by/group_by: FrappeValueError; 200 üstü insert_many: frappe.throw (ValidationError); yetkisiz: PermissionError. HTTP durum eşlemesi bu kanıtta doğrulanmadı; tüketici native hata mesajını gösterir, yeniden denemez. Bağlantı baskısında davranış tanımsız (remainingGaps)."
+    "input": "database_capacity_mvp.yml (öneri): db_type (karar sonrası kaydedilen gerçek değer; mariadb, postgres veya sqlite sabitlerinden biri), doctype (R-00 ile seçilecek kritik DocType), filter_field (tek alan), page_limit (tam sayı, 1-20), expected_index (bool), plan_check (motor bazlı beklenen indeks anahtarı adı). v2 isteği: doctype, fields, filters, order_by, limit, start.",
+    "output": "v2: izinli alanlar, en fazla limit kadar satır ve native sonraki sayfa bilgisi. Kabul kanıtı: db_type, indeksin var/yok durumu, plan çıktısındaki indeks anahtarı adı ve v2 yanıt satır sayısı. Sözleşme sürümü: contract-database-capacity v1.",
+    "authorization": "Native site, kullanıcı, rol ve kayıt izinleri; v2 ignore_permissions=False korunur. Bu rehber yeni rol veya izin üretmez; ileride rol/izin gerekirse explicitPermissionFlags ortak kaynağına bağlanır. İndeks kontrolü yönetici bağlamında, sorgu kontrolü okuma izinli kullanıcıyla yapılır; yetkisiz okuma native PermissionError ile reddedilir. ignore_permissions=True veya ham SQL ile yetki atlanmaz.",
+    "persistence": "İndeks yalnız migrate sırasında on_doctype_update ile oluşur. DDL'in işlem içinde geri alınacağı garanti edilmez; davranış db_type'a bağlıdır ve doğrulanmadı. Belge verisi değişmez; gerektiğinde native Document.save ve transaction akışı kullanılır. Bu sözleşme hiçbir servis, şema, veri veya production ortamını değiştirme yetkisi vermez.",
+    "failure": "Geçersiz order_by/group_by native doğrulama hatası verir (hata türü adı kaynakta doğrulanacak); 200 üstü toplu ekleme frappe.throw ile reddedilir; yetkisiz okuma PermissionError verir. HTTP durum eşlemesi doğrulanmadı; tüketici native hata mesajını gösterir, otomatik yeniden denemez. Bağlantı baskısında timeout, 503 veya kuyruk davranışı tanımsızdır ve decisionsPending içindeki karara bağlıdır."
   },
   "development": {
-    "dependencies": [
-      "database-capacity--contract",
-      "local pilot t08: existing one Data record read/update with native admin/reader scopes",
-      "local pilot frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6"
-    ],
-    "admission": "T-00 hedef taban ve R-00 yeniden kullanım eşlemesi, okuyucu tüketici için R-01. Yerel sitenin gerçek db_type değeri ve pilot DocType'ın modül yolu kaydedilmeden başlanmaz. Seçilen filtre alanı zaten indeksliyse RED üretilemez; bu davranış native kabul edilip başka indekssiz alan seçilir. Uzak ürün tabanı ve Suite HEAD bilinmiyor; yerel kanıt uzak tabanı kanıtlamaz.",
+    "dependencies": ["database-capacity--contract"],
+    "admission": "Uygulama durumu: uygulanmadı. Ortak önkoşullar: T-00 hedef taban ve R-00 yeniden kullanım eşlemesi; izinli veri okuyan tüketiciler için ayrıca R-01. Bu birime özel önkoşullar: (1) hedef DB motoru ve hedef sürüm kararı verilmiş, geliştirme sitesinin gerçek db_type değeri kaydedilmiş olmalı; (2) kritik DocType, filter_field ve DocType modül yolu R-00 ile kaynakta bulunmuş olmalı; (3) indeks ekleme ve indeks sorgulama API adları kaynakta satır alıntısıyla doğrulanmış olmalı; (4) seçilen alan zaten indeksliyse RED üretilemez; bu durum native kabul edilir ve indekssiz başka bir alan seçilir. Bağlantı havuzu ve baskı davranışı bu tek kabulün kapsamında değildir.",
     "steps": [
-      "Yerel site db_type ve pilot DocType/alanını database_capacity_mvp.yml'e yaz",
-      "Planlanan tek testi yaz ve indekssiz alanda RED'i gör",
-      "Pilot DocType modülüne on_doctype_update ile tek alan indeksi ekle (dosya entegrasyon sahibi Codex onayıyla)",
-      "Yerel bench migrate, aynı testi GREEN çalıştır"
+      "db_type, hedef sürüm kararının referansı, doctype, filter_field ve page_limit değerlerini database_capacity_mvp.yml önerisine yaz; karar yoksa değer uydurma, alanı boş bırak ve kabulü kapalı tut.",
+      "R-00 ile kritik DocType'ın modül yolunu ve mevcut on_doctype_update kancasını kaynakta bul; kanca varsa ona ekle, ayrı hook dosyası açma.",
+      "İndeks ekleme API'sinin adını kaynak satırıyla doğrula ve rate_limit.py içindeki add_unique deseniyle aynı yerde kullan.",
+      "Tek testi yaz; indekssiz alanda indeks varlığı veya plan anahtarı assertion'ı başarısız olarak gerçek RED görülür.",
+      "on_doctype_update değişikliğini ana entegrasyon sahibinin onayıyla ekle, geliştirme sitesinde bench migrate çalıştır ve aynı testi GREEN olarak doğrula.",
+      "Kanıtı kaydet: db_type, indeks adı, plan çıktısındaki ilgili satır, v2 yanıt satır sayısı; sonuç pass, fail veya not_run olarak yazılır."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "Migrate sonrası pilot DocType'ın filter_field alanında indeks vardır ve aynı alanla filtrelenen v2 liste sorgusunun EXPLAIN planı bu indeksi kullanır; yanıt limit kadar satır ve has_next_page içerir.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Aynı test dosyası ve aynı bench run-tests komutu on_doctype_update eklenip migrate yapıldıktan sonra geçer. Native zaten çalışan sayfalama/insert sınırı için RED üretilmez."
+      "oneScenario": "Migrate sonrası seçilen DocType'ın filter_field alanında indeks vardır ve aynı alanla filtrelenen v2 liste sorgusunun planı bu indeksi kullanır.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. Beklenen RED: indekssiz alanda indeks varlığı veya plan anahtarı assertion'ı başarısız olur. Import veya altyapı hatası ya da native davranışı bozmak RED sayılmaz; native olarak geçen davranışa RED uydurulmaz. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "on_doctype_update eklenip migrate yapıldıktan sonra aynı senaryo, değişmeyen assertion ve aynı bench run-tests komutuyla geçmelidir. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN'i değildir. Native olarak zaten çalışan sayfalama ve 200 ekleme tavanı için RED üretilmez."
     },
-    "rollback": "Yerel commit geri alınır ve yerel dev sitede migrate tekrarlanır; artık indeks yalnız yerel sitede Hüseyin Cengiz onayıyla kaldırılır. Production yetkisi yok."
+    "rollback": "Değişiklik ürün deposunun olağan geri alma akışıyla geri alınır ve geliştirme sitesinde migrate tekrarlanır. Kancayı kaldırmanın mevcut indeksi kendiliğinden düşüreceği varsayılmaz; artık indeks yalnız geliştirme sitesinde Hüseyin Cengiz onayıyla kaldırılır. Production, şema veya veri değişikliği yetkisi yoktur."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "performance-4",
+      "sourceStage": "mvp",
+      "existing": "Native: on_doctype_update içinde frappe.db şema yardımcısı (add_unique örneği), v2 limit+1 sayfalama ve ignore_permissions=False, client toplu ekleme için 200 tavanı, query builder db_type sabitleri (mariadb, postgres, sqlite). İncelenen alıntılarda bağlantı havuzu kodu görülmedi.",
+      "gap": "Hedef DB motoru ve sitenin gerçek db_type değeri belirtilmemiş; kritik sorgu listesi ve EXPLAIN/plan doğrulama yöntemi yok; bağlantı havuzu (DB tarafı veya proxy) ile gunicorn/worker sayısı arasındaki ilişki tanımsız; bağlantı baskısında beklenen davranış (timeout, 503, kuyruk) sayısal değil.",
+      "completionSteps": [
+        "Hedef DB motoru kararını bekle; karar sonrası geliştirme sitesinin db_type değerini YAML önerisine kaydet.",
+        "Tek kritik sorguyu (DocType ve filter_field) R-00 ile seç ve on_doctype_update içinde indeks desenini uygula.",
+        "Motor bazlı plan kontrolünü (EXPLAIN çıktısındaki indeks anahtarı) tek testin kabul ölçütü olarak yaz.",
+        "Bağlantı havuzu ve worker sayısı sorularını teknik devir notu olarak Hüseyin Cengiz'e ilet; bu birimde havuz uygulanmaz.",
+        "Baskı davranışının sayısal eşikleri karara bağlandıktan sonra ölçüm adımını mevcut görevde ekle; yeni görev açılmaz."
+      ],
+      "dependencies": ["database-capacity--contract"],
+      "acceptance": "Kritik sorgunun indeksi ve planı seçilen db_type üzerinde doğrulanır; v2 yanıtı en fazla limit satır döndürür ve yetkisiz okuma native olarak reddedilir. Bağlantı baskısında kontrollü sınır ve kuyruk davranışının ölçümü, havuz ve eşik kararları verildikten sonra ayrı kabul kanıtıdır.",
+      "evidence": [
+        {
+          "path": "suite/suite/suite_core/doctype/rate_limit/rate_limit.py",
+          "line": 149,
+          "quote": "frappe.db.add_unique("
+        },
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 162,
+          "quote": "limit=limit + 1,  # Fetch one extra to check if there's a next page"
+        },
+        {
+          "path": "frappe/frappe/client.py",
+          "line": 246,
+          "quote": "frappe.throw(_(\"Only 200 inserts allowed in one request\"))"
+        },
+        {
+          "path": "frappe/frappe/query_builder/utils.py",
+          "line": 41,
+          "quote": "SQLITE = \"sqlite\""
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "Hedef DB motoru ve yerel sitenin gerçek db_type değeri bilinmiyor; EXPLAIN biçimi motora göre değişir",
-    "has_index/add_index için satır alıntısı sağlanmadı; API adı uygulama öncesi kaynakta doğrulanmalı",
-    "Kritik sorgu listesi tek sorguyla sınırlı; diğerleri mevcut görevde kalır, yeni görev açılmaz",
-    "Bağlantı havuzu (DB/proxy), gunicorn/worker sayısı ve havuz sahibi tanımsız; karar ve dağıtım Hüseyin Cengiz'e bağımlılık",
-    "Bağlantı baskısında timeout/503/kuyruk davranışı sayısal değil; ölçüm bu sözleşmede yok",
-    "Pilot DocType modül yolu ve Suite HEAD bilinmiyor"
+    "Hedef DB motoru, hedef sürüm ve geliştirme sitesinin gerçek db_type değeri bilinmiyor; EXPLAIN biçimi motora göre değişir.",
+    "İndeks ekleme ve indeks sorgulama API adları için satır alıntısı yok; yalnız add_unique doğrulandı. API adları uygulama öncesi kaynakta doğrulanmalı.",
+    "Kritik sorgu tek sorguyla sınırlı; diğer sorgular mevcut görevde kalır, yeni görev açılmaz.",
+    "Bağlantı havuzu (DB tarafı veya proxy), gunicorn/worker sayısıyla ilişkisi ve sahibi tanımsız; incelenen alıntılarda havuz kodu yok.",
+    "Bağlantı baskısında timeout, 503 veya kuyruk davranışı sayısal değil; ölçüm bu sözleşmede yok.",
+    "Kritik DocType'ın modül yolu ve hedef tabanın kaynak sürümü bilinmiyor.",
+    "HTTP durum eşlemesi ve native hata türü adları doğrulanmadı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Hedef DB motoru (mariadb, postgres veya sqlite) ve hedef Frappe sürümü",
+      "requirementIds": ["performance-4"],
+      "blocksStep": "db_type kaydı, motor bazlı plan doğrulama biçimi ve development.admission önkoşulu (1)",
+      "interimDocumentStep": "Desteklenen üç db_type sabitinin kaynak kanıtını ve motorlar arası plan çıktısı farklarını karar girdisi olarak listele; seçim yapma."
+    },
+    {
+      "decision": "Tek kritik sorgunun DocType'ı ve filtre alanı",
+      "requirementIds": ["performance-4"],
+      "blocksStep": "YAML doctype/filter_field alanları, gerçek RED ve development.steps 2-4",
+      "interimDocumentStep": "R-00 eşlemesinden aday liste sorgularını ve alanlarının mevcut indeks durumunu belge olarak çıkar."
+    },
+    {
+      "decision": "Bağlantı havuzu yöntemi (DB tarafı veya proxy), gunicorn/worker sayısıyla ilişkisi ve havuz sahibi; teknik karar ve dağıtım Hüseyin Cengiz'e aittir",
+      "requirementIds": ["performance-4"],
+      "blocksStep": "Bağlantı baskısı ölçümü ve ilgili dağıtım yapılandırması",
+      "interimDocumentStep": "Frappe Docker resmi dağıtım deposu ve Frappe Profiling kaynaklarına dayanarak Hüseyin Cengiz için teknik soru listesi hazırla."
+    },
+    {
+      "decision": "Bağlantı baskısında sayısal sınırlar: timeout süresi, 503 eşiği ve kuyruk davranışı",
+      "requirementIds": ["performance-4"],
+      "blocksStep": "Baskı altında kontrollü sınır ve kuyruk davranışı kabulü",
+      "interimDocumentStep": "Ölçülecek metrikleri (eşzamanlı istek sayısı, bekleme süresi, hata oranı) değer içermeyen bir ölçüm şablonu olarak yaz."
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "performance-4": "mvp"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,

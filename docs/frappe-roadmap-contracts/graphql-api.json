@@ -1,0 +1,247 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "graphql-api",
+  "canonicalTaskIds": [
+    "graphql-api--implementation",
+    "ui-family-36--implementation-post-mvp"
+  ],
+  "requirementIds": ["integration-10"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "integration-10": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Yetkili, salt-okunur GraphQL query dilimi: tek DocType için liste ve tekil kayıt",
+    "trigger": "Kimliği doğrulanmış istemci, api-middleware--contract sözleşmesinin tanımlayacağı GraphQL uç noktasına seçilen tek bir DocType için liste veya tekil kayıt query'si gönderir.",
+    "expected": "Resolver yalnız native izinli Frappe okuma yollarını çağırır. Yanıtta yalnız kullanıcının okuyabildiği kayıtlar ve okuyabildiği alanlar bulunur. Sunucu tarafında limit üst sınırı ile derinlik/maliyet sınırı uygulanır. Sayfalama hasNextPage bilgisiyle döner. Hatalar kernel-envelope--contract zarfına eşlenir. Uygulama durumu: uygulanmadı.",
+    "denied": "Başka site/kiracı verisi, okuma izni olmayan kayıt, kullanıcının permlevel'ine kapalı alan, üst sınırı aşan limit ve derinlik/maliyet sınırını aşan query reddedilir. Reddedilen istek hiçbir kaydı değiştirmez ve kaydın varlığını sızdırmaz. Bu dilimde mutation ve subscription kök tipleri yoktur; bunları içeren istek şema doğrulamasında reddedilir."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Sağlanan kaynak kesitlerinde GraphQL uygulaması yok: şema/tip üretimi, ayrıştırıcı/yürütücü, resolver katmanı, GraphQL rotası ve GraphQL bağımlılığı bulunmuyor. Gelecekteki resolver'ların yeniden kullanacağı parçalar yalnız native Frappe REST v2 okuma primitifleri: /api/v2 Werkzeug URL haritası, liste yolunda ignore_permissions=False ile sorgu kurulması, tekil okumada alan seviyesinde okuma izninin uygulanması ve istemciden alınan limit parametresi. Native parçaların varlığı GraphQL davranışının var olduğu anlamına gelmez. GitHub CI iş akışındaki 'gh api graphql' çağrısı GitHub API kullanımıdır; ürün davranışı veya GraphQL bağımlılığı kanıtı sayılmaz. searchedPaths yalnız sağlanan salt-okunur kesitlerdir; kurulumun tamamında yokluk için kapsamlı bir iddia değildir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/api/__init__.py",
+        "line": 97,
+        "quote": "Submount(f\"/api/{ApiVersion.V2.value}\", v2_rules),"
+      },
+      {
+        "path": "frappe/frappe/api/v2.py",
+        "line": 164,
+        "quote": "ignore_permissions=False,"
+      },
+      {
+        "path": "frappe/frappe/api/v2.py",
+        "line": 87,
+        "quote": "doc.apply_fieldlevel_read_permissions()"
+      },
+      {
+        "path": "frappe/frappe/api/v2.py",
+        "line": 142,
+        "quote": "limit: int = cint(args.get(\"limit\", 20))"
+      },
+      {
+        "path": "frappe/.github/workflows/post-review.yml",
+        "line": 72,
+        "quote": "gh api graphql --paginate"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/.github/workflows/post-review.yml",
+      "frappe/frappe/api/__init__.py",
+      "frappe/frappe/api/v2.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/graphql-api.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/adapters/integration_hub/graphql_api_post_mvp.py",
+      "frontend/packages/ui/src/components/ui-family-36/post_mvp.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "HTTP POST gövdesinde GraphQL belgesi: query metni, isteğe bağlı operationName ve variables. İlk dilimde yalnız Query kök tipi vardır. Seçilen DocType için iki alan bulunur: liste alanı (filters, orderBy, start, limit) ve tekil kayıt alanı (name). Tip alanları DocType meta'sından türetilir. Kullanıcıya gösterilecek alan kümesi meta üzerindeki izinli alan adı yardımcısıyla çıkarılır; bu yardımcının adı ve imzası hedef sürümde doğrulanmadan kullanılmaz. Kiracı bağlamı tenant-registry--contract sözleşmesine göre isteğin site bağlamından gelir. İstemci gövdesi veya variables üzerinden kiracı seçimi kabul edilmez.",
+    "output": "Başarılı liste yanıtında data altında kayıt dizisi ve hasNextPage bulunur. hasNextPage, REST v2 liste yolundaki limit+1 deseniyle hesaplanır. Tekil yanıtta data altında tek kayıt bulunur. Yasak alanın değeri hiçbir biçimde dönmez. Temsil biçimi graphql-api--contract kararıyla sabitlenir: alan kullanıcı şemasında hiç yoktur ya da alan düzeyinde yetki hatası verilir. GraphQL errors girdileri kernel-envelope--contract hata kodlarına eşlenir. Sürüm bilgisi api-middleware--contract sürüm sözleşmesine bağlanır.",
+    "authorization": "Resolver yalnız native izinli yolları çağırır. Liste için REST v2 liste yolundaki deseni izler: sorgu ignore_permissions=False ile kurulur. Tekil kayıt için REST v2 tekil okuma desenini izler: belge alınır, native okuma izni denetlenir ve doc.apply_fieldlevel_read_permissions() uygulanır. Yasak olanlar: frappe.db.sql veya ham SQL, ignore_permissions=True, izin atlatan bayraklar ve Administrator bağlamına geçiş. Kullanıcı ve rol politikası native-user-policy--contract sözleşmesine aittir. Bu sözleşme rol veya izin üretmez. Gelecekte izin bayrağı gerekirse explicitPermissionFlags ortak kaynağına bağlanır ve yeni rol/izin tanımlanmaz. Capability tanımı capability-definition--contract sözleşmesine aittir. Kaynak registry ile GenUI capability registry ayrıdır; bu sözleşme GenUI registry'sine kayıt eklemez.",
+    "persistence": "İlk dilim salt-okunurdur. Şema, DocType, veri veya migration değişikliği yoktur. Gelecekteki mutation dilimi yalnız doc.insert() ve doc.save() üzerinden native transaction, validasyon ve controller hook'larıyla yazar. Yan etkiler outbox--contract üzerinden ilerler. Bu sözleşme hiçbir servisi, production ortamını, şemayı veya veriyi değiştirme yetkisi vermez.",
+    "failure": "Kimliksiz istek api-middleware kimlik hatasıyla döner. Native izin reddi kernel zarfında yetki hatasına eşlenir ve kaydın var olup olmadığı belli edilmez. Limit üst sınırı veya derinlik/maliyet aşımı yürütme öncesi doğrulama hatasıdır; veritabanına sorgu gitmez. Bilinmeyen DocType veya alan doğrulama hatasıdır. Mutation ya da subscription içeren istek desteklenmeyen işlem hatasıdır. Yetki hatası alan kayıt veya alan için kısmi veri döndürülmez. Hata metninde iç SQL, yığın izi veya başka kiracıya ait bilgi yer almaz."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "capability-definition--contract",
+      "client-rule-parity--contract",
+      "field-mapping--contract",
+      "graphql-api--contract",
+      "kernel-envelope--contract",
+      "mcp-api--contract",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "outbox--contract",
+      "soap-api--contract",
+      "tenant-registry--contract",
+      "ui-family-36--contract",
+      "ui-family-36--implementation",
+      "xml-feed--contract"
+    ],
+    "admission": {
+      "status": "NOT_ADMITTED",
+      "prerequisites": [
+        "T-00 hedef taban çizgisi: hedef Python ve Frappe sürümü sabitlenir; native okuma API imzaları bu sürümde doğrulanır.",
+        "R-00 yeniden kullanım eşlemesi: ilk dilimin tek DocType'ı ve kullanılacak native okuma yolları eşlenir.",
+        "R-01: izinli veri tüketicisi olduğu için izin eşlemesi uygulanır.",
+        "graphql-api--contract içinde decisionsPending kararları kapatılır.",
+        "Tek dar davranış için gerçek RED/GREEN kanıtı üretilir."
+      ],
+      "note": "Uygulama durumu: uygulanmadı. Ortak yürütme politikası: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy."
+    },
+    "steps": [
+      "1. graphql-api--contract içine resolver kuralını yaz. İzinli yollar: ignore_permissions=False ile liste sorgusu, native okuma izni denetimi, apply_fieldlevel_read_permissions, gelecekte doc.insert/doc.save. Yasak liste: frappe.db.sql, ignore_permissions=True, izin atlatan bayraklar.",
+      "2. Kütüphane ve hedef sürüm kararı gelmeden bağımlılık ekleme. Karar gelince bağımlılık değişikliği ve CI kapısı Hüseyin Cengiz ile birlikte planlanır.",
+      "3. R-00 eşlemesinden tek DocType seç. Meta'dan okunabilir alan projeksiyonunu kur; alan tipleri native-doctype-schema--contract ve field-mapping--contract eşlemesine uyar.",
+      "4. Liste resolver'ı REST v2 liste desenini izlesin: ignore_permissions=False ile sorgu ve hasNextPage için limit+1. REST v2'de limit istemciden alınıyor ve kodda üst sınır görülmedi; GraphQL katmanı sunucu tarafı üst sınırı kendisi uygular.",
+      "5. Tekil resolver'ı REST v2 tekil okuma desenini izlesin: belgeyi al, native okuma iznini denetle, apply_fieldlevel_read_permissions uygula, ardından yalnız izinli alanları döndür.",
+      "6. Yürütme öncesi derinlik ve maliyet doğrulaması ekle. İlişkili alanlar için toplu okuma (dataloader deseni) kullan. İstek başına sorgu sayısı bütçesini testte ölç.",
+      "7. Hata eşlemesini kernel-envelope--contract, sürüm ve kimlik katmanını api-middleware--contract ile bağla. Kiracı bağlamını tenant-registry--contract sözleşmesinden al.",
+      "8. Rota kaydı yalnız sharedIntegrationFiles içindeki hooks.py üzerinden, seri entegrasyon sahibinin birleştirmesiyle yapılır.",
+      "9. ui-family-36 post-MVP yüzeyi yalnız ui-family-36--contract ve ui-family-36--implementation sonrasında ele alınır. React/Ant Design ile kurulur ve veriyi TanStack Query ile okur. Ağdan gelen veri JSON model sınırında kalır; yerel ReactNode ve callback'ler bu sınırı geçmez. GenUI ayrı kullanıcı projesidir.",
+      "10. Mutation ayrı ve sonraki dilimdir; yalnız doc.insert/doc.save kullanır. Subscription bu sözleşmenin kapsamı dışındadır."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Seçilen DocType'ta yüksek permlevel alanını okuma yetkisi olmayan bir kullanıcı tekil kayıt query'sinde bu alanı ister; yanıtta alanın değeri bulunmaz.",
+      "red": "Gelecekte, alan seviyesinde okuma izni uygulanmadan belgeyi döndüren resolver'a karşı test, yasak alan değerinin yanıtta göründüğünü bir assertion başarısızlığı olarak yakalar. RED, import veya altyapı hatası olmamalı ve native Frappe davranışını bozarak üretilmemelidir. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "Resolver native okuma izni denetimi ve apply_fieldlevel_read_permissions yolunu kullanır; aynı test, değiştirilmemiş native davranışla geçer. Okunabilir alanların döndüğü ayrıca doğrulanır."
+    },
+    "rollback": "Henüz kod yok. Gelecekte geri alma için hooks.py rota kaydı ve eklenen GraphQL bağımlılığı kaldırılır. İlk dilim salt-okunur olduğundan veri veya şema rollback'i gerekmez. CI, deploy ve rollback'in teknik sahibi Hüseyin Cengiz'dir. DNS veya GoDaddy değişikliği öngörülmez; gerekirse teknik kaydı Hüseyin Cengiz hazırlar, GoDaddy tarafında Asistan Hüseyin uygular, sonucu Hüseyin Cengiz doğrular."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "integration-10",
+      "sourceStage": "post_mvp",
+      "existing": "Native parçalar: /api/v2 URL haritası; ignore_permissions=False ile liste sorgusu; tekil okumada alan seviyesinde okuma izni uygulaması; istemciden alınan limit parametresi. GraphQL şeması, resolver, rota ve bağımlılık sağlanan kaynaklarda yok. CI'daki GitHub GraphQL çağrısı ürün davranışı değildir.",
+      "gap": [
+        "GraphQL kütüphanesi seçilmemiş; bağımlılık yok; Python sürüm uyumu doğrulanmamış.",
+        "DocType meta'sından şema/tip üretimi ve permlevel'e göre kullanıcıya özel alan görünürlüğü yok.",
+        "Query/mutation resolver katmanı ve 'yalnız native izinli yollar' kuralı yok.",
+        "Derinlik/maliyet sınırı, karmaşıklık analizi, N+1 bütçesi ve dataloader yok; REST v2 limitinde kodda üst sınır görülmedi.",
+        "Kiracı izolasyonu kanıtı yok; hata zarfı ve sürüm sözleşmesi eşlemesi yok.",
+        "Subscription taşıması tanımsız; kapsam dışı."
+      ],
+      "completionSteps": [
+        "Kütüphane: aday değerlendirme kriterlerini yaz (hedef Python uyumu, yürütme öncesi doğrulama kancası, toplu okuma desteği, lisans); seçimi decisionsPending kararına bırak.",
+        "Şema: tek DocType için meta'dan tip üret; yalnız okunabilir alanları yansıt; yasak alan temsilini sözleşme kararına göre uygula.",
+        "Resolver: liste için ignore_permissions=False deseni, tekil için native okuma izni ve apply_fieldlevel_read_permissions; yasak listeyi kod incelemesi kontrol maddesi yap.",
+        "Sınırlar: sunucu tarafı limit üst sınırı, derinlik ve maliyet doğrulaması yürütmeden önce çalışır; sorgu sayısı bütçesi testte ölçülür.",
+        "İzolasyon ve hata: kiracı bağlamı tenant-registry--contract'tan; hatalar kernel-envelope--contract'a, sürüm api-middleware--contract'a eşlenir.",
+        "Mutation sonraki dilimde doc.insert/doc.save ile; reddedilen yazmada kaydın değişmediği doğrulanır. Subscription kapsam dışında kalır."
+      ],
+      "dependencies": [
+        "graphql-api--contract",
+        "kernel-envelope--contract",
+        "api-middleware--contract",
+        "tenant-registry--contract",
+        "native-user-policy--contract",
+        "native-doctype-schema--contract",
+        "capability-definition--contract",
+        "outbox--contract"
+      ],
+      "acceptance": "Gelecekteki kabul ölçütleri: query başka kiracıya veya yasak alana erişemez; okuma izni olmayan kayıt reddedilir ve varlığı sızmaz; limit üst sınırı ve derinlik/maliyet sınırı yürütme öncesi uygulanır; sayfalama hasNextPage ile doğru döner; istek başına sorgu sayısı bütçesi ölçülür; hatalar kernel zarfında döner. Mutation dilimi açıldığında yetkisiz yazma reddedilir ve kayıt değişmeden kalır. runtimeAcceptance şu an not_run.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/__init__.py",
+          "line": 97,
+          "quote": "Submount(f\"/api/{ApiVersion.V2.value}\", v2_rules),"
+        },
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 164,
+          "quote": "ignore_permissions=False,"
+        },
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 87,
+          "quote": "doc.apply_fieldlevel_read_permissions()"
+        },
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 142,
+          "quote": "limit: int = cint(args.get(\"limit\", 20))"
+        },
+        {
+          "path": "frappe/.github/workflows/post-review.yml",
+          "line": 72,
+          "quote": "gh api graphql --paginate"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Uygulama durumu: uygulanmadı. GraphQL şeması, resolver'ı, rotası ve bağımlılığı yok.",
+    "Native okuma API imzaları hedef sürümde doğrulanmadı; izinli alan adı yardımcısı dahil.",
+    "Limit üst sınırı, derinlik/maliyet eşikleri ve sorgu sayısı bütçesi değerleri belirlenmedi.",
+    "Kiracı izolasyonu, hata zarfı ve sürüm eşlemesi için kanıt yok; ilgili sözleşmeler henüz bağlanmadı.",
+    "Mutation dilimi tanımlanmadı; subscription kapsam dışı.",
+    "ui-family-36 post-MVP yüzeyi ui-family-36--contract ve ui-family-36--implementation kapanmadan ele alınamaz."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "GraphQL Python kütüphanesi ve lisansı",
+      "requirementIds": ["integration-10"],
+      "blocksStep": "development.steps 2-6: bağımlılık ekleme, şema üretimi ve doğrulama kancaları",
+      "documentStepUntilDecided": "Aday değerlendirme kriterlerini ve resolver kuralını graphql-api--contract içine yaz; belirli bir kütüphane adı seçme."
+    },
+    {
+      "decision": "Hedef Python ve Frappe sürümü (T-00)",
+      "requirementIds": ["integration-10"],
+      "blocksStep": "Native okuma API imzalarının doğrulanması ve kütüphane uyumu",
+      "documentStepUntilDecided": "Kullanılacak native yolları ad ve davranış olarak listele; imzaları doğrulanmamış olarak işaretle."
+    },
+    {
+      "decision": "Limit üst sınırı, derinlik/maliyet eşikleri ve istek başına sorgu sayısı bütçesi değerleri",
+      "requirementIds": ["integration-10"],
+      "blocksStep": "development.steps 4 ve 6: sınır doğrulaması ve bütçe ölçümü",
+      "documentStepUntilDecided": "Ölçüm yöntemini ve aşımda verilecek hatayı yaz; sayısal değer seçme."
+    },
+    {
+      "decision": "Yasak alan temsili ve introspection görünürlüğü (alan kullanıcı şemasında yok mu, alan düzeyinde yetki hatası mı)",
+      "requirementIds": ["integration-10"],
+      "blocksStep": "contract.output ve development.steps 3: şema projeksiyonu",
+      "documentStepUntilDecided": "Her iki seçenekte de yasak değerin dönmeyeceği değişmezini yaz."
+    },
+    {
+      "decision": "Kiracı topolojisi (tenant-registry--contract)",
+      "requirementIds": ["integration-10"],
+      "blocksStep": "development.steps 7: kiracı bağlamı ve izolasyon kabulü",
+      "documentStepUntilDecided": "Kiracı bağlamının istemci gövdesinden alınmayacağı kuralını yaz."
+    },
+    {
+      "decision": "İlk dilimin tek DocType'ı (R-00 eşlemesi)",
+      "requirementIds": ["integration-10"],
+      "blocksStep": "development.steps 3 ve tdd.oneScenario somutlaştırması",
+      "documentStepUntilDecided": "Seçim ölçütünü yaz: permlevel'li alanı olan, controller get_list davranışı bilinen bir DocType."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

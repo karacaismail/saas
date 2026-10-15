@@ -1,0 +1,252 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "asset-rendition",
+  "canonicalTaskIds": [
+    "asset-rendition--implementation",
+    "ui-family-22--implementation-post-mvp",
+    "ui-view-gallery--implementation"
+  ],
+  "requirementIds": ["files-7"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "files-7": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Orijinali koruyarak kaynak sürüme bağlı medya türevi (küçük görsel, önizleme, biçim dönüşümü) üretme ve yalnız başarılı türevi yayınlama",
+    "trigger": "Kaynak varlıkta okuma izni olan kullanıcı veya bu kullanıcının bağlamını taşıyan izinli arka plan işi, bir kaynak varlığın belirli sürümü için desteklenen türde bir türev (thumbnail, preview veya hedef biçim) talep eder; ya da kaynak yeni sürüm aldığında türev yenilemesi kuyruğa alınır.",
+    "expected": "Orijinal içerik ve depolama anahtarı değişmez. Türev ayrı bir AssetRendition kaydı (önerilen DocType) ve orijinalden ayrı bir nesne anahtarı olarak oluşur; kaynak varlığa ve talep anındaki kaynak sürüm kimliğine bağlanır. Kayıt 'beklemede' durumunda başlar; yalnız dönüşüm başarıyla tamamlanıp kayıt commit edildikten sonra 'hazır' olur ve outbox üzerinden yayınlanır. Galeri ve önizleme yüzeyleri yalnız 'hazır' ve kaynak sürümle eşleşen türevi gösterir; diğer durumlarda dürüst bir 'hazır değil' veya 'başarısız' durumu gösterir, sahte ilerleme göstermez.",
+    "denied": "Kaynakta okuma izni olmayan, başka tenant'a ait kaynağı hedefleyen, file-type-policy dışında tür/biçim isteyen veya malware taraması temiz olmayan kaynak için talep reddedilir: AssetRendition kaydı oluşmaz, mevcut kayıtlar ve orijinal değişmez, yayın olayı üretilmez. Başarısız veya beklemedeki türevin URL'si hiçbir yanıtta dönmez. Türev hiçbir koşulda orijinalin üzerine yazılmaz."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native Suite Drive parçaları: dosya yöneticisinin upload_file çağrısı create_thumbnail parametresi alıyor; WebDAV kilit yolunda bu parametreye False geçiliyor. thumbnail_prefix ayarı (varsayılan '.thumbnails') WebDAV yol eşlemesinde ayrılmış ad olarak tutuluyor. ffmpeg, deploy apt bağımlılığı olarak video thumbnail/transcode amacıyla bildirilmiş. WebDAV PUT aynı varlığın üzerine yazıyor; S3'te her PUT yeni bir generation key yazıyor. Bu parçalar küçük görsel üretim girişinin ve depolama generation'ının varlığını gösterir. Sürümlü orijinalin, türev-kaynak bağının, durum alanının, yeniden denemenin ve format pipeline'ının var olduğunu göstermez. upload_file iç davranışı, ffmpeg çağrı yerleri ve eski generation'ın saklanıp saklanmadığı alıntılarla doğrulanmadı; envanter adımında okunacak. Vue/Frappe UI kaynağı React/Ant Design uygulaması kanıtı sayılmaz.",
+    "evidence": [
+      {
+        "path": "suite/pyproject.toml",
+        "line": 37,
+        "quote": "drive: video thumbnails/transcode"
+      },
+      {
+        "path": "suite/suite/drive/webdav/lock.py",
+        "line": 218,
+        "quote": "manager.upload_file(scratch, drive_file, create_thumbnail=False)"
+      },
+      {
+        "path": "suite/suite/drive/webdav/pathmap.py",
+        "line": 201,
+        "quote": "(settings.thumbnail_prefix or \".thumbnails\").lower(),"
+      },
+      {
+        "path": "suite/suite/drive/webdav/put.py",
+        "line": 4,
+        "quote": "overwritten at the same entity"
+      },
+      {
+        "path": "suite/suite/drive/webdav/put.py",
+        "line": 6,
+        "quote": "each PUT writes a fresh generation key"
+      }
+    ],
+    "searchedPaths": [
+      "suite/pyproject.toml",
+      "suite/suite/drive/webdav/lock.py",
+      "suite/suite/drive/webdav/pathmap.py",
+      "suite/suite/drive/webdav/put.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/asset-rendition.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/assets/doctype/asset_rendition/asset_rendition.py",
+      "frontend/packages/ui/src/components/ui-family-22/post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-view-gallery/index.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Tenant bağlamı kernel-envelope ve tenant-registry sözleşmelerinden gelir; istemci gövdesinden alınmaz. Alanlar: kaynak referansı (native File mi Drive varlığı mı olduğu decisionsPending'de), kaynak sürüm kimliği (S3 generation key veya karar verilecek eşdeğeri), türev türü (önerilen: thumbnail | preview | format), hedef parametreleri (boyut/biçim; yalnız file-type-policy allowlist'i içinden) ve idempotency anahtarı. Sözleşme yalnız JSON taşır; ReactNode veya callback model sınırına girmez, yerel UI katmanında kalır.",
+    "output": "AssetRendition referansı; durum (önerilen: beklemede | hazır | başarısız); bağlı kaynak referansı ve sürüm kimliği; yalnız 'hazır' durumunda izin kontrollü erişim URL'si; 'başarısız' durumunda kullanıcıya gösterilebilir hata kodu (iç yığın izi yok). Aynı kaynak + sürüm + tür + parametre için tekrar talep mevcut kaydı döndürür, ikinci kayıt oluşturmaz.",
+    "authorization": "Native Frappe izin modeli native-user-policy--contract üzerinden yeniden kullanılır: talep ve okuma için kaynak varlıkta read izni, türev kaydı için AssetRendition DocType izinleri. ignore_permissions, ham SQL ile yetki atlama veya kaynak izninden geniş türev görünürlüğü yok; türev görünürlüğü her okumada kaynağın izninden türetilir. Yeni rol/izin bayrağı gerekirse explicitPermissionFlags ortak kaynağına bağlanır; bu sözleşme kendi rolünü tanımlamaz. Arka plan dönüşüm işi talep edenin kullanıcı ve tenant bağlamını taşır, yetki yükseltmez.",
+    "persistence": "AssetRendition kaydı native DocType save/transaction akışıyla yazılır (native-doctype-schema--contract, asset-rendition--schema). Türev ikili içeriği object-storage--contract altında orijinalden ayrı anahtarda tutulur; orijinal anahtar ve File/varlık kaydı hiçbir adımda güncellenmez. Durum geçişi tek yönlüdür: beklemede -> hazır veya beklemede -> başarısız; başarısız kayıttan yeniden deneme aynı kayıtta deneme sayacını artırır. Yayın olayı yalnız commit sonrası outbox--contract ile üretilir. Saklama süreleri decisionsPending'dedir.",
+    "failure": "Dönüştürücü hatası, zaman aşımı veya desteklenmeyen girdi: kayıt 'başarısız', hata kodu ve deneme sayısı yazılır; URL ve yayın yok, orijinal değişmez. Dönüşüm sırasında kaynak yeni sürüm alırsa sonuç eski sürüme bağlı kalır, yeni sürüm için 'hazır' gösterilmez. Nesne yazımı başarılı fakat kayıt commit'i başarısızsa yetim türev nesnesi yayınlanmaz ve temizliğe bırakılır. Yeniden deneme sınırı ve bekleme aralığı asset-rendition--contract içinde sabitlenir; sınır aşılınca kayıt 'başarısız' kalır."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "asset-rendition--contract",
+      "asset-rendition--schema",
+      "client-rule-parity--contract",
+      "file-type-policy--contract",
+      "kernel-envelope--contract",
+      "malware-scan--contract",
+      "native-doctype-schema--contract",
+      "native-file--contract",
+      "native-user-policy--contract",
+      "object-storage--contract",
+      "outbox--contract",
+      "tauri-device-capability--contract",
+      "tenant-registry--contract",
+      "ui-family-08--contract",
+      "ui-family-22--contract",
+      "ui-family-22--implementation",
+      "ui-view-gallery--contract"
+    ],
+    "admission": {
+      "status": "NOT_ADMITTED",
+      "statusNote": "Uygulama durumu: uygulanmadı.",
+      "prerequisites": [
+        "T-00 hedef sürüm baseline'ı; hedef Frappe/Suite sürümü karar gelmeden seçilmez.",
+        "R-00 yeniden kullanım eşlemesi: upload_file(create_thumbnail), thumbnail_prefix, ffmpeg kullanımı ve S3 generation yayın/saklama davranışı okunup yazılı eşleme üretilmiş olmalı.",
+        "R-01: izinli veri tüketicisi olduğu için native izin eşlemesi tamamlanmış olmalı.",
+        "asset-rendition--contract ve asset-rendition--schema kabul edilmiş, kaynak bağlama hedefi kararı verilmiş olmalı.",
+        "Tek dar davranış için gerçek RED/GREEN kanıtı planlanmış olmalı."
+      ],
+      "orderAuthority": "Mevcut görev bağımlılıkları ve aşama; küme sırası yalnız sunumdur, yeni seri DAG değildir."
+    },
+    "steps": [
+      "Envanter (R-00, yalnız okuma): Suite Drive dosya yöneticisinde upload_file içindeki create_thumbnail dalını, thumbnail_prefix kullanımını, ffmpeg çağrı yerlerini ve put.py içindeki S3 generation yayın akışını oku; neyin olduğu gibi yeniden kullanılacağını, neyin sarılacağını ve eski generation'ın tutulup tutulmadığını eşleme belgesine yaz.",
+      "Kaynak bağlama hedefi ve sürüm kimliği kararı alındıktan sonra asset-rendition--contract içinde durum kümesini, idempotency anahtarını, deneme sınırını ve hata kodlarını sabitle.",
+      "asset-rendition--schema: AssetRendition alanlarını native-doctype-schema--contract ile tanımla (kaynak referansı, kaynak sürüm kimliği, tür, parametre özeti, durum, deneme sayısı, hata kodu, türev nesne anahtarı); tenant alanını tenant-registry--contract'a bağla.",
+      "İlk dar davranış: desteklenen görsel için thumbnail. Mevcut create_thumbnail yolu envanter sonucuna göre yeniden kullanılır veya sarılır; türev ayrı anahtara yazılır, orijinale yazma yok, file-type-policy ve malware-scan sonuçları ön koşul olarak okunur.",
+      "Yayın ve UI: commit sonrası outbox olayı; ui-view-gallery ve ui-family-22 React/Ant Design ile yalnız 'hazır' türevi gösterir, diğer durumları açık metinle bildirir. Bileşen kaydı frontend/packages/ui/src/registry.ts kaynak bileşen registry'si önerisidir; GenUI capability registry ile karıştırılmaz. Tauri/WXT yüzeyleri aynı JSON yanıtı tüketir; bu davranış yeni cihaz yeteneği istemez. UI kabulü proje UI politikalarına (320 CSS px önceliği, en az 14 CSS px metin, çevrelemeyen odak göstergesi) tabidir.",
+      "Video thumbnail/transcode ve diğer biçim dönüşümleri, envanter ve ffmpeg/codec lisans kararından sonra ayrı dar davranışlar olarak kapsamlanır; bu sözleşme yeni medya motoru tanımlamaz.",
+      "CI, ffmpeg paketinin hedef ortamda bulunması, deploy ve rollback teknik sahibi Hüseyin Cengiz'dir. Bu sözleşme servis, production, şema veya veri değişikliği yetkisi vermez."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Kaynak görselde read izni olan kullanıcı thumbnail talep eder; kaynağın talep anındaki sürümüne bağlı tek AssetRendition kaydı 'hazır' olur ve orijinal dosyanın içeriği ve depolama anahtarı değişmez.",
+      "red": "Şema, izin ve depolama altyapısı yerindeyken test, talep sonrası kaynak sürüme bağlı 'hazır' türev kaydını ve değişmemiş orijinali doğrular; türev bağlama davranışı olmadığı için davranışsal assertion başarısız olur. Import/altyapı hatası veya native File/Drive davranışını bozarak elde edilen RED geçerli sayılmaz.",
+      "green": "Asgari uygulama: envantere göre mevcut thumbnail üretimi yeniden kullanılır, türev ayrı anahtara yazılır, AssetRendition native save ile kaydedilir ve commit sonrası 'hazır'a geçer; native izin ve save akışı değişmeden geçer. Bu turda test yazılmaz ve koşulmaz."
+    },
+    "rollback": "Bu turda ürün kodu olmadığı için geri alınacak değişiklik yok. Gelecekte: türev talep yolu ve yayın tüketimi kapatılır; AssetRendition kayıtları ve türev nesneleri eklemeli olduğu için orijinaller etkilenmez. Türev nesnelerinin silinmesi saklama kararına bağlıdır ve onaysız yapılmaz. Deploy/rollback teknik sahibi Hüseyin Cengiz."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "files-7",
+      "sourceStage": "post_mvp",
+      "existing": "Mevcut talimat (data/clusters/05.json:350, /groups/1/items/6) desteği 'partial', aksiyonu 'extend' olarak işaretliyor ve yalnız Frappe görsel kırpma/iyileştirmeyi referans alıyor. Suite Drive kaynağındaki native parçalar: create_thumbnail parametreli upload_file çağrısı, thumbnail_prefix ayrılmış yolu, video thumbnail/transcode için bildirilmiş ffmpeg apt bağımlılığı ve S3'te PUT başına yeni generation key. Bu parçalar davranışın tamamını göstermez.",
+      "gap": "Talimat Suite/Drive thumbnail ve transcode primitiflerini anmıyor; yeniden kullanım sınırı belirsiz. Orijinal-türev bağının veri modeli yok; türevin hangi File/varlığa bağlanacağı tanımsız. WebDAV PUT aynı varlığın üzerine yazıyor; eski generation'ın saklanıp saklanmadığı ve sürüm geçmişi doğrulanmadı. Başarısız dönüşümün yayınlanmaması için durum alanı ve yeniden deneme sözleşmesi yok.",
+      "completionSteps": [
+        "asset-rendition--implementation'ın ilk adımı olarak R-00 envanterini yap: upload_file(create_thumbnail), thumbnail_prefix, ffmpeg kullanımı ve S3 generation saklama davranışını oku, yeniden kullanım eşlemesini yaz.",
+        "Kaynak bağlama hedefi kararından sonra AssetRendition'ı kaynak referansı ve kaynak sürüm kimliğiyle tanımla (asset-rendition--schema).",
+        "'beklemede | hazır | başarısız' durumlarını, idempotency anahtarını ve deneme sınırını asset-rendition--contract'ta sabitle; yayını outbox--contract'a bağla.",
+        "İlk dar davranışı (görsel thumbnail) uygula; orijinalin içerik ve anahtarının değişmediğini kabulde doğrula.",
+        "Galeri yüzeyinde yalnız 'hazır' ve sürümü eşleşen türevi göster (ui-view-gallery--contract).",
+        "Yeni biçim pipeline'ını (video transcode dahil) ancak envanter ve lisans kararından sonra ayrı davranış olarak kapsamla."
+      ],
+      "dependencies": [
+        "asset-rendition--contract",
+        "asset-rendition--schema",
+        "native-file--contract",
+        "object-storage--contract",
+        "file-type-policy--contract",
+        "malware-scan--contract",
+        "native-user-policy--contract",
+        "tenant-registry--contract",
+        "outbox--contract",
+        "ui-view-gallery--contract"
+      ],
+      "acceptance": "Gelecekteki tek kabul: (1) read izinli kullanıcı için desteklenen görselde türev 'hazır', kaynak sürüme bağlı, orijinal içerik ve anahtar değişmemiş; (2) read izni olmayan kullanıcının talebi reddedilir, AssetRendition kaydı oluşmaz, mevcut kayıtlar ve orijinal değişmez, yayın olayı yok; (3) zorla başarısız kılınan dönüşüm 'başarısız' kalır, URL ve yayın olayı yok. Kabul koşulmadı: runtimeAcceptance not_run.",
+      "evidence": [
+        {
+          "path": "suite/pyproject.toml",
+          "line": 37,
+          "quote": "drive: video thumbnails/transcode"
+        },
+        {
+          "path": "suite/suite/drive/webdav/lock.py",
+          "line": 218,
+          "quote": "manager.upload_file(scratch, drive_file, create_thumbnail=False)"
+        },
+        {
+          "path": "suite/suite/drive/webdav/pathmap.py",
+          "line": 201,
+          "quote": "(settings.thumbnail_prefix or \".thumbnails\").lower(),"
+        },
+        {
+          "path": "suite/suite/drive/webdav/put.py",
+          "line": 4,
+          "quote": "overwritten at the same entity"
+        },
+        {
+          "path": "suite/suite/drive/webdav/put.py",
+          "line": 6,
+          "quote": "each PUT writes a fresh generation key"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Orijinal-türev veri modeli tanımsız; asset-rendition--schema ve kaynak bağlama kararı bekleniyor.",
+    "S3'te eski generation'ın saklanıp saklanmadığı ve sürüm geçmişi doğrulanmadı.",
+    "Durum alanı, idempotency ve yeniden deneme sözleşmesi tanımsız.",
+    "Mevcut talimat Suite/Drive thumbnail ve transcode primitiflerini anmıyor; yeniden kullanım sınırı R-00 envanterine kadar belirsiz.",
+    "Video transcode ve diğer biçim dönüşümlerinin kapsamı açık.",
+    "Gerçek çalışma zamanı kabulü koşulmadı; hiçbir davranış uygulanmış sayılmaz."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Türevin bağlanacağı kaynak: native Frappe File, Suite Drive varlığı veya her ikisi.",
+      "requirementIds": ["files-7"],
+      "blockedStep": "asset-rendition--schema alan tanımı ve sözleşme girdisindeki kaynak referansı.",
+      "allowedDocStepUntilDecision": "Seçenekler arasındaki alan ve izin farkını belgeye yazmak; seçim yapmamak."
+    },
+    {
+      "decision": "Hedef Frappe/Suite sürümü (T-00).",
+      "requirementIds": ["files-7"],
+      "blockedStep": "R-00 envanterinin kesinleşmesi ve yeniden kullanım eşlemesi.",
+      "allowedDocStepUntilDecision": "Mevcut talimattaki version-15 kaynak bağlantısını referans olarak not etmek; sürüm seçmemek."
+    },
+    {
+      "decision": "Orijinal sürümlerin ve eski S3 generation'larının saklama süresi.",
+      "requirementIds": ["files-7"],
+      "blockedStep": "Sürüm geçmişi kabulü ve rollback sırasında eski sürüme dönüş.",
+      "allowedDocStepUntilDecision": "Envanterde mevcut saklama davranışını yazmak."
+    },
+    {
+      "decision": "Türev nesnelerinin ve başarısız/yetim türevlerin saklama süresi.",
+      "requirementIds": ["files-7"],
+      "blockedStep": "Temizlik işi ve rollback'te türev silme.",
+      "allowedDocStepUntilDecision": "Türevlerin eklemeli olduğunu ve silmenin onaya bağlı olduğunu belgelemek."
+    },
+    {
+      "decision": "ffmpeg dağıtımı ve codec lisansı; desteklenecek hedef biçim listesi.",
+      "requirementIds": ["files-7"],
+      "blockedStep": "Video thumbnail/transcode ve biçim dönüşümü davranışları.",
+      "allowedDocStepUntilDecision": "Envanterde ffmpeg'in nerede çağrıldığını yazmak; lisans veya biçim seçmemek."
+    },
+    {
+      "decision": "Türev nesnelerinin veri yerleşimi (orijinalle aynı bölge/depo olup olmayacağı).",
+      "requirementIds": ["files-7"],
+      "blockedStep": "object-storage--contract altında türev anahtar ve depo tanımı.",
+      "allowedDocStepUntilDecision": "Türev anahtarının orijinalden ayrı olma zorunluluğunu belgelemek."
+    },
+    {
+      "decision": "Tenant topolojisinin türev anahtar ad alanına etkisi.",
+      "requirementIds": ["files-7"],
+      "blockedStep": "AssetRendition tenant alanı ve depolama anahtarı biçimi.",
+      "allowedDocStepUntilDecision": "Tenant bağlamının istemciden değil kernel-envelope/tenant-registry'den geldiğini belgelemek."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

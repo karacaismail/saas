@@ -1,0 +1,230 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "bi-embedding",
+  "canonicalTaskIds": [
+    "bi-embedding--implementation",
+    "ui-family-28--implementation-scale"
+  ],
+  "requirementIds": ["reports-3"],
+  "stage": "scale",
+  "sourceStages": {
+    "reports-3": "scale"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Yetkili kullanıcıya tenant sınırı sunucuda kilitli, kısa ömürlü imzalı Metabase gömülü rapor erişimi. Uygulama durumu: uygulanmadı.",
+    "trigger": "React/Ant Design istemcisi oturumlu bir istekle yalnız mantıksal bir rapor anahtarı göndererek Frappe whitelisted uçtan gömme tanımlayıcısı ister. İstemcinin gönderdiği tenant, site, Metabase kaynak kimliği veya kilitli parametre değerleri yok sayılır.",
+    "expected": "Frappe önce oturum kullanıcısının rapor anahtarına bağlı izni native izin denetimiyle doğrular; Metabase kaynak kimliğini ve kilitli tenant parametresini yalnız sunucu tarafındaki site yapılandırmasından ve frappe.local.site değerinden türetir; embedding secret'ını yalnız site config/secret store'dan okur; kısa exp süreli imzalı belirteç veya gömme URL'si içeren bir JSON tanımlayıcı döndürür. İstemci bu tanımlayıcıyı kararlaştırılan gömme türünün tüketicisiyle (iframe veya SDK) gösterir.",
+    "denied": "Yetkisiz kullanıcı, eşlemesi olmayan rapor anahtarı, eksik site eşlemesi veya eksik secret durumunda belirteç üretilmez; frappe.PermissionError veya doğrulama hatası döner; hiçbir kayıt yazılmaz veya değişmez. URL ya da parametre değiştirerek başka tenant'ın verisi sorgulanamaz; imzalı yükün istemcide değiştirilmesi Metabase tarafındaki imza doğrulamasında reddedilmelidir (gelecekte doğrulanacak)."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Metabase (veya başka BI) adaptörü, gömme belirteci üreten uç ve kilitli tenant parametresi kaynakta yok. Yalnız native parçalar yeniden kullanılır: Report.is_permitted ile rapor bazlı rol kontrolü ve frappe.has_permission(ref_doctype, 'report') deseni; validate_filters_permissions ile Link filtre değerlerinin kullanıcı izniyle doğrulanması; Query Report'un salt-okur transaction içinde çalışması; Suite Meet'te site config secret'ıyla sunucuda HS256 JWT imzalama örneği; Web Form'da frame-ancestors başlığı yönetimi. Bu parçalar Metabase entegrasyonunu, gömme ucunu veya tenant kilidini kanıtlamaz. Frappe'de tenant sınırı site/DB düzeyindedir; Metabase tarafında karşılığı yoktur. Vue/Frappe UI kaynağı React/AntD tüketicisinin kanıtı değildir. searchedPaths yalnız incelenen yollardır; kapsamlı yokluk iddiası değildir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/desk/query_report.py",
+        "line": 49,
+        "quote": "if not doc.is_permitted():"
+      },
+      {
+        "path": "frappe/frappe/desk/query_report.py",
+        "line": 301,
+        "quote": "if not frappe.has_permission(report.ref_doctype, \"report\"):"
+      },
+      {
+        "path": "frappe/frappe/desk/query_report.py",
+        "line": 1194,
+        "quote": "def validate_filters_permissions(report_name, filters=None, user=None, js_filters=None):"
+      },
+      {
+        "path": "frappe/frappe/core/doctype/report/report.py",
+        "line": 190,
+        "quote": "frappe.db.begin(read_only=True)"
+      },
+      {
+        "path": "suite/suite/meet/api/meeting.py",
+        "line": 84,
+        "quote": "return jwt.encode(payload, secret, algorithm=\"HS256\")"
+      },
+      {
+        "path": "frappe/frappe/website/page_renderers/web_form.py",
+        "line": 22,
+        "quote": "self.headers = {\"Content-Security-Policy\": f\"frame-ancestors 'self' {allowed_embedding_domains}\"}"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/core/doctype/report/report.py",
+      "frappe/frappe/desk/query_report.py",
+      "frappe/frappe/website/page_renderers/web_form.py",
+      "suite/suite/meet/api/meeting.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/bi-embedding.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/adapters/reporting/bi_embedding_scale.py",
+      "frontend/packages/ui/src/components/ui-family-28/scale.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Oturumlu Frappe isteği; gövdede yalnız mantıksal rapor anahtarı ve, gömme türü kararı izin verirse, kilitli olmayan ve validate_filters_permissions deseniyle kullanıcı izninde doğrulanan filtre değerleri. tenant, site, resource ve kilitli params alanları kabul edilmez; gelirse yok sayılır ve yüke hiçbir koşulda aktarılmaz.",
+    "output": "JSON tanımlayıcı: imzalı gömme URL'si veya belirteç ile exp zamanı. JSON model sınırında kalır; ReactNode, callback, HTML veya secret içermez. Yerel React bileşeni bu JSON'u kendi tarafında görselleştirir.",
+    "authorization": "Uç misafir erişimine kapalıdır. Rapor anahtarının eşlendiği ref_doctype için frappe.has_permission(ref_doctype, 'report') deseni, eşleme bir Frappe Report'a bağlıysa Report.is_permitted deseni uygulanır. ignore_permissions, ham SQL ile yetki atlama veya Administrator bağlamına geçiş yasaktır. Rol eşlemesi explicitPermissionFlags ortak kaynağına bağlanır; bu sözleşme yeni rol veya izin bayrağı tanımlamaz.",
+    "persistence": "Uç salt-okurdur; DocType, şema veya kayıt değişikliği yapmaz. Denetim kaydı gerekip gerekmediği kernel-envelope ve outbox sözleşmelerine göre belirlenir; bu sözleşme yeni kalıcılık tasarlamaz. Secret ve rapor anahtarı-kaynak eşlemesi yalnız site config/secret store'da tutulur; Git'e, belgeye veya loga yazılmaz. Metabase veri erişimi tenant başına salt-okur DB kullanıcısı veya görünümle sınırlanır (topoloji kararı bekliyor).",
+    "failure": "İzin yok: frappe.PermissionError, belirteç yok, kayıt değişmez. Bilinmeyen rapor anahtarı veya eksik site eşlemesi: doğrulama hatası, belirteç yok. Secret eksik: yapılandırma hatası; secret değeri yanıtta veya logda görünmez. Metabase erişilemez: istemci görünür hata durumu gösterir, sahte ilerleme göstermez. Belirtecin süresi dolar: istemci yeni tanımlayıcı ister ve izin denetimi yeniden çalışır."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "bi-embedding--contract",
+      "client-rule-parity--contract",
+      "kernel-envelope--contract",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "outbox--contract",
+      "ui-family-28--contract",
+      "ui-family-28--implementation"
+    ],
+    "admission": "Uygulama durumu: uygulanmadı. Özgül önkoşullar: T-00 hedef temel çizgi ve R-00 yeniden kullanım eşlemesi; izinli veri tüketicisi olduğu için R-01; decisionsPending içindeki gömme türü/lisans, tenant topolojisi, barındırma/köken ve rol-kaynak eşlemesi kararlarının kullanıcıyla kapatılması; listelenen bağımlılık sözleşmelerinin kabulü; tek dar davranış için gerçek RED/GREEN kanıtı. Bu sözleşme hiçbir servis, production, şema veya veriyi değiştirme yetkisi vermez.",
+    "steps": [
+      "1. Kararlar kapanmadan yalnız belge: rapor anahtarı -> (ref_doctype, Metabase kaynak türü) eşleme şablonu ve parametre kurcalama tehdit modeli; kod yok.",
+      "2. Gelecekte backend/saas_platform/saas_platform/adapters/reporting/bi_embedding_scale.py içinde tek whitelisted fonksiyon; sırası: native izin denetimi -> eşlemeyi site config'ten okuma -> tenant'ı frappe.local.site'tan türetip istemci alanlarını atma -> secret'ı frappe.conf'tan okuma -> meeting.py desenindeki gibi kısa exp'li HS256 imzalama. hooks.py yalnız gerekiyorsa ortak entegrasyon sahibiyle seri birleştirilir.",
+      "3. tdd bölümündeki tek senaryo için önce RED, sonra en küçük GREEN.",
+      "4. Ret kabulü: yetkisiz kullanıcı PermissionError alır, belirteç dönmez, kayıt değişmez; ayrı bir regresyonla parametre kurcalamayla başka tenant sorgulanamadığı kanıtlanır.",
+      "5. frontend/packages/ui/src/components/ui-family-28/scale.tsx: TanStack Query ile tanımlayıcıyı çek, exp öncesi yeniden iste; Ant Design/Pro yüzeyinde gömme alanı, yükleme ve hata durumları. Bileşen kaynak bileşen registry'sine (registry.ts) kaydolur; GenUI capability registry'sine değil. Rota routes.tsx içinde TanStack Router ile. Outfit, minimum 14 CSS px, çevreleyen odak halkası yasağı, merkezi motion tokenları ve 320 CSS px önceliği uygulanır; iframe içi Metabase görünümü bu kuralların kanıtı sayılmaz.",
+      "6. Çerçeveleme yönü: native web_form deseni Frappe sayfasının çerçevelenmesini yönetir; burada yön terstir. Web istemcisi CSP frame-src, tauri.conf.json CSP ve wxt.config.ts MV3 sayfa CSP'si yalnız kararlaştırılan Metabase kökenini içerir; Metabase tarafında izin verilen gömme kökenleri de aynı listeyle sınırlanır. Cargo.toml ve package.json yalnız gerçek bağımlılık gerekirse değişir.",
+      "7. Metabase veri kaynağı yalıtımı (tenant başına salt-okur DB kullanıcısı veya görünüm) teknik olarak Hüseyin Cengiz'e devredilir. DNS gerekiyorsa kayıt gereksinimini Hüseyin Cengiz hazırlar, Asistan Hüseyin GoDaddy'de uygular, Hüseyin Cengiz sonucu doğrular. Bu sözleşme altyapı değişikliği yetkisi vermez."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Yetkili kullanıcı gövdeye başka bir tenant/site değeri ekleyerek gömme isteği yaptığında, dönen imzalı yükteki kilitli tenant parametresi frappe.local.site değerine eşittir ve istemci değeri yükte yer almaz.",
+      "red": "Gelecekteki test belirteci site secret'ıyla çözer ve kilitli parametreyi karşılaştırır; uç iskeleti istemci değerini yüke taşıdığı veya kilitli parametreyi eklemediği için iddia düzeyinde başarısız olur. ImportError, eksik modül, eksik secret gibi altyapı hataları veya native Report/has_permission davranışını bozarak elde edilen kırmızı geçerli değildir. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "En küçük değişiklik: kilitli tenant parametresini sunucuda frappe.local.site'tan üret ve istemci alanlarını at; native izin denetimi değişmeden kalır."
+    },
+    "rollback": "Bu sözleşme yalnız yönergedir; geri alınacak üretim değişikliği yoktur. Gelecekteki uygulamada: ucu ekleyen sürümün geri alınması, embedding secret rotasyonuyla verilmiş belirteçlerin geçersizleştirilmesi, istemci rotasının kaldırılması ve Metabase tarafında gömmenin kapatılması. CI/deploy/rollback teknik sahibi Hüseyin Cengiz'dir."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "reports-3",
+      "sourceStage": "scale",
+      "existing": "Native parçalar: rapor bazlı rol kontrolü (Report.is_permitted), ref_doctype için 'report' izni, Link filtre izni doğrulaması, salt-okur Query Report transaction'ı, Suite Meet'te sunucu tarafı HS256 JWT imzalama, Web Form frame-ancestors başlığı. Metabase adaptörü, gömme ucu ve tenant kilidi yok.",
+      "gap": "Gömme türü ve lisans kararı; izin denetiminden sonra kısa ömürlü imzalı belirteç üreten whitelisted uç; sunucuda frappe.local.site'a kilitli tenant parametresi; secret saklama, rotasyon ve süre sınırı; tenant başına salt-okur veri kaynağı; rol-kaynak eşlemesi; React/AntD tüketicisi ve CSP; parametre kurcalama regresyonu.",
+      "completionSteps": [
+        "Gömme türü ve lisansı kullanıcıyla netleştir; seçim yapılmadan yalnız seçeneklerin tehdit modeli farkları belgelenir.",
+        "bi_embedding_scale.py içinde tek whitelisted uç: has_permission(ref_doctype, 'report') ve gerektiğinde Report.is_permitted deseniyle izin denetimi, ardından imzalama.",
+        "Kaynak kimliği ve tenant parametresini yalnız site config ve frappe.local.site'tan üret; istemci tenant/site/resource/params alanlarını at.",
+        "Secret'ı yalnız frappe.conf/secret store'dan oku; kısa exp kullan; rotasyon prosedürünü Hüseyin Cengiz'in devrine yaz; değer Git'e veya loga girmez.",
+        "Metabase veri kaynağını tenant başına salt-okur DB kullanıcısı veya görünümle sınırla (topoloji kararından sonra, Hüseyin Cengiz).",
+        "Rol-kaynak eşlemesini explicitPermissionFlags ortak kaynağına bağla; yeni rol/izin bayrağı üretme.",
+        "ui-family-28/scale.tsx tüketicisini ve web/Tauri/WXT CSP frame-src ile Metabase izinli kökenlerini aynı kararlaştırılmış listeyle yapılandır.",
+        "Parametre kurcalama ve yetkisiz erişim için regresyon kabulü tanımla: başka tenant sorgulanamaz, reddedilen istekte belirteç ve kayıt değişikliği yoktur."
+      ],
+      "dependencies": [
+        "bi-embedding--contract",
+        "kernel-envelope--contract",
+        "native-user-policy--contract",
+        "native-doctype-schema--contract",
+        "outbox--contract",
+        "api-middleware--contract",
+        "ui-family-28--contract",
+        "ui-family-28--implementation"
+      ],
+      "acceptance": "Gömülü rapor yetkili kullanıcıya açılır; yetkisiz kullanıcı PermissionError alır, belirteç dönmez ve kayıt değişmez; URL veya parametre değiştirerek başka tenant sorgulanamaz; secret istemciye veya loga sızmaz.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/desk/query_report.py",
+          "line": 49,
+          "quote": "if not doc.is_permitted():"
+        },
+        {
+          "path": "frappe/frappe/desk/query_report.py",
+          "line": 301,
+          "quote": "if not frappe.has_permission(report.ref_doctype, \"report\"):"
+        },
+        {
+          "path": "frappe/frappe/desk/query_report.py",
+          "line": 1194,
+          "quote": "def validate_filters_permissions(report_name, filters=None, user=None, js_filters=None):"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/report/report.py",
+          "line": 190,
+          "quote": "frappe.db.begin(read_only=True)"
+        },
+        {
+          "path": "suite/suite/meet/api/meeting.py",
+          "line": 84,
+          "quote": "return jwt.encode(payload, secret, algorithm=\"HS256\")"
+        },
+        {
+          "path": "frappe/frappe/website/page_renderers/web_form.py",
+          "line": 22,
+          "quote": "self.headers = {\"Content-Security-Policy\": f\"frame-ancestors 'self' {allowed_embedding_domains}\"}"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Gömme türü (statik/imzalı, interactive, SDK) ve buna bağlı Metabase lisansı kararı.",
+    "İzin denetiminden sonra kısa ömürlü imzalı gömme belirteci üreten whitelisted Frappe ucu.",
+    "Tenant/site kimliğini sunucuda frappe.local.site'a kilitleyen parametre; istemci tenant değerinin yok sayılması.",
+    "Embedding secret'ının site config/secret store'da saklanması, rotasyonu ve süre sınırı.",
+    "Metabase veri kaynağı yalıtımı: tenant başına salt-okur DB kullanıcısı veya görünüm.",
+    "Rapor/dashboard ile Frappe rol/izin eşlemesi.",
+    "React/Ant Design istemcisinde iframe/SDK tüketicisi ve web/Tauri/WXT CSP yapılandırması.",
+    "Parametre kurcalamayla başka tenant'ı sorgulama senaryosu için regresyon kabulü."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Gömme türü (statik/imzalı, interactive, SDK) ve Metabase lisans/edisyonu.",
+      "requirementIds": ["reports-3"],
+      "blocks": "İmzalama yükünün biçimi, istemci tüketici türü ve tdd senaryosunun uygulanması.",
+      "allowedUntilDecision": "Seçenekler arası tehdit modeli ve sözleşme farklarını seçim yapmadan belgelemek."
+    },
+    {
+      "decision": "Tenant topolojisi: Metabase örneği ve veri kaynağı tenant başına mı paylaşımlı mı; salt-okur DB kullanıcısı mı görünüm mü.",
+      "requirementIds": ["reports-3"],
+      "blocks": "Veri yalıtımı, kilitli parametrenin anlamı ve Hüseyin Cengiz devri.",
+      "allowedUntilDecision": "Her seçenek için yalıtım kabul ölçütü listesini yazmak."
+    },
+    {
+      "decision": "Metabase barındırma yeri, veri yerleşimi ve izin verilen gömme kökenleri.",
+      "requirementIds": ["reports-3"],
+      "blocks": "CSP frame-src, Tauri/WXT yapılandırması ve olası DNS kayıtları.",
+      "allowedUntilDecision": "Değer içermeyen CSP ve DNS gereksinim şablonunu hazırlamak."
+    },
+    {
+      "decision": "Belirteç ömrü (exp) ve secret rotasyon periyodu.",
+      "requirementIds": ["reports-3"],
+      "blocks": "İmzalama parametreleri ve istemci yenileme zamanlaması.",
+      "allowedUntilDecision": "Yenileme ve rotasyon akışını süre değerinden bağımsız belgelemek."
+    },
+    {
+      "decision": "Hangi rolün hangi Metabase rapor/dashboard kaynağını göreceği.",
+      "requirementIds": ["reports-3"],
+      "blocks": "Rapor anahtarı eşlemesi ve izin denetiminin kabulü.",
+      "allowedUntilDecision": "explicitPermissionFlags ortak kaynağına bağlı boş eşleme şablonu hazırlamak."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

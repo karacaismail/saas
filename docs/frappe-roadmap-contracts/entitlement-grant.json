@@ -1,0 +1,473 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "entitlement-grant",
+  "canonicalTaskIds": [
+    "entitlement-grant--implementation",
+    "ui-family-05--implementation-post-mvp",
+    "ui-family-35--implementation",
+    "ui-provider-permission--implementation-post-mvp"
+  ],
+  "requirementIds": [
+    "entitlements-1",
+    "entitlements-2",
+    "entitlements-3",
+    "entitlements-4",
+    "entitlements-5",
+    "entitlements-6"
+  ],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "entitlements-1": "post_mvp",
+    "entitlements-2": "post_mvp",
+    "entitlements-3": "post_mvp",
+    "entitlements-4": "post_mvp",
+    "entitlements-5": "post_mvp",
+    "entitlements-6": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Paket hakkı yoksa rol yetkisinden bağımsız backend reddi. Uygulama durumu: uygulanmadı.",
+    "trigger": "Rol izni olumlu bir kullanıcı, kiracısında ilgili özellik anahtarı için etkin hak kaydı bulunmayan bir işlemi panel, REST/RPC, kuyruk işi veya entegrasyon yolundan başlatır.",
+    "expected": "Tek backend karar noktası ticari hakkı, teknik modül anahtarını ve kullanıcı yetkisini ayrı ayrı denetler ve sonuçları AND ile birleştirir. Üçü de olumluysa native Frappe izin, transaction ve save akışı değişmeden devam eder.",
+    "denied": "Denetimlerden biri olumsuzsa işlem backendde reddedilir ve kayıt değişmez. Reddeden denetimin türü, kiracı dışına bilgi sızdırmadan teşhis ve audit kaydına yazılır. Frontend görünürlüğü tek denetim sayılmaz."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native parçalar yerine konmaz, yeniden kullanılır. Bunlar frappe.permissions içindeki modül devre dışı denetimi ve rol izin denetimi, uygulama düzeyindeki has_permission hook kaydı ve User Permission ile Permission Manager içindeki önbellek temizleme ve after_commit yayın desenidir. Ticari hak kaydı, süreli hak, kiracı askısı ve lisans doğrulaması incelenen kaynakta yoktur. Kanıtın bir native parçayı göstermesi, bütün davranışın var olduğu anlamına gelmez. searchedPaths yalnız incelenen dosyaları listeler; kapsamlı bir yokluk iddiası değildir. Vue tabanlı frappe/ui kaynağı React/Ant Design uygulamasının kanıtı değildir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/permissions.py",
+        "line": 109,
+        "quote": "if user == \"Administrator\":"
+      },
+      {
+        "path": "frappe/frappe/permissions.py",
+        "line": 135,
+        "quote": "if is_module_disabled(meta.module):"
+      },
+      {
+        "path": "frappe/frappe/permissions.py",
+        "line": 168,
+        "quote": "role_permissions = get_role_permissions(meta, user=user, debug=debug)"
+      },
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 154,
+        "quote": "has_permission = {"
+      },
+      {
+        "path": "frappe/frappe/core/doctype/user_permission/user_permission.py",
+        "line": 41,
+        "quote": "frappe.cache.hdel(\"user_permissions\", self.user)"
+      },
+      {
+        "path": "frappe/frappe/core/doctype/user_permission/user_permission.py",
+        "line": 42,
+        "quote": "frappe.publish_realtime(\"update_user_permissions\", user=self.user, after_commit=True)"
+      },
+      {
+        "path": "frappe/frappe/core/page/permission_manager/permission_manager.py",
+        "line": 157,
+        "quote": "frappe.db.after_commit.add(clear_cache)"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "frappe/frappe/api/v2.py",
+      "frappe/frappe/boot.py",
+      "frappe/frappe/core/doctype/user_permission/user_permission.py",
+      "frappe/frappe/core/doctype/user_type/user_type.py",
+      "frappe/frappe/core/page/permission_manager/permission_manager.py",
+      "frappe/frappe/integrations/frappe_providers/frappecloud_billing.py",
+      "frappe/frappe/permissions.py",
+      "frappe/frappe/utils/oauth.py",
+      "frappe/ui/src/composables/useDocPermissions.ts",
+      "suite/suite/hooks.py",
+      "suite/suite/meet/recording/callback_auth.py",
+      "suite/suite/sheets/permissions.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/entitlement-grant.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/commercial/doctype/entitlement_grant/entitlement_grant.py",
+      "frontend/packages/ui/src/components/ui-family-05/post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-family-35/index.tsx",
+      "frontend/packages/ui/src/components/ui-provider-permission/post_mvp.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Kiracı kimliği (tenant-registry--contract), oturum kullanıcısı, DocType veya çağrı hedefi, ptype (read, write, create, delete, submit, cancel, import, export), özellik anahtarı (capability-definition--contract) ve test için enjekte edilebilir değerlendirme anı.",
+    "output": "Çıktı bir backend kararıdır: izin ya da ret. Ret durumunda deniedBy alanı entitlement, module veya role değerlerinden birini alır ve ilgili hak kaydının referansı audit kaydına girer. Karar UI bileşenlerine yalnız salt okunur durum olarak taşınır. JSON model sınırı ile yerel ReactNode ve callback ayrı tutulur. Kaynak registry ile GenUI capability registry birbirinden ayrıdır.",
+    "authorization": "Native Frappe izin zinciri korunur. Hak denetimi yalnız izni daraltır, hiçbir zaman genişletmez. ignore_permissions veya ham SQL ile yetki bypass yasaktır. Rol ve izin üreten adımlar explicitPermissionFlags ortak kaynağına bağlanır (implementationAdmission.policyRef). Çekirdekte Administrator için koşulsuz bir izin dalı vardır. Çekirdek değiştirilmez; bu dalın hak denetiminde nasıl ele alınacağı karar bekliyor.",
+    "persistence": "Önerilen EntitlementGrant DocType alanlarının sahibi entitlement-grant--schema görevidir: kiracı, paket veya özellik anahtarı, kaynak türü (plan, sözleşme, kiracı özel), valid_from, valid_to ve revoked. Değişiklik izi audit-envelope--contract, olay yayını outbox--contract üzerinden yapılır. Önbellek on_update ve on_trash içinde temizlenir, yayın after_commit ile yapılır. Bu sözleşme şema, veri, servis veya production değiştirme yetkisi vermez.",
+    "failure": "Hak kaydı okunamazsa veya karar noktası hata verirse backend kapalı başarısız olur, yani işlemi reddeder. Frontend yüklenirken açık kalabilir; bu yalnız görüntü davranışıdır ve backend reddini gevşetmez. Kuyruk işi, çalıştırıldığı anda hakkı yeniden denetler. Reddedilen iş kaydı değiştirmez ve audit kaydıyla sonlanır. Lisansın çevrimdışı toleransı ayrı bir karar konusudur."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "audit-envelope--contract",
+      "capability-definition--contract",
+      "client-rule-parity--contract",
+      "device-grant--contract",
+      "entitlement-grant--contract",
+      "entitlement-grant--schema",
+      "kernel-envelope--contract",
+      "native-user-policy--contract",
+      "native-workflow--contract",
+      "outbox--contract",
+      "plan-definition--contract",
+      "subscription--contract",
+      "sync-receipt--contract",
+      "tenant-registry--contract",
+      "ui-family-05--contract",
+      "ui-family-05--implementation",
+      "ui-family-35--contract",
+      "ui-provider-permission--contract",
+      "ui-provider-permission--implementation",
+      "usage-ledger--contract"
+    ],
+    "admission": [
+      "T-00 hedef taban çizgisi ve R-00 yeniden kullanım eşlemesi tamamlanmış olmalı. İzinli veri tüketicileri ayrıca R-01 kullanır.",
+      "entitlement-grant--contract ve entitlement-grant--schema kapanmış olmalı. Kiracı kimliğini tenant-registry--contract sağlamalı.",
+      "Kiracı topolojisi ve Administrator dalı kararları gelmeden karar noktası kodu yazılmaz.",
+      "Yalnız tek ve dar bir davranış, gerçek RED/GREEN kanıtıyla uygulanır. Bu sözleşme üretim kiralaması vermez."
+    ],
+    "steps": [
+      "Yürütme yolu envanterini belgele: panel ve /api/resource, /api/method RPC, v2 doküman metodu, toplu işlemlerin asenkron eşiği, scheduler_events, enqueue işleri, Drive özel File izni, API anahtarı ve OAuth istemcisi.",
+      "Eşleme tablosunu yaz: ticari hak için EntitlementGrant; teknik modül için is_module_disabled veya block_modules (karar bekliyor); kullanıcı için DocPerm ve rol izni.",
+      "Tek karar fonksiyonunun arayüzünü belgele. Öneri: DocType yollarında saas_platform hooks.py içindeki has_permission kaydı, /method RPC ve kuyruk işlerinde aynı fonksiyonun açık çağrısı. Her yolun çağrı noktasını envantere işle.",
+      "Önbellek temizliği ve gerçek zamanlı bildirim için user_permission.py ve permission_manager.py desenini yeniden kullan.",
+      "Askı politikasını ve lisans doğrulamasını, ilgili kararlar geldikten sonra ayrı alt davranışlar olarak sırala.",
+      "ui-family-05, ui-family-35 ve ui-provider-permission React/Ant Design bileşenlerinde hak durumunu yalnız salt okunur göster; görünürlüğü yetki olarak sayma."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Rol izniyle write yetkisi olan bir kullanıcı, kiracısında etkin hak kaydı bulunmayan bir özellik anahtarına bağlı DocType kaydını güncellemeye çalışır. Backend işlemi reddeder ve kayıt değişmez.",
+      "red": "Native rol izni olumlu olduğu için güncelleme bugün başarılı olur, bu yüzden ret ve değişmeyen kayıt beklentisi karşılanmaz. RED; import hatası, altyapı hatası veya native davranışın bozulmasıyla elde edilmez.",
+      "green": "Karar fonksiyonu has_permission üzerinden yalnız ret yönünde bağlanır. Etkin hak kaydı eklendiğinde aynı kullanıcı native akışla güncelleme yapabilir. Bu turda test yazılmaz ve koşulmaz."
+    },
+    "rollback": "İleride geri almak için saas_platform hooks.py içindeki hak kararı kaydı kaldırılır; native izin akışı olduğu gibi kalır. EntitlementGrant verisi silinmez. CI, deploy ve rollback işlerinin teknik sahibi Hüseyin Cengiz'dir. Bu sözleşme hiçbir servis, production, şema veya veriyi değiştirme yetkisi vermez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "entitlements-1",
+      "sourceStage": "post_mvp",
+      "existing": "Kaynakta rol tabanlı karar ve uygulama başına has_permission hook kaydı var. Çekirdekte Administrator için koşulsuz bir izin dalı bulunuyor.",
+      "gap": "Paket veya sözleşmeden doğan bir hak kaydı, kaynak sistem sözleşmesi ve tek bir karar noktası yok. ERPNext Subscription Plan bu ortamda kurulu olmadığı için yeniden kullanılamaz. Kiracı modeli tanımsız.",
+      "completionSteps": [
+        "EntitlementGrant alanlarını (kiracı, özellik anahtarı, kaynak türü, geçerlilik, revoked) entitlement-grant--schema görevine öner.",
+        "Ticari hak kaynağını plan-definition--contract ve subscription--contract ile eşle; ERPNext varsayma.",
+        "Tek karar fonksiyonunu tanımla: DocType yollarında has_permission kaydı, diğer yollarda aynı fonksiyonun açık çağrısı.",
+        "Administrator dalını çekirdeği değiştirmeden belgele ve karar listesine bağla."
+      ],
+      "dependencies": [
+        "entitlement-grant--contract",
+        "entitlement-grant--schema",
+        "tenant-registry--contract",
+        "native-user-policy--contract",
+        "capability-definition--contract",
+        "plan-definition--contract",
+        "subscription--contract"
+      ],
+      "acceptance": "Paket hakkı olmayan işlem, kullanıcı rolü yetkili olsa bile backend tarafından reddedilir ve kayıt değişmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 109,
+          "quote": "if user == \"Administrator\":"
+        },
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 168,
+          "quote": "role_permissions = get_role_permissions(meta, user=user, debug=debug)"
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 154,
+          "quote": "has_permission = {"
+        }
+      ]
+    },
+    {
+      "requirementId": "entitlements-2",
+      "sourceStage": "post_mvp",
+      "existing": "Modül devre dışı kontrolü rol izninden önce çalışıyor. User Type, kullanıcı bazında block_modules yazıyor. frappe/ui useDocPermissions, roller ve meta yüklenirken açık kalıyor ve yalnız görüntü amaçlı.",
+      "gap": "Ticari hak katmanı ve üç denetimi AND ile birleştiren bir politika yok. Teknik modül anahtarının eşlemesi yapılmamış; is_module_disabled'ın hedef sürümdeki davranışı doğrulanmamış. Hangi denetimin reddettiğini bildiren bir teşhis sözleşmesi yok. Vue tabanlı kaynak React/AntD için kanıt değil.",
+      "completionSteps": [
+        "Eşleme tablosu yaz: ticari hak için EntitlementGrant, teknik modül için is_module_disabled veya block_modules, kullanıcı için rol izni.",
+        "is_module_disabled'ın hedef sürümdeki davranışını kaynaktan doğrula; doğrulamadan buna bağımlılık kurma.",
+        "deniedBy teşhis alanını api-middleware--contract hata zarfına öner.",
+        "ui-provider-permission bileşeninde durumu salt okunur göster. İstemci kuralının backend kararını gevşetmediğini client-rule-parity--contract ile belgele."
+      ],
+      "dependencies": [
+        "entitlement-grant--contract",
+        "capability-definition--contract",
+        "native-user-policy--contract",
+        "api-middleware--contract",
+        "client-rule-parity--contract",
+        "ui-provider-permission--contract",
+        "ui-provider-permission--implementation"
+      ],
+      "acceptance": "Üç denetimden biri olumsuzsa işlem backendde reddedilir; frontend görünürlüğü tek denetim olarak sayılmaz.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 135,
+          "quote": "if is_module_disabled(meta.module):"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/user_type/user_type.py",
+          "line": 97,
+          "quote": "user.set(\"block_modules\", block_modules)"
+        },
+        {
+          "path": "frappe/ui/src/composables/useDocPermissions.ts",
+          "line": 47,
+          "quote": "Fail-open while roles/meta load"
+        }
+      ]
+    },
+    {
+      "requirementId": "entitlements-3",
+      "sourceStage": "post_mvp",
+      "existing": "User Permission, on_update içinde önbelleği temizliyor ve after_commit ile gerçek zamanlı yayın yapıyor. Permission Manager, önbellek temizliğini after_commit kuyruğuna ekliyor.",
+      "gap": "Süreli, kiracıya özel hak ve geri alma yok. Saat dilimi, sınırın dahil mi hariç mi olduğu, çalışan ve kuyruktaki işler için geri alma politikası ve değişiklik izi tanımsız.",
+      "completionSteps": [
+        "valid_from, valid_to ve revoked alanlarını öner. Değerlendirmeyi istek anında, enjekte edilebilir saatle yap.",
+        "on_update ve on_trash içindeki önbellek temizliği ile after_commit yayını için mevcut deseni yeniden kullan.",
+        "Hak değişikliklerini audit-envelope--contract ve outbox--contract olaylarına bağla.",
+        "Sınır anlamını ve çalışan iş politikasını karar listesine bağla."
+      ],
+      "dependencies": [
+        "entitlement-grant--schema",
+        "tenant-registry--contract",
+        "audit-envelope--contract",
+        "outbox--contract"
+      ],
+      "acceptance": "Hak, başlangıç ve bitiş sınırında değişir. Geri almadan sonra önbellek ve çalışan işlem politikası tutarlı kalır.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/core/doctype/user_permission/user_permission.py",
+          "line": 41,
+          "quote": "frappe.cache.hdel(\"user_permissions\", self.user)"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/user_permission/user_permission.py",
+          "line": 42,
+          "quote": "frappe.publish_realtime(\"update_user_permissions\", user=self.user, after_commit=True)"
+        },
+        {
+          "path": "frappe/frappe/core/page/permission_manager/permission_manager.py",
+          "line": 157,
+          "quote": "frappe.db.after_commit.add(clear_cache)"
+        }
+      ]
+    },
+    {
+      "requirementId": "entitlements-4",
+      "sourceStage": "post_mvp",
+      "existing": "Kaynakta kaçış yolları görünüyor. Dahili yazımlar ignore_permissions kullanıyor. Drive, File iznini kendi modeliyle değiştiriyor. /method RPC kuralı doküman iznine bağlı değil. Toplu işlemler bir eşikten sonra asenkron çalışıyor.",
+      "gap": "Yürütme yolu envanteri yok. ignore_permissions kullanan yazımlarda hak denetiminin nerede yapılacağı, kuyruk işinin çalıştırma anında yeniden denetlenip denetlenmeyeceği ve entegrasyonlarda hak bağlamının nasıl taşınacağı tanımsız.",
+      "completionSteps": [
+        "Envanteri çıkar: whitelisted RPC, allow_guest uçları, scheduler_events, enqueue işleri, asenkron toplu işlemler, Drive özel izin modeli, API anahtarı ve OAuth istemcisi.",
+        "Her yol için karar fonksiyonunun çağrı noktasını yaz. ignore_permissions kullanan dahili yazımlar, yazımdan önce hak kararını açıkça çağırır ve bu kararı bypass etmez.",
+        "Kuyruk işine kiracı ve kullanıcı bağlamını kernel-envelope--contract ile taşı; hakkı çalıştırma anında yeniden denetle.",
+        "Masaüstü ve eklenti istemcilerinde reddin tutarlı dönmesini device-grant--contract ve sync-receipt--contract ile belgele."
+      ],
+      "dependencies": [
+        "entitlement-grant--contract",
+        "kernel-envelope--contract",
+        "api-middleware--contract",
+        "outbox--contract",
+        "device-grant--contract",
+        "sync-receipt--contract"
+      ],
+      "acceptance": "Hak kaldırıldıktan sonra panel, RPC, kuyruk ve entegrasyon yolları aynı yetkisiz sonucu üretir.",
+      "evidence": [
+        {
+          "path": "suite/suite/sheets/permissions.py",
+          "line": 74,
+          "quote": "internal writers use `ignore_permissions=True`"
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 117,
+          "quote": "ignore_file_permissions = True"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 152,
+          "quote": "Rule(\"/method/<path:method>\", endpoint=handle_rpc_call),"
+        },
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 32,
+          "quote": "conf = frappe.conf.get(\"bulk_operation_async_threshold\", 20)"
+        }
+      ]
+    },
+    {
+      "requirementId": "entitlements-5",
+      "sourceStage": "post_mvp",
+      "existing": "export, ayrı bir standart hak olarak tutuluyor. v2 doküman metodu HTTP metodunu izin türüne eşliyor. Suite'te yalnız kullanıcı düzeyinde bir disabled account rolü deseni var.",
+      "gap": "Kiracı düzeyinde askı, yazma sayılan işlemlerin listesi, ödeme istisnasının kapsamı ve export teslim kuralı yok. Kullanıcı düzeyindeki disabled rolü ile kiracı askısının farkı belirtilmemiş.",
+      "completionSteps": [
+        "Askı politikasını tanımla: write, create, delete, submit, cancel ve import reddedilir; read ve export izinlidir; ödeme uçları açık bir allowlist ile belirlenir.",
+        "POST ile çalışan doküman metodlarını, set_value ve rename gibi işlemleri yazma olarak sınıflandır.",
+        "Askı durumunu subscription--contract ve tenant-registry--contract kaynağına bağla; kullanıcı düzeyi disabled rolünden ayır.",
+        "Export teslimini kiracı sınırı ve yetkili rolle sınırla; saklama süresi için kararı bekle."
+      ],
+      "dependencies": [
+        "entitlement-grant--contract",
+        "subscription--contract",
+        "tenant-registry--contract",
+        "api-middleware--contract",
+        "audit-envelope--contract"
+      ],
+      "acceptance": "Askıdayken iş yazmaları reddedilir ve kayıt değişmez. Yetkili export ve ödeme akışı çalışırken kiracı sınırı korunur.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 27,
+          "quote": "\"export\","
+        },
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 267,
+          "quote": "doc.check_permission(PERMISSION_MAP[frappe.request.method])"
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 262,
+          "quote": "\"suite.mail.events.apply_disabled_account_role\","
+        }
+      ]
+    },
+    {
+      "requirementId": "entitlements-6",
+      "sourceStage": "post_mvp",
+      "existing": "İncelenen yollarda imzalı lisans doğrulaması, çevrimdışı tolerans veya lisansı haklara eşleyen bir yapı bulunmadı; yalnız genel ilkeller var. Bunlar RS256 JWT doğrulaması, algoritması sabitlenmiş HS256 callback doğrulaması, ağ hatasında None dönen Frappe Cloud site bilgisi çağrısı, deneme bitiş tarihi ve yalnız bootinfo'ya taşınan subscription değeridir. Bunların hiçbiri lisans denetimi değildir. Aranan yollar kapsamlı bir yokluk iddiası değildir.",
+      "gap": "Şunlar yok: imzalı lisans şeması ve doğrulayıcısı, bozuk imza ve süre dolumunda deterministik ret, saat kayması toleransı, son başarılı doğrulamanın kaydı, grace hesabı, süre dolunca uygulanacak kesme politikası, anahtar rotasyonu ve iptali, lisans haklarının EntitlementGrant'a eşlenmesi. AGPL-3.0 kapsamında teknik garantinin sınırı bir hukuk ve ürün kararıdır.",
+      "completionSteps": [
+        "Kararlar gelmeden kod yazılmaz. Önce entitlement-grant--contract ve entitlement-grant--schema kapanmalı.",
+        "Saf ve yan etkisiz bir doğrulayıcı tasarla. Girdileri: token, kid'e göre public key, now, son doğrulama anı ve grace. Algoritma sabit olmalı; exp, iat ve kid zorunlu olmalı. callback_auth.py içindeki sabit algoritma desenini izle.",
+        "İleride yazılacak RED vakaları: bozuk imza, süresi dolmuş lisans, grace sınırının bir saniye öncesi ve sonrası, saat kayması.",
+        "Son başarılı doğrulama anını kalıcılaştır, claim'leri EntitlementGrant kayıtlarına eşle, kesme politikasını tek bir hook ile uygula ve durumu ui-provider-permission yüzeyinde salt okunur sun."
+      ],
+      "dependencies": [
+        "entitlement-grant--contract",
+        "entitlement-grant--schema",
+        "plan-definition--contract",
+        "audit-envelope--contract",
+        "outbox--contract",
+        "ui-provider-permission--contract"
+      ],
+      "acceptance": "İmzası bozuk veya süresi dolmuş lisans ve ağ kesintisi senaryoları denenir. Kararlaştırılan grace süresi deterministik biçimde uygulanır.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/utils/oauth.py",
+          "line": 48,
+          "quote": "return jwt.decode(token, signing_key.key, algorithms=[\"RS256\"], audience=client_id)"
+        },
+        {
+          "path": "suite/suite/meet/recording/callback_auth.py",
+          "line": 357,
+          "quote": "claims = jwt.decode("
+        },
+        {
+          "path": "frappe/frappe/integrations/frappe_providers/frappecloud_billing.py",
+          "line": 101,
+          "quote": "request = post(\"press.saas.api.site.info\")"
+        },
+        {
+          "path": "frappe/frappe/integrations/frappe_providers/frappecloud_billing.py",
+          "line": 103,
+          "quote": "return None"
+        },
+        {
+          "path": "frappe/frappe/integrations/frappe_providers/frappecloud_billing.py",
+          "line": 50,
+          "quote": "\"trial_end_date\": add_days(nowdate(), trial_days),"
+        },
+        {
+          "path": "frappe/frappe/boot.py",
+          "line": 633,
+          "quote": "return frappe.conf.subscription"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Altı madde tek bir uygulama görevine bağlı. İç sıra mevcut görev bağımlılıklarına ve aşamaya dayanır; küme sırası yalnız sunum içindir, yeni bir seri DAG değildir.",
+    "Yürütme yolu envanteri ve karar fonksiyonunun çağrı noktaları henüz belgelenmedi.",
+    "is_module_disabled'ın hedef sürümdeki davranışı doğrulanmadı.",
+    "Lisans doğrulaması için incelenen kaynakta hiçbir parça yok.",
+    "Kaynak alıntıları önceki salt okunur Frappe/Suite anlık görüntülerinden alındı; canlı site doğrulaması veya ürün kabulü yok."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Kiracı topolojisi: site başına kiracı mı, site içi kiracı mı",
+      "requirementIds": ["entitlements-1", "entitlements-3", "entitlements-5"],
+      "blocks": "EntitlementGrant kiracı alanı ve karar noktasının kapsamı",
+      "allowedBeforeDecision": "Karar fonksiyonunun arayüzünü, kiracı kimliğini soyut bir parametre olarak alacak şekilde belgelemek"
+    },
+    {
+      "decision": "Ticari hakkın kaynak sistemi: plan, abonelik veya sözleşme kaydı (ERPNext yok)",
+      "requirementIds": ["entitlements-1"],
+      "blocks": "Kaynak türü alanının eşlenmesi",
+      "allowedBeforeDecision": "plan-definition--contract ve subscription--contract ile bir alan eşleme taslağı hazırlamak"
+    },
+    {
+      "decision": "Çekirdekteki Administrator izin dalının hak denetiminde nasıl ele alınacağı",
+      "requirementIds": ["entitlements-1"],
+      "blocks": "Karar noktası kodu",
+      "allowedBeforeDecision": "Dalın etkisini çekirdeği değiştirmeden belgelemek"
+    },
+    {
+      "decision": "Hedef Frappe sürümü ve teknik modül anahtarı: is_module_disabled mı, block_modules mı",
+      "requirementIds": ["entitlements-2"],
+      "blocks": "Modül denetiminin bağlanması",
+      "allowedBeforeDecision": "Üç denetimin eşleme tablosunu, iki seçeneği de göstererek yazmak"
+    },
+    {
+      "decision": "Hak sınırının saat dilimi ve dahil/hariç anlamı; geri almada çalışan ve kuyruktaki işler için politika",
+      "requirementIds": ["entitlements-3", "entitlements-4"],
+      "blocks": "Geçerlilik değerlendirmesi ve kuyruk işinde yeniden denetim",
+      "allowedBeforeDecision": "Enjekte edilebilir saat arayüzünü ve yürütme yolu envanterini belgelemek"
+    },
+    {
+      "decision": "Askı kaynağı, ödeme yöntemi ve ödeme uçları, export teslim biçimi ve saklama süresi",
+      "requirementIds": ["entitlements-5"],
+      "blocks": "Askı allowlist'i ve export teslimi",
+      "allowedBeforeDecision": "Yazma sayılan ptype ve işlemleri sınıflandırmak"
+    },
+    {
+      "decision": "Müşteri ortamına kurulumun kapsamda olup olmadığı, grace süresi, süre dolunca salt okunur mu yoksa tam kesme mi uygulanacağı, imza algoritması ve anahtar yönetimi, AGPL-3.0 kapsamındaki teknik garanti sınırı",
+      "requirementIds": ["entitlements-6"],
+      "blocks": "Lisans doğrulayıcısı, grace hesabı ve kesme hook'u",
+      "allowedBeforeDecision": "Lisans artefaktı şemasının alan listesini ve RED vakalarını yalnız belge olarak yazmak"
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

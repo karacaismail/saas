@@ -1,0 +1,289 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "on-premise-package",
+  "canonicalTaskIds": ["on-premise-package--implementation"],
+  "requirementIds": ["deployment-1", "deployment-9"],
+  "stage": "enterprise",
+  "sourceStages": {
+    "deployment-1": "enterprise",
+    "deployment-9": "enterprise"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "On-prem ve internetten yalıtılmış kurulum paketi manifestinin doğrulanması. Uygulama durumu: uygulanmadı.",
+    "trigger": "DevOps sahibi (Hüseyin Cengiz) belirlenen bir müşteri ortamı için on-prem paket manifestini hazırlar ve kurulum ya da güncelleme öncesinde doğrulamaya sokar.",
+    "expected": "Manifest şu koşulları sağladığında kabul edilir. Destek matrisi alanları dolu olmalıdır: Frappe commit, doğrulanmış Suite revizyonu, Python sürümü, DB motoru ve sürümü, Node pini. Ayrı çalışan servisler ve işletim sistemi bağımlılıkları listelenmiş olmalıdır. Envanterdeki her dış bağımlılık kalemine vendor, mirror veya devre dışı kararı atanmış olmalıdır. Her artifact için özet ya da imza değeri bulunmalıdır. Ölçülebilir sağlık kontrolü tanımı da manifestte yer almalıdır. Doğrulama raporu, kurulum ve güncelleme adımlarının hangi artifact kümesiyle yürütüleceğini ve hangi özelliklerin çevrimdışı ortamda devre dışı kalacağını açıkça listeler.",
+    "denied": "Aşağıdaki manifestler reddedilir: envanterde karar atanmamış bir dış bağımlılık içerenler (ör. git+https ile çekilen PyPika, çalışma anında Chromium indirme, harici AI API, apt ile ffmpeg), özeti ya da imzası eksik artifact içerenler, destek matrisi boş bırakılanlar ve sağlık kontrolü tanımsız olanlar. Reddedilen manifest kurulum veya güncelleme adımına geçmez. Müşteri sitesindeki kayıtlar, şema ve yapılandırma değişmeden kalır."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Kaynakta yalnız native CLI ve paket metadata parçaları görülüyor: bench backup komutu, worker teşhisi yapan doctor komutu, site kurulumunda deneysel DB uyarısı, Python ve Frappe sürüm aralıkları, ayrı çalışan Suite servislerinin işaretlenmesi, apt ile kurulan ffmpeg ve internete bağımlı noktalar. Bu parçalar on-prem paketi, destek matrisi, çevrimdışı tedarik ya da sağlık kontrolü sözleşmesi bulunduğunu göstermez. Gelecekteki paket bu native komutları sarmadan, değiştirmeden ve yetki atlatmadan çağırmalıdır.",
+    "evidence": [
+      {
+        "path": "frappe/pyproject.toml",
+        "line": 7,
+        "quote": "requires-python = \">=3.14,<3.15\""
+      },
+      {
+        "path": "suite/pyproject.toml",
+        "line": 45,
+        "quote": "frappe = \">=16.0.0,<18.0.0\""
+      },
+      {
+        "path": "suite/pyproject.toml",
+        "line": 88,
+        "quote": "# standalone services, each deployed and run outside the Frappe site"
+      },
+      {
+        "path": "frappe/frappe/commands/site.py",
+        "line": 105,
+        "quote": "support is currently in development and considered experimental."
+      },
+      {
+        "path": "frappe/frappe/commands/site.py",
+        "line": 899,
+        "quote": "@click.command(\"backup\")"
+      },
+      {
+        "path": "frappe/frappe/commands/scheduler.py",
+        "line": 134,
+        "quote": "\"Get diagnostic info about background workers\""
+      },
+      {
+        "path": "frappe/pyproject.toml",
+        "line": 26,
+        "quote": "\"PyPika @ git+https://github.com/frappe/pypika@054ffb18a0a60f3c3f472dcce86116fd86db1188\","
+      },
+      {
+        "path": "frappe/frappe/utils/chromium/process.py",
+        "line": 13,
+        "quote": "from frappe.utils.chromium.download import find_or_download_chromium_executable"
+      },
+      {
+        "path": "suite/pyproject.toml",
+        "line": 32,
+        "quote": "\"anthropic>=0.40\","
+      },
+      {
+        "path": "suite/pyproject.toml",
+        "line": 37,
+        "quote": "\"ffmpeg\",   # drive: video thumbnails/transcode"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/commands/scheduler.py",
+      "frappe/frappe/commands/site.py",
+      "frappe/frappe/utils/chromium/process.py",
+      "frappe/pyproject.toml",
+      "suite/pyproject.toml"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/on-premise-package.json",
+    "plannedProduction": [
+      "operations/on-premise-package/on_premise_package_enterprise.yml"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Paket manifesti (gelecekteki öneri: operations/on-premise-package/on_premise_package_enterprise.yml). Bölümler: supportMatrix (Frappe commit, Suite revizyonu, Python, DB motoru ve sürümü, Node pini; her alan observed, decided veya unknown olarak işaretlenir), services (Frappe web, worker ve scheduler ile meet sfu-server, recorder-server ve sheets collab-server; her biri kapsam içi veya kapsam dışı), osDependencies (ffmpeg, Chromium ve kararla belirlenen diğerleri), egressInventory (kalem, kaynak satırı, tür: pip/git, npm/asset, apt, binary indirme, harici API; karar: vendor, mirror veya disabled), artifacts (ad, sürüm, özet veya imza referansı), healthChecks (ölçülebilir kontrol adı, komut veya uç, beklenen sonuç), offlineDisabledFeatures. Secret değerleri manifestte bulunmaz; yalnız secret'ın hangi kanaldan teslim edileceğine dair bir referans yer alır.",
+    "output": "Doğrulama raporu: kabul ya da ret, eksik alanların ve kararsız egress kalemlerinin listesi, çevrimdışı ortamda devre dışı kalan özellikler, kurulumda ve güncellemede kullanılacak artifact kümesi. Kabul edilen manifest kurulum, güncelleme ve backup ile geri dönüş runbook'una girdi olur. Rapor, runtime kabulü yerine geçmez.",
+    "authorization": "Paket kurulumu, Frappe'nin native rol ve izin modelini değiştirmez, yeni rol ya da izin üretmez. ignore_permissions, doğrudan SQL ile yetki atlatma ve native save/transaction/hook atlatma yasaktır. Site işlemleri yalnız native bench komutlarıyla, operatör yetkisiyle yapılır. İleride rol veya izin üreten bir ek gerekirse explicitPermissionFlags ortak kaynağına bağlanır ve kendi kabulünde reddedilen yazma ile değişmeyen kayıt kanıtı bulunur. Keycloak giriş bağlantısı ilgili kimlik görevine aittir ve bu sözleşmenin kapsamında değildir. Teknik CI, deploy ve rollback sahibi Hüseyin Cengiz'dir. Şirket alan adında DNS kaydı gerekirse teknik gereksinimi Hüseyin Cengiz hazırlar, GoDaddy tarafında Asistan Hüseyin uygular. Bu sözleşme hiçbir servis, production ortamı, şema veya veri üzerinde değişiklik yetkisi vermez.",
+    "persistence": "Yeni DocType, şema veya veritabanı kaydı tanımlanmaz. Kalıcı çıktı sürüm kontrollü manifest ve doğrulama raporudur. Müşteri sitesinin verisi yalnız native bench backup ve geri yükleme akışıyla korunur. Backup şifreleme anahtarı ile encryption_key'in taşınma ve saklanma yöntemi karara bağlıdır; bu değerler hiçbir zaman manifeste, Git'e veya rapora yazılmaz.",
+    "failure": "Eksik matris alanı, kararsız egress kalemi, eksik özet veya imza ve tanımsız sağlık kontrolü manifestin reddedilmesine yol açar; kurulum başlamaz. Kurulum ya da güncelleme sırasında sağlık kontrolü başarısız olursa Hüseyin Cengiz'in runbook'u ile güncelleme öncesinde alınan native backup'a dönülür. Egress kapalı ortamda internete çıkış denemesi tespit edilirse bu sessizce geçilmez, hata olarak raporlanır."
+  },
+  "development": {
+    "dependencies": ["on-premise-package--contract"],
+    "admission": "Ön koşullar: T-00 hedef temel çizgisi ve R-00 yeniden kullanım eşlemesi. İzinli veri tüketicisi olmadığı için R-01 uygulanmaz; izin üreten bir ek çıkarsa R-01 de gerekir. Hedef sürüm ve DB motoru kararları verilmeden destek matrisi bağlayıcı hale gelmez. Tek ve dar bir davranış gerçek RED/GREEN kanıtıyla uygulanır. Görev sırası mevcut görev bağımlılıklarına ve enterprise aşamasına göre belirlenir; küme sırası yalnız sunumdur.",
+    "steps": [
+      "Destek matrisi taslağını gözlenen değerlerle unknown veya observed olarak doldur: Python aralığı >=3.14,<3.15, Suite'in frappe >=16.0.0,<18.0.0 aralığı, Frappe 17.0.0-dev (adf1fd0c). Suite 0.0.1'in kurulu kaynak revizyonu ve 2798633 build bildirimi doğrulanana kadar unknown kalır.",
+      "Ayrı servisleri (meet sfu-server ve iç içe stt-server, recorder-server, sheets collab-server) ve işletim sistemi bağımlılıklarını (ffmpeg, Chromium) manifestte listele; kapsam kararını decisionsPending'e bağla.",
+      "Egress envanterini kanıt satırlarından başlat: PyPika git+https, Chromium indirme, anthropic ile Sheets AI Assist, apt ffmpeg. pip, npm/asset build ve imaj kaynaklarını ekle. Her kalem için karar alanı boş ve kararsız durumda başlar.",
+      "Ölçülebilir sağlık kontrolü tanımla. doctor yalnız worker teşhisidir, bu yüzden web yanıtı, scheduler durumu ve ayrı servislerin ayakta olduğu ayrıca kontrol edilir. Kullanılacak her native komut veya uç, kaynakta doğrulanarak seçilir.",
+      "Manifest doğrulama davranışını tek senaryoyla TDD yönergesine göre uygula. Ret, kurulum adımını engellemelidir.",
+      "Kurulum, güncelleme, native backup ve geri dönüş runbook'unu Hüseyin Cengiz'in onayıyla yaz. Egress kapalı temiz ortam kabulü not_run olarak takip edilir."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Envanterde kararı olmayan git+https PyPika kalemi içeren manifest doğrulamaya sokulduğunda reddedilir ve rapor bu kalemi kararsız egress olarak gösterir.",
+      "red": "Doğrulayıcı bu manifesti kabul ettiği için 'reddedilmeli' iddiası başarısız olur. Import veya altyapı hatası ya da native Frappe davranışının bozulması geçerli RED sayılmaz.",
+      "green": "Doğrulayıcı manifesti reddeder, PyPika kalemini raporlar ve kurulum adımına geçmez. Aynı kaleme mirror veya vendor kararı ve özet eklendiğinde manifest kabul edilir. Bu turda test yazılmaz ve koşulmaz."
+    },
+    "rollback": "Değişiklik yalnız manifest ve belgeden oluşur; geri alma, manifestin önceki sürümüne dönmekle yapılır. Müşteri ortamında güncelleme öncesinde native bench backup zorunludur. Geri dönüş, Hüseyin Cengiz'in runbook'u ile bu backup'tan yapılır. Bu sözleşme herhangi bir production geri alması yürütme yetkisi vermez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "deployment-1",
+      "sourceStage": "enterprise",
+      "existing": "Native parçalar: bench backup komutu, worker teşhisi yapan doctor komutu, site kurulumunda postgres ve sqlite için deneysel uyarısı, Python ve Frappe sürüm aralıkları, ayrı çalışan Suite servislerinin işaretlenmesi. Mevcut talimat (data/clusters/12.json, /groups/2/items/0) harici frappe_docker ve bench kaynaklarına dayanır. Bu parçalar bir on-prem paketi veya destek sözleşmesi bulunduğunu göstermez.",
+      "gap": "Destek matrisi yok; v17 geliştirme dalının üretimde kullanılıp kullanılmayacağı kararı da yok. Ayrı servisler ve işletim sistemi bağımlılıkları kapsam dışında kalmış. DB türü kararı yok. Sağlık kontrolü tanımsız. Backup şifreleme anahtarının ve encryption_key'in taşınma yöntemi belirsiz. Keycloak bağlantı mekanizması belirtilmemiş.",
+      "completionSteps": [
+        "Manifestin supportMatrix bölümüne Frappe commit, doğrulanmış Suite revizyonu, gözlenen Python sürümü, DB motoru ve sürümü alanlarını ekle. Doğrulanmamış değerleri unknown olarak işaretle.",
+        "services bölümüne sfu-server (stt-server dahil), recorder-server ve collab-server'ı, osDependencies bölümüne ffmpeg ve Chromium'u ekle. Kapsam kararı gelene kadar her birini kararsız olarak işaretle.",
+        "healthChecks bölümünde doctor çıktısını yalnız worker teşhisi olarak tanımla. Web, scheduler ve ayrı servisler için ölçülebilir ek kontroller yaz.",
+        "Backup akışını native bench backup üzerine kur. Anahtar ve encryption_key teslim kanalını yalnız referans olarak bırak, değer yazma.",
+        "Keycloak erişim kontrolünü ilgili kimlik görevinin çıktısına referansla bağla; bu sözleşmede mekanizma seçme."
+      ],
+      "dependencies": ["on-premise-package--contract"],
+      "acceptance": "Belirlenen müşteri ortamında kurulum, Keycloak erişimi, backup ve tanımlı sağlık kontrolleri, belgelenen adımlarla geçmelidir. Kabul durumu: not_run.",
+      "evidence": [
+        {
+          "path": "frappe/pyproject.toml",
+          "line": 7,
+          "quote": "requires-python = \">=3.14,<3.15\""
+        },
+        {
+          "path": "suite/pyproject.toml",
+          "line": 45,
+          "quote": "frappe = \">=16.0.0,<18.0.0\""
+        },
+        {
+          "path": "suite/pyproject.toml",
+          "line": 88,
+          "quote": "# standalone services, each deployed and run outside the Frappe site"
+        },
+        {
+          "path": "frappe/frappe/commands/site.py",
+          "line": 105,
+          "quote": "support is currently in development and considered experimental."
+        },
+        {
+          "path": "frappe/frappe/commands/site.py",
+          "line": 899,
+          "quote": "@click.command(\"backup\")"
+        },
+        {
+          "path": "frappe/frappe/commands/scheduler.py",
+          "line": 134,
+          "quote": "\"Get diagnostic info about background workers\""
+        }
+      ]
+    },
+    {
+      "requirementId": "deployment-9",
+      "sourceStage": "enterprise",
+      "existing": "Kaynakta internete bağımlı noktalar görülüyor: git+https ile çekilen PyPika, çalışma anında Chromium bulma veya indirme, Sheets AI Assist için anthropic paketi, apt ile kurulan ffmpeg. Python pini kaynakta var. Mevcut talimat (data/clusters/12.json, /groups/2/items/8) çevrimdışı tedarik sürecinin gerekli olduğunu söylüyor ama envanter çıkarmıyor.",
+      "gap": "Dışa çıkış envanteri yok. Artifact manifesti, özet veya imza doğrulama yöntemi ve iç mirror sözleşmesi tanımsız. Python 3.14 ve Node v24 pinleri v17-dev sürümüyle eşlenmemiş. Çevrimdışı ortamda devre dışı kalacak özellikler ile sertifika tedariki belirtilmemiş.",
+      "completionSteps": [
+        "egressInventory bölümüne pip/git, npm/asset build, apt, Chromium indirme ve harici AI API kalemlerini kaynak satırlarıyla ekle. Her kaleme vendor, mirror veya disabled kararı alanı aç.",
+        "artifacts bölümünde her paket veya imaj için özet ya da imza referansı zorunlu olsun; bu alanı eksik olan manifest reddedilsin.",
+        "Node pinini kaynaktan doğrulayarak destek matrisine ekle; doğrulanamazsa unknown bırak.",
+        "offlineDisabledFeatures bölümüne harici API gerektiren özellikleri (ör. Sheets AI Assist) karar gelene kadar aday olarak yaz.",
+        "Egress kapalı temiz ortamda kurulum ve güncelleme kabulünü ayrı bir not_run kalemi olarak takip et."
+      ],
+      "dependencies": ["on-premise-package--contract"],
+      "acceptance": "İnternet çıkışı kapalı temiz bir ortamda imzalı ya da özeti doğrulanmış paketlerle kurulum ve güncelleme tamamlanmalı; gereken iç servisler ve destek sınırları kaydedilmelidir. Kabul durumu: not_run.",
+      "evidence": [
+        {
+          "path": "frappe/pyproject.toml",
+          "line": 26,
+          "quote": "\"PyPika @ git+https://github.com/frappe/pypika@054ffb18a0a60f3c3f472dcce86116fd86db1188\","
+        },
+        {
+          "path": "frappe/frappe/utils/chromium/process.py",
+          "line": 13,
+          "quote": "from frappe.utils.chromium.download import find_or_download_chromium_executable"
+        },
+        {
+          "path": "suite/pyproject.toml",
+          "line": 32,
+          "quote": "\"anthropic>=0.40\","
+        },
+        {
+          "path": "suite/pyproject.toml",
+          "line": 37,
+          "quote": "\"ffmpeg\",   # drive: video thumbnails/transcode"
+        },
+        {
+          "path": "frappe/pyproject.toml",
+          "line": 7,
+          "quote": "requires-python = \">=3.14,<3.15\""
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Destek matrisi bağlayıcı değil: kurulu Suite revizyonu unknown ve 2798633 build bildirimi doğrulanmadı.",
+    "Sağlık kontrolünün doctor dışındaki ölçülebilir bileşenleri kaynakta doğrulanarak seçilmedi.",
+    "Egress envanteri yalnız kanıt satırlarıyla başlıyor; npm/asset build ve imaj kaynakları henüz taranmadı. Bu liste kapsamlı bir yokluk iddiası değildir.",
+    "Artifact imza veya özet yöntemi ve iç mirror sözleşmesi tanımsız.",
+    "Keycloak bağlantısı kimlik görevine bırakıldı; bu sözleşmede yalnız kabul referansı olarak yer alıyor.",
+    "Egress kapalı temiz ortam ve müşteri ortamı runtime kabulleri not_run."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Hedef sürüm: Frappe v17 geliştirme dalının on-prem üretimde kullanılıp kullanılmayacağı ve sabitlenecek commit/revizyon",
+      "requirementIds": ["deployment-1", "deployment-9"],
+      "blocks": "Destek matrisinin bağlayıcı hale gelmesi ve artifact kümesinin dondurulması",
+      "meanwhile": "Matrisi gözlenen değerlerle observed veya unknown olarak belgele"
+    },
+    {
+      "decision": "DB motoru ve sürümü (postgres ve sqlite kaynakta deneysel)",
+      "requirementIds": ["deployment-1"],
+      "blocks": "supportMatrix DB alanı ve backup/geri yükleme runbook'u",
+      "meanwhile": "Deneysel uyarı kanıtını matrise not olarak ekle"
+    },
+    {
+      "decision": "Ayrı servislerin (sfu-server, stt-server, recorder-server, collab-server) ve ffmpeg/Chromium'un paket kapsamına alınıp alınmayacağı",
+      "requirementIds": ["deployment-1"],
+      "blocks": "services ve osDependencies bölümlerinin kesinleşmesi",
+      "meanwhile": "Kalemleri kararsız olarak listele"
+    },
+    {
+      "decision": "Backup şifreleme anahtarı ve encryption_key'in müşteri ortamına taşınma ve saklanma yöntemi",
+      "requirementIds": ["deployment-1"],
+      "blocks": "Backup ve geri dönüş runbook'unun tamamlanması",
+      "meanwhile": "Yalnız teslim kanalı referans alanını tanımla, değer yazma"
+    },
+    {
+      "decision": "Her egress kalemi için vendor, mirror veya disabled kararı; Sheets AI Assist'in çevrimdışı ortamdaki durumu",
+      "requirementIds": ["deployment-9"],
+      "blocks": "Manifest kabulü ve offlineDisabledFeatures listesi",
+      "meanwhile": "Envanteri kaynak satırlarıyla doldur"
+    },
+    {
+      "decision": "Artifact imza veya özet yöntemi ve iç mirror topolojisi",
+      "requirementIds": ["deployment-9"],
+      "blocks": "artifacts bölümünün doğrulama kuralı",
+      "meanwhile": "Özet veya imza alanını zorunlu yer tutucu olarak tanımla"
+    },
+    {
+      "decision": "Yalıtılmış ortamda sertifika tedariki",
+      "requirementIds": ["deployment-9"],
+      "blocks": "Egress kapalı kurulum kabulü",
+      "meanwhile": "Gereksinimi runbook'ta açık kalem olarak yaz"
+    },
+    {
+      "decision": "Hedef müşteri ortamı: işletim sistemi, container runtime ve topoloji",
+      "requirementIds": ["deployment-1", "deployment-9"],
+      "blocks": "Kurulum runbook'u ve runtime kabulü",
+      "meanwhile": "Ortamdan bağımsız manifest alanlarını belgele"
+    },
+    {
+      "decision": "Paketlenen üçüncü taraf bileşenlerin (ör. Chromium, ffmpeg) yeniden dağıtım lisansı",
+      "requirementIds": ["deployment-9"],
+      "blocks": "Vendor kararı verilen artifact'ların pakete eklenmesi",
+      "meanwhile": "Lisans alanını kararsız olarak listele, lisans seçme"
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

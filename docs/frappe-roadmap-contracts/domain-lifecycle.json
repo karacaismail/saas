@@ -4,15 +4,22 @@
   "canonicalTaskIds": ["domain-lifecycle--implementation"],
   "requirementIds": ["deployment-3", "deployment-5", "deployment-8"],
   "stage": "mvp",
+  "sourceStages": {
+    "deployment-3": "mvp",
+    "deployment-5": "mvp",
+    "deployment-8": "mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
-    "title": "Domain baglama oncesi uretim on kontrolu: gevsek bench/site bayraklari varken baglama reddedilir",
-    "trigger": "Operator, hedef site ve host icin domain_lifecycle_mvp.yml icindeki preflight adimini salt okunur olarak calistirir; bu adim bench/nginx/DNS degisikliginden once gelir.",
-    "expected": "common_site_config ve hedef site_config icinde developer_mode=0, allow_tests=0 ve default_site tanimsizsa decision=allow doner. Yalniz anahtar adlari ve kod listesi doner, config degerleri donmez.",
-    "denied": "developer_mode veya allow_tests acik ya da default_site tanimliysa decision=deny doner ve reasons [developer_mode_enabled|allow_tests_enabled|default_site_set] icerir. Sonraki baglama adimlari calismaz."
+    "title": "Domain bağlama öncesi üretim ön kontrolü: gevşek bench/site bayrakları varken bağlama reddedilir",
+    "trigger": "Operatör, hedef site ve host için domain_lifecycle_mvp.yml içindeki preflight adımını salt okunur olarak çalıştırır. Bu adım bench/nginx/DNS değişikliklerinden önce gelir.",
+    "expected": "common_site_config ve hedef site_config içinde developer_mode ile allow_tests kapalıysa (0 ya da tanımsız) ve default_site tanımsızsa decision=allow döner. Çıktıda yalnız kontrol edilen anahtar adları ve sabit kod listesi bulunur, config değerleri dönmez.",
+    "denied": "developer_mode ya da allow_tests açıksa veya default_site tanımlıysa decision=deny döner. reasons yalnız developer_mode_enabled, allow_tests_enabled ve default_site_set kodlarından oluşur. Deny durumunda sonraki bağlama adımları çalışmaz ve hiçbir config dosyası değişmez."
   },
   "reuse": {
-    "mechanism": "Native config anahtarlari (developer_mode, allow_tests, default_site) yeniden kullanilir; Frappe koduna dokunulmaz. Native yukleyicinin v17 fonksiyon imzasi excerpt'te gorunmedigi icin unknown; dogrulanana kadar JSON dosyalari stdlib ile salt okunur okunur. CustomField/DocType/hook eklenmez, cunku davranis site verisi degil bench seviyesi kapisidir.",
+    "status": "KISMI",
+    "mechanism": "Native config anahtarları (developer_mode, allow_tests, default_site) yeniden kullanılır. Frappe ve Suite koduna dokunulmaz. Kanıtlar bu anahtarların native davranışı etkilediğini gösterir: developer_mode açıkken bilinmeyen site hatası bench üzerindeki tüm siteleri listeler; developer_mode, allow_tests veya CI açıkken OAuth TLS zorunluluğu kapanır; default_site bir komutla common_site_config içine yazılır. Bu kanıtlar ön kontrol davranışının var olduğunu göstermez, ön kontrol eksiktir. Hedef sürümdeki native config yükleyicisinin imzası doğrulanmadı (unknown). Doğrulanana kadar iki JSON dosyası salt okunur okunur. Davranış site verisi değil, bench seviyesinde bir kapıdır; bu yüzden yeni DocType, CustomField, hook, ORM veya CRUD eklenmez. ignore_permissions veya SQL ile yetki atlanmaz.",
     "evidence": [
       {
         "path": "frappe/frappe/config.py",
@@ -39,59 +46,259 @@
         "line": 19,
         "quote": "os.environ[\"OAUTHLIB_INSECURE_TRANSPORT\"] = \"1\""
       }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/app.py",
+      "frappe/frappe/commands/site.py",
+      "frappe/frappe/config.py",
+      "frappe/frappe/installer.py",
+      "frappe/frappe/integrations/doctype/connected_app/connected_app.py",
+      "frappe/frappe/utils/backups.py",
+      "frappe/frappe/utils/data.py",
+      "suite/suite/mail/api/admin.py",
+      "suite/suite/mail/directory.py",
+      "suite/suite/meet/sfu-server/deploy/docker-compose.yml",
+      "suite/suite/meet/sfu-server/deploy/nginx/certbot-init.sh"
     ]
   },
   "ownership": {
     "activeContractFile": "docs/frappe-roadmap-contracts/domain-lifecycle.json",
     "plannedProduction": [
-      "operations/domain-lifecycle/domain_lifecycle_mvp.yml",
-      "operations/domain-lifecycle/domain_preflight.py (planli; owns listesinde yok, Codex atamasi gerekir)"
+      "operations/domain-lifecycle/domain_lifecycle_mvp.yml"
     ],
-    "plannedTestFile": "operations/domain-lifecycle/tests/test_domain_preflight.py",
+    "plannedTestFile": null,
     "sharedIntegrationFiles": [
-      "integration/fragments/domain-lifecycle--integration.json"
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "sites_path: string (mevcut dizin), site: string (1-253 karakter, sites_path altinda bir dizin), host: string (1-253 karakter, DNS etiket bicimi). Ag cagrisi, secret veya env degeri girdi olarak alinmaz.",
-    "output": "version=domain-preflight.v1, decision allow|deny, reasons string[] (sabit kodlar), checkedKeys string[]. Config degerleri, site listesi ve secret ciktida yer almaz.",
-    "authorization": "Frappe kullanici oturumu kullanilmaz. Calistirma yetkisi bench dosya okuma yetkisi olan operatordedir; teknik sorumlu Huseyin Cengiz. Yetki yalniz okumadir: config yazilmaz, servis yeniden baslatilmaz.",
-    "persistence": "Hicbir kalici yazim, Document.save, DDL veya kuyruk/zamanlama yok; tamamen salt okunur.",
-    "failure": "Dosya yoksa veya JSON gecersizse decision=deny ve reasons=[config_unreadable] doner; ayrinti olarak yalniz dosya rolu (common|site) verilir. Site dizini yoksa reasons=[site_not_found] doner; native IncorrectSitePath mesaji site listesi icerebildigi icin aktarilmaz. Tuketici deny durumunda baglama adimini durdurur."
+    "input": "sites_path: string (var olan bir dizin). site: string (1-253 karakter, sites_path altında bir dizin). host: string (1-253 karakter, DNS etiket biçiminde). Ağ çağrısı, secret veya ortam değişkeni girdi olarak alınmaz.",
+    "output": "version=domain-preflight.v1; decision: allow|deny; reasons: string[] (sabit kodlar); checkedKeys: string[]. Config değerleri, site listesi, host listesi ve secret çıktıda yer almaz.",
+    "authorization": "Frappe kullanıcı oturumu kullanılmaz. Adımı bench dosyalarını okuma yetkisi olan operatör çalıştırır; teknik sorumlu Hüseyin Cengiz. Yetki yalnız okumadır: config yazılmaz, servis yeniden başlatılmaz. Bu adım rol veya izin üretmez. Rol/onay gerektiren kaldırma adımları deployment-8 rehberinde explicitPermissionFlags ortak kaynağına bağlanır.",
+    "persistence": "Kalıcı yazım, Document.save, DDL, kuyruk veya zamanlama yoktur; adım tamamen salt okunurdur. Çalıştırmadan önce ve sonra config dosyalarının içeriği aynı kalmalıdır.",
+    "failure": "Dosya yoksa veya JSON geçersizse decision=deny ve reasons=[config_unreadable] döner; ayrıntı olarak yalnız dosya rolü (common|site) verilir. Site dizini yoksa reasons=[site_not_found] döner. Native IncorrectSitePath mesajı site listesi içerebildiği için çıktıya aktarılmaz. Host biçimi geçersizse reasons=[host_invalid] döner. Deny durumunda tüketici bağlama adımını durdurur; deny sonucu yeniden deneyerek allow'a çevrilemez."
   },
   "development": {
-    "dependencies": [
-      "domain-lifecycle--contract",
-      "local pilot: Frappe17-dev suite.localhost (frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6)"
-    ],
-    "admission": "T-00 hedef baseline ve R-00 reuse eslemesi gerekir. Codex, planli kontrol dosyasi ve test dosyasi icin sahiplik atamalidir. Uzak urun baseline'i, Suite HEAD ve test calistirma komutu unknown. Yerel kanit uzak baseline yerine gecmez.",
+    "dependencies": ["domain-lifecycle--contract"],
+    "admission": "Ortak politika: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy. Bu birime özgü önkoşullar şunlardır. (1) T-00 hedef baseline tamamlanmalı: hedef Frappe ve bench sürümü ile native config yükleyicinin imzası. (2) R-00 reuse eşlemesi tamamlanmalı. (3) Rol/onay matrisi kullanan deployment-8 adımları ayrıca R-01'i ve explicitPermissionFlags ortak kaynağını kullanır. (4) operations/domain-lifecycle/domain_lifecycle_mvp.yml için üretim sahipliğini ve test dosyası yolunu ana entegrasyon sahibi atamalıdır; plannedTestFile şu an null. Test çalıştırma komutu unknown. Kaynak alıntıları ürün kabulü yerine geçmez.",
     "steps": [
-      "domain_lifecycle_mvp.yml icine bench/nginx/DNS adimlarindan once preflight adimini ekle.",
-      "domain_preflight.py: iki JSON dosyasini oku, uc anahtari degerlendir, sabit kodlarla yanit dondur.",
-      "Uretim kabulunde preflight allow sonucu zorunlu olsun. Uygulama: Huseyin Cengiz."
+      "Uygulama durumu: uygulanmadı. Aşağıdaki adımlar gelecekteki uygulama için yönergedir; bu turda dosya, test veya servis değiştirilmez.",
+      "domain_lifecycle_mvp.yml içinde bench/nginx/DNS adımlarından önce tek bir preflight adımı tanımla. Adımın girdisi contract.input, çıktısı contract.output ile sınırlı olsun.",
+      "Kontrol mantığı iki JSON dosyasını salt okur, üç anahtarı değerlendirir ve sabit kodlarla yanıt döndürür. Mantık ayrı bir betik dosyası gerektirirse dosya yolu sahiplik atamasıyla belirlenir; bu sözleşme yeni dosya yolu belirlemez.",
+      "Sonraki yml adımları (sahiplik doğrulama, bağlama, sertifika, kaldırma) yalnız decision=allow sonucundan sonra çalışacak şekilde koşullansın.",
+      "Üretim kabulünde preflight sonucunun allow olması zorunludur. CI/deploy entegrasyonunun ve geri almanın sahibi Hüseyin Cengiz'dir."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "Gecici bir sites dizini kurulur: common_site_config {developer_mode:1, default_site:'a.localhost'}, site_config {}. Preflight decision=deny ve reasons=[default_site_set, developer_mode_enabled] dondurmeli; cikti 'a.localhost' degerini icermemeli.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Uygulamadan sonra ayni test ayni komutla gecmeli. Native IncorrectSitePath davranisi zaten calistigi icin RED olarak kullanilmaz."
+      "oneScenario": "Geçici bir sites dizininde common_site_config {developer_mode:1, default_site:'a.example.test'} ve hedef site_config {} kurulur. Preflight decision=deny ve reasons=[default_site_set, developer_mode_enabled] döndürmelidir. Çıktı 'a.example.test' değerini içermemeli ve iki config dosyası çalıştırmadan sonra değişmeden kalmalıdır.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. RED, preflight adımı çağrılabilir durumdayken beklenen sonucun (deny ve beklenen reasons) gelmemesiyle, yani assertion başarısızlığıyla gözlenmelidir. Modül/dosya bulunamadı, import veya altyapı hatası RED sayılmaz. Native IncorrectSitePath davranışı zaten çalıştığı için RED olarak kullanılmaz ve native davranış bozulmaz. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "Uygulamadan sonra aynı senaryo, değişmeyen assertion ve aynı komutla geçmelidir. Şu an not_run durumundadır. Bu sözleşme veya biçim kontrolü ürün GREEN'i sayılmaz."
     },
-    "rollback": "Planli kontrol dosyasini ve yml'deki preflight adimini geri al. Bu calisma uretim yetkisi vermez; config veya servis degisikligi yapilmaz."
+    "rollback": "Gelecekte eklenen preflight adımı ve kontrol mantığı geri alınır; geri almanın sahibi Hüseyin Cengiz'dir. Preflight salt okunur olduğu için config, şema, veri veya servis geri alması gerekmez. Bu sözleşme hiçbir servis, production, şema veya veri değişikliğine yetki vermez."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "deployment-3",
+      "sourceStage": "mvp",
+      "existing": "Native parçalar: istek akışında get_site_name ile site çözümleme yapılıyor, ancak gövdesi görülmedi. Bilinmeyen sitede IncorrectSitePath hatası oluşuyor ve developer_mode açıkken bu hata bench üzerindeki tüm siteleri listeliyor. default_site bir komutla common_site_config içine yazılabiliyor. Connected App callback adresini tek bir get_url() değerinden türetiyor.",
+      "gap": "Host→site→tenant eşlemesi tanımsız. Yanlış host davranışı doğrulanmadı. Bilinmeyen hostta default_site kullanılmaması kuralı yok. developer_mode kapalı olma şartı kabulde yer almıyor. Çoklu domain için redirect izin listesi yok. Vite/PWA, Tauri2 ve WXT istemcileri için CORS ve çerez domain kapsamı tanımsız.",
+      "completionSteps": [
+        "domain_lifecycle_mvp.yml içinde host→site→tenant eşleme tablosunun alanlarını belgele: host, site, tenant anahtarı, izinli istemci origin'leri. Tenant sütunu tenant topolojisi kararına kadar 'karar bekliyor' olarak kalsın.",
+        "Hedef sürüm kaynağında get_site_name gövdesini oku; Host ve başlık tabanlı seçim sırasını kayda geçir. Okunana kadar durum unknown kalır.",
+        "Bu sözleşmedeki preflight adımıyla developer_mode, allow_tests ve default_site'ı bağlamadan önce reddet.",
+        "Yanlış host kabulünü tanımla: bilinmeyen host 404 döner, yanıtta site listesi yoktur ve başka tenantın verisi açılmaz.",
+        "İstemci origin listesini (Vite/PWA web, Tauri2, WXT eklentisi) domain başına yapılandırmada tut. Bunu UI registry'ye veya GenUI capability registry'ye ekleme. Native CORS yapılandırma anahtarı hedef sürüm kaynağında okunup bağlanır; bu sözleşmede doğrulanmadı.",
+        "Domain başına redirect izin listesi kimlik sağlayıcı kararına kadar bekler; o zamana kadar yalnız hangi hostların redirect gerektirdiği listelenir.",
+        "DNS: kayıt türü, adı ve değerini Hüseyin Cengiz hazırlar; GoDaddy'de Asistan Hüseyin uygular; sunucu tarafındaki sonucu Hüseyin Cengiz doğrular."
+      ],
+      "dependencies": ["domain-lifecycle--contract"],
+      "acceptance": "Alt alan ve özel domain doğru siteye ve frontend tenantına gider. Yanlış host başka tenantın verisini açmaz ve site listesi sızdırmaz. Gevşek bayraklar varken preflight deny döner.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/app.py",
+          "line": 28,
+          "quote": "from frappe.utils import CallbackManager, cint, get_site_name"
+        },
+        {
+          "path": "frappe/frappe/config.py",
+          "line": 52,
+          "quote": "if common_config.developer_mode:"
+        },
+        {
+          "path": "frappe/frappe/config.py",
+          "line": 57,
+          "quote": "error_msg += \"\\n\".join(f\"* {site}\" for site in all_sites)"
+        },
+        {
+          "path": "frappe/frappe/integrations/doctype/connected_app/connected_app.py",
+          "line": 63,
+          "quote": "base_url = frappe.utils.get_url()"
+        },
+        {
+          "path": "frappe/frappe/commands/site.py",
+          "line": 893,
+          "quote": "update_site_config(\"default_site\", site, validate=False, site_config_path=conifg)"
+        }
+      ]
+    },
+    {
+      "requirementId": "deployment-5",
+      "sourceStage": "mvp",
+      "existing": "Native parçalar: Suite Mail domain kontrolünü ve DNS doğrulamasını uzak Suite Cloud'a (get_client().call) devrediyor. Yerelde yalnız enabled ve is_verified durumundaki mail domainleri kullanıma açılıyor; bu yalnız mail domaini için geçerli, site/tenant host bağlamayı kapsamıyor. Meet SFU deploy paketinde certbot HTTP-01 webroot ile sertifika alınıyor ve 12 saatte bir 'renew --quiet' çalışıyor; bu yalnız SFU alt servisini kapsıyor. get_url, ssl_certificate config değerine göre https şemasını seçiyor; sertifika üretmiyor, domain doğrulamıyor.",
+      "gap": "Frappe sitesine/tenantına domain bağlamadan önce sahiplik doğrulaması yok. Doğrulanmamış domainin bağlanmasını engelleyen yerel bir kapı yok. Frappe siteleri için sertifika üretme ve yenileme otomasyonu yok. Yenileme başarısız olduğunda alarm ve bitiş tarihi izlemesi yok. Üretimde developer_mode, allow_tests ve CI bayraklarının kapalı olması tanımsız; bu bayraklar OAuth TLS zorunluluğunu kapatıyor.",
+      "completionSteps": [
+        "domain_lifecycle_mvp.yml içinde domain durumlarını belgele: pending_verification → verified → bound → cert_active | cert_failed.",
+        "Sahiplik kapısı: Mail'deki 'yalnız doğrulanmış domain etkin' desenini örnek al, ancak yeniden kullanım sayma. Durum verified değilse bağlama reddedilsin. Doğrulama yöntemi karar bekliyor.",
+        "Bağlama: Bench Custom Domains rehberindeki native yolu hedef sürümde doğrula, ardından yalnız verified durumundan sonra çalışacak şekilde bağla.",
+        "Sertifika: SFU'daki certbot HTTP-01 webroot desenini referans al. Sertifika sağlayıcı kararından sonra Bench HTTPS yolunu bağla.",
+        "Yenileme alarmı: yenileme komutunun sıfır olmayan çıkışı ve bitiş tarihine yaklaşma eşiği alarm üretsin. Kanal karar bekliyor.",
+        "Üretim kabulü: preflight allow olmalı ve production ortamında CI ortam değişkeni tanımlı olmamalı."
+      ],
+      "dependencies": ["domain-lifecycle--contract"],
+      "acceptance": "Doğrulanmamış domain bağlanmaz ve durumu değişmez. Sertifika yenileme kesintisiz çalışır. Yenileme başarısız olursa alarm üretilir.",
+      "evidence": [
+        {
+          "path": "suite/suite/mail/api/admin.py",
+          "line": 169,
+          "quote": "return get_client().call(\"mail.domains.check_domain\", domain=name)"
+        },
+        {
+          "path": "suite/suite/mail/api/admin.py",
+          "line": 214,
+          "quote": "result = get_client().call(\"mail.domains.verify_dns_records\", domain=domain_id)"
+        },
+        {
+          "path": "suite/suite/mail/directory.py",
+          "line": 31,
+          "quote": "return sorted(d[\"domain\"] for d in get_domains() if d.get(\"enabled\") and d.get(\"is_verified\"))"
+        },
+        {
+          "path": "suite/suite/meet/sfu-server/deploy/nginx/certbot-init.sh",
+          "line": 99,
+          "quote": "--webroot-path=/var/www/certbot"
+        },
+        {
+          "path": "suite/suite/meet/sfu-server/deploy/docker-compose.yml",
+          "line": 117,
+          "quote": "# Renew certificates every 12 hours (certbot is idempotent)"
+        },
+        {
+          "path": "frappe/frappe/utils/data.py",
+          "line": 1995,
+          "quote": "if frappe.local.conf.ssl_certificate:"
+        },
+        {
+          "path": "frappe/frappe/integrations/doctype/connected_app/connected_app.py",
+          "line": 17,
+          "quote": "if any((os.getenv(\"CI\"), frappe.conf.developer_mode, frappe.conf.allow_tests)):"
+        },
+        {
+          "path": "frappe/frappe/integrations/doctype/connected_app/connected_app.py",
+          "line": 19,
+          "quote": "os.environ[\"OAUTHLIB_INSECURE_TRANSPORT\"] = \"1\""
+        }
+      ]
+    },
+    {
+      "requirementId": "deployment-8",
+      "sourceStage": "mvp",
+      "existing": "Native parçalar: remove_from_installed_apps ile uygulama kaldırma; veritabanını silen reinstall öncesinde onay isteyen click.confirm; encrypt_backup sistem ayarıyla şifreli yedek; copy_site_config ile site_config dosyasının yedeğe kopyalanması.",
+      "gap": "Sıralı kaldırma runbook'u yok. Rol/onay matrisi yok. Saklama süresi seçilmedi. Şifreleme zorunlu değil, oysa site_config yedeğe kopyalanıyor ve secret içeriyor. Proxy, sertifika, DNS ve kimlik istemcisi/token temizliği için akış yok. drop-site davranışı unknown.",
+      "completionSteps": [
+        "domain_lifecycle_mvp.yml içinde sırayı belgele: yedek → bakım modu → site kaldırma → proxy/sertifika → DNS → kimlik istemcisi ve token iptali → denetim kaydı.",
+        "Yedek adımı: encrypt_backup kapalıysa adım reddedilsin. Yedek ve site_config kopyası repoya veya sohbet çıktısına girmesin.",
+        "drop-site davranışını hedef sürüm kaynağında oku ve bağla; okunana kadar durum unknown kalır.",
+        "Rol/onay matrisini explicitPermissionFlags ortak kaynağına bağla. Geri alınamaz adımlar kayıtlı açık onay ister; otomasyonda onay sorusu, kayıtlı onay olmadan atlanmaz.",
+        "DNS kaydını silme: teknik gereksinimi Hüseyin Cengiz hazırlar, GoDaddy'de Asistan Hüseyin uygular, Hüseyin Cengiz kalan yönlendirme olmadığını doğrular.",
+        "Kimlik istemcisi ve token iptali adımı kimlik sağlayıcı kararına kadar bekler."
+      ],
+      "dependencies": ["domain-lifecycle--contract"],
+      "acceptance": "İzinli kaldırmadan sonra yönlendirme veya erişim kalmaz. Saklanması gereken yedek ve denetim kanıtı politikaya göre korunur. Yetkisiz kaldırma isteği reddedilir; site, config ve DNS kaydı değişmeden kalır.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/installer.py",
+          "line": 413,
+          "quote": "def remove_from_installed_apps(app_name):"
+        },
+        {
+          "path": "frappe/frappe/commands/site.py",
+          "line": 531,
+          "quote": "click.confirm(\"This will wipe your database. Are you sure you want to reinstall?\", abort=True)"
+        },
+        {
+          "path": "frappe/frappe/utils/backups.py",
+          "line": 231,
+          "quote": "if frappe.get_system_settings(\"encrypt_backup\"):"
+        },
+        {
+          "path": "frappe/frappe/utils/backups.py",
+          "line": 405,
+          "quote": "def copy_site_config(self):"
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "deployment-3: Bilinmeyen hostta default_site kullanimi dogrulanmadi; get_site_name govdesi excerpt'te yok, durum unknown. Host->site->tenant eslemesi, CORS ve cerez kapsami tanimsiz. Coklu domain Keycloak redirect listesi karar bekliyor ve kapsam disi.",
-    "deployment-5: Frappe siteleri icin sahiplik dogrulama (DNS TXT/HTTP-01) kaynakta yok. Sertifika uretme, yenileme ve yenileme hatasi alarmi yok; yalniz SFU certbot var ve alarm uretmiyor. Mail dogrulamasi uzak Suite Cloud'a bagimli.",
-    "deployment-8: Siralı kaldirma runbook'u ve rol/onay matrisi yok. encrypt_backup zorunlulugu ile site_config'in yedege kopyalanmasi cozulmedi. drop-site davranisi unknown. Saklama suresi secilmedi.",
-    "DNS kayit degerlerini Huseyin Cengiz hazirlar, GoDaddy'de Asistan Huseyin uygular, sunucu sonucunu Huseyin Cengiz dogrular. Bu adimlar bu sozlesmede calistirilmaz."
+    "Uygulama durumu: uygulanmadı. Hiçbir madde ürün kodu, test veya runtime ile doğrulanmadı.",
+    "deployment-3: get_site_name gövdesi görülmedi; bilinmeyen hostta default_site kullanılıp kullanılmadığı unknown. Host→site→tenant eşlemesi, CORS ve çerez kapsamı tanımsız. Çoklu domain redirect listesi kimlik sağlayıcı kararına bağlı.",
+    "deployment-5: Frappe siteleri için sahiplik doğrulaması, sertifika üretme/yenileme ve yenileme alarmı kaynakta yok. Yalnız SFU alt servisinde certbot var ve alarm üretmiyor. Mail doğrulaması uzak Suite Cloud'a bağlı ve site host bağlamayı kapsamıyor.",
+    "deployment-8: Sıralı kaldırma runbook'u, rol/onay matrisi ve saklama süresi yok. site_config yedeğe kopyalanıyor. drop-site davranışı unknown.",
+    "DNS kayıt değerlerini Hüseyin Cengiz hazırlar, GoDaddy'de Asistan Hüseyin uygular, sunucu tarafındaki sonucu Hüseyin Cengiz doğrular. Bu adımlar bu sözleşme kapsamında çalıştırılmaz."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Tenant topolojisi: site ile iş tenantı arasındaki ilişki",
+      "requirementIds": ["deployment-3"],
+      "blocks": "Eşleme tablosundaki tenant sütunu ve yanlış hostta tenant izolasyonu kabulü",
+      "allowedUntilDecision": "Host→site alanlarını ve preflight adımını belgelemek"
+    },
+    {
+      "decision": "Kimlik sağlayıcının çoklu domain redirect ve istemci politikası",
+      "requirementIds": ["deployment-3", "deployment-8"],
+      "blocks": "Domain başına redirect izin listesi; kimlik istemcisi ve token iptali adımı",
+      "allowedUntilDecision": "Redirect gerektiren hostları değer vermeden listelemek; get_url tek kaynak sınırını belgelemek"
+    },
+    {
+      "decision": "Sertifika sağlayıcı ve domain sahipliği doğrulama yöntemi",
+      "requirementIds": ["deployment-5"],
+      "blocks": "Sertifika üretme/yenileme ve sahiplik doğrulama uygulaması",
+      "allowedUntilDecision": "Durum makinesini ve verified olmayan domaini reddeden kapıyı belgelemek"
+    },
+    {
+      "decision": "Yenileme hatası alarm kanalı",
+      "requirementIds": ["deployment-5"],
+      "blocks": "Alarm adımının uygulanması",
+      "allowedUntilDecision": "Alarm tetik koşullarını belgelemek"
+    },
+    {
+      "decision": "Yedek saklama süresi ve şifreleme anahtarının saklanacağı yer",
+      "requirementIds": ["deployment-8"],
+      "blocks": "Yedek adımının kabulü",
+      "allowedUntilDecision": "Runbook sırasını ve encrypt_backup zorunluluk kontrolünü belgelemek"
+    },
+    {
+      "decision": "Hedef Frappe/bench sürümü (T-00 baseline)",
+      "requirementIds": ["deployment-3", "deployment-5", "deployment-8"],
+      "blocks": "get_site_name, drop-site, CORS anahtarı ve config yükleyici imzasının okunması",
+      "allowedUntilDecision": "Okunacak kaynak noktalarını listelemek"
+    },
+    {
+      "decision": "Kaldırma yetkisi ve geri alınamaz adımları onaylayacak kişi",
+      "requirementIds": ["deployment-8"],
+      "blocks": "Rol/onay matrisi",
+      "allowedUntilDecision": "Matris iskeletini belgelemek; teknik uygulayıcı Hüseyin Cengiz"
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "deployment-3": "mvp",
-    "deployment-5": "mvp",
-    "deployment-8": "mvp"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,

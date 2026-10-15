@@ -1,0 +1,233 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "account-health",
+  "canonicalTaskIds": ["account-health--implementation"],
+  "requirementIds": ["crm-5"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "crm-5": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Düşen kullanım ve yaklaşan yenilemeden açıklanabilir hesap sağlığı risk puanı",
+    "trigger": "Yenileme tarihi tanımlı bir hesap sağlığı kaydı için, kayıtta yazma yetkisi olan kullanıcı veya native zamanlanmış çalıştırma değerlendirme ister. Girdiler kayıttaki yenileme tarihi ile account-health--contract içinde sabitlenecek iki ardışık kullanım penceresindeki olay sayılarıdır.",
+    "expected": "Önceki pencereye göre kullanımı eşik oranından fazla düşmüş ve yenilemesine eşik gün sayısından az kalmış örnek hesap için deterministik bir risk puanı, eşik bandı ve her kural için kural adı, ağırlık, girdi değeri ve puan katkısını içeren gerekçe listesi üretilir. Sonuç aynı hesap kaydına native belge kaydetme akışıyla yazılır. Yaklaşan yenileme görevi yeni kodla değil, native Automation Flow Date Based tetikleyicisi ile CreateDocument ve AssignToUser eylemlerinin yapılandırılmasıyla oluşur.",
+    "denied": "Hesap kaydında yazma izni olmayan kullanıcı, başka tenant kapsamındaki kayıt veya sözleşme dışı girdi için değerlendirme native izin ve doğrulama katmanında reddedilir; puan, gerekçe ve puan geçmişi değişmez, görev oluşmaz. ignore_permissions, doğrudan SQL veya izin atlayan yardımcı kullanılmaz."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native Frappe otomasyon primitive'leri yeniden kullanılır: Automation Flow Date Based tetikleyicisi (date_field, date_offset, Before/After) saatlik process_date_based zamanlayıcısıyla tarih ofsetine düşen belgeleri kuyruğa alır; eylem kayıt defterindeki CreateDocument ve AssignToUser yenileme görevini üretir ve atar. Bu kanıtlar yalnız tetikleme ve görev üretimi parçasını gösterir; hesap ve yenileme modeli, kullanım olayı kaynağı, kullanım düşüşü hesabı ve açıklanabilir puan motoru native kaynakta yoktur. Suite modüllerinde (Drive, Slides, Writer, Sheets, Meet, Mail, Calendar, Suite Core) CRM, hesap veya abonelik modeli bulunmaz; renewal eşleşmeleri yalnız Mail push-subscription yenilemesine aittir. Kaynak değerlendirmesi ürün uygulaması değildir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/automation_engine/scheduler.py",
+        "line": 180,
+        "quote": "\"\"\"Queue Date Based automations for documents whose date field lands on today's offset."
+      },
+      {
+        "path": "frappe/frappe/automation_engine/scheduler.py",
+        "line": 222,
+        "quote": "\"\"\" \"3 days Before renewal\" is due today when renewal is 3 days out; After looks back.\"\"\""
+      },
+      {
+        "path": "frappe/frappe/hooks.py",
+        "line": 292,
+        "quote": "\"frappe.automation_engine.scheduler.process_date_based\","
+      },
+      {
+        "path": "frappe/frappe/automation_engine/actions/core.py",
+        "line": 97,
+        "quote": "action_type = \"CreateDocument\""
+      },
+      {
+        "path": "frappe/frappe/automation_engine/actions/core.py",
+        "line": 299,
+        "quote": "action_type = \"AssignToUser\""
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/automation_engine/actions/core.py",
+      "frappe/frappe/automation_engine/scheduler.py",
+      "frappe/frappe/hooks.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/account-health.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/customer_success/doctype/account_health/account_health.py"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": {
+      "account": "AccountHealth kaydı (canonicalArtifact: doctype AccountHealth, status proposed, custom_proposed); tenant kapsamı tenant-registry--contract ile çözülür.",
+      "renewalDate": "Hesap kaydındaki yenileme tarihi alanı (öneri adı renewal_date; yeri ve sahibi account-health--schema görevinde kesinleşir).",
+      "usageWindows": "Güncel ve önceki pencere için kullanım olayı sayıları; olay kaynağı ve pencere uzunluğu account-health--contract kararıdır (son 30 gün ile önceki 30 gün yalnız örnektir, karar değildir).",
+      "rules": "İki kural: kullanım düşüş oranı ve yenilemeye kalan gün. Her kuralın ağırlığı ve eşiği sürümlü yapılandırma olarak sözleşmede tanımlanır."
+    },
+    "output": {
+      "health_score": "Sözleşmede sabitlenecek aralıkta sayısal risk puanı.",
+      "health_band": "Eşiklere göre bant etiketi (alan adı öneridir).",
+      "health_reasons": "Her kural için kural, ağırlık, girdi değeri ve katkı satırı; katkıların toplamı health_score ile tutarlı olmalıdır.",
+      "evaluationContext": "Kullanılan pencere başlangıç ve bitiş tarihleri ile kural yapılandırma sürümü."
+    },
+    "authorization": "Okuma ve yazma native DocType izinleri ve native-user-policy--contract ile belirlenir; rol ve izin satırları explicitPermissionFlags ortak kaynağına bağlanır, bu sözleşme yeni rol veya izin bayrağı tanımlamaz. Automation Flow eylemlerinin hangi kullanıcı bağlamında çalıştığı R-00 ve R-01 eşlemesinde kaynaktan doğrulanır; doğrulanmadan yetki varsayılmaz. ignore_permissions ve SQL ile yetki atlama yoktur. Gelecekteki tek kabulde yetkisiz kullanıcının yazma isteği reddedilir ve kayıt değişmeden kalır.",
+    "persistence": "Puan, bant ve gerekçeler hesap kaydına native belge kaydetme (validate ve save) akışıyla, istek transaction'ı içinde yazılır; doğrudan SQL yazımı yoktur. Puan geçmişinin biçimi (ayrı alt kayıt veya native belge değişiklik takibi) ve saklama süresi account-health--schema ve decisionsPending kararına bağlıdır. Dış tüketicilere bildirilecek değişiklikler outbox--contract üzerinden yayınlanır; şema native-doctype-schema--contract kurallarına uyar.",
+    "failure": "Yenileme tarihi boşsa puan yazılmaz ve gerekçede eksik girdi belirtilir. Pencerelerde kullanım olayı yoksa düşüş varsayılmaz; girdi değeri 0 ve veri yok gerekçesiyle döner. Geçersiz kural yapılandırması doğrulama hatasıyla reddedilir ve önceki puan korunur. İzin hatasında kayıt değişmez. Date Based tetikleyicinin aynı belge için gün içinde tek kez çalışması kaynak yorumuna dayanır; görevin çoğalmadığı kabulde doğrulanır."
+  },
+  "development": {
+    "dependencies": [
+      "account-health--contract",
+      "account-health--schema",
+      "capability-definition--contract",
+      "kernel-envelope--contract",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "outbox--contract",
+      "tenant-registry--contract"
+    ],
+    "admission": {
+      "implementationState": "Uygulama durumu: uygulanmadı",
+      "prerequisites": [
+        "T-00 hedef temel çizgisi",
+        "R-00 yeniden kullanım eşlemesi: Automation Flow, eylem kayıt defteri ve zamanlayıcının hedef sürümde doğrulanması",
+        "Yetkili veri tüketicileri için R-01",
+        "account-health--contract ve account-health--schema tamamlanmış olmalı",
+        "Tek dar davranış için gerçek RED/GREEN kanıtı"
+      ],
+      "orderAuthority": "Mevcut görev bağımlılıkları ve post_mvp aşaması; küme sırası (11) yalnız sunumdur, yeni seri DAG değildir."
+    },
+    "steps": [
+      "account-health--contract: kullanım olayının kaynağı ve iki pencere, yenileme tarihi alanının sahibi, iki kurallı açıklanabilir puan biçimi (kural, ağırlık, girdi değeri, katkı), puan aralığı ve bant eşikleri yazılır.",
+      "account-health--schema: AccountHealth kaydında yenileme tarihi, kullanım girdisi referansı, health_score ve health_reasons alanlarının yeri native-doctype-schema--contract ve tenant-registry--contract ile belirlenir; ERPNext veya CRM kurulu olmadığı için hesap modeli bu şemada tanımlanır.",
+      "En dar davranış: iki pencere sayısını, yenileme tarihini ve bugünü girdi olarak alan, yan etkisiz iki kurallı puan hesaplayıcısı; yalnız bu davranış için RED/GREEN.",
+      "Hesaplayıcı sonucu native belge kaydetme akışıyla yazılır; izin native-user-policy--contract, yayın outbox--contract ile bağlanır.",
+      "Yaklaşan yenileme görevi: Automation Flow kaydı Date Based tetikleyici (date_field yenileme tarihi, date_offset, Before) ile CreateDocument (ör. ToDo) ve AssignToUser eylemleriyle yapılandırılır; görev üretimi için yeni kod yazılmaz.",
+      "Puan eşiği görevi: kaynak değerlendirmesinde belirtilen Scheduled tetikleyici ve koşulun hedef sürümde varlığı R-00 sırasında doğrulanır; doğrulanırsa eşik koşulu bant alanı üzerinden yapılandırılır, doğrulanmazsa açık eksik olarak kalır.",
+      "En son: salt okunur puan ve gerekçe projeksiyonu capability-definition--contract ve kernel-envelope--contract üzerinden tanımlanır. Kaynak registry ile GenUI capability registry ayrı tutulur; sınır JSON modeldir, yerel ReactNode veya callback taşımaz. React ve Ant Design yüzeyi bu sözleşmenin kapsamında değildir."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Önceki pencerede 100, güncel pencerede 40 kullanım olayı olan ve yenilemesine 14 gün kalan örnek hesap için hesaplayıcı, sözleşmedeki ağırlıklarla beklenen puanı ve kullanım düşüşü ile yenileme yakınlığına ait iki gerekçe satırını döndürür. Sayılar örnektir; eşikler sözleşmede sabitlenir.",
+      "red": "Hesaplayıcı iskeleti vardır ancak iki kuralı uygulamadığı için beklenen puan ve gerekçe satırları yerine yanlış veya eksik sonuç döner. RED import hatası, eksik altyapı ya da native Automation Flow veya izin davranışını bozarak elde edilmez. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "İki kural en dar biçimde uygulanır; beklenen puan ve iki gerekçe satırı döner, katkıların toplamı puanla tutarlıdır. Native zamanlayıcı, eylemler ve izin davranışı değiştirilmez."
+    },
+    "rollback": "Bu sözleşme hiçbir servis, production ortamı, şema veya veriyi değiştirmez. İleride uygulanırsa Automation Flow kayıtları devre dışı bırakılır. AccountHealth DocType ve alan değişikliklerinin geri alınmasının ve CI, deploy ve rollback işlerinin teknik sahibi Hüseyin Cengiz'dir. Veri silme bu sözleşmeden çıkarılamaz, ayrı onay gerektirir."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "crm-5",
+      "sourceStage": "post_mvp",
+      "existing": "Native Frappe Automation Flow Date Based tetikleyicisi saatlik process_date_based ile tarih ofsetine düşen belgeleri kuyruğa alır; kaynak yorumu yenilemeden önceki gün ofseti örneğini verir. Eylem kayıt defterinde CreateDocument ve AssignToUser vardır. Kaynak değerlendirmesi ayrıca Scheduled tetikleyiciyi ve SendNotification, SetFieldValue, IncrementFieldValue eylemlerini belirtir; bunlar için bu sözleşmede doğrulanmış alıntı yoktur. system_health_report site işletim sağlığına aittir, müşteri sağlığıyla ilgisi yoktur.",
+      "gap": "Hesap ve yenileme tarihi modeli, kullanım olayı kaynağı ve pencere hesabı, iki kurallı açıklanabilir puan motoru, puan alanı ve geçmişi, kullanım düşüşü ile yenileme yakınlığını birleştiren mantık ve salt okunur projeksiyon sözleşmesi yoktur. Automation Flow koşulları yalnız belge alanlarını değerlendirir, zaman serisi kullanım verisini toplamaz.",
+      "completionSteps": [
+        "account-health--contract içinde olay kaynağı, iki pencere, iki kural, ağırlıklar, puan aralığı ve gerekçe satırı biçimini yaz.",
+        "account-health--schema içinde AccountHealth alanlarını (yenileme tarihi, kullanım girdisi referansı, health_score, health_reasons, geçmiş biçimi) native şema ve tenant sözleşmelerine bağla.",
+        "Yan etkisiz iki kurallı hesaplayıcıyı tek RED/GREEN senaryosuyla geliştir.",
+        "Sonucu native kaydetme akışıyla yaz; yetkisiz yazmanın reddedildiğini ve kaydın değişmediğini kabulde göster.",
+        "Yenileme görevini Automation Flow Date Based ile CreateDocument ve AssignToUser yapılandırmasıyla kur; yeni görev kodu yazma.",
+        "Scheduled tetikleyiciyi R-00'da doğrulamadan eşik görevine bağlama.",
+        "Salt okunur projeksiyonu en son capability-definition--contract ve kernel-envelope--contract üzerinden tanımla."
+      ],
+      "dependencies": [
+        "account-health--contract",
+        "account-health--schema",
+        "capability-definition--contract",
+        "kernel-envelope--contract",
+        "native-doctype-schema--contract",
+        "native-user-policy--contract",
+        "outbox--contract",
+        "tenant-registry--contract"
+      ],
+      "acceptance": "Düşen kullanım ve yaklaşan yenileme örneği açıklanabilir risk puanı ve görev üretir: puan ve iki gerekçe satırı hesap kaydında görünür, Date Based tetikleyici aynı gün için tek görev oluşturur ve atar; yazma izni olmayan kullanıcının değerlendirme isteği reddedilir ve kayıt değişmez. Bu kabul henüz koşulmadı (not_run).",
+      "evidence": [
+        {
+          "path": "frappe/frappe/automation_engine/scheduler.py",
+          "line": 180,
+          "quote": "\"\"\"Queue Date Based automations for documents whose date field lands on today's offset."
+        },
+        {
+          "path": "frappe/frappe/automation_engine/scheduler.py",
+          "line": 222,
+          "quote": "\"\"\" \"3 days Before renewal\" is due today when renewal is 3 days out; After looks back.\"\"\""
+        },
+        {
+          "path": "frappe/frappe/hooks.py",
+          "line": 292,
+          "quote": "\"frappe.automation_engine.scheduler.process_date_based\","
+        },
+        {
+          "path": "frappe/frappe/automation_engine/actions/core.py",
+          "line": 97,
+          "quote": "action_type = \"CreateDocument\""
+        },
+        {
+          "path": "frappe/frappe/automation_engine/actions/core.py",
+          "line": 299,
+          "quote": "action_type = \"AssignToUser\""
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Uygulama durumu: uygulanmadı; hiçbir madde implementation DONE değildir.",
+    "Hesap/müşteri ve yenileme tarihini taşıyan DocType yok (ERPNext veya CRM kurulu değil).",
+    "Kullanım olayı kaynağı, zaman penceresi ve kullanım düşüşü hesabı yok.",
+    "Açıklanabilir puan motoru (formül, eşikler, kural katkıları), puan alanı ve puan geçmişi yok.",
+    "Kullanım düşüşü ile yenileme yakınlığını tek puanda birleştiren mantık yok; Automation Flow koşulları zaman serisi toplamaz.",
+    "crm-6 görev üretimine bağlanan sözleşme yok; bu bağlantı bu sözleşmenin kapsamına alınmaz, görev üretimi native Automation Flow ile sınırlıdır.",
+    "Salt okunur puan ve gerekçe projeksiyonu sözleşmesi yok.",
+    "Scheduled tetikleyici ve SendNotification, SetFieldValue, IncrementFieldValue eylemleri için doğrulanmış kaynak alıntısı yok."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Kullanım olayının kaynağı ve pencere uzunluğu",
+      "requirementIds": ["crm-5"],
+      "blockedStep": "account-health--contract ve hesaplayıcının RED/GREEN senaryosu",
+      "interimDocumentStep": "Kaynak ve pencereyi sözleşmede parametre olarak tanımla; örnek değerleri karar diye işaretlemeden yaz."
+    },
+    {
+      "decision": "Kural ağırlıkları, puan aralığı ve bant eşikleri (iş sahibi: Müşteri başarısı)",
+      "requirementIds": ["crm-5"],
+      "blockedStep": "Hesaplayıcının GREEN beklenen değeri ve puan eşiği görevi",
+      "interimDocumentStep": "Ağırlık ve eşikleri sürümlü yapılandırma alanı olarak, değer seçmeden belgele."
+    },
+    {
+      "decision": "Puan geçmişinin biçimi ve saklama süresi",
+      "requirementIds": ["crm-5"],
+      "blockedStep": "account-health--schema içindeki geçmiş alanı",
+      "interimDocumentStep": "Geçmiş biçimini seçenekler halinde belgele; saklama süresi seçme."
+    },
+    {
+      "decision": "Hesap modelinin kaynağı: özel AccountHealth DocType mı, ileride kurulacak bir CRM uygulaması mı (hedef uygulama ve sürüm)",
+      "requirementIds": ["crm-5"],
+      "blockedStep": "account-health--schema ve yenileme tarihi alanının sahipliği",
+      "interimDocumentStep": "AccountHealth custom_proposed olarak kalsın; alan sözleşmesini modelden bağımsız yaz."
+    },
+    {
+      "decision": "Tenant topolojisi ve hesap kaydının tenant kapsamı",
+      "requirementIds": ["crm-5"],
+      "blockedStep": "Başka tenant kaydının reddedilmesine ait kabul",
+      "interimDocumentStep": "Kapsam alanını tenant-registry--contract referansıyla açık bırak."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

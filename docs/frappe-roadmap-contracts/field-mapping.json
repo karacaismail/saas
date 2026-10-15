@@ -1,0 +1,217 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "field-mapping",
+  "canonicalTaskIds": [
+    "field-mapping--implementation",
+    "field-mapping-rule--implementation-post-mvp",
+    "ui-family-36--implementation-post-mvp"
+  ],
+  "requirementIds": ["integration-14"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "integration-14": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Denetlenebilir alan eşleme önerisi, manuel inceleme ve açık onayla native yoldan uygulama. Uygulama durumu: uygulanmadı.",
+    "trigger": "Yetkili kullanıcı bir bağlantı kaynağı ve hedef DocType seçip eşleme önerisi ister ya da eşlemeyi manuel olarak başlatır.",
+    "expected": "Hedef şema native meta okumasıyla çıkarılır. Kaynak alan, hedef alan, tip, birim, kod ve ilişki (Link/Dynamic Link) eşlemeleri her satırda köken, güven ve kanıtla birlikte taslak bir FieldMapping sürümü olarak saklanır. Kullanıcı satırları manuel düzenler, deterministik doğrulama ve önizleme sonucunu görür ve açık onay verir. Yalnız onaylanmış sürüm, oturumdaki kullanıcının native izinleriyle native kayıt yolundan uygulanır. Model yalnız opsiyonel öneri kaynağıdır; model zaman aşımı veya hatasında manuel yol aynı akışla çalışır.",
+    "denied": "Onaysız sürümün uygulanması, otomatik import, model çıktısının doğrudan hedefe yazılması, meta okuma yetkisinin yazma yetkisi sayılması, ignore_permissions veya SQL ile yetki atlama ve hedef DocType yazma izni olmayan kullanıcı adına yazma reddedilir. Reddedilen denemede hedef kayıt değişmez ve denetim olayı yazılır."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native parçalar: hedef şema içgözlemi için frappe.get_meta (v2 get_meta uç noktası yalnız All rolü ister) ve ilişki eşlemesi adayları için meta.get_link_fields() ile meta.get_dynamic_link_fields(). Bu kanıtlar yalnız şema okuma parçasını gösterir; öneri üretimi, eşleme artefaktı, sürümleme, onay ve uygulama kaynakta yoktur. Yazma için native izinli kayıt yolu veya native Data Import yeniden kullanılacaktır; bu yolların kaynak satır kanıtı bu girdide yoktur ve R-00 eşlemesinde path/line/quote ile doğrulanmalıdır.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/api/v2.py",
+        "line": 245,
+        "quote": "def get_meta(doctype: str):"
+      },
+      {
+        "path": "frappe/frappe/api/v2.py",
+        "line": 246,
+        "quote": "frappe.only_for(\"All\")"
+      },
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 96,
+        "quote": "link_fields = meta.get_link_fields() + meta.get_dynamic_link_fields()"
+      }
+    ],
+    "searchedPaths": ["frappe/frappe/api/v1.py", "frappe/frappe/api/v2.py"]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/field-mapping.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/platform_system/doctype/field_mapping/field_mapping.py",
+      "backend/saas_platform/saas_platform/services/field_mapping_rule_post_mvp.py",
+      "frontend/packages/ui/src/components/ui-family-36/post_mvp.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Bağlantı referansı (connection--contract), hedef DocType adı, kaynak alan profili (alan adı, gözlenen tip, örnek değer özeti; ham kişisel veri yerine özet veya hash), opsiyonel model öneri isteği, kullanıcı satır düzenlemeleri, onay kararı ve onaylanan sürüm numarası. Tenant kapsamı kernel-envelope--contract ve tenant-registry--contract üzerinden belirlenir; istemciden gelen tenant alanına güvenilmez.",
+    "output": "FieldMapping sürümü. Satır alanları: sourceField, sourceType, targetDocType, targetField, targetFieldtype, transform türü (identity, cast, unit, code, relation), birim veya kod listesi referansı, confidence, origin (manual, rule, model), evidence (hedef meta anlık görüntüsü özeti, kural gerekçesi, örnek özeti), validation sonucu. Sürüm alanları: status (draft, reviewed, approved, applied, reverted), version, metaSnapshotHash, approvedBy, approvedAt, applyRunRef. Önizleme çıktısı hedefe yazılmadan hesaplanan satır sonuçları ve hata listesidir.",
+    "authorization": "Meta okuma (v2 get_meta, All rolü) yalnız öneri ve önizleme için kullanılır, yazma yetkisi sayılmaz. FieldMapping kayıtları native DocType izinleriyle korunur. Uygulama, hedef DocType için oturumdaki kullanıcının native create/write izniyle native kayıt yolundan yapılır. ignore_permissions, SQL ile doğrudan yazma veya hizmet hesabıyla yetki yükseltme yoktur. Bu sözleşme rol veya izin üretmez; yeni izin bayrağı gerekirse explicitPermissionFlags ortak kaynağına bağlanır ve native-user-policy--contract ile uyumlu olur.",
+    "persistence": "Artefakt önerilen tek FieldMapping DocType'ında sürümlü saklanır. Onaylanmış sürüm değiştirilemez; her değişiklik yeni draft sürüm açar. Uygulama native transaction içinde yapılır; dış etkiler outbox--contract, denetim olayları audit-envelope--contract ile yazılır. Saklama süresi açık karardır. Bu sözleşme hiçbir şema, veri, servis veya production ortamını değiştirme yetkisi vermez.",
+    "failure": "Model zaman aşımı veya hatası: öneri listesi boş veya kısmi döner, manuel yol kesintisiz sürer, olay denetime yazılır. Deterministik doğrulama hatası: onay eylemi kapalı kalır, satır bazında hata gösterilir. Uygulamada izin reddi veya doğrulama hatası: transaction geri alınır, hedef kayıt değişmez, sürüm applied olmaz. Onaydan sonra hedef meta değişmişse (metaSnapshotHash farkı) uygulama reddedilir ve yeniden inceleme istenir."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "audit-envelope--contract",
+      "capability-definition--contract",
+      "client-rule-parity--contract",
+      "connection--contract",
+      "field-mapping--contract",
+      "field-mapping--schema",
+      "field-mapping-rule--contract",
+      "field-mapping-rule--implementation",
+      "field-mapping-rule--schema",
+      "graphql-api--contract",
+      "kernel-envelope--contract",
+      "mcp-api--contract",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "outbox--contract",
+      "soap-api--contract",
+      "tenant-registry--contract",
+      "ui-family-36--contract",
+      "ui-family-36--implementation",
+      "xml-feed--contract"
+    ],
+    "admission": {
+      "note": "Uygulama durumu: uygulanmadı. Bu sözleşme üretim, test, servis veya veri değişikliği yetkisi vermez.",
+      "prerequisites": [
+        "T-00 hedef temel çizgisi ve R-00 yeniden kullanım eşlemesi tamamlanmış olmalı; izinli veri tüketicisi olduğu için R-01 de uygulanır.",
+        "Mevcut bağımlılıklar kabul edilmiş olmalı: field-mapping--contract, field-mapping--schema, kernel-envelope--contract, connection--contract, native-user-policy--contract, outbox--contract, audit-envelope--contract.",
+        "decisionsPending içindeki uygulama yolu kararı verilmeden yazma adımı başlamaz.",
+        "Tek dar davranış gerçek RED/GREEN kanıtıyla uygulanır."
+      ]
+    },
+    "steps": [
+      "R-00: frappe.get_meta, get_link_fields/get_dynamic_link_fields, native kayıt yolundaki izin kontrolü ve native Data Import akışını hedef sürüm kaynağında doğrula; kanıtları path/line/quote olarak kaydet.",
+      "field-mapping-rule--schema kapsamında FieldMapping alanlarını contract.output listesine göre tanımla; planlanan field_mapping.py yolu yalnız öneridir.",
+      "Deterministik doğrulayıcıyı tanımla: hedef alan meta'da var mı, fieldtype uyumlu mu, Link hedef DocType'ı doğru mu, zorunlu hedef alanlar karşılanmış mı, birim veya kod listesi referansı çözülüyor mu.",
+      "Öneri kaynaklarını sırala: önce kural ve ad/tip benzerliğine dayalı deterministik öneri; model opsiyonel bir adaptördür ve çıktısı JSON Schema ile doğrulanmış JSON satırlarıdır. Model ReactNode, callback veya çalıştırılabilir kod döndürmez.",
+      "Önizlemeyi hedefe yazmadan, kullanıcının okuma izniyle sınırlı satır sonuçları ve hata listesi olarak üret.",
+      "Onay ve uygulama: yalnız approved ve metaSnapshotHash eşleşen sürüm uygulanır; native izinli yol, tek transaction, audit ve outbox olayı.",
+      "ui-family-36: React ve Ant Design/Pro ile satır editörü; her satırda köken, güven ve kanıt görünür, onay ayrı ve açık eylemdir, model durumu gerçek olaylardan gösterilir, sahte ilerleme yoktur. Bileşen kaynak registry'sine kaydolur; GenUI capability registry'den ayrıdır.",
+      "Sürüm geri alma: önceki sürüme dönüş yeni sürüm olarak açılır; uygulanan kayıtların geri alınması applyRunRef ile ve kullanıcının native izinleriyle yapılır."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Hedef DocType'a yazma izni olan kullanıcı, draft durumdaki (onaylanmamış) bir FieldMapping sürümünü uygulamaya çalıştığında istek reddedilir ve hedef DocType'ta kayıt oluşmaz veya değişmez.",
+      "red": "Minimal uygulama servisi onay durumunu kontrol etmeden native kayıt yolunu çağırdığı için test, reddetme ve hedef kayıt sayısının değişmemesi beklentisinde assertion ile başarısız olur. RED, import veya altyapı hatası ya da native davranışı bozmak değildir.",
+      "green": "Uygulama servisi native kayıt yolundan önce sürüm durumunu (approved) ve metaSnapshotHash eşleşmesini kontrol eder; draft sürümde reddeder, denetim olayı yazar ve hedef kayıt değişmez. Native izin kontrolü atlanmaz."
+    },
+    "rollback": "Bu tur yalnız belgedir; geri alınacak üretim değişikliği yoktur. Gelecekte onaylı sürümler değişmez kalır, önceki sürüme dönüş yeni sürüm olarak açılır; uygulanan kayıtlar applyRunRef üzerinden kullanıcının native silme veya iptal izniyle geri alınır, izin yoksa reddedilir. CI, deploy ve production rollback teknik sahibi Hüseyin Cengiz'dir."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "integration-14",
+      "sourceStage": "post_mvp",
+      "existing": "Native parça: hedef şema meta okuması (frappe.get_meta; v2 get_meta yalnız All rolü ister) ve Link ile Dynamic Link alanlarının listelenmesi (v1 içinde meta.get_link_fields() + meta.get_dynamic_link_fields()). Mevcut kabul metni manuel yolu, önizlemeyi, açık onayı, sürümlü tekrar/geri almayı ve otomatik import yasağını tanımlar. Bu parçalar bütün davranışın var olduğunu göstermez.",
+      "gap": "Eşleme artefaktı şeması (kaynak alan, hedef alan, dönüşüm, güven, kanıt, sürüm) tanımsız; uygulama yolu (native Data Import veya native izinli kayıt) belirsiz; birim ve kod listelerinin kaynağı tanımsız; model sağlayıcı, zaman aşımı ve doğruluk eşiği tanımsız; v2 get_meta yalnız All rolü istediği için meta okuma ile yazma yetkisinin ayrılması gerekir.",
+      "completionSteps": [
+        "Artefakt alanlarını contract.output listesiyle field-mapping-rule--schema içinde tanımla; her satırda origin, confidence ve evidence zorunlu olsun.",
+        "Hedef şema adaylarını yalnız frappe.get_meta ve Link/Dynamic Link alan listesinden üret; meta anlık görüntüsünün hash'ini sürüme yaz.",
+        "Tip, birim, kod ve ilişki dönüşümleri için deterministik doğrulayıcı yaz; birim ve kod listelerini karar gelene kadar yalnız referans olarak tut.",
+        "Model adaptörünü opsiyonel tut; zaman aşımında öneri boş döner ve manuel yol aynı ekranda sürer.",
+        "Önizleme ve açık onayı uygulamadan ayır; uygulama yalnız approved sürümde, kullanıcının native create/write izniyle native yoldan ve tek transaction içinde yapılsın.",
+        "Meta okuma izninin yazma izni yerine geçmediğini gösteren reddetme senaryosunu kabul ölçütüne ekle.",
+        "Sürümlü tekrar ve geri almayı applyRunRef ile bağla; audit ve outbox olaylarını mevcut sözleşmelere göre yaz."
+      ],
+      "dependencies": [
+        "field-mapping--contract",
+        "field-mapping--schema",
+        "field-mapping-rule--contract",
+        "field-mapping-rule--schema",
+        "connection--contract",
+        "kernel-envelope--contract",
+        "native-user-policy--contract",
+        "native-doctype-schema--contract",
+        "outbox--contract",
+        "audit-envelope--contract",
+        "ui-family-36--contract"
+      ],
+      "acceptance": "Manuel düzenleme ve önizleme sonrası açık uygulama onayı alınır; deterministik doğrulama, sürümlü tekrar/geri alma ve model zaman aşımında manuel yol çalışır; otomatik import yapılmaz. Draft sürümün uygulanması ve hedef DocType yazma izni olmayan kullanıcının onaylı sürümü uygulama denemesi reddedilir; her iki durumda hedef kayıt değişmez ve denetim olayı yazılır.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 245,
+          "quote": "def get_meta(doctype: str):"
+        },
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 246,
+          "quote": "frappe.only_for(\"All\")"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 96,
+          "quote": "link_fields = meta.get_link_fields() + meta.get_dynamic_link_fields()"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Native kayıt yolu ve Data Import izin davranışının kaynak satır kanıtı bu girdide yok; R-00'da doğrulanmalı.",
+    "Eşleme artefaktı şeması yalnız bu sözleşmede önerildi; field-mapping-rule--schema kabulü yok.",
+    "Birim ve kod listelerinin kaynağı ve sahibi tanımsız.",
+    "Model değerlendirme seti ve doğruluk eşiği tanımsız.",
+    "Gerçek RED/GREEN kanıtı ve runtime kabulü yok."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Onaylı sürümün uygulama yolu: native Data Import mı, native izinli kayıt yolu mu. Özel yazıcı seçenek değildir.",
+      "requirementIds": ["integration-14"],
+      "blocks": "development.steps onay ve uygulama adımı; TDD GREEN.",
+      "allowedUntilDecided": "Önizleme ve doğrulama sözleşmesini yaz; iki native yolun izin ve transaction davranışını R-00'da belgele."
+    },
+    {
+      "decision": "Model sağlayıcı, zaman aşımı değeri, doğruluk eşiği ve değerlendirme seti.",
+      "requirementIds": ["integration-14"],
+      "blocks": "Opsiyonel model öneri adaptörü.",
+      "allowedUntilDecided": "Kural tabanlı ve manuel yolu belgele; model çıktısının JSON Schema sınırını ve zaman aşımı davranışını değer vermeden tanımla."
+    },
+    {
+      "decision": "Birim ve kod listelerinin kaynağı ve sahibi.",
+      "requirementIds": ["integration-14"],
+      "blocks": "unit ve code dönüşümlerinin doğrulanması.",
+      "allowedUntilDecided": "Dönüşüm türlerini liste referansıyla tanımla; liste içeriğini boş bırak."
+    },
+    {
+      "decision": "Artefakt sürümlerinin ve önizleme örnek özetlerinin saklama süresi; örnek değerlerde kişisel veri tutulup tutulmayacağı.",
+      "requirementIds": ["integration-14"],
+      "blocks": "persistence bölümünün kesinleşmesi.",
+      "allowedUntilDecided": "Yalnız özet veya hash saklanacak şekilde belgele; ham örnek değer saklamayı öngörme."
+    },
+    {
+      "decision": "Grid seçimi (yalnız bu eşleme editörünün satır görünümü için).",
+      "requirementIds": ["integration-14"],
+      "blocks": "ui-family-36 editörünün tablo görünümü.",
+      "allowedUntilDecided": "Editör davranışını (köken, güven, kanıt, açık onay) Ant Design/Pro bileşenleriyle görünümden bağımsız tanımla."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

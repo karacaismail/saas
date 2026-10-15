@@ -1,18 +1,27 @@
 {
   "schemaVersion": "saas-existing-work-contract.v1",
   "canonicalUnitId": "policy-document",
-  "canonicalTaskIds": ["policy-document--implementation"],
+  "canonicalTaskIds": [
+    "consent-policy-reference--implementation",
+    "policy-document--implementation"
+  ],
   "requirementIds": ["legal-2", "legal-3"],
   "stage": "mvp",
+  "sourceStages": {
+    "legal-2": "mvp",
+    "legal-3": "mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
     "title": "Yayımlanmış PolicyDocument sürümü değiştirilemez; metin değişikliği yeni sürüm kaydı ister",
     "trigger": "Yayımlanmış durumdaki mevcut bir PolicyDocument kaydında metin, sürüm, dil veya yürürlük tarihi alanı değiştirilip Document.save çağrılır (Desk, native REST kaynak yazımı veya sunucu kodu).",
-    "expected": "Taslak kayıt native akışla düzenlenebilir. Yeni metin yeni bir PolicyDocument sürüm kaydı olarak eklenir; eski yayımlanmış kayıt aynı içerikle okunabilir kalır ve ona bağlanacak kabul kanıtı geçerli sürümü gösterir.",
-    "denied": "Yayımlanmış kayıtta korunan alan değişikliği controller validate içinde frappe.throw ile reddedilir ve istek işlemi geri alınır. Yazma yetkisi, Administrator veya ignore_permissions bu kuralı atlatmaz."
+    "expected": "Taslak kayıt native akışla düzenlenebilir. Yeni metin yeni bir PolicyDocument sürüm kaydı olarak eklenir; eski yayımlanmış kayıt aynı içerikle okunabilir kalır. consent-policy-reference kaydının ileride bağlanacağı sürüm içeriği bu sayede sabit kalır ve kabul kanıtı geçerli sürümü gösterir.",
+    "denied": "Yayımlanmış kayıtta korunan alan değişikliği controller validate içinde frappe.throw ile reddedilir ve istek işlemi geri alınır; veritabanındaki kayıt değişmez. Yazma yetkisi, Administrator veya ignore_permissions bu kuralı atlatmaz."
   },
   "reuse": {
-    "mechanism": "Native önce: okuma native DocType izinleri ve mevcut REST kaynak okumasıyla yapılır; yeni okuma yardımcısı veya ignore_permissions açılmaz. Kayıt yaşam döngüsü Document.save/validate. Tek ekleme sahip olunan policy_document.py içindeki validate kontrolüdür. Şema is_submittable ise docstatus değişmezliği native sağlar; o durumda bu davranış düşer ve RED üretilmez. track_changes geçmiş verir ama hukuki kabul kanıtı sayılmaz.",
+    "status": "KISMI",
+    "mechanism": "Native önce: okuma native DocType izinleri (has_permission) ve mevcut REST kaynak okumasıyla yapılır; yeni okuma yardımcısı veya ignore_permissions açılmaz. Kayıt yaşam döngüsü Document.save/validate. Tek ekleme, sahipliği önerilen policy_document.py içindeki validate kontrolüdür. Şema is_submittable seçilirse docstatus değişmezliği native sağlanır; o durumda bu davranış düşer ve RED üretilmez. track_changes geçmiş verir ama hukuki kabul kanıtı sayılmaz. Kanıtlar yalnız tek tek native parçaları gösterir (izin denetimi, değişiklik geçmişi bayrağı, silinen belge temizliği, Suite signup şablonu ve User doc_events girdisi); politika belgesi, sürüm ve kabul davranışının bütünü native olarak mevcut değildir. Aranan yollar yalnız searchedPaths listesidir; bu kapsamlı bir yokluk iddiası değildir.",
     "evidence": [
       {
         "path": "frappe/frappe/permissions.py",
@@ -39,65 +48,191 @@
         "line": 245,
         "quote": "\"User\": {"
       }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/core/doctype/deleted_document/deleted_document.py",
+      "frappe/frappe/permissions.py",
+      "frappe/frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.json",
+      "suite/suite/hooks.py"
     ]
   },
   "ownership": {
     "activeContractFile": "docs/frappe-roadmap-contracts/policy-document.json",
     "plannedProduction": [
+      "backend/saas_platform/saas_platform/audit_governance/doctype/consent_policy_reference/consent_policy_reference.py",
       "backend/saas_platform/saas_platform/audit_governance/doctype/policy_document/policy_document.py"
     ],
-    "plannedTestFile": "backend/saas_platform/saas_platform/audit_governance/doctype/policy_document/test_policy_document.py (yalnız planlı; aktif kira değil)",
+    "plannedTestFile": null,
     "sharedIntegrationFiles": [
-      "integration/fragments/policy-document--integration.json",
-      "contracts/policy-document.v1.json",
-      "backend/saas_platform/saas_platform/audit_governance/doctype/policy_document/policy_document.json"
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "Mevcut PolicyDocument kaydı üzerinde Document.save. Planlanan alanlar (ad kesinleşmedi, policy-document--schema belirler): belge türü, sürüm (Data), dil (Link/Data), yürürlük tarihi (Date), requires_reacceptance (Check), yayın durumu, metin (Text Editor). Uzunluk sınırları şemaya aittir.",
-    "output": "Başarılı kayıtta native belge yanıtı; okuyucu yalnız native read izniyle gördüğü alanları alır. Yayımlanmış sürüm içeriği kayıt adıyla sabit kalır; sürüm kimliği kayıt adı + sürüm alanıdır.",
-    "authorization": "Native site/rol/DocType izni ve has_permission; kayıt/alan kapsamı native-user-policy--contract ile hizalanır. Okuma reddi native PermissionError; değişmezlik ihlali yetkiden bağımsız reddedilir.",
-    "persistence": "Native istek işlemi içinde validate; throw tüm yazımı geri alır. DDL veya migration garantisi verilmez; şema değişikliği policy-document--schema görevine aittir.",
-    "failure": "frappe.throw ile doğrulama hatası (kesin istisna sınıfı v17 kaynağında doğrulanacak; bilinmiyor). Tüketici hatayı alan düzeyinde gösterir ve kullanıcıyı yeni sürüm oluşturmaya yönlendirir; yeniden deneme yapmaz."
+    "input": "Mevcut PolicyDocument kaydı üzerinde Document.save. Planlanan alanlar (adlar kesinleşmedi, policy-document--schema belirler): belge türü, sürüm (Data), dil (Link/Data), yürürlük tarihi (Date), requires_reacceptance (Check), yayın durumu, metin (Text Editor). Uzunluk sınırları şemaya aittir.",
+    "output": "Başarılı kayıtta native belge yanıtı; okuyucu yalnız native read izniyle gördüğü alanları alır. Yayımlanmış sürüm içeriği kayıt adıyla sabit kalır; sürüm kimliği kayıt adı + sürüm alanıdır. consent-policy-reference ileride yalnız bu kayıt adına bağlanır.",
+    "authorization": "Native site/rol/DocType izni ve has_permission; kayıt/alan kapsamı native-user-policy--contract ve tenant-registry--contract ile hizalanır. Okuma reddi native PermissionError; değişmezlik ihlali yetkiden bağımsız reddedilir. Rol veya izin ayarı gerektiğinde ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy altındaki explicitPermissionFlags ortak kaynağına bağlanır; ignore_permissions veya SQL ile yetki bypass yok.",
+    "persistence": "Native istek işlemi içinde validate; throw tüm yazımı geri alır. DDL veya migration garantisi verilmez; şema değişikliği policy-document--schema görevine aittir. Bu sözleşme hiçbir şema, veri veya servis değişikliği yetkisi vermez.",
+    "failure": "frappe.throw ile doğrulama hatası (kesin istisna sınıfı hedef sürüm kaynağında doğrulanacak; bilinmiyor). Tüketici hatayı alan düzeyinde gösterir ve kullanıcıyı yeni sürüm oluşturmaya yönlendirir; yeniden deneme yapmaz. Headless istemciye hata biçimi kernel-envelope--contract kapsamındadır."
   },
   "development": {
     "dependencies": [
+      "consent-evidence--contract",
+      "consent-policy-reference--contract",
+      "consent-policy-reference--schema",
+      "kernel-envelope--contract",
+      "native-user-policy--contract",
       "policy-document--contract",
       "policy-document--schema",
-      "kernel-envelope--contract",
-      "tenant-registry--contract",
-      "native-user-policy--contract",
-      "local pilot: Frappe17-dev suite.localhost, frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6"
+      "tenant-registry--contract"
     ],
-    "admission": "T-00 hedef baz ve R-00 yeniden kullanım eşlemesi; okuma tüketicisi için R-01. PolicyDocument şeması yerelde mevcut olmalı ve is_submittable olmamalı; bu ve alan adları bilinmiyor. Suite HEAD ve uzak ürün bazı bilinmiyor; yerel kanıt uzak baz sayılmaz.",
+    "admission": "Uygulama durumu: uygulanmadı. T-00 hedef baz ve R-00 yeniden kullanım eşlemesi; izinli okuma tüketicisi için R-01. PolicyDocument şeması hedef tabanda mevcut olmalı ve is_submittable olmamalı; bu ve alan adları bilinmiyor. Hedef Frappe/Suite sürümü ve ürün bazı bilinmiyor; önceki salt okunur kaynak alıntıları hedef baz sayılmaz. Tek dar davranış gerçek RED/GREEN kanıtıyla uygulanır. Teknik CI/deploy/rollback sahibi Hüseyin Cengiz; production izni yoktur.",
     "steps": [
-      "Şemadan yayın durumu ve korunan alan adlarını oku; submittable ise dur ve bu davranışı native kabul et.",
+      "Şemadan yayın durumu ve korunan alan adlarını oku; is_submittable ise dur ve bu davranışı native kabul et.",
       "policy_document.py validate içinde, kaydedilmeden önceki belge yayımlanmışsa korunan alanlardaki değişikliği frappe.throw ile reddet.",
-      "Yeni sürümün yeni kayıt olarak eklenmesine dokunma; native insert akışı kullanılır."
+      "Yeni sürümün yeni kayıt olarak eklenmesine dokunma; native insert akışı kullanılır.",
+      "consent-policy-reference--implementation sınırı: kabul referansı yalnız yayımlanmış PolicyDocument kayıt adına Link ile bağlanacak şekilde consent-policy-reference--contract izlenir; kabul kaydı, yeniden kabul kapısı ve silme izni bu davranışın parçası değildir."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "Yerel dev test sitesinde yayımlanmış bir PolicyDocument oluşturulur, metin alanı değiştirilip save çağrılır; istisna beklenir ve veritabanındaki metin değişmemiş olmalıdır.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Aynı test aynı komutla (bench run-tests modül hedefi; v17 dev ortamında doğrulanacak) validate eklendikten sonra geçer. Şema submittable ise test yazılmaz."
+      "oneScenario": "Gelecekteki test sitesinde yayımlanmış bir PolicyDocument oluşturulur, metin alanı değiştirilip save çağrılır; istisna beklenir ve veritabanından yeniden okunan metin değişmemiş olmalıdır.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. RED, save çağrısının istisnasız başarılı olması ve metnin değişmesi nedeniyle assertion başarısızlığıdır; import, altyapı hatası veya native davranışı bozmak RED sayılmaz. Native geçen davranışa RED uydurulmaz. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "Validate eklendikten sonra aynı senaryo, değişmeyen assertion ve aynı komutla (bench run-tests modül hedefi; hedef sürümde doğrulanacak) geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN'i değildir. Şema submittable ise test yazılmaz."
     },
-    "rollback": "policy_document.py içindeki validate eklemesini yerel olarak geri al. Production izni yok; müşteri kaydı silinmez, servis yeniden başlatılmaz."
+    "rollback": "policy_document.py içindeki validate eklemesi kod değişikliği olarak geri alınır. Production izni yok; müşteri kaydı silinmez, servis yeniden başlatılmaz. Herhangi bir ortam geri alımının teknik sahibi Hüseyin Cengiz'dir."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "legal-2",
+      "sourceStage": "mvp",
+      "existing": "Native parçalar: has_permission ile DocType izin denetimi; Suite hooks.py içinde signup_form_template tanımı ve User doc_events girdisi. Bu parçalar politika belgesi modeli, belge türü listesi veya belge-akış eşlemesi sağlamaz.",
+      "gap": "Belge türü listesi ve akış eşlemesi yok; Web Page/CMS ile ayrı DocType kararı yok; headless React istemcisinin okuma yolu tanımlı değil; Web Page kaynağı version-15 olup hedef sürümle doğrulanmadı; Suite signup şablonunda kabul adımının bağlanacağı yer tanımlı değil.",
+      "completionSteps": [
+        "Hukuk ve ürünün onaylayacağı belge türü-akış tablosunu policy-document--contract içine öner: signup -> üyelik sözleşmesi + aydınlatma metni, çerez banner -> çerez politikası; tablo yalnız tür ve akış adını içerir, hukuki metin içermez.",
+        "Web Page ile ayrı PolicyDocument DocType kararını decisionsPending üzerinden al; karar gelene kadar canonicalArtifact önerisi (PolicyDocument DocType, proposed) taslak kalır.",
+        "Hedef sürüm kararından sonra Web Page şemasını o sürüm kaynağıyla yeniden doğrula; version-15 bağlantısını hedef kanıt sayma.",
+        "Headless istemci okumasını native REST kaynak okuması ve native read izniyle tanımla; yeni okuma yardımcısı veya ignore_permissions açma.",
+        "Signup bağlanma noktasını (signup_form_template ve User doc_events) paylaşılan hooks.py entegrasyon sahibine öneri olarak ilet; bu rehber hooks.py yazmaz. User before_insert bağlantısı verilen alıntıyla doğrulanmış sayılmaz."
+      ],
+      "dependencies": [
+        "policy-document--contract",
+        "policy-document--schema",
+        "kernel-envelope--contract",
+        "tenant-registry--contract",
+        "native-user-policy--contract"
+      ],
+      "acceptance": "Güncel metinler ilgili akışta native read izniyle erişilir; okuma izni olmayan kullanıcı native PermissionError alır; kabul gerektiren işlem doğru belge sürümüne bağlanır.",
+      "evidence": [
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 370,
+          "quote": "signup_form_template = \"templates/signup.html\""
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 245,
+          "quote": "\"User\": {"
+        },
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 82,
+          "quote": "def has_permission("
+        }
+      ]
+    },
+    {
+      "requirementId": "legal-3",
+      "sourceStage": "mvp",
+      "existing": "Native parçalar: track_changes ile Version değişiklik geçmişi (hukuki kabul kanıtı değildir) ve Deleted Document clear_old_logs varsayılan 180 gün temizliği (kanıt kaybı riski). Sürüm değişmezliği, dil, yürürlük, yeniden kabul ve kabul kanıtı modeli bu parçalarda yok.",
+      "gap": "Yayımlanmış sürümün değişmezlik kuralı (yeni kayıt mı, submit/amend mi) tanımlı değil; dil, yürürlük tarihi, dil fallback ve requires_reacceptance tanımlı değil; yeniden kabul kapısının yeri ve headless istemciye bildirimi tanımlı değil; kabul kanıtının silinmeye karşı korunması ve 180 günden ayrı saklama süresi tanımlı değil; Version kaynağı version-15 olup hedef sürümle eşlenmedi.",
+      "completionSteps": [
+        "Bu sözleşmenin tek davranışını uygula: yayımlanmış PolicyDocument kaydında korunan alan değişikliğini validate içinde reddet (development.steps).",
+        "policy-document--schema görevine belge türü, sürüm, dil, yürürlük tarihi, requires_reacceptance ve yayın durumu alanlarını öner; alan adları ve tipleri orada kesinleşir.",
+        "consent-policy-reference--schema ve consent-evidence--contract ile kabul kaydının yayımlanmış sürüm kayıt adına Link ile bağlanmasını tanımla; kabul kanıtında silme izni kapalı olacak şekilde izinleri explicitPermissionFlags ortak kaynağına bağla. O görevin kendi kabulünde reddedilen silme/yazma ve değişmeyen kayıt bulunur.",
+        "Saklama süresi kararı gelene kadar kabul kanıtının Deleted Document 180 günlük temizliğine bırakılmaması gerektiğini risk olarak kaydet; süre seçme.",
+        "Yeniden kabul kapısının yeri (giriş veya işlem) kararından sonra headless bildirimi kernel-envelope--contract yanıt zarfına bağla; zarf alanları o sözleşmeye aittir.",
+        "Hedef sürüm kararından sonra Version ve Deleted Document kaynaklarını o sürümle yeniden eşle."
+      ],
+      "dependencies": [
+        "policy-document--contract",
+        "policy-document--schema",
+        "consent-policy-reference--contract",
+        "consent-policy-reference--schema",
+        "consent-evidence--contract",
+        "kernel-envelope--contract",
+        "native-user-policy--contract"
+      ],
+      "acceptance": "Eski kabul kanıtı korunurken yeni yürürlük sürümü gerektiğinde yeniden kabul istenir; eski kabul kaydı sürüm linkiyle birlikte okunabilir kalır; yayımlanmış sürümü değiştirme girişimi reddedilir ve kayıt değişmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.json",
+          "line": 71,
+          "quote": "\"track_changes\": 1"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/deleted_document/deleted_document.py",
+          "line": 34,
+          "quote": "def clear_old_logs(days=180):"
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "legal-2: belge türü-akış tablosu (signup → üyelik ve aydınlatma, çerez banner → çerez politikası) yok; signup_form_template ve User before_insert bağlantısı hooks.py yasak yazım olduğundan entegrasyon sahibine aittir.",
-    "Web Page ve ayrı DocType kararı ile version-15 Web Page şemasının v17 karşılığı doğrulanmadı; headless tüketicinin native REST okuma yolu v17 üzerinde doğrulanmadı.",
-    "legal-3: kabul kaydı, sürüm bağlantısı ve yeniden kabul kapısı (giriş veya işlem) consent-policy-reference--implementation kapsamındadır; bu sözleşmede uygulanmaz.",
-    "Kabul kanıtında silme yetkisinin kapatılması ve Deleted Document 180 gün temizliğinden ayrı saklama süresi hukuk/ürün kararıdır; süre seçilmedi.",
-    "Dil fallback kuralı ve aynı tür+dil için tek yürürlükte sürüm kuralı tanımlı değil.",
-    "UI değişikliği yok; ileride gerekirse mevcut AntD, Outfit 14px, 320 öncelik, çevreleyen odak halkası yok ve simetrik Cubic hareket korunur."
+    "legal-2: belge türü-akış tablosu yok; signup_form_template ve User doc_events bağlantısı paylaşılan hooks.py dosyasında olduğundan entegrasyon sahibine aittir.",
+    "Web Page ve ayrı DocType kararı, version-15 Web Page şemasının hedef sürüm karşılığı ve headless tüketicinin native REST okuma yolu doğrulanmadı.",
+    "legal-3: kabul kaydı, sürüm bağlantısı ve yeniden kabul kapısı consent-policy-reference--implementation kapsamındadır; bu sözleşmede uygulanmaz, yalnız sabit sürüm ön koşulu sağlanır.",
+    "Kabul kanıtında silme izninin kapatılması ve Deleted Document 180 gün temizliğinden ayrı saklama süresi açık karardır; süre seçilmedi.",
+    "Dil fallback kuralı ve aynı tür + dil için tek yürürlükte sürüm kuralı tanımlı değil.",
+    "Kesin doğrulama istisna sınıfı ve bench test komutu hedef sürümde doğrulanmadı.",
+    "UI değişikliği yok; ileride gerekirse mevcut React/Ant Design yüzeyi, Outfit, minimum 14 CSS px, 320 CSS px önceliği, çevreleyen odak halkası yasağı ve simetrik Cubic hareket korunur."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Belge türü listesi ve her türün gösterileceği akış (hukuk ve ürün)",
+      "requirementIds": ["legal-2"],
+      "blocks": "Belge türü alanının seçenekleri ve signup/çerez akışı bağlantısı",
+      "documentStepUntilDecided": "Önerilen tür-akış tablosunu policy-document--contract içinde taslak olarak tut."
+    },
+    {
+      "decision": "Web Page/CMS ile ayrı PolicyDocument DocType arasındaki model seçimi",
+      "requirementIds": ["legal-2", "legal-3"],
+      "blocks": "policy-document--schema ve bu davranışın uygulanabilirliği",
+      "documentStepUntilDecided": "Her iki seçenek için native okuma ve sürüm değişmezliği sonuçlarını karşılaştırma notu olarak yaz."
+    },
+    {
+      "decision": "Hedef Frappe/Suite sürümü",
+      "requirementIds": ["legal-2", "legal-3"],
+      "blocks": "T-00 hedef baz, Web Page/Version/Deleted Document şema eşlemesi, istisna sınıfı ve test komutu",
+      "documentStepUntilDecided": "version-15 kaynaklarını doğrulanmamış olarak işaretli tut."
+    },
+    {
+      "decision": "Yayın değişmezliği mekanizması: validate kontrolü ile yeni kayıt mı, is_submittable submit/amend mi",
+      "requirementIds": ["legal-3"],
+      "blocks": "development.steps ve tdd.oneScenario'nun geçerliliği",
+      "documentStepUntilDecided": "Submittable seçilirse davranışın düşeceğini ve RED üretilmeyeceğini sözleşmede koru."
+    },
+    {
+      "decision": "Desteklenen diller, dil fallback kuralı ve aynı tür + dil için tek yürürlükte sürüm kuralı",
+      "requirementIds": ["legal-3"],
+      "blocks": "Dil ve yürürlük tarihi alanlarının doğrulaması",
+      "documentStepUntilDecided": "Alanları şema önerisinde zorunluluk belirtmeden listele."
+    },
+    {
+      "decision": "Yeniden kabul kapısının yeri (giriş veya işlem) ve kabul kanıtı saklama süresi (hukuk ve ürün)",
+      "requirementIds": ["legal-3"],
+      "blocks": "consent-policy-reference--implementation kapsamındaki yeniden kabul ve silme koruması",
+      "documentStepUntilDecided": "Deleted Document 180 gün temizliği riskini ve silme izninin kapalı olma gereksinimini kaydet; süre seçme."
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "legal-2": "mvp",
-    "legal-3": "mvp"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,

@@ -1,0 +1,207 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "slo-policy",
+  "canonicalTaskIds": ["slo-policy--implementation"],
+  "requirementIds": ["observability-8"],
+  "stage": "scale",
+  "sourceStages": {
+    "observability-8": "scale"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Seçilmiş kullanıcı yolculuğu için SLI kaydı, hata bütçesi tüketim alarmı ve bütçe ihlalinde yayın kararı kaydı. Uygulama durumu: uygulanmadı.",
+    "trigger": "slo-policy--contract kapsamında onaylanan tek yolculuğun hata oranı, onaylanan ölçüm penceresi içinde hızlı veya yavaş bütçe tüketim eşiğini aşar.",
+    "expected": "İyi olay / toplam olay oranı, kayıt kuralıyla her pencere için yeniden hesaplanabilir. Hızlı ve yavaş tüketim alarmları yalnız iki pencerede birlikte eşik aşıldığında tetiklenir. Bütçe ihlalinde yayının dondurulması veya iyileştirme kararı, yetkili kişi tarafından izlenebilir bir kayda yazılır. Sözleşmesel SLA, iç SLO hedefinden ayrı bir belgede kalır.",
+    "denied": "Seri yoksa veya toplam olay sıfırsa SLI başarılı sayılmaz; veri yokluğu ayrı bir uyarıya dönüşür. Yetkisiz kullanıcı yayın kararı kaydı oluşturamaz ve değiştiremez; reddedilen yazmada kayıt değişmeden kalır. Yetki kontrolü ignore_permissions veya doğrudan SQL ile atlatılmaz. Alarm, yayını kendiliğinden dondurmaz ve production durumunu değiştirmez."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native Suite parçaları SLI hammaddesi sağlıyor: SFU oda katılım sayacı, scope/rejoin/outcome etiketleriyle Prometheus registry'sine kayıtlı; recorder başlatma sayacı da var; merkezi Prometheus yapılandırması 15 saniyelik değerlendirme aralığıyla çalışıyor. Frappe upstream monitor.py, conf.monitor açıksa istek başına status_code kaydı tutuyor; bu yalnız ham JSON log'dur, metrik veya SLO değildir. Bu parçalar SLO tanımı, recording rule, burn-rate alarmı, hata bütçesi politikası, yayın kararı kaydı veya SLA ayrımı bulunduğunu göstermez. Kaynak değerlendirmesi ürün uygulaması değildir.",
+    "evidence": [
+      {
+        "path": "suite/suite/meet/sfu-server/src/telemetry/Telemetry.ts",
+        "line": 40,
+        "quote": "name: 'meet_sfu_room_joins_total',"
+      },
+      {
+        "path": "suite/suite/meet/sfu-server/src/telemetry/Telemetry.ts",
+        "line": 42,
+        "quote": "labelNames: ['scope', 'rejoin', 'outcome'] as const,"
+      },
+      {
+        "path": "suite/suite/meet/recorder-server/src/app.ts",
+        "line": 169,
+        "quote": "name: 'recorder_starts_total',"
+      },
+      {
+        "path": "suite/suite/meet/observability/prometheus/prometheus.yml",
+        "line": 3,
+        "quote": "evaluation_interval: 15s"
+      },
+      {
+        "path": "frappe/frappe/monitor.py",
+        "line": 23,
+        "quote": "if frappe.conf.monitor:"
+      },
+      {
+        "path": "frappe/frappe/monitor.py",
+        "line": 109,
+        "quote": "self.data.request.status_code = response.status_code"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/monitor.py",
+      "suite/suite/meet/observability/prometheus/prometheus.yml",
+      "suite/suite/meet/recorder-server/src/app.ts",
+      "suite/suite/meet/sfu-server/src/telemetry/Telemetry.ts"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/slo-policy.json",
+    "plannedProduction": ["operations/slo-policy/slo_policy_scale.yml"],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Seçilen yolculuğun Prometheus serileri. İlk aday olarak meet_sfu_room_joins_total değerlendirilebilir; outcome etiketi var, ancak etiketin alacağı değerler (ör. başarı değeri) verifiedEvidence içinde görünmüyor ve formül yazılmadan önce kaynaktan doğrulanmalı. slo-policy--contract kararlarından hedef yüzde, ölçüm penceresi ve iki burn-rate eşik çifti gelir. Frappe HTTP SLI'sı bu davranışın girdisi değildir.",
+    "output": "(1) Pencere başına SLI oranını yeniden hesaplayan recording rule'lar. (2) Kısa ve uzun pencere çiftiyle çalışan hızlı ve yavaş tüketim alarm kuralları. (3) Seri yokluğu için ayrı uyarı. (4) Bütçe ihlalinde yayın veya iyileştirme kararını tutan kayıt; kaydın yeri karara bağlı. (5) SLO sayfasından ayrı SLA belgesi bağlantısı.",
+    "authorization": "Prometheus kazıma kimlik bilgileri mevcut yapılandırmada kalır; bu sözleşme hiçbir token veya secret değeri yazmaz ya da taşımaz. Yayın kararı kaydı Frappe'de tutulursa native rol izinleri, transaction, save ve hook akışı kullanılır. Roller explicitPermissionFlags ortak kaynağına bağlanır. ignore_permissions veya SQL ile bypass yapılmaz.",
+    "persistence": "Kurallar operations/slo-policy/slo_policy_scale.yml gelecek önerisinde sürüm kontrolüyle tutulur. SLI serileri Prometheus TSDB'de kalır. Ölçüm penceresi, onaylanan saklama süresinden uzun olamaz; saklama süresi bu sözleşmede seçilmez. Karar kaydı silinmez; düzeltme yeni kayıtla yapılır.",
+    "failure": "Kural sözdizimi hatası veya promtool kontrolünün başarısız olması yayın adımını durdurur. Toplam olay sıfırsa oran üretilmez ve başarı sayılmaz. Seri kesilirse veya kazıma başarısız olursa veri yokluğu uyarısı çıkar. Alarm teslim kanalı çalışmıyorsa bu durum ayrı bir arıza olarak raporlanır; bütçe sağlıklı sayılmaz."
+  },
+  "development": {
+    "dependencies": ["slo-policy--contract"],
+    "admission": "Ön koşullar: slo-policy--contract tamamlanmış ve decisionsPending içindeki yolculuk, hedef, pencere ve saklama kararları verilmiş olmalı. T-00 hedef taban çizgisi ve R-00 yeniden kullanım eşlemesi yapılmış olmalı. Karar kaydı izinli veri tüketicisi olursa R-01 de gerekir. Tek ve dar davranış, gerçek RED/GREEN kanıtıyla uygulanır. Prometheus yapılandırmasına bağlama, CI geçidi, deploy ve rollback işlerinin teknik sahibi Hüseyin Cengiz'dir. Bu sözleşme hiçbir servise, production ortamına, şemaya veya veriye değişiklik yetkisi vermez.",
+    "steps": [
+      "slo-policy--contract çıktısından yolculuğu, SLI formülünü, hedefi, pencereyi ve eşikleri tek sayfada al; SLA'yı ayrı belgeye bağla.",
+      "Seçilen sayacın outcome etiket değerlerini kaynaktan doğrula; doğrulanmamış değerle formül yazma.",
+      "Recording rule'ları onaylanan pencereler için tanımla; toplam sıfır ve seri yokluğu durumlarını açıkça ele al.",
+      "Hızlı ve yavaş tüketim alarmlarını kısa+uzun pencere çiftleriyle tanımla; eşikleri onaylanan hedeften türet.",
+      "Kural dosyası için promtool check rules ve sentetik seriyle promtool test rules adımını Hüseyin Cengiz'in CI yapılandırmasına öner.",
+      "rule_files bağlantısı ve alarm teslim kanalının devreye alınmasını Hüseyin Cengiz'e teknik devir olarak hazırla; uygulama ve doğrulama ondadır.",
+      "Karar kaydı yeri onaylanınca kayıt alanlarını (bütçe durumu, karar türü, gerekçe, karar veren, zaman, ilgili sürüm etiketi) native izinlerle tanımla ve CI/CD geçidinde okunacak biçimi belgele."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Sentetik seride, kısa ve uzun pencerede hata oranı hızlı tüketim eşiğini aşınca hızlı tüketim alarmı tetiklenir; yalnız kısa pencerede aşınca tetiklenmez.",
+      "red": "Kural dosyası yalnız SLI recording rule'unu içerirken promtool test rules, beklenen hızlı tüketim alarmını göremediği için davranış iddiasında başarısız olur. Sözdizimi, araç kurulumu veya import hatası RED sayılmaz. Native SFU sayacı değiştirilmez.",
+      "green": "Çok pencereli alarm kuralı eklenince aynı sentetik seriyle beklenen alarm tetiklenir; yalnız kısa pencere aşımı senaryosunda alarm yoktur ve SLI recording rule değerleri beklenen oranla eşleşir."
+    },
+    "rollback": "Kural dosyası rule_files bağlantısından çıkarılır ve Prometheus yeniden yüklenir; uygulayan ve doğrulayan Hüseyin Cengiz'dir. Mevcut kazıma hedefleri, sayaçlar ve panolar değiştirilmez. Yayın kararı kayıtları silinmez. Geri alma kararı da kayda yazılır."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "observability-8",
+      "sourceStage": "scale",
+      "existing": "SFU oda katılım sayacı scope/rejoin/outcome etiketleriyle; recorder başlatma sayacı; 15 saniyelik değerlendirme aralığına sahip Prometheus yapılandırması. Frappe monitor.py, conf.monitor açıkken status_code içeren ham istek kaydı tutuyor. Bunlar yalnız SLI hammaddesidir.",
+      "gap": "SLO tanımı (yolculuk, formül, hedef, pencere) yok. rule_files, recording rule, burn-rate alarmı ve alarm teslimi yok. Hata bütçesi politikası ve yayın kararı kaydı yok. SLA/SLO ayrımı yok. Frappe backend için Prometheus metrik ihracı yok. Alarmların çalıştığı veya panoların veri aldığı runtime'da kanıtlanmadı.",
+      "completionSteps": [
+        "Yolculuk, hedef, pencere ve eşikleri slo-policy--contract kararından al; SLA'yı ayrı belgeye yaz.",
+        "outcome etiket değerlerini kaynaktan doğrulayıp iyi olay / toplam olay recording rule'unu yaz.",
+        "Hızlı ve yavaş çok pencereli tüketim alarmlarını ve seri yokluğu uyarısını ekle.",
+        "promtool check rules ve sentetik seriyle promtool test rules adımını CI önerisi olarak Hüseyin Cengiz'e devret.",
+        "Alarm teslim kanalını ve karar kaydı yerini kararlar gelince bağla; kaydı CI/CD yayın geçidinde okunur hale getir.",
+        "Frappe HTTP SLI'sını bu davranışın dışında tut; monitor log'undan metriğe dönüşümü ayrı, sonraki bir adım olarak not et."
+      ],
+      "dependencies": ["slo-policy--contract"],
+      "acceptance": "Seçilmiş yolculuk için SLI ve pencere yeniden hesaplanabilir. Hızlı ve yavaş tüketim alarmları sentetik seriyle sınanır; tek pencere aşımı alarm üretmez. Bütçe ihlalinde yayın veya iyileştirme kararı kaydedilir; yetkisiz yazma reddedilir ve kayıt değişmez. Sözleşmesel SLA ayrı tutulur. Runtime kabulü yapılana kadar durum not_run kalır.",
+      "evidence": [
+        {
+          "path": "suite/suite/meet/sfu-server/src/telemetry/Telemetry.ts",
+          "line": 40,
+          "quote": "name: 'meet_sfu_room_joins_total',"
+        },
+        {
+          "path": "suite/suite/meet/sfu-server/src/telemetry/Telemetry.ts",
+          "line": 42,
+          "quote": "labelNames: ['scope', 'rejoin', 'outcome'] as const,"
+        },
+        {
+          "path": "suite/suite/meet/recorder-server/src/app.ts",
+          "line": 169,
+          "quote": "name: 'recorder_starts_total',"
+        },
+        {
+          "path": "suite/suite/meet/observability/prometheus/prometheus.yml",
+          "line": 3,
+          "quote": "evaluation_interval: 15s"
+        },
+        {
+          "path": "frappe/frappe/monitor.py",
+          "line": 23,
+          "quote": "if frappe.conf.monitor:"
+        },
+        {
+          "path": "frappe/frappe/monitor.py",
+          "line": 109,
+          "quote": "self.data.request.status_code = response.status_code"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "SLO tanımı ve SLI formülü kaynakta yok; outcome etiket değerleri doğrulanmadı.",
+    "Recording rule, çok pencereli burn-rate alarmı, seri yokluğu uyarısı ve alarm teslimi yok.",
+    "Hata bütçesi politikası, yayın kararı kaydı ve CI/CD geçidi yok.",
+    "SLA'yı SLO'dan ayıran belge yok.",
+    "Frappe backend için metrik ihracı yok; monitor.py yalnız conf.monitor açıkken JSON log yazıyor.",
+    "Runtime kabulü yapılmadı; alarmların ve panoların çalıştığı kanıtlanmadı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "İlk SLO yolculuğu ve SLI formülü (SFU oda katılımı yalnız aday)",
+      "requirementIds": ["observability-8"],
+      "blocks": "Recording rule ve alarm kurallarının yazımı",
+      "documentStepUntilDecided": "Aday yolculukları ve kaynakta doğrulanmış sayaçlarını, iyi/toplam olay tanım taslağıyla listelemek"
+    },
+    {
+      "decision": "Hedef yüzde, ölçüm penceresi ve hızlı/yavaş tüketim eşikleri",
+      "requirementIds": ["observability-8"],
+      "blocks": "Alarm eşiklerinin türetilmesi ve TDD senaryosundaki sentetik serinin değerleri",
+      "documentStepUntilDecided": "Eşiklerin hedef ve pencereden nasıl türetileceğini, değer seçmeden formül olarak belgelemek"
+    },
+    {
+      "decision": "Prometheus metrik saklama süresi",
+      "requirementIds": ["observability-8"],
+      "blocks": "Ölçüm penceresinin geçerliliği",
+      "documentStepUntilDecided": "Pencerenin saklama süresini aşamayacağı kısıtını sözleşmede tutmak"
+    },
+    {
+      "decision": "Alarm teslim kanalı (Alertmanager veya Grafana alerting) ve alıcılar",
+      "requirementIds": ["observability-8"],
+      "blocks": "Alarm teslimi ve uçtan uca alarm kabulü",
+      "documentStepUntilDecided": "Kanaldan bağımsız alarm etiketlerini ve önem düzeylerini belgelemek"
+    },
+    {
+      "decision": "Yayın kararı kaydının yeri ve CI/CD geçidine bağlanma biçimi",
+      "requirementIds": ["observability-8"],
+      "blocks": "Karar kaydı ve yayın geçidi adımları",
+      "documentStepUntilDecided": "Kayıt alanlarını ve izin beklentisini (explicitPermissionFlags, reddedilen yazma) yer seçmeden tanımlamak"
+    },
+    {
+      "decision": "Sözleşmesel SLA içeriği ve sahibi",
+      "requirementIds": ["observability-8"],
+      "blocks": "SLA/SLO ayrım belgesinin tamamlanması",
+      "documentStepUntilDecided": "SLO sayfasında SLA'ya yalnız ayrı belge bağlantısı için yer ayırmak"
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

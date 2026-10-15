@@ -1,0 +1,195 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "native-version",
+  "canonicalTaskIds": [
+    "native-version--implementation",
+    "ui-family-27--implementation-post-mvp"
+  ],
+  "requirementIds": ["integrity-2"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "integrity-2": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Kayıt sürüm geçmişini görüntüleme ve kontrollü geri alma. Uygulama durumu: uygulanmadı.",
+    "trigger": "Hedef kayıtta okuma izni olan kullanıcı, track_changes açık bir DocType kaydının sürüm geçmişini açar. Geri alma izni olan kullanıcı bir önceki sürümü seçer, alan farkını önizler ve geri almayı onaylar.",
+    "expected": "Geçmiş, native Version kayıtlarından okunur ve yalnız hedef kayda okuma izni olan kullanıcıya listelenir. Seçilen sürümün alan ve çocuk satır farkı salt okunur gösterilir. Onaylanan geri alma önceki değerleri mevcut belgeye uygular ve normal doc.save yolundan geçer. validate, link doğrulaması, izin denetimi ve doküman hook'ları atlanmaz. Native track_changes yeni bir Version üretir. Eski Version kayıtları değiştirilmez ve silinmez.",
+    "denied": "Okuma izni yoksa geçmiş ve fark dönmez. Şu durumlarda istek reddedilir: yazma izni yoksa, explicitPermissionFlags kaynağındaki geri alma bayrağı yoksa, kayıt submit veya cancel edilmişse (docstatus 1/2, integrity-5 kapsamı), DocType'ta track_changes kapalıysa, fark zinciri çözümlenemiyorsa, doğrulama başarısızsa veya kayıt önizlemeden sonra değişmişse. Red durumunda belge alanları, modified değeri ve Version sayısı değişmez."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native Frappe Version kaydı (canonicalArtifact: framework_native) ve normal Document kaydetme yolu yeniden kullanılır. Yeni sürüm DocType'ı, ORM veya CRUD motoru tasarlanmaz. Doğrulanmış kanıt yalnız bir native parçayı gösterir: document_follow.py içinde get_version ile sürüm etkinliği okunuyor. Bu, bütün davranışın var olduğunu göstermez. Version DocType kaynağı, Version.data fark yapısı ve Audit Trail davranışı bu kanıt setinde alıntılanmadı; hedef sürüm kaynağı okunmadan kullanılmaz. Suite Sheets ve Writer sürümlemesi kendi uygulamalarına özgüdür ve genel DocType geri alma çözümü olarak yeniden kullanılmaz: Sheets hücre farkı boş bir stub, Writer ise belge silinirken kendi sürümlerini doğrudan siliyor. Vue/Frappe UI kaynağı React/Ant Design uygulaması kanıtı değildir. Aranan yollar listesi kapsamlı bir varlık veya yokluk iddiası değildir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/desk/form/document_follow.py",
+        "line": 110,
+        "quote": "activity_list = get_version(doctype, doc_name, frequency, user) + get_comments("
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/desk/form/document_follow.py",
+      "suite/frontend/src/apps/sheets/components/SheetEditor/useVersionHistory.js",
+      "suite/frontend/src/apps/sheets/services/versions.js",
+      "suite/suite/writer/doctype/writer_document/writer_document.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/native-version.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/adapters/records_taxonomy/version_post_mvp.py",
+      "frontend/packages/ui/src/components/ui-family-27/post_mvp.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Görüntüleme için tenant bağlamı (tenant-registry--contract), doctype, belge adı ve isteğe bağlı Version adı gerekir. Geri alma için doctype, belge adı, hedef Version adı ve önizleme anındaki modified değeri gerekir. Uç adları ve imzaları T-00 hedef sürümü ile api-middleware--contract'a göre belirlenir; bu sözleşme uç adı veya imza tanımlamaz.",
+    "output": "Görüntüleme yanıtı kernel-envelope--contract zarfında döner: sürüm listesi (Version adı, oluşturan, zaman) ve seçilen sürüm için alan ve çocuk satır farkı. Önizleme, geri almada değişecek alanların önce/sonra listesini ve uygulanamayacak alanları gösterir (örneğin link hedefi yok veya alan salt okunur). Geri alma yanıtı güncel modified değerini ve yeni Version adını döndürür. Arayüz sonucu yalnız sunucu yanıtı geldikten sonra gösterir; iyimser veya sahte başarı gösterilmez.",
+    "authorization": "Görüntüleme için hedef belgede native read izni gerekir (frappe.has_permission ile değerlendirilir). Version DocType'ını okuma yetkisi tek başına geçmişi açmaz. Geri alma için hedef belgede native write izni ve explicitPermissionFlags ortak kaynağında tanımlı geri alma bayrağı birlikte gerekir. Bu sözleşme yeni rol veya bayrak üretmez; bayrak native-user-policy--contract üzerinden bağlanır. ignore_permissions kullanmak, doğrudan SQL yazmak veya frappe.db.set_value ile yetki ve doğrulamayı atlamak yasaktır. Tenant sınırı tenant-registry--contract ile korunur.",
+    "persistence": "Yeni DocType veya tablo eklenmez. Geri alma, belge frappe.get_doc ile yüklenip önceki değerler atandıktan sonra tek transaction içinde doc.save() ile yazılır. Yeni Version native track_changes tarafından oluşturulur. Önceki hâl, güncel belgeden seçilen sürüme kadar olan Version farkları ters sırayla uygulanarak hesaplanır; fark zinciri eksikse geri alma yapılmaz. Çocuk tabloların hedef hâli tek save içinde bütün olarak kurulur; kısmi satır karışımı yapılmaz. Version kayıtları güncellenmez ve silinmez. Bu sözleşme hiçbir şemayı, veriyi, servisi veya production ortamını değiştirme yetkisi vermez.",
+    "failure": "PermissionError: kayıt ve Version sayısı değişmez. Doğrulama veya hook hatası: transaction geri alınır, yeni Version oluşmaz ve hata zarf içinde döner. Önizlemeden sonra kayıt değişmişse native modified karşılaştırması (TimestampMismatchError) isteği reddeder ve kullanıcıdan yeni önizleme istenir. docstatus 1/2 olan kayıtlar reddedilir ve integrity-5'e yönlendirilir. track_changes kapalıysa veya fark zinciri eksikse geri alma sunulmaz. Link hedefi silinmişse normal link doğrulaması kaydı reddeder."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "client-rule-parity--contract",
+      "kernel-envelope--contract",
+      "native-user-policy--contract",
+      "native-version--contract",
+      "tenant-registry--contract",
+      "ui-family-15--contract",
+      "ui-family-27--contract",
+      "ui-family-27--implementation"
+    ],
+    "admission": {
+      "sharedPolicyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+      "prerequisites": [
+        "T-00 hedef sürüm tabanı ve R-00 yeniden kullanım eşlemesi tamamlanmış olmalı; R-00, Suite sürümlemesinin genel çözüm olmadığını kaydetmeli.",
+        "İzinli veri tüketicisi olduğu için R-01 uygulanmalı.",
+        "native-version--contract, native-user-policy--contract, kernel-envelope--contract ve tenant-registry--contract sözleşmeleri mevcut olmalı.",
+        "decisionsPending içindeki DocType listesi ve hedef sürüm kararları kapanmış olmalı.",
+        "Yalnız tek dar davranış, gerçek RED/GREEN kanıtıyla uygulanır. Bu koşullar sağlanana kadar durum NOT_ADMITTED kalır."
+      ]
+    },
+    "steps": [
+      "T-00 hedef sürümünde frappe/core/doctype/version kaynağını ve Audit Trail belgesini oku. Version.data fark yapısını, track_changes tetikleyicisini ve Audit Trail karşılaştırmasını kaynak satırlarıyla kaydet. version-15 kaynak bağlantısı yalnız başlangıç referansıdır.",
+      "DocType listesi kararı geldiğinde her DocType için track_changes durumunu, çocuk tabloları, link alanlarını ve submittable olup olmadığını tablo olarak belgele.",
+      "Backend adaptör (önerilen yol version_post_mvp.py) üç parçadan oluşur: read izniyle geçmiş ve fark okuma, önizleme hesaplama ve doc.save tabanlı geri alma. hooks.py kaydı yalnız ana entegrasyon sahibi tarafından seri birleştirilir.",
+      "Frontend (önerilen yol ui-family-27/post_mvp.tsx) Ant Design ile sürüm listesi, fark görünümü ve onaydan önce önizleme modalı sunar. Okuma ve mutation TanStack Query ile yapılır. Geri alma düğmesinin görünürlüğü yetki yanıtına bağlıdır, ancak yetki her zaman sunucuda denetlenir. registry.ts kaydı kaynak registry'sine yapılır ve GenUI capability registry'den ayrı tutulur. Arayüz 14 CSS px minimum metin boyutuna, çevrelemeyen odak göstergesine ve ortak hareket tokenlarına uyar.",
+      "client-rule-parity--contract'a göre istemci ön kontrolünün sunucu doğrulamasının yerine geçmediğini belgele.",
+      "Tek kabul senaryosunu ve reddedilen yazma senaryosunu tanımla. Test yalnız admission tamamlandıktan sonra yazılır."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Geri alma izni olan kullanıcı, track_changes açık ve submittable olmayan bir DocType kaydında bir önceki sürümü geri alır. Alan değeri önceki sürüme döner, normal validate çalışır ve tam olarak bir yeni Version kaydı oluşur.",
+      "red": "Geri alma davranışı henüz yokken, alan değerinin önceki sürüme dönmediğini ve Version sayısının artmadığını gösteren davranış doğrulamasıyla başarısız olmalıdır. Import hatası, eksik fixture veya native save davranışını bozmak RED sayılmaz.",
+      "green": "En küçük uygulama: önceki değerleri ters fark üzerinden hesaplayıp doc.save ile yazan adaptör. Native izin, validate ve hook'lar korunur; senaryo yeni Version ve geri dönmüş alan değeriyle geçer."
+    },
+    "rollback": "Bu turda yalnız belge değişir; geri dönüş bu JSON'un önceki revizyonuna dönmekle yapılır. Gelecekteki uygulamada özellik, route/registry kaydı ve adaptör uç noktası kaldırılarak kapatılır. Geri alma ile oluşmuş Version kayıtları ve belge değişiklikleri silinmez; gerekirse aynı kontrollü akışla ters geri alma yapılır. CI/deploy/rollback teknik sahibi Hüseyin Cengiz'dir."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "integrity-2",
+      "sourceStage": "post_mvp",
+      "existing": "Native Frappe Version kaydı framework içinde mevcut; document_follow.py, get_version ile sürüm etkinliğini okuyor. Suite Sheets'in geri yükleme akışı yeni sürüm oluşturma niyetini gösteriyor, ancak yalnız Sheets'e özgü ve hücre farkı boş bir stub. Writer, belge silinirken kendi Writer Version kayıtlarını doğrudan siliyor. Bunların hiçbiri genel DocType geri alma kanıtı değildir.",
+      "gap": "Eksikler: genel DocType için önceki hâli görüntüleme, önizleme ve izinli geri alma iş kuralları; track_changes açık DocType listesi; çocuk tablo, link ve submit kuralları; okuma izni ile geri alma izninin ayrımı; Suite sürümlemesinin yeniden kullanılmayacağı beyanı; hedef sürüm Version/Audit Trail eşlemesi.",
+      "completionSteps": [
+        "track_changes: DocType listesi kararı gelince listeyi belgele. Listede olmayan DocType'larda geçmiş ve geri alma sunulmaz. track_changes'i açmak bir DocType meta değişikliğidir ve ayrı, onaylı bir şema adımıyla yapılır.",
+        "Çocuk tablo: sürüm farkındaki satır ekleme, silme ve değişikliklerini ters uygula; tablonun hedef hâlini tek save içinde kur.",
+        "Link: hedef kayıt yoksa veya kullanıcı hedefi okuyamıyorsa alanı önizlemede uygulanamaz olarak göster ve geri almayı durdur.",
+        "Submit/cancel edilmiş kayıtları kapsam dışı bırak ve integrity-5'e bağla.",
+        "İzin: görüntüleme için hedef belgede read, geri alma için write ve explicitPermissionFlags geri alma bayrağı gerekir. Version DocType'ını okuma yetkisi tek başına geçmişi açmaz.",
+        "Suite Writer ve Sheets sürümlemesini genel çözüm olarak kullanma; bu sınırı R-00 eşlemesine yaz.",
+        "Hedef sürümde frappe/core/doctype/version ve Audit Trail kaynağını okuyarak alan farkı yapısı, track_changes tetikleyicisi ve karşılaştırma görünümü için eşleme tablosu hazırla.",
+        "Önceki hâli, Version farklarını güncel belgeden geriye doğru ters uygulayarak hesapla; zincir eksikse geri almayı reddet."
+      ],
+      "dependencies": [
+        "native-version--contract",
+        "native-user-policy--contract",
+        "kernel-envelope--contract",
+        "tenant-registry--contract",
+        "api-middleware--contract",
+        "client-rule-parity--contract",
+        "ui-family-27--contract",
+        "ui-family-27--implementation"
+      ],
+      "acceptance": "Geçmiş sürüm yalnız read izni olan kullanıcıya görüntülenir. İzinli geri alma yeni bir Version oluşturur, kritik doğrulamaları ve hook'ları atlamaz, eski Version kayıtları korunur. Aynı tek kabulde, read izni olan ama geri alma bayrağı olmayan kullanıcının geri alma isteği reddedilir; belge alanları, modified değeri ve Version sayısı değişmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/desk/form/document_follow.py",
+          "line": 110,
+          "quote": "activity_list = get_version(doctype, doc_name, frequency, user) + get_comments("
+        },
+        {
+          "path": "suite/frontend/src/apps/sheets/services/versions.js",
+          "line": 132,
+          "quote": "return { sheets: {} }"
+        },
+        {
+          "path": "suite/frontend/src/apps/sheets/components/SheetEditor/useVersionHistory.js",
+          "line": 211,
+          "quote": "A new version will be created representing the restored state."
+        },
+        {
+          "path": "suite/suite/writer/doctype/writer_document/writer_document.py",
+          "line": 26,
+          "quote": "frappe.db.delete(\"Writer Version\", {\"doc\": self.name})"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Uygulama durumu: uygulanmadı. Backend adaptör, frontend bileşeni ve test yok.",
+    "track_changes açılacak DocType listesi karar bekliyor.",
+    "Hedef sürüm Version/Audit Trail kaynağı okunmadı; Version.data fark yapısı doğrulanmadı.",
+    "Çocuk tablo ve link geri alma kuralları yalnız yönerge düzeyinde; hedef sürüm kaynağıyla doğrulanmalı.",
+    "Submit edilmiş kayıtların geri alınması integrity-5 kapsamında ve burada çözülmedi.",
+    "Runtime kabulü not_run; hiçbir test yazılmadı veya koşulmadı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "track_changes açılacak ve geri almanın sunulacağı DocType listesi",
+      "requirementIds": ["integrity-2"],
+      "blockedStep": "development.steps 2 ve backend adaptörün kapsamı",
+      "interimDocumentationStep": "Aday DocType'lar için seçim ölçütlerini belgele (submittable olmama, çocuk tablo yapısı, link yoğunluğu); liste seçme."
+    },
+    {
+      "decision": "Hedef Frappe sürümü (T-00 tabanı)",
+      "requirementIds": ["integrity-2"],
+      "blockedStep": "Version/Audit Trail eşlemesi ve development.steps 1",
+      "interimDocumentationStep": "version-15 referansını ve okunacak kaynak yollarını listeleyen boş bir eşleme şablonu hazırla."
+    },
+    {
+      "decision": "Version kayıtlarının saklama süresi",
+      "requirementIds": ["integrity-2"],
+      "blockedStep": "Geçmişin ne kadar geriye görüntülenebileceği ve eksik fark zinciri kuralı",
+      "interimDocumentationStep": "Native varsayılanın bu sözleşmeyle değiştirilmediğini not et; süre belirtme."
+    },
+    {
+      "decision": "Geri alma bayrağının verileceği roller",
+      "requirementIds": ["integrity-2"],
+      "blockedStep": "Kabul senaryosundaki izinli ve izinsiz kullanıcı tanımı",
+      "interimDocumentationStep": "Bayrağı yalnız explicitPermissionFlags ortak kaynağına referansla bağla; rol adı seçme."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

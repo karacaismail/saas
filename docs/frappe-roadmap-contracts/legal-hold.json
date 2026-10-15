@@ -1,0 +1,220 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "legal-hold",
+  "canonicalTaskIds": ["legal-hold--implementation"],
+  "requirementIds": ["governance-5"],
+  "stage": "enterprise",
+  "sourceStages": {
+    "governance-5": "enterprise"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Aktif hukuki saklama kilidindeki kaydın silinmesini sunucu tarafında, silme kancasında reddetme. Uygulama durumu: uygulanmadı.",
+    "trigger": "Kapsamdaki bir DocType kaydı için herhangi bir silme yolu (REST v1/v2 delete, frappe.client.delete_doc, toplu silme, Drive after_delete zinciri, patch veya scheduler işi, kişisel veri silme talebi işleme) native frappe.delete_doc akışını başlatır ve on_trash aşamasına ulaşır.",
+    "expected": "Kayıt aktif bir LegalHold kapsamındaysa doc_events on_trash işleyicisi native frappe.throw ile silmeyi durdurur; işlem native transaction ile geri alınır; kayıt ve aynı işlemde zincirle silinmek istenen üst veya alt kayıtlar değişmeden kalır. Kilitsiz kayıtların silme davranışı ve native izin kontrolleri değişmez. Kilit açma yalnız yetkili rolle, zorunlu gerekçeyle ve denetlenebilir izle yapılır; açılan kilit kaydı silinmez, yalnız durumu değişir.",
+    "denied": "ignore_permissions=True ile yapılan zincirleme silme kilitli kayıtta da reddedilir. Kilit kontrolü has_permission veya izin katmanına konmaz; ignore_permissions veya ham SQL ile atlanamaz. Yetkisiz kullanıcının kilit açma ya da LegalHold kaydını silme denemesi reddedilir ve LegalHold kaydı değişmez."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native parçalar: Suite Drive File override'ı on_trash içinde frappe.throw ile silmeyi engelleme örüntüsünü kullanıyor; Suite hooks.py içinde doc_events sözlüğü mevcut; Drive klasör silmesi alt File kayıtlarını frappe.delete_doc ile ignore_permissions=True kullanarak siliyor; Frappe REST v2 delete uç noktası frappe.client.delete_doc'a delege ediyor. Bu parçalar silmeyi kancada durdurmanın native yolunu ve izin katmanının zincirde atlandığını gösterir; genel saklama kilidi modeli, kilit açma gerekçesi veya denetim izi göstermez. Kanıtın native parçayı göstermesi bütün davranışın var olduğu anlamına gelmez. Arama yalnız searchedPaths ile sınırlıdır; kapsamlı yokluk iddiası değildir. Alıntılar önceki salt okunur Frappe/Suite kaynak anlık görüntülerindendir; canlı site veya ürün kabulü yoktur. Vue/Frappe UI kaynakları React/Ant Design uygulaması kanıtı sayılmaz.",
+    "evidence": [
+      {
+        "path": "suite/suite/drive/overrides/file.py",
+        "line": 128,
+        "quote": "frappe.throw(\"Cannot delete the Drive root folder.\", frappe.PermissionError)"
+      },
+      {
+        "path": "suite/suite/drive/overrides/file.py",
+        "line": 136,
+        "quote": "frappe.delete_doc(\"File\", child_name, ignore_permissions=True)"
+      },
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 224,
+        "quote": "doc_events = {"
+      },
+      {
+        "path": "frappe/frappe/api/v2.py",
+        "line": 240,
+        "quote": "frappe.client.delete_doc(doctype, name)"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v2.py",
+      "suite/suite/drive/overrides/file.py",
+      "suite/suite/hooks.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/legal-hold.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/audit_governance/doctype/legal_hold/legal_hold.py"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Silme yolu: native delete_doc akışındaki belge (doctype, name). Kilit kontrolü: hedef doctype ve name, kaydın tenant bağlamı (tenant-registry--contract tanımına göre) ve işlem anı. Kilit koyma ve açma: alanlar legal-hold--schema sözleşmesinden gelir; açma geçişinde gerekçe zorunludur. Bu sözleşme yeni alan veya model tasarlamaz.",
+    "output": "Kilitli kayıtta silme reddi native frappe.throw ile üretilir; hata sınıfı, zarf ve HTTP durumu kernel-envelope--contract eşlemesine bırakılır (Drive örneği frappe.PermissionError kullanıyor). Mesaj kilidin varlığını bildirir, kilit gerekçesini veya hukuki talep ayrıntısını sızdırmaz. Kilitsiz kayıtta native yanıt değişmez. Kilit açmada LegalHold durumu, gerekçe, açan kullanıcı ve zaman native kayıt ve Version izinde görünür.",
+    "authorization": "Silme reddi çağıranın izninden bağımsızdır; Administrator ve ignore_permissions=True çağrıları dahil, kilit açılmadan kilitli kayıt silinemez. Kilit kontrolü çağıranın LegalHold okuma iznine bağlanmaz (aksi halde okuyamayan kullanıcı kilidi atlar); bu yetki genişletmesi değil kısıtlama kontrolüdür ve sonucu çağırana ayrıntı olarak döndürülmez. Kilit koyma, açma ve okuma yetkileri explicitPermissionFlags ortak kaynağına ve native-user-policy--contract'a bağlanır; rol adları burada seçilmez. LegalHold yazmaları native DocType izinleri, validate ve save akışıyla yapılır; ignore_permissions veya SQL ile LegalHold yazılmaz ya da silinmez.",
+    "persistence": "Tek kaynak legal-hold--schema'daki LegalHold kaydıdır; kilit kontrolü salt okumadır ve kapsamdaki kayıtlarda şema değişikliği yapmaz. Reddedilen silme native request veya job transaction'ının geri alınmasıyla sonuçlanır; zincirde önce silinmiş üst kayıt da geri alınır (T-00'da hedef sürümde doğrulanır). Kilit açma tek yönlü durum geçişidir; LegalHold kayıtları silinmez, değişiklik izi native track_changes/Version ile tutulur (schema sözleşmesinde onaylanırsa). Saklama ve kilit süresi seçilmez.",
+    "failure": "Kilit sorgusu hata verirse silme reddedilir (fail-closed), hata native Error Log'a düşer. Scheduler, patch veya arka plan işinde kilitli kayıt işi hata ile bitirir, kısmi silme kalmaz; toplu silmede diğer kayıtların sonucu hedef sürümün native toplu silme semantiğine göre belgelenir. Doğrudan frappe.db.delete veya ham SQL ile yapılan silmeler kancayı çalıştırmaz; R-00 envanterinde ayrıca sınıflandırılır, sessizce kapsandığı varsayılmaz."
+  },
+  "development": {
+    "dependencies": [
+      "kernel-envelope--contract",
+      "legal-hold--contract",
+      "legal-hold--schema",
+      "native-user-policy--contract",
+      "tenant-registry--contract"
+    ],
+    "admission": {
+      "status": "NOT_ADMITTED",
+      "statement": "Uygulama durumu: uygulanmadı. Bu sözleşme üretim, test, servis, şema, veri veya production değişikliği yetkisi vermez.",
+      "sharedPrerequisite": "T-00 target baseline and R-00 reuse mapping; permissioned data consumers also use R-01; implement one narrow behavior with real RED/GREEN evidence",
+      "specificPrerequisites": [
+        "legal-hold--schema sözleşmesi LegalHold alanlarını (kapsam hedefi, durum, koyma ve açma gerekçesi, tenant bağlamı) kabul etmiş olmalı.",
+        "decisionsPending içindeki tetikleyici/karar sahibi, kapsam DocType kümesi ve rol kararları verilmiş olmalı.",
+        "R-00 silme noktaları envanteri tamamlanmış ve her nokta delete_doc üzerinden geçiyor veya kancayı atlıyor olarak sınıflandırılmış olmalı.",
+        "T-00 hedef sürümünde delete_doc'un ignore_permissions=True iken on_trash ve doc_events işleyicilerini çalıştırdığı ve transaction geri alma davranışı kaynakta doğrulanmış olmalı."
+      ],
+      "orderAuthority": "existing task dependencies and stage; cluster order is presentation, not a new serial DAG"
+    },
+    "steps": [
+      "T-00 tabanından hedef Frappe/Suite sürümünü al (bu sözleşme seçmez); native delete_doc akışında ignore_permissions'ın yalnız izin kontrolünü atladığını, on_trash ve doc_events çalıştırmayı atlamadığını kaynakta doğrula.",
+      "R-00 envanteri: v1 ve v2 REST delete, frappe.client.delete_doc, toplu silme, Drive after_delete zinciri, patch'ler, scheduler işleri, Personal Data Deletion Request işleme ve doğrudan frappe.db.delete/SQL silmelerini listele; her birini kanca üzerinden veya kancayı atlıyor olarak işaretle.",
+      "legal-hold--schema'nın kabul ettiği LegalHold alanlarını kullan; yeni model, motor veya CRUD tasarlama.",
+      "LegalHold controller'ında (plannedProduction) tek bir aktif kilit sorgusu tanımla: hedef doctype, name ve tenant bağlamı için aktif kilit var mı; native frappe.db.exists veya frappe.db.get_value ile oku, çağıranın okuma iznine bağlama.",
+      "Paylaşılan backend hooks.py doc_events'e yalnız karar verilmiş kapsam DocType'ları için on_trash işleyicisi ekle; işleyici aktif kilitte native frappe.throw çağırır. Suite Drive File override'ındaki mevcut on_trash davranışına dokunma.",
+      "LegalHold controller'ında on_trash ile LegalHold silinmesini reddet; validate ile açma geçişinde gerekçeyi zorunlu kıl ve açılmış kilidin tekrar aktifleşmesini veya geriye düzenlenmesini engelle; açma yetkisini native izin ve explicitPermissionFlags ile denetle.",
+      "Ret hata sınıfını ve zarfını kernel-envelope--contract eşlemesine bağla; gerekçe sızdırmayan mesaj kullan.",
+      "R-00'da kancayı atlayan olarak işaretlenen noktalar için ya delete_doc yoluna yönlendirme ya da açık kilit kontrolü adımını ayrı karar olarak kaydet; bu sözleşmede sessizce kapsama alma.",
+      "Frontend paylaşılan dosyaları (routes, registry, WXT, Tauri, package dosyaları) bu davranış için değişiklik gerektirmez; kilit yönetim yüzeyi gerekirse mevcut kanonik görevler dışında yeni görev açılmaz, karar entegrasyon sahibine bırakılır.",
+      "Tek TDD senaryosu yeşile döndükten sonra kabul maddelerini (v2 delete, scheduler, kilit açma, LegalHold silme reddi) birer davranış olarak sırayla ekle."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Aktif LegalHold kapsamındaki bir alt File, kilitsiz üst Drive klasörü silinirken after_delete zincirinde ignore_permissions=True ile silinmek istendiğinde silme reddedilir; üst klasör ve alt File kayıtları değişmeden kalır.",
+      "red": "Kilit kaydı ve senaryo verisi kurulu, doc_events on_trash işleyicisi yokken zincirleme silme başarıyla tamamlanır ve iki kaydın da kaldığını bekleyen davranış doğrulaması başarısız olur. RED import, kurulum veya altyapı hatası olamaz; native Drive davranışı bozularak elde edilemez.",
+      "green": "Kapsam DocType'ı için aktif kilitte frappe.throw çağıran en küçük on_trash doc_events işleyicisi eklenir; aynı senaryoda silme reddedilir, transaction geri alınır, üst ve alt kayıt değişmeden kalır; kilitsiz kayıtların silinmesi native davranışla sürer. Bu turda test yazılmaz ve koşulmaz."
+    },
+    "rollback": "Geri alma doc_events kaydını ve LegalHold controller değişikliğini kaldıran normal değişiklik geri alımıdır; LegalHold kayıtları silinmez ve veri migrasyonu yapılmaz. Geri alma kilit korumasını kaldıracağı için önce Hukuk ve veri yaşam döngüsü sahibine bildirilir. Teknik CI, deploy ve rollback sahibi Hüseyin Cengiz'dir; bu sözleşme ona veya başka birine production, servis, şema ya da veri değişikliği yetkisi vermez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "governance-5",
+      "sourceStage": "enterprise",
+      "existing": "Native parçalar: on_trash içinde frappe.throw ile silme engelleme örüntüsü (Suite Drive), Suite doc_events kanca sözlüğü, ignore_permissions=True ile Drive zincirleme alt kayıt silmesi, frappe.client.delete_doc'a delege eden v2 delete. Genel saklama kilidi modeli, kilit açma gerekçesi ve denetim izi saptanmadı (support: absent, action: build, sahip: Hukuk ve veri yaşam döngüsü).",
+      "gap": "Koşullu kapsamın tetikleyicisi (sözleşme veya hukuki talep) ve karar sahibi tanımlı değil; kilidin bağlanacağı silme noktaları (v1/v2 delete, Drive after_delete zinciri, patch, scheduler) listelenmemiş; kilit açma gerekçesi ve denetim izi için veri modeli yok. Zincirleme silmeler ignore_permissions kullandığı için kontrol izin katmanında değil silme kancasında olmalı.",
+      "completionSteps": [
+        "Tetikleyici ve karar sahibini decisionsPending kararına bağla; karar gelene kadar seçenekleri karar notu olarak belgele.",
+        "R-00 silme noktaları envanterini tamamla ve kancayı atlayan yolları ayrı işaretle.",
+        "legal-hold--schema alanlarına dayanan, izinden bağımsız aktif kilit sorgusunu LegalHold controller'ında tanımla.",
+        "Kapsam DocType'ları için doc_events on_trash işleyicisini paylaşılan backend hooks.py'ye ekle; aktif kilitte native frappe.throw.",
+        "Kilit açmayı gerekçe zorunlu, tek yönlü ve native izinle denetlenen durum geçişi yap; LegalHold silinmesini reddet; izi native Version ile tut.",
+        "Ret hatasını kernel-envelope--contract eşlemesine bağla."
+      ],
+      "dependencies": [
+        "legal-hold--contract",
+        "legal-hold--schema",
+        "kernel-envelope--contract",
+        "tenant-registry--contract",
+        "native-user-policy--contract"
+      ],
+      "acceptance": "Aktif saklama kilidindeki kayıt toplu ve scheduled silmeden korunur; ignore_permissions ile yapılan Drive zincirleme silmesi kilitli kayıtta reddedilir ve üst/alt kayıt değişmez; v2 delete kilitli kayıtta reddedilir; gerekçesiz veya yetkisiz kilit açma reddedilir ve LegalHold değişmez; kilit açıldıktan sonra silme native akışla çalışır; kilit çözümü gerekçeli ve denetlenebilir iz bırakır. Kabul çalıştırılmadı (not_run).",
+      "evidence": [
+        {
+          "path": "suite/suite/drive/overrides/file.py",
+          "line": 128,
+          "quote": "frappe.throw(\"Cannot delete the Drive root folder.\", frappe.PermissionError)"
+        },
+        {
+          "path": "suite/suite/drive/overrides/file.py",
+          "line": 136,
+          "quote": "frappe.delete_doc(\"File\", child_name, ignore_permissions=True)"
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 224,
+          "quote": "doc_events = {"
+        },
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 240,
+          "quote": "frappe.client.delete_doc(doctype, name)"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Koşullu kapsam tetikleyicisi ve karar sahibi tanımsız.",
+    "Silme noktaları envanteri (v1/v2 delete, toplu silme, Drive zinciri, patch, scheduler, kişisel veri silme talebi) yapılmadı.",
+    "Kancayı çalıştırmayan doğrudan frappe.db.delete/SQL silme yollarının ele alınışı belirsiz.",
+    "Kilit açma gerekçesi ve denetim izi alanları legal-hold--schema'da kabul edilmedi.",
+    "Hedef sürümde delete_doc, ignore_permissions ve transaction geri alma davranışı doğrulanmadı.",
+    "Runtime kabulü ve RED/GREEN kanıtı yok."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Koşullu kapsamın tetikleyicisi (sözleşme, hukuki talep veya başka) ve kilit koyma karar sahibi.",
+      "requirementIds": ["governance-5"],
+      "blocks": "Kapsam DocType kümesi ve kilit koyma akışı; admission.",
+      "documentStepUntilDecision": "Tetikleyici seçeneklerini ve her birinin gerektirdiği girdileri karar notu olarak listele; seçim yapma."
+    },
+    {
+      "decision": "Kilidin kapsayacağı DocType kümesi.",
+      "requirementIds": ["governance-5"],
+      "blocks": "hooks.py doc_events kaydı ve R-00 envanterinin kapsamı.",
+      "documentStepUntilDecision": "Aday DocType'ları ve her birinin silme yollarını envanterde işaretle."
+    },
+    {
+      "decision": "Kilit koyma, açma ve okuma rolleri; explicitPermissionFlags ortak kaynağına bağlanacak bayraklar.",
+      "requirementIds": ["governance-5"],
+      "blocks": "Kilit açma yetki kontrolü ve yetkisiz açmanın reddedildiği kabul.",
+      "documentStepUntilDecision": "Gerekli izin bayraklarını native-user-policy--contract terimleriyle tarif et; rol adı seçme."
+    },
+    {
+      "decision": "Kişisel veri silme talebi (GDPR) ile çatışmada öncelik ve istisna işleyişi.",
+      "requirementIds": ["governance-5"],
+      "blocks": "Personal Data Deletion Request silme yolunun kilit davranışı.",
+      "documentStepUntilDecision": "Çatışma senaryosunu ve gereken hukuki onay girdisini belgele; hukuki yorum yapma."
+    },
+    {
+      "decision": "Kilit veya saklama süresi ve otomatik bitişin olup olmayacağı.",
+      "requirementIds": ["governance-5"],
+      "blocks": "Aktif kilit tanımındaki süre semantiği.",
+      "documentStepUntilDecision": "Yalnız elle açılan kilidi temel varsay; süre alanını açık soru olarak legal-hold--schema'ya ilet."
+    },
+    {
+      "decision": "Tenant topolojisi (tenant-registry--contract'ta açık).",
+      "requirementIds": ["governance-5"],
+      "blocks": "Kilit sorgusundaki tenant bağlamı.",
+      "documentStepUntilDecision": "Kilit sorgusunu tenant-registry--contract arayüzüne bağımlı olarak tarif et; topoloji seçme."
+    },
+    {
+      "decision": "Hedef Frappe/Suite sürümü (T-00).",
+      "requirementIds": ["governance-5"],
+      "blocks": "delete_doc ve transaction davranışının doğrulanması; TDD başlangıcı.",
+      "documentStepUntilDecision": "Doğrulanacak native davranışları T-00 kontrol listesi olarak yaz."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

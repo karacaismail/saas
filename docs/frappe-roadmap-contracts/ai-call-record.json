@@ -1,0 +1,200 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "ai-call-record",
+  "canonicalTaskIds": ["ai-call-record--implementation"],
+  "requirementIds": ["ai-4"],
+  "stage": "scale",
+  "sourceStages": {
+    "ai-4": "scale"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "AI çağrı kaydı: model ve prompt sürümü, token kullanımı, maliyet, eval sonucu ve maskelenmiş girdi özetiyle yeniden incelenebilir kayıt. Uygulama durumu: uygulanmadı.",
+    "trigger": "Yetkili bir capability yolu üzerinden yapılan model çağrısı başarıyla, hata ile veya reddedilerek sonlandığında.",
+    "expected": "Her çağrı için tek bir AICallRecord yazılır. Kayıtta model kimliği, prompt sürümü, sağlayıcının bildirdiği girdi ve çıktı token sayıları, fiyat tablosu sürümüne bağlı maliyet, eval sonucu ve eval yöntemi sürümü, maskelenmiş girdi özeti, kernel zarfından gelen korelasyon kimliği, çağıran kullanıcı, capability kimliği ve tenant kapsamı bulunur. Sağlayıcı yanıtındaki kullanım bilgisi atılmaz. Kayıt oluştuktan sonra değiştirilemez; eval alanları için yalnız bir kez, boştan doluya yazım izni vardır. Yeniden inceleme aynı girdi özeti ve sürümlerle yapılabilir; model çıktısının aynı olacağı garanti edilmez.",
+    "denied": "Yazma veya değiştirme yetkisi olmayan kullanıcı ya da rol kaydı doğrudan oluşturmaya, düzenlemeye veya silmeye çalışırsa native izin hatası alır ve kayıt değişmeden kalır. Ham prompt, secret, erişim token'ı veya maskelenmemiş kişisel veri kayda yazılmaz. Maskeleme başarısız olursa girdi özeti boş kalır ve kayıt maskeleme hatası durumuyla işaretlenir."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native parça Frappe'nin log DocType desenidir. Web Page View örneğinde DocType sınıfındaki statik clear_old_logs(days=...) süreye bağlı temizlik yapar; deferred_insert ana akışı bekletmeden yazar. Suite AI istemcisi tool_use bloğundan yalnız eylem listesini döndürür. Bu satır yeniden kullanılacak bir kayıt mekanizması değildir; usage ve maliyet bilgisinin atıldığını gösteren eksik kanıtıdır. Kanıtlar tek tek native parçaları gösterir; AI çağrı kaydı davranışının bütünü mevcut değildir. Aranan yollar sınırlıdır. Bu sonuç, başka yerde kayıt mekanizması olmadığına dair kapsamlı bir iddia değildir. Kaynak alıntıları salt okunur kaynak anlık görüntülerinden alınmıştır; canlı site veya ürün kabulü değildir.",
+    "evidence": [
+      {
+        "path": "suite/suite/sheets/ai/client.py",
+        "line": 114,
+        "quote": "return actions if isinstance(actions, list) else []"
+      },
+      {
+        "path": "frappe/frappe/website/doctype/web_page_view/web_page_view.py",
+        "line": 38,
+        "quote": "def clear_old_logs(days=180):"
+      },
+      {
+        "path": "frappe/frappe/website/doctype/web_page_view/web_page_view.py",
+        "line": 98,
+        "quote": "view.deferred_insert()"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/website/doctype/web_page_view/web_page_view.py",
+      "suite/suite/sheets/ai/client.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/ai-call-record.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/ai_orchestration/doctype/aicall_record/aicall_record.py"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Kernel zarfından korelasyon kimliği, tenant kapsamı ve çağıran kullanıcı alınır (kernel-envelope--contract). Capability kimliği kaynak/capability registry'den gelir; GenUI capability registry'si ayrı bir projedir ve bu kaydın girdisi değildir. Diğer girdiler: model kimliği, prompt sürüm kimliği, sağlayıcının bildirdiği girdi ve çıktı token sayıları, fiyat tablosu sürüm referansı ve isteğe bağlı eval sonucu. Ham girdi yalnız bellekte maskeleme adımına verilir ve kalıcı olarak saklanmaz.",
+    "output": "AICallRecord adı ve kayıt durumu döner: kayıtlı, kullanım eksik, maliyet hesaplanamadı veya maskeleme hatası. Maliyet, tutar, para birimi ve fiyat tablosu sürümüyle birlikte verilir; hesaplanamazsa sıfır değil boş değer ve gerekçe döner. Kayıt yalnız JSON ile serileştirilebilir veri içerir; yerel ReactNode veya callback model sınırından geçmez.",
+    "authorization": "Rol ve izinler explicitPermissionFlags ortak kaynağına ve native-user-policy--contract'ta tanımlanan native izin kurallarına bağlanır. Kayıt yalnız sunucu tarafındaki capability yolunda native izin denetimiyle oluşturulur. ignore_permissions, ham SQL veya başka bir yetki atlama yolu kullanılmaz. Tenant kapsamı dışındaki kayıtlar okunamaz. Maskelenmiş girdi özetine erişim audit-envelope--contract'a göre izlenir.",
+    "persistence": "Önerilen AICallRecord DocType'ı (custom_proposed) native-doctype-schema--contract ve ai-call-record--schema'ya göre tanımlanır. Yazım native insert, save ve transaction akışıyla yapılır. Kayıt sonradan değiştirilemez; bunu native izinler ve controller'ın native doğrulama aşaması sağlar. Eval alanlarına tek seferlik yazım izni vardır. Saklama için clear_old_logs deseni kullanılır; gün değeri karar gelene kadar parametre olarak kalır. deferred_insert'in transaction, izin ve hata davranışı hedef sürümde kaynak okumasıyla doğrulanmadan kullanılmaz. Kayıttan başka tüketicilere giden olaylar outbox--contract üzerinden yayılır.",
+    "failure": "Sağlayıcı kullanım bilgisi vermezse kayıt kullanım eksik durumuyla yazılır ve token alanları boş kalır. Fiyat tablosu yoksa maliyet boş kalır ve gerekçe yazılır. Maskeleme hatasında girdi özeti boş kalır. Kayıt yazılamazsa hata sessizce yutulmaz; Web Page View'daki mesaj temizleme deseni burada örnek alınmaz. Hata audit zarfında görünür olur. Çağrının bu durumda engellenip engellenmeyeceği karar bekleyen bir konudur."
+  },
+  "development": {
+    "dependencies": [
+      "ai-call-record--contract",
+      "ai-call-record--schema",
+      "audit-envelope--contract",
+      "capability-definition--contract",
+      "kernel-envelope--contract",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "outbox--contract"
+    ],
+    "admission": "Uygulama durumu: uygulanmadı. Kabulden önce T-00 hedef sürüm temeli ve R-00 yeniden kullanım eşlemesi tamamlanmalıdır. Kayıt izinli veri tükettiği için R-01 de gereklidir. Bağımlı sözleşmeler hazır olmalı ve tek dar davranış gerçek RED/GREEN kanıtıyla uygulanmalıdır. Bu sözleşme hiçbir servisi, production ortamını, şemayı veya veriyi değiştirme yetkisi vermez. Küme sırası yalnız sunum amaçlıdır; yeni bir seri bağımlılık zinciri oluşturmaz.",
+    "steps": [
+      "T-00 kapsamında hedef Frappe sürümündeki clear_old_logs ve deferred_insert davranışını (transaction, izin, hata yönetimi, zamanlanmış temizlik bağlantısı) kaynak okumasıyla doğrula ve R-00 eşlemesine yaz.",
+      "ai-call-record--contract ve ai-call-record--schema ile asgari alan setini sabitle: model, prompt sürümü, token sayıları, maliyet ve fiyat tablosu sürümü, eval sonucu ve yöntem sürümü, maskelenmiş girdi özeti, korelasyon, tenant, kullanıcı ve capability.",
+      "DocType izinlerini explicitPermissionFlags'e bağla; doğrudan kullanıcı yazımını kapat, okumayı native-user-policy--contract rollerine sınırla.",
+      "Usage bilgisini kernel zarfı sınırında, ai_orchestration çağrı yolunda yakala. Suite istemcisi yalnız eksik kanıtıdır; bu sözleşme Suite kaynağını değiştirme yetkisi vermez.",
+      "Maskelenmiş girdi özetini kalıcı yazımdan önce üret; ham girdiyi saklama.",
+      "Maliyeti fiyat tablosu sürüm referansıyla hesapla; tablo yoksa maliyeti boş bırak.",
+      "Saklama süresi kararı geldikten sonra clear_old_logs desenine gün değerini bağla.",
+      "Değişmezliği uygula; eval alanlarına yalnız tek seferlik yazım izni ver."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Sağlayıcının kullanım bilgisi bildirdiği tamamlanmış bir çağrı, girdi ve çıktı token sayıları korunmuş tek bir AICallRecord üretir.",
+      "red": "Kayıt oluşmadığı veya token alanları boş kaldığı için davranış assertion'ı başarısız olur. Import veya altyapı hatası RED sayılmaz; native davranış bozularak RED üretilmez.",
+      "green": "En dar kayıt yazımı native insert ile eklenir; izin denetimi atlanmaz ve aynı assertion geçer. Bu turda test yazılmaz ve koşulmaz."
+    },
+    "rollback": "Bu sözleşme yalnız belgedir; geri alma bir belge revizyonudur. Gelecekteki uygulamada DocType ve şemanın geri alınması ile deploy ve rollback'in teknik sahibi Hüseyin Cengiz'dir. Mevcut çağrı kayıtları saklama kararı olmadan silinmez. Bu birimde GoDaddy veya DNS işi yoktur; Asistan Hüseyin'e devredilecek adım bulunmaz."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "ai-4",
+      "sourceStage": "scale",
+      "existing": "Native parçalar Frappe log DocType desenindeki clear_old_logs ile süreye bağlı temizlik ve deferred_insert ile ana akışı bekletmeyen yazımdır. Suite AI istemcisi yalnız eylem listesini döndürüyor; usage ve maliyet bilgisi dönüşte yok. Kabul metni (data/clusters/09.json, /groups/2/items/3) izlenecek alanları sayıyor: model ve prompt sürümü, token maliyeti, eval sonucu ve maskeleme.",
+      "gap": "Çağrı kaydının alanları, saklama ve silme süresi ile erişim yetkisi tanımsız. Eval ölçütü ve tekrar inceleme için maskelenmiş olarak saklanacak girdi belirsiz. Maliyet hesabı için fiyat tablosunun kaynağı yok.",
+      "completionSteps": [
+        "Asgari alan setini ai-call-record--schema'da tanımla ve ham girdi saklanmaz kuralını şemaya yaz.",
+        "Usage bilgisini ai_orchestration çağrı yolunda kernel zarfı korelasyonuyla birlikte yakala; usage yoksa kayıt kullanım eksik durumuyla yazılsın.",
+        "Maliyet alanını fiyat tablosu sürüm referansına bağla; tablo kararı gelene kadar maliyeti boş ve gerekçeli bırak.",
+        "Eval sonucu ve eval yöntemi sürümü alanlarını tek seferlik yazım kuralıyla tanımla.",
+        "İzinleri explicitPermissionFlags'e bağla; doğrudan yazmayı, düzenlemeyi ve silmeyi reddet.",
+        "Saklama için clear_old_logs desenini gün değeri parametreli olacak şekilde hazırla."
+      ],
+      "dependencies": [
+        "ai-call-record--contract",
+        "ai-call-record--schema",
+        "kernel-envelope--contract",
+        "native-user-policy--contract",
+        "capability-definition--contract",
+        "native-doctype-schema--contract",
+        "outbox--contract",
+        "audit-envelope--contract"
+      ],
+      "acceptance": "Tamamlanan bir çağrı; model, prompt sürümü, token, maliyet veya maliyetin neden boş olduğu, eval alanları ve maskelenmiş girdi özetiyle tek bir kayıt üretir. Ham girdi kayıtta bulunmaz. Yetkisiz kullanıcının yazma ya da düzenleme denemesi native izin hatasıyla reddedilir ve kayıt değişmeden kalır. Tenant kapsamı dışındaki kayıt okunamaz.",
+      "evidence": [
+        {
+          "path": "suite/suite/sheets/ai/client.py",
+          "line": 114,
+          "quote": "return actions if isinstance(actions, list) else []"
+        },
+        {
+          "path": "frappe/frappe/website/doctype/web_page_view/web_page_view.py",
+          "line": 38,
+          "quote": "def clear_old_logs(days=180):"
+        },
+        {
+          "path": "frappe/frappe/website/doctype/web_page_view/web_page_view.py",
+          "line": 98,
+          "quote": "view.deferred_insert()"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Uygulama durumu: uygulanmadı. AICallRecord DocType'ı, izinleri ve yazım yolu yok.",
+    "Saklama süresi, fiyat tablosu, eval yöntemi ve maskeleme kapsamı karara bağlı.",
+    "deferred_insert ve clear_old_logs'un hedef sürümdeki davranışı T-00'da doğrulanmadı.",
+    "Usage bilgisinin sağlayıcı yanıtından kayda taşınacağı çağrı yolu tanımlanmadı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Kayıt saklama süresi ve silme yöntemi",
+      "requirementIds": ["ai-4"],
+      "blocks": "clear_old_logs gün değerinin bağlanması",
+      "documentationStepUntilDecided": "Süreyi parametre olarak tanımla ve karar gelene kadar hiçbir kaydın silinmeyeceğini yaz."
+    },
+    {
+      "decision": "Fiyat tablosunun kaynağı, tarifesi ve para birimi",
+      "requirementIds": ["ai-4"],
+      "blocks": "Maliyet hesabı",
+      "documentationStepUntilDecided": "Maliyet alanını boş değer, gerekçe ve fiyat tablosu sürüm referansıyla tanımla."
+    },
+    {
+      "decision": "Eval ölçütü, yöntemi ve sahibi",
+      "requirementIds": ["ai-4"],
+      "blocks": "Eval alanlarının anlamı ve kabul eşiği",
+      "documentationStepUntilDecided": "Eval sonucu ve yöntem sürümü alanlarını tek seferlik yazım kuralıyla belgele."
+    },
+    {
+      "decision": "Maskelenmiş girdi özetinin kapsamı ve veri yerleşimi",
+      "requirementIds": ["ai-4"],
+      "blocks": "Girdi özetinin kalıcı yazımı",
+      "documentationStepUntilDecided": "Ham girdi saklanmaz ve maskeleme hatasında özet boş kalır kurallarını yaz."
+    },
+    {
+      "decision": "Kayıt yazılamadığında çağrının engellenip engellenmeyeceği",
+      "requirementIds": ["ai-4"],
+      "blocks": "Hata sözleşmesinin kesinleşmesi",
+      "documentationStepUntilDecided": "Hatanın sessizce yutulmayacağını ve audit zarfında görüneceğini yaz."
+    },
+    {
+      "decision": "Tenant topolojisi",
+      "requirementIds": ["ai-4"],
+      "blocks": "Tenant kapsam alanının biçimi",
+      "documentationStepUntilDecided": "Kapsamı kernel zarfından alınan opak bir değer olarak tanımla."
+    },
+    {
+      "decision": "Hedef Frappe sürümü (T-00)",
+      "requirementIds": ["ai-4"],
+      "blocks": "deferred_insert ve clear_old_logs kullanımı",
+      "documentationStepUntilDecided": "Kanıtı salt okunur kaynak alıntısı olarak tut ve sürüm doğrulamasını açık bırak."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

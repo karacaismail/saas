@@ -1,18 +1,30 @@
 {
   "schemaVersion": "saas-existing-work-contract.v1",
   "canonicalUnitId": "consent-evidence",
-  "canonicalTaskIds": ["consent-evidence--implementation"],
-  "requirementIds": ["legal-1", "legal-4", "legal-5"],
+  "canonicalTaskIds": [
+    "consent-evidence--implementation",
+    "consent-evidence--implementation-post-mvp",
+    "consent-policy-reference--implementation"
+  ],
+  "requirementIds": ["legal-1", "legal-4", "legal-5", "legal-7"],
   "stage": "mvp",
+  "sourceStages": {
+    "legal-1": "mvp",
+    "legal-4": "mvp",
+    "legal-5": "mvp",
+    "legal-7": "post_mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
     "title": "Append-only rıza olayı: geri çekme yeni olay olarak eklenir, mevcut olay güncellenemez veya silinemez",
-    "trigger": "Kayıtlı bir Consent Evidence belgesi üzerinde Document.save (güncelleme) veya Document.delete çağrısı; ya da event_type=withdrawal olan yeni olay insert edilmesi.",
+    "trigger": "Kayıtlı bir Consent Evidence belgesi üzerinde Document.save (güncelleme) veya Document.delete çağrısı; ya da event_type=withdrawal olan yeni olayın insert edilmesi.",
     "expected": "Geri çekme, withdraws_event alanı aynı subject_user ve explicit_consent türündeki önceki olaya bağlı yeni bir kayıt olarak eklenir. Önceki rıza kaydı ve aynı kullanıcının contract_acceptance kaydı değişmeden kalır (modified ve alan değerleri aynı).",
     "denied": "Mevcut olayın herhangi bir alanının güncellenmesi ve olay silme reddedilir; contract_acceptance veya notice_presented olayını hedefleyen withdrawal reddedilir. Administrator dahil hiçbir rol için istisna yoktur."
   },
   "reuse": {
-    "mechanism": "Native önce: Document.insert/validate/on_trash controller hook'ları, DocPerm if_owner okuma ve alan düzeyi okuma izni. Yeni ORM, olay motoru veya CRUD kopyası yok. Yalnız sahip olunan controller'da en küçük guard eklenir, çünkü native yetki Administrator için güncelleme ve silmeyi engellemez. Şema submittable seçilip cancel/amend/delete izni kapatılırsa değişmezlik native olur; bu durumda controller guard'ı yalnız withdrawal hedef doğrulaması için kalır.",
+    "status": "KISMI",
+    "mechanism": "Native önce: Document.insert/validate/on_trash controller hook'ları, DocPerm if_owner okuma ve alan düzeyi okuma izni. Yeni ORM, olay motoru veya CRUD kopyası yok. Yalnız sahip olunan controller'da en küçük guard eklenir, çünkü native yetki Administrator için güncelleme ve silmeyi engellemez. Şema submittable seçilip cancel/amend/delete izni kapatılırsa değişmezlik native olur; bu durumda controller guard'ı yalnız withdrawal hedef doğrulaması için kalır. Kanıtlar native yapı taşlarını gösterir; ayrı aydınlatma/rıza/sözleşme olay akışının var olduğunu göstermez.",
     "evidence": [
       {
         "path": "frappe/frappe/website/doctype/personal_data_download_request/personal_data_download_request.json",
@@ -29,65 +41,318 @@
         "line": 41,
         "quote": "self.user_data_fields = frappe.get_hooks(\"user_data_fields\")"
       }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "frappe/frappe/api/v2.py",
+      "frappe/frappe/email/doctype/email_queue/email_queue.py",
+      "frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py",
+      "frappe/frappe/email/queue.py",
+      "frappe/frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py",
+      "frappe/frappe/website/doctype/personal_data_download_request/personal_data_download_request.json",
+      "frappe/frappe/website/doctype/personal_data_download_request/personal_data_download_request.py",
+      "frappe/frappe/website/web_form/request_to_delete_data/request_to_delete_data.json",
+      "suite/suite/hooks.py",
+      "suite/suite/mail/api/outbound.py"
     ]
   },
   "ownership": {
     "activeContractFile": "docs/frappe-roadmap-contracts/consent-evidence.json",
     "plannedProduction": [
-      "backend/saas_platform/saas_platform/audit_governance/doctype/consent_evidence/consent_evidence.py"
+      "backend/saas_platform/saas_platform/audit_governance/doctype/consent_evidence/consent_evidence.py",
+      "backend/saas_platform/saas_platform/audit_governance/doctype/consent_policy_reference/consent_policy_reference.py",
+      "backend/saas_platform/saas_platform/services/consent_evidence_post_mvp.py"
     ],
-    "plannedTestFile": "backend/saas_platform/saas_platform/audit_governance/doctype/consent_evidence/test_consent_evidence.py",
+    "plannedTestFile": null,
     "sharedIntegrationFiles": [
       "backend/saas_platform/saas_platform/hooks.py",
-      "backend/saas_platform/saas_platform/audit_governance/doctype/consent_evidence/consent_evidence.json",
-      "integration/fragments/consent-evidence--integration.json"
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "Şema görevinden beklenen alanlar (öneri, karar değil): subject_user Link User zorunlu; event_type Select {notice_presented, explicit_consent, withdrawal, contract_acceptance} zorunlu; purpose Data <=140; channel Select {email, sms, push, web}; text_version Data <=140 zorunlu; source Data <=140; occurred_at Datetime zorunlu; withdraws_event Link Consent Evidence (yalnız withdrawal için zorunlu).",
-    "output": "Native /api/resource okuma yanıtı; check_permission(read) sonrası apply_fieldlevel_read_permissions ile filtrelenmiş alanlar. Sözleşme sürümü contract-consent-evidence v1.",
-    "authorization": "Native site sınırı (yerel suite.localhost). DocPerm önerisi: kullanıcı yalnız kendi olayını if_owner ile okur ve create yapar; hiçbir rolde write/delete/cancel/amend yok. Yetkisiz okuma native frappe.PermissionError. Administrator yetki atlamasına karşı controller guard'ı geçerlidir.",
-    "persistence": "Native istek transaction'ı içinde Document.insert; validate hook'unda is_new değilse ve alan değişmişse reddet; on_trash hook'unda her zaman reddet. Hata transaction'ı native rollback eder. DDL/migrate şema görevine aittir; bu sözleşme DDL garantisi vermez.",
-    "failure": "Güncelleme, silme veya geçersiz withdrawal hedefi native frappe.ValidationError ile reddedilir (çevrilebilir mesaj, kayıt verisi içermez). Yetki hatası frappe.PermissionError. Mevcut React19/AntD6/TanStack tüketicisi hatayı mevcut AntD mesaj bileşeniyle gösterir, optimistic güncellemeyi geri alır. UI kuralları korunur: Outfit, 14px, 320-first, çevreleyen odak halkası yok, simetrik pozitif Cubic hareket."
+    "input": "Şema görevinden beklenen alanlar (öneri, karar değil): subject_user Link User zorunlu; event_type Select {notice_presented, explicit_consent, withdrawal, contract_acceptance} zorunlu; purpose Data <=140; channel Select {email, sms, push, web}; text_version Data <=140 zorunlu; source Data <=140; occurred_at Datetime zorunlu; withdraws_event Link Consent Evidence (yalnız withdrawal için zorunlu). text_version alanının Consent Policy Reference kaydına bağlanıp bağlanmayacağı consent-policy-reference--contract ve policy-document--contract kararına bırakılır; bu sözleşme o DocType'ın alanlarını tanımlamaz.",
+    "output": "Native /api/resource okuma yanıtı; check_permission(read) sonrası apply_fieldlevel_read_permissions ile filtrelenmiş alanlar. Sözleşme sürümü contract-consent-evidence v1. JSON model sınırı yalnız bu yanıt verisidir; gelecekteki React istemcideki ReactNode/callback'ler sözleşmenin parçası değildir. Kaynak registry ile GenUI capability registry ayrıdır; bu birim GenUI capability üretmez.",
+    "authorization": "Native Frappe site sınırı; tenant/site topolojisi tenant-registry--contract kararına bağlıdır, burada seçilmez. DocPerm önerisi explicitPermissionFlags ortak kaynağına (../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy içindeki explicitPermissionFlags) bağlanır: kullanıcı yalnız kendi olayını if_owner ile okur ve create yapar; hiçbir rolde write/delete/cancel/amend yok. Yetkisiz okuma native frappe.PermissionError. Administrator için controller guard'ı geçerlidir. ignore_permissions, ham SQL veya izin kontrolünü atlayan başka bir yazma yolu kullanılmaz.",
+    "persistence": "Native istek transaction'ı içinde Document.insert; validate hook'unda belge yeni değilse ve alan değişmişse reddet; on_trash hook'unda her zaman reddet. Hata transaction'ı native rollback eder. DDL/migrate şema görevine aittir; bu sözleşme DDL garantisi vermez ve hiçbir servis, production ortamı, şema veya veriyi değiştirme yetkisi taşımaz.",
+    "failure": "Güncelleme, silme veya geçersiz withdrawal hedefi native frappe.ValidationError ile reddedilir (çevrilebilir mesaj, kayıt verisi içermez). Yetki hatası frappe.PermissionError. Gelecekteki React/Ant Design tüketicisi hatayı Ant Design mesaj bileşeniyle gösterir ve iyimser güncellemeyi geri alır; bu tüketici bu görevde yoktur. UI kuralları korunur: Outfit, en az 14 CSS px, 320 öncelikli, çevreleyen odak halkası yok, simetrik pozitif Cubic hareket."
   },
   "development": {
     "dependencies": [
       "consent-evidence--contract",
+      "consent-evidence--implementation",
       "consent-evidence--schema",
+      "consent-policy-reference--contract",
+      "consent-policy-reference--schema",
       "kernel-envelope--contract",
-      "tenant-registry--contract",
       "native-user-policy--contract",
-      "localPilot frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6 (suiteSourceHead unknown)"
+      "policy-document--contract",
+      "tenant-registry--contract"
     ],
-    "admission": "T-00 hedef baseline ve R-00 reuse eşlemesi; consent_evidence.json şeması migrate edilmiş olmalı. Şemanın submittable olup olmadığı bilinmiyor; submittable ve değişmezlik native ise güncelleme senaryosu RED üretemez ve test withdrawal hedef reddine daraltılır. Yerel kanıt uzak ürün baseline'ı değildir; deploy gereksinimi Hüseyin Cengiz'e bağımlılıktır.",
+    "admission": "Uygulama durumu: uygulanmadı. Kabul önkoşulları: T-00 hedef baseline ve R-00 reuse eşlemesi; izinli veri tüketicileri için R-01; consent_evidence şemasının şema görevi tarafından migrate edilmiş olması; tek dar davranışın gerçek RED/GREEN kanıtı. Şemanın submittable olup olmadığı bilinmiyor; submittable ve değişmezlik native ise güncelleme senaryosu RED üretemez ve test withdrawal hedef reddine daraltılır. Kaynak alıntıları salt okunur Frappe/Suite kaynak anlık görüntülerindendir; canlı site veya ürün kabulü değildir. Deploy ve rollback teknik sahibi Hüseyin Cengiz'dir.",
     "steps": [
-      "Şema meta verisini oku; submittable ve DocPerm durumunu kaydet.",
-      "consent_evidence.py içinde validate: kayıtlı belgede değişiklik varsa ValidationError; withdrawal için withdraws_event aynı subject_user ve explicit_consent olmalı.",
-      "consent_evidence.py içinde on_trash: ValidationError.",
-      "DocPerm önerisini şema/entegrasyon sahibine fragment olarak ilet; hooks.py'ye dokunma."
+      "Şema meta verisini salt okunur oku; submittable ve DocPerm durumunu belgeye kaydet.",
+      "consent_evidence.py içinde validate: kayıtlı belgede alan değişikliği varsa ValidationError; withdrawal için withdraws_event aynı subject_user ve explicit_consent türünde olmalı.",
+      "consent_evidence.py içinde on_trash: her zaman ValidationError.",
+      "DocPerm önerisini explicitPermissionFlags kaynağına bağlı fragment olarak şema/entegrasyon sahibine ilet; hooks.py ana entegrasyon sahibinin seri birleştirmesine bırakılır.",
+      "Kanıt kayıtları için user_data_fields kaydı, legal-4 hukuk kararı gelene kadar eklenmez."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "Aynı kullanıcı için explicit_consent ve contract_acceptance olayları insert edilir; consent'i hedefleyen withdrawal insert edilir; ardından consent belgesinin text_version alanı değiştirilip save edilir ve ValidationError beklenir; consent ve contract_acceptance kayıtlarının modified ile alanları değişmemiş olmalıdır.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Aynı test aynı bench run-tests komutuyla, guard eklendikten sonra geçmeli. Native davranış zaten reddediyorsa RED uydurulmaz."
+      "oneScenario": "Aynı kullanıcı için explicit_consent ve contract_acceptance olayları insert edilir; consent'i hedefleyen withdrawal insert edilir; ardından consent belgesinin text_version alanı değiştirilip save edilir ve ValidationError beklenir; consent ve contract_acceptance kayıtlarının modified değeri ve alanları değişmemiş olmalıdır.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. RED, guard yokken kaydın güncellenebilmesinden doğan assertion başarısızlığıdır; import/altyapı hatası veya native davranışı bozmak RED sayılmaz. Native davranış zaten reddediyorsa RED uydurulmaz. Bu tur test yazılmaz ve koşulmaz.",
+      "green": "Uygulamadan sonra aynı senaryo, değişmeyen assertion ve aynı bench run-tests komutuyla geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN'i değildir."
     },
-    "rollback": "Yerelde yalnız consent_evidence.py değişikliğini geri al; production izni yok, kayıt silinmez."
+    "rollback": "Gelecekteki değişiklik yalnız consent_evidence.py diff'i geri alınarak geri çevrilir; kayıt silinmez, veri veya şema değiştirilmez. Production rollback yetkisi bu sözleşmede yok; teknik sahip Hüseyin Cengiz."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "legal-1",
+      "sourceStage": "mvp",
+      "existing": "Native Frappe teknik yardımcıları: Personal Data Deletion ve Download Request, user_data_fields hook'unu okur; anonimleştirmede telefon varsayılanı '+91 0000000000'; silme web formu login_required 0. Bunlar teknik yardımcıdır, KVKK/GDPR uyum kanıtı değildir.",
+      "gap": "Kontrol matrisi biçimi tanımlı değil. Suite modüllerinin (Mail, Drive, Calendar vb.) user_data_fields tanımı incelenen parçada görülmedi; silme/indirme kapsamı bilinmiyor. Telefon varsayılanının TR bağlamına uygunluğu ve yalnız e-posta imzasına dayanan misafir silme formunun kabul edilebilirliği değerlendirilmedi.",
+      "completionSteps": [
+        "Kontrol matrisi satır biçimini belgele: amaç, DocType, alan, hukuki dayanak, sorumlu, teknik tedbir, saklama süresi. Dayanak ve saklama değerleri hukuk kararıdır; boş bırakılır.",
+        "suite/suite/hooks.py dosyasının tamamında user_data_fields tanımlarını salt okunur ara; bulunan ve görülmeyen DocType'ları matrise yaz. Görülmemesi kapsamlı yokluk iddiası olarak yazılmaz.",
+        "Matrisi Hukuk ve veri güvenliği onayına sun; onay kaydını mevcut consent-evidence--implementation görevine bağla, yeni görev açma.",
+        "Telefon varsayılanı ve login_required 0 için decisionsPending kararlarını bekle; native davranışı değiştirme önerisi yalnız karar sonrası yazılır."
+      ],
+      "dependencies": [
+        "consent-evidence--contract",
+        "kernel-envelope--contract",
+        "tenant-registry--contract",
+        "native-user-policy--contract"
+      ],
+      "acceptance": "İşleme amaçları, dayanaklar, sorumlular ve teknik tedbirler onaylı kapsam kaydına bağlı; her matris satırında ilgili DocType'ın user_data_fields kapsam durumu yazılı.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py",
+          "line": 41,
+          "quote": "self.user_data_fields = frappe.get_hooks(\"user_data_fields\")"
+        },
+        {
+          "path": "frappe/frappe/website/doctype/personal_data_download_request/personal_data_download_request.py",
+          "line": 97,
+          "quote": "hooks = frappe.get_hooks(\"user_data_fields\")"
+        },
+        {
+          "path": "frappe/frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py",
+          "line": 51,
+          "quote": "\"Phone\": \"+91 0000000000\","
+        },
+        {
+          "path": "frappe/frappe/website/web_form/request_to_delete_data/request_to_delete_data.json",
+          "line": 22,
+          "quote": "\"login_required\": 0,"
+        }
+      ]
+    },
+    {
+      "requirementId": "legal-4",
+      "sourceStage": "mvp",
+      "existing": "Native yapı taşları: DocPerm if_owner okuma, v1 API'de check_permission sonrası alan düzeyi okuma filtresi ve user_data_fields üzerinden redaksiyon kapsamı. Aydınlatma, açık rıza ve sözleşme kabulünü ayrı tutan hazır akış saptanmadı.",
+      "gap": "Olay türleri ve zorunlu alanlar (kullanıcı, sürüm, kanal, zaman, kaynak) tanımlı değil; geri çekmenin append-only olayı olması yazılmamış; kanıtın silme talebinde redakte edilip edilmeyeceği kararı yok; sahibin okuma ve kimsenin silmeme izin matrisi tanımlı değil.",
+      "completionSteps": [
+        "contract.input alan önerisini şema görevine ilet; text_version bağını consent-policy-reference--contract kararına bırak.",
+        "consent_evidence.py validate guard'ı: kayıtlı belgede alan değişikliği reddedilir; withdrawal hedefi aynı subject_user ve explicit_consent olmalı.",
+        "consent_evidence.py on_trash guard'ı: silme her zaman reddedilir.",
+        "DocPerm önerisi (sahibi okur ve create eder; write/delete/cancel/amend yok) explicitPermissionFlags kaynağına bağlanır ve entegrasyon sahibine fragment olarak verilir.",
+        "Hukuk kararı gelene kadar Consent Evidence user_data_fields kapsamına eklenmez.",
+        "development.tdd.oneScenario ile tek kabul: reddedilen yazma ve değişmeyen kayıtlar."
+      ],
+      "dependencies": [
+        "consent-evidence--contract",
+        "consent-evidence--schema",
+        "consent-policy-reference--contract",
+        "consent-policy-reference--schema",
+        "native-user-policy--contract"
+      ],
+      "acceptance": "Aydınlatma sunumu, rıza ve sözleşme ayrı olaylar; birini geri çekmek diğerinin kanıtını değiştirmez; mevcut olay güncelleme ve silme Administrator dahil reddedilir.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/website/doctype/personal_data_download_request/personal_data_download_request.json",
+          "line": 60,
+          "quote": "\"if_owner\": 1,"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 84,
+          "quote": "doc.apply_fieldlevel_read_permissions()"
+        },
+        {
+          "path": "frappe/frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py",
+          "line": 41,
+          "quote": "self.user_data_fields = frappe.get_hooks(\"user_data_fields\")"
+        }
+      ]
+    },
+    {
+      "requirementId": "legal-5",
+      "sourceStage": "mvp",
+      "existing": "Native Frappe yalnız e-posta için geri çekme primitive'i sunar: frappe.email.queue.unsubscribe imzalı istek doğrulamasından sonra Email Unsubscribe kaydı oluşturur; Email Queue alıcıları global veya aynı referans kaydına göre eler; controller global kaydın daraltılmasını engeller. Suite Mail outbound is_newsletter yalnız teslim modunu belirler, izin denetimi yapmaz.",
+      "gap": "Çerez kategorisi, banner ve tercih saklama kaynakta yok. Opt-in kanıtı (zaman, kaynak, metin sürümü, kanal) yok. SMS/push/telefon tercihi yok. İşlemsel/ticari ayrım bayrağı yok. Suite Mail outbound Email Unsubscribe filtresini uygulamıyor. Newsletter DocType bu kaynakta yok; bağlantı açık mesaj verilmedikçe yalnız Newsletter referansında ekleniyor. Flush anında yeniden kontrol doğrulanmadı. Frappe backend'de izin okuma/yazma sözleşmesi ve React istemcide çerez tercih sözleşmesi yok.",
+      "completionSteps": [
+        "consent-evidence--contract: izin kaydı alanlarını (kanal, amaç transactional/marketing, durum, zaman, kaynak, metin sürümü) ve çerez kategorisi sözleşmesini (necessary/optional) yaz; kategori içerikleri hukuk kararıdır.",
+        "consent-evidence--schema: Email Unsubscribe değiştirilmeden ek izin kaydı; opt-in ve opt-out olayları legal-4 append-only modelini kullanır.",
+        "consent-evidence--implementation: tek gönderim öncesi kontrol noktası; marketing bayrağı taşıyan iletide izin kontrolü. Mevcut Email Queue unsubscribe filtresi korunur, yerine geçirilmez; geri çekmede native Email Unsubscribe kaydı da native insert ile yazılır.",
+        "Suite Mail outbound newsletter yolunu aynı kontrol noktasına bağla; bağlanana kadar bu yol açık eksik olarak kalır.",
+        "Flush anında yeniden kontrolü salt okunur doğrula; doğrulanmadan iddia etme.",
+        "Çerez tercihini React/Ant Design istemcide bağımsız kur; Frappe backend'e yalnız native whitelist ve izin kontrolüyle izin okuma/yazma uç noktası ekle.",
+        "Sıradaki tek davranış adayı: geri çekilmiş alıcıya marketing ileti kuyruğa alınmaz. Bu, bu sözleşmenin oneScenario'su değildir."
+      ],
+      "dependencies": [
+        "consent-evidence--contract",
+        "consent-evidence--schema",
+        "kernel-envelope--contract",
+        "native-user-policy--contract"
+      ],
+      "acceptance": "Kanal bazında geri çekme sonraki pazarlama gönderimini durdurur; zorunlu ve isteğe bağlı çerezler ayrışır.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/email/queue.py",
+          "line": 97,
+          "quote": "def unsubscribe(doctype: str, name: str, email: str):"
+        },
+        {
+          "path": "frappe/frappe/email/queue.py",
+          "line": 105,
+          "quote": "\"doctype\": \"Email Unsubscribe\","
+        },
+        {
+          "path": "frappe/frappe/email/doctype/email_queue/email_queue.py",
+          "line": 792,
+          "quote": "| (EmailUnsubscribe.global_unsubscribe == 1)"
+        },
+        {
+          "path": "frappe/frappe/email/doctype/email_queue/email_queue.py",
+          "line": 805,
+          "quote": "return [mail_id for mail_id in self.recipients if mail_id not in unsubscribed_emails]"
+        },
+        {
+          "path": "frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py",
+          "line": 31,
+          "quote": "frappe.throw(_(\"Delete this record to allow sending to this email address\"))"
+        },
+        {
+          "path": "suite/suite/mail/api/outbound.py",
+          "line": 120,
+          "quote": "delivery_mode=\"Batch\" if is_newsletter else \"Enqueue\","
+        }
+      ]
+    },
+    {
+      "requirementId": "legal-7",
+      "sourceStage": "post_mvp",
+      "existing": "Native kuyruk (frappe.enqueue) ve zamanlayıcı (scheduler hourly) yapı taşları var. İYS istemcisi veya entegrasyon sözleşmesi yok.",
+      "gap": "Hizmet sağlayıcı/aracı rolü, marka, kanal ve post-MVP koşulu belgelenmemiş. Sahip yanlış ('Frontend ve hukuk'); sunucu entegrasyonu ve secret yönetimi backend ve DevOps işidir. Eşitleme yönü, yeniden deneme, idempotency ve İYS erişilemezken gönderim kuralı yok. legal-5 yerel tercihiyle çakışma önceliği yok.",
+      "completionSteps": [
+        "consent-evidence--implementation-post-mvp görevinde sahibi backend olarak düzelt; secret, CI ve deploy teknik sahibi Hüseyin Cengiz.",
+        "Arayüz notu: eşitleme native frappe.enqueue veya scheduler_events ile yapılır; yön, yeniden deneme ve idempotency anahtarı alan olarak tanımlanır, değerler seçilmez.",
+        "Ticari gönderim legal-5'teki aynı kontrol noktasından geçer; İYS doğrulanamazken gönderim yapılmaz. Bu güvenli politika hukuk onayıyla belgelenir.",
+        "Credential yalnız site config veya secret deposunda tutulur; değer belgeye, Git'e veya çıktıya yazılmaz.",
+        "İşlemsel ileti ayrımı ve yerel/İYS çakışma önceliği decisionsPending kararlarıyla kapanır."
+      ],
+      "dependencies": [
+        "consent-evidence--contract",
+        "consent-evidence--schema",
+        "consent-evidence--implementation",
+        "kernel-envelope--contract",
+        "tenant-registry--contract",
+        "native-user-policy--contract"
+      ],
+      "acceptance": "Uygulanabilir rol ve marka için verilen/geri çekilen izin eşitlenir; gönderim öncesi geçerli izin denetlenir; İYS erişim hatasında belgelenmiş güvenli politika çalışır; işlemsel ileti ayrımı hukuk incelemesiyle kaydedilir.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 293,
+          "quote": "job = frappe.enqueue("
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 307,
+          "quote": "\"hourly\": ["
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "legal-1: Hukukun onaylayacağı işleme envanteri ve kontrol matrisi (amaç, DocType, alan, dayanak, saklama) yok. Suite modüllerinin user_data_fields kapsamı bilinmiyor. Anonimleştirmedeki +91 telefon varsayılanı ve login_required 0 değerlendirilmedi.",
-    "legal-4: Kanıt kayıtlarının silme talebinde redakte mi edileceği yoksa saklanacak mı olduğuna dair yazılı hukuk kararı yok. Karar gelene kadar user_data_fields kaydı eklenmez. Saklama süresi seçilmez.",
-    "legal-5: E-posta pazarlama izni gönderim öncesi kontrol noktası, işlemsel/ticari bayrağı, Email Unsubscribe eşlemesi, Suite Mail outbound filtresizliği, flush anında yeniden kontrol, SMS/push kanalları ve çerez kategorileri (frontend) bu davranışın dışında. Hepsi mevcut görevde sıradaki tek davranış olarak açık.",
-    "Tenant global modeli, Keycloak ve sağlayıcı seçimleri kapsam dışı."
+    "Uygulama durumu: uygulanmadı. Bu dosya yalnız yönerge sözleşmesidir; hiçbir madde implementation DONE değildir.",
+    "legal-1: Hukuk onaylı işleme envanteri ve kontrol matrisi yok; Suite modüllerinin user_data_fields kapsamı bilinmiyor; +91 telefon varsayılanı ve login_required 0 değerlendirilmedi.",
+    "legal-4: Kanıtın silme talebinde redakte edilip edilmeyeceği kararı yok; karar gelene kadar user_data_fields kaydı eklenmez.",
+    "legal-5: Pazarlama gönderim öncesi kontrol noktası, işlemsel/ticari bayrağı, Suite Mail outbound filtresi, flush anında yeniden kontrol, SMS/push kanalları, backend izin uç noktası ve React çerez tercihi bu davranışın dışında; mevcut görevde sıradaki tek davranışlar olarak açık.",
+    "legal-7: İYS entegrasyon sözleşmesi, sahip düzeltmesi, eşitleme kuralları ve erişim hatası politikası yok; post-MVP aşamasında legal-5 kontrol noktasına bağımlı.",
+    "consent-policy-reference--implementation: Consent Policy Reference alanları ve text_version bağı ilgili sözleşme/şema görevlerinde tanımlanmadıkça bu belgede tasarlanmaz."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "İşleme amaçları, hukuki dayanaklar ve saklama süreleri",
+      "requirementIds": ["legal-1"],
+      "blocks": "Kontrol matrisinin onaylı kapsam kaydı olarak kapatılması",
+      "documentStepUntilDecision": "Matris satır biçimini ve user_data_fields kapsam taramasını değerleri boş bırakarak hazırla."
+    },
+    {
+      "decision": "Anonimleştirmedeki '+91 0000000000' telefon varsayılanının TR bağlamında kabulü",
+      "requirementIds": ["legal-1"],
+      "blocks": "Native anonimleştirme davranışı için değişiklik önerisi",
+      "documentStepUntilDecision": "Native değeri kanıtla kaydet; değişiklik önerme."
+    },
+    {
+      "decision": "login_required 0 ve e-posta imzalı doğrulamalı silme formunun kabul edilebilirliği",
+      "requirementIds": ["legal-1"],
+      "blocks": "Silme talebi akışının uyum kaydına bağlanması",
+      "documentStepUntilDecision": "Mevcut native akışı ve riskini matris notu olarak yaz."
+    },
+    {
+      "decision": "Rıza kanıtının silme talebinde redakte edilmesi veya saklanması ve saklama süresi",
+      "requirementIds": ["legal-4"],
+      "blocks": "Consent Evidence için user_data_fields kaydı",
+      "documentStepUntilDecision": "Append-only guard ve izin matrisi rehberini user_data_fields kaydı olmadan tamamla."
+    },
+    {
+      "decision": "Çerez kategorilerinin içeriği ve consent-mode kullanımı",
+      "requirementIds": ["legal-5"],
+      "blocks": "React istemci çerez tercih uygulaması",
+      "documentStepUntilDecision": "necessary/optional ayrımını sözleşme düzeyinde tanımla, içerik seçme."
+    },
+    {
+      "decision": "İşlemsel ve ticari ileti ayrımının hukuki tanımı",
+      "requirementIds": ["legal-5", "legal-7"],
+      "blocks": "Marketing bayrağı ve gönderim öncesi kontrol noktası",
+      "documentStepUntilDecision": "Bayrağı alan olarak tanımla; hangi iletinin ticari olduğunu belirleme."
+    },
+    {
+      "decision": "İYS hizmet sağlayıcı/aracı rolü, marka, kanal ve post-MVP koşulu",
+      "requirementIds": ["legal-7"],
+      "blocks": "İYS eşitleme entegrasyonu",
+      "documentStepUntilDecision": "Kuyruk/zamanlayıcı arayüz notunu ve sahip düzeltmesini yaz."
+    },
+    {
+      "decision": "İYS erişilemezken güvenli politika onayı ve yerel tercih ile İYS kaydı çakışma önceliği",
+      "requirementIds": ["legal-5", "legal-7"],
+      "blocks": "Gönderim öncesi kontrolün İYS ile birleştirilmesi",
+      "documentStepUntilDecision": "Gönderim yapılmaması varsayımını hukuk onayı bekleyen öneri olarak belgele."
+    },
+    {
+      "decision": "Rıza kanıtının tenant/site sınırı",
+      "requirementIds": ["legal-4", "legal-5"],
+      "blocks": "Yetki ve kalıcılık sınırının kesinleşmesi",
+      "documentStepUntilDecision": "Native site sınırını varsay; topoloji seçme, tenant-registry--contract kararını bekle."
+    },
+    {
+      "decision": "İYS credential'ları için secret deposu ve erişim sahipliği",
+      "requirementIds": ["legal-7"],
+      "blocks": "Eşitleme işinin çalıştırılması",
+      "documentStepUntilDecision": "Yalnız site config/secret deposu kuralını yaz; teknik karar Hüseyin Cengiz'de, değer yazılmaz."
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "legal-1": "mvp",
-    "legal-4": "mvp",
-    "legal-5": "mvp"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,

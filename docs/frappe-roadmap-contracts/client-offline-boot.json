@@ -1,28 +1,31 @@
 {
   "schemaVersion": "saas-existing-work-contract.v1",
   "canonicalUnitId": "client-offline-boot",
-  "canonicalTaskIds": ["client-offline-boot--implementation"],
+  "canonicalTaskIds": [
+    "client-offline-boot--implementation",
+    "ui-family-40--implementation-mvp"
+  ],
   "requirementIds": ["channels-16"],
   "stage": "mvp",
+  "sourceStages": {
+    "channels-16": "mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
-    "title": "Ağ yokken soğuk açılışta yerel hazırlık manifestine göre açılış kararı",
-    "trigger": "Uygulama ağ kapalıyken yeniden başlatılır; istemci, etkin site ve son çevrimiçi kullanıcı için yerel hazırlık manifestini okur.",
-    "expected": "Manifest aynı site+kullanıcı anahtarına sahipse ve expiresAt geçmemişse karar 'ready' olur ve yalnız manifestte listelenen DocType/kayıt/dosya anahtarları açılır; listede olmayan veri 'missing' olarak sınırlandırılır. expiresAt geçmişse karar 'expired' olur, veri açılmaz ve bekleyen yerel kayıtlar silinmeden korunur.",
-    "denied": "Manifest yoksa, okunamıyorsa veya site/kullanıcı anahtarı eşleşmiyorsa karar 'needs_online_login' olur; başka kullanıcı veya tenant manifesti asla açılmaz, çevrimdışı ilk giriş vaat edilmez."
+    "title": "Ağ yokken soğuk açılışta yerel hazırlık manifestine göre açılış kararı ve kararın gösterimi",
+    "trigger": "Uygulama ağ kapalıyken yeniden başlatılır; istemci, etkin site ve son çevrimiçi kullanıcı için yerel hazırlık manifestini enjekte edilen okuyucuyla okur.",
+    "expected": "Manifest aynı site+kullanıcı anahtarına sahipse ve expiresAt geçmemişse karar 'ready' olur ve yalnız manifestte listelenen DocType/kayıt/dosya anahtarları açılır; listede olmayan veri 'missing' olarak sınırlandırılır. expiresAt geçmişse karar 'expired' olur, veri açılmaz ve bekleyen yerel kayıtlar silinmeden korunur. Karar ui-family-40 sunum bileşeninde mevcut Ant Design Result/Alert ile anlaşılır metne dönüştürülür; bileşen kararı değiştirmez.",
+    "denied": "Manifest yoksa, okunamıyorsa veya site/kullanıcı anahtarı eşleşmiyorsa karar 'needs_online_login' olur; başka kullanıcı veya tenant manifesti asla açılmaz, çevrimdışı ilk giriş vaat edilmez, hiçbir yerel kayıt yazılmaz veya silinmez."
   },
   "reuse": {
-    "mechanism": "Hazırlık sırasında veri yalnız native okuma yolundan alınır (check_permission + apply_fieldlevel_read_permissions); ham get_meta izin özeti sayılmaz. Suite offlineCopy yalnız desen referansıdır (Service Worker kontrol yoksa açık hata döndürme, shell/API ısıtma). Yeni sunucu API, DocType veya ORM kopyası yok; tek küçük istemci adaptörü sahip olunan dosyadadır çünkü genel çalışma alanı açılış kararı kaynakta yok.",
+    "status": "KISMI",
+    "mechanism": "Native parça: Frappe v1 belge okuma yolu check_permission ve apply_fieldlevel_read_permissions ile izinli ve alan düzeyi süzülmüş içerik döndürür; hazırlık verisi yalnız bu yoldan alınır. v2 get_meta DocType meta tanımıdır; kullanıcıya özgü izin özeti sayılmaz. Desen referansı: Suite Slides offlineCopy, Service Worker denetimi yoksa açık başarısızlık döndürür ve shell/API ısıtır; bu Vue/Frappe UI kaynağıdır, React/Ant Design uygulaması kanıtı değildir. Suite hooks.py içinde OAuth2 get_token yolu bir liste girdisi olarak görünür; listenin amacı burada iddia edilmez ve çevrimdışı oturum kanıtı değildir. Eksik parça: genel çalışma alanı açılış kararı ve yerel yetki manifesti kaynakta yok; tek küçük istemci adaptörü ve tek sunum bileşeni sahip olunacak dosyalarda yazılır. Yeni sunucu API, DocType, ORM kopyası veya CRUD yok. Kanıtın bir native parçayı göstermesi bütün davranışın var olduğu anlamına gelmez.",
     "evidence": [
       {
-        "path": "frappe/frappe/api/v1.py",
-        "line": 84,
-        "quote": "doc.apply_fieldlevel_read_permissions()"
-      },
-      {
-        "path": "frappe/frappe/api/v2.py",
-        "line": 245,
-        "quote": "def get_meta(doctype: str):"
+        "path": "suite/frontend/src/apps/slides/stores/offlineCopy.js",
+        "line": 180,
+        "quote": "await warmShellAndApi(id, loadOptions, signal)"
       },
       {
         "path": "suite/frontend/src/apps/slides/stores/offlineCopy.js",
@@ -30,68 +33,179 @@
         "quote": "return { ok: false, uncontrolled: true, registered }"
       },
       {
-        "path": "suite/frontend/src/apps/slides/stores/offlineCopy.js",
-        "line": 180,
-        "quote": "await warmShellAndApi(id, loadOptions, signal)"
+        "path": "frappe/frappe/api/v2.py",
+        "line": 245,
+        "quote": "def get_meta(doctype: str):"
+      },
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 84,
+        "quote": "doc.apply_fieldlevel_read_permissions()"
+      },
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 417,
+        "quote": "\"/api/method/frappe.integrations.oauth2.get_token\","
       }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "frappe/frappe/api/v2.py",
+      "suite/frontend/src/apps/slides/stores/offlineCopy.js",
+      "suite/suite/hooks.py"
     ]
   },
   "ownership": {
     "activeContractFile": "docs/frappe-roadmap-contracts/client-offline-boot.json",
     "plannedProduction": [
-      "frontend/packages/platform/src/client-offline-boot/client_offline_boot_mvp.tsx"
+      "frontend/packages/platform/src/client-offline-boot/client_offline_boot_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-family-40/mvp.tsx"
     ],
-    "plannedTestFile": "frontend/packages/platform/src/client-offline-boot/client_offline_boot_mvp.test.tsx",
+    "plannedTestFile": null,
     "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
       "frontend/apps/web/src/routes.tsx",
-      "frontend/packages/ui/src/index.ts",
       "frontend/package.json",
-      "integration/fragments/client-offline-boot--integration.json"
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "resolveOfflineBoot({ siteKey: string, userKey: string|null, now: epoch ms, readManifest: () => Promise<Manifest|null> }). Manifest: { version: 1, siteKey, userKey, preparedAt, expiresAt (device-grant sözleşmesinden gelir; süre değeri burada seçilmez), entries: [{ kind: 'doc'|'file', doctype?, name?, key }] }. Anahtarlar opak dizedir; secret/token içermez.",
-    "output": "{ version: 1, decision: 'ready'|'expired'|'needs_online_login', entries?: Manifest.entries (yalnız 'ready'), reason: 'no_manifest'|'unreadable'|'identity_mismatch'|'expired'|null }. Alan düzeyi kısıt, hazırlıkta native yanıttan zaten çıkarılmış içerik olarak saklanır; istemci izin hesaplamaz.",
-    "authorization": "Yetkinin kaynağı Frappe sitesidir: hazırlık native cookie/CSRF oturumuyla read_doc yoluyla yapılır, PermissionError alan kayıt manifeste girmez. Çevrimdışı karar yeni yetki üretmez; yalnız daha önce sunucunun verdiği kapsamı daraltır. Site veya kullanıcı uyuşmazlığı reddedilir.",
-    "persistence": "Sunucuda kalıcılık, DDL veya hook yok. Manifest ve önbellek yalnız cihazda; depolama adaptörü enjekte edilir. Tauri güvenli saklama ve tarayıcı kalıcılık garantisi yok (persist yalnız istektir).",
-    "failure": "readManifest hatası veya şema version uyuşmazlığı 'needs_online_login'/'unreadable' döner, istisna yukarı taşınmaz. Mevcut AntD bileşenleriyle anlaşılır mesaj gösterilir (Outfit, en az 14px, 320 öncelikli, çevreleyen odak halkası yok, simetrik pozitif Cubic hareket). Hazırlıkta QuotaExceededError bu davranışın kapsamı dışındadır."
+    "input": "resolveOfflineBoot({ siteKey: string, userKey: string|null, now: epoch ms, readManifest: () => Promise<Manifest|null> }). Manifest: { version: 1, siteKey, userKey, preparedAt, expiresAt (device-grant sözleşmesinden gelir; süre değeri burada seçilmez), entries: [{ kind: 'doc'|'file', doctype?, name?, key }] }. Anahtarlar opak dizedir; secret/token içermez. siteKey etkin Frappe sitesinin opak anahtarıdır; tenant topolojisi burada seçilmez. Sunum bileşeni girdisi yalnız resolveOfflineBoot çıktısıdır.",
+    "output": "{ version: 1, decision: 'ready'|'expired'|'needs_online_login', entries?: Manifest.entries (yalnız 'ready'), reason: 'no_manifest'|'unreadable'|'identity_mismatch'|'expired'|null }. Alan düzeyi kısıt, hazırlıkta native yanıttan zaten çıkarılmış içerik olarak saklanır; istemci izin hesaplamaz. Sunum bileşeni yerel ReactNode üretir; GenUI capability registry veya JSON model sınırına girmez.",
+    "authorization": "Yetkinin kaynağı Frappe sitesidir: hazırlık, kullanıcının mevcut native Frappe oturumuyla belge okuma yolundan (check_permission + apply_fieldlevel_read_permissions) yapılır; PermissionError alan kayıt manifeste girmez. Oturum mekanizması ve çevrimdışı oturum stratejisi bu sözleşmede seçilmez. Çevrimdışı karar yeni yetki üretmez; yalnız daha önce sunucunun verdiği kapsamı daraltır. Site veya kullanıcı uyuşmazlığı reddedilir. ignore_permissions veya SQL ile yetki atlanmaz. Bu davranış rol/izin üretmez; ileride üretmesi gerekirse explicitPermissionFlags ortak kaynağına bağlanır.",
+    "persistence": "Sunucuda kalıcılık, DDL veya hook yok. Manifest ve önbellek yalnız cihazda; depolama adaptörü enjekte edilir. Tauri güvenli saklama ve tarayıcı kalıcılık garantisi yok (persist yalnız istektir). Karar fonksiyonu ve sunum bileşeni yerel kayıt yazmaz veya silmez. Bu sözleşme hiçbir servis, production, şema veya veri değişikliğine yetki vermez.",
+    "failure": "readManifest hatası veya şema version uyuşmazlığı 'needs_online_login'/'unreadable' döner, istisna yukarı taşınmaz. Mevcut Ant Design bileşenleriyle anlaşılır mesaj gösterilir (Outfit, en az 14 CSS px, 320 CSS px öncelikli, çevreleyen odak halkası yok ama görünür tek klavye odak göstergesi var, merkezi tokenlarla simetrik pozitif süreli Cubic hareket, reduced-motion istisnası). Hazırlıkta QuotaExceededError bu davranışın kapsamı dışındadır."
   },
   "development": {
     "dependencies": [
+      "api-middleware--contract",
+      "client-local-outbox--contract",
       "client-offline-boot--contract",
+      "client-rule-parity--contract",
+      "device-grant--contract",
       "kernel-envelope--contract",
       "sync-receipt--contract",
-      "device-grant--contract",
-      "local pilot: frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6, nativeAuth cookie/CSRF"
+      "ui-family-06--contract",
+      "ui-family-40--contract",
+      "ui-family-40--implementation"
     ],
-    "admission": "T-00 hedef taban ve R-00 yeniden kullanım eşlemesi; izinli veri tüketimi R-01 üzerinden. Yerel Frappe17-dev/suite.localhost kanıtı uzak ürün tabanı değildir; Suite HEAD ve uzak taban bilinmiyor. device-grant expiresAt alanı sözleşmede sabitlenmeden uygulama başlamaz.",
+    "admission": "Uygulama durumu: uygulanmadı. Ortak politika ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy geçerlidir. T-00 hedef taban ve R-00 yeniden kullanım eşlemesi tamamlanmadan, izinli veri tüketimi R-01 üzerinden tanımlanmadan ve device-grant sözleşmesinde expiresAt alanı ile iptal kuralı sabitlenmeden uygulama başlamaz. Hedef Frappe/Suite tabanı bilinmiyor; kaynak alıntıları önceki salt okunur anlık görüntülerdendir, canlı site veya ürün kabulü değildir. Test dosyası yolu admission sırasında belirlenir. Tek dar davranış gerçek RED/GREEN kanıtıyla uygulanır.",
     "steps": [
-      "Sahip olunan dosyaya saf resolveOfflineBoot fonksiyonunu ve Manifest v1 tipini ekle.",
-      "Aynı dosyada karar sonucunu mevcut AntD Result/Alert ile gösteren küçük bileşen ekle; rota bağlantısı entegrasyon sahibine bırakılır.",
-      "Hazırlık manifesti üretimi yalnız native read_doc yanıtlarından entries doldurur; ham get_meta kullanılmaz."
+      "Kabul ön koşullarını doğrula: T-00, R-00, R-01 ve device-grant expiresAt alanı; eksikse dur ve ilgili decisionsPending maddesine bağla.",
+      "client_offline_boot_mvp.tsx içinde Manifest v1 tipini ve saf resolveOfflineBoot fonksiyonunu tanımla; ağ, depolama ve saat yalnız parametreyle (readManifest, now) gelir.",
+      "Değerlendirme sırası: readManifest istisnası -> needs_online_login/unreadable; null -> needs_online_login/no_manifest; version 1 değil -> needs_online_login/unreadable; userKey null veya site/kullanıcı anahtarı uyuşmaz -> needs_online_login/identity_mismatch; now >= expiresAt -> expired/expired ve entries yok; aksi halde ready ve yalnız manifest entries. Kimlik kontrolü süreden önce yapılır ki başka kimliğin manifest durumu sızmasın.",
+      "ui-family-40/mvp.tsx içinde kararı alan salt sunum bileşeni yaz: decision/reason değerlerini mevcut Ant Design Result/Alert ile metne dönüştürür, ready durumunda listede olmayan verinin 'missing' sınırını, expired durumunda bekleyen kayıtların korunduğunu, needs_online_login durumunda çevrimiçi giriş gereğini gösterir.",
+      "registry.ts, routes.tsx, package.json, tauri.conf.json, wxt.config.ts ve diğer paylaşılan dosya bağlantıları entegrasyon sahibinin seri birleştirmesine bırakılır; bu davranış yeni bağımlılık eklemez.",
+      "Çevrimiçi hazırlık manifesti üretimi ayrı ve sonraki adımdır: veri/dosya kapsamı kararı gelince entries yalnız native belge okuma yanıtlarından doldurulur; PermissionError alan kayıt girmez; ham get_meta izin özeti olarak kullanılmaz.",
+      "Yeniden bağlanma bu davranışın parçası değildir: outbox gönderimi ve yetki yeniden doğrulama sırası client-local-outbox ve sync-receipt sözleşmelerinde belirlenir."
     ],
     "tdd": {
       "status": "not_run",
       "oneScenario": "Geçerli süreli manifest kullanıcı A için hazırken kullanıcı B (aynı site) ile ağsız açılış: karar 'needs_online_login', reason 'identity_mismatch', entries döndürülmez.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Aynı test aynı komutla uygulamadan sonra geçer; native zaten çalışan davranış üzerinde RED üretilmez."
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. RED, kimlik karşılaştırması eksikken bu senaryonun decision/reason assertion'ında başarısız olmasıdır; modül bulunamadı, import, derleme veya altyapı hatası RED sayılmaz; native çalışan davranış bozularak RED üretilmez. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "Uygulamadan sonra aynı senaryo, değişmeyen assertion ve aynı komutla geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN'i değildir."
     },
-    "rollback": "Sahip olunan tek üretim dosyası ve planlı test dosyası yerelde geri alınır; üretim, servis veya kayıt değişikliği yetkisi yoktur."
+    "rollback": "Yalnız sahip olunacak iki üretim dosyası ve admission'da belirlenecek test dosyası yerelde geri alınır; paylaşılan dosyalardaki entegrasyonun geri alımı entegrasyon sahibine aittir. Üretim, servis, şema veya kayıt değişikliği yetkisi yoktur; ileride CI/deploy/rollback gerekirse teknik sahip Hüseyin Cengiz'dir, otomasyon/zamanlama etkinleştirilmez."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "channels-16",
+      "sourceStage": "mvp",
+      "existing": "Native: belge okuma yolunda check_permission ve apply_fieldlevel_read_permissions; DocType meta okuma (get_meta, izin özeti değil). Desen referansı: Suite Slides offlineCopy'de Service Worker denetimi yoksa açık başarısızlık ve shell/API ısıtma (Vue kaynağı). Genel çalışma alanı hazırlığı, yerel yetki manifesti ve soğuk açılış kararı kaynakta yok.",
+      "gap": "Site+kullanıcı anahtarlı, süreli manifest üzerinden ağsız açılış kararı ve kararın anlaşılır gösterimi yok. Yerel yetki anlık görüntüsünün içeriği, süre/iptal kuralı, veri/dosya kapsamı, boyut bütçesi ve yeniden bağlanma sırası tanımsız.",
+      "completionSteps": [
+        "Admission ön koşulları sağlandıktan sonra oneScenario için gerçek RED kanıtı üret.",
+        "Manifest v1 tipini ve saf resolveOfflineBoot fonksiyonunu development.steps'teki değerlendirme sırasıyla yaz.",
+        "ui-family-40 sunum bileşeninde dört karar/neden durumunu mevcut Ant Design Result/Alert ile metne bağla; tokenlar, Outfit, 14 CSS px alt sınırı ve odak kuralı korunur.",
+        "Aynı senaryoyu aynı komutla GREEN'e getir; ardından expired ve no_manifest için ayrı regresyon senaryoları ekle.",
+        "Hazırlık manifesti üretimini veri kapsamı kararı gelene kadar başlatma."
+      ],
+      "dependencies": [
+        "client-offline-boot--contract",
+        "device-grant--contract",
+        "kernel-envelope--contract",
+        "sync-receipt--contract",
+        "client-local-outbox--contract",
+        "ui-family-40--contract",
+        "ui-family-40--implementation"
+      ],
+      "acceptance": "Gelecekteki kabul (not_run): uygulama ve cihaz ağ kapalıyken yeniden başlatılır; hazırlanmış yetkili çalışma alanı ve gerekli dosyalar açılır. Eksik veri/dosya 'missing', bitmiş yerel süre 'expired' olarak sınırlandırılır ve bekleyen kayıtlar değişmeden kalır. Başka kullanıcı/tenant manifesti 'needs_online_login'/'identity_mismatch' ile reddedilir, entries dönmez, hiçbir yerel kayıt yazılmaz veya silinmez. Hazırlanmamış cihaz çevrimiçi giriş gereğini gösterir. Mesajlar 320 CSS px'ten masaüstüne kadar okunur, klavye odağı görünür ve çevreleyen halka yoktur.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 84,
+          "quote": "doc.apply_fieldlevel_read_permissions()"
+        },
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 245,
+          "quote": "def get_meta(doctype: str):"
+        },
+        {
+          "path": "suite/frontend/src/apps/slides/stores/offlineCopy.js",
+          "line": 177,
+          "quote": "return { ok: false, uncontrolled: true, registered }"
+        },
+        {
+          "path": "suite/frontend/src/apps/slides/stores/offlineCopy.js",
+          "line": 180,
+          "quote": "await warmShellAndApi(id, loadOptions, signal)"
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 417,
+          "quote": "\"/api/method/frappe.integrations.oauth2.get_token\","
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
     "Yerel yetki süresi ve iptal kuralı device-grant sözleşmesine bağlı; süre değeri seçilmedi.",
-    "Keycloak çevrimdışı oturum ve Tauri keychain/Stronghold kararı bekliyor; bu sözleşme dışında.",
-    "Yeniden bağlanınca önce yetki doğrulama sonra outbox gönderimi sırası ve yetki kaybında bekleyen kayıtların akıbeti sync-receipt sözleşmesine bağlı.",
-    "Hazırlanacak DocType/dosya kapsamı ve boyut bütçesi tanımsız.",
-    "Service Worker/paketli uygulama kabuğunun ağsız yüklenmesi ve gerçek cihaz yeniden başlatma kanıtı not_run.",
-    "Dağıtım veya uzak ortam gereksinimi doğarsa teknik sahip Hüseyin Cengiz'dir; otomasyon/zamanlama etkinleştirilmez."
+    "Çevrimdışı oturum stratejisi ve Tauri güvenli saklama kararı bekliyor; bu davranışın kapsamı dışında, depolama adaptörü enjekte edilir.",
+    "Yeniden bağlanınca yetki doğrulama ile outbox gönderimi sırası ve yetki kaybında bekleyen kayıtların akıbeti client-local-outbox ve sync-receipt sözleşmelerine bağlı.",
+    "Hazırlanacak DocType/dosya kapsamı ve boyut bütçesi tanımsız; hazırlık manifesti üretimi bu yüzden sonraki adım.",
+    "Service Worker/Vite PWA kabuğu ve Tauri paketli kabuğunun ağsız yüklenmesi ile gerçek cihaz yeniden başlatma kanıtı not_run.",
+    "ui-family-40 sunumunun 320/360/375/390 px, tablet, masaüstü ve Chromium/Firefox/WebKit doğrulaması not_run."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Yerel yetki süresi (expiresAt değeri) ve iptal kuralı",
+      "requirementIds": ["channels-16"],
+      "blocksStep": "Admission ve resolveOfflineBoot uygulaması",
+      "allowedDocWorkUntilDecided": "expiresAt alanının yalnız device-grant sözleşmesinden geldiğini ve burada değer seçilmediğini belgelemek"
+    },
+    {
+      "decision": "Hazırlanacak DocType/dosya kapsamı ve cihaz boyut bütçesi",
+      "requirementIds": ["channels-16"],
+      "blocksStep": "Çevrimiçi hazırlık manifesti üretimi",
+      "allowedDocWorkUntilDecided": "Manifest v1 şemasını kapsamdan bağımsız tutmak ve 'missing' sınırını tanımlamak"
+    },
+    {
+      "decision": "Çevrimdışı oturum stratejisi ve Tauri güvenli saklama yöntemi",
+      "requirementIds": ["channels-16"],
+      "blocksStep": "Cihazda kalıcı manifest/oturum depolama adaptörü",
+      "allowedDocWorkUntilDecided": "Depolama adaptörünü enjekte edilen arayüz olarak belgelemek; secret veya token içeriği tanımlamamak"
+    },
+    {
+      "decision": "Yeniden bağlanmada yetki doğrulama ile outbox gönderimi sırası ve yetki kaybında bekleyen kayıtların akıbeti",
+      "requirementIds": ["channels-16"],
+      "blocksStep": "Bağlantı sonrası senkronizasyon kabulü",
+      "allowedDocWorkUntilDecided": "Bu davranışın kayıt silmediğini ve göndermediğini belgelemek; sırayı client-local-outbox ve sync-receipt sözleşmelerine bağlamak"
+    },
+    {
+      "decision": "Hedef Frappe/Suite sürümü ve tabanı (T-00)",
+      "requirementIds": ["channels-16"],
+      "blocksStep": "Admission",
+      "allowedDocWorkUntilDecided": "Kaynak alıntılarını salt okunur anlık görüntü kanıtı olarak işaretli tutmak"
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "channels-16": "mvp"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,

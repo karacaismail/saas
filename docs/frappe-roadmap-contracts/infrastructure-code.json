@@ -1,0 +1,201 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "infrastructure-code",
+  "canonicalTaskIds": ["infrastructure-code--implementation"],
+  "requirementIds": ["deployment-10"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "deployment-10": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Altyapı tanımından tekrar üretim, plan farkı ve değer göstermeyen yapılandırma sapması raporu",
+    "trigger": "Hüseyin Cengiz, seçilecek IaC aracında belirli bir ortam için plan veya sapma kontrolünü elle ya da CI adımı olarak başlatır.",
+    "expected": "Uygulama durumu: uygulanmadı. Gelecekte: aynı tanımdan boş ortam tekrar üretilebilir; plan beklenen kaynak farkını kaynak bazında gösterir; site_config ve common_site_config üzerindeki elle yapılmış değişiklik yalnız anahtar ve fark türüyle (eksik, fazla, değişmiş) raporlanır; secret değerleri kaynak koduna, plan çıktısına, loga veya sapma raporuna yazılmaz.",
+    "denied": "Secret değerinin repoya, plana, loga, CI artefaktına veya rapora yazılması; sapmanın onaysız otomatik düzeltilmesi; bu sözleşmeye dayanarak production ortamına apply yapılması; ignore_permissions veya doğrudan SQL ile yetki ya da yapılandırma atlatılması reddedilir."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native Frappe parçaları yalnız yapılandırma girdisini sağlar: FRAPPE_DB_PASSWORD ortam değişkeni db_password değerinin yerine geçer; config extra_config ile dışarıdan genişletilebilir; set-config komutu site_config.json içine anahtar ekler veya günceller; encryption_key çalışma anında site config'e yazılır. Suite deploy için apt bağımlılığı beyan eder. IaC aracı, state, plan, sapma tespiti ve çıktı maskeleme native değildir; seçilecek araçta kurulmalıdır. Kanıt bir native parçayı gösterir, bütün davranışın var olduğunu göstermez. Alıntılar önceki salt okunur Frappe/Suite kaynak görüntülerindendir; canlı site veya ürün kabulü değildir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/config.py",
+        "line": 89,
+        "quote": "config[\"db_password\"] = os.environ.get(\"FRAPPE_DB_PASSWORD\") or config.get(\"db_password\")"
+      },
+      {
+        "path": "frappe/frappe/config.py",
+        "line": 95,
+        "quote": "if extra_config := config.get(\"extra_config\"):"
+      },
+      {
+        "path": "frappe/frappe/commands/utils.py",
+        "line": 922,
+        "quote": "def set_config(context: CliCtxObj, key, value, global_=False, parse=False):"
+      },
+      {
+        "path": "frappe/frappe/utils/password.py",
+        "line": 255,
+        "quote": "update_site_config(\"encryption_key\", encryption_key)"
+      },
+      {
+        "path": "suite/pyproject.toml",
+        "line": 35,
+        "quote": "[deploy.dependencies.apt]"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/commands/utils.py",
+      "frappe/frappe/config.py",
+      "frappe/frappe/utils/password.py",
+      "suite/pyproject.toml"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/infrastructure-code.json",
+    "plannedProduction": [
+      "operations/infrastructure-code/infrastructure_code_post_mvp.yml"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Seçilecek IaC aracında ortam başına kaynak tanımı (sunucu, ağ, depolama, erişim). site_config ve common_site_config için istenen durum listesi; her anahtar için kapsam (site veya ortak), sınıf (secret veya secret değil) ve değer kaynağı (secret değilse tanımdaki değer, secret ise yalnız secret deposu referansı). Ortam kimliği: yerel geliştirme (Colima) veya Hetzner/Debian sunucusu (Docker Engine).",
+    "output": "Plan raporu: kaynak başına oluşturma, değiştirme, silme. Sapma raporu: ortam, dosya (site_config veya common_site_config), anahtar, fark türü (eksik, fazla, değişmiş). Secret sınıfındaki anahtarlarda değer, değerin parçası veya ondan türetilmiş özet gösterilmez. Sapma bulunursa sıfırdan farklı çıkış kodu.",
+    "authorization": "Bu sözleşme Frappe rolü veya izni üretmez; işlem altyapı ve CLI düzeyindedir. Plan ve sapma okuması Hüseyin Cengiz'in tanımladığı operatör veya CI kimliğiyle yapılır; apply, deploy ve rollback Hüseyin Cengiz onayına bağlıdır. İleride bu davranış bir Frappe API'si veya ekranı olarak sunulursa yetki explicitPermissionFlags ortak kaynağına bağlanır ve o tek kabulde yetkisiz yazma reddedilip kayıt değişmeden kalır. DNS kaydı gerekirse kayıt türünü, adını ve değerini Hüseyin Cengiz hazırlar, GoDaddy'de Asistan Hüseyin uygular, sonucu Hüseyin Cengiz doğrular. Native izin, transaction ve save yolları yeniden kullanılır; ignore_permissions veya SQL ile yetki atlatma yoktur.",
+    "persistence": "Altyapı state'i karara bağlanacak state backend'inde tutulur; state ve secret repoya girmez. site_config değişiklikleri yalnız native set-config ve update_site_config yoluyla, onaylı apply aşamasında yapılır; doğrudan dosya düzenleme veya SQL yoktur. encryption_key seçilecek secret deposunda yedeklenir. Bu sözleşme hiçbir servisi, şemayı, veriyi veya production yapılandırmasını değiştirmez.",
+    "failure": "State erişilemez veya kilitliyse apply yapılmaz. Secret referansı çözülemezse işlem durur ve hata mesajında değer yer almaz. Sapma bulunursa rapor üretilir, otomatik düzeltme yapılmaz. Geri yüklenen ortamda encryption_key site açılmadan önce yerleştirilmemişse native kod anahtarı çalışma anında site config'e yazar; önceki şifreli verilerle uyumsuzluk riski olduğu için bu durum engelleyici hata sayılır."
+  },
+  "development": {
+    "dependencies": ["infrastructure-code--contract"],
+    "admission": "T-00 hedef sürüm baseline'ı ve R-00 yeniden kullanım eşlemesi tamamlanmalıdır; izinli veri tüketicisi eklenirse R-01 de gerekir. decisionsPending içindeki IaC aracı, state backend ve secret deposu kararları verilmeden kod yazılmaz. Tek dar davranış gerçek RED/GREEN kanıtıyla uygulanır. Sıra mevcut görev bağımlılığına ve aşamaya göredir; küme sırası yeni bir seri bağımlılık değildir.",
+    "steps": [
+      "infrastructure-code--implementation görevine karar kaydı ekle: IaC aracı, state backend ve secret deposu. Seçim kullanıcı kararıdır; teknik karşılaştırmayı Hüseyin Cengiz hazırlar. Terraform kaynakta yalnız örnek olarak geçer, seçilmiş değildir.",
+      "T-00 hedef sürümünde reuse.evidence satırlarını yeniden doğrula: env ve extra_config okuması, set-config komutu, encryption_key yazımı, Suite deploy apt bağımlılıkları. Satır kaymışsa kanıtı güncelle; davranış değişmişse bu sözleşmeyi revize et.",
+      "site_config ve common_site_config için istenen durum listesini yaz: anahtar, kapsam, secret sınıfı, değer kaynağı. db_password, encryption_key ve diğer kimlik bilgileri secret sınıfındadır.",
+      "Secret enjeksiyon yolunu tanımla: db_password için FRAPPE_DB_PASSWORD; diğer secretlar için extra_config hook'u veya seçilecek secret deposu. Hook imzası ve diğer FRAPPE_* değişkenleri hedef sürümde doğrulanmadan kullanılmaz.",
+      "encryption_key yaşam döngüsünü tanımla: ilk oluşumdan sonra secret deposuna alınır; yedekten geri yüklemede site açılmadan önce yerleştirilir; ortamlar arası kopyalama, saklama kararına bağlıdır.",
+      "Sapma kontrolünü tanımla: istenen durum ile ortamdaki anahtar kümesini ve değerleri karşılaştır; çıktıda yalnız anahtar ve fark türü yer alsın; secret değerleri karşılaştırma için okunsa bile çıktıya, loga veya CI artefaktına yazılmasın.",
+      "Sunucu, ağ, depolama ve erişim kaynaklarını seçilecek araçta tanımla; Suite deploy.dependencies.apt paketlerini imaj tanımına aynı kaynaktan aktar.",
+      "Ortam farkı tablosunu yaz: yerel geliştirmede Colima, Hetzner/Debian sunucularında Docker Engine; container runtime, volume, ağ, kaynak sınırı ve secret enjeksiyonu farkları. Yerel ortam production eşdeğeri sayılmaz.",
+      "CI entegrasyonunu Hüseyin Cengiz kurar: plan ve sapma salt okunur adımdır; apply yalnız onaylı ve ayrı bir adımdır."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Hedef ortamın site_config dosyasında secret sınıfındaki bir anahtar istenen durumdan farklıyken sapma kontrolü o anahtarı 'değişmiş' olarak raporlar ve değeri hiçbir çıktıda göstermez.",
+      "red": "Yönerge: elle değiştirilmiş secret anahtar varken kontrol sapmayı raporlamıyor ya da değeri çıktıya yazıyorsa test kırmızıdır. Import, bağımlılık veya altyapı hatası RED sayılmaz; native config okuması bozularak RED üretilmez. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "Rapor anahtarı ve fark türünü içerir; değer veya değerin parçası yoktur; çıkış kodu sıfırdan farklıdır; site_config ve native config okuması değişmemiştir."
+    },
+    "rollback": "Bu turda geri alınacak üretim değişikliği yoktur; yalnız bu sözleşme dosyası entegrasyon sahibince geri alınabilir. Gelecekte apply geri dönüşü, Hüseyin Cengiz'in sorumluluğunda önceki tanım ve state sürümüne dönülerek yapılır; site_config geri dönüşü native set-config ile, encryption_key korunarak yapılır."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "deployment-10",
+      "sourceStage": "post_mvp",
+      "existing": "Native parçalar: db_password ortam değişkeninden okunabilir; config extra_config ile dışarıdan genişletilebilir; set-config site_config.json içine anahtar ekler veya günceller; encryption_key çalışma anında site config'e yazılır; Suite deploy için apt bağımlılığı beyan eder. Bu parçalar IaC, plan veya sapma davranışının var olduğunu göstermez.",
+      "gap": "IaC aracı ve state backend kararı yok (Terraform yalnız örnek). site_config ve common_site_config için istenen durumun nasıl tanımlanacağı ve sapma çıktısında secret'ların nasıl maskeleneceği belirsiz. Çalışma anında oluşan encryption_key'in kaynak dışında saklanması ve geri yüklemeyle ilişkisi tanımsız. Yerel Colima ile Hetzner'deki Docker Engine arasındaki ortam farkı kapsam dışında kalmış.",
+      "completionSteps": [
+        "Araç, state backend ve secret deposu kararını karar kaydına işle.",
+        "İstenen durum anahtar listesini secret ve secret olmayan diye sınıflandırarak belgele.",
+        "Secret enjeksiyonunu FRAPPE_DB_PASSWORD ile ve hedef sürümde doğrulanmış extra_config yoluyla tanımla.",
+        "encryption_key'i secret deposunda yedekle ve geri yükleme sırasını tanımla.",
+        "Sapma raporunu yalnız anahtar ve fark türüyle, değer göstermeden tanımla.",
+        "Colima ve Docker Engine ortam farkı tablosunu ekle."
+      ],
+      "dependencies": ["infrastructure-code--contract"],
+      "acceptance": "Aynı tanımdan boş ortam tekrar üretilebilir; plan beklenen kaynak farkını gösterir; elle yapılan sapma anahtar ve fark türüyle yakalanır; secret değerleri kaynak koduna ve hiçbir çıktıya yazılmaz; geri yüklenen ortam önceki encryption_key ile açılır.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/config.py",
+          "line": 89,
+          "quote": "config[\"db_password\"] = os.environ.get(\"FRAPPE_DB_PASSWORD\") or config.get(\"db_password\")"
+        },
+        {
+          "path": "frappe/frappe/config.py",
+          "line": 95,
+          "quote": "if extra_config := config.get(\"extra_config\"):"
+        },
+        {
+          "path": "frappe/frappe/commands/utils.py",
+          "line": 922,
+          "quote": "def set_config(context: CliCtxObj, key, value, global_=False, parse=False):"
+        },
+        {
+          "path": "frappe/frappe/utils/password.py",
+          "line": 255,
+          "quote": "update_site_config(\"encryption_key\", encryption_key)"
+        },
+        {
+          "path": "suite/pyproject.toml",
+          "line": 35,
+          "quote": "[deploy.dependencies.apt]"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Uygulama durumu: uygulanmadı; hiçbir IaC tanımı, state veya sapma kontrolü yok.",
+    "IaC aracı ve state backend seçilmedi.",
+    "site_config ve common_site_config istenen durum listesi ve secret maskeleme biçimi tanımlı değil.",
+    "encryption_key için kaynak dışı saklama ve geri yükleme ilişkisi tanımsız.",
+    "Colima ile Docker Engine arasındaki ortam farkı belgelenmedi.",
+    "db_password dışındaki secretlar için env değişkeni desteği ve extra_config hook imzası hedef sürümde doğrulanmadı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "IaC aracı seçimi",
+      "requirementIds": ["deployment-10"],
+      "blocks": "Kaynak tanımı, plan ve CI adımları",
+      "allowedUntilDecided": "Araçtan bağımsız kaynak envanteri, kabul ölçütleri ve karşılaştırma kriterlerini belgelemek"
+    },
+    {
+      "decision": "State backend, kilitleme ve state'in veri yerleşimi",
+      "requirementIds": ["deployment-10"],
+      "blocks": "Apply, sapma kontrolünün state'e bağlı kısmı ve rollback",
+      "allowedUntilDecided": "State'in repoya girmeyeceğini ve fail-closed davranışını belgelemek"
+    },
+    {
+      "decision": "Secret deposu seçimi",
+      "requirementIds": ["deployment-10"],
+      "blocks": "Secret enjeksiyonu ve encryption_key saklama",
+      "allowedUntilDecided": "Secret anahtar sınıflandırmasını ve referans biçimini depodan bağımsız yazmak"
+    },
+    {
+      "decision": "encryption_key yedeklerinin saklama süresi ve ortamlar arası kopyalama politikası",
+      "requirementIds": ["deployment-10"],
+      "blocks": "Geri yükleme adımı",
+      "allowedUntilDecided": "Site açılmadan önce anahtarın yerleştirilmesi sırasını belgelemek"
+    },
+    {
+      "decision": "Hedef Frappe/Suite sürümü (T-00)",
+      "requirementIds": ["deployment-10"],
+      "blocks": "Kanıt satırlarının yeniden doğrulanması ve extra_config hook kullanımı",
+      "allowedUntilDecided": "Yalnız doğrulanmış alıntılarla istenen durum listesinin taslağını yazmak"
+    },
+    {
+      "decision": "Tenant topolojisi (site başına yapılandırma kapsamı)",
+      "requirementIds": ["deployment-10"],
+      "blocks": "site_config ve common_site_config anahtarlarının kapsam ataması",
+      "allowedUntilDecided": "common_site_config için ortak anahtarları belgelemek"
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

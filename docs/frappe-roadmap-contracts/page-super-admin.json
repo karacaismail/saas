@@ -1,18 +1,26 @@
 {
   "schemaVersion": "saas-existing-work-contract.v1",
   "canonicalUnitId": "page-super-admin",
-  "canonicalTaskIds": ["page-super-admin--implementation"],
+  "canonicalTaskIds": [
+    "page-super-admin--implementation",
+    "ui-family-01--implementation-mvp"
+  ],
   "requirementIds": ["shell-1"],
   "stage": "mvp",
+  "sourceStages": {
+    "shell-1": "mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
-    "title": "Süper admin sayfası yerel site bağlamını yalnız System Manager için gösterir; müşteri rolü aynı uç noktada 403 ile reddedilir",
-    "trigger": "Oturum açmış kullanıcı SuperAdminPage'i açar; sayfa mevcut native v1 belge okuma yoluyla tek bir yönetim kaydını ister.",
-    "expected": "System Manager oturumunda yanıt 200 olur; sayfa yerel site bağlamını (yalnız yerel kanıt için tenant=site) salt okunur gösterir.",
-    "denied": "System Manager olmayan müşteri rolü aynı istekte native PermissionError/403 alır; sayfa AntD Result 403 gösterir, veri veya yönetim eylemi render etmez, istemci tarafında rol tahminiyle erişim açmaz."
+    "title": "Süper admin sayfası mevcut site bağlamını yalnız System Manager için salt okunur gösterir; müşteri rolü aynı okumada 403 ile reddedilir. Uygulama durumu: uygulanmadı.",
+    "trigger": "Oturum açmış kullanıcı SuperAdminPage rotasını açar; sayfa native v1 belge okuma yolundan tek bir yönetim kaydı ister.",
+    "expected": "System Manager rolüne sahip kullanıcıda yanıt 200 olur; sayfa alan düzeyinde filtrelenmiş yanıttan yalnız gösterim alanlarını salt okunur gösterir. Tenant modeli kararı gelene kadar sayfa yalnız isteğin yapıldığı sitenin bağlamını gösterir; tenant listesi, tenant seçimi veya yönetim eylemi sunmaz.",
+    "denied": "System Manager olmayan müşteri rolü aynı istekte native PermissionError/403 alır; sayfa Ant Design Result 403 gösterir, veri veya yönetim eylemi render etmez. İstemci tarafında rol tahminiyle erişim açılmaz; UI'da gizleme güvenlik sınırı sayılmaz."
   },
   "reuse": {
-    "mechanism": "Native önce: yeni API veya adapter yok. Yetki kararı sunucuda native doc.check_permission ve has_permission ile verilir; frontend yalnız mevcut React19/AntD6/TanStack tüketicisinde yanıt durumunu işler. only_for deseni, ileride toplu kiracı için whitelisted bir metot gerekirse referanstır; şimdi kullanılmaz.",
+    "status": "KISMI",
+    "mechanism": "Native önce: yeni API, adapter, yetki motoru veya CRUD yok. Okuma yetkisi sunucuda native doc.check_permission ve has_permission ile verilir; frontend yalnız yanıt durumunu (200, 401, 403, diğer) işler. System Manager için only_for deseni, ileride toplu kiracı işlemi için whitelisted bir metot gerekirse referanstır; bu davranışta kullanılmaz. Kanıtlar yalnız native yetki parçalarını gösterir; tenant listeleme, seçme veya yönetme davranışının var olduğunu göstermez.",
     "evidence": [
       {
         "path": "frappe/frappe/api/v1.py",
@@ -29,65 +37,149 @@
         "line": 112,
         "quote": "frappe.only_for(\"System Manager\")"
       }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "frappe/frappe/desk/page/setup_wizard/setup_wizard.py",
+      "frappe/frappe/permissions.py"
     ]
   },
   "ownership": {
     "activeContractFile": "docs/frappe-roadmap-contracts/page-super-admin.json",
     "plannedProduction": [
+      "frontend/packages/ui/src/components/ui-family-01/mvp.tsx",
       "frontend/packages/ui/src/pages/page-super-admin/index.tsx"
     ],
-    "plannedTestFile": "frontend/packages/ui/src/pages/page-super-admin/index.test.tsx",
+    "plannedTestFile": null,
     "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
       "frontend/apps/web/src/routes.tsx",
-      "frontend/packages/ui/src/index.ts",
-      "frontend/packages/ui/src/navigation.ts",
-      "frontend/packages/ui/src/registry.ts"
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "GET v1 belge okuma: doctype ve name (string). Entegrasyon, yalnız System Manager'ın read iznine sahip olduğu tek bir native kayıt seçer; System Settings adaydır ama izin tablosu verilen kanıtta doğrulanmadı. Gövde yok; expand_links gönderilmez. Kimlik doğrulama native cookie/CSRF ile yapılır; Keycloak not_run.",
-    "output": "200: apply_fieldlevel_read_permissions sonrası alan düzeyinde filtrelenmiş belge döner; sayfa yalnız gösterim alanlarını okur (contract-page-super-admin v1). 403: veri yok.",
-    "authorization": "Sınır native site; rol kararını native Role ve DocPerm verir. has_permission içinde Administrator her şeye izinlidir (satır 109), bu yüzden test kullanıcısı olarak kullanılmaz. Müşteri rolüne read izni verilmez; red kararı sunucudadır, UI'da gizlemek güvenlik sınırı değildir.",
-    "persistence": "Salt okunur. Document.save, hook, kuyruk, DDL veya transaction yok.",
-    "failure": "PermissionError/403: Result 403 gösterilir, otomatik yeniden deneme yapılmaz. 401 veya oturum yoksa mevcut tüketicinin giriş akışı çalışır. Ağ hatası veya 5xx: ayrı hata durumu ve yeniden dene; 403 ile karıştırılmaz. Rota URL eşlemesi verilen alıntıda yok, entegrasyonda doğrulanır."
+    "input": "Native v1 belge okuma: doctype ve name (string). Kanıtlanan okuma yolu frappe/frappe/api/v1.py içinde doc.check_permission ile read izni ister. Rota URL eşlemesi verilen alıntıda yoktur; admission sırasında hedef tabanda doğrulanır. Okunacak kayıt, yalnız System Manager'ın read iznine sahip olduğu tek bir native kayıttır; aday DocType ve izin tablosu doğrulanmadı (decisionsPending). Gövde yok; expand_links gönderilmez. Kimlik doğrulama native oturum ve CSRF ile yapılır.",
+    "output": "200: native alan düzeyi okuma filtresinden geçmiş belge; sayfa yalnız gösterim alanlarını okur, ek alan istemez. 403: veri yok, yalnız durum. JSON model sınırı korunur: sunucu yanıtı düz veri olarak işlenir; ReactNode veya callback sunucudan ya da GenUI capability registry'den gelmez.",
+    "authorization": "Sınır native Frappe Role ve DocPerm'dir; karar sunucuda has_permission ve doc.check_permission ile verilir. ignore_permissions, ham SQL veya istemci tarafı rol kontrolüyle bypass yok. Administrator kabul veya red test kullanıcısı olarak kullanılmaz; gerçek System Manager rolü ve gerçek müşteri rolü atanmış iki ayrı kullanıcı kullanılır. Rol veya DocPerm eklenmesi gerekirse explicitPermissionFlags ortak kaynağına (../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy) bağlanır; o değişikliğin kabulünde müşteri rolünün aynı kayda yazma denemesi reddedilir ve kayıt değişmeden kalır.",
+    "persistence": "Salt okunur. Document.save, insert, delete, hook, kuyruk, şema/DDL veya açık transaction yok. Bu sözleşme servis, production, şema veya veri değiştirme yetkisi vermez.",
+    "failure": "403/PermissionError: Result 403, otomatik yeniden deneme yok. 401 veya oturum yok: seçilmiş istemcinin giriş akışına yönlendirme; 403 ile karıştırılmaz. Ağ hatası veya 5xx: ayrı hata durumu ve kullanıcı tetiklemeli yeniden dene. Beklenmeyen yanıt şekli: veri render edilmez, hata durumu gösterilir."
   },
   "development": {
     "dependencies": [
-      "page-super-admin--contract",
-      "kernel-envelope--contract",
       "api-middleware--contract",
       "client-rule-parity--contract",
-      "localPilot t08 native admin/reader scopes"
+      "kernel-envelope--contract",
+      "page-super-admin--contract",
+      "page-tenant-admin--contract",
+      "ui-family-01--contract",
+      "ui-family-01--implementation"
     ],
-    "admission": "T-00, R-00 ve R-01 önkoşuldur. Pilot yerel Frappe17-dev suite.localhost üzerinde yapılır (frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6). Suite HEAD ve uzak ürün tabanı bilinmiyor; yerel kanıt uzak tabanı temsil etmez. Test çalıştırıcısı ve komutu bu girdide doğrulanmadı.",
+    "admission": "Uygulama durumu: uygulanmadı. Önkoşullar: T-00 hedef taban (Frappe hedef sürümü ve api v1/v2 yüzeyi), R-00 yeniden kullanım eşlemesi ve izinli veri tüketicisi olduğu için R-01. Listelenen bağımlılıklar kabul edilmeden üretim kiralaması açılmaz. Test çalıştırıcısı ve komutu bu girdide doğrulanmadı; entegrasyonda paket scriptinden okunur. Tek dar davranış gerçek RED/GREEN kanıtıyla uygulanır. Sıra mevcut görev bağımlılıkları ve aşamadan gelir; küme sırası yeni seri bağımlılık değildir.",
     "steps": [
-      "index.tsx: TanStack query ile tek okuma yapılır; 200, 403 ve diğer durumlar ayrılır",
-      "403 durumunda AntD Result, 200 durumunda salt okunur AntD Descriptions gösterilir",
-      "Mevcut tokenlar korunur: Outfit, en az 14px, 320 öncelikli, çevreleyen odak halkası yok, simetrik pozitif Cubic hareket",
-      "Rota ve registry kaydı entegrasyon sahibi Codex'e devredilir"
+      "Admission sırasında okunacak native DocType/kaydı ve izin tablosunu hedef tabanda doğrula; müşteri rolünün read izni olmadığını gör. Doğrulanamazsa uygulamayı başlatma, durumu decisionsPending altında güncelle.",
+      "frontend/packages/ui/src/pages/page-super-admin/index.tsx: TanStack Query ile tek okuma; 200, 401, 403 ve diğer hatalar ayrı durumlara eşlenir; 403 için yeniden deneme kapalıdır.",
+      "403 durumunda Ant Design Result, 200 durumunda salt okunur Ant Design Descriptions gösterilir; oluşturma, askıya alma veya silme eylemi render edilmez.",
+      "frontend/packages/ui/src/components/ui-family-01/mvp.tsx: ui-family-01--implementation-mvp sahipliğindeki ortak kabuk ve durum parçaları kullanılır; bu davranış için yeni bileşen ailesi veya motor tasarlanmaz.",
+      "UI kuralları: merkezi semantik tokenlar, Outfit, en az 14 CSS px metin, 320 CSS px öncelikli akış, çevreleyen odak halkası yok, simetrik pozitif süreli Cubic hareket ve reduced-motion istisnası.",
+      "Rota (frontend/apps/web/src/routes.tsx) ve kaynak registry (frontend/packages/ui/src/registry.ts) kaydı ana entegrasyon sahibine devredilir; kaynak registry GenUI capability registry ile birleştirilmez. hooks.py, Tauri ve WXT dosyalarında bu davranış için değişiklik öngörülmez; gerekirse karar ana entegrasyon sahibinindir."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "Müşteri rolü oturumunda aynı okuma 403 döndüğünde SuperAdminPage 403 durumunu gösterir ve site verisi render etmez.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. index.tsx uygulandıktan sonra aynı test aynı komutla geçer; komut entegrasyonda paket scriptinden okunur."
+      "oneScenario": "System Manager olmayan müşteri rolü atanmış kullanıcı oturumunda aynı native okuma 403 döndüğünde SuperAdminPage 403 durumunu gösterir ve hiçbir site veya yönetim verisi render etmez.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. RED, sayfanın 403'ü ayırt etmeyip veri veya genel hata göstermesinden doğan assertion başarısızlığıdır; import/altyapı hatası veya native izni bozarak üretilen hata RED sayılmaz. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "Uygulamadan sonra aynı senaryo, değişmeyen assertion ve aynı komutla geçmelidir. Şu anda not_run; bu sözleşme veya JSON biçim kontrolü ürün GREEN'i değildir."
     },
-    "rollback": "Yalnız index.tsx ve planlanan test geri alınır; rota kaydı entegrasyonda kaldırılır. Production izni yok."
+    "rollback": "Yalnız index.tsx ve ilgili gelecekteki test geri alınır; rota ve registry kaydı ana entegrasyon sahibi tarafından kaldırılır. Native izin, veri veya şema değişikliği olmadığından veri geri alma yoktur. CI/deploy/rollback teknik sahibi Hüseyin Cengiz'dir; production izni yok."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "shell-1",
+      "sourceStage": "mvp",
+      "existing": "Native parçalar: has_permission (permissions.py:82), v1 belge okumada read izni kontrolü (api/v1.py:83), whitelisted metotlar için System Manager only_for deseni (setup_wizard.py:112). Frappe Desk yönetim yüzeyi vardır; seçilmiş React/Ant Design istemcisinde süper admin sayfası yoktur. Uygulama durumu: uygulanmadı.",
+      "gap": "Tenant sınırı tanımsız (site başına mı, site içi organizasyon mu); toplu kiracı API'si ve tenant seçimi bu karara bağlı. Kimlik sağlayıcı rolünün Frappe Role ve System Manager eşlemesi yazılmamış. Çoklu site işlemleri (oluşturma, askıya alma) için yetki ve audit sözleşmesi yok. Hedef sürümde api v1/v2 yüzeyi sabitlenmemiş. Bu davranış 'tenant seçip yönetme' kabulünün yalnız yetki ve red parçasını karşılar.",
+      "completionSteps": [
+        "Tenant topolojisi kararı gelene kadar sayfayı tek site bağlamında salt okunur sınırla; karar notunu page-super-admin--implementation kapsamında tut, yeni görev kaydı açma.",
+        "Müşteri rolünün adını ve okunacak native kaydın izin tablosunu admission sırasında hedef tabanda doğrula.",
+        "Kabulü 'müşteri rolüyle aynı uç nokta 403, veri render edilmez' senaryosuna bağla.",
+        "Tenant kararı sonrasında toplu kiracı listeleme veya seçme için whitelisted metot gerekirse sunucu tarafında only_for ve has_permission ile koru; bu ayrı bir gelecekteki davranıştır ve bu sözleşmede tasarlanmaz.",
+        "Çoklu site oluşturma ve askıya alma için teknik yetki ve audit gereksinimlerini Hüseyin Cengiz hazırlar; DNS kaydı gerekirse Asistan Hüseyin GoDaddy'de uygular, Hüseyin Cengiz server sonucunu doğrular."
+      ],
+      "dependencies": [
+        "page-super-admin--contract",
+        "kernel-envelope--contract",
+        "api-middleware--contract",
+        "client-rule-parity--contract",
+        "page-tenant-admin--contract",
+        "ui-family-01--implementation"
+      ],
+      "acceptance": "Gelecekte: System Manager kullanıcısı 200 ile salt okunur site bağlamını görür; müşteri rolü aynı istekte 403 alır, sayfa Result 403 gösterir ve veri render etmez; red kararı istemci kontrolünden bağımsız olarak sunucudadır. Tam 'tenant seçip yönetme' kabulü, tenant topolojisi ve çoklu site yetki kararlarından sonra ayrı bir davranışla karşılanır.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 82,
+          "quote": "def has_permission("
+        },
+        {
+          "path": "frappe/frappe/desk/page/setup_wizard/setup_wizard.py",
+          "line": 112,
+          "quote": "frappe.only_for(\"System Manager\")"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 83,
+          "quote": "doc.check_permission(\"read\")"
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "Tenant modeli (site mi, org mu) kullanıcı kararıdır. Burada tenant=site yalnız yerel kanıt içindir, global model seçilmedi; toplu kiracı API'si bu karara bağlıdır.",
-    "Bu davranış 'tenant seçip yönetme' kabulünü karşılamaz; verilen native kanıtta çoklu site listeleme, oluşturma veya askıya alma yok.",
-    "Keycloak realm/org rolünün Frappe Role ve System Manager'a eşlemesi karar bekliyor (kapsam dışı).",
-    "Site oluşturma ve askıya alma için yetki, audit ve deploy sahibi teknik olarak Hüseyin Cengiz'dir; DNS gerekirse Asistan Hüseyin uygular.",
-    "api/v1 ile v2 arasındaki seçim v17-dev için sabitlenmedi; bu sözleşme yalnız verilen v1 read_doc kanıtına dayanır.",
-    "Müşteri rolünün adı ve yönetim DocType'ının izin tablosu doğrulanmadı; canlı yerel 403 denemesi not_run."
+    "Bu davranış 'tenant seçip yönetme' kabulünü tek başına karşılamaz; verilen native kanıtta çoklu site listeleme, oluşturma veya askıya alma yok.",
+    "Tenant modeli (site mi, organizasyon mu) seçilmedi; toplu kiracı API'si bu karara bağlıdır.",
+    "Kimlik sağlayıcı rolünün Frappe Role ve System Manager eşlemesi yazılmadı.",
+    "Müşteri rolünün adı ve okunacak yönetim DocType'ının izin tablosu doğrulanmadı; canlı 403 denemesi not_run.",
+    "api/v1 ile v2 arasındaki seçim hedef sürüm için sabitlenmedi; bu sözleşme yalnız verilen v1 okuma kanıtına dayanır.",
+    "Test çalıştırıcısı ve komutu doğrulanmadı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Tenant topolojisi: site başına tenant mı, aynı site içinde organizasyon mu.",
+      "requirementIds": ["shell-1"],
+      "blocks": "Tenant listeleme ve seçme, toplu kiracı API'si ve tam yönetim kabulü.",
+      "interimDocStep": "Sayfa davranışını tek site bağlamında salt okunur ve yetki/red kabulüyle sınırlı tut; karar notunu page-super-admin--implementation kapsamında açık bırak."
+    },
+    {
+      "decision": "Kimlik sağlayıcı (Keycloak kullanılırsa realm/organization) rolünün Frappe Role ve System Manager eşlemesi.",
+      "requirementIds": ["shell-1"],
+      "blocks": "Harici oturumla süper admin kabulü.",
+      "interimDocStep": "Yetkiyi yalnız native Frappe oturumu, Role ve DocPerm üzerinden tanımla; eşleme alanını boş bırak."
+    },
+    {
+      "decision": "Reddedilecek müşteri rolünün adı ve sayfanın okuyacağı native DocType/kayıt.",
+      "requirementIds": ["shell-1"],
+      "blocks": "Gelecekteki tek TDD senaryosunun somut kullanıcı ve kayıt verisi ile admission.",
+      "interimDocStep": "Senaryoyu rol adından bağımsız 'System Manager olmayan müşteri rolü' olarak yaz; aday kaydı admission doğrulamasına bırak."
+    },
+    {
+      "decision": "Hedef Frappe sürümünde kullanılacak API yüzeyi (api/v1 veya api/v2).",
+      "requirementIds": ["shell-1"],
+      "blocks": "Uç nokta ve rota eşlemesinin sabitlenmesi.",
+      "interimDocStep": "Sözleşmeyi verilen v1 okuma kanıtıyla yaz; seçimi T-00 hedef taban doğrulamasına bağla."
+    },
+    {
+      "decision": "Çoklu site oluşturma ve askıya alma için yetki, onay ve audit sözleşmesi.",
+      "requirementIds": ["shell-1"],
+      "blocks": "Süper admin yönetim eylemleri.",
+      "interimDocStep": "Teknik gereksinimleri Hüseyin Cengiz'in hazırlayacağını, DNS gerekiyorsa GoDaddy uygulamasını Asistan Hüseyin'in yapacağını belgele; sayfada yönetim eylemi render etme."
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "shell-1": "mvp"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,

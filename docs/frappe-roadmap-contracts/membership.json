@@ -1,18 +1,27 @@
 {
   "schemaVersion": "saas-existing-work-contract.v1",
   "canonicalUnitId": "membership",
-  "canonicalTaskIds": ["membership--implementation"],
+  "canonicalTaskIds": [
+    "membership--implementation",
+    "ui-family-04--implementation-mvp",
+    "ui-family-34--implementation-mvp"
+  ],
   "requirementIds": ["tenant-4"],
   "stage": "mvp",
+  "sourceStages": {
+    "tenant-4": "mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
-    "title": "Tek kullanimlik davet kabulu: Membership Invited->Active gecisi yalniz davet edilen kullanici tarafindan ve yalniz bir kez yapilir",
-    "trigger": "Mevcut Membership kaydinda status alani Invited iken Active yapilarak Document.save cagrilmasi (native REST PUT /api/resource/Membership/<name> veya sunucu ici doc.save).",
-    "expected": "frappe.session.user == doc.user ise kayit Active olur, accepted_at bir kez yazilir; ayni kayit sonradan tekrar Invited'a cekilip yeniden kabul edilemez.",
-    "denied": "Baska kullanici (System Manager dahil) adina kabul frappe.PermissionError; Active/Revoked kaydin yeniden Invited'a donmesi veya accepted_at degisimi frappe.ValidationError."
+    "title": "Tek kullanımlık davet kabulü: Membership Invited->Active geçişi yalnız davet edilen kullanıcı tarafından ve yalnız bir kez yapılır",
+    "trigger": "Mevcut bir Membership kaydında status alanı Invited iken Active yapılarak native Document.save çağrılması (native REST PUT /api/resource/Membership/<name> veya sunucu içi doc.save).",
+    "expected": "frappe.session.user == doc.user ise kayıt Active olur ve accepted_at sunucu tarafından bir kez yazılır; aynı kayıt sonradan yeniden Invited'a çekilip ikinci kez kabul edilemez.",
+    "denied": "Başka bir kullanıcı adına kabul (System Manager dahil) frappe.PermissionError ile reddedilir ve kayıt değişmez; Active veya Revoked kaydın Invited'a dönmesi ya da accepted_at değerinin değiştirilmesi frappe.ValidationError ile reddedilir."
   },
   "reuse": {
-    "mechanism": "Native Frappe controller yasam dongusu (Document.save icinde validate) ve native DocPerm. Yeni API, ORM, event motoru veya Drive davet yeniden kullanimi yok; kural yalniz sahip olunan membership.py validate metodunda. Drive User Invitation kurum uyeligi yerine gecirilmez cunku ayri DocType ve ayri permission_query_conditions kancasi olarak Drive'a ozgu. Document.save/validate ve get_doc_before_save bu pakette satirla kanitlanmadi; Frappe HEAD adf1fd0 uzerinde dogrulanacak.",
+    "status": "KISMI",
+    "mechanism": "Native Frappe controller yaşam döngüsü (Document.save içinde validate) ve native DocPerm yeniden kullanılır; kural yalnız gelecekte sahip olunacak membership.py validate metodunda yer alır. Yeni API, ORM, olay motoru veya CRUD katmanı tasarlanmaz. Kanıtlar yalnız native parçaları gösterir: Frappe izin modülü frappe.share'i içe aktarır; Suite'te Drive User Invitation ayrı bir DocType ve Drive'a özgü ayrı bir permission_query_conditions kancasıdır, bu yüzden kurum üyeliği yerine geçirilmez; Drive izin hesabında sahip tüm deny kurallarını aşar, bu yüzden sahiplik devri dosya erişimini doğrudan etkiler. Bu parçalar davet kabulü, kurum üyeliği, kurum değiştirme veya sahiplik devri davranışının var olduğunu göstermez. Document.save/validate ve önceki belge karşılaştırması bu pakette satırla kanıtlanmadı; T-00 ile belirlenecek hedef Frappe sürümünde satırla doğrulanmadan kullanılmaz.",
     "evidence": [
       {
         "path": "suite/suite/hooks.py",
@@ -23,69 +32,179 @@
         "path": "frappe/frappe/permissions.py",
         "line": 7,
         "quote": "import frappe.share"
+      },
+      {
+        "path": "suite/suite/drive/api/permissions.py",
+        "line": 53,
+        "quote": "# Owners hold everything, bypassing any deny on the path."
       }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/permissions.py",
+      "suite/suite/drive/api/permissions.py",
+      "suite/suite/hooks.py"
     ]
   },
   "ownership": {
     "activeContractFile": "docs/frappe-roadmap-contracts/membership.json",
     "plannedProduction": [
-      "backend/saas_platform/saas_platform/tenant_control/doctype/membership/membership.py"
+      "backend/saas_platform/saas_platform/tenant_control/doctype/membership/membership.py",
+      "frontend/packages/ui/src/components/ui-family-04/mvp.tsx",
+      "frontend/packages/ui/src/components/ui-family-34/mvp.tsx"
     ],
-    "plannedTestFile": "backend/saas_platform/saas_platform/tenant_control/doctype/membership/test_membership.py",
+    "plannedTestFile": null,
     "sharedIntegrationFiles": [
       "backend/saas_platform/saas_platform/hooks.py",
-      "backend/saas_platform/saas_platform/tenant_control/doctype/membership/membership.json",
-      "contracts/membership.v1.json"
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "Membership alanlari membership--schema'ya bagli ve su an bilinmiyor; planlanan: user (Link User, zorunlu), tenant (Link, hedef DocType bilinmiyor), status (Select: Invited|Active|Revoked), accepted_at (Datetime, salt okunur). Istemci yalniz status=Active gonderir; accepted_at istemciden kabul edilmez.",
-    "output": "Native REST yaniti data: name, user, tenant, status, accepted_at, modified; alan gorunurlugu native DocPerm/permlevel ile. Surum: contract-membership v1, contract-kernel-envelope v1 zarfi.",
-    "authorization": "Yerel site siniri (suite.localhost) yalniz yerel kanit. Native DocPerm write yetkisi on kosul; validate ek olarak gecis aninda session user == doc.user ister, aksi frappe.PermissionError. Rol yetkisi (System Manager) baskasi adina kabulu acmaz. Kurum kapsami modeli kararsiz; tenant global modeli secilmez.",
-    "persistence": "Tek Document.save istek islemi; validate istisnasi tum yazimi geri alir. DDL garantisi yok; alanlar membership--schema'dan gelir. Eszamanli iki kabulde native modified zaman damgasi kontrolu disinda satir kilidi bilinmiyor; kanitlanmadan iddia edilmez.",
-    "failure": "Yetkisiz kabul: frappe.PermissionError (HTTP 403); gecersiz gecis: frappe.ValidationError (HTTP 417). Mevcut React19/AntD6/TanStack tuketici mutation hatasini AntD mesajiyla gosterir, sorguyu yeniden dogrular, iyimser Active gosterimi yapmaz; Outfit 14px, 320-first, cevreleyen odak halkasi yok, simetrik Cubic hareket korunur."
+    "input": "Membership alanları membership--schema'ya bağlıdır ve henüz kesin değildir. Planlanan alanlar: user (Link User, zorunlu), tenant (Link; hedef DocType tenant topolojisi kararına bağlı), status (Select: Invited|Active|Revoked), accepted_at (Datetime, salt okunur). İstemci yalnız status=Active gönderir; accepted_at istemciden kabul edilmez.",
+    "output": "Native REST yanıtı data içinde name, user, tenant, status, accepted_at ve modified döner; alan görünürlüğünü native DocPerm/permlevel belirler. Sürüm: contract-membership v1, contract-kernel-envelope v1 zarfı.",
+    "authorization": "Native DocPerm write yetkisi ön koşuldur. validate buna ek olarak geçiş anında session user == doc.user koşulunu arar; sağlanmazsa frappe.PermissionError verilir. Rol yetkisi (System Manager dahil) başkası adına kabulü açmaz. ignore_permissions, doğrudan alan yazımıyla izin atlatma veya ham SQL kullanılmaz. Rol ve izin bayrakları ortak ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/explicitPermissionFlags kaynağına bağlanır. Kurum kapsamı modeli karar bekler; global tenant modeli seçilmez.",
+    "persistence": "İşlem tek bir Document.save isteğidir; validate istisnası tüm yazımı geri alır. Bu sözleşme DDL garantisi vermez; alanlar membership--schema'dan gelir. Eşzamanlı iki kabulde native modified kontrolü dışında satır kilidi kanıtlanmadı; kanıtlanmadan iddia edilmez. Bu sözleşme hiçbir şema, veri, servis veya production ortamını değiştirme yetkisi vermez.",
+    "failure": "Yetkisiz kabul frappe.PermissionError (HTTP 403), geçersiz geçiş frappe.ValidationError (HTTP 417) ile döner; durum kodları hedef sürümde doğrulanır. Gelecekteki React/Ant Design ve TanStack Query tüketicisi mutation hatasını Ant Design mesajıyla gösterir, sorguyu yeniden doğrular ve iyimser Active gösterimi yapmaz. UI kuralları korunur: Outfit, en az 14 CSS px metin, 320 CSS px öncelikli yerleşim, çevreleyen odak halkası yok, simetrik Cubic hareket. JSON model sınırı yerel ReactNode/callback'ten ayrıdır; kaynak registry'si GenUI capability registry'si değildir."
   },
   "development": {
     "dependencies": [
+      "api-middleware--contract",
+      "client-rule-parity--contract",
+      "kernel-envelope--contract",
       "membership--contract",
       "membership--schema",
-      "kernel-envelope--contract",
-      "localPilot frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6 (suite.localhost, cookie/CSRF)"
+      "organization-unit--contract",
+      "ui-family-04--contract",
+      "ui-family-04--implementation",
+      "ui-family-33--contract",
+      "ui-family-34--contract",
+      "ui-family-34--implementation"
     ],
-    "admission": "T-00 hedef baseline ve R-00 reuse eslemesi; Membership DocType ve user/tenant/status/accepted_at alanlari membership--schema ile mevcut olmali. saas_platform uygulamasinin suite.localhost'a kurulu olup olmadigi, uzak urun baseline ve Suite HEAD bilinmiyor. Yerel kanit uzak baseline degildir.",
+    "admission": "Uygulama durumu: uygulanmadı. Kabul ön koşulları: T-00 hedef baseline ve R-00 reuse eşlemesi. İzinli veri tüketen adımlar R-01'i de kullanır. Membership DocType ile user, tenant, status ve accepted_at alanları membership--schema üzerinden mevcut olmalıdır. Rol/izin bayrakları explicitPermissionFlags kaynağında tanımlı olmalıdır. Hedef Frappe/Suite sürümü, saas_platform uygulamasının hangi ortama kurulacağı ve test komutu T-00 ile belirlenir. Bu bilgiler bilinmeden üretim kiralaması verilmez. Kapsam, gerçek RED/GREEN kanıtıyla uygulanan tek ve dar bir davranıştır.",
     "steps": [
-      "membership.py validate icinde onceki status'u native onceki belge ile karsilastir.",
-      "Invited->Active: session user == user degilse PermissionError; uygunsa accepted_at bir kez ata.",
-      "Active/Revoked->Invited ve accepted_at degisimini ValidationError ile reddet.",
-      "Baska dosya, hook veya UI degisikligi yok."
+      "Hedef sürümde Document.save içindeki validate sırasını ve önceki belgeyi okuma yolunu satırla doğrula; doğrulanamazsa uygulamaya geçme.",
+      "membership.py validate içinde önceki status değerini native önceki belgeyle karşılaştır.",
+      "Invited->Active geçişinde session user == doc.user değilse yan etkiden önce PermissionError ver; koşul sağlanıyorsa accepted_at değerini sunucu zamanıyla bir kez ata.",
+      "Active/Revoked->Invited geçişini ve accepted_at değişimini ValidationError ile reddet; istemciden gelen accepted_at değerini kabul etme.",
+      "Başka dosya, hook, Drive veya UI değişikliği yapma; ignore_permissions veya SQL kullanma.",
+      "Backend GREEN sonrasında UI tüketicisini ui-family-04 ve ui-family-34 görevlerinin kendi sözleşmeleri altında ayrı adım olarak ele al."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "Invited Membership icin kimligi dogrulanmis ama yetkisiz B kullanicisinin native Active kaydetmesi yan etkiden once PermissionError; veritabaninda status Invited, accepted_at bos ve modified degismemis kalir. Ardindan A'nin kabulu Active ve accepted_at dolu, ardindan Invited'a geri cekme ValidationError.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Ayni test ayni komutla: bench --site suite.localhost run-tests --module saas_platform.tenant_control.doctype.membership.test_membership (uygulama kurulumu dogrulanacak)."
+      "oneScenario": "A kullanıcısı için Invited durumda bir Membership vardır. Native write yetkisi olan, kimliği doğrulanmış B kullanıcısı (System Manager dahil) kaydı Active olarak kaydetmeye çalışır. Yan etkiden önce PermissionError döner; veritabanında status Invited, accepted_at boş ve modified değişmemiş kalır.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. RED, Membership DocType ve alanları mevcutken native write yetkili B kullanıcısının kaydetmesinin native olarak başarıyla Active yazmasıdır. Import, altyapı veya kurulum hatası ya da native davranışı bozmak RED sayılmaz; native olarak zaten reddedilen bir durum için RED uydurulmaz.",
+      "green": "Uygulamadan sonra aynı senaryo, değişmeyen assertion'lar ve T-00 ile belirlenen aynı komutla geçmelidir. Şu anda not_run'dır; bu sözleşme veya biçim kontrolü ürün GREEN'i değildir. A'nın kabulü ve Invited'a geri çekmenin reddi aynı davranışın sonraki senaryolarıdır."
     },
-    "rollback": "Yalniz membership.py validate degisikligini yerelde geri al; veri silme, servis yeniden baslatma veya production yetkisi yok."
+    "rollback": "Yalnız membership.py validate değişikliği yetkili depoda kod düzeyinde geri alınır. Veri silme, şema değişikliği, servis yeniden başlatma veya production yetkisi yoktur. Uzak ortamda CI/deploy/rollback teknik sahibi Hüseyin Cengiz'dir; bu sözleşme dağıtım yetkisi vermez."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "tenant-4",
+      "sourceStage": "mvp",
+      "existing": "Uygulama durumu: uygulanmadı. Native parçalar: Frappe izin modülü frappe.share'i içe aktarır (native paylaşım katmanı). Suite Drive'da Drive User Invitation ayrı bir DocType ve Drive'a özgü bir permission_query_conditions kancasıdır. Drive izin hesabında sahip tüm deny kurallarını aşar. Kurum üyeliği, kurum değiştirme, kurum düzeyinde sahiplik devri ve Keycloak entegrasyonu için kaynak kanıtı yoktur.",
+      "gap": "Keycloak kullanıcı/organization ile Frappe User eşlemesi ve provisioning yönü tanımsız. Kurum değiştirmede oturum/cache yenileme belirtilmemiş. Sahiplik devrinin Drive File.owner ve DocShare kayıtlarına etkisi tanımsız. Drive daveti ile kurum daveti ilişkisi tanımsız. Tek kullanımlık davet kabul kuralı henüz yazılmadı.",
+      "completionSteps": [
+        "Davet kabulü (bu sözleşmenin tek davranışı): development.steps ve tdd.oneScenario'ya göre membership.py validate kuralını admission sonrasında uygula.",
+        "Davet oluşturma: Keycloak eşleme kararı gelene kadar Membership.user yalnız mevcut bir Frappe User'a Link olarak kalır; provisioning (JIT veya SCIM benzeri) kodu yazılmaz.",
+        "Kurum üyeliği: tenant Link hedefini tenant topolojisi kararı ve organization-unit--contract üzerinden bağla; Drive User Invitation'ı kurum üyeliği yerine kullanma.",
+        "Kurum değiştirme: oturum/cache yenileme kararı sonrası ayrı bir davranış sözleşmesi yaz; api-middleware--contract ve client-rule-parity--contract ile hizala; istemci sorgu önbelleği kurum bağlamıyla anahtarlanmalı ve geçişte geçersizleşmelidir.",
+        "Sahiplik devri: kapsam kararı sonrası ayrı bir davranış sözleşmesi yaz. Owner değişecek DocType'ları listele; owner değişimini native Document.save ve izin kontrolüyle yap. DocShare kayıtlarını frappe.share üzerinden, yalnız hedef sürümde satırla doğrulanmış API ile ele al. Drive'daki sahip bypass'ı nedeniyle eski sahibin erişim kaybını ayrı kabulle doğrula. ignore_permissions veya SQL kullanma.",
+        "UI: ui-family-04 ve ui-family-34 MVP bileşenleri backend GREEN sonrasında kendi sözleşmeleriyle eklenir. registry.ts kaynak registry'sidir ve GenUI capability registry'sinden ayrıdır."
+      ],
+      "dependencies": [
+        "membership--contract",
+        "membership--schema",
+        "kernel-envelope--contract",
+        "organization-unit--contract",
+        "api-middleware--contract",
+        "client-rule-parity--contract",
+        "ui-family-04--contract",
+        "ui-family-34--contract"
+      ],
+      "acceptance": "Davet tek kullanımda üyelik açmalıdır; başkası adına kabul reddedilmeli ve kayıt değişmeden kalmalıdır. Sahiplik devrinde eski yetki ve kurum bağlamı güncellenmelidir; bu ayrı bir davranış olarak kendi kabulüyle doğrulanır.",
+      "evidence": [
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 127,
+          "quote": "\"Drive User Invitation\": \"suite.drive.utils.overrides.filter_drive_invitation\","
+        },
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 7,
+          "quote": "import frappe.share"
+        },
+        {
+          "path": "suite/suite/drive/api/permissions.py",
+          "line": 53,
+          "quote": "# Owners hold everything, bypassing any deny on the path."
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "Keycloak kullanici/organization <-> Frappe User eslemesi ve provisioning yonu (JIT/SCIM benzeri) Keycloak karari bekledigi icin kapsam disi.",
-    "Kurum degistirmede aktif oturum ve cache yenileme davranisi tanimsiz; ayri karar gerekir.",
-    "Sahiplik devri bu davranista yok. Drive'da sahip tum deny'lari astigi icin (suite/suite/drive/api/permissions.py:53 '# Owners hold everything, bypassing any deny on the path.') File.owner degisimi dosya erisimini dogrudan etkiler; hangi DocType'larda owner degisecegi ve DocShare (frappe.share) kayitlarinin korunup korunmayacagi karar bekler.",
-    "Drive User Invitation ile kurum daveti iliskisi: bu sozlesme ayri akisi esas alir; birlestirme karari yok.",
-    "Eszamanli kabulde satir kilidi ve davet suresi/iptal politikasi tanimsiz.",
-    "Uzak ortama dagitim gerekirse teknik sahip Huseyin Cengiz; bu sozlesme dagitim yetkisi vermez."
+    "Keycloak kullanıcı/organization ile Frappe User eşlemesi ve provisioning yönü (JIT veya SCIM benzeri) Keycloak kararı beklediği için bu davranışın kapsamı dışındadır.",
+    "Kurum değiştirmede aktif oturum ve cache yenileme davranışı tanımsızdır.",
+    "Sahiplik devri bu davranışta yoktur. Drive'da sahip tüm deny kurallarını aştığı için File.owner değişimi dosya erişimini doğrudan etkiler; hangi DocType'larda owner değişeceği ve DocShare kayıtlarının korunup korunmayacağı karar bekler.",
+    "Drive User Invitation ile kurum daveti ilişkisi: bu sözleşme ayrı akışı esas alır; birleştirme kararı yoktur.",
+    "Eşzamanlı kabulde satır kilidi ve davet süresi/iptal politikası tanımsızdır.",
+    "Document.save/validate sırası ve önceki belgeyi okuma yolu hedef sürümde satırla doğrulanmadı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Keycloak kullanıcı/organization ile Frappe User eşlemesi ve provisioning yönü (JIT veya SCIM benzeri).",
+      "requirementIds": ["tenant-4"],
+      "blocks": "Davet oluşturma ve kullanıcı provisioning adımı.",
+      "documentStepUntilDecided": "Membership.user alanını yalnız mevcut Frappe User Link'i olarak belgele; eşleme alanlarını açık soru olarak listele."
+    },
+    {
+      "decision": "Tenant topolojisi ve Membership.tenant Link hedef DocType'ı.",
+      "requirementIds": ["tenant-4"],
+      "blocks": "Kurum üyeliği kapsamı ve kurum değiştirme adımı.",
+      "documentStepUntilDecided": "tenant alanını karar bekleyen Link olarak belgele; organization-unit--contract bağımlılığını kaydet."
+    },
+    {
+      "decision": "Sahiplik devri kapsamı: owner değişecek DocType'lar, Drive File.owner ve DocShare kayıtlarının akıbeti.",
+      "requirementIds": ["tenant-4"],
+      "blocks": "Sahiplik devri davranış sözleşmesi ve uygulaması.",
+      "documentStepUntilDecided": "Drive'daki sahip bypass riskini ve aday DocType listesini karar notu olarak belgele."
+    },
+    {
+      "decision": "Kurum değiştirmede sunucu oturumu ve cache yenileme davranışı.",
+      "requirementIds": ["tenant-4"],
+      "blocks": "Kurum değiştirme davranış sözleşmesi.",
+      "documentStepUntilDecided": "api-middleware--contract ve client-rule-parity--contract ile hizalanacak soruları listele."
+    },
+    {
+      "decision": "Drive User Invitation'ın kurum üyeliğiyle ilişkisi (ayrı akış korunur mu, Drive daveti üyelik gerektirir mi).",
+      "requirementIds": ["tenant-4"],
+      "blocks": "Drive davetiyle entegrasyon adımı.",
+      "documentStepUntilDecided": "Ayrı akışı esas alan mevcut yaklaşımı belgele; Drive davetini üyelik yerine geçirme."
+    },
+    {
+      "decision": "Davet süresi, iptal ve saklama politikası.",
+      "requirementIds": ["tenant-4"],
+      "blocks": "Davet süresi dolumu ve iptal davranışları.",
+      "documentStepUntilDecided": "Revoked durumunu yalnız geri dönüşsüz durum olarak belgele; süre değeri yazma."
+    },
+    {
+      "decision": "Hedef Frappe/Suite sürümü ve test komutu (T-00 baseline).",
+      "requirementIds": ["tenant-4"],
+      "blocks": "Uygulama kabulü, RED/GREEN çalıştırması.",
+      "documentStepUntilDecided": "Satırla doğrulanması gereken native yolları (validate sırası, önceki belge, frappe.share API) liste olarak tut."
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "tenant-4": "mvp"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,
     "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
-    "permissionPolicyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/explicitPermissionFlags",
     "specificPrerequisitesRef": "#/development/admission"
   }
 }

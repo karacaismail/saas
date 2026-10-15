@@ -4,15 +4,20 @@
   "canonicalTaskIds": ["delivery-attempt--implementation"],
   "requirementIds": ["integration-5"],
   "stage": "mvp",
+  "sourceStages": {
+    "integration-5": "mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
-    "title": "Imzali gelen webhook bir kez kabul edilir; ayni olay kimligiyle tekrari kalici benzersiz anahtar ile reddedilir",
-    "trigger": "Dis sistem, guest POST ucuna ham govde ile X-Frappe-Webhook-Signature, olay kimligi ve zaman damgasi basliklarini gonderir.",
-    "expected": "Imza compare_digest ile dogrulanir, zaman damgasi pencere icindedir, (tenant, event_id) icin tek DeliveryAttempt kaydi Document.insert ile ayni istek transaction'inda yazilir ve ack doner.",
-    "denied": "Ayni (tenant, event_id) ikinci kez geldiginde imza gecerli olsa bile frappe.AuthenticationError atilir ve ikinci kayit olusmaz."
+    "title": "İmzalı gelen webhook bir kez kabul edilir; aynı (tenant, olay kimliği) ile tekrarı kalıcı benzersiz anahtarla reddedilir",
+    "trigger": "Dış sistem, gelecekteki guest POST ucuna ham gövdeyle birlikte X-Frappe-Webhook-Signature, olay kimliği ve zaman damgası başlıklarını gönderir.",
+    "expected": "Başlıklar zorunlu tutulur; imza v1 malzemesi üzerinden HMAC-SHA256 ile hesaplanıp hmac.compare_digest ile karşılaştırılır; zaman damgası pencere içindedir; (tenant, olay kimliği) için tek DeliveryAttempt kaydı native Document.insert ile aynı istek transaction'ında yazılır ve yalnız kabul yanıtı döner.",
+    "denied": "Aynı (tenant, olay kimliği) ikinci kez geldiğinde imza geçerli olsa bile frappe.AuthenticationError döner, ikinci kayıt oluşmaz ve mevcut kayıt değişmez."
   },
   "reuse": {
-    "mechanism": "Native once: imza basligi adi ve base64 HMAC-SHA256 kodlamasi upstream Webhook ile ayni; compare_digest ve AuthenticationError deseni Meet callback'ten genellestirilir. Redis SET NX yerine DeliveryAttempt DocType'inin native benzersiz alanina ve Document.insert'e dayanilir. Upstream Webhook fork edilmez; en kucuk adaptor yalniz sahip olunan delivery_attempt.py icindeki dogrulayici ve whitelisted fonksiyondur.",
+    "status": "KISMI",
+    "mechanism": "Native parçalar kaynakta görülür ama gelen webhook doğrulamasının tamamı değildir. Upstream Frappe Webhook: imza başlığı adı ve gövde üzerinden base64 HMAC-SHA256 kodlaması, RETRY_SCHEDULE ile yeniden deneme, Webhook Request Log'daki başlık ve gövdenin aynen yeniden gönderilmesi. Suite Meet kayıt geri çağrısı: gövde özetinin compare_digest ile karşılaştırılması ve jti tekrarının reddi deseni. Eksik olan: genel guest doğrulama ucu, zaman damgası ve olay kimliğini kapsayan imza, kalıcı tekrar deposu. Upstream Webhook fork edilmez; Meet'e özgü Redis TTL deposu yeniden kullanılmaz, yalnız desen olarak genelleştirilir; tekrar reddi DeliveryAttempt benzersizliğine ve native Document.insert'e dayanır. Kaynak değerlendirmesi ürün uygulaması değildir; Vue/Frappe UI kaynağı React/Ant Design uygulaması kanıtı sayılmaz.",
     "evidence": [
       {
         "path": "frappe/frappe/integrations/doctype/webhook/webhook.py",
@@ -23,6 +28,11 @@
         "path": "frappe/frappe/integrations/doctype/webhook/webhook.py",
         "line": 348,
         "quote": "frappe.as_json(data).encode(\"utf8\"),"
+      },
+      {
+        "path": "frappe/frappe/integrations/doctype/webhook/webhook.py",
+        "line": 22,
+        "quote": "RETRY_SCHEDULE = [5 * 60, 30 * 60, 2 * 3600, 5 * 3600, 10 * 3600, 10 * 3600]"
       },
       {
         "path": "frappe/frappe/integrations/doctype/webhook/webhook.py",
@@ -39,6 +49,10 @@
         "line": 399,
         "quote": "if not frappe.cache.set(replay_key, \"1\", ex=40, nx=True):"
       }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/integrations/doctype/webhook/webhook.py",
+      "suite/suite/meet/recording/callback_auth.py"
     ]
   },
   "ownership": {
@@ -46,59 +60,142 @@
     "plannedProduction": [
       "backend/saas_platform/saas_platform/integration_hub/doctype/delivery_attempt/delivery_attempt.py"
     ],
-    "plannedTestFile": "backend/saas_platform/saas_platform/integration_hub/doctype/delivery_attempt/test_delivery_attempt.py",
+    "plannedTestFile": null,
     "sharedIntegrationFiles": [
-      "backend/saas_platform/saas_platform/integration_hub/doctype/delivery_attempt/delivery_attempt.json",
-      "integration/fragments/delivery-attempt--integration.json"
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "POST ham govde (JSON, boyut ust siniri api-middleware--contract'tan; bilinmiyor). Basliklar: X-Frappe-Webhook-Signature (base64 HMAC-SHA256), olay kimligi (string, zorunlu), zaman damgasi (unix saniye, zorunlu). Imzalanan malzeme v1: zaman damgasi + '.' + olay kimligi + '.' + ham govde. Olay kimligi/zaman damgasi baslik adlari ve pencere suresi delivery-attempt--contract'ta sabitlenir.",
-    "output": "Basarida yalniz {status: 'accepted', event_id, contract_version: 1}. Guest yanitinda kayit icerigi, sir veya hata ayrintisi donmez. DeliveryAttempt okuma native DocType izinleriyle yapilir.",
-    "authorization": "Uc guest'tir; kimlik dogrulamasi yalniz imzadir. Kayit yazimi dar kapsamli ignore_permissions ile yapilir. Kayitlarin okunmasi native site/rol izinleri ve native-user-policy--contract'a baglidir; tenant kapsami tenant-registry--contract'tan gelir.",
-    "persistence": "Native Document.insert, istek transaction'i icinde. Tekrar reddi DeliveryAttempt uzerindeki (tenant, event_id) benzersiz alanina dayanir; bu alan delivery-attempt--schema sorumlulugundadir, DDL garantisi bu sozlesmede verilmez. Redis TTL kullanilmaz.",
-    "failure": "Eksik baslik, gecersiz imza, pencere disi zaman: frappe.AuthenticationError ve kayit yazilmaz. Benzersiz ihlal (frappe.DuplicateEntryError) yakalanir ve AuthenticationError olarak doner. Tuketici 401'i kalici red sayar, yeniden denemez; altyapi hatasi (DB/baglanti) ayri ve yeniden denenebilir."
+    "input": "POST ham gövde (JSON; boyut üst sınırı api-middleware--contract'tan gelir, bilinmiyor). Başlıklar: X-Frappe-Webhook-Signature (base64 HMAC-SHA256), olay kimliği (string, zorunlu), zaman damgası (unix saniye, zorunlu). İmzalanan malzeme v1: zaman damgası + '.' + olay kimliği + '.' + ham gövde baytları. Doğrulama ham gövde üzerinden yapılır, yeniden serileştirilmiş JSON üzerinden yapılmaz. Olay kimliği ve zaman damgası başlık adları ile pencere süresi delivery-attempt--contract'ta sabitlenir.",
+    "output": "Başarıda yalnız {status: 'accepted', event_id, contract_version: 1}. Guest yanıtında kayıt içeriği, sır veya hata ayrıntısı dönmez. DeliveryAttempt kayıtlarının okunması native DocType izinleriyle yapılır.",
+    "authorization": "Uç guest'tir; çağıranın kimliği yalnız imza ile kanıtlanır. Yazım ignore_permissions veya SQL ile yapılmaz: imza doğrulandıktan sonra kayıt, tenant-registry--contract ile çözülen tenant'a bağlı entegrasyon kimliği bağlamında, yalnız o istek süresince, native Document.insert ve DocType izinleriyle yazılır. Bu kimliğin rolü ve DeliveryAttempt üzerindeki create/read bayrakları sharedExecutionPolicy içindeki explicitPermissionFlags ortak kaynağına bağlanır; bu sözleşme kendi başına rol veya izin üretmez. Okuma native site/rol izinleri ve native-user-policy--contract'a bağlıdır. Entegrasyon kimliğinin tenant'a bağlanma biçimi tenant topolojisi kararına bağlıdır (decisionsPending).",
+    "persistence": "Native Document.insert, istek transaction'ı içinde; native validate/save hook akışı korunur. Tekrar reddi DeliveryAttempt üzerindeki (tenant, olay kimliği) benzersizliğine dayanır; benzersizliğin biçimi ve DDL'i delivery-attempt--schema sorumluluğundadır, bu sözleşme şema garantisi vermez. Redis TTL tekrar deposu olarak kullanılmaz. Ham gövdenin ve başlıkların saklanıp saklanmayacağı saklama süresi kararına bağlıdır.",
+    "failure": "Eksik başlık, geçersiz imza, pencere dışı zaman damgası: frappe.AuthenticationError ve kayıt yazılmaz. Benzersizlik ihlali (frappe.DuplicateEntryError) yakalanır ve frappe.AuthenticationError olarak döner; mevcut kayıt değişmez. Guest yanıtında ayrıntı dönmez. Tüketici 401'i kalıcı red sayar ve yeniden denemez; altyapı hatası (DB/bağlantı) kalıcı red değildir ve yeniden denenebilir."
   },
   "development": {
     "dependencies": [
+      "api-middleware--contract",
+      "capability-definition--contract",
       "delivery-attempt--contract",
       "delivery-attempt--schema",
       "kernel-envelope--contract",
-      "tenant-registry--contract",
-      "native-user-policy--contract",
-      "capability-definition--contract",
       "native-doctype-schema--contract",
+      "native-user-policy--contract",
       "outbox--contract",
-      "api-middleware--contract"
+      "tenant-registry--contract"
     ],
-    "admission": "T-00 hedef baseline ve R-00 yeniden kullanim eslemesi; delivery_attempt.json'da (tenant, event_id) benzersizligi; tenant-registry--contract'ta sir cozumu. Yerel pilot: Frappe17-dev adf1fd0c / suite.localhost; Suite HEAD ve uzak urun baseline bilinmiyor; yerel kanit uzak baseline degildir.",
+    "admission": "Uygulama durumu: uygulanmadı. Kabul önkoşulları: T-00 hedef baseline ve R-00 yeniden kullanım eşlemesi; izinli veri tüketicileri için R-01; delivery-attempt--schema'da (tenant, olay kimliği) benzersizliği; tenant-registry--contract'ta sır çözümü ve entegrasyon kimliği; explicitPermissionFlags ortak kaynağında DeliveryAttempt bayrakları; api-middleware--contract'ta gövde boyutu üst sınırı. Planlanan yollar kabul anında gözlenen depolara göre çözülür; hedef sürüm ve uzak ürün baseline'ı bilinmiyor. Kaynak alıntıları önceki salt okunur Frappe/Suite kaynak anlık görüntülerinden gelir; canlı site veya ürün kabulü değildir. Gerçek RED/GREEN kanıtıyla tek dar davranış uygulanır.",
     "steps": [
-      "delivery_attempt.py icine saf dogrulayici: baslik zorunlulugu, imza malzemesi v1, hmac.compare_digest, enjekte edilebilir saatle pencere kontrolu.",
-      "Ayni dosyada @frappe.whitelist(allow_guest=True, methods=['POST']) fonksiyonu: dogrula, DeliveryAttempt insert, DuplicateEntryError'u AuthenticationError'a cevir.",
-      "Sir, tenant-registry--contract cozumleyicisinden okunur; test yalniz test icinde uretilen gecici sir enjekte eder, depoya sir yazilmaz."
+      "delivery_attempt.py içinde saf doğrulayıcı: başlık zorunluluğu, v1 imza malzemesi, base64 HMAC-SHA256, hmac.compare_digest, enjekte edilebilir saatle pencere kontrolü; sır parametre olarak alınır.",
+      "Aynı dosyada @frappe.whitelist(allow_guest=True, methods=['POST']) fonksiyonu: ham gövdeyi okur, doğrular, tenant'ı ve sırrı tenant-registry--contract çözücüsünden alır, entegrasyon kimliği bağlamında native Document.insert ile yazar, frappe.DuplicateEntryError'u frappe.AuthenticationError'a çevirir; ignore_permissions ve SQL kullanmaz.",
+      "Yanıt yalnız {status: 'accepted', event_id, contract_version: 1}; hata ayrıntısı, sır veya kayıt içeriği dönmez.",
+      "Test yalnız test içinde üretilen geçici sırrı enjekte eder; depoya, belgeye veya çıktıya sır yazılmaz.",
+      "Değiştirilmiş gövde ve pencere dışı zaman damgası reddi ayrı tek-davranış kabulleri olarak sonraki adıma bırakılır; yeni kanonik görev eklenmez."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "Gecerli imzali istek bir kez kabul edilip tek DeliveryAttempt yazar; birebir ayni istegin ikincisi AuthenticationError ile reddedilir ve kayit sayisi 1 kalir.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Ayni test, ayni bench run-tests --module komutuyla uygulamadan sonra gecer. Native calisan davranistan RED uretilmez."
+      "oneScenario": "Geçerli imzalı istek bir kez kabul edilip tek DeliveryAttempt yazar; birebir aynı isteğin ikincisi frappe.AuthenticationError ile reddedilir ve kayıt sayısı 1 kalır.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. Beklenen RED davranışsaldır: şema benzersizliği ve doğrulayıcı mevcutken hata çeviri katmanı yokken ikinci istek frappe.AuthenticationError yerine ham frappe.DuplicateEntryError ile döner ve assertion başarısız olur. Import/altyapı hatası veya native davranışı bozmak RED sayılmaz. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "Uygulamadan sonra aynı senaryo, değişmeyen assertion ve aynı komutla geçmeli; test yolu ve komut kabul anında gözlenen depodan belirlenir. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN'i değildir."
     },
-    "rollback": "Yalniz delivery_attempt.py ve planlanan test dosyasindaki degisiklik yerelde geri alinir; production izni yoktur."
+    "rollback": "Yalnız sahip olunan delivery_attempt.py ve kabul anında belirlenen test dosyasındaki değişiklik yerelde geri alınır. Bu sözleşme hiçbir servis, production, şema veya veriyi değiştirme yetkisi vermez; uzak CI/deploy/rollback teknik sahibi Hüseyin Cengiz'dir."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "integration-5",
+      "sourceStage": "mvp",
+      "existing": "Kaynakta native parçalar: upstream Frappe Webhook, enable_security açıkken frappe.as_json(data) gövdesi üzerinden HMAC-SHA256 imzası üretir ve base64 değeri X-Frappe-Webhook-Signature başlığına yazar; denemeleri Webhook Request Log'a yazar ve RETRY_SCHEDULE ile logdaki başlık ve gövdeyi aynen yeniden gönderir. Suite Meet kayıt geri çağrısı gövde özetini compare_digest ile karşılaştırır ve jti tekrarını Redis SET NX ile 40 saniyelik TTL içinde reddeder. Bunlar gereksinimin tamamı değildir.",
+      "gap": "Giden imza yalnız gövdeyi kapsar; zaman damgası, olay kimliği ve nonce yoktur, alıcı yeniden gönderimi tekrar olarak ayırt edemez. Genel gelen doğrulama ucu, zaman penceresi ve kalıcı tekrar deposu yoktur. Meet deseni alana özgü ve TTL'li olduğu için tahliyeye açıktır. Tenant başına sır ve rotasyon/çift sır dönemi yoktur; webhook_secret her Webhook kaydında tek Password alanıdır. İmza algoritması/sürüm başlığı yoktur. React/Ant Design tüketicisi için teslim durumu yüzeyi yoktur.",
+      "completionSteps": [
+        "Gelen doğrulayıcıyı Meet desenini genelleştirerek sahip olunan delivery_attempt.py içinde yaz: upstream ile aynı başlık adı ve base64 HMAC-SHA256, v1 malzemesi, compare_digest, zorunlu zaman damgası ve olay kimliği.",
+        "Tekrar reddini Redis TTL yerine delivery-attempt--schema'nın sağladığı (tenant, olay kimliği) benzersizliği ve native Document.insert ile kur; DuplicateEntryError'u AuthenticationError'a çevir.",
+        "Tek senaryoyu (tekrar reddi) gerçek RED/GREEN ile kabul ettir; ardından değiştirilmiş gövde reddi ve pencere dışı zaman damgası reddini ayrı tek-davranış kabulleri olarak ekle.",
+        "Giden tarafta upstream Webhook fork edilmeden zaman damgası ve olay kimliğini imzaya/başlıklara ekleyen bir katmanın mümkün olup olmadığını ayrı değerlendir; native gönderici v1 malzemesini üretmediği için gelen doğrulayıcı native imzalı isteği v1 olarak kabul etmez. DeliveryAttempt ile Webhook Request Log eşlemesini belgeye yaz.",
+        "Tenant başına sır, rotasyon ve çift sır dönemini tenant-registry--contract kararına bağla; karar gelene kadar doğrulayıcı tek sırrı parametre olarak alır.",
+        "İmza algoritması/sürüm başlığını, başlık adlarını ve pencere süresini delivery-attempt--contract'ta sabitle."
+      ],
+      "dependencies": [
+        "delivery-attempt--contract",
+        "delivery-attempt--schema",
+        "tenant-registry--contract",
+        "native-user-policy--contract",
+        "api-middleware--contract",
+        "outbox--contract"
+      ],
+      "acceptance": "Gelecekteki tek kabul: geçerli imzalı istek bir kez kabul edilir ve tek kayıt yazar; aynı (tenant, olay kimliği) ikinci kez reddedilir, kayıt sayısı 1 kalır ve mevcut kayıt değişmez. Değiştirilmiş gövde ve pencere dışı zaman damgası reddi sonraki ayrı kabullerdir. Şu an not_run.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/integrations/doctype/webhook/webhook.py",
+          "line": 20,
+          "quote": "WEBHOOK_SECRET_HEADER = \"X-Frappe-Webhook-Signature\""
+        },
+        {
+          "path": "frappe/frappe/integrations/doctype/webhook/webhook.py",
+          "line": 348,
+          "quote": "frappe.as_json(data).encode(\"utf8\"),"
+        },
+        {
+          "path": "frappe/frappe/integrations/doctype/webhook/webhook.py",
+          "line": 22,
+          "quote": "RETRY_SCHEDULE = [5 * 60, 30 * 60, 2 * 3600, 5 * 3600, 10 * 3600, 10 * 3600]"
+        },
+        {
+          "path": "frappe/frappe/integrations/doctype/webhook/webhook.py",
+          "line": 264,
+          "quote": "headers = json.loads(log.headers) if log.headers else {}"
+        },
+        {
+          "path": "suite/suite/meet/recording/callback_auth.py",
+          "line": 383,
+          "quote": "if not hmac.compare_digest(claims[\"body_sha256\"], body_sha256):"
+        },
+        {
+          "path": "suite/suite/meet/recording/callback_auth.py",
+          "line": 399,
+          "quote": "if not frappe.cache.set(replay_key, \"1\", ex=40, nx=True):"
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "Upstream giden Webhook yalniz govdeyi imzalar; v1 imza malzemesini uretmez. Giden tarafta ek baslik katmani ayri degerlendirilecek; native gondericiyle bire bir uyum su an yok.",
-    "Degistirilmis govde reddi dogrulayicida uygulanir ama bu teslimdeki tek senaryo tekrar reddidir; ayri test sonraki adimdir.",
-    "Tenant basina sir ve rotasyon/cift sir donemi tenant-registry--contract kararina bagli; bilinmiyor.",
-    "Imza algoritmasi/surum basligi ve pencere suresi delivery-attempt--contract'ta henuz sabit degil.",
-    "Giden deneme, ack ve yeniden deneme durumunun DeliveryAttempt ile Webhook Request Log arasinda eslenmesi ve headless_provider durum okuma ucu kapsam disi.",
-    "Kayit saklama suresi secilmedi; urun sahibine aittir. Uzak dagitim gerekirse teknik sahip Huseyin Cengiz'dir."
+    "Upstream giden Webhook yalnız gövdeyi imzalar ve v1 imza malzemesini üretmez; native göndericiyle bire bir uyum yok.",
+    "Değiştirilmiş gövde ve pencere dışı zaman damgası reddi doğrulayıcı adımlarında tanımlı, ancak bu birimin tek senaryosu tekrar reddidir; ayrı kabuller sonraki adımdır.",
+    "İmza algoritması/sürüm başlığı, olay kimliği ve zaman damgası başlık adları ve pencere süresi delivery-attempt--contract'ta henüz sabit değil.",
+    "Gövde boyutu üst sınırı api-middleware--contract'a bağlı; bilinmiyor.",
+    "Entegrasyon kimliğinin DeliveryAttempt create/read bayrakları bu sözleşmede sabitlenmedi; explicitPermissionFlags ortak kaynağına bağlıdır.",
+    "Giden deneme, ack ve yeniden deneme durumunun DeliveryAttempt ile Webhook Request Log arasında eşlenmesi tanımlanmadı.",
+    "Teslim durumu için React/Ant Design yönetim yüzeyi bu birimin kapsamı dışında; kaynak registry ile GenUI capability registry ayrı tutulur ve yüzey eklenirse JSON model sınırı yerel ReactNode/callback'ten ayrı kalır."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Tenant topolojisi: tenant başına imza sırrı, rotasyon/çift sır dönemi ve yazımı yapan entegrasyon kimliğinin tenant'a bağlanma biçimi.",
+      "requirementIds": ["integration-5"],
+      "blockedStep": "development.steps[1]: uçta tenant ve sır çözümü ve izinli yazım bağlamı.",
+      "docWorkUntilDecided": "Doğrulayıcının sırrı parametre olarak aldığı arayüzü ve tenant-registry--contract bağlantısını belgede tanımla; sır değeri yazma."
+    },
+    {
+      "decision": "Saklama süresi ve ham gövde ile başlıkların saklanıp saklanmayacağı.",
+      "requirementIds": ["integration-5"],
+      "blockedStep": "DeliveryAttempt saklanan alanlarının ve temizleme davranışının kabulü.",
+      "docWorkUntilDecided": "Saklanacak alanların aday listesini belgele ve tekrar reddi için gereken asgari alanları (tenant, olay kimliği) ayrı işaretle."
+    },
+    {
+      "decision": "Hedef Frappe/Suite sürümü (T-00 baseline).",
+      "requirementIds": ["integration-5"],
+      "blockedStep": "Whitelist imzası ve DuplicateEntryError davranışının kabul ortamında doğrulanması; implementationAdmission.",
+      "docWorkUntilDecided": "Kullanılan native API'leri listele ve kabul anında hedef sürümde doğrulanacak maddeleri belgele."
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "integration-5": "mvp"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,

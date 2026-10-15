@@ -1,0 +1,239 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "programmatic-seo",
+  "canonicalTaskIds": ["programmatic-seo--implementation"],
+  "requirementIds": ["content-3"],
+  "stage": "scale",
+  "sourceStages": {
+    "content-3": "scale"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Veri kalitesi kapısından geçen yayınlanmış kayıt için benzersiz canonical rota üretimi ve salt okunur çözümleme",
+    "trigger": "Yetkili içerik kullanıcısı tek bir kaynak DocType kaydını yayın koşulunu işaretleyerek kaydeder; ardından bir istemci (Frappe web view veya headless React web) bu kaydın route değerini çözümlemek ister.",
+    "expected": "Kayıt zorunlu alan ve minimum içerik eşiğini sağlıyorsa native WebsiteGenerator route üretimi yeniden kullanılır, route uygulama genelinde (DocType'lar arası) benzersizdir, kayıt sitemap'e native yayın filtresiyle girer ve salt okunur çözümleyici yalnız bu kaydı canonical URL, başlık ve meta/robots verisiyle JSON olarak döndürür.",
+    "denied": "Eşiği sağlamayan kayıt yayınlanmış olarak kaydedilmez ve route çözümleyicide/sitemap'te görünmez; başka DocType'taki route ile çakışan kayıt reddedilir; yayın yetkisi olmayan kullanıcının yazma isteği native izin hatasıyla reddedilir ve kayıt değişmeden kalır; yayınlanmamış veya bulunmayan route için kaydın varlığını sızdırmayan bulunamadı yanıtı döner."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native Frappe parçaları: WebsiteGenerator (yayın koşulu sağlanınca route üretimi), DocType.validate (has_web_view açıkken route alanı zorunluluğu), DocumentPage renderer (route ve yayın filtresiyle belge çözümleme), sitemap.py (yayın koşulu tanımlı ve yayınlanmış kayıtları ekleme). Bu parçalar kayıt başına sayfa üretiminin temelini gösterir; programmatic SEO davranışının tamamının var olduğunu göstermez. Kaynak değerlendirmesinde ayrıca Google indexing kuyruğu, robots_txt hariç tutma, Website Route Meta ve Web Page route unique bayrağı not edildi; bunlar için doğrulanmış alıntı yoktur. Vue/Frappe UI kaynağı React/Ant Design uygulaması kanıtı değildir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/website/website_generator.py",
+        "line": 10,
+        "quote": "class WebsiteGenerator(Document):"
+      },
+      {
+        "path": "frappe/frappe/website/website_generator.py",
+        "line": 39,
+        "quote": "self.route = self.make_route()"
+      },
+      {
+        "path": "frappe/frappe/website/website_generator.py",
+        "line": 92,
+        "quote": "return self.get(condition_field) or False"
+      },
+      {
+        "path": "frappe/frappe/core/doctype/doctype/doctype.py",
+        "line": 423,
+        "quote": "frappe.throw(_('Field \"route\" is mandatory for Web Views'), title=\"Missing Field\")"
+      },
+      {
+        "path": "frappe/frappe/website/page_renderers/document_page.py",
+        "line": 102,
+        "quote": "docname = frappe.db.get_value(doctype, filters, \"name\")"
+      },
+      {
+        "path": "frappe/frappe/www/sitemap.py",
+        "line": 55,
+        "quote": "condition_field = meta.is_published_field or controller.website.condition_field"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/core/doctype/doctype/doctype.py",
+      "frappe/frappe/website/page_renderers/document_page.py",
+      "frappe/frappe/website/website_generator.py",
+      "frappe/frappe/www/sitemap.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/programmatic-seo.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/adapters/content_growth/programmatic_seo_scale.py"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Yazma tarafı: kaynak DocType kaydı (native Document save ile; yayın alanı, route, kalite eşiğine giren zorunlu alanlar). Okuma tarafı: tek bir route dizesi (baştaki/sondaki '/' ve '.' native kırpma kuralıyla normalize edilir). Tenant kapsamı kernel-envelope--contract zarfından gelir; istemci tenant veya DocType adı göndermez.",
+    "output": "kernel-envelope--contract zarfında saf JSON veri: doctype, name, route, canonicalUrl, title, meta (description vb.), robots (index/noindex), lastModified. ReactNode, callback veya render talimatı JSON modelde taşınmaz; render yerel React/Ant Design bileşenlerinin işidir. Sitemap verisi native sitemap.py mantığından türetilir, paralel bir sitemap motoru yazılmaz.",
+    "authorization": "Okuma: yalnız yayın koşulu sağlanmış ve kalite kapısını geçmiş kayıt; Guest erişimi yalnız DocType'ın native izinleri ve native web view yayın filtresiyle. Yazma (yayın alanı, route, içerik): yalnız native DocType izinleri ve native save akışı; rol/izin tanımı explicitPermissionFlags ortak kaynağına ve native-user-policy--contract'a bağlanır, bu sözleşme rol üretmez. ignore_permissions, ham SQL veya izin kontrolünü atlayan doğrudan veritabanı yazımı yasak.",
+    "persistence": "Native Document save ve transaction; route kaynak DocType'ın kendi alanında tutulur; şema değişikliği yalnız native-doctype-schema--contract üzerinden. Yayın/route değişimi audit-envelope--contract ile kaydedilir; cache temizleme ve indeksleme bildirimi gibi yan etkiler outbox--contract üzerinden, transaction commit sonrasında. Redirect kaydının nerede tutulacağı karar bekliyor. Bu sözleşme hiçbir şema, veri veya servisi değiştirme yetkisi vermez.",
+    "failure": "Kalite eşiği sağlanmazsa native frappe.throw ile ValidationError ve kayıt yayınlanmış kaydedilmez. DocType'lar arası route çakışmasında ValidationError ve kayıt değişmez. İzin reddinde native PermissionError ve kayıt değişmez. Bulunmayan, yayınlanmamış veya eşiği geçmeyen route için ayırt edilemeyen bulunamadı yanıtı. Outbox yan etkisi başarısızsa kayıt geri alınmaz; outbox yeniden deneme politikası uygulanır."
+  },
+  "development": {
+    "dependencies": [
+      "audit-envelope--contract",
+      "capability-definition--contract",
+      "kernel-envelope--contract",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "outbox--contract",
+      "programmatic-seo--contract"
+    ],
+    "admission": [
+      "T-00 hedef baseline: Frappe hedef sürümü baseline'dan okunur, bu sözleşmede seçilmez; WebsiteGenerator, DocumentPage ve sitemap.py davranışı o sürümde yeniden doğrulanır.",
+      "R-00 yeniden kullanım eşlemesi: reuse.evidence içindeki her native parça hedef sürüm kaynağında satır bazında eşlenir.",
+      "R-01: Guest okuma ve yetkili yazma izin tüketimi native izinlerle eşlenir; explicitPermissionFlags ortak kaynağı kabul edilmiş olur.",
+      "decisionsPending içindeki kaynak veri kümesi, kalite eşiği ve canonical host kararları verilmiş olur.",
+      "Tek dar davranış gerçek RED/GREEN kanıtıyla uygulanır; geniş kapsam bu kabulle açılmaz."
+    ],
+    "steps": [
+      "1. Kaynak DocType karar sonrasında native-doctype-schema--contract üzerinden tanımlanır: has_web_view, is_published_field ve unique route alanı; controller WebsiteGenerator'dan türer, route üretimi yeniden yazılmaz.",
+      "2. Gelecekteki RED testi yazılır: zorunlu kalite alanı eksik kayıt yayın alanı işaretlenerek kaydedilince reddedilmeli; mevcut native davranış bunu kabul ettiği için test davranış eksikliğinden kırmızı olur.",
+      "3. Controller validate adımına zorunlu alan ve minimum içerik kontrolü eklenir; eşik sağlanmazsa frappe.throw ile yayın reddedilir. Eşik değerleri karar kaydından okunur, koda gömülmez.",
+      "4. Uygulama düzeyinde DocType'lar arası route çakışma kontrolü validate içinde eklenir; kontrol kaynak registry'de kayıtlı web view DocType'ları üzerinden native okuma ile yapılır. Bu kaynak registry, GenUI capability registry'den ayrıdır.",
+      "5. Slug/route değişiminde redirect politikası karar sonrası uygulanır; karar gelene kadar route değişimi audit kaydına düşer.",
+      "6. Canonical URL ve noindex politikası kayıt bazında üretilir; kaynak değerlendirmesinde not edilen Website Route Meta yeniden kullanımı hedef sürümde doğrulandıktan sonra tercih edilir.",
+      "7. plannedProduction adaptöründe tek salt okunur provider endpoint'i: route çözümler, yalnız yayınlanmış ve eşiği geçen kaydı canonical veriyle kernel zarfında döndürür; sitemap.py yayın filtresi mantığı yeniden kullanılır. Kayıt hooks.py içinde entegrasyon sahibi tarafından seri birleştirilir; capability tanımı capability-definition--contract'a bağlanır.",
+      "8. React web tarafı content-2 render/sitemap kararından sonra bağlanır: routes.tsx içinde TanStack Router rotası, TanStack Query ile endpoint okuması, Ant Design ile render. Tauri2 ve WXT yüzeyleri bu davranış için yeni gereksinim taşımaz; paylaşılan dosyalarına gereksiz dokunulmaz.",
+      "9. Yayın/route değişimi audit-envelope--contract ile, cache temizleme ve indeksleme bildirimi outbox--contract ile bağlanır; harici indeksleme satıcısı veya kimlik bilgisi bu sözleşmede seçilmez.",
+      "10. Gelecekteki kabul: örnek veri kümesiyle benzersiz canonical rotalar ve eksik verinin yayınlanmadığı gösterilir; yetkisiz yazmanın reddedildiği ve kaydın değişmediği doğrulanır."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Zorunlu kalite alanı boş olan kaynak kaydı yayın alanı işaretlenerek kaydedildiğinde kayıt yayınlanmış olarak saklanmaz ve route çözümleyicide bulunamaz.",
+      "red": "Kalite kapısı henüz olmadığından native save kaydı yayınlanmış kabul eder ve test beklenen ValidationError'ı alamadığı için davranış düzeyinde başarısız olur. RED import hatası, eksik altyapı veya native davranışı bozma ile üretilmez. Bu turda test yazılmaz veya koşulmaz.",
+      "green": "validate içindeki eşik kontrolü frappe.throw ile reddeder, kayıt yayınlanmamış kalır, çözümleyici bulunamadı döner; native WebsiteGenerator route üretimi ve diğer native testler değişmeden geçer."
+    },
+    "rollback": "Gelecekteki geri alma: hooks.py içindeki endpoint ve doc event kaydı kaldırılır, React rotası devreden çıkarılır; yayınlanmış kayıtlar silinmez, gerekirse native yayın alanıyla yayından kaldırılır. Veri silme veya şema geri alma bu sözleşmeyle yetkilendirilmez. Teknik CI/deploy/rollback sahibi Hüseyin Cengiz; domain/DNS uygulaması gerekirse teknik gereksinimi Hüseyin Cengiz hazırlar, GoDaddy tarafını Asistan Hüseyin uygular, sonucu Hüseyin Cengiz doğrular."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "content-3",
+      "sourceStage": "scale",
+      "existing": "Native parça: WebsiteGenerator yayın koşulu sağlanınca route üretir ve yayın durumunu koşul alanından okur; DocType.validate has_web_view için route alanını zorunlu tutar; DocumentPage route ve yayın filtresiyle belgeyi çözer; sitemap.py yalnız yayın koşulu tanımlı DocType'ları değerlendirir. Suite kaynak değerlendirmesinde has_web_view kullanan DocType raporlanmadı; bu doğrulanmış alıntıyla desteklenmez ve kapsamlı yokluk iddiası değildir.",
+      "gap": "Kaynak DocType ve şablon/veri kümesi yok; veri kalitesi eşiği yok, mevcut kapı tek boolean yayın alanı; DocType'lar arası route çakışma kontrolü yok, benzersizlik DocType bazında unique bayrağına bağlı; slug değişiminde redirect yok; kayıt bazında canonical ve noindex politikası yok; headless React için route çözümleyen, kalite kapısı uygulayan ve canonical/sitemap verisi dönen provider sözleşmesi yok; content-2 bağımlılığı canonical görev bağımlılıklarında yazılı değil; functionalAcceptance not_run.",
+      "completionSteps": [
+        "Kaynak DocType'ı has_web_view, is_published_field ve unique route ile tanımla; WebsiteGenerator'dan türet.",
+        "Kalite eşiği için davranış RED testini yaz; validate içinde frappe.throw ile yayını reddet.",
+        "Kaynak registry üzerinden DocType'lar arası route çakışma kontrolünü validate'e ekle.",
+        "Kayıt bazında canonical URL ve robots değerini üret; redirect politikasını karar sonrası uygula.",
+        "Tek salt okunur provider endpoint'ini sitemap.py yayın filtresi mantığını yeniden kullanarak ekle; Guest okuma yalnız native izinlerle.",
+        "content-2 kararından sonra TanStack Router/Query ve Ant Design ile React web rotasını bağla."
+      ],
+      "dependencies": [
+        "programmatic-seo--contract",
+        "kernel-envelope--contract",
+        "native-user-policy--contract",
+        "capability-definition--contract",
+        "native-doctype-schema--contract",
+        "outbox--contract",
+        "audit-envelope--contract"
+      ],
+      "acceptance": "Örnek veri kümesinden benzersiz canonical rotalar oluşur; eksik veri yayınlanmaz; çakışan route reddedilir; yetkisiz yazma native izin hatasıyla reddedilir ve kayıt değişmez; yayınlanmamış route bulunamadı döner. Durum: not_run.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/website/website_generator.py",
+          "line": 10,
+          "quote": "class WebsiteGenerator(Document):"
+        },
+        {
+          "path": "frappe/frappe/website/website_generator.py",
+          "line": 39,
+          "quote": "self.route = self.make_route()"
+        },
+        {
+          "path": "frappe/frappe/website/website_generator.py",
+          "line": 92,
+          "quote": "return self.get(condition_field) or False"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/doctype/doctype.py",
+          "line": 423,
+          "quote": "frappe.throw(_('Field \"route\" is mandatory for Web Views'), title=\"Missing Field\")"
+        },
+        {
+          "path": "frappe/frappe/website/page_renderers/document_page.py",
+          "line": 102,
+          "quote": "docname = frappe.db.get_value(doctype, filters, \"name\")"
+        },
+        {
+          "path": "frappe/frappe/www/sitemap.py",
+          "line": 55,
+          "quote": "condition_field = meta.is_published_field or controller.website.condition_field"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Uygulama durumu: uygulanmadı. Tüm adımlar gelecekteki yönergedir; çalışma zamanı kabulü not_run.",
+    "Kaynak DocType ve veri kümesi tanımlı değil.",
+    "Veri kalitesi eşiği, DocType'lar arası route çakışması, redirect, canonical/noindex ve headless provider sözleşmesi uygulanmadı.",
+    "content-2 render/sitemap bağımlılığı canonical görev bağımlılıklarında yazılı değil; yeni kanonik kimlik eklenmeden entegrasyon sahibinin değerlendirmesine bırakılır.",
+    "Kaynak değerlendirmesinde not edilen Google indexing kuyruğu, robots_txt hariç tutma, Website Route Meta ve Web Page unique route için doğrulanmış alıntı yok; hedef sürümde R-00 ile doğrulanmalı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Programmatic SEO kaynak DocType'ı ve veri kümesi",
+      "requirementIds": ["content-3"],
+      "blocks": "development.steps 1-4",
+      "interimDocStep": "Aday veri kümeleri için alan listesi ve kalite ölçütü taslağını belgede karşılaştır."
+    },
+    {
+      "decision": "Kalite eşiği değerleri (zorunlu alanlar, minimum içerik)",
+      "requirementIds": ["content-3"],
+      "blocks": "development.steps 2-3",
+      "interimDocStep": "Eşik parametrelerinin adlarını ve ret mesajı biçimini belgele; değer seçme."
+    },
+    {
+      "decision": "Canonical host ve tenant başına public alan topolojisi",
+      "requirementIds": ["content-3"],
+      "blocks": "development.steps 6-7",
+      "interimDocStep": "canonicalUrl alanını host bağımsız route ile tanımla; DNS gereksinim şablonunu Hüseyin Cengiz için hazırla."
+    },
+    {
+      "decision": "Route/slug değişiminde redirect politikası ve saklama yeri",
+      "requirementIds": ["content-3"],
+      "blocks": "development.steps 5",
+      "interimDocStep": "Route değişiminin audit kaydına düşmesini ve olası redirect girdisinin alanlarını belgele."
+    },
+    {
+      "decision": "Harici indeksleme bildirimi kullanılıp kullanılmayacağı ve satıcısı",
+      "requirementIds": ["content-3"],
+      "blocks": "development.steps 9 indeksleme kısmı",
+      "interimDocStep": "Outbox olay adını ve yükünü satıcıdan bağımsız tanımla; secret veya kimlik bilgisi yazma."
+    },
+    {
+      "decision": "Frappe hedef sürümü (T-00 baseline)",
+      "requirementIds": ["content-3"],
+      "blocks": "development.admission ve R-00 eşlemesi",
+      "interimDocStep": "reuse.evidence satırlarını hedef sürümde yeniden doğrulanacak liste olarak işaretle."
+    },
+    {
+      "decision": "content-2 render/sitemap kararı",
+      "requirementIds": ["content-3"],
+      "blocks": "development.steps 8",
+      "interimDocStep": "Provider JSON çıktı alanlarını render kararından bağımsız tamamla."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

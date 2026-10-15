@@ -1,0 +1,194 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "human-decision",
+  "canonicalTaskIds": [
+    "human-decision--implementation",
+    "ui-family-39--implementation-scale",
+    "ui-provider-registry--implementation-scale"
+  ],
+  "requirementIds": ["agents-3"],
+  "stage": "scale",
+  "sourceStages": {
+    "agents-3": "scale"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Kritik ajan eyleminde insan onayı ve ajanın durdurulması. Uygulama durumu: uygulanmadı.",
+    "trigger": "Bir ajan User'ı kritik sınıftaki bir eylemi talep eder (native submit, cancel, delete veya dış etki doğuran çağrı) ya da yetkili bir insan kullanıcı ajanı durdurma sinyali verir.",
+    "expected": "Kritik eylem doğrudan çalışmaz; eylem için bekleyen bir HumanDecision kaydı oluşur ve React/Ant Design arayüzünde bekleyen karar olarak görünür. Ajan dışındaki bir insan kullanıcı, kendi native Frappe yetkisiyle bu kaydı submit ettiğinde kritik eylem native izin, transaction ve save/submit yolu üzerinden yürütülür; dış etki varsa yalnız onaydan sonra outbox'a girer. Durdurma sinyalinden sonra ajan yeni araç çağrısı yapamaz ve bekleyen kararları görünür kalır.",
+    "denied": "Onaysız kritik eylem çalışmaz ve hedef belge değişmez. Ajan User'ı kendi talep ettiği HumanDecision kaydını submit edemez; deneme native izin hatasıyla reddedilir ve kayıt docstatus değeri değişmeden kalır. Durdurulmuş ajanın sonraki çağrıları sunucuda reddedilir. Yetki ignore_permissions veya ham SQL ile atlanamaz."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native Frappe izin listesindeki submit hakkı, whitelist'li submit ucu ve belge metodunda POST isteğinde yapılan write yetki kontrolü, onay kapısının sunucu tarafı temeli olarak yeniden kullanılır. Bu kanıtlar yalnız native submit/izin parçasını gösterir; kritik eylem sınıflandırması, onay kaydı, durdurma zorlaması ve bekleyen karar görünürlüğü kaynakta gösterilmemiştir. Native Workflow kaynağı aranan yollarda görülmediği için var/yok iddiası yapılmaz.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/permissions.py",
+        "line": 20,
+        "quote": "\"submit\","
+      },
+      {
+        "path": "frappe/frappe/client.py",
+        "line": 276,
+        "quote": "def submit(doc: str | dict[str, Any]):"
+      },
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 132,
+        "quote": "doc.check_permission(\"write\")"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "frappe/frappe/client.py",
+      "frappe/frappe/permissions.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/human-decision.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/ai_orchestration/doctype/human_decision/human_decision.py",
+      "frontend/packages/genui/src/components/ui-family-39/scale.tsx",
+      "frontend/packages/genui/src/components/ui-provider-registry/scale.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Ajandan gelen kritik eylem talebi, kernel-envelope sözleşmesindeki zarf içinde taşınır: talep eden ajan User'ı, hedef DocType ve belge adı, eylem sınıfı (submit, cancel, delete, dış etki), tenant/kapsam ve correlation bilgisi, kısa gerekçe. İnsan kararı girdisi, kaydın native submit (onay) veya ret işlemidir. Durdurma girdisi, yetkili insan kullanıcının hedef ajan User'ını belirten sinyalidir. Alan adları human-decision--schema görevine aittir; bu sözleşme alan adı sabitlemez.",
+    "output": "Bekleyen, onaylanmış, reddedilmiş veya durdurma nedeniyle kapanmış karar durumu; audit-envelope sözleşmesine uygun karar olayı; onay sonrasında native yolla yürütülen eylemin sonucu. Arayüze yalnız JSON model sınırından geçen karar özeti gider; yerel ReactNode veya callback bu sınırdan taşınmaz.",
+    "authorization": "Onay yetkisi native submit hakkı ve belge izin kontrolüyle sağlanır. Rol ve izin bayrakları explicitPermissionFlags ortak kaynağına bağlanır; bu rehber yeni rol veya bayrak icat etmez. Ajan User'ının HumanDecision üzerinde submit hakkı olmaz. Arayüzde onay düğmesinin görünmesi yetki sayılmaz; yetkiyi her zaman sunucu belirler. ignore_permissions, ham SQL ile docstatus değiştirme veya izin kontrolünü atlayan yardımcılar yasaktır. Bu sözleşme hiçbir servis, production ortamı, şema veya veriyi değiştirme yetkisi vermez.",
+    "persistence": "Önerilen kalıcılık, canonicalArtifact içindeki HumanDecision DocType'ıdır (custom_proposed). Onay durumu native docstatus ve submit/cancel yaşam döngüsüyle izlenir; submittable DocType davranışı R-00 eşlemesinde kaynakla doğrulanacaktır. Karar ve hedef eylem tek native transaction içinde ilerler; dış etkiler yalnız onaydan sonra outbox sözleşmesiyle yayınlanır. Saklama süresi açık karardır.",
+    "failure": "Yetkisiz onay denemesi native izin hatasıyla reddedilir ve kayıt değişmez. Onaysız kritik eylem denemesi reddedilir ve hedef belge değişmez. Durdurulmuş ajanın çağrısı reddedilir ve yeni karar oluşmaz. Eylem yürütmesi hata verirse transaction geri alınır ve karar onaylı fakat yürütülmemiş olarak audit kaydına düşer. Bekleyen dış etkilerin iptal politikası açık karardır; karar gelene kadar onaysız dış etki yayınlanmaz."
+  },
+  "development": {
+    "dependencies": [
+      "agent-capability--contract",
+      "audit-envelope--contract",
+      "capability-definition--contract",
+      "human-decision--contract",
+      "human-decision--schema",
+      "kernel-envelope--contract",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "outbox--contract",
+      "ui-family-01--contract",
+      "ui-family-39--contract",
+      "ui-family-39--implementation",
+      "ui-provider-registry--contract",
+      "ui-provider-registry--implementation"
+    ],
+    "admission": "Uygulama durumu: uygulanmadı. Kabul önkoşulları: T-00 hedef sürüm tabanı ve R-00 yeniden kullanım eşlemesi tamamlanmış olmalı; izinli veriye dokunduğu için R-01 de uygulanır. Bağımlı sözleşmeler (human-decision--contract, human-decision--schema, native-user-policy--contract, outbox--contract, audit-envelope--contract) kabul edilmeden üretim kodu açılmaz. Tek dar davranış, gerçek RED/GREEN kanıtıyla uygulanır. Sıra mevcut görev bağımlılıkları ve stage tarafından belirlenir; küme sırası yalnız sunumdur. Teknik CI, deploy ve rollback sahibi Hüseyin Cengiz'dir.",
+    "steps": [
+      "Kritik eylem sınıfını tek paragrafta sabitleyin: native submit, cancel, delete ve dış etki doğuran çağrı. Paragrafı ürün sahibi onayına sunun; onay gelene kadar taslak kalır.",
+      "R-00 eşlemesinde submit hakkı, whitelist'li submit ucu ve POST write kontrolünü kanıt satırlarıyla bağlayın; native Workflow ve User devre dışı bırakma davranışını aynı eşlemede kaynakla doğrulayın veya bilinmiyor olarak işaretleyin.",
+      "human-decision--schema görevinde HumanDecision DocType alanlarını ve submittable yaşam döngüsünü native-doctype-schema sözleşmesine göre tanımlayın.",
+      "İzinleri explicitPermissionFlags ortak kaynağına bağlayın: insan onaylayıcı rolde submit hakkı, ajan User'ında submit hakkı yok.",
+      "Kritik eylem yürütmesinden önce onaylanmış HumanDecision kaydı arayan sunucu kapısını native izin ve transaction yolunda tanımlayın; kapı yetkiyi atlamaz.",
+      "Durdurma yolunu native-user-policy sözleşmesine bağlayın: ajan User'ını devre dışı bırakma önerisi doğrulandıktan sonra, sonraki çağrıların sunucuda reddedildiğini tanımlayın.",
+      "Bekleyen kararların React/Ant Design arayüzünde görünürlüğünü ui-family-39 ve ui-provider-registry sözleşmeleriyle bağlayın; kaynak registry ile GenUI capability registry ayrı tutulur.",
+      "Dış etkileri outbox sözleşmesine bağlayın; onaysız veya durdurulmuş ajan kaynaklı dış etki yayınlanmaz."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Ajan User'ı, kendi talep ettiği bekleyen HumanDecision kaydını native submit ucu üzerinden onaylamaya çalışır; istek izin hatasıyla reddedilir, kaydın docstatus değeri değişmez ve hedef kritik eylem çalışmaz.",
+      "red": "Senaryo, ajan User'ının onay denemesinin reddedildiğini ve kaydın değişmediğini doğrular; ajan ile insan onaylayıcı arasında izin ayrımı henüz tanımlı olmadığı için doğrulama başarısız olur. RED, import veya altyapı hatası ya da native submit davranışını bozmak olamaz.",
+      "green": "Mümkün olan en küçük değişiklik: explicitPermissionFlags kaynağına bağlı izinlerle HumanDecision submit hakkını yalnız insan onaylayıcı role vermek. Native submit ve izin kontrolü değiştirilmez. Bu turda test yazılmaz veya koşulmaz."
+    },
+    "rollback": "Bu sözleşme yalnız belgedir; geri alma, sözleşme dosyasının ana entegrasyon sahibi tarafından önceki haline döndürülmesidir. Gelecekteki üretim değişikliğinde HumanDecision DocType ve izin değişikliklerinin geri alınması Hüseyin Cengiz'in CI/deploy/rollback süreciyle yapılır; veri silme ve production değişikliği için ayrıca açık onay gerekir."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "agents-3",
+      "sourceStage": "scale",
+      "existing": "Native parça: Frappe izin listesinde submit hakkı, whitelist'li submit ucu ve belge metodunda POST isteğinde write yetki kontrolü bulunur. Bunlar onay kapısının sunucu tarafı temeli olabilir. Mevcut talimat (data/clusters/09.json satır 938) orkestratör interrupt/continue modelini dış destek olarak anar; bu bir satıcı seçimi değildir.",
+      "gap": "1) Kritik eylem sınıflandırması tanımsız. 2) Onay kaydının sahibi belirsiz: native submit/docstatus veya orkestratör interrupt'ı; native Workflow kaynağı görülmedi. 3) Durdurma sinyalinin sunucuda zorlanması yazılmamış. 4) Bekleyen kararın arayüzde görünmesi ile sunucu yetkisi arasındaki ayrım tanımsız.",
+      "completionSteps": [
+        "Boşluk 1: Kritik eylemi native submit, cancel, delete ve dış etki doğuran çağrı olarak tek paragrafta yazıp ürün sahibi onayına sunun.",
+        "Boşluk 2: Kaydın sahibi olarak native submit/docstatus yaşam döngüsüne sahip HumanDecision kaydını önerin; orkestratör interrupt'ı yalnız beklemeyi tetikler, onay kaydı sahibi olmaz.",
+        "Boşluk 3: Durdurmayı ajan User'ını devre dışı bırakma olarak önerin; native etkisini R-00'da kaynakla doğrulayın, doğrulanamazsa token iptali seçeneğini açık karar olarak bırakın.",
+        "Boşluk 4: Arayüzde onay düğmesi yalnız durum gösterir; her onay sunucuda native izin kontrolünden geçer. Görünürlük ui-family-39 ve ui-provider-registry sözleşmelerine bağlanır.",
+        "İzinleri explicitPermissionFlags ortak kaynağına bağlayın ve ajan User'ına HumanDecision submit hakkı vermeyin."
+      ],
+      "dependencies": [
+        "human-decision--contract",
+        "human-decision--schema",
+        "kernel-envelope--contract",
+        "native-user-policy--contract",
+        "capability-definition--contract",
+        "native-doctype-schema--contract",
+        "outbox--contract",
+        "audit-envelope--contract"
+      ],
+      "acceptance": "Onaysız kritik eylem çalışmaz ve hedef belge değişmez. Ajan kendi kararını onaylayamaz; deneme reddedilir ve kayıt değişmez. Durdurulan ajan yeni araç çağrısı yapamaz. Bekleyen karar yetkili insan kullanıcıya görünür. Kabul kanıtı henüz yok; runtimeAcceptance not_run.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 20,
+          "quote": "\"submit\","
+        },
+        {
+          "path": "frappe/frappe/client.py",
+          "line": 276,
+          "quote": "def submit(doc: str | dict[str, Any]):"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 132,
+          "quote": "doc.check_permission(\"write\")"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Uygulama durumu: uygulanmadı. Bu dosya yalnız yönerge sözleşmesidir; ürün kodu, test veya çalışma zamanı kabulü yoktur.",
+    "Native Workflow kaynağı aranan yollarda görülmedi; onay kaydının Workflow ile mi yoksa submittable DocType ile mi tutulacağı R-00 eşlemesinde netleşir.",
+    "Ajan User'ını devre dışı bırakmanın açık oturumlar ve API anahtarları üzerindeki native etkisi kaynakla doğrulanmadı.",
+    "Kaynak değerlendirmesi Frappe sunucu tarafını gösterir; React/Ant Design arayüz uygulamasının kanıtı değildir. plannedProduction içindeki genui yolları yalnız sahiplik önerisidir; GenUI ayrı kullanıcı projesidir ve bu sözleşme GenUI geliştirmesi içermez."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Kritik eylem sınıflandırmasının (submit, cancel, delete, dış etki) ürün sahibi tarafından onaylanması.",
+      "requirementIds": ["agents-3"],
+      "blockedStep": "Sunucu tarafı onay kapısının kapsamının ve tek TDD senaryosunun kabul edilmesi.",
+      "allowedDocWorkUntilDecision": "Önerilen sınıflandırma paragrafını ve kapsam dışı örnekleri belge taslağı olarak hazırlamak."
+    },
+    {
+      "decision": "Orkestratör interrupt/continue sağlayıcısının seçimi; satıcı ve lisans seçimi bu sözleşmede yapılmaz.",
+      "requirementIds": ["agents-3"],
+      "blockedStep": "Ajan tarafında beklemeyi ve devam etmeyi tetikleyen bağlantının tanımlanması.",
+      "allowedDocWorkUntilDecision": "Onay kaydının native Frappe tarafında sağlayıcıdan bağımsız tutulduğunu ve sağlayıcının yalnız bekleme tetiklediğini belgelemek."
+    },
+    {
+      "decision": "Durdurma veya ret durumunda bekleyen dış etkilerin iptal politikası.",
+      "requirementIds": ["agents-3"],
+      "blockedStep": "outbox sözleşmesiyle dış etki iptal adımının bağlanması.",
+      "allowedDocWorkUntilDecision": "Onaysız dış etkinin yayınlanmadığı kuralını ve politika seçeneklerini seçim yapmadan listelemek."
+    },
+    {
+      "decision": "HumanDecision ve ilgili audit kayıtlarının saklama süresi.",
+      "requirementIds": ["agents-3"],
+      "blockedStep": "Kalıcılık ve temizlik kuralının şemaya işlenmesi.",
+      "allowedDocWorkUntilDecision": "Saklama süresini açık parametre olarak belgede işaretlemek."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

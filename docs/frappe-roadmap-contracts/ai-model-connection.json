@@ -1,0 +1,271 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "ai-model-connection",
+  "canonicalTaskIds": ["ai-model-connection--implementation"],
+  "requirementIds": ["ai-1", "ai-2"],
+  "stage": "scale",
+  "sourceStages": {
+    "ai-1": "scale",
+    "ai-2": "scale"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Tenant kapsamında izinli AI sağlayıcı/model bağlantısının çözülmesi ve süre sınırlı çağrı",
+    "trigger": "Yetkili bir sunucu tarafı tüketici tenant bağlamı ve mantıksal bağlantı adıyla model çağrısı ister ya da yönetim bayrağına sahip kullanıcı bir AIModelConnection kaydını kaydeder.",
+    "expected": "Bağlantı yalnız istek sahibinin tenant/site kapsamında, etkin ve izin listesindeki sağlayıcı/model çifti için çözülür; anahtar sunucuda kalır; çağrı açık zaman aşımı ve deneme sınırıyla yapılır; birincil bağlantı zaman aşımına uğrarsa yalnız izinli ve veri politikasından yeniden geçen alternatife geçilir; toplam süre ve maliyet tavanı aşılmaz.",
+    "denied": "İzin listesi dışındaki model, başka tenant'a ait bağlantı, devre dışı kayıt, yazma bayrağı olmayan kullanıcı, tavanı aşacak deneme ve veri politikasından geçmeyen alternatif reddedilir; kayıt değişmez; anahtar ve ham sağlayıcı hata gövdesi yanıta, loga veya audit kaydına yazılmaz."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Kurulu Suite içinde Sheets AI Assist için tek sağlayıcılı, modeli kodda sabit bir istemci, sağlayıcı hata sınıflarının kullanıcı mesajına eşlenmesi ve heuristic-first -> model-fallback zinciri vardır; Frappe automation_engine giden webhook çağrıları için üst zaman aşımı sabiti tanımlar. Bunlar yalnız desen ve sınır kanıtıdır; tek bir native parçanın varlığı bütün davranışın var olduğu anlamına gelmez. Tenant kapsamlı sağlayıcı/model kaydı, izin listesi, sağlayıcılar arası geçiş, maliyet tavanı ve AIModelConnection DocType'ı kaynakta yoktur. Suite kodu bu sözleşmeyle değiştirilmez, sarılmaz veya yeniden kullanılmaz; Vue/Frappe UI kaynağı React/Ant Design uygulaması kanıtı değildir. Aranan yollar kapsamlı bir yokluk iddiası değildir.",
+    "evidence": [
+      {
+        "path": "suite/pyproject.toml",
+        "line": 32,
+        "quote": "\"anthropic>=0.40\","
+      },
+      {
+        "path": "suite/suite/sheets/ai/client.py",
+        "line": 15,
+        "quote": "DEFAULT_MODEL = \"claude-opus-4-8\""
+      },
+      {
+        "path": "suite/suite/sheets/ai/client.py",
+        "line": 88,
+        "quote": "client = anthropic.Anthropic(api_key=api_key)"
+      },
+      {
+        "path": "suite/suite/sheets/ai/heuristics.py",
+        "line": 9,
+        "quote": "This is the fast path of a heuristic-first → model-fallback cascade: the muscle"
+      },
+      {
+        "path": "suite/suite/sheets/ai/client.py",
+        "line": 103,
+        "quote": "except anthropic.RateLimitError:"
+      },
+      {
+        "path": "frappe/frappe/automation_engine/actions/core.py",
+        "line": 23,
+        "quote": "MAX_WEBHOOK_TIMEOUT = 120"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/automation_engine/actions/core.py",
+      "suite/pyproject.toml",
+      "suite/suite/sheets/ai/client.py",
+      "suite/suite/sheets/ai/heuristics.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/ai-model-connection.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/ai_orchestration/doctype/aimodel_connection/aimodel_connection.py"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Çağrı: kernel-envelope--contract ile gelen tenant bağlamı, mantıksal bağlantı adı, capability-definition--contract kimliği ve veri politikasından geçmiş istem yükü. Yönetim yazımı: AIModelConnection alanları ai-model-connection--schema sözleşmesinde kesinleşir; önerilen asgari alanlar sağlayıcı, model kimliği, etkinlik, tenant kapsamı, öncelik, tek çağrı zaman aşımı, deneme sayısı, maliyet tavanı referansı, alternatif bağlantı referansı ve anahtar referansıdır.",
+    "output": "JSON serileştirilebilir sonuç zarfı: kullanılan bağlantı adı, sağlayıcı/model kimliği, deneme sayısı, geçen süre, alternatif kullanılıp kullanılmadığı ve normalize hata kodu. Anahtar, ham sağlayıcı hata gövdesi ve özel iç düşünce dönmez. İstemciye ReactNode veya callback taşınmaz; olası yönetim ekranı yalnız JSON model alır ve kaynak registry ile GenUI capability registry ayrı tutulur.",
+    "authorization": "Native Frappe rol/DocType izinleri ve frappe.has_permission ile doc.check_permission yolu kullanılır; ignore_permissions veya SQL ile yetki bypass yok. Rol izin bayrakları explicitPermissionFlags ortak kaynağına bağlanır (native-user-policy--contract üzerinden; konum sharedExecutionPolicy ile çözülür). Okuma yetkisi anahtarı göstermez; çağrı yetkisi ile kayıt yönetim yetkisi ayrı bayraklardır. Tenant eşleşmesi sunucuda doğrulanır, istemci beyanına güvenilmez.",
+    "persistence": "AIModelConnection kaydı native doc.insert/doc.save ve request transaction'ı ile yazılır; doğrulama DocType controller validate adımında yapılır. Anahtar düz metin alanda tutulmaz; saklama yeri ve kapsamı karar bekler, Frappe Password alan tipi aday native mekanizmadır ve hedef sürümde T-00 ile doğrulanır. Kayıt değişikliği ve çağrı meta verisi audit-envelope--contract'a, asenkron yan etkiler outbox--contract'a göre yazılır; istem içeriği ve anahtar audit'e yazılmaz. Bu sözleşme hiçbir servis, production ortamı, şema veya veriyi değiştirme yetkisi vermez.",
+    "failure": "Zaman aşımı, bağlantı, oran sınırı ve kimlik doğrulama hataları normalize kodlara eşlenir. Yalnız zaman aşımı veya bağlantı hatasında ve kalan süre/maliyet bütçesi yeterliyse izinli alternatife geçilir; kimlik doğrulama hatası geçiş nedeni değildir; oran sınırında geçiş kuralı karar bekler. Tavan aşımında çağrı durur, kısmi sonuç başarı gibi sunulmaz. Anahtar yoksa çağrı açık hatayla reddedilir; hata mesajı sağlayıcı gövdesini yansıtmaz."
+  },
+  "development": {
+    "dependencies": [
+      "ai-model-connection--contract",
+      "ai-model-connection--schema",
+      "audit-envelope--contract",
+      "capability-definition--contract",
+      "kernel-envelope--contract",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "outbox--contract"
+    ],
+    "admission": {
+      "statement": "Uygulama durumu: uygulanmadı. Bu sözleşme üretim veya test yazımına kabul edilmemiştir.",
+      "prerequisites": [
+        "T-00 hedef taban: Frappe sürümü, anthropic paketinin beyan edilen aralığı ile lockfile/runtime çözümlemesi, Password alan tipi ve native izin davranışı doğrulanır; doğrulanmayan sürüm bilinmiyor kalır.",
+        "R-00 yeniden kullanım eşlemesi: Suite sheets/ai istemcisi, heuristics zinciri ve automation_engine zaman aşımı sabitleri yalnız desen olarak eşlenir.",
+        "R-01: izinli veri tüketen çağrılar için uygulanır.",
+        "development.dependencies içindeki sözleşmeler hazır olmalıdır.",
+        "decisionsPending içinde ilgili adımı engelleyen kararlar kapanmalıdır.",
+        "Tek dar davranış gerçek RED/GREEN kanıtıyla uygulanır."
+      ]
+    },
+    "steps": [
+      "Sınır kararını görev metnine yaz: Suite Sheets AI dokunulmadan kalır; sağlayıcı adaptörü ve anahtar saklama yeri bu birimde tanımlanır; yeni görev açılmaz.",
+      "ai-model-connection--schema sözleşmesinde AIModelConnection alanlarını ve izin listesi kaynağını tanımla; native-doctype-schema--contract kurallarına uy.",
+      "Rol bayraklarını explicitPermissionFlags ortak kaynağına bağla; yönetim ve çağrı yetkisini ayır.",
+      "İlk dar davranış: controller validate içinde izin listesi kontrolü (tdd.oneScenario).",
+      "Sağlayıcıya özgü SDK çağrısını tek adaptör arkasında tanımla; zaman aşımı ve deneme sayısı açık parametre olarak verilir; sağlayıcı kararı gelene kadar yalnız arayüz belgelenir.",
+      "Yönlendirme: birincil bağlantı, izinli alternatif, kalan süre/maliyet bütçesi ve geçişte veri politikasının yeniden uygulanması.",
+      "Audit ve outbox bağlantısını ilgili sözleşmelere göre ekle; istem ve anahtar dışarıda kalır.",
+      "Olası yönetim ekranı ayrı adımdır: Ant Design Pro form, frontend/packages/ui/src/registry.ts üzerinden; anahtar alanı salt yazma, yalnız JSON model.",
+      "CI, deploy ve rollback teknik sahibi Hüseyin Cengiz'dir; bu birim GoDaddy/DNS işi içermez."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "AIModelConnection yazma bayrağına sahip kullanıcı, kendi tenant'ındaki mevcut bir bağlantının model kimliğini izin listesi dışındaki bir değere değiştirip kaydetmeye çalışır; kayıt frappe.ValidationError ile reddedilir ve veritabanındaki model kimliği ile modified değeri değişmez. Gerçek sağlayıcıya ağ çağrısı yapılmaz.",
+      "red": "İzin listesi kontrolü yokken doc.save başarılı olur; ValidationError ve değişmemiş kayıt beklentisi bu nedenle başarısız olur. Import veya altyapı hatası RED sayılmaz; native izin/save davranışı bozularak RED üretilmez.",
+      "green": "validate içinde model kimliğini tenant kapsamındaki izin listesine karşı denetleyen en küçük kontrol eklenir; save reddedilir, kayıt önceki değerini korur, native izin yolu değişmez."
+    },
+    "rollback": "Bu turda geri alınacak üretim değişikliği yoktur. Gelecek uygulamada bağlantı kaydı etkinlik alanıyla devre dışı bırakılır ve tüketiciler sessiz başka sağlayıcı geçişi yerine açık hataya düşer; kod değişikliği tek PR olarak geri alınır; şema geri dönüşü ve deploy rollback'i Hüseyin Cengiz yürütür. Suite Sheets AI bu sözleşmeden etkilenmez. Anahtar rotasyonu secret sahibinin kararıyla yapılır; secret değeri hiçbir belgeye yazılmaz."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "ai-1",
+      "sourceStage": "scale",
+      "existing": "Suite pyproject'te Sheets AI Assist için anthropic bağımlılığı, client.py'de kodda sabit DEFAULT_MODEL ve api_key ile oluşturulan tek sağlayıcılı istemci vardır. Bu, tek tüketiciye gömülü bir çağrıdır; tenant kapsamlı sağlayıcı/model kaydı değildir.",
+      "gap": "Suite istemcisinin rolü tanımsız; anahtarın saklama yeri ve tenant/site kapsamı belirsiz, kaynağı olan api modülü pakette yok; model kimliği sabit, izin listesi ve sürüm eşlemesi yok; ai-1 ile ai-2 kabul kapsamları ayrışmamış.",
+      "completionSteps": [
+        "Suite sheets/ai istemcisinin dokunulmadan kalacağını yaz; Sheets'in yeni bağlantıyı tüketmesi ayrı karar olarak decisionsPending'de kalır.",
+        "AIModelConnection alanlarını schema sözleşmesinde tanımla: sağlayıcı, model kimliği, etkinlik, tenant kapsamı, anahtar referansı.",
+        "Mantıksal bağlantı adından sağlayıcı model kimliğine eşlemeyi kayıttan çöz; kodda sabit model kimliği kullanma.",
+        "Anahtarı yalnız sunucuda, düz metin olmayan native mekanizmada tut; okuma yanıtlarında maskele.",
+        "Yönetim ve çağrı yetkisini explicitPermissionFlags üzerinden ayır.",
+        "Kabul kapsamını ayır: ai-1 izinli kayıt ve tek çağrı, ai-2 yönlendirme, geçiş ve limitler."
+      ],
+      "dependencies": [
+        "ai-model-connection--contract",
+        "ai-model-connection--schema",
+        "native-doctype-schema--contract",
+        "native-user-policy--contract",
+        "kernel-envelope--contract",
+        "audit-envelope--contract"
+      ],
+      "acceptance": "İzinli sağlayıcı/model çağrısı tenant kapsamı ve anahtar gizliliğiyle çalışsın. Ek olarak: izin listesi dışı model yazımı reddedilir ve kayıt değişmez; başka tenant'ın bağlantısı çözülemez; anahtar hiçbir API yanıtında, logda veya audit kaydında görünmez.",
+      "evidence": [
+        {
+          "path": "suite/pyproject.toml",
+          "line": 32,
+          "quote": "\"anthropic>=0.40\","
+        },
+        {
+          "path": "suite/suite/sheets/ai/client.py",
+          "line": 15,
+          "quote": "DEFAULT_MODEL = \"claude-opus-4-8\""
+        },
+        {
+          "path": "suite/suite/sheets/ai/client.py",
+          "line": 88,
+          "quote": "client = anthropic.Anthropic(api_key=api_key)"
+        }
+      ]
+    },
+    {
+      "requirementId": "ai-2",
+      "sourceStage": "scale",
+      "existing": "Suite'teki fallback sağlayıcılar arası geçiş değil, deterministik sezgiselden modele geçen bir zincirdir; RateLimitError gibi hatalar kullanıcı mesajına eşlenir ancak geçiş kuralı yoktur. Frappe automation_engine giden webhook için üst zaman aşımı sabiti tanımlar; bu bir AI politikası değil, yalnız emsaldir.",
+      "gap": "Toplam süre, deneme sayısı ve maliyet tavanı için değer veya yapılandırma kaynağı yok; model çağrısında açık timeout görülmüyor; alternatife geçişte ai-5 veri politikasının yeniden uygulanması yazılmamış; heuristic-first deseninin router ile ilişkisi tanımsız.",
+      "completionSteps": [
+        "Kabul metnine sayısal alanları ekle: tek çağrı zaman aşımı, deneme sayısı, toplam süre, maliyet tavanı; değerler karar gelene kadar boş kalır.",
+        "Geçiş kuralı tablosu yaz: zaman aşımı/bağlantı hatası geçiş, kimlik doğrulama hatası geçiş yok, oran sınırı karar bekler.",
+        "Alternatif yalnız aynı tenant'ın izin listesindeyse ve ai-5 veri politikasından yeniden geçerse çağrılır.",
+        "Her denemeden önce kalan süre ve tahmini maliyet kontrol edilir; tavanı aşacak deneme başlatılmaz.",
+        "Heuristic-first deseni router'ın parçası değildir; tüketici tarafında router öncesi isteğe bağlı ön adım olarak kalır.",
+        "Giden HTTP için Frappe'nin timeout ve SSRF ilkelerine atıf yap: açık zaman aşımı, sınırlı yönlendirme, kullanıcı tarafından serbest girilen endpoint yok.",
+        "Hangi denemenin hangi bağlantıyla yapıldığını ve geçiş nedenini audit zarfına yaz."
+      ],
+      "dependencies": [
+        "ai-1",
+        "ai-model-connection--contract",
+        "ai-model-connection--schema",
+        "capability-definition--contract",
+        "kernel-envelope--contract",
+        "outbox--contract",
+        "audit-envelope--contract"
+      ],
+      "acceptance": "Bir sağlayıcı zaman aşımında izinli alternatife geçilsin; toplam süre ve maliyet limiti aşılmasın. Ek olarak: izinsiz veya veri politikasından geçmeyen alternatif hiç çağrılmaz; tavan aşımında çağrı durur ve normalize hata döner; testler gerçek sağlayıcıya ağ çağrısı yapmaz.",
+      "evidence": [
+        {
+          "path": "suite/suite/sheets/ai/heuristics.py",
+          "line": 9,
+          "quote": "This is the fast path of a heuristic-first → model-fallback cascade: the muscle"
+        },
+        {
+          "path": "suite/suite/sheets/ai/client.py",
+          "line": 103,
+          "quote": "except anthropic.RateLimitError:"
+        },
+        {
+          "path": "frappe/frappe/automation_engine/actions/core.py",
+          "line": 23,
+          "quote": "MAX_WEBHOOK_TIMEOUT = 120"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Uygulama durumu: uygulanmadı; AIModelConnection DocType, adaptör ve router yoktur.",
+    "Tenant kapsamlı sağlayıcı/model kaydı ve izin listesi yoktur.",
+    "Anahtar saklama yeri ve kapsamı tanımsızdır.",
+    "Zaman aşımı, deneme, toplam süre ve maliyet tavanı değerleri ile bütçe kaynağı yoktur.",
+    "Alternatife geçişte veri politikasının yeniden uygulanması kuralı uygulanmamıştır.",
+    "Hedef Frappe ve SDK sürümleri T-00 ile doğrulanmamıştır."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Birincil ve alternatif AI sağlayıcı seçimi (satıcı, lisans, tarife).",
+      "requirementIds": ["ai-1", "ai-2"],
+      "blocks": "Sağlayıcı adaptörünün uygulanması ve alternatif geçiş.",
+      "documentationStepUntilDecided": "Adaptör arayüzünü ve normalize hata kodlarını sağlayıcıdan bağımsız belgele."
+    },
+    {
+      "decision": "İzinli model listesi ve hedef model sürümü eşlemesi.",
+      "requirementIds": ["ai-1"],
+      "blocks": "İzin listesi değerleri ve TDD senaryosundaki örnek değerler.",
+      "documentationStepUntilDecided": "Mantıksal ad -> model kimliği eşleme yapısını değer yazmadan belgele."
+    },
+    {
+      "decision": "API anahtarının saklama yeri ve kapsamı (site veya tenant; tenant topolojisi).",
+      "requirementIds": ["ai-1"],
+      "blocks": "contract.persistence uygulaması.",
+      "documentationStepUntilDecided": "Anahtarın sunucu dışına çıkmaması, maskeleme ve log/audit dışlama kurallarını belgele."
+    },
+    {
+      "decision": "Tek çağrı zaman aşımı, deneme sayısı, toplam süre, maliyet tavanı değerleri, bütçe kaynağı ve oran sınırında geçiş kuralı.",
+      "requirementIds": ["ai-2"],
+      "blocks": "Router kabulü.",
+      "documentationStepUntilDecided": "Alanları ve tavan davranışını değerlerden bağımsız belgele."
+    },
+    {
+      "decision": "Alternatif sağlayıcıya veri gönderimi için veri politikası, veri yerleşimi ve saklama süresi (ai-5 ile birlikte).",
+      "requirementIds": ["ai-2"],
+      "blocks": "Alternatif sağlayıcıya geçiş.",
+      "documentationStepUntilDecided": "Geçişte politikanın yeniden uygulanması zorunluluğunu yaz."
+    },
+    {
+      "decision": "Suite Sheets AI'nın yeni bağlantıyı tüketip tüketmeyeceği.",
+      "requirementIds": ["ai-1"],
+      "blocks": "Suite tarafı entegrasyon; bu sözleşmenin kapsamı dışıdır.",
+      "documentationStepUntilDecided": "Suite'in dokunulmadan kaldığını yaz."
+    },
+    {
+      "decision": "Hedef Frappe ve sağlayıcı SDK sürümleri.",
+      "requirementIds": ["ai-1", "ai-2"],
+      "blocks": "T-00 kabulü ve adaptör parametreleri.",
+      "documentationStepUntilDecided": "Beyan edilen aralığı bilinmeyen runtime sürümünden ayrı kaydet."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

@@ -4,16 +4,28 @@
   "canonicalTaskIds": ["capability-activation--implementation"],
   "requirementIds": ["modules-1", "modules-4", "modules-7"],
   "stage": "mvp",
+  "sourceStages": {
+    "modules-1": "mvp",
+    "modules-4": "mvp",
+    "modules-7": "mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
     "title": "Askıdaki Suite alt modülünde yazma reddi, okumanın sürmesi",
     "trigger": "Sitede bir Suite Module Def için Capability Activation durumu askıda (salt okunur) iken native yazma hakkı olan kullanıcı o modülün DocType kaydında write/create/delete/submit/cancel/amend ister (Document.save/insert veya /api/resource).",
     "expected": "Native izin zinciri has_permission hook'u ile yazmayı reddeder; aynı kullanıcı aynı kaydı okumaya devam eder; kayıt ve geçmiş değişmez. Etkin durumda native davranış aynen kalır.",
-    "denied": "Hook yalnız reddeder, izin vermez; DocPerm'de olmayan hak açılmaz. Askıda olmayan modüller ile read/select/print/export etkilenmez."
+    "denied": "Hook yalnız reddeder, izin vermez; DocPerm'de olmayan hak açılmaz. Askıda olmayan modüller ile read/select/print/export etkilenmez. ignore_permissions, frappe.db.set_value veya SQL ile yetki bypass'ı bu davranışın parçası değildir ve kullanılmaz."
   },
   "reuse": {
-    "mechanism": "Native has_permission hook zinciri (controller yalnız reddedebilir) yeniden kullanılır; yeni durum motoru, ORM veya olay motoru kopyası yok. App düzeyinde tam kapatma için native set_app_state korunur, ancak Suite tek app olduğundan alt modül askısı için kullanılmaz. Durum kaydı schema görevinin Capability Activation DocType'ıdır; adapter yalnız capability_activation.py içindeki tek hook fonksiyonudur.",
+    "status": "KISMI",
+    "mechanism": "Native has_permission hook zinciri (controller hook yalnız reddedebilir) yeniden kullanılır; yeni durum motoru, ORM, CRUD veya olay motoru kopyası yok. App düzeyinde tam kapatma için native set_app_state (yalnız System Manager, veriye dokunmadan) korunur; ancak Suite tek app olduğundan (Drive, Slides, Writer, Sheets, Meet, Mail, Calendar) alt modül askısında kullanılmaz. Durum kaydı capability-activation--schema görevinin önerilen Capability Activation DocType'ıdır; adapter capability_activation.py içinde tek hook fonksiyonu olarak önerilir. Kanıtlar yalnız native parçaların kaynakta bulunduğunu gösterir; modül askısı, job boşaltma veya sürüm bildirimi davranışının bütünüyle var olduğunu göstermez. searchedPaths yalnız incelenen yollardır; kapsamlı yokluk iddiası değildir. Vue/Frappe UI kaynağı React/Ant Design uygulama kanıtı sayılmaz.",
     "evidence": [
+      {
+        "path": "frappe/frappe/permissions.py",
+        "line": 496,
+        "quote": "hooks = frappe.get_hooks(\"has_permission\")"
+      },
       {
         "path": "frappe/frappe/permissions.py",
         "line": 502,
@@ -25,20 +37,28 @@
         "quote": "from frappe.app_state import is_module_disabled"
       },
       {
+        "path": "frappe/frappe/core/doctype/installed_applications/installed_applications.py",
+        "line": 154,
+        "quote": "\"\"\"Disable or enable an installed app on this site without touching its data.\"\"\""
+      },
+      {
         "path": "frappe/frappe/core/doctype/installed_applications/installed_applications.js",
         "line": 73,
         "quote": "It keeps its data, but stops taking effect."
       },
       {
-        "path": "frappe/frappe/hooks.py",
-        "line": 509,
-        "quote": "before_job = ["
-      },
-      {
-        "path": "suite/suite/hooks.py",
-        "line": 289,
-        "quote": "scheduler_events = {"
+        "path": "suite/pyproject.toml",
+        "line": 6,
+        "quote": "description = \"Frappe Suite — Drive, Slides, Writer, Sheets, Meet, Mail, Calendar in one app.\""
       }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/core/doctype/installed_applications/installed_applications.js",
+      "frappe/frappe/core/doctype/installed_applications/installed_applications.py",
+      "frappe/frappe/hooks.py",
+      "frappe/frappe/permissions.py",
+      "suite/pyproject.toml",
+      "suite/suite/hooks.py"
     ]
   },
   "ownership": {
@@ -46,60 +66,216 @@
     "plannedProduction": [
       "backend/saas_platform/saas_platform/capability_catalog/doctype/capability_activation/capability_activation.py"
     ],
-    "plannedTestFile": "backend/saas_platform/saas_platform/capability_catalog/doctype/capability_activation/test_capability_activation.py",
+    "plannedTestFile": null,
     "sharedIntegrationFiles": [
       "backend/saas_platform/saas_platform/hooks.py",
-      "integration/fragments/capability-activation--integration.json"
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "Hook imzası has_permission(doc, ptype, user=None, debug=False), permissions.py çağrısıyla uyumlu. Eşleme: doc.doctype -> DocType meta module (Module Def) -> Capability Activation durumu. Alan adları schema görevine aittir; önerilen: module (Link Module Def), state (Select: active, suspended_read_only). Reddedilen ptype: write, create, delete, submit, cancel, amend, import.",
-    "output": "Askıda ve yazma türü ptype için False; aksi halde True (ret yok). API'de native 403; okuma yanıtı native alan ve yetkiyle değişmez. Sözleşme: contract-capability-activation v1.",
-    "authorization": "Kiracı = site, yalnız yerel kanıt için; kesin karar tenant-registry sözleşmesinde. Durumu yalnız System Manager değiştirir (native DocPerm). Capability Activation DocType'ının kendisi hook dışında tutulur. Administrator davranışı: unknown, testte gözlenecek. ignore_permissions ve frappe.db.set_value yolları hook'u atlar; kapsandığı iddia edilmez.",
-    "persistence": "Yeni tablo/DDL yok; hook salt okunur, istek içi önbellek frappe.local üzerinde. Durum değişikliği native Document.save ile; reddedilen yazma native transaction rollback ile veri bırakmaz.",
-    "failure": "frappe.PermissionError (HTTP 403). React19/AntD6/TanStack tüketicisi mevcut hata yüzeyinde gösterir, otomatik yeniden denemez, okumayı sürdürür. Durum kaydı yoksa modül etkin sayılır; veritabanı hatası native hata olarak yükselir, yazmaya sessizce izin verilmez."
+    "input": "Hook imzası has_permission(doc, ptype, user=None, debug=False); permissions.py içindeki controller hook çağrısıyla uyumlu olmalı. Eşleme: doc.doctype -> DocType meta module (Module Def) -> Capability Activation durumu. Alan adları capability-activation--schema görevine aittir; önerilen: module (Link Module Def), state (Select: active, suspended_read_only). Reddedilen ptype: write, create, delete, submit, cancel, amend, import.",
+    "output": "Askıda ve yazma türü ptype için False; diğer tüm durumlarda True (ret yok, yeni hak da açılmaz; nihai karar native DocPerm zincirindedir). API'de native 403; okuma yanıtı native alan ve yetkiyle değişmez.",
+    "authorization": "Kiracı eşlemesi (site mi, site içi kayıt mı) açık karardır ve tenant-registry--contract sözleşmesine bağlıdır; bu sözleşme seçmez. Kaynak kanıtı yalnız tek site üzerinde app durumunu gösterir. Durumu yalnız System Manager değiştirir (native DocPerm; set_app_state ile aynı rol sınırı). Rol ve izin bayrakları ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/explicitPermissionFlags kaynağına bağlıdır; bu rehber yeni rol veya DocPerm üretmez. Capability Activation DocType'ının kendisi hook dışında tutulur. Administrator davranışı unknown; gelecekteki testte gözlenmeden iddia edilmez. ignore_permissions, frappe.db.set_value ve doğrudan SQL yolları hook'u atlar; kapsandığı iddia edilmez ve yetki bypass'ı için kullanılmaz.",
+    "persistence": "Schema görevinin önerilen DocType'ı dışında yeni tablo/DDL yok; hook salt okunur, istek içi önbellek frappe.local üzerinde. Durum değişikliği native Document.save ile yapılır; reddedilen yazma native transaction rollback ile veri bırakmaz. Bu sözleşme şema, veri, servis veya production değiştirme yetkisi vermez.",
+    "failure": "frappe.PermissionError (HTTP 403). React/Ant Design ve TanStack Query tüketicisi hatayı mevcut hata yüzeyinde gösterir, otomatik yeniden denemez, okumayı sürdürür. Durum kaydı yoksa modül etkin sayılır; durum okunurken veritabanı hatası native hata olarak yükselir, yazmaya sessizce izin verilmez."
   },
   "development": {
     "dependencies": [
       "capability-activation--contract",
       "capability-activation--schema",
       "kernel-envelope--contract",
-      "tenant-registry--contract",
       "native-user-policy--contract",
-      "local pilot frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6 (suite.localhost)"
+      "tenant-registry--contract"
     ],
-    "admission": "Schema görevi Capability Activation DocType'ını ve durum alanını sağlamış olmalı; T-00 ve R-00 eşlemesi mevcut olmalı. Unknown: Suite source HEAD, Suite Module Def adları, Document.insert'in create için controller hook'unu çağırıp çağırmadığı, is_module_disabled imzası. Yerel kanıt uzak ürün baseline'ı değildir.",
+    "admission": "Uygulama durumu: uygulanmadı. Ön koşullar: T-00 hedef baseline ve R-00 yeniden kullanım eşlemesi; izinli veri tüketicileri için R-01; capability-activation--schema görevinin Capability Activation DocType'ını ve durum alanını sağlamış olması; tenant-registry--contract ve native-user-policy--contract sözleşmelerinin kiracı ve yetki ayrımını sabitlemesi. Unknown: hedef Frappe/Suite sürümü (kaynakta develop_version 17.x.x-develop görülür; hedef seçilmez), Suite kaynak HEAD'i, Suite Module Def adları, Document.insert'in create için controller hook'unu çağırıp çağırmadığı, is_module_disabled imzası, disable_app'in handler ve scheduler zorlaması. Kaynak değerlendirmesi ürün uygulaması değildir. Tek dar davranış gerçek RED/GREEN kanıtıyla uygulanır; NOT_ADMITTED iken üretim kiralaması yoktur.",
     "steps": [
-      "capability_activation.py içine has_permission fonksiyonu: kendi DocType'ını atla, modülü native meta'dan al, durumu istek içi önbellekle oku, askıda ve yazma ptype ise False döndür.",
-      "Entegrasyon sahibi (Codex) hooks.py içine has_permission için yıldız kaydını ekler; zamanlama veya before_job etkinleştirilmez."
+      "Salt okunur inceleme: frappe/app_state.py ve frappe/installer.py içindeki disable_app ve is_module_disabled akışı, permissions.py has_permission hook zinciri ve Document.insert create yolu okunur; bulgular R-00 eşlemesine yazılır.",
+      "capability_activation.py içine has_permission fonksiyonu: kendi DocType'ını atla, modülü native meta'dan al, durumu istek içi önbellekle oku, askıda ve yazma türü ptype ise False döndür; aksi halde True.",
+      "Entegrasyon sahibi seri birleştirmede backend hooks.py içine has_permission için yıldız kaydını ekler; scheduler veya before_job kontrolü bu birimde etkinleştirilmez.",
+      "Gelecekteki test dosyası yolu kabulden önce entegrasyon sahibince atanır; bu sözleşmede test sahipliği yoktur."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "suite.localhost'ta Suite mail modülüne ait mevcut bir DocType için Capability Activation askıda iken, o DocType'ta native write hakkı olan test kullanıcısı için frappe.has_permission ile write False, read True dönmeli. Aynı senaryoda bu kimliği doğrulanmış ancak askı nedeniyle yetkisiz kullanıcının aynı kayıt üzerindeki native Document.save denemesi yan etkiden önce frappe.PermissionError ile reddedilmeli; kaydın kalıcı alan değerleri ve modified değişmemeli.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Hook ve hooks.py kaydından sonra aynı test aynı komutla geçer (bench run-tests --module ile; komut projede doğrulanacak)."
+      "oneScenario": "Bir Suite Module Def'ine ait mevcut bir DocType için Capability Activation durumu suspended_read_only iken, o DocType'ta native write hakkı olan test kullanıcısı için frappe.has_permission write False, read True döner; aynı kullanıcının aynı kayıt üzerindeki native Document.save denemesi yan etkiden önce frappe.PermissionError ile reddedilir; kaydın kalıcı alan değerleri ve modified değişmez.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. Beklenen RED davranışsaldır: hook kaydı yokken askı durumuna rağmen write True döner ve save başarılı olur, assertion bu nedenle kalır. Import, fixture eksikliği veya altyapı hatası RED sayılmaz; native davranış bozularak RED üretilmez. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "Hook ve hooks.py kaydından sonra aynı senaryo, değişmeyen assertion ve aynı komutla geçmelidir; aday komut bench run-tests --module olup projede doğrulanacaktır. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN'i değildir."
     },
-    "rollback": "capability_activation.py değişikliği ve hooks.py kaydı geri alınır; durum kayıtları veri olarak kalır, yazma reddi kalkar. Production izni yok."
+    "rollback": "Gelecekte uygulanırsa capability_activation.py hook fonksiyonu ve hooks.py kaydı geri alınır; Capability Activation kayıtları veri olarak kalır, yazma reddi kalkar. CI/deploy/rollback teknik sahibi Hüseyin Cengiz'dir. Bu sözleşme production, servis, şema veya veri değişikliği yetkisi vermez."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "modules-1",
+      "sourceStage": "mvp",
+      "existing": "Native parça: set_app_state kurulu bir app'i sitede verisine dokunmadan devre dışı bırakır veya etkinleştirir ve yalnız System Manager çağırabilir; Installed Applications arayüzü verinin korunduğunu belirtir; permissions.py is_module_disabled'ı içe aktarır. Suite tek app olduğu için app düzeyinde kapatma Drive, Mail, Sheets ve diğer ürünleri birlikte kapatır.",
+      "gap": "Ürün modülünün karşılığı (app mi, Suite Module Def mi) onaya bağlı; devre dışı app için /api/method, /api/resource ve scheduler/RQ reddi kaynakta gösterilmedi (unknown); kiracı eşlemesi, modül durumu ile ticari hak ve kullanıcı yetkisi ayrımı ve v17-dev sürüm eşlemesi yazılmamış.",
+      "completionSteps": [
+        "disable_app akışını salt okunur inceleyip handler, scheduler ve before_job zorlamasının varlığını R-00 eşlemesine kaydet; gözlenmeyen zorlama var sayılmaz.",
+        "Yeni durum tablosu kurmadan app düzeyinde set_app_state ve is_module_disabled, Suite alt modülünde schema görevinin Capability Activation kaydı kullanılır; Module Def eşlemesi tek tabloda belgelenir.",
+        "Bu birimin tek davranışı olan yazma reddini uygula; /api/method ve job reddini ayrı, sonraki dar davranış olarak sırala.",
+        "Kiracı, ticari hak ve kullanıcı yetkisi ayrımını tenant-registry--contract ve native-user-policy--contract sözleşmelerine referansla bağla; bu rehberde seçme."
+      ],
+      "dependencies": [
+        "capability-activation--schema",
+        "kernel-envelope--contract",
+        "tenant-registry--contract",
+        "native-user-policy--contract"
+      ],
+      "acceptance": "Modül kapanınca yeni API/job çalışması reddedilmeli; kayıtlar ve geçmiş korunmalı. Bu birimin ilk kabulü: askıdaki modülde yazma 403 ile reddedilir, okuma sürer, kayıt değişmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/core/doctype/installed_applications/installed_applications.py",
+          "line": 154,
+          "quote": "\"\"\"Disable or enable an installed app on this site without touching its data.\"\"\""
+        },
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 9,
+          "quote": "from frappe.app_state import is_module_disabled"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/installed_applications/installed_applications.js",
+          "line": 73,
+          "quote": "It keeps its data, but stops taking effect."
+        },
+        {
+          "path": "suite/pyproject.toml",
+          "line": 6,
+          "quote": "description = \"Frappe Suite — Drive, Slides, Writer, Sheets, Meet, Mail, Calendar in one app.\""
+        }
+      ]
+    },
+    {
+      "requirementId": "modules-4",
+      "sourceStage": "mvp",
+      "existing": "Native parçalar: has_permission hook zinciri DocType ve yıldız kayıtlarını toplar; controller hook falsy dönerse izin reddedilir (yalnız ret); frappe hooks.py arka plan işleri için before_job listesi tanımlar; Suite scheduler_events tanımlar. Veri koruyan askı ve job boşaltma akışı hazır saptanmadı; uninstall devre dışı bırakmanın karşılığı değildir.",
+      "gap": "Devre dışı ile salt okunur askı ayrımı tanımsız; native disable'ın okumayı da kapatıp kapatmadığı unknown. Kuyruktaki ve çalışan RQ işleri ile Suite scheduler_events için durdurma/boşaltma kuralı ve modül başına güvenli nokta (Mail push, Sheets collab) yok.",
+      "completionSteps": [
+        "Askıyı has_permission hook'u üzerinden write/create/delete/submit/cancel/amend/import reddi olarak uygula; read/select/print/export etkilenmez.",
+        "disable_app'in scheduler ve enqueue filtrelemesini salt okunur incele; sonuç kaydedilmeden job reddi kodlanmaz.",
+        "Job tarafını ayrı dar davranış olarak tanımla: before_job içinde durum kontrolü, askıdaki modüle ait yeni işi başlamadan reddeder; çalışan işin güvenli noktası karar sonrası modül başına belgelenir.",
+        "Gerçek zamanlı kanallar (Mail push, Sheets collab) için güvenli nokta listesi karar gelince yazılır; ignore_permissions kısayolu kullanılmaz."
+      ],
+      "dependencies": [
+        "capability-activation--schema",
+        "kernel-envelope--contract",
+        "native-user-policy--contract"
+      ],
+      "acceptance": "Devam eden iş güvenli noktada bitmeli veya durmalı; kapalı modüle yazma engellenirken mevcut veri okunabilmeli.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 496,
+          "quote": "hooks = frappe.get_hooks(\"has_permission\")"
+        },
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 502,
+          "quote": "if not controller_permission:"
+        },
+        {
+          "path": "frappe/frappe/hooks.py",
+          "line": 509,
+          "quote": "before_job = ["
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 289,
+          "quote": "scheduler_events = {"
+        }
+      ]
+    },
+    {
+      "requirementId": "modules-7",
+      "sourceStage": "mvp",
+      "existing": "Native parçalar: Suite after_migrate yaşam döngüsü hook'u tanımlı; Installed Applications app sırası değişince Version log üretir; frappe develop_version 17.x.x-develop görünür. Müşteriye sürüm ve geçiş bildirimi ürün akışı yok.",
+      "gap": "Başarısız migrate sonrası kod/sürüm geri alma adımı; bildirimin kanalı, kaydı ve alıcı kiracısı; migration ilerleme kaynağı (patch log mu, job mı); v17-dev patch/migrate sürüm eşlemesi tanımsız.",
+      "completionSteps": [
+        "Bildirim yalnız başarılı after_migrate sonrasında üretilecek şekilde tanımlanır; sürüm Installed Applications kaydından okunur, yeni sürüm kaynağı kurulmaz.",
+        "Başarısız migrate durumunda ürün yalnız durum gösterir; kod/sürüm geri alma operasyonu Hüseyin Cengiz'in deploy/rollback adımına teknik devirle bağlanır (site, app, önceki ve hedef sürüm, başarısız patch).",
+        "Kanal ve alıcı kararı gelene kadar yalnız bildirim alan listesi (app, önceki/yeni sürüm, site, sonuç) belgelenir; kanal veya satıcı seçilmez.",
+        "İlerleme kaynağı T-00 baseline sonrası salt okunur incelenip patch log veya job olarak R-00'a kaydedilir."
+      ],
+      "dependencies": [
+        "kernel-envelope--contract",
+        "tenant-registry--contract"
+      ],
+      "acceptance": "Başarısız geçiş yeni sürümü etkinleştirmemeli; bildirim sürüm ve etkilenen kiracıya bağlanmalı. Başarılı migrate'te tek bildirim, başarısızda yalnız durum gösterimi.",
+      "evidence": [
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 334,
+          "quote": "after_migrate = \"suite.suite_core.boot.after_migrate\""
+        },
+        {
+          "path": "frappe/frappe/core/doctype/installed_applications/installed_applications.py",
+          "line": 139,
+          "quote": "_create_version_log_for_change(existing_order, new_order)"
+        },
+        {
+          "path": "frappe/frappe/hooks.py",
+          "line": 11,
+          "quote": "develop_version = \"17.x.x-develop\""
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "modules-1: Whitelisted /api/method çağrıları ile RQ/scheduler işlerinin reddi bu davranışta yok; before_job tabanlı kontrol ayrı adım, entegrasyon sahibine bağlı. Native disable_app'in handler ve scheduler zorlaması doğrulanmadı (unknown).",
-    "modules-4: Kuyruktaki ve çalışan işlerin güvenli noktada durması, Suite scheduler_events filtrelemesi, Mail push ve Sheets collab gibi gerçek zamanlı kanallar tanımsız. ignore_permissions yolları kapsam dışı.",
-    "modules-7: Bildirim kanalı ve alıcısı ile migration ilerleme kaynağı tanımsız. Başarısız migrate sonrası kod/sürüm geri alma, deploy/rollback sahibi Hüseyin Cengiz'e bağlı; ürün yalnız durum gösterir.",
-    "Kiracı=site kararı ile modül durumu, ticari hak ve kullanıcı yetkisi ayrımı tenant-registry ve native-user-policy sözleşmelerine bağlı."
+    "modules-1: /api/method çağrıları ile RQ/scheduler işlerinin reddi bu davranışta yok; native disable_app'in handler ve scheduler zorlaması doğrulanmadı (unknown).",
+    "modules-4: Kuyruktaki ve çalışan işlerin güvenli noktada durması, Suite scheduler_events filtrelemesi, Mail push ve Sheets collab gibi gerçek zamanlı kanallar tanımsız; ignore_permissions yolları kapsam dışı.",
+    "modules-7: Bildirim kanalı ve alıcısı ile migration ilerleme kaynağı tanımsız; başarısız migrate geri alması Hüseyin Cengiz'in operasyon adımına bağlı, ürün yalnız durum gösterir.",
+    "Kiracı eşlemesi ile modül durumu, ticari hak ve kullanıcı yetkisi ayrımı tenant-registry--contract ve native-user-policy--contract sözleşmelerine bağlı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Kiracı topolojisi: kiracı site mi, site içi kayıt mı",
+      "requirementIds": ["modules-1", "modules-7"],
+      "blocks": "Yetki sınırının kesinleşmesi ve bildirim alıcısının bağlanması",
+      "documentationStepUntilDecided": "tenant-registry--contract referansıyla iki seçeneğin hook ve bildirim üzerindeki etkisini belgele"
+    },
+    {
+      "decision": "Ürün modülünün karşılığı: app düzeyi kapatma mı, Suite Module Def askısı mı",
+      "requirementIds": ["modules-1", "modules-4"],
+      "blocks": "Capability Activation alanlarının schema görevinde kesinleşmesi",
+      "documentationStepUntilDecided": "Suite DocType -> Module Def eşleme tablosunu salt okunur incelemeyle hazırla"
+    },
+    {
+      "decision": "Hedef Frappe/Suite sürümü",
+      "requirementIds": ["modules-1", "modules-4", "modules-7"],
+      "blocks": "T-00 baseline ve implementation admission",
+      "documentationStepUntilDecided": "develop_version gözlemini aday olarak kaydet, hedef seçme"
+    },
+    {
+      "decision": "Modül başına güvenli nokta ve job boşaltma politikası (bitir mi, durdur mu)",
+      "requirementIds": ["modules-4"],
+      "blocks": "before_job tabanlı job reddi davranışı",
+      "documentationStepUntilDecided": "Suite scheduler_events girdilerini modül bazında listele"
+    },
+    {
+      "decision": "Sürüm/geçiş bildirim kanalı ve alıcısı",
+      "requirementIds": ["modules-7"],
+      "blocks": "Bildirim üretim adımı",
+      "documentationStepUntilDecided": "Kanaldan bağımsız bildirim alan listesini belgele"
+    },
+    {
+      "decision": "Modül durumu ile ticari kullanım hakkı ayrımı",
+      "requirementIds": ["modules-1"],
+      "blocks": "Durumu değiştirme yetkisinin ve kaynağının kesinleşmesi",
+      "documentationStepUntilDecided": "native-user-policy--contract ile rol ayrımını referansla yaz, yeni rol üretme"
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "modules-1": "mvp",
-    "modules-4": "mvp",
-    "modules-7": "mvp"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,
     "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
-    "permissionPolicyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/explicitPermissionFlags",
     "specificPrerequisitesRef": "#/development/admission"
   }
 }

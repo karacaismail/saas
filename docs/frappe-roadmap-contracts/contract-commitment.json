@@ -1,0 +1,178 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "contract-commitment",
+  "canonicalTaskIds": ["contract-commitment--implementation"],
+  "requirementIds": ["legal-6"],
+  "stage": "enterprise",
+  "sourceStages": {
+    "legal-6": "enterprise"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Müşteri özel sözleşme, veri işleme şartı (DPA) ve taahhüt kaydı; müşteri/tenant bazında sürümlü bulunabilirlik ve yetkisiz erişim reddi. Uygulama durumu: uygulanmadı.",
+    "trigger": "Yetkili hukuk veya müşteri operasyonu kullanıcısı, kapsamı tetikleyen koşul kaydedilmiş bir müşteri/tenant için özel sözleşme, DPA veya taahhüt kaydı oluşturur, yeni sürümünü ekler ya da yürürlükteki kaydı arar.",
+    "expected": "Her müşteri/tenant için yürürlükteki DPA ve taahhütler; sürüm, kabul/imza tarihi, yürürlük başlangıç-bitiş tarihleri, belge referansı ve sorumlu kişi bilgisiyle bulunabilir. Kabul edilmiş sürümün üzerine yazılmaz; değişiklik yeni sürüm kaydıyla yapılır. Okuma ve yazma native DocType izinleri ve tenant bağlantısına uygulanan User Permission ile sınırlıdır.",
+    "denied": "Kayda bağlı tenant için yetkisi olmayan kullanıcı kaydı listede göremez, açamaz ve değiştiremez. Reddedilen yazma girişiminden sonra kayıt alanları ve sürümü değişmez. ignore_permissions veya doğrudan SQL ile izin atlatılmaz."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native Frappe parçaları yeniden kullanılır. Doküman düzeyinde okuma/yazma kararı için permissions.py içindeki has_permission girişi kullanılır. Erişim izi için data export akışında çağrıldığı görülen make_access_log deseni kullanılır; bu çağrının DPA belgesi erişiminde kullanılabilirliği hedef sürümde doğrulanmalıdır. Bu iki kanıt yalnız native yapı taşlarını gösterir; müşteri özel DPA/taahhüt yönetiminin var olduğunu göstermez. ContractCommitment DocType'ı önerilmiştir ve henüz yoktur. Alıntılar önceki salt okunur Frappe/Suite kaynak anlık görüntülerinden alınmıştır; canlı site veya ürün kabulü yoktur. Yalnız aşağıdaki yollar aranmıştır; bu arama kapsamlı bir yokluk iddiası değildir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/permissions.py",
+        "line": 82,
+        "quote": "def has_permission("
+      },
+      {
+        "path": "frappe/frappe/core/doctype/data_export/exporter.py",
+        "line": 47,
+        "quote": "make_access_log("
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/core/doctype/data_export/exporter.py",
+      "frappe/frappe/permissions.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/contract-commitment.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/audit_governance/doctype/contract_commitment/contract_commitment.py"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "ContractCommitment kaydı (önerilen tek DocType) şu alanları içerir: müşteri/tenant bağlantısı (hedef kayıt tenant-registry--contract kararına bağlıdır, ERPNext Customer kullanılmaz), kayıt türü (özel sözleşme, DPA, taahhüt), kapsamı tetikleyen koşul ve bu koşulu kaydeden kullanıcı, belge referansı (depo kararı açık), sürüm tanımlayıcısı, kabul/imza tarihi, yürürlük başlangıç ve bitiş tarihi, sorumlu kullanıcı. Sürüm alanlarının biçimi legal-3 belge sürüm modeliyle paylaşılır; bu birimde kopya sürüm modeli kurulmaz. İstekler kernel-envelope--contract zarfıyla taşınır.",
+    "output": "Yetkili kullanıcıya; tenant, tür ve yürürlük tarihine göre süzülmüş liste ile tek kayıt görünümü döner. Yürürlükteki sürüm açıkça işaretlenir, önceki sürümler salt okunur görünür. React/Ant Design istemcisi bu çıktıyı JSON model sınırından alır; ReactNode veya callback değerleri sunucu sözleşmesine girmez. Kaynak registry kaydı (registry.ts) GenUI capability registry'den ayrıdır.",
+    "authorization": "Native DocType izinleri, has_permission ve tenant bağlantı alanına uygulanan User Permission birlikte kullanılır. Roller ve izin bayrakları explicitPermissionFlags ortak kaynağından (native-user-policy--contract) gelir; bu birim yeni rol veya izin motoru tanımlamaz. ignore_permissions, doğrudan SQL ve izin atlatan yardımcılar yasaktır. Belge dosyasına erişim de aynı tenant kısıtına tabidir.",
+    "persistence": "Kayıt native DocType save ve transaction akışıyla yazılır. Doğrulama native validate hook'unda yapılır. Kabul edilmiş sürüm değiştirilmez, yeni sürüm ayrı kayıt olarak eklenir. Hassas belge okumaları için make_access_log deseni hedef sürümde doğrulandıktan sonra kullanılır. Şema, veri veya servis değişikliği bu sözleşmeyle yetkilendirilmez.",
+    "failure": "Tenant bağlantısı eksik veya geçersizse kayıt doğrulama hatasıyla reddedilir ve yazılmaz. Aynı tenant ve türde yürürlük aralıkları çakışırsa doğrulama hatası verilir. Belge referansı veya kabul tarihi eksikse kayıt kabul edilmiş duruma geçirilemez. Yetkisiz okuma ve yazma native izin hatasıyla reddedilir; kayıt değişmez ve başka tenant verisi hata mesajına sızmaz. Hata durumunda transaction geri alınır, kısmi yazma kalmaz."
+  },
+  "development": {
+    "dependencies": [
+      "contract-commitment--contract",
+      "contract-commitment--schema",
+      "kernel-envelope--contract",
+      "native-user-policy--contract",
+      "tenant-registry--contract"
+    ],
+    "admission": "Ön koşullar şunlardır: T-00 hedef taban çizgisi ve R-00 yeniden kullanım eşlemesi tamamlanmış olmalıdır. İzinli veri tükettiği için R-01 de karşılanmalıdır. contract-commitment--schema görevi ContractCommitment şemasını sağlamış, tenant-registry--contract müşteri/tenant kaydını netleştirmiş, native-user-policy--contract explicitPermissionFlags kaynağını yayımlamış olmalıdır. Müşteri/tenant kaydı ve belge deposu kararları (decisionsPending) kapanmadan üretim adımı açılmaz. Tek dar davranış gerçek RED/GREEN kanıtıyla uygulanır. Sıralama yetkisi mevcut görev bağımlılıkları ve aşamadadır; küme sırası yalnız sunumdur.",
+    "steps": [
+      "1. Bağımlı sözleşmelerden tenant bağlantı alanı adını, explicitPermissionFlags rol adlarını ve kernel zarf biçimini oku; uydurma alan veya rol ekleme.",
+      "2. Hedef Frappe sürümünde has_permission imzasını, User Permission davranışını ve make_access_log çağrı biçimini kaynakta doğrula; doğrulanamayan parçayı kullanma.",
+      "3. Kapsam koşulunu kaydeden rolü ve sürüm alanlarını legal-3 ortak sürüm modeliyle eşleştiren belge notunu tamamla.",
+      "4. Önce tek senaryo için başarısız testi yaz (tdd bölümü), sonra izin kuralını native DocType izni ve tenant alanına User Permission ile uygula.",
+      "5. validate hook'una tenant zorunluluğu, yürürlük aralığı çakışması ve kabul edilmiş sürümün değiştirilememesi kurallarını ayrı ayrı ve her biri kendi testiyle ekle.",
+      "6. İstemci tarafında yalnız gerektiğinde routes.tsx ve kaynak registry kaydını ekle; Tauri ve WXT dosyalarına bu davranış için değişiklik gerekmez.",
+      "7. CI, deploy ve rollback teknik uygulamasını Hüseyin Cengiz yürütür; iş kabulünü hukuk ve müşteri operasyonu sahibi verir."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "User Permission ile yalnız Tenant A'ya bağlı kullanıcı, Tenant B'ye bağlı yürürlükteki DPA ContractCommitment kaydının alanını değiştirmeye çalışır; yazma reddedilir ve kayıt değişmeden kalır.",
+      "red": "ContractCommitment şeması ve tenant bağlantısı mevcutken izin kuralı tenant alanını kısıtlamadığı için yazma başarılı olur ve test, beklenen izin reddi gelmediği için başarısız olur. İçe aktarma, altyapı hatası veya native davranışı bozmak RED sayılmaz.",
+      "green": "Native DocType izni ve tenant alanına uygulanan User Permission ile yazma native izin hatasıyla reddedilir. Kaydın alanları, sürümü ve değişiklik zaman damgası denemeden önceki değerlerle aynıdır. Bu tur test yazılmaz ve koşulmaz."
+    },
+    "rollback": "Bu sözleşme yalnız belgedir ve geri alınacak üretim değişikliği yoktur. Gelecekte uygulama değişikliği tek dar commit olarak geri alınabilir tutulur. Şema veya veri içeren deploy geri alımının teknik sahibi Hüseyin Cengiz'dir. Kabul edilmiş DPA sürümleri geri alma sırasında silinmez; geri alma planı bu kayıtların korunmasını doğrulamalıdır."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "legal-6",
+      "sourceStage": "enterprise",
+      "existing": "Native parçalar: has_permission ile doküman düzeyinde izin kararı, data export akışında görülen make_access_log erişim izi deseni ve Frappe Users and Permissions belgesinde tanımlı User Permission kavramı (bu sonuncusu için satır kanıtı yoktur, hedef sürümde doğrulanmalıdır). data/clusters/11.json:564 (/groups/2/items/5) değerlendirmesi: support=absent, action=build, sahip Hukuk ve müşteri operasyonu, güven düzeyi design. İncelenen çekirdek kaynaklarda müşteri özel DPA/taahhüt yönetimi saptanmamıştır.",
+      "gap": "Bağlanılacak müşteri kaydı tanımlı değil; ERPNext Customer yok ve tenant veya hesap kaydı kararı eksik. Kapsamı tetikleyen koşulu kimin, nasıl kaydedeceği tanımlı değil. DPA belgesinin deposu (Suite Drive veya private File), sürümü, imza/kabul tarihi ve süre alanları tanımlı değil. Müşteri bazında görünürlük için User Permission kullanım kuralı tanımlı değil.",
+      "completionSteps": [
+        "Müşteri kaydı: tenant-registry--contract kararındaki tenant DocType'ını bağlantı hedefi olarak kullan; ERPNext Customer'a bağlanma.",
+        "Tetikleyici koşul: koşulu kaydeden rolü explicitPermissionFlags kaynağından seç, koşul alanını ve kaydeden kullanıcıyı ContractCommitment kaydında zorunlu tut.",
+        "Belge alanları: sürüm, kabul/imza tarihi, yürürlük başlangıç-bitiş ve belge referansını legal-3 ortak sürüm modeliyle aynı biçimde tanımla; depo kararı gelene kadar referans alanı depo türünden bağımsız kalsın.",
+        "Görünürlük: tenant bağlantı alanına User Permission uygula; liste, form ve belge erişimini has_permission üzerinden doğrula; ignore_permissions kullanma.",
+        "Erişim izi: hedef sürümde make_access_log çağrı biçimini doğruladıktan sonra DPA belgesi okumalarında kullan.",
+        "Kabul: tek tdd senaryosunu RED/GREEN kanıtıyla tamamla; ardından bulunabilirlik senaryosunu ayrı adımda ekle."
+      ],
+      "dependencies": [
+        "contract-commitment--contract",
+        "contract-commitment--schema",
+        "kernel-envelope--contract",
+        "native-user-policy--contract",
+        "tenant-registry--contract"
+      ],
+      "acceptance": "Müşterinin yürürlükteki veri işleme şartı ve taahhütleri sürümüyle bulunabilir; yetkisiz kişi bunları göremez. Başka tenant kaydına yazma girişimi reddedilir ve kayıt değişmeden kalır.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 82,
+          "quote": "def has_permission("
+        },
+        {
+          "path": "frappe/frappe/core/doctype/data_export/exporter.py",
+          "line": 47,
+          "quote": "make_access_log("
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Bağlanılacak müşteri/tenant kaydı tanımlı değil; ERPNext Customer kullanılamaz.",
+    "Kapsamı tetikleyen koşulun kaydedeni ve kayıt yöntemi tanımlı değil.",
+    "DPA belgesinin deposu, sürümü, imza/kabul tarihi ve süre alanları tanımlı değil.",
+    "Müşteri bazında görünürlük için User Permission kullanım kuralı tanımlı değil.",
+    "User Permission ve make_access_log için hedef sürümde satır düzeyinde doğrulama yapılmadı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Müşteri kaydı olarak hangi tenant veya hesap DocType'ının kullanılacağı (tenant topolojisi).",
+      "requirementIds": ["legal-6"],
+      "blocks": "Tenant bağlantı alanı, User Permission kuralı ve tdd senaryosu.",
+      "allowedDocWorkUntilDecided": "Bağlantı alanını soyut 'tenant referansı' olarak belgelemek ve tenant-registry--contract ile alan adı eşlemesini hazırlamak."
+    },
+    {
+      "decision": "DPA belge deposu: Suite Drive veya private File.",
+      "requirementIds": ["legal-6"],
+      "blocks": "Belge referans alanının türü ve belge erişim izni.",
+      "allowedDocWorkUntilDecided": "Referans alanının depo türünden bağımsız sözleşmesini ve her iki seçenek için izin gereksinimini yazmak."
+    },
+    {
+      "decision": "legal-3 ile paylaşılacak belge sürüm modelinin biçimi ve sahibi.",
+      "requirementIds": ["legal-6"],
+      "blocks": "Sürüm, kabul tarihi ve yürürlük alanlarının kesin tanımı.",
+      "allowedDocWorkUntilDecided": "Gerekli sürüm alanlarının listesini legal-3 sahibine iletilecek eşleme notu olarak hazırlamak; kopya model kurmamak."
+    },
+    {
+      "decision": "Kapsamı tetikleyen koşulu hangi rolün ve hangi süreçle kaydedeceği.",
+      "requirementIds": ["legal-6"],
+      "blocks": "Tetikleyici alanın zorunluluk ve yazma izni kuralı.",
+      "allowedDocWorkUntilDecided": "Hukuk ve müşteri operasyonu ile aday rolleri explicitPermissionFlags kaynağından listelemek."
+    },
+    {
+      "decision": "Kabul/imza yöntemi ve olası e-imza sağlayıcısı (satıcı ve lisans).",
+      "requirementIds": ["legal-6"],
+      "blocks": "İmza/kabul kanıtının alan yapısı.",
+      "allowedDocWorkUntilDecided": "Kabul tarihini ve kabul eden kişiyi sağlayıcıdan bağımsız alan olarak belgelemek."
+    },
+    {
+      "decision": "Sözleşme, DPA ve taahhüt kayıtlarının saklama süresi ve veri yerleşimi.",
+      "requirementIds": ["legal-6"],
+      "blocks": "Süresi dolan kayıtların arşiv veya silme kuralı.",
+      "allowedDocWorkUntilDecided": "Kabul edilmiş sürümlerin silinmeyeceği varsayımıyla saklama politikası için açık soru listesi hazırlamak."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

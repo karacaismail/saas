@@ -4,15 +4,20 @@
   "canonicalTaskIds": ["api-middleware--implementation"],
   "requirementIds": ["integration-3"],
   "stage": "poc",
+  "sourceStages": {
+    "integration-3": "poc"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
     "title": "saas_platform ürün metot ad alanında sürümlü kayıtta olmayan handler çağrısının native before_request zincirinde reddi",
-    "trigger": "/api/method/saas_platform. ile başlayan bir istek before_request aşamasına girer.",
-    "expected": "Dotted path adapterdaki PRODUCT_HANDLERS_V1 sabitinde varsa guard hiçbir şey yapmaz (None döner) ve istek native whitelist, HTTP metodu ve izin kontrollerine aynen devam eder. Ad alanı dışındaki yollar (ör. /dav/) hiç incelenmez; suite WebDAV dispatcher davranışı değişmez.",
-    "denied": "Kayıtta olmayan saas_platform metodu, frappe.whitelist ile açılmış olsa bile frappe.PermissionError ile reddedilir; native hata yanıtı döner, metot çalışmaz."
+    "trigger": "/api/method/saas_platform. önekli bir istek native before_request aşamasına girer.",
+    "expected": "Uygulama durumu: uygulanmadı. Gelecekte: dotted path adapterdaki değişmez PRODUCT_HANDLERS_V1 kümesinde tam eşleşirse guard hiçbir şey yapmaz (None döner) ve istek native whitelist, HTTP metodu ve izin kontrollerine aynen devam eder. Önek dışı yollar (ör. /dav/) incelenmez; suite WebDAV dispatcher davranışı değişmez.",
+    "denied": "Kayıtta olmayan saas_platform metodu frappe.whitelist ile açılmış olsa bile frappe.PermissionError ile reddedilir; native hata yanıtı döner, metot gövdesi çalışmaz ve hiçbir kayıt değişmez. Kayıtta olup whitelist dışında kalan metot native is_whitelisted kontrolüyle reddedilmeye devam eder; kayda girmek bir metodu açmaz."
   },
   "reuse": {
-    "mechanism": "Native before_request liste hooku ve frappe.whitelist/is_whitelisted zinciri esas alınır. Registry DocType eklenmez; sürüm ihtiyacı şimdilik adapterdaki değişmez bir kod sabitiyle (v1) karşılanır. Meet SFU registerHandlers deseni Meet Socket.IO kaydıdır, genel middleware olarak yeniden kullanılmaz. Native query-action/kaynak kaydı ile kullanıcıya ait GenUI capability registry birleştirilmez; GenUI kapsam dışıdır.",
+    "status": "KISMI",
+    "mechanism": "Native before_request liste hooku ve frappe.whitelist/is_whitelisted zinciri esas alınır; guard bu zincire yalnız ek bir red katmanı olarak eklenir. Registry DocType eklenmez; sürüm ihtiyacı adapterdaki değişmez v1 kod sabitiyle karşılanır. Meet SFU registerHandlers deseni Meet'e özgü Socket.IO kaydıdır, genel middleware olarak yeniden kullanılmaz. Sunucu query-action/kaynak kaydı ile ayrı kullanıcı projesi olan GenUI capability registry birleştirilmez. Kanıtlar native parçaları gösterir; bütün davranışın var olduğunu göstermez.",
     "evidence": [
       {
         "path": "suite/suite/hooks.py",
@@ -34,6 +39,11 @@
         "line": 115,
         "quote": "this.registerHandlers = ["
       }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "suite/suite/hooks.py",
+      "suite/suite/meet/sfu-server/src/server/SocketHandlerManager.ts"
     ]
   },
   "ownership": {
@@ -41,52 +51,125 @@
     "plannedProduction": [
       "backend/saas_platform/saas_platform/adapters/api_boundary/api_middleware_poc.py"
     ],
-    "plannedTestFile": "backend/saas_platform/saas_platform/adapters/api_boundary/test_api_middleware_poc.py",
-    "sharedIntegrationFiles": ["backend/saas_platform/saas_platform/hooks.py"],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "Native request path (str) ve HTTP metodu; ek header veya gövde alanı tanımlanmaz. Yalnız 'saas_platform.' önekli dotted path değerlendirilir; kayıt tam eşleşme ile, joker olmadan yapılır.",
+    "input": "Native request path (str) ve HTTP metodu; ek header veya gövde alanı tanımlanmaz. Yalnız 'saas_platform.' önekli dotted path değerlendirilir; kayıt tam eşleşmeyle, joker olmadan yapılır.",
     "output": "İzinli yolda yanıt değişmez; alan filtreleme native permission katmanında kalır. Kayıt sürümü adapter sabiti olarak 'v1'; yanıt gövdesine sürüm eklenmez.",
-    "authorization": "Guard kimlik doğrulama yapmaz ve native izinleri gevşetmez; yalnız ek bir red katmanıdır. Site sınırı native Frappe sitesidir (yerel pilot: suite.localhost). Kullanıcı/kayıt/alan izni native whitelist, check_permission ve rol politikasıyla sürer. Guardın native auth doğrulamasına göre çalışma sırası sağlanan kaynakta görülmedi: bilinmiyor.",
-    "persistence": "Salt okunur; DB yazımı, transaction, hook ile Document.save veya DDL yok.",
-    "failure": "Kayıtsız metotta frappe.PermissionError (native 403 hata zarfı). Mevcut React/TanStack tüketici bunu yeniden denenmeyen yetki hatası olarak gösterir; yeni UI eklenmez. Guard içindeki beklenmeyen istisna native 500 olarak yüzeye çıkar, sessizce yutulmaz."
+    "authorization": "Guard kimlik doğrulama yapmaz, native izinleri gevşetmez, rol veya izin üretmez; bu nedenle explicitPermissionFlags ortak kaynağına yeni bayrak eklemez. ignore_permissions veya SQL ile yetki bypass yasaktır. Site sınırı native Frappe sitesidir; tenant topolojisi bu sözleşmede seçilmez. Kullanıcı/kayıt/alan izni native whitelist, check_permission ve rol politikasıyla sürer. Guardın native auth doğrulamasına göre çalışma sırası sağlanan kaynakta görülmedi: bilinmiyor.",
+    "persistence": "Salt okunur; DB yazımı, transaction, Document.save, hook ile kayıt değişikliği veya DDL yok.",
+    "failure": "Kayıtsız metotta frappe.PermissionError (native 403 hata zarfı). Gelecekteki React/TanStack Query tüketicisi bunu yeniden denenmeyen yetki hatası olarak ele almalıdır; bu birimde UI eklenmez. Guard içindeki beklenmeyen istisna native 500 olarak yüzeye çıkar, sessizce yutulmaz."
   },
   "development": {
     "dependencies": [
       "api-middleware--contract",
-      "kernel-envelope--contract",
-      "device-grant--contract",
-      "native-user-policy--contract",
       "capability-definition--contract",
+      "device-grant--contract",
+      "kernel-envelope--contract",
       "native-doctype-schema--contract",
-      "local pilot: frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6, cookie/CSRF native auth"
+      "native-user-policy--contract"
     ],
-    "admission": "T-00 hedef baseline ve R-00 reuse eşlemesi gerekli. Yerel Frappe17-dev/suite.localhost yalnız yerel kanıttır; uzak ürün baseline ve suiteSourceHead bilinmiyor. Sitedeki installed_apps sırası (suite ile saas_platform before_request sırasını belirler) doğrulanmadı. Kayda girecek mevcut whitelisted saas_platform metot listesi bilinmiyor; boş kayıt kabul edilebilir.",
+    "admission": "Uygulama durumu: uygulanmadı. Ortak ön koşul: T-00 hedef baseline ve R-00 reuse eşlemesi; izinli veri tüketicileri ayrıca R-01 kullanır. Özel ön koşullar: (1) hedef Frappe sürümünde before_request hook imzası ve birden çok uygulamanın listelerinin installed_apps sırasıyla birleşme davranışı kaynakla, path/line kanıtıyla doğrulanır; (2) guardın native auth ve rate limiter katmanına göre konumu kaynakla belirlenir; (3) kayda girecek whitelisted saas_platform metot listesi çıkarılır, boş kayıt kabul edilebilir; (4) bağımlı contract görevleri kabul edilir. Gerçek RED/GREEN kanıtı olmadan üretim kiralaması verilmez.",
     "steps": [
-      "api_middleware_poc.py içinde değişmez PRODUCT_HANDLERS_V1 kümesi ve handle_before_request fonksiyonunu yaz; önek dışı yolda erken None dön.",
-      "Codex entegrasyonda saas_platform hooks.py içine before_request liste girdisini ekler (forbiddenWrite; bu dosyadan yazılmaz).",
-      "Sıra kuralını entegrasyon notuna yaz: before_request listeleri native olarak uygulama kurulum sırasıyla çalışır; saas_platform guardı yalnız kendi ad alanında karar verir, böylece suite WebDAV handlerı ile sıra etkileşimi yoktur."
+      "Hedef sürüm kaynağında before_request çağrı noktasını, hook imzasını ve uygulamalar arası sırayı oku; bulguyu path/line/quote olarak bu sözleşmeye kanıt ekle (yalnız belge).",
+      "api_middleware_poc.py içinde değişmez PRODUCT_HANDLERS_V1 kümesini (tam dotted path) ve handle_before_request fonksiyonunu yaz; önek dışı yolda erken None dön, önek içinde kümede olmayan yolda frappe.PermissionError yükselt.",
+      "Ana entegrasyon sahibi saas_platform hooks.py içine before_request liste girdisini ekler; paylaşılan dosyaya bu sözleşme üzerinden yazılmaz.",
+      "Sıra kuralını entegrasyon notuna yaz: before_request listeleri doğrulanan native sırayla çalışır; saas_platform guardı yalnız kendi ad alanında karar verdiği için suite WebDAV handlerı ile sıra etkileşimi doğmaz.",
+      "Kayıt-whitelist ilişkisini belgele: kayıt yalnız daraltır; bir metodun çağrılabilmesi için hem frappe.whitelist hem PRODUCT_HANDLERS_V1 gerekir.",
+      "GenUI ayrımını belgele: PRODUCT_HANDLERS_V1 ile frontend/packages/ui/src/registry.ts tanım veya kimlik paylaşmaz; JSON model sınırı ile yerel ReactNode/callback ayrı kalır."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "Yerel sitede frappe.local.request yolu /api/method/saas_platform.unregistered_probe olarak hazırlanıp handle_before_request çağrıldığında frappe.PermissionError yükselir; aynı testte /dav/x yolu için None döner.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Aynı test aynı bench run-tests komutuyla yalnız bu modül için geçer; komut çıktısı kanıt olarak eklenir."
+      "oneScenario": "Hedef sitede saas_platform ad alanında whitelisted fakat PRODUCT_HANDLERS_V1 dışında kalan tek bir metoda /api/method/ isteği yapıldığında yanıt native PermissionError (403) olur ve metot gövdesi çalışmaz.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. Guard eklenmeden önce aynı istek native whitelist zincirinden geçip metodu çalıştırır; assertion bu davranış farkında başarısız olmalıdır. Modül yokluğundan doğan import/altyapı hatası veya native davranışı bozan düzenek RED sayılmaz. Bu turda test yazılmaz veya koşulmaz.",
+      "green": "Uygulamadan sonra aynı senaryo değişmeyen assertion ve aynı yalnız-bu-modül test komutuyla geçmeli; komut ve çıktısı kanıt olarak eklenir. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN'i değildir."
     },
-    "rollback": "Adapter dosyası ve hooks.py before_request girdisi yerelde geri alınır; production izni veya servis yeniden başlatma yoktur. Deploy gerekirse sahibi Hüseyin Cengiz."
+    "rollback": "Adapter dosyası ve hooks.py before_request girdisi geri alınarak native davranışa dönülür; şema veya veri değişikliği olmadığından veri geri alma yoktur. Bu sözleşme servis, production, şema veya veri değiştirme yetkisi vermez. CI, deploy ve rollback'in teknik sahibi Hüseyin Cengiz'dir."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "integration-3",
+      "sourceStage": "poc",
+      "existing": "Native parçalar: suite hooks.py'de before_request liste hooku ve tek tanımlayıcılı after_request; Frappe v1 API'de is_whitelisted doğrulaması. Whitelist dışı metot reddi native olarak sağlanır. Meet SFU registerHandlers dizisi Meet'e özgü Socket.IO kaydıdır, ürün handler kaydı değildir. Bu parçalar bütün davranışın var olduğunu göstermez. Uygulama durumu: uygulanmadı.",
+      "gap": "Ürün ad alanına özgü sürümlü kayıt ve guard yok; birden çok uygulamanın hook sıra/hata semantiği, kaydın whitelist ile ilişkisi, GenUI kaydından ayrım ve Meet deseninin yeniden kullanılmayacağı yazılı değil.",
+      "completionSteps": [
+        "Hook sırası ve hata: before_request için tek deterministik kural belgelenir (doğrulanan native uygulama sırası; guard yalnız kendi önekinde karar verir, hata frappe.PermissionError). after_request suite'te tek tanımlayıcıdır; bu birim after_request eklemez ve birleşim davranışını kapsam dışı bırakır.",
+        "Sürümlü kayıt: PRODUCT_HANDLERS_V1 değişmez tam-eşleşme kümesidir; whitelist'in yerine geçmez, yalnız daraltır. DocType yalnız v1 ötesi sürüm ihtiyacı gerekçelendirilirse ayrı kararla önerilir.",
+        "GenUI ayrımı: sunucu query-action kaydı ile GenUI capability registry tanım, kimlik veya dosya paylaşmaz; bu madde sözleşmeye açık cümleyle yazılır.",
+        "Meet ayrımı: SocketHandlerManager registerHandlers deseni genel HTTP middleware olarak kullanılmaz; Meet Socket.IO akışı değişmez."
+      ],
+      "dependencies": [
+        "api-middleware--contract",
+        "capability-definition--contract",
+        "device-grant--contract",
+        "kernel-envelope--contract",
+        "native-doctype-schema--contract",
+        "native-user-policy--contract"
+      ],
+      "acceptance": "Gelecekteki tek kabul: whitelisted fakat kayıtsız saas_platform metodu native PermissionError ile reddedilir, metot gövdesi çalışmaz ve hiçbir kayıt değişmez. Ek kontroller: kayıtlı metotta native whitelist/HTTP metodu/izin sonucu değişmez; /dav/ yolunda suite dispatcher davranışı aynı kalır; iki before_request handlerın sırası doğrulanan native kurala göre deterministik belgelenir.",
+      "evidence": [
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 343,
+          "quote": "before_request = [\"suite.drive.webdav.dispatch.handle_before_request\"]"
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 340,
+          "quote": "after_request = \"suite.drive.api.product.after_request\""
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 121,
+          "quote": "doc.is_whitelisted(method)"
+        },
+        {
+          "path": "suite/suite/meet/sfu-server/src/server/SocketHandlerManager.ts",
+          "line": 115,
+          "quote": "this.registerHandlers = ["
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "Suite after_request tek tanımlayıcı; birden çok uygulamanın after_request birleşimindeki sıra ve hata davranışı Frappe17 için kaynakla doğrulanmadı, bu sözleşmede ele alınmaz.",
-    "Kayıt sürümünün v1 ötesine geçişi ve gerekirse DocType ihtiyacı gerekçelendirilmedi.",
+    "Suite after_request tek tanımlayıcı; birden çok uygulamanın after_request birleşimindeki sıra ve hata davranışı hedef sürüm kaynağıyla doğrulanmadı, bu sözleşmede ele alınmaz.",
+    "Kayıt sürümünün v1 ötesine geçişi ve gerekirse kalıcı kayıt ihtiyacı gerekçelendirilmedi.",
     "Guardın native auth ve rate limiter sırasına göre konumu bilinmiyor.",
-    "Kalıcı CI ve uzak baseline doğrulaması yok; Keycloak not_run."
+    "Hedef baseline, kalıcı CI ve uzak doğrulama yok."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Hedef Frappe sürümü ve ürün baseline'ı (T-00)",
+      "requirementIds": ["integration-3"],
+      "blocks": "before_request imza/sıra doğrulaması ve üretim kiralaması",
+      "documentStepUntilDecision": "Doğrulanacak kaynak sorularını ve kanıt alanlarını belgede hazır tut; sürüm seçme."
+    },
+    {
+      "decision": "Kayıt sürümünün v1 kod sabiti ötesine taşınıp taşınmayacağı ve kalıcı kayıt gerekip gerekmediği",
+      "requirementIds": ["integration-3"],
+      "blocks": "DocType veya şema önerisi",
+      "documentStepUntilDecision": "v1 değişmez kod sabiti varsayımıyla rehberi sürdür; DocType tasarlama."
+    },
+    {
+      "decision": "Tenant topolojisi",
+      "requirementIds": ["integration-3"],
+      "blocks": "Kaydın tenant bazında farklılaşıp farklılaşmayacağının belirlenmesi",
+      "documentStepUntilDecision": "Kaydı native site genelinde tek sabit olarak belgele; topoloji seçme."
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "integration-3": "poc"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,

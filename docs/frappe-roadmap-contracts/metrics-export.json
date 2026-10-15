@@ -4,15 +4,22 @@
   "canonicalTaskIds": ["metrics-export--implementation"],
   "requirementIds": ["observability-1", "observability-2", "observability-4"],
   "stage": "mvp",
+  "sourceStages": {
+    "observability-1": "mvp",
+    "observability-2": "mvp",
+    "observability-4": "mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
-    "title": "Mevcut recorder /metrics hedefinin ölçüm kesintisi alarm olarak görünür",
-    "trigger": "job=frappe-meet-recorder hedefinin scrape işlemi başarısız olur (servis kapalı, 401 veya ağ hatası) ya da job serisi tamamen kaybolur.",
-    "expected": "Sahip olunan kural dosyasındaki tek kural grubu, up{job=\"frappe-meet-recorder\"} == 0 veya absent(up{job=\"frappe-meet-recorder\"}) koşulu Hüseyin Cengiz'in belirleyeceği 'for' süresi boyunca sürdüğünde RecorderMetricsTargetDown alarmını yalnız job ve instance etiketiyle üretir.",
-    "denied": "Metrics token olmadan /metrics 401 döner; alarm kiracı, kullanıcı veya kayıt verisi taşımaz; kural yüklenmesi veya alarm yönlendirmesi bu sözleşmeyle etkinleştirilmez."
+    "title": "Recorder metrik hedefinin ölçüm kesintisi alarm olarak görünür (Uygulama durumu: uygulanmadı)",
+    "trigger": "Recorder metrik hedefinin Prometheus scrape işlemi başarısız olur (servis kapalı, kimlik reddi veya ağ hatası) ya da bu job'a ait up serisi tamamen kaybolur.",
+    "expected": "Planlı tek kural dosyasındaki tek kural grubu, up{job='frappe-meet-recorder'} == 0 veya absent(up{job='frappe-meet-recorder'}) koşulu Hüseyin Cengiz'in belirleyeceği 'for' süresi boyunca sürdüğünde RecorderMetricsTargetDown alarmını yalnız job, instance ve severity etiketleriyle üretir. Job adı Grafana 'Recorders Up' paneliyle hizalanır; gerçek scrape job adı Prometheus yapılandırmasında doğrulanmadan kural yazılmaz.",
+    "denied": "Alarm kiracı, site, kullanıcı, kayıt verisi veya secret taşımaz; metrics token değeri hiçbir belgeye veya Git'e yazılmaz. Kuralın Prometheus'a yüklenmesi, Alertmanager yönlendirmesi ve herhangi bir servis, şema, veri veya production değişikliği bu sözleşmeyle etkinleştirilmez. Token olmadan /metrics isteğinin dönüşü doğrulanmış alıntılarda görünmediği için reddedilen istek davranışı varsayılmaz; R-00 sırasında kaynaktan okunur."
   },
   "reuse": {
-    "mechanism": "Native/source yeniden kullanım: recorder-server'daki prom-client Registry ve ayrı metrics token korumalı /metrics ucu ile Grafana'daki up paneli zaten var. Yeni exporter, adapter veya Frappe kodu eklenmez; yalnız sahip olunan Prometheus kural dosyası (config) yazılır.",
+    "status": "KISMI",
+    "mechanism": "Kaynak düzeyinde yeniden kullanım: Suite Meet recorder-server prom-client Registry ile recorder_* metriklerini tanımlar, ayrı RECORDER_METRICS_TOKEN yapılandırmasını zorunlu tutar ve /health ile /ready uçlarını ayırır; Grafana recorder panosunda 'Recorders Up' paneli vardır; Python RecorderClient sınırlı TIMEOUT ve 'indeterminate' sonucu kullanır. Bu parçalar yalnız recorder servisini gösterir; Frappe web/RQ worker, host CPU/ağ/SSD ve MariaDB/Redis/kuyruk/dış servis ölçümünün var olduğunu göstermez. searchedPaths yalnız sağlanan aranan yollardır; bu yollarda görünmeyen parçalar için kapsamlı yokluk iddiası yapılmaz. Yeni exporter, adapter, Frappe kodu, DocType veya hook eklenmez; gelecekteki tek ürün çıktısı statik Prometheus kural dosyasıdır.",
     "evidence": [
       {
         "path": "suite/suite/meet/recorder-server/src/app.ts",
@@ -35,60 +42,287 @@
         "quote": "\"title\": \"Recorders Up\","
       },
       {
+        "path": "suite/suite/meet/recorder-server/src/server.ts",
+        "line": 16,
+        "quote": "const disk = new DiskGuard(config.dataRoot, config.minimumFreeBytes);"
+      },
+      {
+        "path": "suite/suite/meet/recorder-server/src/config.ts",
+        "line": 20,
+        "quote": "minimumFreeBytes: number;"
+      },
+      {
+        "path": "suite/suite/meet/observability/grafana/provisioning/dashboards/json/recorder-overview.json",
+        "line": 117,
+        "quote": "\"title\": \"Frappe Meet Recorder Overview\","
+      },
+      {
         "path": "suite/suite/meet/recorder-server/src/app.ts",
         "line": 196,
         "quote": "app.get('/health', (_req, res) => res.json({ status: 'ok' }));"
+      },
+      {
+        "path": "suite/suite/meet/recorder-server/src/app.ts",
+        "line": 197,
+        "quote": "app.get('/ready', (_req, res) =>"
+      },
+      {
+        "path": "suite/suite/meet/recording/recorder_client.py",
+        "line": 22,
+        "quote": "TIMEOUT = (2, 5)"
+      },
+      {
+        "path": "suite/suite/meet/recording/recorder_client.py",
+        "line": 210,
+        "quote": "return RecorderOutcome(\"indeterminate\")"
       }
+    ],
+    "searchedPaths": [
+      "suite/suite/meet/observability/grafana/provisioning/dashboards/json/recorder-overview.json",
+      "suite/suite/meet/recorder-server/src/app.ts",
+      "suite/suite/meet/recorder-server/src/config.ts",
+      "suite/suite/meet/recorder-server/src/server.ts",
+      "suite/suite/meet/recording/recorder_client.py"
     ]
   },
   "ownership": {
     "activeContractFile": "docs/frappe-roadmap-contracts/metrics-export.json",
     "plannedProduction": ["operations/metrics-export/metrics_export_mvp.yml"],
-    "plannedTestFile": "operations/metrics-export/metrics_export_mvp.test.yml (yalnız planlı; aktif kiralama değil, entegrasyon sahibi onaylar)",
+    "plannedTestFile": null,
     "sharedIntegrationFiles": [
-      "integration/fragments/metrics-export--integration.json"
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "Prometheus scrape: GET /metrics, Authorization başlığı metrics token referansı (credentials_file yolu; değer public çıktıya yazılmaz). Kimlik şeması AuthManager.authenticateMetrics içinde; bu şema alıntılanmadığı için bilinmiyor. Kural girdisi: up serisi, etiketler job ve instance; site/tenant etiketi eklenmez.",
-    "output": "Başarılı scrape: 200 ve prom-client exposition (recorder_starts_total, recorder_active_jobs, recorder_capacity). Alarm: RecorderMetricsTargetDown, etiketler job, instance, severity; kural dosyası sürümü v1.",
-    "authorization": "Frappe site/kullanıcı/kayıt/alan izni kapsam dışı; Frappe verisi okunmaz. /metrics yalnız bağımsız metrics token ile; aksi 401 {status:unauthorized}. Kural ve alarm kişisel veri veya secret içermez.",
-    "persistence": "Frappe transaction, Document.save, hook veya DDL yok. Tek statik YAML kural dosyası; Prometheus TSDB saklama süresi seçilmez ve bilinmiyor.",
-    "failure": "Token hatası, servis kapalı veya ağ hatası up=0 üretir ve aynı alarmı tetikler; job kaybı absent kuralıyla görünür. promtool check rules sözdizimi hatası verirse dosya entegrasyona alınmaz. /ready 503 scrape kesintisi sayılmaz, ayrı probe boşluğudur."
+    "input": "Kural girdisi: Prometheus up serisi; etiketler job ve instance. Scrape tarafı: recorder metrik hedefi, metrics token referansıyla (scrape yapılandırmasında dosya yolu referansı; değer public çıktıya ve Git'e yazılmaz). Recorder'ın /metrics yolu ve metrics kimlik doğrulama şeması doğrulanmış alıntılarda görünmez; uygulamadan önce kaynakta okunur. site/tenant etiketi eklenmez.",
+    "output": "Alarm: RecorderMetricsTargetDown; etiketler job, instance, severity; annotation yalnız statik açıklama metni. Kural dosyası sürümü v1. Scrape çıktısı recorder'ın mevcut prom-client çıktısıdır (alıntılanan metrik: recorder_starts_total); bu sözleşme metrik eklemez veya değiştirmez.",
+    "authorization": "Frappe site/kullanıcı/kayıt/alan izni kapsam dışı; Frappe verisi okunmaz, rol veya izin üretilmez, bu nedenle explicitPermissionFlags ortak kaynağına yeni bayrak eklenmez. ignore_permissions, doğrudan SQL veya izin bypass yolu yoktur. Metrics token Hüseyin Cengiz'in secret yönetimindedir; secret değeri veya lisans kararı bu sözleşmede yoktur.",
+    "persistence": "Frappe transaction, Document.save, hook, DDL veya veri yazımı yok. Tek statik YAML kural dosyası (planlı yol). Prometheus TSDB saklama süresi seçilmez ve bilinmiyor.",
+    "failure": "Token hatası, servis kapalı veya ağ hatası scrape başarısızlığı olarak up=0 üretir ve aynı alarmı tetikler; job serisinin tümden kaybı absent koluyla görünür. Kural sözdizimi doğrulaması başarısızsa dosya entegrasyona alınmaz. Recorder /ready hazır değil durumu scrape kesintisi sayılmaz; observability-4 probe boşluğudur. Alarm yönlendirmesi tanımlanmadıkça alarm yalnız Prometheus'ta görünür ve teslim edilmiş sayılmaz."
   },
   "development": {
     "dependencies": ["metrics-export--contract"],
-    "admission": "T-00 hedef taban ve R-00 yeniden kullanım eşlemesi gerekir. Suite kaynak HEAD bilinmiyor; recorder yerel pilotta (Frappe17-dev/suite.localhost) doğrulanmadı. promtool yerelde mevcut mu bilinmiyor; kurulum bu sözleşmeyle yapılmaz. 'for' süresi ve alarm yönlendirmesi Hüseyin Cengiz kararını bekler. Yerel kanıt uzak ürün tabanı değildir.",
+    "admission": "Uygulama durumu: uygulanmadı. Ön koşullar: T-00 hedef taban (Suite kaynak HEAD, Prometheus ve promtool sürümü hedef ortamda bilinmiyor; bu sözleşme sürüm seçmez) ve R-00 yeniden kullanım eşlemesi (recorder /metrics yolu, token kontrolü, kayıtlı metrik adları ve gerçek scrape job adı kaynakta okunup eşlenir). R-01 izinli veri tüketici koşulu uygulanmaz çünkü Frappe verisi okunmaz. 'for' süresi, severity ve alarm yönlendirmesi Hüseyin Cengiz kararını bekler. promtool kurulumu veya Prometheus yapılandırma değişikliği bu sözleşmeyle yapılmaz. Kaynak alıntıları önceki salt okunur Frappe/Suite kaynak görüntülerinden alınmıştır; canlı site veya ürün kabulü değildir.",
     "steps": [
-      "Hüseyin Cengiz 'for' süresini ve severity değerini belirler.",
-      "operations/metrics-export/metrics_export_mvp.yml içine tek kural grubu: up==0 ve absent ifadeleri, job=frappe-meet-recorder.",
-      "promtool check rules ile sözdizimi doğrulanır.",
-      "Prometheus'a yükleme ve Alertmanager yönlendirmesi gelecekteki dağıtım bağımlılığı olarak Hüseyin Cengiz'e devredilir; bu iş kapsamında etkinleştirilmez."
+      "R-00: recorder-server kaynağında /metrics rotasını, metrics token kontrolünü ve kayıtlı metrik adlarını oku ve eşle; doğrulanmayan ad kurala yazılmaz.",
+      "Gerçek Prometheus scrape job adını Hüseyin Cengiz ile doğrula; Grafana panelindeki job adıyla aynı değilse kural yazılmadan önce tek kaynak belirlenir.",
+      "Hüseyin Cengiz 'for' süresini, severity değerini ve alarm alıcısını belirler (decisionsPending).",
+      "Önce tek TDD senaryosu promtool test rules biçiminde yazılır; test dosya yolu entegrasyon sahibi tarafından atanır (plannedTestFile null).",
+      "operations/metrics-export/metrics_export_mvp.yml içine tek kural grubu yazılır: up == 0 ve absent kolları, job filtresi, for, etiketler job/instance/severity.",
+      "promtool check rules ve promtool test rules aynı komutlarla koşulur; çıktı kanıt olarak kaydedilir.",
+      "Prometheus'a yükleme ve Alertmanager yönlendirmesi Hüseyin Cengiz'e teknik devir olarak verilir; bu iş kapsamında etkinleştirilmez."
     ],
+    "admissionNote": "Bu rehber yalnız yönergedir; bu turda dosya, test veya yapılandırma üretilmez.",
     "tdd": {
       "status": "not_run",
-      "oneScenario": "promtool test rules: up{job=frappe-meet-recorder,instance=r1} serisi 1 değerinden 0 değerine düşer ve 'for' süresi geçince RecorderMetricsTargetDown alarmı job ve instance etiketiyle beklenir.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Aynı promtool test rules komutu kural eklendikten sonra SUCCESS döner; native olarak zaten çalışan /metrics davranışı RED üretmek için kullanılmaz."
+      "oneScenario": "up{job='frappe-meet-recorder',instance='r1'} serisi 1 değerinden 0 değerine düşer; 'for' süresi geçince RecorderMetricsTargetDown alarmı job, instance ve severity etiketleriyle beklenir, 'for' süresi dolmadan beklenmez.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. RED, kural dosyası sözdizimsel olarak geçerli ama RecorderMetricsTargetDown kuralını içermezken promtool test rules çalıştırmasının beklenen alarmı bulamaması (assertion uyuşmazlığı) olmalıdır. Eksik dosya, kurulmamış promtool veya import/altyapı hatası RED sayılmaz; native çalışan recorder davranışı RED üretmek için bozulmaz.",
+      "green": "Kural eklendikten sonra aynı senaryo, değişmeyen assertion ve aynı komutla SUCCESS döner. Bu tur test yazılmaz ve koşulmaz; bu sözleşme veya biçim kontrolü ürün GREEN'i değildir."
     },
-    "rollback": "Yalnız operations/metrics-export/metrics_export_mvp.yml yerel değişikliği geri alınır; production veya Prometheus yapılandırmasına dokunma izni yoktur."
+    "rollback": "Yalnız operations/metrics-export/metrics_export_mvp.yml ve atanmış test dosyasındaki değişiklik geri alınır. Prometheus, Alertmanager, recorder servisi veya production yapılandırmasına dokunma izni yoktur; dağıtılmış bir kuralın geri alınması gerekirse Hüseyin Cengiz'in dağıtım/geri alma prosedürüne devredilir."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "observability-1",
+      "sourceStage": "mvp",
+      "existing": "Recorder servisinde native kaynak parçaları: prom-client Registry ve recorder_starts_total sayacı, zorunlu RECORDER_METRICS_TOKEN yapılandırması, Grafana'da 'Recorders Up' paneli. Frappe web ve RQ worker için exporter aranan yollarda görünmüyor; bu kapsamlı yokluk iddiası değildir.",
+      "gap": "Ölçüm kesintisi için up/absent alarm kuralı ve alarm sahibi yok; Frappe web/RQ worker metrik kaynağı (Monitor/Recorder veya ayrı exporter) seçilmedi ve Frappe 17.0.0.dev0 API eşlemesi yok; site/tenant etiketinin kardinalite ve kişisel veri sınırı tanımsız.",
+      "completionSteps": [
+        "Bu sözleşmenin tek davranışı olan RecorderMetricsTargetDown kuralını development.steps ve tdd ile tamamla.",
+        "Aynı up == 0 / absent desenini Frappe web ve RQ worker hedeflerine genişletmeyi metrik kaynağı kararı gelene kadar yalnız belgede hedef satırı olarak tut; kural yazma.",
+        "Hedef sürüm T-00 ile doğrulandıktan sonra Frappe Monitor/Recorder kaynağını okuyup API eşlemesini belgele; doğrulanmamış uç veya metrik adı tanımlama.",
+        "Etiket politikasını belgele: alarm ve metriklerde site/tenant etiketi yok; ekleme etiket kararına bağlıdır."
+      ],
+      "dependencies": ["metrics-export--contract"],
+      "acceptance": "promtool test rules senaryosunda recorder hedefi 0'a düştüğünde ve 'for' süresi geçtiğinde RecorderMetricsTargetDown yalnız job/instance/severity etiketleriyle görülür; seri kaybında absent kolu aynı alarmı üretir; alarmda kiracı veya kullanıcı verisi yoktur.",
+      "evidence": [
+        {
+          "path": "suite/suite/meet/recorder-server/src/app.ts",
+          "line": 6,
+          "quote": "import { Counter, Gauge, Registry } from 'prom-client';"
+        },
+        {
+          "path": "suite/suite/meet/recorder-server/src/app.ts",
+          "line": 169,
+          "quote": "name: 'recorder_starts_total',"
+        },
+        {
+          "path": "suite/suite/meet/recorder-server/src/config.ts",
+          "line": 85,
+          "quote": "const metricsToken = required(env, 'RECORDER_METRICS_TOKEN');"
+        },
+        {
+          "path": "suite/suite/meet/observability/grafana/provisioning/dashboards/json/recorder-overview.json",
+          "line": 16,
+          "quote": "\"title\": \"Recorders Up\","
+        }
+      ]
+    },
+    {
+      "requirementId": "observability-2",
+      "sourceStage": "mvp",
+      "existing": "Kaynakta yalnız uygulama düzeyi parçalar var: recorder dataRoot için DiskGuard minimumFreeBytes ile oluşturulur, config içinde minimumFreeBytes alanı vardır ve Grafana'da recorder panosu bulunur. Host CPU/ağ/SSD ölçümü Frappe/Suite kaynak kapsamında değildir; bu parçalar host ölçümünün var olduğunu göstermez.",
+      "gap": "Host/container exporter, saklama süresi, Hetzner/Debian Docker Engine hedef envanteri ve etiket şeması, CPU/disk doluluk/IO eşikleri, kayıp hedef alarm süresi ve DiskGuard eşiğinin host disk alarmıyla ilişkisi tanımsız.",
+      "completionSteps": [
+        "Kayıp hedef alarmı için bu sözleşmedeki up == 0 / absent desenini ortak desen olarak belgele; host hedefleri exporter kararı gelene kadar kurala eklenmez.",
+        "Hüseyin Cengiz için karar tablosu belgesi hazırla: exporter, saklama, hedef envanteri, eşikler, 'for' süresi; değer seçme.",
+        "DiskGuard'ın minimumFreeBytes ile davranışını kaynakta oku; host disk boş alan uyarısının bu eşiğe ulaşılmadan tetiklenmesi gerektiğini ilişki olarak yaz, sayısal değer seçme.",
+        "Altyapı etiket şemasını (ör. host, role) belgele; kiracı/site etiketi ekleme."
+      ],
+      "dependencies": ["metrics-export--contract"],
+      "acceptance": "Exporter ve envanter kararından sonra her hedef sunucunun CPU, ağ ve disk serisi zaman ve etiketleriyle görülür, hedef kaybı aynı up/absent deseniyle alarm üretir ve host disk uyarısı recorder DiskGuard eşiğine ulaşılmadan tetiklenir. Bu, bu sözleşmenin tek davranışından ayrı, gelecekteki bir kabuldür.",
+      "evidence": [
+        {
+          "path": "suite/suite/meet/recorder-server/src/server.ts",
+          "line": 16,
+          "quote": "const disk = new DiskGuard(config.dataRoot, config.minimumFreeBytes);"
+        },
+        {
+          "path": "suite/suite/meet/recorder-server/src/config.ts",
+          "line": 20,
+          "quote": "minimumFreeBytes: number;"
+        },
+        {
+          "path": "suite/suite/meet/observability/grafana/provisioning/dashboards/json/recorder-overview.json",
+          "line": 117,
+          "quote": "\"title\": \"Frappe Meet Recorder Overview\","
+        }
+      ]
+    },
+    {
+      "requirementId": "observability-4",
+      "sourceStage": "mvp",
+      "existing": "Recorder'da /health ve /ready ayrı uçlardır; Python RecorderClient TIMEOUT = (2, 5) ile sınırlı zaman aşımı kullanır ve belirsiz yanıtta 'indeterminate' sonucu döndürür. Bunlar dış servis probe'u için referans desendir. MariaDB, Redis, RQ kuyruğu, S3 uyumlu depolama ve mail sağlık ölçümü aranan yollarda görünmüyor; bu kapsamlı yokluk iddiası değildir.",
+      "gap": "Probe yapılacak bileşen listesi ve probe sözleşmesi, kuyruk derinliği/gecikmesi ve bellek eşikleri, Frappe tarafı liveness/readiness ayrımı ve kesintiden etkilenen kiracı eşlemesi yok.",
+      "completionSteps": [
+        "Probe tablosu belgesi hazırla: bileşen (MariaDB, Redis cache/queue, RQ worker/scheduler, socketio, SFU, recorder, S3 uyumlu depolama, mail), metrik, eşik, sahip; eşik ve sahip hücreleri karar bekler.",
+        "Her satır için liveness/readiness ayrımını recorder /health ve /ready desenine göre tanımla; zaman aşımı veya belirsiz yanıt 'indeterminate' benzeri ayrı sonuçtur ve başarılı sayılmaz.",
+        "Recorder /ready hazır değil durumunu ilk probe satırı olarak belgele; scrape kesintisi alarmından ayrı alarm adı kullan.",
+        "Kiracı etki eşlemesini tenant topolojisi kararına bağla; alarm etiketine kiracı ekleme."
+      ],
+      "dependencies": ["metrics-export--contract"],
+      "acceptance": "Probe tablosundaki her bileşenin kesintisi o bileşenin metriği ve alarmında görülür; DB veya Redis kesintisi recorder hedef alarmıyla karıştırılmaz; belirsiz sonuç başarılı sayılmaz. Bu, bu sözleşmenin tek davranışından ayrı, gelecekteki bir kabuldür.",
+      "evidence": [
+        {
+          "path": "suite/suite/meet/recorder-server/src/app.ts",
+          "line": 196,
+          "quote": "app.get('/health', (_req, res) => res.json({ status: 'ok' }));"
+        },
+        {
+          "path": "suite/suite/meet/recorder-server/src/app.ts",
+          "line": 197,
+          "quote": "app.get('/ready', (_req, res) =>"
+        },
+        {
+          "path": "suite/suite/meet/recording/recorder_client.py",
+          "line": 22,
+          "quote": "TIMEOUT = (2, 5)"
+        },
+        {
+          "path": "suite/suite/meet/recording/recorder_client.py",
+          "line": 210,
+          "quote": "return RecorderOutcome(\"indeterminate\")"
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "observability-1: Frappe web ve RQ worker için metrik kaynağı (Monitor/Recorder veya ayrı exporter) seçilmedi; Frappe 17.0.0.dev0 API eşlemesi yok.",
-    "observability-1: site/tenant etiketinin kardinalite ve kişisel veri sınırı tanımsız.",
-    "observability-1: alarm yönlendirmesi ve sahibi (Hüseyin Cengiz) dağıtım tarafında tanımlanmadı.",
-    "observability-2: host/container exporter, saklama süresi, Hetzner/Debian hedef envanteri, CPU/ağ/disk eşikleri ve DiskGuard minimumFreeBytes ile disk alarmı ilişkisi kararsız.",
-    "observability-4: MariaDB, Redis, RQ worker/scheduler, socketio, SFU, S3, mail için bileşen-metrik-eşik-sahip probe tablosu, kuyruk derinliği ve kiracı etki eşlemesi yok.",
-    "AuthManager metrics kimlik şeması, Prometheus sunucu yapılandırması ve Suite HEAD bilinmiyor."
+    "Uygulama durumu: uygulanmadı. Kural dosyası, test ve dağıtım yok.",
+    "observability-1: Frappe web ve RQ worker metrik kaynağı seçilmedi; Frappe 17.0.0.dev0 API eşlemesi yok; site/tenant etiket sınırı ve alarm yönlendirmesi tanımsız.",
+    "observability-2: host/container exporter, saklama süresi, hedef envanteri, CPU/ağ/disk eşikleri ve DiskGuard ile disk alarmı ilişkisi kararsız.",
+    "observability-4: bileşen-metrik-eşik-sahip probe tablosu, kuyruk derinliği/bellek eşikleri, Frappe liveness/readiness ayrımı ve kiracı etki eşlemesi yok.",
+    "Recorder /metrics yolu, metrics kimlik şeması, gerçek scrape job adı, Prometheus sunucu yapılandırması ve Suite HEAD doğrulanmadı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "'for' süresi ve severity değeri",
+      "owner": "Hüseyin Cengiz",
+      "requirementIds": ["observability-1"],
+      "blocks": "Kural dosyasının yazılması ve TDD senaryosunun zaman değerleri",
+      "allowedDocumentStep": "Kural yapısını parametre adlarıyla belgele; değer yazma."
+    },
+    {
+      "decision": "Alarm yönlendirmesi ve alıcı",
+      "owner": "Hüseyin Cengiz",
+      "requirementIds": ["observability-1"],
+      "blocks": "Alertmanager devri ve alarmın teslim edildi sayılması",
+      "allowedDocumentStep": "Alarmın yalnız Prometheus'ta görünür olduğu sınırı belgele."
+    },
+    {
+      "decision": "Frappe web ve RQ worker metrik kaynağı (Monitor/Recorder veya ayrı exporter)",
+      "owner": "Hüseyin Cengiz",
+      "requirementIds": ["observability-1"],
+      "blocks": "Frappe hedefleri için up/absent kuralının genişletilmesi",
+      "allowedDocumentStep": "Hedef sürüm kaynağında Monitor/Recorder yeteneklerini okuyup karşılaştırma notu yaz."
+    },
+    {
+      "decision": "Site/tenant etiket politikası ve kiracı etki eşlemesi (tenant topolojisi)",
+      "owner": "Kullanıcı",
+      "requirementIds": ["observability-1", "observability-4"],
+      "blocks": "Kiracı bazlı metrik/alarm ve etki eşlemesi",
+      "allowedDocumentStep": "Kiracı etiketsiz varsayılanı ve kişisel veri sınırını belgele."
+    },
+    {
+      "decision": "Host/container exporter seçimi",
+      "owner": "Hüseyin Cengiz",
+      "requirementIds": ["observability-2"],
+      "blocks": "Host CPU/ağ/disk serileri ve host hedef kuralları",
+      "allowedDocumentStep": "Gereken seri türlerini ve etiket şemasını exporter'dan bağımsız belgele."
+    },
+    {
+      "decision": "Metrik saklama süresi",
+      "owner": "Kullanıcı ve Hüseyin Cengiz",
+      "requirementIds": [
+        "observability-1",
+        "observability-2",
+        "observability-4"
+      ],
+      "blocks": "Prometheus depolama yapılandırması",
+      "allowedDocumentStep": "Saklamanın bilinmediğini ve kuralların saklamaya bağlı olmadığını belgele."
+    },
+    {
+      "decision": "Hedef sunucu envanteri (Hetzner/Debian Docker Engine)",
+      "owner": "Hüseyin Cengiz",
+      "requirementIds": ["observability-2"],
+      "blocks": "Hedef listesi ve kayıp hedef alarmının host kapsamı",
+      "allowedDocumentStep": "Envanter tablosunun sütunlarını tanımla; host adı veya adres yazma."
+    },
+    {
+      "decision": "CPU, ağ, disk doluluk/IO, bellek ve kuyruk eşikleri",
+      "owner": "Hüseyin Cengiz",
+      "requirementIds": ["observability-2", "observability-4"],
+      "blocks": "Eşik tabanlı alarm kuralları",
+      "allowedDocumentStep": "Eşik hücrelerini boş bırakarak alarm adlarını ve DiskGuard ilişkisini belgele."
+    },
+    {
+      "decision": "Probe bileşen listesi ve bileşen sahipleri",
+      "owner": "Hüseyin Cengiz",
+      "requirementIds": ["observability-4"],
+      "blocks": "Bileşen bazlı probe ve alarm kuralları",
+      "allowedDocumentStep": "Aday bileşen listesiyle probe tablosu taslağını belgele."
+    },
+    {
+      "decision": "Hedef Prometheus/promtool sürümü ve Suite HEAD (T-00)",
+      "owner": "Hüseyin Cengiz",
+      "requirementIds": [
+        "observability-1",
+        "observability-2",
+        "observability-4"
+      ],
+      "blocks": "Uygulama kabulü ve RED/GREEN koşusu",
+      "allowedDocumentStep": "Sürüme bağlı varsayımları bilinmiyor olarak işaretle."
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "observability-1": "mvp",
-    "observability-2": "mvp",
-    "observability-4": "mvp"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,

@@ -4,15 +4,20 @@
   "canonicalTaskIds": ["email-domain--implementation"],
   "requirementIds": ["email-6"],
   "stage": "mvp",
+  "sourceStages": {
+    "email-6": "mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
     "title": "Test iletisinin Authentication-Results başlığını Email Account gönderen alan adına göre salt okunur değerlendirme",
-    "trigger": "Yetkili kullanıcı, var olan bir Email Account adını ve alıcı tarafta görülen Authentication-Results başlık metnini adaptör fonksiyonuna verir.",
-    "expected": "Fonksiyon spf, dkim ve dmarc için pass/fail/none/unknown değerlerini, gönderen alan adını ve DKIM/SPF alan adlarının gönderen alan adıyla hizalanıp hizalanmadığını sürümlü yanıtla döndürür. Hiçbir kayıt yazılmaz.",
-    "denied": "Email Account okuma yetkisi olmayan kullanıcı PermissionError alır. Yanıtta e-posta adresi, ham başlık veya sağlayıcı günlüğü yer almaz."
+    "trigger": "Yetkili kullanıcı, var olan bir Email Account adını ve alıcı tarafta görülen tek Authentication-Results başlık değerini adaptör fonksiyonuna verir.",
+    "expected": "Fonksiyon spf, dkim ve dmarc için pass|fail|none|unknown değerlerini, Email Account email_id alanından türetilen gönderen alan adını ve SPF/DKIM alan adlarının gönderen alan adıyla gevşek kipte hizalanıp hizalanmadığını sürümlü yanıtla döndürür. Hiçbir kayıt yazılmaz.",
+    "denied": "Email Account okuma yetkisi olmayan kullanıcı PermissionError alır ve Email Account kaydı değişmeden kalır. Yanıtta e-posta adresi, ham başlık veya sağlayıcı günlüğü yer almaz."
   },
   "reuse": {
-    "mechanism": "Gönderen, başlık ve DSN ayarları için yerleşik Email Account ve EMail.validate kullanılır, yeni ayar alanı eklenmez. Frappe'nin Authentication-Results ayrıştırdığına dair kaynak kanıtı yok. Bu yüzden tek eklenti, sahip olunan dosyadaki saf bir ayrıştırma fonksiyonudur. Uygulamadan önce Frappe17-dev'de eşdeğer bir yerleşik ayrıştırıcı aranır; bulunursa adaptör yazılmaz, o kullanılır. Suite Mail DMARC rapor rotaları posta kutusu ürününe aittir ve işlemsel gönderen kanıtı sayılmaz.",
+    "status": "KISMI",
+    "mechanism": "Gönderen, X-Original-From başlığı ve DSN ayarları için yerleşik Email Account DocType'ı ve e-posta gövdesi doğrulaması yeniden kullanılır. Yeni ayar alanı, DocType veya ayar ekranı eklenmez. Kanıt yalnız şu native parçaları gösterir: email_body.py:291 Email Account'a bağlı başlık ayarını, email_account.py:307 SMTP sunucusunun DSN desteği kontrolünü. Bu, Frappe'de SPF/DKIM/DMARC alan doğrulaması veya Authentication-Results ayrıştırması olduğu anlamına gelmez; bu yönde kaynak kanıtı yoktur. SPF/DKIM/DMARC kayıtları sağlayıcı ve DNS işidir. Suite Mail DMARC rapor rotası (routes.test.ts:43) posta kutusu ürününe ait bir Vue yüzeyidir. İşlemsel gönderen doğrulamasının veya React/Ant Design uygulamasının kanıtı sayılmaz. Tek eklenti, gelecekte sahiplenilecek dosyada yer alacak saf bir ayrıştırma fonksiyonudur. Uygulamadan önce T-00 hedef tabanında eşdeğer bir yerleşik ayrıştırıcı aranır; bulunursa adaptör yazılmaz. Aranan yollar yalnız searchedPaths listesindekilerdir; bu kapsamlı bir yokluk iddiası değildir.",
     "evidence": [
       {
         "path": "frappe/frappe/email/email_body.py",
@@ -29,6 +34,11 @@
         "line": 43,
         "quote": "it('dashboard DMARC routes resolve as dashboard pages', () => {"
       }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/email/doctype/email_account/email_account.py",
+      "frappe/frappe/email/email_body.py",
+      "suite/frontend/src/apps/mail/routes.test.ts"
     ]
   },
   "ownership": {
@@ -36,53 +46,113 @@
     "plannedProduction": [
       "backend/saas_platform/saas_platform/adapters/message_delivery/email_domain_mvp.py"
     ],
-    "plannedTestFile": "backend/saas_platform/saas_platform/adapters/message_delivery/test_email_domain_mvp.py",
+    "plannedTestFile": null,
     "sharedIntegrationFiles": [
       "backend/saas_platform/saas_platform/hooks.py",
-      "integration/fragments/email-domain--integration.json"
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
     "input": "email_account: str, 1-140 karakter, var olan Email Account adı. authentication_results: str, 1-4096 karakter, tek başlık değeri, satır sonları birleştirilmiş.",
-    "output": "{version: 'email-domain.auth-results.v1', sender_domain: str (email_id alanından yalnız alan adı), spf: enum, dkim: enum, dmarc: enum, spf_aligned: bool, dkim_aligned: bool}. Enum değerleri: pass|fail|none|unknown. Hizalama gevşek kipte değerlendirilir: alan adı eşit olmalı ya da gönderen alan adının alt alanı olmalı.",
-    "authorization": "Yerel site sınırında oturum kullanıcısının ilgili Email Account kaydı için yerleşik read izni olmalıdır. Kullanılacak yerleşik izin API'sinin adı Frappe17-dev'de doğrulanacak, şu an bilinmiyor. Alan düzeyinde yalnız sender_domain türetilir. Fonksiyon whitelist edilmez, HTTP üzerinden açılmaz.",
-    "persistence": "Yok. Salt okunur çalışır: transaction, hook, DDL ya da kuyruk kullanılmaz. Sonucun nereye kaydedileceği karar bekliyor.",
-    "failure": "Boş veya sınırı aşan girdi: frappe.throw (ValidationError). Kayıt bulunamazsa DoesNotExistError, izin yoksa PermissionError. Tanınmayan yöntem değeri unknown döner, hata atılmaz. Çağıran taraf hatayı olduğu gibi yüzeye çıkarır ve yeniden denemez."
+    "output": "{version: 'email-domain.auth-results.v1', sender_domain: str (email_id alanından yalnız alan adı), spf: enum, dkim: enum, dmarc: enum, spf_aligned: bool, dkim_aligned: bool}. Enum değerleri: pass|fail|none|unknown. Hizalama gevşek kipte değerlendirilir: alan adı gönderen alan adına eşit ya da onun alt alanı olmalıdır. Çıktı bir JSON model sınırıdır; ReactNode veya callback taşımaz.",
+    "authorization": "Site sınırında oturum kullanıcısının ilgili Email Account kaydı için yerleşik read izni olmalıdır. Kontrol yerleşik Frappe izin katmanıyla yapılır; ignore_permissions veya SQL ile atlanmaz. Kullanılacak izin API'sinin adı T-00 hedef tabanında doğrulanacak, şu an bilinmiyor. Rehber yeni rol veya izin üretmez; ileride rol/izin gerekirse ortak explicitPermissionFlags kaynağına bağlanır. Alan düzeyinde yalnız sender_domain türetilir. Fonksiyon whitelist edilmez; HTTP veya UI üzerinden açılmaz.",
+    "persistence": "Yok. Salt okunur çalışır: transaction, hook, DDL ya da kuyruk kullanılmaz. Sonucun nereye ve ne kadar süreyle kaydedileceği decisionsPending listesinde bekliyor.",
+    "failure": "Boş veya sınırı aşan girdide frappe.throw (ValidationError). Kayıt bulunamazsa DoesNotExistError, izin yoksa PermissionError. Tanınmayan yöntem değeri hata atmadan unknown döner. Çağıran taraf hatayı olduğu gibi yüzeye çıkarır ve yeniden denemez."
   },
   "development": {
-    "dependencies": [
-      "email-domain--contract",
-      "localPilot frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6 (suite.localhost, cookie/CSRF)"
-    ],
-    "admission": "T-00 hedef taban, R-00 yeniden kullanım eşlemesi ve email-domain--contract tamamlanmış olmalıdır. Yerleşik ayrıştırıcı ve izin API'sinin adı doğrulanmalıdır. Yerel kanıt uzak ürün tabanının yerine geçmez. Uzak taban ve Suite HEAD bilinmiyor.",
+    "dependencies": ["email-domain--contract"],
+    "admission": "Uygulama durumu: uygulanmadı. Ön koşullar: T-00 hedef taban, R-00 yeniden kullanım eşlemesi ve email-domain--contract tamamlanmış olmalıdır; izinli veri tüketimi için R-01 de uygulanır. Yerleşik ayrıştırıcı aramasının sonucu ve izin API'sinin adı hedef tabanda doğrulanmalıdır. Hedef taban ve Suite sürümü bilinmiyor. Kaynak alıntıları önceki salt okunur kaynak anlık görüntülerinden alınmıştır; canlı site veya ürün kabulü kanıtı değildir. Bu sözleşme hiçbir servisi, production ortamını, şemayı, DNS kaydını veya veriyi değiştirme yetkisi vermez.",
     "steps": [
-      "Frappe17-dev'de yerleşik Authentication-Results ayrıştırıcısını ara. Bulunursa onu yeniden kullan ve adaptörü yazma.",
-      "Planlanan tek testi yaz, gerçek RED sonucunu kaydet.",
-      "email_domain_mvp.py içinde evaluate_authentication_results fonksiyonunu yaz: izin kontrolü, uzunluk sınırı, ayrıştırma, hizalama.",
-      "Aynı test komutuyla GREEN sonucunu kaydet. hooks.py ve UI değişmez."
+      "Karar beklenirken yapılabilecek belge adımı: sağlayıcının resmi alan doğrulama belgesine göre gereken kayıt türlerini (SPF TXT, DKIM, DMARC TXT ve sağlayıcı isterse dönüş yolu kaydı) ad/değer alanları boş bir şablon olarak listele.",
+      "Hüseyin Cengiz seçilen sağlayıcının istediği DNS kayıtlarını tür/ad/değer olarak hazırlar ve Asistan Hüseyin'e teknik devir notu verir. Engel: sağlayıcı, gönderen alan adı ve DMARC politikası kararları. Kabul: listedeki her kayıt sağlayıcı belgesindeki bir satıra karşılık gelir.",
+      "Asistan Hüseyin kayıtları GoDaddy'de uygular ve uygulanan kayıtların tür ve adını secret içermeden Hüseyin Cengiz'e bildirir. Kabul: devir notundaki her kayıt için uygulandı/uygulanmadı bilgisi vardır.",
+      "Hüseyin Cengiz sağlayıcı panelinde alan doğrulamasının geçtiğini doğrular. Email Account üzerinden gönderilen test iletisinin alıcı tarafındaki Authentication-Results başlığında spf, dkim ve dmarc sonuçlarını kontrol eder. Sonuç, karar verilen yere kaydedilir.",
+      "T-00 hedef tabanında yerleşik bir Authentication-Results ayrıştırıcısı ara. Bulunursa onu yeniden kullan, adaptörü yazma ve görevi reuse olarak kapat.",
+      "Bulunmazsa sahiplik kiralamasında belirlenecek test yolunda tek senaryolu testi yaz ve gerçek RED sonucunu kaydet.",
+      "email_domain_mvp.py içinde evaluate_authentication_results fonksiyonunu yaz: yerleşik izin kontrolü, uzunluk sınırı, ayrıştırma, hizalama.",
+      "Aynı test komutuyla GREEN sonucunu kaydet. hooks.py, UI ve diğer paylaşılan entegrasyon dosyaları değişmez."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "Fixture Email Account email_id alan adı example.com. Başlık: 'spf=pass smtp.mailfrom=example.com; dkim=pass header.d=example.net; dmarc=fail header.from=example.com'. Beklenen sonuç: spf=pass, spf_aligned=true, dkim=pass, dkim_aligned=false, dmarc=fail, sender_domain=example.com.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Uygulamadan sonra aynı test aynı komutla geçer. Yerleşik bir ayrıştırıcı bulunursa uydurma bir RED üretilmez, görev reuse olarak kapatılır."
+      "oneScenario": "Fixture Email Account'un email_id alan adı example.com. Başlık: 'spf=pass smtp.mailfrom=example.com; dkim=pass header.d=example.net; dmarc=fail header.from=example.com'. Beklenen sonuç: spf=pass, spf_aligned=true, dkim=pass, dkim_aligned=false, dmarc=fail, sender_domain=example.com.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. Tek davranış oneScenario alanındaki senaryodur. RED, import veya altyapı hatası olamaz; native davranış bozularak elde edilemez. Native olarak geçen davranış için RED uydurulmaz. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "Uygulamadan sonra aynı senaryo, değişmemiş assertion ve aynı komutla geçmelidir. Şu anki durum not_run; bu sözleşme veya biçim kontrolü ürün GREEN'i sayılmaz. Yerleşik bir ayrıştırıcı bulunursa uydurma RED üretilmez; görev reuse olarak kapatılır."
     },
-    "rollback": "Yerelde iki planlı dosyayı geri almak yeterlidir. Veri yazılmadığından veri geri alma gerekmez. Production değişikliği ya da yetkisi yoktur."
+    "rollback": "Bu turda geri alınacak bir ürün değişikliği yoktur. İleride uygulanırsa planlanan adaptör dosyasını ve testini geri almak yeterlidir; veri yazılmadığından veri geri alma gerekmez. DNS kaydı geri alma gereksinimini Hüseyin Cengiz hazırlar, GoDaddy'de Asistan Hüseyin uygular, sonucu Hüseyin Cengiz doğrular. Bu sözleşme bu işlemleri yürütme yetkisi vermez."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "email-6",
+      "sourceStage": "mvp",
+      "existing": "Email Account gönderen adresini, X-Original-From başlık ayarını ve SMTP DSN desteği kontrolünü sağlar (email_body.py:291, email_account.py:307). Mevcut değerlendirme notuna göre Email Account imza ve SMTP ayarlarını da sağlar; imza alanı için bu turda kaynak alıntısı yoktur. SPF/DKIM/DMARC alan doğrulaması sağlayıcı ve DNS tarafındadır. Suite Mail DMARC rapor sayfaları posta kutusu ürününe aittir ve işlemsel gönderen kanıtı değildir.",
+      "gap": "Kayıt hazırlama, DNS'te uygulama ve sonucu doğrulama adımları sahipleriyle ayrı ayrı yazılmamış. Test iletisinin SPF/DKIM/DMARC sonucunun nereye kaydedileceği tanımsız. Gönderen alan adı, alt alan ve DMARC politikası kararları verilmemiş.",
+      "completionSteps": [
+        "Sağlayıcı belgesine göre gerekli kayıt türlerini ad/değer alanları boş bir şablon olarak yaz.",
+        "Kararlar verildikten sonra Hüseyin Cengiz kayıt listesini tür/ad/değer olarak hazırlar.",
+        "Asistan Hüseyin kayıtları GoDaddy'de uygular ve kayıt bazında uygulama sonucunu bildirir.",
+        "Hüseyin Cengiz sağlayıcı alan doğrulamasını ve test iletisinin Authentication-Results sonucunu doğrular.",
+        "Test sonucu (spf, dkim, dmarc, hizalama, doğrulayan ve tarih) karar verilen kayıt yerine, ham başlık ve e-posta adresi olmadan yazılır.",
+        "Yerleşik ayrıştırıcı yoksa development.steps altındaki tek senaryolu adaptör yolu izlenir."
+      ],
+      "dependencies": ["email-domain--contract"],
+      "acceptance": "Sağlayıcı alan doğrulaması geçer. Email Account üzerinden gönderilen test iletisinin spf, dkim ve dmarc sonuçları ile hizalama durumu, hazırlayan/uygulayan/doğrulayan adlarıyla birlikte karar verilen yere kaydedilir. Okuma izni olmayan kullanıcı PermissionError alır ve Email Account kaydı değişmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/email/email_body.py",
+          "line": 291,
+          "quote": "if self.email_account.add_x_original_from:"
+        },
+        {
+          "path": "frappe/frappe/email/doctype/email_account/email_account.py",
+          "line": 307,
+          "quote": "if not smtp_session.has_extn(\"DSN\"):"
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "Gönderen alan adı, alt alan ve DMARC politikası kararı kullanıcıda bekliyor. Sağlayıcı/vendor seçilmedi.",
-    "Sağlayıcının istediği SPF/DKIM/DMARC kayıt listesini Huseyin Cengiz hazırlar, kayıtları GoDaddy'de Asistan Huseyin uygular, sonucu Huseyin Cengiz doğrular. Bu adımlar bağımlılıktır, burada yürütülmez.",
-    "Test iletisi sonucunun nereye kaydedileceği tanımsız. Bu sözleşme hiçbir şeyi kalıcı olarak yazmaz.",
-    "Yerleşik izin API'sinin adı ve yerleşik bir ayrıştırıcı olmadığı kaynakla kanıtlanmadı, ikisi de unknown.",
-    "HTTP veya UI üzerinden açmak, entegrasyon sahibine ait hooks.py değişikliği gerektirir ve kapsam dışıdır.",
-    "Sağlayıcı alan doğrulamasının geçmesi ve gerçek test iletisinin gönderilmesi canlı DNS ile sağlayıcıya bağlıdır. Bu adımlar not_run."
+    "Sağlayıcı, gönderen alan adı, alt alan ve DMARC politikası seçilmedi; decisionsPending listesine bakın.",
+    "DNS kayıt listesini Hüseyin Cengiz hazırlar, GoDaddy'de Asistan Hüseyin uygular, sonucu Hüseyin Cengiz doğrular. Bu adımlar bağımlılıktır; bu sözleşmede yürütülmez.",
+    "Test iletisi sonucunun kayıt yeri ve saklama süresi tanımsız. Bu sözleşme hiçbir şeyi kalıcı olarak yazmaz.",
+    "Yerleşik izin API'sinin adı ve yerleşik bir Authentication-Results ayrıştırıcısının bulunup bulunmadığı kaynakla doğrulanmadı; ikisi de unknown.",
+    "HTTP veya UI üzerinden açmak, entegrasyon sahibine ait hooks.py ve paylaşılan UI dosyalarında değişiklik gerektirir; kapsam dışıdır.",
+    "Sağlayıcı alan doğrulaması ve gerçek test iletisi canlı DNS ile sağlayıcıya bağlıdır; durumları not_run."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "İşlemsel e-posta sağlayıcısı (vendor) seçimi",
+      "requirementIds": ["email-6"],
+      "blocksStep": "DNS kayıt listesinin hazırlanması, GoDaddy'de uygulanması ve sağlayıcı alan doğrulaması",
+      "documentationStepUntilDecision": "Kayıt türü şablonunu sağlayıcıdan bağımsız biçimde (SPF, DKIM, DMARC, isteğe bağlı dönüş yolu) ad/değer alanları boş olarak yaz."
+    },
+    {
+      "decision": "Gönderen alan adı ve gönderim için ayrı bir alt alan kullanılıp kullanılmayacağı",
+      "requirementIds": ["email-6"],
+      "blocksStep": "Kayıt adlarının belirlenmesi ve Email Account email_id değerinin hizalama testinde kullanılması",
+      "documentationStepUntilDecision": "Hizalama kuralını (eşit alan adı veya alt alan) ve oneScenario'yu example.com üzerinden yalnız yönerge olarak koru."
+    },
+    {
+      "decision": "DMARC politikası ve rapor alıcı adresi",
+      "requirementIds": ["email-6"],
+      "blocksStep": "DMARC TXT kaydının değerinin hazırlanması",
+      "documentationStepUntilDecision": "Şablonda DMARC politika ve rapor alanlarını boş bırak ve karar sahibini belirt."
+    },
+    {
+      "decision": "Test iletisi sonucunun kayıt yeri ve saklama süresi",
+      "requirementIds": ["email-6"],
+      "blocksStep": "Kabul kanıtının kalıcı olarak kaydedilmesi",
+      "documentationStepUntilDecision": "Kaydedilecek alanları (spf, dkim, dmarc, hizalama, doğrulayan, tarih) ham başlık ve e-posta adresi olmadan listele; adaptör kalıcı yazma yapmaz."
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "email-6": "mvp"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,

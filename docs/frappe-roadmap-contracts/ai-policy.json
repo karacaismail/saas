@@ -1,0 +1,269 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "ai-policy",
+  "canonicalTaskIds": ["ai-policy--implementation"],
+  "requirementIds": ["ai-5", "ai-6"],
+  "stage": "scale",
+  "sourceStages": {
+    "ai-5": "scale",
+    "ai-6": "scale"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "AI sağlayıcı sınırında zorunlu politika kapısı: giden veri filtresi (ai-5) ile araç çağrısı ve çıktı yetki denetimi (ai-6). Uygulama durumu: uygulanmadı.",
+    "trigger": "Oturum açmış kullanıcının isteğiyle sunucu tarafında bir AI sağlayıcı çağrısı hazırlanır (Frappe belge bağlamı veya Suite Sheets çalışma sayfası bağlamı) ya da model bir araç çağrısı veya eylem listesi döndürür.",
+    "expected": "Sağlayıcı adaptöründen önce tek ve atlanamaz bir filtre çalışır. Önce kullanıcının kendi oturum izniyle belge okuma izni, ardından alan düzeyi okuma izni uygulanır. Sonra varsayılan-red hassas alan sınıflandırması uygulanır. İsteğe yalnız açıkça izinli alanlar girer; gerekiyorsa maskelenmiş değer kullanılır. Maskeleme kararı denetim zarfı üzerinden kaydedilir. Model dönüşündeki her araç çağrısı önce şemaya göre doğrulanır. Ardından kullanıcının oturumuyla, hedef belge için eşlenmiş Frappe izin tipine (read, write, submit) göre yetkilendirilir. Yalnız iki denetimden de geçen eylem native save ve transaction yoluyla uygulanır.",
+    "denied": "Sınıflandırılmamış veya yasak alan sağlayıcı isteğine hiç girmez. Okuma izni olmayan belge bağlama eklenmez. Yetkisiz veya şema dışı araç çağrısı çalışmaz, hedef kayıt değişmez ve ret nedeni denetlenir. ignore_permissions, ham SQL, Server Script veya yükseltilmiş kullanıcı bağlamıyla yetki atlatma yasaktır. Şema doğrulaması yetkilendirmenin yerine geçmez."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native Frappe izin zinciri yeniden kullanılır: belge düzeyinde check_permission, alan düzeyinde apply_fieldlevel_read_permissions. İkisi de frappe/frappe/api/v1.py içinde REST okuma ve yöntem çağrısı yolunda görülür. Suite Sheets AI kaynağında iki desen vardır: bağlamı boyut ve gizlilik gerekçesiyle sınırlama niyeti ile model argümanlarını güvenilmez sayıp sözleşme dışını düşüren doğrulama. Bu parçalar davranışın tamamını karşılamaz. Suite örnek satır değerlerini maskelemeden ekler, hücre bağlamını kullanıcı isteğiyle aynı mesajda birleştirir ve formülü yalnız uzunlukla sınırlar. Hassas alan sınıflandırması, varsayılan-red kuralı, araç-izin eşlemesi ve maskeleme denetim kaydı kaynakta yoktur. Suite ve Frappe kaynak kanıtı React/Ant Design uygulaması kanıtı değildir; Suite ön yüzü Vue/Frappe UI tabanlıdır. Kaynak değerlendirmesi ürün uygulamasından ayrıdır.",
+    "evidence": [
+      {
+        "path": "suite/suite/sheets/ai/context.py",
+        "line": 3,
+        "quote": "The whole workbook blob is far too large (and too private) to hand to the"
+      },
+      {
+        "path": "suite/suite/sheets/ai/context.py",
+        "line": 122,
+        "quote": "row[col_to_letters(c)] = v"
+      },
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 84,
+        "quote": "doc.apply_fieldlevel_read_permissions()"
+      },
+      {
+        "path": "suite/suite/sheets/ai/validate.py",
+        "line": 4,
+        "quote": "untrusted — clamp and drop anything that doesn't match the contract before the"
+      },
+      {
+        "path": "suite/suite/sheets/ai/validate.py",
+        "line": 38,
+        "quote": "if len(formula) > MAX_FORMULA_LEN:"
+      },
+      {
+        "path": "suite/suite/sheets/ai/client.py",
+        "line": 89,
+        "quote": "user_content = f\"Worksheet context (JSON):"
+      },
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 132,
+        "quote": "doc.check_permission(\"write\")"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "suite/suite/sheets/ai/client.py",
+      "suite/suite/sheets/ai/context.py",
+      "suite/suite/sheets/ai/validate.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/ai-policy.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/ai_orchestration/doctype/aipolicy/aipolicy.py"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Oturum kullanıcısı, istenen AI yetenek kimliği, bağlam kaynakları (DocType belge adları veya Suite Sheets çalışma sayfası seçimi), kullanıcı istemi ve etkin AIPolicy kaydı. AIPolicy önerilen bir DocType'tır; şeması ai-policy--schema görevine aittir. Kullanıcı istemi talimat kanalından taşınır. Belge alanı, hücre içeriği ve araç sonucu ayrı bir güvenilmeyen veri kanalından taşınır. Kaynak registry ile GenUI capability registry ayrıdır. Model sınırını yalnız JSON veri geçer; yerel ReactNode veya callback bu sınırdan geçmez.",
+    "output": "(1) Sağlayıcıya giden filtrelenmiş yük: yalnız izinli ve sınıflandırmada açıkça izin verilen alanlar bulunur. Maskeleme gereken değerler maskelenir. Güvenilmeyen içerik ayrı ve etiketli bir bölümde yer alır. (2) Filtre kararı özeti: dahil edilen, maskelenen ve dışlanan alanların adları ile gerekçe kodu yer alır, değerler yer almaz. Bu özet audit-envelope--contract zarfıyla kaydedilir. (3) Model dönüşü: kabul edilen eylemlerin listesi ve reddedilen her eylemin ret nedeni (şema, yetki veya içerik denetimi).",
+    "authorization": "Tüm kontroller sunucuda, isteği yapan kullanıcının oturumuyla yapılır. Okuma için önce belgede read izniyle check_permission çalışır, ardından apply_fieldlevel_read_permissions uygulanır. Her araç, capability-definition--contract tanımında tek bir Frappe izin tipine eşlenir. Çağrı anında hedef belge için has_permission ve check_permission ile denetlenir. has_permission bu sözleşmede alıntıyla kanıtlanmamıştır; T-00 aşamasında doğrulanır. Yasak olanlar: ignore_permissions, frappe.flags ile izin atlama, ham SQL ile okuma veya yazma, Server Script kısayolu ve Administrator bağlamına geçiş. Bu rehber yeni rol veya izin üretmez. Araç-izin eşlemesi rol ya da izin üretmeyi gerektirirse explicitPermissionFlags ortak kaynağına bağlanır. O kabulde reddedilen bir yazma ve değişmeyen bir kayıt gösterilir.",
+    "persistence": "Yeni kalıcılık yalnız önerilen AIPolicy DocType kaydıdır (ai-policy--schema). Denetim olayları için ayrı tablo tasarlanmaz; olaylar audit-envelope--contract zarfıyla, gerekiyorsa outbox--contract üzerinden yazılır. Denetim kaydına hassas değer yazılmaz; yalnız alan adı ve karar yazılır. Kabul edilen eylemler native Document save veya submit yoluyla, Frappe istek transaction'ı içinde uygulanır. Reddedilen eylemde hiçbir belge yazılmaz. Bu sözleşme hiçbir şemayı, veriyi, servisi veya production ortamını değiştirme yetkisi vermez.",
+    "failure": "Kapalı-başarısız çalışır: politika okunamazsa, sınıflandırma eksikse veya filtre hata verirse sağlayıcı çağrısı yapılmaz. İzin reddi native PermissionError olarak döner ve denetlenir. Şema dışı veya içerik denetiminden geçmeyen eylem düşürülür. Diğer eylemler yalnız ayrı ayrı yetkilendirilmişse uygulanır. Sağlayıcı hatasında daha geniş bağlamla yeniden deneme yapılmaz. Hata mesajı hassas alan değeri içermez."
+  },
+  "development": {
+    "dependencies": [
+      "ai-policy--contract",
+      "ai-policy--schema",
+      "audit-envelope--contract",
+      "capability-definition--contract",
+      "kernel-envelope--contract",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "outbox--contract"
+    ],
+    "admission": {
+      "status": "NOT_ADMITTED",
+      "note": "Uygulama durumu: uygulanmadı. Bu sözleşme bir kabul değil, yönergedir.",
+      "prerequisites": [
+        "T-00 hedef baz çizgisi: check_permission, has_permission ve apply_fieldlevel_read_permissions davranışı hedef Frappe ve Suite sürümünde doğrulanır. Sürüm seçimi bu sözleşmede yapılmaz.",
+        "R-00 yeniden kullanım eşlemesi: bu sözleşmedeki native parçalar R-00 kaydına bağlanır.",
+        "R-01: izinli veri tüketicisi olduğu için izin filtresinin kullanımı R-01 kuralına uyar.",
+        "Bağımlı sözleşmeler kabul edilmiş, ai-policy--schema uygulanmış olmalıdır.",
+        "Hassas alan sınıflandırma kaynağına karar verilmeden ai-5 sınıflandırma adımı başlatılmaz.",
+        "Tek dar davranış gerçek RED/GREEN kanıtıyla uygulanır. CI düzeni, deploy ve rollback işlerinin teknik sahibi Hüseyin Cengiz'dir."
+      ]
+    },
+    "steps": [
+      "1. Tek giriş noktası: sağlayıcı adaptörü yalnız politika kapısı üzerinden çağrılabilir olur. Suite Sheets bağlam derleyicisi dahil her AI bağlam üreticisi bu kapıdan geçer. Doğrudan adaptör çağrısı kod incelemesinde reddedilir.",
+      "2. Okuma filtresi: her bağlam belgesi için kullanıcı oturumuyla, read izniyle check_permission çalışır; ardından apply_fieldlevel_read_permissions uygulanır. İzin dışı belge bağlamdan çıkarılır.",
+      "3. Varsayılan-red sınıflandırma: açıkça izin verilmeyen her alan dışlanır; maskelenecek alanlara maske kuralı uygulanır. Suite Sheets örnek satırları sütun bazında aynı kurala tabidir.",
+      "4. Kanal ayrımı: kullanıcı istemi ile güvenilmeyen içerik ayrı ve etiketli bölümlerde gönderilir. Bu ayrım tek başına güvenlik garantisi sayılmaz.",
+      "5. Araç-izin eşlemesi: her AI aracı için tek bir Frappe izin tipi kaydedilir. Eşlemesi olmayan araç çağrılamaz.",
+      "6. Dönüş denetimi şu sırayla yapılır: şema doğrulaması, araç başına oturum yetkilendirmesi, formül ve metin içerik denetimi. Yalnız üçünden de geçen eylem native save yoluyla uygulanır.",
+      "7. Denetim: filtre ve ret kararları değer içermeden audit-envelope--contract zarfıyla kaydedilir. ai-4 denetim kaydı bu zarfı tüketir."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Kullanıcının belgede read izni var, write izni yok. Model, belge içeriğine gömülü talimat nedeniyle bu kullanıcı adına bir yazma aracı çağrısı döndürür. Kapı çağrıyı reddeder ve hedef kayıt değişmeden kalır.",
+      "red": "Kapı yokken şemaya uyan yazma eylemi uygulanır ve hedef kaydın alan değeri ile modified değeri değişir. Test bu davranış farkı yüzünden başarısız olur. Import veya altyapı hatası RED sayılmaz; native izin davranışı bozulmaz.",
+      "green": "Aynı girdiyle eylem reddedilir ve native PermissionError ya da eşdeğer bir ret nedeni döner. Hedef kaydın alanları ve modified değeri değişmez. Ret kararı denetim zarfında görünür. Bu tur test yazılmaz ve koşulmaz."
+    },
+    "rollback": "Bu tur yalnız belge değişikliğidir. Geri almak için entegrasyon sahibi bu JSON dosyasını önceki haline döndürür. Gelecekteki uygulamada geri alma, kapıyı atlayan bir yola dönüş olamaz: kapı devre dışı kalırsa AI sağlayıcı çağrıları kapalı kalır. Deploy ve rollback işlerinin teknik sahibi Hüseyin Cengiz'dir. Şema veya veri geri alma bu sözleşmeyle yetkilendirilmez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "ai-5",
+      "sourceStage": "scale",
+      "existing": "Native parçalar: frappe/frappe/api/v1.py okuma yolunda read izniyle check_permission, ardından apply_fieldlevel_read_permissions çalışır. Suite parçaları: context.py çalışma kitabının tamamını boyut ve gizlilik gerekçesiyle göndermez; yalnız sınırlı örnek satırlar gönderir. Bunlar yalnız asgari filtre ve sınırlama parçalarıdır.",
+      "gap": "Suite örnek satır değerlerini maskelemeden ekler (context.py satır 122). Hassas alan sınıflandırmasının kaynağı ve varsayılan-red kuralı tanımsızdır. Maskeleme kararının ai-4 denetim kaydına bağlanması yazılmamıştır. Filtrenin kullanıcının kendi oturum izniyle uygulanacağı ve ignore_permissions kullanılmayacağı açıkça yazılmamıştır.",
+      "completionSteps": [
+        "Sağlayıcı adaptöründen önce tek ve zorunlu bir filtre tanımlanır. Sıra sabittir: read izniyle check_permission, apply_fieldlevel_read_permissions, varsayılan-red sınıflandırma, maskeleme.",
+        "Kural biçimi karar gelene kadar sınıflandırma kaynağından bağımsız yazılır. Alanlar: alan anahtarı (DocType ile fieldname ya da Sheets sütunu), sınıf (izinli, maskeli, yasak). Varsayılan sınıf yasaktır.",
+        "Suite Sheets bağlamında başlık satırı ve çıkarılmış sütun tipi sınıflandırmaya tabidir. Örnek satır değerleri, sütun sınıfı belirlenene kadar yasak kabul edilir. Bu madde Suite kaynağına yazma yetkisi vermez.",
+        "Filtre kararı değer içermeden audit-envelope--contract zarfına yazılır; ai-4 denetim kaydı bu zarfı tüketir.",
+        "Filtre kullanıcının oturumuyla çalışır. ignore_permissions, ham SQL ve yükseltilmiş kullanıcı bağlamı kullanılmaz. Filtre hatası çağrıyı durdurur."
+      ],
+      "dependencies": [
+        "ai-policy--schema",
+        "native-user-policy--contract",
+        "native-doctype-schema--contract",
+        "audit-envelope--contract",
+        "kernel-envelope--contract"
+      ],
+      "acceptance": "Yasak veya sınıflandırılmamış alan ile okuma izni olmayan belge sağlayıcı isteğine hiç girmez; giden yükte ne adı ne değeri bulunur. Maskeli alan yalnız maskeli değerle gönderilir. Her filtre kararı alan adı ve gerekçeyle denetlenebilir ve değer içermez.",
+      "evidence": [
+        {
+          "path": "suite/suite/sheets/ai/context.py",
+          "line": 3,
+          "quote": "The whole workbook blob is far too large (and too private) to hand to the"
+        },
+        {
+          "path": "suite/suite/sheets/ai/context.py",
+          "line": 122,
+          "quote": "row[col_to_letters(c)] = v"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 84,
+          "quote": "doc.apply_fieldlevel_read_permissions()"
+        }
+      ]
+    },
+    {
+      "requirementId": "ai-6",
+      "sourceStage": "scale",
+      "existing": "Suite parçası: validate.py model argümanlarını güvenilmez sayar ve sözleşmeye uymayanları düşürür. Native parça: api/v1.py yöntem çağrısında POST için write izniyle, diğer yöntemlerde read izniyle check_permission çalıştırır.",
+      "gap": "client.py satır 89'da hücre bağlamı ile kullanıcı isteği aynı mesajda birleşir; bu dolaylı enjeksiyon riskidir. setCell formülü yalnız uzunlukla sınırlanır (validate.py satır 38). Tanımsız olanlar: araç ile izin tipi arasındaki eşleme, güvenilmeyen içerik ile talimat ayrımı, formül ve metin içerik denetimi. Server Script ve ignore_permissions yasağı yazılı değildir.",
+      "completionSteps": [
+        "Her AI aracı için capability-definition--contract kaydında tek bir Frappe izin tipi (read, write, submit vb.) ve hedef DocType tanımlanır. Eşlemesi olmayan araç reddedilir.",
+        "Her araç çağrısında kullanıcı oturumuyla önce has_permission ön kontrolü yapılır, ardından hedef belge üzerinde check_permission çalışır. Şema doğrulaması yetkilendirmenin yerine geçmez.",
+        "Güvenilmeyen içerik (hücre, belge alanı, araç sonucu) kullanıcı isteğinden ayrı, etiketli bir bölümde gönderilir. Araç sonucunun tetiklediği zincirleme çağrıların her biri ayrıca yetkilendirilir.",
+        "Formül ve metin çıktısı için içerik denetimi kurulur. Dış kaynağa erişen veya veriyi dışarı taşıyan işlevler reddedilir. Seçim dışındaki hücre aralıklarına başvurular da reddedilir. Somut işlev izin listesi hedef Suite sürümüne göre gelecekteki tasarımda belirlenir.",
+        "Server Script, ignore_permissions, frappe.flags ile izin atlama ve ham SQL kısayolları kod inceleme ölçütünde yasak olarak yazılır.",
+        "Tehdit senaryoları (belge; test değildir): T1 hücreye gömülü bir talimat önceki talimatların yok sayılmasını ve kaydın silinmesini ister. T2 içerik, gizli bir alanı dış adrese taşıyan formül üretilmesini ister. T3 model şema dışı bir eylem tipi veya seçim dışı bir hücre döndürür. T4 araç sonucu yeni bir araç çağrısı talimatı içerir. T5 içerik, maskelenmiş alanın açık değerinin istenmesine yönlendirir. Her senaryoda beklenen sonuç aynıdır: ret, değişmeyen kayıt ve değer içermeyen denetim kaydı."
+      ],
+      "dependencies": [
+        "capability-definition--contract",
+        "native-user-policy--contract",
+        "kernel-envelope--contract",
+        "audit-envelope--contract",
+        "outbox--contract"
+      ],
+      "acceptance": "Zararlı talimat yetkisiz araç çalıştıramaz: yazma reddedilir ve hedef kayıt değişmez. Şema dışı çıktı ile içerik denetiminden geçmeyen formül veya metin reddedilir. Güvenilmeyen araç içeriği talimat olarak işlenmez. Her ret, nedeniyle birlikte denetlenir.",
+      "evidence": [
+        {
+          "path": "suite/suite/sheets/ai/validate.py",
+          "line": 4,
+          "quote": "untrusted — clamp and drop anything that doesn't match the contract before the"
+        },
+        {
+          "path": "suite/suite/sheets/ai/validate.py",
+          "line": 38,
+          "quote": "if len(formula) > MAX_FORMULA_LEN:"
+        },
+        {
+          "path": "suite/suite/sheets/ai/client.py",
+          "line": 89,
+          "quote": "user_content = f\"Worksheet context (JSON):"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 132,
+          "quote": "doc.check_permission(\"write\")"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Uygulama durumu: uygulanmadı. Ürün kodu, test ve çalışma zamanı kabulü yoktur.",
+    "Hassas alan sınıflandırmasının kaynağı ve maskeleme biçimi (kısmi maske, özetleme, kaldırma) tasarım düzeyinde açıktır.",
+    "Araç ile Frappe izin tipi arasındaki eşleme tablosu capability-definition--contract içinde henüz tanımlı değildir.",
+    "Formül ve metin içerik denetimi için işlev izin listesi tanımsızdır.",
+    "Suite Sheets bağlamının bu filtreye bağlanmasının sahipliği belirsizdir; Suite kaynağı bu deponun üretim yolu değildir.",
+    "has_permission için doğrulanmış alıntı yoktur; davranışı T-00 aşamasında hedef sürümde doğrulanmalıdır."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Hassas alan sınıflandırmasının kaynağı: DocField düzeyinde meta mı, yoksa AIPolicy politika belgesi mi.",
+      "requirementIds": ["ai-5"],
+      "blocks": "Sınıflandırma ve maskeleme adımının uygulanması ile ai-policy--schema alanlarının kesinleşmesi.",
+      "untilDecided": "Kaynaktan bağımsız kural biçimi ve varsayılan-red ilkesi belgelenebilir."
+    },
+    {
+      "decision": "AI sağlayıcısı (satıcı) ve veri işleme sözleşmesi.",
+      "requirementIds": ["ai-5", "ai-6"],
+      "blocks": "Sağlayıcı adaptörünün bağlanması ve sağlayıcıya özgü çıktı şeması ayrıntıları.",
+      "untilDecided": "Sağlayıcıdan bağımsız kapı sözleşmesi ve tehdit senaryoları belgelenebilir."
+    },
+    {
+      "decision": "Veri yerleşimi ve yurt dışına aktarım koşulları (KVKK, GDPR).",
+      "requirementIds": ["ai-5"],
+      "blocks": "Hangi veri sınıfının hangi sağlayıcı bölgesine gönderilebileceğinin kesinleşmesi.",
+      "untilDecided": "Varsayılan-red ile tüm hassas sınıfların dışlandığı muhafazakar kural belgelenebilir."
+    },
+    {
+      "decision": "Filtre ve ret denetim kayıtlarının saklama süresi.",
+      "requirementIds": ["ai-5", "ai-6"],
+      "blocks": "Denetim kaydı yaşam döngüsünün audit-envelope--contract ile bağlanması.",
+      "untilDecided": "Denetim kaydının içeriği (alan adı, karar, gerekçe kodu; değer yok) belgelenebilir."
+    },
+    {
+      "decision": "Hedef Frappe ve Suite sürümü (T-00).",
+      "requirementIds": ["ai-5", "ai-6"],
+      "blocks": "Native izin API davranışının doğrulanması ve uygulamaya kabul.",
+      "untilDecided": "Sürümden bağımsız yetkilendirme sırası belgelenebilir."
+    },
+    {
+      "decision": "Tenant topolojisi: AIPolicy kapsamının tenant başına mı, paylaşımlı mı olacağı.",
+      "requirementIds": ["ai-5", "ai-6"],
+      "blocks": "Etkin politikanın çözümlenme kuralı.",
+      "untilDecided": "Tek etkin politika varsayımıyla kapı sırası ve ret davranışı belgelenebilir."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

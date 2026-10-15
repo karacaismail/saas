@@ -1,0 +1,187 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "client-migration",
+  "canonicalTaskIds": ["client-migration--implementation"],
+  "requirementIds": ["releases-11"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "releases-11": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "İmzalı istemci güncellemesi ve bekleyen outbox'ı koruyan yerel veritabanı migrationı. Uygulama durumu: uygulanmadı.",
+    "trigger": "Tauri 2 updater, Vite/PWA service worker veya WXT/MV3 eklenti güncellemesiyle yeni istemci paketi geldiğinde ya da sunucu migrate sonrası version-update sinyali yayınladığında. İstemci; paket imzasını, yerel şema sürümünü ve desteklenen client/API sürüm aralığını değerlendirir.",
+    "expected": "İmzası doğrulanmış paket kurulmadan önce yerel veritabanı için tutarlı bir kurtarma noktası alınır. Bu nokta iş kayıtlarını, outbox'ı, mutasyon kimliklerini ve sync imlecini kapsar. Migration sürüm sırasına göre atomik adımlarla yürür. Kesinti sonrasında eski ya da yeni tutarlı sürüm açılır. Bekleyen outbox girdileri aynı mutasyon kimlikleriyle korunur. Yeniden oynatıldıklarında sunucudaki integrity-7 idempotency kuralı sayesinde çoğalmadan eşitlenir. PWA güncellemesi kaydedilmemiş işi zorla yeniden yüklemeyle silmez.",
+    "denied": "Bozuk veya yanlış imzalı paket reddedilir; mevcut sürüm çalışmaya devam eder. Minimum desteklenen sürümün altındaki istemcinin mutasyonları sunucuda reddedilir; outbox silinmez ve güncelleme gerektiği bildirilir. Uyumsuz yerel şemaya sahip eski sürüme dönüş engellenir ya da yalnız denenmiş veri geri dönüşüyle yapılır. Aynı mutasyon kimliği farklı içerik özetiyle gelirse reddedilir. Çağıranın güncel okuma yetkisi yoksa önceki sonuç döndürülmez."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native parçalar yalnız yapı taşıdır; davranışın tamamını göstermez. (1) v1 oluşturma yolu belgeyi native insert() ile, yani izin kontrolü ve transaction içinde kaydeder. Gelecekteki idempotency katmanı bu yolu sarmalamalı, atlamamalıdır. (2) Otomasyon kuyruğundaki dedup_key unique indeksi, sunucu tarafı tekrar korumasına örnek bir desendir. O tablo yeniden kullanılmaz; desen yalnız integrity-7 kuralına referans olur. Unique kısıt tek başına sözleşmenin tamamı değildir. (3) v2 meta uç noktası, istemcinin DocType şemasını okuyup uyum kontrolü yapabileceği native kaynaktır. (4) migrate sonrası yayınlanan version-update realtime olayı yalnız bir sinyaldir; sürüm uyum kapısı değildir. İstemci paket imzası, yerel migration, outbox koruması ve minimum sürüm kapısı için native kaynak kanıtı yoktur; aranan yolların listesi kapsamlı bir yokluk iddiası değildir. Vue/Frappe UI kaynağı React/Ant Design uygulamasının kanıtı sayılmaz.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 50,
+        "quote": "return frappe.new_doc(doctype, **data).insert()"
+      },
+      {
+        "path": "frappe/frappe/automation_engine/dispatch.py",
+        "line": 109,
+        "quote": "The `dedup_key` unique index is the real guard"
+      },
+      {
+        "path": "frappe/frappe/api/v2.py",
+        "line": 649,
+        "quote": "\"/doctype/<doctype>/meta\""
+      },
+      {
+        "path": "frappe/frappe/migrate.py",
+        "line": 108,
+        "quote": "frappe.publish_realtime(\"version-update\")"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "frappe/frappe/api/v2.py",
+      "frappe/frappe/automation_engine/dispatch.py",
+      "frappe/frappe/migrate.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/client-migration.json",
+    "plannedProduction": [
+      "frontend/packages/platform/src/client-migration/client_migration_post_mvp.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "İstemci tarafı: güncelleme paketi ve imzası, yerel şema sürümü, outbox girdileri (mutasyon kimliği, işlem türü, hedef DocType, içerik özeti) ve sync imleci. Sunucu tarafı: kernel-envelope--contract zarfındaki istemci sürümü ve mutasyon kimliği ile device-grant--contract cihaz/aktör bağlamı. Alan adları bu sözleşmelerde kesinleşir; burada yeni alan veya kimlik tanımlanmaz.",
+    "output": "Güncelleme sonucu dört durumdan biridir: kuruldu, imza nedeniyle reddedildi, kaydedilmemiş iş nedeniyle ertelendi veya kurtarma noktasına dönüldü. Sunucu yanıtı sync-receipt--contract makbuzudur. Tekrar oynatmada ilk sonuç, güncel okuma yetkisi süzgecinden geçirilerek döner. Sürüm kapısında ise güncelleme gerekli hatası döner.",
+    "authorization": "Yazma yalnız native izin kontrollü insert/save yolundan geçer. ignore_permissions, doğrudan SQL veya başka bir yetki bypass'ı kullanılmaz. Tekrar oynatmada önceki sonuç döndürülmeden önce çağıranın güncel okuma yetkisi yeniden denetlenir. Anahtar kapsamı site/aktör/işlemdir; başka aktörün anahtarıyla çakışma sonucu sızdırmaz. Bu rehber rol veya izin üretmez. İleride gerekirse explicitPermissionFlags ortak kaynağına bağlanır ve o maddenin kabulünde reddedilen yazma ile değişmeyen kayıt kanıtı bulunur.",
+    "persistence": "İstemci: migration öncesinde kurtarma noktası alınır. İş kayıtları, outbox, mutasyon kimlikleri ve sync imleci migration boyunca korunur. Şema sürümü işareti son migration adımıyla aynı işlemde güncellenir. Sunucu: idempotency kaydı integrity-7'ye göre kapsamı, içerik özetini ve sonuç referansını tutar; biçimi ve saklama süresi karar bekler. Bu sözleşme hiçbir şemayı, veriyi, servisi veya production ortamını değiştirme yetkisi vermez.",
+    "failure": "Geçersiz imza: paket reddedilir, mevcut sürüm ve veri korunur. Migration kesintisi: açılışta kurtarma noktasına dönülür veya yeni sürüm tutarlıysa o sürüm açılır. Uyumsuz sürüme dönüş: engellenir. Aynı anahtarla farklı içerik: reddedilir, kayıt değişmez. Minimum sürümün altındaki istemci: mutasyon reddedilir, outbox korunur. Kaydedilmemiş iş varken PWA güncellemesi: kullanıcı güvenli bir noktaya gelene kadar ertelenir."
+  },
+  "development": {
+    "dependencies": [
+      "client-migration--contract",
+      "device-grant--contract",
+      "kernel-envelope--contract",
+      "sync-receipt--contract"
+    ],
+    "admission": "T-00 hedef taban çizgisi ve R-00 yeniden kullanım eşlemesi gerekir; izinli veri tüketen adımlar ayrıca R-01'i kullanır. Bağımlı dört sözleşme ve decisionsPending içindeki engelleyici kararlar netleşmelidir. Tek dar davranış için gerçek RED/GREEN kanıtı gerekir. Bu koşullar sağlanmadan üretim veya test dosyası yazılmaz.",
+    "steps": [
+      "Kaynak listesindeki Capacitor bağlantısını tarihsel ve seçilmemiş olarak etiketle. Dağıtım hedefleri Tauri 2, Vite/PWA ve WXT/MV3 olarak kalır.",
+      "kernel-envelope--contract içinde istemci sürümü ve mutasyon kimliğinin taşındığı yeri referansla; yeni kimlik veya alan icat etme.",
+      "Sunucu yazma yolunu integrity-7 kuralına bağla: anahtar site/aktör/işlem kapsamında tutulur, istek içerik özetiyle eşleşir ve farklı içerik reddedilir. Önceki sonuç yalnız güncel okuma yetkisiyle döner. Yazma native insert() üzerinden yapılır.",
+      "Sürüm penceresi kararından sonra minimum istemci sürümü kapısını hooks.py üzerinden istek öncesi ret olarak öner. Hata biçimi sync-receipt--contract ile uyumlu olur; istemci outbox'ı tutar.",
+      "Genel migration motoru veya ORM tasarlama. Her kabuk için sürüm sıralı migration adımlarını yaz: kurtarma noktası, adımlar, doğrulama ve atomik şema sürümü işareti; kesinti olursa kurtarma noktasına dön.",
+      "İmza doğrulamasını kanal bazında tanımla: Tauri updater'da imza doğrulaması açık olur ve açık anahtar tauri.conf.json'a referansla bağlanır; anahtar değeri belgeye yazılmaz. PWA HTTPS üzerinden sürümlü yayınlanır. Eklenti için mağaza imzası kullanılır.",
+      "PWA güncellemesinde bekleyen service worker, kaydedilmemiş iş varken zorla etkinleştirilmez.",
+      "Geri dönüş provasını client/API sürüm matrisi, yerel şema ve kuyrukla birlikte planla."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Yerel migration adımı yürürken süreç kesilirse, yeniden açılışta outbox girdileri ve mutasyon kimlikleri migration öncesindeki kurtarma noktasıyla birebir aynıdır.",
+      "red": "Gelecekte migration adımının ortasında kesinti simüle edilir. Beklenti, outbox girdi sayısı ve mutasyon kimliklerinin korunmasıdır; kurtarma noktası henüz olmadığı için test davranış düzeyinde başarısız olur. Import veya altyapı hatası ya da native Frappe davranışını bozmak RED sayılmaz. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "Gelecekte yalnız kurtarma noktası ve atomik şema sürümü işareti eklenir ve aynı senaryo geçer; başka davranış eklenmez. Bu turda koşulmaz."
+    },
+    "rollback": "Bu sözleşme yalnız belgedir; geri alınacak bir üretim değişikliği yoktur. Gelecek için: istemci rollback'i yerel şemayı kendiliğinden geri almaz; uyumsuz şemaya dönüş engellenir veya denenmiş veri geri dönüşü uygulanır. Sunucu sürüm kapısı yapılandırmayla gevşetilebilir olmalı, ancak idempotency kayıtları silinmez. CI, deploy ve rollback'in teknik sahibi Hüseyin Cengiz'dir. Güncelleme kanalı için DNS gerekirse kayıt gereksinimini Hüseyin Cengiz hazırlar, GoDaddy tarafında Asistan Hüseyin uygular, sonucu Hüseyin Cengiz doğrular."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "releases-11",
+      "sourceStage": "post_mvp",
+      "existing": "Native parçalar: izin kontrollü v1 insert, dedup_key unique deseni, v2 meta uç noktası ve migrate sonrası version-update sinyali. Mevcut talimat (data/clusters/12.json, /groups/3/items/10) istemci tarafı kabul ölçütlerini ayrıntılı tanımlar: destek external, eylem integrate, sahip Hüseyin Cengiz ve istemci ekibi. Frappe migrate yalnız buluttaki siteyi günceller; cihazdaki yerel şemayı ve istemci paketini güncellemez.",
+      "gap": "Outbox tekrar oynatımı için sunucu tarafı dedup alanı ve kuralı tanımsız. v1 oluşturma yolu istemci mutasyon kimliği olmadan doğrudan insert ediyor. Minimum istemci sürümü ve API uyum kapısı tanımsız. Kaynak listesindeki Capacitor referansı Tauri 2 kararıyla çelişiyor.",
+      "completionSteps": [
+        "Idempotency'yi integrity-7'ye bağla: kapsam site/aktör/işlem, içerik özeti eşleşmesi, farklı içerikte ret, önceki sonucun güncel okuma yetkisiyle dönmesi. Kuralı native insert() yolunun önüne sarmalayıcı olarak koy; tek başına unique kısıt yeterli sayılmaz.",
+        "Minimum sürüm kapısını sürüm penceresi kararına bağla. Kapının altındaki istemciden gelen mutasyonu reddet; istemci tarafında outbox'ı koru.",
+        "Her kabuk için kurtarma noktası, sürüm sıralı migration ve atomik şema sürümü işaretini tanımla.",
+        "İmzalı paket doğrulamasını Tauri updater, PWA sürümlü yayın ve eklenti mağazası için ayrı kabul ölçütleriyle yaz.",
+        "version-update sinyalini yalnız tetikleyici olarak kullan. Uyum kontrolünü v2 meta okuması ve sürüm kapısıyla yap.",
+        "Capacitor kaynağını tarihsel olarak etiketle; Tauri 2 kararını koru."
+      ],
+      "dependencies": [
+        "client-migration--contract",
+        "device-grant--contract",
+        "kernel-envelope--contract",
+        "sync-receipt--contract"
+      ],
+      "acceptance": "Güncelleme veya migration ortasında kapanmanın ardından eski ya da yeni tutarlı sürüm açılır. Bekleyen işlemler kaybolmadan ve çoğalmadan eşitlenir. Aynı anahtarla farklı içerik reddedilir ve kayıt değişmez. Bozuk veya yanlış imzalı paket reddedilir. Yerel migration ve desteklenen client/API sürüm matrisi doğrulanır; eski istemci reddedilir. Geri dönüş provası veri şemasını ve kuyruğu da kapsar. PWA güncellemesi kaydedilmemiş işi silmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 50,
+          "quote": "return frappe.new_doc(doctype, **data).insert()"
+        },
+        {
+          "path": "frappe/frappe/automation_engine/dispatch.py",
+          "line": 109,
+          "quote": "The `dedup_key` unique index is the real guard"
+        },
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 649,
+          "quote": "\"/doctype/<doctype>/meta\""
+        },
+        {
+          "path": "frappe/frappe/migrate.py",
+          "line": 108,
+          "quote": "frappe.publish_realtime(\"version-update\")"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Sunucu tarafı idempotency kuralı integrity-7'ye bağlanana kadar outbox tekrar oynatımı çoğalabilir.",
+    "Minimum istemci sürümü ve API uyum kapısı tanımsız.",
+    "Kaynak listesindeki Capacitor referansı henüz tarihsel olarak etiketlenmedi.",
+    "Kabuk başına yerel migration, kurtarma noktası, imza doğrulama ve PWA güncelleme davranışı uygulanmadı; runtime kabulü yok.",
+    "Geri dönüş provası tanımlandı ancak koşulmadı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Desteklenen client/API sürüm penceresi ve minimum sürüm politikası",
+      "requirementIds": ["releases-11"],
+      "blocks": "Sunucu tarafı minimum sürüm kapısı ve sürüm matrisi doğrulaması",
+      "documentationStepUntilDecided": "Sürüm matrisi şablonunu değerleri boş bırakarak belgele; ret davranışını ve outbox'ın korunmasını sürümden bağımsız yaz."
+    },
+    {
+      "decision": "Idempotency kaydının biçimi ve saklama süresi (integrity-7 ile birlikte)",
+      "requirementIds": ["releases-11"],
+      "blocks": "Sunucu tarafı dedup uygulaması ve tekrar oynatma TDD'si",
+      "documentationStepUntilDecided": "Kapsam, içerik özeti, farklı içerikte ret ve okuma yetkisiyle sonuç dönme kurallarını integrity-7'ye referansla yaz."
+    },
+    {
+      "decision": "Güncelleme imza anahtarlarının velayeti ve dağıtım kanalları (Tauri updater uç noktası, eklenti ve mobil mağaza hesapları); teknik sahibi Hüseyin Cengiz, secret veya lisans kararı burada verilmez",
+      "requirementIds": ["releases-11"],
+      "blocks": "İmzalı paket doğrulaması ve yayın akışı",
+      "documentationStepUntilDecided": "İmza doğrulama ve ret kabul ölçütlerini kanaldan bağımsız yaz; anahtar değerlerini belgeye koyma."
+    },
+    {
+      "decision": "Kabuk başına yerel depolama hedefi ve hedef sürümleri (Tauri, PWA, WXT/MV3)",
+      "requirementIds": ["releases-11"],
+      "blocks": "Yerel migration adımları ve tek senaryolu TDD",
+      "documentationStepUntilDecided": "Kurtarma noktası, outbox koruması ve atomik şema sürümü ilkelerini depolamadan bağımsız yaz."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

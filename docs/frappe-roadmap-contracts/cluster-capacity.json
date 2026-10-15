@@ -1,0 +1,342 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "cluster-capacity",
+  "canonicalTaskIds": ["cluster-capacity--implementation"],
+  "requirementIds": ["deployment-2", "deployment-4", "deployment-7"],
+  "stage": "scale",
+  "sourceStages": {
+    "deployment-2": "scale",
+    "deployment-4": "scale",
+    "deployment-7": "scale"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Kayıtlı ve sıralı kapasite yerleşim değişikliği (düğüm ekleme/boşaltma, paylaşımlıdan ayrılmış yerleşime taşıma, düğüm kaybı sınaması)",
+    "trigger": "Hüseyin Cengiz tarafından onaylanmış tek bir yerleşim değişikliği talebi: bir düğümün eklenmesi veya boşaltılması, bir sitenin paylaşımlı uygulama/DB yerleşiminden ayrılmış yerleşime taşınması ya da planlı düğüm kaybı sınaması.",
+    "expected": "Değişiklik yalnız kapanmış karar kayıtlarına (orkestrasyon, topoloji, SLO/RTO/RPO) bağlı ve sıralı runbook adımlarıyla yürür: pause_scheduler ile zamanlayıcı duraklatılır, maintenance_mode penceresi açılır, yeniden yerleştirme yapılır, doğrulamalar (site_config ve encryption_key sürekliliği, native izin örneklemesi, kritik akış) geçer ve önce/sonra yerleşim tek ölçüm kaydında görünür.",
+    "denied": "Karar kaydı yoksa, adım sırası bozuksa, encryption_key sürekliliği doğrulanmamışsa veya izin örneklemesi taşıma öncesinden farklıysa değişiklik reddedilir; ölçüm kaydı önceki yerleşimi korur ve rollback uygulanır. Hiçbir adımda ignore_permissions veya doğrudan SQL ile yetki bypass edilmez."
+  },
+  "reuse": {
+    "status": "KISMI_NATIVE_PARCA",
+    "mechanism": "Native Frappe kaynağında yalnız temel parçalar görülüyor: DB host ve Redis queue/cache adresleri env veya config ile dışarıdan verilebiliyor; site oluşturmada --db-host seçeneği var; backup akışı site_config kopyalıyor ve encrypt_backup ayarına bakıyor; restore sonrası orijinal encryption key içeren site_config kopyalanması uyarısı var; pause_scheduler site config ile yazılıyor; ProxyFix import ediliyor. Realtime yapılandırması env okumuyor; harici Chromium kaynakta 'not implemented/tested yet' olarak işaretli; Suite'in bağımsız servisleri sitenin dışında çalışıyor. Düğüm yönetimi, orkestrasyon, kota/ölçüm, yüksek erişilebilirlik ve taşıma runbook'u bu kanıtlarda yok. Bir native parçanın varlığı bütün davranışın var olduğu anlamına gelmez. Kanıtlar önceki salt okunur kaynak kopyalarındandır; canlı site veya ürün kabulü yoktur. searchedPaths yalnız bakılan dosyalardır; kapsamlı yokluk iddiası değildir. maintenance_mode ve restore komutları için bu sözleşmede doğrulanmış kanıt yoktur; hedef sürümde doğrulanmadan komut olarak yazılmaz.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/config.py",
+        "line": 80,
+        "quote": "config[\"db_host\"] = os.environ.get(\"FRAPPE_DB_HOST\") or config.get(\"db_host\") or \"127.0.0.1\""
+      },
+      {
+        "path": "frappe/frappe/config.py",
+        "line": 125,
+        "quote": "os.environ.get(\"FRAPPE_REDIS_QUEUE\") or config.get(\"redis_queue\") or \"redis://127.0.0.1:11311\""
+      },
+      {
+        "path": "frappe/frappe/realtime/config.py",
+        "line": 7,
+        "quote": "Config comes only from common_site_config.json / site_config.json — no env vars."
+      },
+      {
+        "path": "frappe/frappe/utils/chromium/process.py",
+        "line": 81,
+        "quote": "# only when we want to chromium on separate docker / server ( not implemented/tested yet )"
+      },
+      {
+        "path": "frappe/frappe/commands/scheduler.py",
+        "line": 102,
+        "quote": "update_site_config(\"pause_scheduler\", state == \"pause\")"
+      },
+      {
+        "path": "frappe/frappe/commands/site.py",
+        "line": 29,
+        "quote": "@click.option(\"--db-host\", help=\"Database Host\")"
+      },
+      {
+        "path": "frappe/frappe/utils/backups.py",
+        "line": 225,
+        "quote": "self.delete_if_step_fails(self.copy_site_config, self.backup_path_conf)"
+      },
+      {
+        "path": "frappe/frappe/utils/password.py",
+        "line": 241,
+        "quote": "you may need to copy the site_config.json containing the original encryption key."
+      },
+      {
+        "path": "frappe/frappe/utils/backups.py",
+        "line": 231,
+        "quote": "if frappe.get_system_settings(\"encrypt_backup\"):"
+      },
+      {
+        "path": "frappe/frappe/app.py",
+        "line": 11,
+        "quote": "from werkzeug.middleware.proxy_fix import ProxyFix"
+      },
+      {
+        "path": "suite/pyproject.toml",
+        "line": 88,
+        "quote": "# standalone services, each deployed and run outside the Frappe site"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/app.py",
+      "frappe/frappe/commands/scheduler.py",
+      "frappe/frappe/commands/site.py",
+      "frappe/frappe/config.py",
+      "frappe/frappe/realtime/config.py",
+      "frappe/frappe/utils/backups.py",
+      "frappe/frappe/utils/chromium/process.py",
+      "frappe/frappe/utils/password.py",
+      "suite/pyproject.toml"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/cluster-capacity.json",
+    "plannedProduction": [
+      "operations/cluster-capacity/cluster_capacity_scale.yml"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Hüseyin Cengiz onaylı tek yerleşim değişikliği talebi: değişiklik türü (düğüm ekleme, düğüm boşaltma, site taşıma, düğüm kaybı sınaması), etkilenen bileşen (web, worker, DB, Redis queue/cache, realtime, dosya deposu, LB, Chromium, Suite bağımsız servisleri), kaynak ve hedef yerleşim, bakım penceresi ve bağlı karar kaydı referansı. Secret değerleri girdi değildir; yalnız varlıkları ve süreklilikleri doğrulanır.",
+    "output": "Önce/sonra yerleşimi, uygulanan adım sırası, her doğrulamanın pass/fail/not_run durumu ve geri dönüş noktasını içeren tek ölçüm kaydı girdisi; başarısızlıkta rollback sonucu.",
+    "authorization": "Teknik onay, uygulama, CI/deploy ve rollback sahibi Hüseyin Cengiz. DNS veya LB adı değişikliği gerekirse kayıt türü/adı/değeri Hüseyin Cengiz tarafından hazırlanır, GoDaddy'de Asistan Hüseyin uygular, sonucu Hüseyin Cengiz doğrular. Uygulama içi doğrulamalar native Frappe izin kontrolüyle normal kullanıcı oturumunda yapılır; ignore_permissions veya doğrudan SQL ile yetki bypass edilmez. Bu sözleşme rol veya izin üretmez; ileride üretilirse explicitPermissionFlags ortak kaynağına bağlanır ve kendi tek kabulünde reddedilen yazma ile değişmeyen kayıt gösterilir. Bu sözleşme hiçbir servis, production ortamı, şema veya veride değişiklik yetkisi vermez.",
+    "persistence": "Yerleşim yapılandırması native site_config/common_site_config ve env değişkenleri üzerinden kalır; pause_scheduler native update_site_config çağrısıyla yazılır. Ölçüm kaydının yeri karar bekler; aday yalnız plannedProduction içindeki yapılandırma dosyasıdır. Yeni DocType, registry, ORM, CRUD veya şema yoktur. encryption_key ve diğer secret değerleri dosyaya, Git'e, ölçüm kaydına veya sohbet çıktısına yazılmaz.",
+    "failure": "Karar kaydı eksikse talep başlamadan reddedilir. Bir adım başarısızsa sonraki adım çalışmaz, ölçüm kaydı önceki yerleşimi korur, rollback uygulanır ve pause_scheduler önceki değerine döner. Taşıma sonrası bilinen şifreli bir alan çözülemiyorsa taşıma başarısız sayılır ve eski yerleşim aktif kalır. Harici Chromium kaynakta test edilmemiş olduğundan PDF iş yükü karar gelene kadar kümeye taşınamaz kabul edilir."
+  },
+  "development": {
+    "dependencies": ["cluster-capacity--contract"],
+    "admission": {
+      "statement": "Uygulama durumu: uygulanmadı. Bu dosya yalnız yönerge sözleşmesidir; üretim veya test yazımı yetkisi vermez.",
+      "prerequisites": [
+        "T-00 target baseline and R-00 reuse mapping; permissioned data consumers also use R-01; implement one narrow behavior with real RED/GREEN evidence",
+        "Orkestrasyon, topoloji ve SLO/RTO/RPO kararları decisionsPending üzerinden kapanmış olmalı.",
+        "Hüseyin Cengiz'in teknik sahiplik onayı kayıtlı olmalı.",
+        "Kanıt satırları hedef Frappe/Suite sürümünde yeniden doğrulanmalı."
+      ],
+      "orderAuthority": "existing task dependencies and stage; cluster order is presentation, not a new serial DAG"
+    },
+    "steps": [
+      "Karar kayıtlarını bağla: orkestrasyon, topoloji ve SLO/RTO/RPO kararları kullanıcı ve Hüseyin Cengiz onayıyla kayda geçer; seçim bu sözleşmede yapılmaz.",
+      "Kabul dilimlerini ayır: deployment-2 düğüm ekleme/boşaltma ve izlenebilir yerleşim, deployment-4 paylaşımlıdan ayrılmışa taşıma ve kaynak ölçümü, deployment-7 düğüm kaybında kritik akış ve SPOF sınaması; aynı görev altında ayrı kabul satırları.",
+      "Tek ölçüm kaydının alanlarını belge olarak tanımla: bileşen, düğüm, site, paylaşımlı/ayrılmış, ölçülen metrik, zaman, sorumlu, doğrulama durumu; yeni registry açılmaz.",
+      "Düğüm boşaltma runbook'unu yaz: pause_scheduler → maintenance_mode → aktif işlerin bitişi gözlemi → yeniden yerleştirme → doğrulama → maintenance_mode kapatma → zamanlayıcı devam.",
+      "Taşıma runbook'unu yaz: backup (site_config dahil) → yeni DB host ile site → restore → encryption_key sürekliliği doğrulaması → native izin örneklemesi → ölçüm kaydı.",
+      "SPOF tablosunu yaz: web, worker, DB, Redis queue/cache, realtime, dosya deposu, LB, Chromium ve Suite bağımsız servisleri için sınama yöntemi ve başarı ölçütü SLO kararına bağlanır.",
+      "Gelecekteki tek TDD senaryosu tdd alanındaki davranışla sınırlıdır; diğer adımlar ayrı kabullere girer."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Düğüm boşaltma talebinde pause_scheduler adımı yeniden yerleştirme adımından önce tamamlanmamışsa düğüm çıkarma reddedilir ve ölçüm kaydı değişmez.",
+      "red": "Sıra doğrulaması henüz olmadığından pause_scheduler adımı eksik bir boşaltma talebi kabul edilir ve yerleşim kaydı değişir; beklenen ret gözlenmez. RED bir import veya altyapı hatası değildir; native scheduler davranışı değiştirilmez.",
+      "green": "Aynı talep reddedilir ve yerleşim kaydı önceki haliyle kalır; pause_scheduler → maintenance_mode → yeniden yerleştirme sırasındaki talep kabul edilir. Bu tur test yazılmaz ve koşulmaz."
+    },
+    "rollback": "Her değişiklik öncesi geri dönüş noktası alınır: backup (site_config dahil) ve önceki yerleşim kaydı. Başarısızlıkta trafik ve DB host eski yerleşime döner, maintenance_mode kapanır, pause_scheduler önceki değerine alınır, ölçüm kaydına rollback sonucu yazılır. Rollback teknik sahibi Hüseyin Cengiz; DNS geri dönüşü gerekirse Asistan Hüseyin GoDaddy'de uygular, Hüseyin Cengiz doğrular."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "deployment-2",
+      "sourceStage": "scale",
+      "existing": "Native parça: DB host ve Redis queue adresleri env/config ile dışarıdan verilebiliyor; pause_scheduler site config ile yazılıyor. Realtime yalnız config dosyalarından okuyor; harici Chromium 'not implemented/tested yet'. Düğüm yönetimi ve orkestrasyon kaynakta yok; Press kurulu uygulama envanterinde yok.",
+      "gap": "Orkestrasyon kararı, düğüm ekleme/boşaltma prosedürü, pause_scheduler ve maintenance_mode kullanım sırası, çok düğümde common_site_config dağıtım sözleşmesi ve ölçülebilir izlenebilir yerleşim kaydı yok; kabul dilimi deployment-4 ile ayrılmamış.",
+      "completionSteps": [
+        "Orkestrasyon kararını decisionsPending üzerinden bağla; karar gelene kadar runbook'u komuttan bağımsız adımlarla yaz.",
+        "Boşaltma sırasını yaz: pause_scheduler → maintenance_mode → aktif işlerin bitişi gözlemi → yeniden yerleştirme → doğrulama → geri açma.",
+        "Düğüm ekleme sırasını yaz: DB ve Redis adresleri env/config ile verilir, realtime için aynı common_site_config sürümünün tüm düğümlerde olduğu doğrulanır, sonra trafiğe alınır.",
+        "Chromium PDF iş yükünü karar gelene kadar kümeye taşınamaz kabul et ve ölçüm kaydında ayrı satır olarak işaretle.",
+        "İzlenebilir yerleşim için tek ölçüm kaydının alanlarını belgele: bileşen, düğüm, site, durum, değişiklik zamanı, sorumlu."
+      ],
+      "dependencies": ["cluster-capacity--contract"],
+      "acceptance": "Bir düğüm eklenip bir düğüm boşaltıldığında runbook sırası izlenir, sırasız talep reddedilir ve her değişiklik ölçüm kaydında önce/sonra yerleşimle görünür.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/commands/scheduler.py",
+          "line": 102,
+          "quote": "update_site_config(\"pause_scheduler\", state == \"pause\")"
+        },
+        {
+          "path": "frappe/frappe/config.py",
+          "line": 80,
+          "quote": "os.environ.get(\"FRAPPE_DB_HOST\")"
+        },
+        {
+          "path": "frappe/frappe/config.py",
+          "line": 125,
+          "quote": "os.environ.get(\"FRAPPE_REDIS_QUEUE\")"
+        },
+        {
+          "path": "frappe/frappe/realtime/config.py",
+          "line": 7,
+          "quote": "Config comes only from common_site_config.json / site_config.json — no env vars."
+        },
+        {
+          "path": "frappe/frappe/utils/chromium/process.py",
+          "line": 81,
+          "quote": "# only when we want to chromium on separate docker / server ( not implemented/tested yet )"
+        }
+      ]
+    },
+    {
+      "requirementId": "deployment-4",
+      "sourceStage": "scale",
+      "existing": "Native parça: site oluşturmada --db-host verilebiliyor; backup site_config kopyalıyor ve encrypt_backup ayarına göre şifreleme yapıyor; restore sonrası orijinal encryption key içeren site_config kopyalanması gerektiğini söyleyen uyarı var. Site iş tenantı ile aynı kabul edilmez.",
+      "gap": "Kaynak tahsisi metriği ve kayıt yeri, kota modeli, paylaşımlıdan ayrılmışa taşıma runbook'u, encryption_key sürekliliği kabul şartı, şifreli backup anahtar yönetimi ve Suite bağımsız servislerinin paylaşımlı/ayrılmış yerleşimi tanımsız; kabul dilimi deployment-2 ile ayrılmamış.",
+      "completionSteps": [
+        "Taşıma runbook'unu yaz: backup (site_config dahil) → yeni DB host ile site → restore → encryption_key doğrulaması → izin örneklemesi → ölçüm kaydı.",
+        "encryption_key sürekliliğini kabul şartına ekle: bilinen şifreli bir alan taşıma sonrası çözülebilmeli; anahtar değeri hiçbir yere yazılmaz.",
+        "Şifreli backup için anahtar saklama kararı gelene kadar şifreli backup ile taşıma kabul dışı bırakılır.",
+        "İzin örneklemesini native izin kontrolüyle yap: izinli ve izinsiz birer kullanıcıyla aynı kayıtlarda sonuç taşıma öncesiyle aynı olmalı; ignore_permissions veya SQL kullanılmaz.",
+        "Kaynak ölçüm kaydının alanlarını belgele: site, paylaşımlı/ayrılmış, DB host sınıfı, ölçülen metrik, zaman; metrik ve kayıt yeri karar bekler, yeni registry açılmaz.",
+        "Suite bağımsız servislerinin yerleşimini ölçüm kaydında ayrı satırlar olarak işaretle."
+      ],
+      "dependencies": ["cluster-capacity--contract"],
+      "acceptance": "Paylaşımlıdan ayrılmışa taşınan bir sitede bilinen şifreli alan çözülür, izin örneklemesi taşıma öncesiyle aynıdır ve kaynak tahsisi ölçüm kaydında görünür; biri sağlanmazsa eski yerleşim aktif kalır.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/commands/site.py",
+          "line": 29,
+          "quote": "@click.option(\"--db-host\", help=\"Database Host\")"
+        },
+        {
+          "path": "frappe/frappe/utils/backups.py",
+          "line": 225,
+          "quote": "self.delete_if_step_fails(self.copy_site_config, self.backup_path_conf)"
+        },
+        {
+          "path": "frappe/frappe/utils/password.py",
+          "line": 241,
+          "quote": "you may need to copy the site_config.json containing the original encryption key."
+        },
+        {
+          "path": "frappe/frappe/utils/backups.py",
+          "line": 231,
+          "quote": "if frappe.get_system_settings(\"encrypt_backup\"):"
+        }
+      ]
+    },
+    {
+      "requirementId": "deployment-7",
+      "sourceStage": "scale",
+      "existing": "Native parça: DB host ve Redis queue env/config ile dışarı alınabiliyor; ProxyFix import ediliyor; Suite'in sfu, recorder ve collab servisleri sitenin dışında çalışan bağımsız servisler. HA davranışı kaynakta yok; harici Chromium 'not implemented/tested yet'. Framework kurulumundan otomatik yüksek erişilebilirlik çıkarılmaz.",
+      "gap": "RTO/RPO ve SLO değerleri, web/worker/DB/Redis/dosya/LB topoloji kararı, SPOF sınama yöntemi ve başarı ölçütü, Suite bağımsız servislerinin HA kapsamı ve Chromium/realtime için worker başına süreç sınırları yok.",
+      "completionSteps": [
+        "Hüseyin Cengiz sahipliğinde sayısal SLO/RTO/RPO karar kaydı aç; değerler bu sözleşmede seçilmez ve uygulama hizmet hedefi onaylanana kadar ertelenir.",
+        "Bileşen bazlı SPOF tablosu yaz: her bileşen için yedeklilik durumu, kontrollü durdurma ile sınama yöntemi, başarı ölçütü ve etkilenen kritik akış.",
+        "LB arkasında ProxyFix yapılandırmasını hedef sürümde doğrula; importun varlığı yapılandırma kanıtı değildir.",
+        "Oturum/cache için Redis, DB ve paylaşılan dosya deposu kaybını ayrı sınama satırları olarak yaz.",
+        "Chromium ve realtime süreç sınırlarını kapasite hesabına satır olarak ekle; değerler hedef sürümde ölçülür."
+      ],
+      "dependencies": ["cluster-capacity--contract"],
+      "acceptance": "Onaylı SLO/RTO içinde bir web veya worker düğümü kaybında kritik akış sürer; DB, Redis ve dosya deposu SPOF sınamaları tabloda pass/fail/not_run olarak kaydedilir.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/config.py",
+          "line": 80,
+          "quote": "config[\"db_host\"] = os.environ.get(\"FRAPPE_DB_HOST\") or config.get(\"db_host\") or \"127.0.0.1\""
+        },
+        {
+          "path": "frappe/frappe/config.py",
+          "line": 125,
+          "quote": "os.environ.get(\"FRAPPE_REDIS_QUEUE\") or config.get(\"redis_queue\") or \"redis://127.0.0.1:11311\""
+        },
+        {
+          "path": "frappe/frappe/app.py",
+          "line": 11,
+          "quote": "from werkzeug.middleware.proxy_fix import ProxyFix"
+        },
+        {
+          "path": "frappe/frappe/utils/chromium/process.py",
+          "line": 81,
+          "quote": "# only when we want to chromium on separate docker / server ( not implemented/tested yet )"
+        },
+        {
+          "path": "suite/pyproject.toml",
+          "line": 88,
+          "quote": "# standalone services, each deployed and run outside the Frappe site"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Düğüm yönetimi, orkestrasyon, kota/ölçüm, HA ve taşıma runbook'u native kaynakta yok; yalnız temel parçalar var.",
+    "maintenance_mode ve restore komutları için doğrulanmış kanıt yok; hedef sürümde doğrulanmalı.",
+    "Realtime env okumadığından çok düğümde common_site_config dağıtım sözleşmesi tanımsız.",
+    "Harici Chromium kaynakta test edilmemiş; PDF iş yükü yerleşimi açık.",
+    "Suite bağımsız servisleri (sfu, recorder, collab) yerleşim ve HA kapsamı dışında.",
+    "Kanıtlar önceki salt okunur kaynak kopyalarından; canlı site, runtime veya ürün kabulü yok."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Orkestrasyon ve kontrol düzlemi (Press, Compose/Swarm veya k8s) seçimi",
+      "requirementIds": ["deployment-2", "deployment-7"],
+      "blocks": "Runbook'un komut düzeyi ve düğüm ekleme/boşaltma uygulaması",
+      "allowedUntilDecided": "Komuttan bağımsız runbook sırası ve ölçüm kaydı alanlarını belgele"
+    },
+    {
+      "decision": "Sayısal SLO, RTO ve RPO değerleri",
+      "requirementIds": ["deployment-7"],
+      "blocks": "Düğüm kaybı kabulü ve SPOF başarı ölçütleri",
+      "allowedUntilDecided": "Bileşen bazlı SPOF tablosunun satırlarını ve sınama yöntemlerini yaz"
+    },
+    {
+      "decision": "Web/worker/DB/Redis/dosya deposu/LB topolojisi ve tenant topolojisi",
+      "requirementIds": ["deployment-4", "deployment-7"],
+      "blocks": "Paylaşımlı/ayrılmış yerleşim hedefleri ve HA sınaması",
+      "allowedUntilDecided": "Site ile iş tenantı ayrımını koruyarak bileşen listesini belgele"
+    },
+    {
+      "decision": "Veri yerleşimi (bölge/konum)",
+      "requirementIds": ["deployment-4", "deployment-7"],
+      "blocks": "Ayrılmış DB host hedefi ve yedek konumu",
+      "allowedUntilDecided": "Ölçüm kaydında konum alanını boş bırakılabilir alan olarak tanımla"
+    },
+    {
+      "decision": "Kaynak tahsisi metriği, ölçüm kaydı yeri, kota modeli ve tarife",
+      "requirementIds": ["deployment-4"],
+      "blocks": "Kayıtlı ve ölçülebilir kaynak tahsisi kabulü",
+      "allowedUntilDecided": "Kayıt alanlarını belgele; yeni registry açma"
+    },
+    {
+      "decision": "encryption_key ve şifreli backup anahtarının saklama yöntemi",
+      "requirementIds": ["deployment-4"],
+      "blocks": "Şifreli backup ile taşıma",
+      "allowedUntilDecided": "Anahtar değeri yazmadan süreklilik doğrulama adımını belgele"
+    },
+    {
+      "decision": "Suite bağımsız servislerinin yerleşimi ve HA kapsamı",
+      "requirementIds": ["deployment-4", "deployment-7"],
+      "blocks": "Bu servislerin SPOF sınaması ve kaynak ölçümü",
+      "allowedUntilDecided": "Servisleri ölçüm kaydında ve SPOF tablosunda ayrı satır olarak işaretle"
+    },
+    {
+      "decision": "Chromium PDF iş yükü yerleşimi",
+      "requirementIds": ["deployment-2", "deployment-7"],
+      "blocks": "PDF iş yükünün düğümler arasında taşınması",
+      "allowedUntilDecided": "Kümeye taşınamaz varsayımıyla belgele"
+    },
+    {
+      "decision": "Hedef Frappe/Suite sürümü",
+      "requirementIds": ["deployment-2", "deployment-4", "deployment-7"],
+      "blocks": "Kanıt satırlarının ve komutların hedefte doğrulanması",
+      "allowedUntilDecided": "Kanıtları önceki kaynak kopyası kanıtı olarak işaretli tut"
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

@@ -1,0 +1,282 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "edge-abuse",
+  "canonicalTaskIds": ["edge-abuse--implementation"],
+  "requirementIds": ["security-2", "security-3"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "security-2": "post_mvp",
+    "security-3": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Edge katmanında örnek saldırı isteğinin bloklanması; meşru API ve Keycloak callback akışının geçmesi; uygulama içi hız sınırının ikinci savunma hattı olarak korunması",
+    "trigger": "Staging ortamında edge (WAF) arkasındaki Frappe/Suite ucuna imza tabanlı örnek saldırı içeren bir HTTP isteği (ör. sorgu parametresinde SQLi kalıbı) ve aynı uca meşru bir istek gönderilir.",
+    "expected": "Örnek saldırı isteği edge'de bloklanır, WAF log kanalına kayıt düşer ve uygulamaya ulaşmaz. Meşru /api/method isteği ve Keycloak callback akışı edge'den geçer, ardından Frappe'nin native oturum ve izin denetimine tabi olur. Edge, X-Forwarded-For başlığını istemcinin gönderdiği değeri ezerek yazar; Frappe request_ip türetimi ve Suite Rate Limit allowed_ips/blocked_ips değerlendirmesi sahte başlıkla atlatılamaz. Yanlış pozitif, ilgili kural devre dışı bırakılarak geri alınabilir.",
+    "denied": "Uygulama katmanı hız sınırı WAF yerine sayılmaz. ignore_permissions, SQL ile yetki bypass, production/şema/veri değişikliği, satıcı/lisans/tarife/saklama süresi/veri yerleşimi seçimi bu sözleşmeyle yapılmaz. Edge kuralları Frappe rate_limit ve Suite Rate Limit kayıtlarını devre dışı bırakmaz veya yerine geçmez. Yeni WAF motoru, limiter, DocType veya CRUD tasarlanmaz."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native Frappe/Suite parçaları yalnız uygulama katmanı yapı taşlarıdır: Frappe global hız sınırlayıcı before_request zincirinde çalışır ve aşımda 429 döner; @rate_limit dekoratörü ip_based/user_based sayaç tutar; User restrict_ip IP öneki allowlist'i uygular; Suite Rate Limit DocType method_path, allowed_ips, blocked_ips ve enabled alanlarıyla metot bazlı kural sağlar; Suite WebDAV kilitleme sayaçları ayrı anahtar alanındadır. İstemci IP'si X-Forwarded-For başlığının ilk değerinden alınır. İmza/anomali tabanlı WAF, bot sinyali ve liste sayfa boyutu üst sınırı kanıtlanmış değildir. Kanıtlar önceki salt okunur Frappe/Suite kaynak anlık görüntülerine dayanır; aranan yollar listesi kapsamlı yokluk iddiası değildir ve bir native parçanın varlığı bütün davranışın var olduğu anlamına gelmez.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/hooks.py",
+        "line": 500,
+        "quote": "\"frappe.rate_limiter.apply\","
+      },
+      {
+        "path": "frappe/frappe/rate_limiter.py",
+        "line": 101,
+        "quote": "return Response(_(\"Too Many Requests\"), status=429)"
+      },
+      {
+        "path": "frappe/frappe/rate_limiter.py",
+        "line": 111,
+        "quote": "user_based: bool = False,"
+      },
+      {
+        "path": "suite/suite/utils/rate_limiter.py",
+        "line": 47,
+        "quote": "if any(request_ip.startswith(prefix) for prefix in rl[\"allowed_ips\"]):"
+      },
+      {
+        "path": "suite/suite/utils/rate_limiter.py",
+        "line": 49,
+        "quote": "elif any(request_ip.startswith(prefix) for prefix in rl[\"blocked_ips\"]):"
+      },
+      {
+        "path": "frappe/frappe/auth.py",
+        "line": 66,
+        "quote": "frappe.local.request_ip = (frappe.get_request_header(\"X-Forwarded-For\").split(\",\", 1)[0]).strip()"
+      },
+      {
+        "path": "frappe/frappe/auth.py",
+        "line": 512,
+        "quote": "_(\"Access not allowed from this IP Address\") + f\": {frappe.local.request_ip}\","
+      },
+      {
+        "path": "suite/suite/suite_core/doctype/rate_limit/rate_limit.py",
+        "line": 126,
+        "quote": ".where((RATE_LIMIT.enabled == 1) & (RATE_LIMIT.method_path == method_path))"
+      },
+      {
+        "path": "suite/suite/drive/webdav/auth.py",
+        "line": 31,
+        "quote": "LOCKOUT_KEY_NS = \"webdav:\""
+      },
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 22,
+        "quote": "frappe.form_dict.limit or frappe.form_dict.limit_page_length or 20,"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "frappe/frappe/auth.py",
+      "frappe/frappe/hooks.py",
+      "frappe/frappe/rate_limiter.py",
+      "suite/suite/drive/webdav/auth.py",
+      "suite/suite/suite_core/doctype/rate_limit/rate_limit.py",
+      "suite/suite/utils/rate_limiter.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/edge-abuse.json",
+    "plannedProduction": ["operations/edge-abuse/edge_abuse_post_mvp.yml"],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Staging edge'e gelen HTTP istekleri (yöntem, yol, başlıklar, sorgu, gövde); edge-abuse--contract ile çıkarılacak route+HTTP fiili istisna envanteri (/api/method, /api/v2, OAuth2 token uçları, mevcut yapılandırmadaki Keycloak callback, /dav WebDAV fiilleri dahil PROPFIND, socket.io, mail outbound/redirect); güvenilir proxy sözleşmesi; mevcut Suite Rate Limit kayıtları (method_path, allowed_ips, blocked_ips, enabled) ve site config rate_limit ayarı.",
+    "output": "Bloklanan istek için edge yanıtı (durum kodu ve gövdesi WAF ürünü kararına bağlı) ve WAF log kaydı; geçen istek için Frappe'nin native yanıtı; uygulama içi bütçe aşımında Frappe 429 ve Retry-After/X-RateLimit-* başlıkları; Suite blocked_ips eşleşmesinde native erişim reddi hatası; restrict_ip ihlalinde native AuthenticationError.",
+    "authorization": "Edge kuralı yetkilendirme yerine geçmez; geçen her istek Frappe oturum/OAuth ve DocType izin denetiminden geçer. Suite Rate Limit kayıtları yalnız native DocType izinleri ve save akışıyla değiştirilir; ignore_permissions veya doğrudan SQL kullanılmaz. Bu rehber rol/izin üretmez; ileride rol/izin gerekirse explicitPermissionFlags ortak kaynağına bağlanır ve o işin kendi tek kabulünde yetkisiz kullanıcının Rate Limit yazmasının reddedildiği ve kaydın değişmeden kaldığı senaryo bulunur.",
+    "persistence": "Yeni DocType, şema veya veri migrasyonu yok. Edge yapılandırması için gelecekte önerilen yol operations/edge-abuse/edge_abuse_post_mvp.yml'dir (aktif sahiplik yok); secret, token veya hesap bilgisi bu dosyaya ya da Git'e yazılmaz. Uygulama içi kurallar mevcut Suite Rate Limit kayıtları ve site config rate_limit ile yönetilir.",
+    "failure": "WAF yanlış pozitifinde ilgili kural, karara bağlanan geri alma yöntemiyle devre dışı bırakılır; Suite Rate Limit kuralı enabled kapatılarak native save ile geri alınır. Edge erişilemezse origin doğrudan internete açılmaz. X-Forwarded-For edge'de ezilmiyorsa IP tabanlı kabul FAIL sayılır. 429 ve erişim reddi yanıtları istemci tarafında sessizce yutulmaz."
+  },
+  "development": {
+    "dependencies": ["edge-abuse--contract"],
+    "admission": "Uygulama durumu: uygulanmadı. Kabul ön koşulları: T-00 hedef sürüm tabanı ve R-00 yeniden kullanım eşlemesi; izinli veri tüketicileri için R-01; edge-abuse--contract içinde route+fiil istisna envanteri ve güvenilir proxy sözleşmesinin tamamlanması; decisionsPending içindeki WAF ürünü/konumu, log kanalı ve geri alma yönteminin Hüseyin Cengiz tarafından karara bağlanması; yalnız staging için yazılı onay. Gerçek RED/GREEN kanıtı olmadan kabul verilmez.",
+    "steps": [
+      "edge-abuse--contract çıktısındaki route+fiil istisna envanterini girdi olarak al; envanter yoksa bu işe başlama.",
+      "Hüseyin Cengiz'in WAF ürünü, konumu (CDN veya nginx/ingress), log kanalı ve kural geri alma yöntemi kararını devir notundan oku; karar yoksa yalnız belge adımlarıyla sınırlı kal.",
+      "Güvenilir proxy sözleşmesini staging'de uygula (sahibi Hüseyin Cengiz): edge X-Forwarded-For başlığını istemci değerini ezerek yazar; origin yalnız edge'den erişilebilir olur. Frappe kaynağı değiştirilmez.",
+      "Tek örnek imza kuralını (ör. OWASP CRS benzeri SQLi kuralı) yalnız staging'de etkinleştir; production'a dokunma.",
+      "İstisna envanterindeki uçlar için meşru istek setini hazırla: /api/method, Keycloak callback, OAuth2 token, /dav PROPFIND, socket.io el sıkışması.",
+      "Uygulama katmanında mevcut Frappe rate_limit ve Suite Rate Limit davranışını koru; yeni limiter veya hook ekleme.",
+      "Edge'de DNS değişikliği gerekirse: Hüseyin Cengiz kayıt türü, adı ve değerini hazırlar; Asistan Hüseyin GoDaddy'de uygular; Hüseyin Cengiz servis sonucunu doğrular. Yalnız ayrı onayla yapılır.",
+      "Kanıtı kaydet: istek/yanıt örnekleri, WAF log satırı, uygulama erişim kaydı, komutlar ve pass/fail/not_run durumları."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Staging edge arkasında aynı /api/method ucuna SQLi imzalı örnek istek bloklanır, meşru istek geçer.",
+      "red": "Örnek kural etkin değilken SQLi imzalı istek edge'den geçip uygulama erişim kaydında görünür ve WAF log kanalında blok kaydı yoktur; beklenen blok gerçekleşmediği için senaryo başarısız olur. Import/altyapı hatası veya native Frappe davranışını bozma RED sayılmaz.",
+      "green": "Kural etkinleşince SQLi imzalı istek edge'de bloklanır, WAF log kaydı oluşur ve uygulama erişim kaydında görünmez; aynı uca meşru istek ve Keycloak callback geçer; kural devre dışı bırakılınca örnek istek yeniden geçer ve geri alma kanıtlanır."
+    },
+    "rollback": "Staging WAF kuralı karara bağlanan yöntemle devre dışı bırakılır; Suite Rate Limit kuralı enabled kapatılarak native save ile geri alınır; edge/XFF yapılandırması Hüseyin Cengiz tarafından önceki staging yapılandırmasına döndürülür. Production değiştirilmediği için production rollback kapsam dışıdır."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "security-2",
+      "sourceStage": "post_mvp",
+      "existing": "Native parçalar: Frappe global hız sınırlayıcı before_request zincirinde, site config rate_limit bütçesiyle 429 döner; User restrict_ip IP öneki allowlist'i uygular; Suite Rate Limit DocType metot yolu bazında enabled kuralları ve allowed_ips/blocked_ips önek listeleri sağlar, kayıt kapatılarak geri alınabilir. request_ip X-Forwarded-For'un ilk değerinden alınır. Bunlar WAF değildir.",
+      "gap": "İmza/anomali tabanlı (SQLi/XSS, OWASP CRS benzeri) istek denetimi yok; WAF ürünü ve topolojisi seçilmemiş; WAF'ın geçirmesi gereken route/fiil envanteri yok; güvenilir proxy doğrulaması yok, edge başlığı ezmezse IP tabanlı limitler ve blocked_ips sahte başlıkla atlatılabilir (kaynak okumasına dayalı çıkarım); yanlış pozitif geri alma, log kanalı ve kabul testi tanımsız ve çalıştırılmadı.",
+      "completionSteps": [
+        "edge-abuse--contract altında frappe/api/v1.py url_rules, api/v2 ve Suite hooks allowlist/redirect girdilerinden route+HTTP fiili istisna listesini çıkar (OAuth2, Keycloak callback, /dav WebDAV fiilleri, socket.io, mail redirect dahil).",
+        "Güvenilir proxy sözleşmesini yaz: X-Forwarded-For'u hangi edge katmanının ezerek yazdığı ve origin'in yalnız edge'den erişilebilir olması; Frappe auth.py davranışı değiştirilmez.",
+        "Hüseyin Cengiz'in WAF ürünü/konumu, log kanalı ve geri alma yöntemi kararını devir notuna bağla.",
+        "Staging'de tek örnek kural ile development.tdd senaryosunu uygula; production'a dokunma.",
+        "Frappe rate_limit ve Suite Rate Limit'i ikinci savunma hattı olarak belgede koru; WAF yerine sayma."
+      ],
+      "dependencies": ["edge-abuse--contract"],
+      "acceptance": "Staging'de örnek saldırı kuralı bloklanır ve loglanır; meşru /api/method ve Keycloak callback akışları geçer; sahte X-Forwarded-For ile blocked_ips atlatılamaz; yanlış pozitif kural devre dışı bırakılarak geri alınır. Durum: not_run.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/hooks.py",
+          "line": 500,
+          "quote": "\"frappe.rate_limiter.apply\","
+        },
+        {
+          "path": "frappe/frappe/rate_limiter.py",
+          "line": 101,
+          "quote": "return Response(_(\"Too Many Requests\"), status=429)"
+        },
+        {
+          "path": "suite/suite/utils/rate_limiter.py",
+          "line": 49,
+          "quote": "elif any(request_ip.startswith(prefix) for prefix in rl[\"blocked_ips\"]):"
+        },
+        {
+          "path": "frappe/frappe/auth.py",
+          "line": 66,
+          "quote": "frappe.local.request_ip = (frappe.get_request_header(\"X-Forwarded-For\").split(\",\", 1)[0]).strip()"
+        },
+        {
+          "path": "frappe/frappe/auth.py",
+          "line": 512,
+          "quote": "_(\"Access not allowed from this IP Address\") + f\": {frappe.local.request_ip}\","
+        },
+        {
+          "path": "suite/suite/suite_core/doctype/rate_limit/rate_limit.py",
+          "line": 126,
+          "quote": ".where((RATE_LIMIT.enabled == 1) & (RATE_LIMIT.method_path == method_path))"
+        }
+      ]
+    },
+    {
+      "requirementId": "security-3",
+      "sourceStage": "post_mvp",
+      "existing": "Native parçalar: Frappe @rate_limit ip_based ve user_based sayaçları; Suite Rate Limit allowed_ips/blocked_ips önek listeleri; Suite WebDAV kilitleme sayaçlarının web arayüzü girişinden ayrı anahtar alanı. /api/resource liste ucu varsayılan 20 kayıt döndürür, ancak istemcinin verdiği limit/limit_page_length değerini kabul eder.",
+      "gap": "Bot sinyalleri (UA, davranış, challenge) ve izinli arama botu/entegrasyon politikası seçilmemiş; request_ip'nin proxy arkasında güvenilir türetimi tanımsız; Suite önek eşleşmesi CIDR değil, string startswith ile yapılıyor ve yanlış eşleşme riski belgelenmemiş; liste uçlarında sayfa boyutu üst sınırı ve scraping eşiği tanımsız.",
+      "completionSteps": [
+        "Edge bot politikası ile uygulama içi sınırları ayrı belgele; bot sinyali, challenge ve izinli bot/entegrasyon listesi karar gelene kadar yalnız aday ölçüt tablosu olarak kalır.",
+        "request_ip güvenini security-2 ile aynı güvenilir proxy sözleşmesine bağla; ayrı IP türetme mekanizması yazma.",
+        "Suite önek riskini belgele: ör. '10.1' öneki '10.10.x' adreslerini de eşler. Önekleri oktet sınırında ayırıcıyla bitirme kuralını yaz (ör. '10.1.'); CIDR gerekirse fork değil, upstream Suite önerisi olarak not et.",
+        "Liste uçları için sayfa boyutu üst sınırı değerini ve uygulama yerini (edge veya uygulama) karar listesine bağla; native frappe.get_list izin denetimi korunur.",
+        "Kontrollü otomasyon kabulü için mevcut @rate_limit(ip_based/user_based) veya Suite Rate Limit kaydını kullan; yeni limiter yazma. /dav fiillerinin ve WebDAV kilitleme anahtar alanının edge kurallarınca bozulmadığını doğrula."
+      ],
+      "dependencies": ["edge-abuse--contract", "security-2"],
+      "acceptance": "Staging'de kontrollü otomasyon mevcut Frappe rate_limit veya Suite Rate Limit sınırına takılıp 429 ya da native erişim reddi alır; izinli entegrasyon ve arama botu, karara bağlanan politikaya uygun geçer; sahte X-Forwarded-For ile sınır atlatılamaz; karar sonrası belirlenen sayfa boyutu üst sınırı uygulanır. Durum: not_run.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/rate_limiter.py",
+          "line": 111,
+          "quote": "user_based: bool = False,"
+        },
+        {
+          "path": "suite/suite/utils/rate_limiter.py",
+          "line": 47,
+          "quote": "if any(request_ip.startswith(prefix) for prefix in rl[\"allowed_ips\"]):"
+        },
+        {
+          "path": "suite/suite/drive/webdav/auth.py",
+          "line": 31,
+          "quote": "LOCKOUT_KEY_NS = \"webdav:\""
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 22,
+          "quote": "frappe.form_dict.limit or frappe.form_dict.limit_page_length or 20,"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "İmza/anomali tabanlı WAF denetimi ve ürünü yok (security-2).",
+    "Route+HTTP fiili istisna envanteri edge-abuse--contract altında henüz çıkarılmadı (security-2).",
+    "Güvenilir proxy sözleşmesi yok; IP tabanlı tüm limitler buna bağlı (security-2, security-3).",
+    "WAF log kanalı, yanlış pozitif geri alma prosedürü ve kabul testi tanımsız ve çalıştırılmadı (security-2).",
+    "Bot sinyalleri ve izinli bot/entegrasyon politikası seçilmedi (security-3).",
+    "Suite önek eşleşmesinin CIDR olmamasından doğan risk belgelenmedi (security-3).",
+    "Liste uçlarında sayfa boyutu üst sınırı ve scraping eşiği tanımsız (security-3).",
+    "Kanıtlar önceki kaynak anlık görüntülerine dayanır; canlı site veya ürün kabulü yok."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "WAF ürünü/satıcısı ve konumu (CDN veya nginx/ingress); karar sahibi Hüseyin Cengiz",
+      "requirementIds": ["security-2", "security-3"],
+      "blocks": "Staging örnek kuralı ve development.tdd senaryosu",
+      "interimDocStep": "Route+fiil istisna envanterini ve güvenilir proxy sözleşmesi taslağını edge-abuse--contract altında hazırla."
+    },
+    {
+      "decision": "WAF log kanalı, log saklama süresi ve veri yerleşimi",
+      "requirementIds": ["security-2"],
+      "blocks": "GREEN kanıt kanalı ve izleme kabulü",
+      "interimDocStep": "Gerekli log alanlarını (zaman, kural, yol, karar) ve IP'nin kişisel veri olarak işlenmesi notunu belgele."
+    },
+    {
+      "decision": "Kural geri alma yöntemi ve yanlış pozitif süreci",
+      "requirementIds": ["security-2"],
+      "blocks": "Geri alma kabulü ve development.rollback",
+      "interimDocStep": "Suite Rate Limit kaydının enabled kapatılarak geri alınmasını uygulama katmanı geri alma adımı olarak belgele."
+    },
+    {
+      "decision": "Güvenilir proxy topolojisi: X-Forwarded-For'u ezerek yazan katman ve origin erişim kısıtı",
+      "requirementIds": ["security-2", "security-3"],
+      "blocks": "IP tabanlı limitler ve blocked_ips kabulü",
+      "interimDocStep": "auth.py'deki ilk değer davranışına dayanarak sahte başlık riskini ve gereken edge davranışını belgele."
+    },
+    {
+      "decision": "Bot sinyalleri, challenge kullanımı ve izinli arama botu/entegrasyon listesi",
+      "requirementIds": ["security-3"],
+      "blocks": "Bot politikası davranışı ve izinli bot kabulü",
+      "interimDocStep": "Aday sinyal ve istisna ölçütlerini karar tablosu olarak yaz; değer seçme."
+    },
+    {
+      "decision": "Liste uçları sayfa boyutu üst sınırı değeri ve uygulama yeri (edge veya uygulama)",
+      "requirementIds": ["security-3"],
+      "blocks": "Scraping hacmi kabulü",
+      "interimDocStep": "v1 liste ucunun istemci limitini kabul eden mevcut davranışını ve etkisini belgele."
+    },
+    {
+      "decision": "Uygulama içi rate limit eşik değerleri (site config rate_limit ve Suite Rate Limit)",
+      "requirementIds": ["security-3"],
+      "blocks": "Kontrollü otomasyon kabulünün eşik değeri",
+      "interimDocStep": "Hangi uçların ip_based veya user_based sayaç kullanacağını değer vermeden listele."
+    },
+    {
+      "decision": "Hedef Frappe/Suite sürümü (T-00 tabanı)",
+      "requirementIds": ["security-2", "security-3"],
+      "blocks": "Kanıtların hedef sürümde geçerliliği ve kabul",
+      "interimDocStep": "Kanıtları önceki kaynak anlık görüntüsüne dayalı olarak işaretle; hedef sürümde yeniden doğrulama gereğini not et."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

@@ -1,0 +1,191 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "reporting-read-model",
+  "canonicalTaskIds": ["reporting-read-model--implementation"],
+  "requirementIds": ["reports-6"],
+  "stage": "scale",
+  "sourceStages": {
+    "reports-6": "scale"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Kaynak modüllerden gelen olaylarla güncellenen ayrı okuma modeli; kapsam koşullu ve yalnız seçilen tek bir karar raporu için. Uygulama durumu: uygulanmadı.",
+    "trigger": "Kaynak modülde commit edilmiş bir belge değişikliği outbox--contract üzerinden kernel-envelope--contract zarfıyla olay olarak yayımlandığında ya da açıkça yetkilendirilmiş bir operatör seçilen okuma modeli için replay/yeniden kurma başlattığında.",
+    "expected": "Projeksiyon arka plan işi olayı kiracı kapsamında yalnız bir kez uygular. Okuma modeli satırı, tekrar ayıklama kaydı ve son uygulanan sıra işareti aynı transaction içinde güncellenir. Replay sonrası okuma modeli toplamı kaynak kayıtlarının toplamıyla eşleşir. Her okuma modeli için tazelik (lag) değeri okunabilir.",
+    "denied": "Aynı olay kimliği ikinci kez gelirse okuma modeli değişmez. Commit edilmemiş ya da geri alınmış kaynak işlemi okuma modeline yansımaz. Başka kiracıya ait olay uygulanmaz. Kaynak belgeyi okuma yetkisi olmayan kullanıcı okuma modeli satırını göremez. Kullanıcının okuma modeline doğrudan yazma isteği reddedilir ve kayıt değişmez."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Yalnız genel yapı taşları görüldü. Native frappe.enqueue arka plan işi çağrısı var; projeksiyon ve replay işlerini çalıştırmak için adaydır. Framework bağımlılık listesinde duckdb var. Bu kanıtlar olay kaynağının, projeksiyonun, tekrar ayıklamanın, replay'in veya tazelik takibinin var olduğunu göstermez. duckdb'nin Framework içinde ne için kullanıldığı doğrulanmadı. Event Streaming'in hedef sürümdeki destek durumu kaynakla doğrulanmadı. Aranan yollar yalnız sağlanan iki dosyadır; bu, kapsamlı bir yokluk iddiası değildir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/utils/print_format.py",
+        "line": 113,
+        "quote": "job = frappe.enqueue("
+      },
+      {
+        "path": "frappe/pyproject.toml",
+        "line": 20,
+        "quote": "\"duckdb~=1.4.3\","
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/utils/print_format.py",
+      "frappe/pyproject.toml"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/reporting-read-model.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/adapters/reporting/reporting_read_model_scale.py"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Olay girdisi kernel-envelope--contract zarfıdır. Bu sözleşme zarfta en az şunların bulunmasını ister: olay kimliği, kiracı kapsamı, kaynak DocType ve belge adı, kaynak belge başına sıra veya sürüm bilgisi, olay türü. Alan adları burada tanımlanmaz, zarf sözleşmesinden alınır. Replay girdisi okuma modeli adı ve kiracı kapsamıdır.",
+    "output": "Seçilen karar raporuna ait okuma modeli satırları; her okuma modeli için son uygulanan olay işareti ve tazelik (lag) ölçümü; replay sonunda kaynak toplamı ile okuma modeli toplamının karşılaştırma sonucu.",
+    "authorization": "Okuma modelini okuma yetkisi, kaynak belgelerin native izinlerinden geniş olamaz; native-user-policy--contract ve reports-5 izin matrisine bağlanır. ignore_permissions veya SQL ile yetki bypass yapılmaz. Bu rehber rol ya da izin üretmez; ileride gerekirse explicitPermissionFlags ortak kaynağına bağlanır. Replay yalnız açıkça yetkilendirilmiş operatörce başlatılabilir. Kullanıcı yüzeyinden okuma modeline yazma yolu yoktur.",
+    "persistence": "Depolama hedefi karar bekliyor: ayrı DocType, ayrı tablo veya duckdb. Hangisi seçilirse seçilsin olay uygulaması, tekrar ayıklama kaydı ve son sıra işareti native save/transaction yoluyla tek transaction içinde yazılır. Kaynak modül verisi değiştirilmez. Şema değişikliğinde yeniden kurma politikası native-doctype-schema--contract ile hizalanır.",
+    "failure": "Uygulama hatasında transaction geri alınır; okuma modeli önceki tutarlı durumunda kalır ve olay yeniden denenebilir olarak bekler. Sıra boşluğu olan olay uygulanmaz, bekletilir. Bilinmeyen kiracı veya geçersiz zarf reddedilir. Replay başarısız olursa mevcut okuma modeli yerinde kalır. Lag eşiği aşılırsa okuma modeli bayat olarak işaretlenir; eşik değeri seçilen raporla birlikte belirlenir."
+  },
+  "development": {
+    "dependencies": [
+      "kernel-envelope--contract",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "outbox--contract",
+      "reporting-read-model--contract"
+    ],
+    "admission": {
+      "prerequisites": [
+        "T-00 hedef sürüm temeli: hedef Frappe sürümünde Event Streaming ve doc_events kapsamı kaynakla doğrulanmış olmalı.",
+        "R-00 yeniden kullanım eşlemesi: frappe.enqueue'nun projeksiyon işi için uygunluğu ve duckdb'nin Framework içindeki gerçek kullanımı kaynakla belgelenmiş olmalı.",
+        "R-01: okuma modeli izinli veri tükettiği için izin eşlemesi native-user-policy--contract ve reports-5 matrisine bağlanmış olmalı.",
+        "outbox--contract ve kernel-envelope--contract onaylı olmalı; olay kimliği ve sıra alanları tanımlı olmalı.",
+        "decisionsPending içindeki depolama hedefi ve ilk karar raporu kararları verilmiş olmalı.",
+        "Tek dar davranış için gerçek RED/GREEN kanıtı üretilecek şekilde planlanmış olmalı."
+      ],
+      "orderAuthority": "Mevcut görev bağımlılıkları ve stage; küme sırası sunumdur, yeni bir seri DAG değildir."
+    },
+    "steps": [
+      "Hedef sürüm kaynağında Event Streaming ve doc_events kapsamını doğrula; doğrulanmayan özellik üzerine tasarım kurma.",
+      "Olay kaynağını outbox--contract'a bağla: yalnız commit edilmiş kaynak işlemleri yayımlanır, geri alınan işlem olay üretmez.",
+      "Tekrar ayıklama anahtarını kiracı kapsamı ile olay kimliği olarak, sıralama kuralını da kaynak belge başına artan sıra olarak tanımla.",
+      "Depolama kararı verildikten sonra okuma modeli şemasını native-doctype-schema--contract'a göre tanımla; kaynak tablolara yazma.",
+      "Projeksiyon işini arka plan işi olarak tanımla; olay uygulamasını, tekrar ayıklama kaydını ve sıra işaretini tek transaction'a koy.",
+      "Okuma izinlerini reports-5 matrisine ve native-user-policy--contract'a bağla; satır görünürlüğü kaynak izinlerinden geniş olmasın.",
+      "Replay/yeniden kurma komutunu, tazelik ölçümünü ve şema değişikliğinde yeniden kurma politikasını tanımla.",
+      "Tek senaryo için önce başarısız davranış testini, sonra en küçük geçen uygulamayı planla."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Aynı olay kimliğine sahip bir olay aynı kiracı kapsamında iki kez işlendiğinde okuma modeli toplamı değişmez ve kaynak toplamıyla eşit kalır.",
+      "red": "Projeksiyon aynı olayı ikinci kez uyguladığında okuma modeli toplamı kaynak toplamından büyük çıkar; doğrulama davranış farkı yüzünden başarısız olur. Başarısızlık import, altyapı hatası veya native davranışın bozulması kaynaklı olamaz.",
+      "green": "Tekrar ayıklama kaydı olay uygulamasıyla aynı transaction'da yazılır; ikinci işleme değişiklik yapmaz; okuma modeli toplamı kaynak toplamına eşittir."
+    },
+    "rollback": "Projeksiyon tüketimi durdurulur. Okuma modeli kaynak kayıtlarından replay ile yeniden kurulabilir. Kaynak modül verisine dokunulmaz. Teknik CI/deploy/rollback sahibi Hüseyin Cengiz'dir. Bu sözleşme hiçbir servis, production, şema veya veri değişikliğine yetki vermez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "reports-6",
+      "sourceStage": "scale",
+      "existing": "Native parça olarak frappe.enqueue ile arka plan işi çalıştırma örneği (print_format.py) ve Framework bağımlılığında duckdb görüldü. Bütün davranış yok: olay kaynağı, projeksiyon, tekrar ayıklama, replay ve tazelik takibi incelenen kesitlerde saptanmadı.",
+      "gap": "Olay kaynağı sözleşmesi, commit sonrası yayın ve rollback durumu tanımlı değil. Tekrar ayıklama anahtarı ve sıralama kuralı yok. Depolama hedefi belirsiz; duckdb kullanımı doğrulanmadı. Kiracı izolasyonu ve okuma modeli izinleri tanımlı değil. Replay komutu, lag ölçümü ve şema değişikliğinde yeniden kurma politikası yok.",
+      "completionSteps": [
+        "Olay yayınını outbox--contract'a bağla; yalnız commit edilmiş işlemlerden olay üretildiğini kabul ölçütüne yaz.",
+        "Kiracı kapsamı ile olay kimliğini tekrar ayıklama anahtarı olarak ve kaynak belge başına sırayı sıralama kuralı olarak kernel-envelope--contract zarfına bağla.",
+        "Depolama kararından sonra okuma modeli şemasını native-doctype-schema--contract ile tanımla.",
+        "Okuma modeli izinlerini reports-5 matrisine ve native-user-policy--contract'a bağla; bypass yolu açma.",
+        "Replay komutunu, lag ölçümünü ve şema değişikliğinde yeniden kurma kuralını yaz.",
+        "Tek senaryolu RED/GREEN'i development.tdd'ye göre gelecekte uygula."
+      ],
+      "dependencies": [
+        "kernel-envelope--contract",
+        "native-doctype-schema--contract",
+        "native-user-policy--contract",
+        "outbox--contract",
+        "reporting-read-model--contract"
+      ],
+      "acceptance": "Olay replay sonrası okuma modeli kaynak toplamıyla eşleşir. Çift olay sonucu bozmaz. Geri alınan kaynak işlemi yansımaz. Yetkisiz kullanıcının okuma isteği reddedilir. Okuma modeline doğrudan yazma isteği reddedilir ve kayıt değişmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/utils/print_format.py",
+          "line": 113,
+          "quote": "job = frappe.enqueue("
+        },
+        {
+          "path": "frappe/pyproject.toml",
+          "line": 20,
+          "quote": "\"duckdb~=1.4.3\","
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Uygulama durumu: uygulanmadı. Hiçbir üretim veya test dosyası sahiplenilmedi, hiçbir davranış koşulmadı.",
+    "Olay kaynağı ile commit sonrası yayın ve rollback davranışı outbox--contract üzerinden tanımlanmadı.",
+    "Tekrar ayıklama anahtarı ve olay sıralama kuralı tanımlanmadı.",
+    "Okuma modeli depolama hedefi seçilmedi; duckdb'nin Framework içindeki kullanımı doğrulanmadı.",
+    "Kiracı izolasyonu ve reports-5 izin matrisine bağlanma tanımlanmadı.",
+    "Replay/yeniden kurma komutu, lag ölçümü ve şema değişikliğinde yeniden kurma politikası yok.",
+    "Event Streaming'in hedef sürümdeki destek durumu kaynakla doğrulanmadı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Olayın kaynak işlemden outbox'a hangi yolla aktarılacağı (doc_events tetiklemesi veya outbox--contract'ın belirleyeceği başka bir yol)",
+      "requirementIds": ["reports-6"],
+      "blocks": "Projeksiyon girdisinin ve commit sonrası yayın davranışının tanımlanması",
+      "allowedUntilDecision": "Zarfta gerekli alanları ve commit edilmemiş işlemin yansımaması kabulünü belgede tanımlamak"
+    },
+    {
+      "decision": "Okuma modeli depolama hedefi: ayrı DocType, ayrı tablo veya duckdb",
+      "requirementIds": ["reports-6"],
+      "blocks": "Okuma modeli şeması, transaction sınırı ve replay yöntemi",
+      "allowedUntilDecision": "Depolamadan bağımsız kabul ölçütlerini ve tekrar ayıklama kuralını belgelemek"
+    },
+    {
+      "decision": "Hedef Frappe sürümü ve bu sürümde Event Streaming kapsamı (T-00)",
+      "requirementIds": ["reports-6"],
+      "blocks": "Native olay mekanizmasının yeniden kullanım eşlemesi (R-00)",
+      "allowedUntilDecision": "Doğrulanacak kaynak yollarını ve soruları listelemek"
+    },
+    {
+      "decision": "Kiracı topolojisi ve okuma modelinin kiracı izolasyon biçimi",
+      "requirementIds": ["reports-6"],
+      "blocks": "Tekrar ayıklama anahtarının kiracı kapsamı ve izin bağlantısı",
+      "allowedUntilDecision": "Başka kiracının olayının uygulanmaması kabulünü topolojiden bağımsız biçimde yazmak"
+    },
+    {
+      "decision": "Olay ve tekrar ayıklama kayıtları ile okuma modelinin saklama süresi",
+      "requirementIds": ["reports-6"],
+      "blocks": "Replay penceresi ve tekrar ayıklama kayıtlarının temizlenme kuralı",
+      "allowedUntilDecision": "Saklama süresine bağlı olmayan replay ve kaynaktan yeniden kurma adımlarını belgelemek"
+    },
+    {
+      "decision": "Okuma modelinin başlayacağı ilk karar raporunun seçimi",
+      "requirementIds": ["reports-6"],
+      "blocks": "Admission ve tek senaryolu RED/GREEN'in somut kaynak toplamı",
+      "allowedUntilDecision": "Rapordan bağımsız genel davranış sözleşmesini tutmak"
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

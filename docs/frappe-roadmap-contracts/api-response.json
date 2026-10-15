@@ -1,18 +1,28 @@
 {
   "schemaVersion": "saas-existing-work-contract.v1",
   "canonicalUnitId": "api-response",
-  "canonicalTaskIds": ["api-response--implementation"],
+  "canonicalTaskIds": [
+    "api-response--implementation",
+    "ui-family-36--implementation-mvp"
+  ],
   "requirementIds": ["integration-4", "integration-6", "integration-8"],
   "stage": "mvp",
+  "sourceStages": {
+    "integration-4": "mvp",
+    "integration-6": "mvp",
+    "integration-8": "mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
-    "title": "Yerel frappe.PermissionError, ic bilgi sizdirmayan 403 urun hata govdesine eslenir",
-    "trigger": "Yetkisiz yerel kullanici frappe.client.get_single_value cagirir; yerel kod frappe.PermissionError firlatir ve istisna adaptordeki to_error_envelope(exc) fonksiyonuna verilir",
-    "expected": "Fonksiyon (403, govde) dondurur. Govde: {apiVersion:'saas-api-error.v1', error:{code:'permission_denied', message:<cevrilmis genel ileti>}}. Govdede exc, exc_type, traceback, _server_messages anahtarlari ve yigin izi metni bulunmaz",
-    "denied": "Eslenmemis istisna sinifi 403 olarak etiketlenmez; bu davranis kapsaminda istisna degistirilmeden yeniden firlatilir, boylece yerel Frappe isleyicisi devrede kalir"
+    "title": "Native frappe.PermissionError, iç bilgi sızdırmayan 403 ürün hata gövdesine eşlenir",
+    "trigger": "İlgili DocType üzerinde izni olmayan bir kullanıcı native frappe.client.get_single_value çağrısı yapar; native kod frappe.PermissionError fırlatır ve bu istisna planlanan adaptördeki to_error_envelope(exc) saf fonksiyonuna verilir",
+    "expected": "Fonksiyon (403, gövde) döndürür. Gövde: {apiVersion:'saas-api-error.v1', error:{code:'permission_denied', message:<çevrilebilir genel ileti>}}. Gövdede exc, exc_type, traceback, _server_messages anahtarları, yığın izi metni, DocType adı, kayıt adı, alan değeri ve secret bulunmaz",
+    "denied": "Eşlenmemiş istisna sınıfı 403 olarak etiketlenmez ve başka bir koda dönüştürülmez; bu davranış kapsamında istisna değiştirilmeden yeniden fırlatılır, böylece native Frappe hata işleyicisi devrede kalır"
   },
   "reuse": {
-    "mechanism": "Izin karari yerelde kalir (frappe.has_permission ve frappe.PermissionError). Yeni yetki, CRUD veya olay motoru eklenmez. Ozel ek yalniz sahip olunan dosyadaki saf eslemedir; HTTP kodu atama deseni yerel frappe.response.http_status_code ile aynidir",
+    "status": "KISMI",
+    "mechanism": "İzin kararı native kalır (frappe.has_permission ve frappe.PermissionError). Yeni yetki, CRUD, ORM veya olay motoru eklenmez. Doğrulanmış kanıt yalnız iki native parçayı gösterir: izin reddinin frappe.PermissionError olarak fırlatılması ve HTTP kodunun frappe.response.http_status_code ile atanması. Ürün hata gövdesi, istisna-kod eşleme tablosu ve bunun HTTP yanıtına bağlanması kanıtta yoktur; bunlar bu rehberin tamamlanacak eksik kısmıdır. Kanıtın bu parçaları göstermesi davranışın tamamının var olduğu anlamına gelmez",
     "evidence": [
       {
         "path": "frappe/frappe/client.py",
@@ -23,73 +33,250 @@
         "path": "frappe/frappe/api/v1.py",
         "line": 73,
         "quote": "frappe.response.http_status_code = 202"
-      },
-      {
-        "path": "suite/suite/hooks.py",
-        "line": 340,
-        "quote": "after_request = \"suite.drive.api.product.after_request\""
       }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "frappe/frappe/api/v2.py",
+      "frappe/frappe/client.py",
+      "suite/pyproject.toml",
+      "suite/suite/hooks.py",
+      "suite/suite/meet/sfu-server/src/server/handlers/WebRtcTransportHandlers.ts"
     ]
   },
   "ownership": {
     "activeContractFile": "docs/frappe-roadmap-contracts/api-response.json",
     "plannedProduction": [
-      "backend/saas_platform/saas_platform/adapters/api_boundary/api_response_mvp.py"
+      "backend/saas_platform/saas_platform/adapters/api_boundary/api_response_mvp.py",
+      "frontend/packages/ui/src/components/ui-family-36/mvp.tsx"
     ],
-    "plannedTestFile": "backend/saas_platform/saas_platform/adapters/api_boundary/test_api_response_mvp.py",
+    "plannedTestFile": null,
     "sharedIntegrationFiles": [
       "backend/saas_platform/saas_platform/hooks.py",
-      "integration/fragments/api-response--integration.json"
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "exc: BaseException. Bu davranista yalniz frappe.PermissionError ornegi eslenir. Ag girdisi yoktur",
-    "output": "tuple[int, dict]: status=403, govde {apiVersion:'saas-api-error.v1', error:{code:'permission_denied', message:str}}. message sabit ve cevrilebilir genel ileti olur; DocType adi, kayit adi, alan degeri ve secret icermez",
-    "authorization": "Yetki karari yerel site/kullanici/rol kapsamindadir (yerel pilot: suite.localhost, cookie/CSRF oturumu). Adaptor yetki vermez ve kaldirmaz; sadece reddi bicimlendirir",
-    "persistence": "Yazma, DDL, hook veya kuyruk yok. Saf fonksiyondur; yerel istek islemi kendi geri alma davranisini korur",
-    "failure": "PermissionError disindaki siniflar degistirilmeden yeniden firlatilir. Tuketici (mevcut React19/AntD6/TanStack istemcisi) yalniz error.code okur; 403 icin mevcut AntD bileseniyle yetki iletisi gosterir (Outfit, 14px, 320 oncelikli, cevreleyen odak halkasi yok, simetrik pozitif Cubic hareket)"
+    "input": "exc: BaseException. Bu davranışta yalnız frappe.PermissionError örneği eşlenir. Ağ girdisi, istek gövdesi veya kullanıcı kimliği okunmaz",
+    "output": "tuple[int, dict]: status=403; gövde {apiVersion:'saas-api-error.v1', error:{code:'permission_denied', message:str}}. message sabit ve çevrilebilir genel iletidir; istisna metni gövdeye kopyalanmaz. correlationId alanı, kaynağı kararlaşana kadar eklenmez",
+    "authorization": "Yetki kararı native site, kullanıcı ve rol izinlerindedir. Adaptör yetki vermez, kaldırmaz, ignore_permissions veya SQL ile izin atlatmaz; yalnız native reddi biçimlendirir. Rol veya izin üretmediği için explicitPermissionFlags ortak kaynağına yeni bayrak eklemez",
+    "persistence": "Yazma, DDL, şema, hook, kuyruk veya veri değişikliği yoktur. Saf fonksiyondur; native istek işlemi kendi transaction ve geri alma davranışını korur",
+    "failure": "PermissionError dışındaki sınıflar değiştirilmeden yeniden fırlatılır; native işleyici devrede kalır ve gövdeye yığın izi yazılmaz. Gelecekteki tüketici olan ui-family-36 MVP istemcisi (React, Ant Design, TanStack Query) yalnız error.code okur ve kullanıcı metnini sunucu iletisinden değil error.code eşlemesinden türetir. 403 için ürün kimliğine uygun Ant Design bileşeniyle yetki iletisi gösterilir: Outfit, en az 14 CSS px, 320 CSS px öncelikli, çevreleyen odak halkası yok, simetrik pozitif süreli Cubic hareket"
   },
   "development": {
     "dependencies": [
+      "api-middleware--contract",
       "api-response--contract",
-      "kernel-envelope--contract",
-      "device-grant--contract",
-      "native-user-policy--contract",
       "capability-definition--contract",
+      "client-rule-parity--contract",
+      "connection--contract",
+      "device-grant--contract",
+      "kernel-envelope--contract",
       "native-doctype-schema--contract",
-      "localPilot frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6; nativeAuth cookie/CSRF"
+      "native-user-policy--contract",
+      "rest-api--contract",
+      "ui-family-36--contract",
+      "ui-family-36--implementation"
     ],
-    "admission": "T-00 hedef taban ve R-00 yeniden kullanim eslemesi gerekir. Yerel kanit Frappe 17.0.0.dev0 suite.localhost uzerindedir; uzak urun tabani ve Suite HEAD bilinmiyor. Gecis, kernel-envelope.v1 sozlesmesiyle alan adi uyumunun teyidine baglidir",
+    "admission": "Uygulama durumu: uygulanmadı. Giriş için T-00 hedef taban ve R-00 yeniden kullanım eşlemesi gerekir; izinli veri tüketicileri R-01'i de kullanır. Hedef Frappe sürümü seçilmemiştir; Suite beyanı >=16,<18 aralığıdır ve kanıtlar önceki salt okunur kaynak kesitlerindendir, canlı site veya ürün kabulü değildir. kernel-envelope--contract ve api-response--contract ile alan adı (apiVersion, error.code, error.message) uyumu teyit edilmeden üretim kiralaması verilmez. Bu sözleşme hiçbir servis, production, şema veya veriyi değiştirme yetkisi vermez",
     "steps": [
-      "api_response_mvp.py icine to_error_envelope(exc) saf fonksiyonunu ve PermissionError->403 tek satirlik esleme tablosunu ekle",
-      "Govdeye yalniz izinli alanlari koy; exc ve traceback alanlarini kurucu dahil etmesin",
-      "hooks.py veya HTTP isleyicisine baglama yapma; baglama entegrasyon sahibine (Codex) parca olarak birakilir"
+      "T-00 hedef tabanında frappe.PermissionError sınıfının ve frappe.client.get_single_value izin reddi yolunun kanıttaki gibi olduğunu kaynakla doğrula; fark varsa önce bu sözleşmeyi güncelle",
+      "Planlanan api_response_mvp.py içinde to_error_envelope(exc) saf fonksiyonunu ve tek girdili eşleme tablosunu (PermissionError -> 403, permission_denied) tanımla",
+      "Gövde kurucusu yalnız izinli alanları (apiVersion, error.code, error.message) yazsın; istisna nesnesi, args, traceback ve _server_messages kurucuya hiç verilmesin",
+      "Eşlenmeyen sınıf için istisnayı aynen yeniden fırlat; genel 500 dönüşümünü bu davranışa ekleme",
+      "HTTP yanıtına bağlama (hooks.py veya istek işleyicisi) yapma; bağlama ana entegrasyon sahibine parça olarak bırakılır ve teknik CI/deploy/rollback sahibi Hüseyin Cengiz'in onayına tabidir",
+      "ui-family-36 MVP tüketicisini yalnız error.code sözleşmesine göre planla; mvp.tsx bu turda yazılmaz"
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "Rolsuz yerel test kullanicisiyla frappe.client.get_single_value cagrisi gercek frappe.PermissionError uretir. Bu istisna to_error_envelope'a verildiginde sonuc 403 ve error.code='permission_denied' olur; govdenin serilestirilmis halinde 'Traceback', 'exc' ve DocType adi bulunmaz",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Ayni komut uygulamadan sonra gecer: bench --site suite.localhost run-tests --module saas_platform.adapters.api_boundary.test_api_response_mvp (komutun yerel kullanilabilirligi dogrulanmadi)"
+      "oneScenario": "İlgili DocType üzerinde okuma izni olmayan test kullanıcısıyla frappe.client.get_single_value çağrısı native frappe.PermissionError üretir; bu istisna to_error_envelope'a verildiğinde sonuç 403 ve error.code='permission_denied' olur; serileştirilmiş gövdede 'Traceback', 'exc', 'exc_type', '_server_messages' ve DocType adı bulunmaz",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. RED, modül yüklenebilir ve fonksiyon imzası mevcutken assertion farkıyla oluşmalıdır (dönen kod 403 değil veya gövdede apiVersion/error.code yok). İçe aktarma hatası, eksik fixture veya native izin davranışını bozmak RED sayılmaz; native geçen davranışa RED uydurulmaz. Bu turda test yazılmaz ve koşulmaz",
+      "green": "Uygulamadan sonra aynı senaryo, değişmeyen assertion ve aynı komutla geçmelidir. Komut T-00 hedef tabanında belirlenir; şu an doğrulanmış komut yoktur. Durum not_run; bu sözleşme veya biçim kontrolü ürün GREEN'i değildir"
     },
-    "rollback": "Yalniz api_response_mvp.py icindeki fonksiyon ve planlanan test dosyasi yerelde geri alinir. Production ve servis degisikligi yetkisi yoktur"
+    "rollback": "Gelecekte yalnız api_response_mvp.py içindeki fonksiyon ve onun testi geri alınır; hook bağlaması bu davranışta yapılmadığı için native yanıt davranışı etkilenmez. Production, servis veya dağıtım geri alma işlemleri Hüseyin Cengiz sahipliğindedir ve bu sözleşmeyle yetkilendirilmez"
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "integration-4",
+      "sourceStage": "mvp",
+      "existing": "Native kaynakta frappe.response.http_status_code ile kod atama ve Suite hooks içinde redirect_http_status 307 kullanan yönlendirme kuralları görüldü. 410 ve bakım 503 yolu verilen kesitte görülmedi. Vite/PWA + TanStack Router istemci rotası tek başına gerçek HTTP 404/410/301 üretemez",
+      "gap": "SPA rotaları için durum kodunu üretecek katman seçilmedi; API hatası (JSON gövde + kod) ile sayfa durumu ayrımı, 503 bakım kaynağı ve Retry-After, POST sonrası 303 kuralının mevcut 307 yönlendirmeleriyle ilişkisi tanımsız",
+      "completionSteps": [
+        "Durum kodu -> örnek rota -> başlık tablosunu belge olarak yaz: 200 başarılı sayfa/API; 301 kalıcı taşınan rota (Location); 303 form/POST sonrası sonuç sayfası (Location); 404 tanımsız rota; 410 bilinçli kaldırılan rota; 503 bakım (Retry-After)",
+        "API hatasını sayfa durumundan ayır: /api altındaki yanıtlar JSON gövde ve koddur; SPA rota durumları katman kararı verilene kadar istemcide yalnız görsel durumdur ve HTTP kodu iddia edilmez",
+        "Mevcut 307 yönlendirmelerini envanterle ve her birini 'metodu koru (307)' veya 'POST sonrası sonuç (303)' olarak sınıfla; değişiklik kararı vermeden listele",
+        "Katman kararı gelince seçilen katmanda tablodaki her satır için ayrı bir kabul senaryosu yaz; her satır ayrı davranış olarak kendi tek TDD senaryosuyla kabul edilir",
+        "503 ve Retry-After kaynağını Hüseyin Cengiz ile netleştir; DNS değişikliği gerekirse kayıt türü/adı/değeri Hüseyin Cengiz tarafından hazırlanır, GoDaddy uygulaması Asistan Hüseyin'dedir, sonuç doğrulaması Hüseyin Cengiz'dedir"
+      ],
+      "dependencies": [
+        "api-response--contract",
+        "api-middleware--contract",
+        "kernel-envelope--contract"
+      ],
+      "acceptance": "Her durum örnek rotada doğru kod ve Location/Retry-After başlığıyla döner; bakımda 503 görülür; API hatası ile sayfa durumu karışmaz",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 73,
+          "quote": "frappe.response.http_status_code = 202"
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 72,
+          "quote": "\"redirect_http_status\": 307,"
+        }
+      ]
+    },
+    {
+      "requirementId": "integration-6",
+      "sourceStage": "mvp",
+      "existing": "/api/v1 ve /api/v2 native olarak yan yana; v1 içinde geriye uyumluluk dalı var; v2 dosya notu iç uygulamanın kırıcı değişiklik sayılmadan değişebileceğini belirtiyor. Suite, Frappe >=16,<18 aralığını beyan ediyor",
+      "gap": "Ürün API/hata şeması sürümü ile Frappe /api/v1-/api/v2 eşlemesi, Frappe hata yükünü ürün şemasına normalize etme kuralı, Deprecation/Sunset kuralı ve destek süresi tanımsız; hedef sürümde v1/v2 farkları doğrulanmadı",
+      "completionSteps": [
+        "Sürüm tablosu taslağı yaz: ürün hata gövdesi sürümü (saas-api-error.v1) Frappe uç sürümünden bağımsız tutulur; ürün sözleşmesi Frappe v2 iç uygulamasına değil belgelenmiş uç davranışına dayanır",
+        "Hedef Frappe sürümü kararı gelince o sürümde v1/v2 farklarını kaynakla doğrula ve tabloya işle; karar gelmeden sürüm sabitleme",
+        "Tek JSON hata şeması örneğini (apiVersion, error.code, error.message; 422 için isteğe bağlı error.fields) sözleşme dokümanına yaz; kernel-envelope--contract ile alan adı çakışmasını kontrol et",
+        "Kaldırma kuralı taslağı yaz: Deprecation ve Sunset başlıkları ile belge bağlantısı; destek süresi değeri karar bekler",
+        "ui-family-36 MVP istemcisinin bilinmeyen apiVersion veya error.code için genel hata durumuna düşmesini kabul ölçütü olarak yaz"
+      ],
+      "dependencies": [
+        "api-response--contract",
+        "rest-api--contract",
+        "kernel-envelope--contract",
+        "client-rule-parity--contract",
+        "ui-family-36--contract"
+      ],
+      "acceptance": "Eski istemci destek süresi içinde çalışır; kaldırılan sürüm Deprecation/Sunset ile duyurulur; hata yanıtları belgelenen şemayı izler",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 7,
+          "quote": "- None of the functions present here should be called from python code, their location and"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 41,
+          "quote": "method = method.split(\"/\")[0]  # for backward compatiblity"
+        },
+        {
+          "path": "suite/pyproject.toml",
+          "line": 45,
+          "quote": "frappe = \">=16.0.0,<18.0.0\""
+        }
+      ]
+    },
+    {
+      "requirementId": "integration-8",
+      "sourceStage": "mvp",
+      "existing": "Native izin reddi frappe.throw ile frappe.PermissionError üretir; HTTP kodu frappe.response.http_status_code ile atanabilir. Suite bir after_request hook'u tanımlıyor. SFU socket işleyicisi ham error.message döndürüyor; bu desen model alınmaz",
+      "gap": "Ürün hata gövdesi (code, message, alan hataları, correlationId) ve 403 dışındaki eşlemeler tanımsız; 401 ile 403 ayrımı belirtilmemiş; hata zarfının hangi uç/namespace üzerinde kurulacağı seçilmemiş; Suite after_request hook'unun hata yanıtlarına etkisi bilinmiyor; HTTP rate limiter ve uygulama hata işleyicisi verilen kesitte görülmedi",
+      "completionSteps": [
+        "Bu sözleşmenin tek davranışı olan PermissionError -> 403 eşlemesini önce tamamla (#/behavior)",
+        "Kalan satırları aday tabloya yaz: 409 çakışma, 422 doğrulama (error.fields), 429 hız sınırı (Retry-After), 500 beklenmeyen hata (genel ileti). Aday native sınıflar (ValidationError, TimestampMismatch/Duplicate, RateLimitExceeded) verilen kanıtta yoktur; hedef tabanda kaynakla doğrulanmadan kesin ad yazma",
+        "Her satırı ayrı davranış olarak kendi tek TDD senaryosuyla kabul et; bu sözleşmenin kapsamına toplu ekleme",
+        "401 satırını kimlik doğrulama kararına bırak; o karara kadar oturumsuz istek için native davranış değiştirilmez",
+        "Suite after_request hook'unun hata yanıtlarını değiştirip değiştirmediğini hedef tabanda kaynakla oku; etkiliyse bağlama sırasını entegrasyon sahibine not et",
+        "Tüm satırlar için ortak negatif assertion tanımla: gövdede yığın izi, istisna metni ve secret bulunmaz"
+      ],
+      "dependencies": [
+        "api-response--contract",
+        "api-middleware--contract",
+        "native-user-policy--contract",
+        "kernel-envelope--contract"
+      ],
+      "acceptance": "Altı hata senaryosu beklenen kod ve şemayı döner; yığın izi ve secret yanıt dışına çıkmaz",
+      "evidence": [
+        {
+          "path": "frappe/frappe/client.py",
+          "line": 177,
+          "quote": "frappe.throw(_(\"No permission for {0}\").format(_(doctype)), frappe.PermissionError)"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 73,
+          "quote": "frappe.response.http_status_code = 202"
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 340,
+          "quote": "after_request = \"suite.drive.api.product.after_request\""
+        },
+        {
+          "path": "suite/suite/meet/sfu-server/src/server/handlers/WebRtcTransportHandlers.ts",
+          "line": 56,
+          "quote": "callback({ success: false, error: (error as Error).message });"
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "integration-4: SPA rotalari icin 301/303/404/410 uretecek katman (Frappe website_redirects/route rules ya da ters vekil) secilmedi; mevcut 307 yonlendirmelerin 303 kuraliyla iliskisi acik degil",
-    "integration-4: bakim 503 kaynagi ve Retry-After basligi belirsiz. Proxy/edge karari ve uygulamasi icin teknik sahip Huseyin Cengiz; DNS gerekirse sahip Asistan Huseyin. Bu sozlesme hicbirini etkinlestirmez",
-    "integration-6: urun API surumu ile Frappe /api/v1-/api/v2 eslemesi, Deprecation/Sunset kurali ve destek suresi tanimsiz. v2 ic uygulamasinin degisebilecegi kaynakta yaziyor; v16 ile v17-dev farki dogrulanmadi",
-    "integration-8: ValidationError(422), cakisma(409), hiz siniri(429), 500 eslemeleri ve correlationId kaynagi tanimsiz; Frappe 17-dev sinif adlari verilen kanitta yok, bilinmiyor",
-    "integration-8: 401 ile 403 ayrimi Keycloak kararina bagli ve kapsam disi; yerelde misafir oturumunun hangi istisnayi urettigi bilinmiyor",
-    "Eslemeyi HTTP yanitina baglamak hooks.py gerektirir (forbiddenWrites); entegrasyon sahibine aittir. Suite after_request hook'unun hata yanitlarina etkisi bilinmiyor",
-    "SFU socket deseni ham error.message dondurdugu icin model alinmaz"
+    "integration-4: 301/303/404/410 üretecek katman seçilmedi; mevcut 307 yönlendirmelerin 303 kuralıyla ilişkisi açık değil",
+    "integration-4: bakım 503 kaynağı ve Retry-After başlığı belirsiz; bu sözleşme hiçbir proxy, edge veya DNS ayarını etkinleştirmez",
+    "integration-6: ürün hata şeması sürümü ile Frappe /api/v1-/api/v2 eşlemesi, Deprecation/Sunset kuralı ve destek süresi tanımsız; hedef sürümde v1/v2 farkı doğrulanmadı",
+    "integration-8: 409, 422, 429 ve 500 eşlemeleri ile correlationId kaynağı tanımsız; aday native sınıf adları doğrulanmadı",
+    "integration-8: 401 ile 403 ayrımı kimlik doğrulama kararına bağlıdır ve bu sözleşmenin kapsamı dışındadır",
+    "Eşlemenin HTTP yanıtına bağlanması paylaşılan hooks.py gerektirir ve ana entegrasyon sahibine aittir; Suite after_request hook'unun hata yanıtlarına etkisi bilinmiyor",
+    "ui-family-36 MVP tüketicisinin error.code -> ileti eşlemesi ve hata durumları tasarlanmadı; mvp.tsx yazılmadı"
+  ],
+  "decisionsPending": [
+    {
+      "decision": "SPA ve sayfa durum kodlarını üretecek katman: native Frappe website redirect/route kuralları, ters vekil/edge veya prerender",
+      "requirementIds": ["integration-4"],
+      "blockedStep": "301/404/410 kabul senaryolarının seçilen katmanda yazılması ve uygulanması",
+      "documentationStepUntilDecided": "Durum kodu -> örnek rota -> başlık tablosunu ve 307 envanterini katmandan bağımsız belge olarak hazırla"
+    },
+    {
+      "decision": "Bakım 503 yanıtının kaynağı ve Retry-After değerinin sahibi (teknik sahip Hüseyin Cengiz)",
+      "requirementIds": ["integration-4"],
+      "blockedStep": "Bakım modu kabul senaryosu ve başlık değerinin sabitlenmesi",
+      "documentationStepUntilDecided": "Bakım senaryosunu kod ve başlık adı düzeyinde tanımla; değer ve kaynak boş kalır"
+    },
+    {
+      "decision": "Hedef Frappe sürümü ve ürün sözleşmesinin dayanacağı Frappe uç sürümü (v1 veya v2)",
+      "requirementIds": ["integration-6"],
+      "blockedStep": "Sürüm tablosunun sabitlenmesi ve v1/v2 farklarının kaynakla doğrulanması",
+      "documentationStepUntilDecided": "Ürün hata şeması sürümünü Frappe uç sürümünden bağımsız tanımla; aday sürümleri yalnız listele"
+    },
+    {
+      "decision": "Kullanımdan kaldırma politikası: destek süresi ve duyuru kanalı",
+      "requirementIds": ["integration-6"],
+      "blockedStep": "Sunset tarihlerinin ve eski istemci destek kabulünün yazılması",
+      "documentationStepUntilDecided": "Deprecation/Sunset başlık kullanım kuralını süre değeri olmadan yaz"
+    },
+    {
+      "decision": "Ürün hata zarfının kurulacağı yer: Frappe /api/v1, /api/v2 veya ürün namespace'i",
+      "requirementIds": ["integration-6", "integration-8"],
+      "blockedStep": "Eşlemenin HTTP yanıtına bağlanması (hooks.py entegrasyonu)",
+      "documentationStepUntilDecided": "Saf eşleme fonksiyonunun girdi/çıktı sözleşmesini bağlama yerinden bağımsız tut"
+    },
+    {
+      "decision": "401 ile 403 ayrımını belirleyecek kimlik doğrulama kararı",
+      "requirementIds": ["integration-8"],
+      "blockedStep": "401 satırının eşleme tablosuna ve kabul senaryosuna eklenmesi",
+      "documentationStepUntilDecided": "403'ü native rol/kayıt izni reddi olarak tanımla; 401 satırını açık bırak"
+    },
+    {
+      "decision": "correlationId kaynağı ve hata gövdesinde gösterilip gösterilmeyeceği",
+      "requirementIds": ["integration-8"],
+      "blockedStep": "Gövdeye correlationId alanının eklenmesi",
+      "documentationStepUntilDecided": "Alanı isteğe bağlı aday olarak belgele; mevcut davranış gövdesine ekleme"
+    },
+    {
+      "decision": "Hız sınırı eşikleri ve kapsamı (kullanıcı, tenant, uç başına)",
+      "requirementIds": ["integration-8"],
+      "blockedStep": "429 kabul senaryosu ve Retry-After değeri",
+      "documentationStepUntilDecided": "429 gövde şeklini ve Retry-After başlığını eşik değeri olmadan tanımla"
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "integration-4": "mvp",
-    "integration-6": "mvp",
-    "integration-8": "mvp"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,

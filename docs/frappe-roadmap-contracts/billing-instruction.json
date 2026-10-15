@@ -1,0 +1,196 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "billing-instruction",
+  "canonicalTaskIds": ["billing-instruction--implementation"],
+  "requirementIds": ["finance-8"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "finance-8": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "İşletmeci finans kayıtlarını müşterinin ürün içi muhasebesinden ayırma",
+    "trigger": "İşletmeci bir tenant için BillingInstruction (işletmeci faturalama talimatı) oluşturur, günceller veya raporlar; ya da tenant kullanıcısı kendi muhasebe listelerini ve raporlarını açar.",
+    "expected": "İşletmeci faturalama kaydı yalnız işletmeci defterinin bulunduğu kapsamda kalıcılaşır (defterin yeri karar bekler). Tenant sitesindeki muhasebe kayıtlarına (ör. ERPNext kuruluysa Sales Invoice, Journal Entry, GL Entry) istemeden kayıt düşmez. İşletmeci finans rolleri tenant muhasebesini, tenant kullanıcıları işletmeci finans kayıtlarını ve raporlarını native DocType izinleri ve User Permission kapsamı dışında göremez.",
+    "denied": "Tenant kapsamlı kullanıcının BillingInstruction kaydına veya işletmeci raporlarına liste, rapor, get_doc ya da yazma isteği native izin kontrolüyle reddedilir ve reddedilen yazmada kayıt değişmeden kalır. reportview istemci parametresi olarak ignore_permissions kabul edilmez. Kapsam filtresi Permission Query Server Script, f-string ile kurulan SQL koşulu veya ham SQL ile kurulmaz."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Yeniden kullanılacak native parçalar: DocType rol izinleri, User Permission ile kayıt kapsamı, native insert/save/transaction ve reportview'ın istemciden gelen ignore_permissions parametresini reddetmesi. Cloud Settings kaynağı faturalama iş mantığının site dışında (Central) tutulduğu ve erişimin System Manager rolüyle sınırlandığı bir deseni gösterir; bu, işletmeci defteri ile tenant muhasebesi için hazır bir ayrıştırma politikası değildir ve Frappe Cloud'a özgü olabilir. Kanıtlar yalnız parça varlığını gösterir, bütün davranışın var olduğunu göstermez. Aranan yollar listesi kapsamlı bir yokluk taraması değildir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/integrations/frappe_providers/cloud_billing.py",
+        "line": 4,
+        "quote": "credential. Formatting and business logic live in Central."
+      },
+      {
+        "path": "frappe/frappe/integrations/frappe_providers/cloud_settings.py",
+        "line": 12,
+        "quote": "CLOUD_SETTINGS_ROLE = \"System Manager\""
+      },
+      {
+        "path": "frappe/frappe/desk/reportview.py",
+        "line": 25,
+        "quote": "DISALLOWED_PARAMS = (\"cmd\", \"data\", \"ignore_permissions\", \"view\", \"user\", \"csrf_token\", \"join\")"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/core/doctype/server_script/server_script.js",
+      "frappe/frappe/desk/reportview.py",
+      "frappe/frappe/integrations/frappe_providers/cloud_billing.py",
+      "frappe/frappe/integrations/frappe_providers/cloud_settings.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/billing-instruction.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/commercial/doctype/billing_instruction/billing_instruction.py"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "BillingInstruction kaydı (alanları billing-instruction--schema tanımlar; bu sözleşme alan eklemez), işlemi yapan kullanıcının oturumu, tenant kapsamı (tenant-registry--contract) ve kernel zarfı (kernel-envelope--contract).",
+    "output": "Kaydın yalnız işletmeci defteri kapsamında kalıcılaşması; audit kaydı audit-envelope--contract ile, işletmeci dışı sistemlere iletim gerekiyorsa outbox-contract ile. Tenant muhasebesine yazan bir akış bu sözleşmede tanımlanmaz; ileride gerekirse ayrı, açık bir kararla ve tenant tarafının kendi native izinleriyle tanımlanır.",
+    "authorization": "Yalnız native DocType izinleri ve User Permission. Roller ve izin bayrakları explicitPermissionFlags ortak kaynağına (native-user-policy--contract) bağlanır; bu sözleşme yeni bayrak veya rol adı tanımlamaz. ignore_permissions, Permission Query Server Script, f-string SQL koşulu ve ham SQL ile yetki atlama yasaktır. İşletmeci finans yetkisi ile tenant muhasebe yetkisi aynı kapsamda örtük olarak birleştirilmez.",
+    "persistence": "Native Document insert/save, validate/on_submit hook'ları ve istek transaction'ı yeniden kullanılır; hooks.py değişikliği yalnız kabul edilmiş gelecekteki görevde yapılır. Defterin yeri (Central, ayrı ERPNext sitesi veya harici sistem) karar bekler; karar gelmeden şema, site veya veri değişikliği yapılmaz.",
+    "failure": "İzin reddi PermissionError ile döner ve kayıt değişmez. Tenant kapsamı çözülemezse işlem reddedilir ve transaction geri alınır, kısmi kayıt kalmaz. Outbox iletimi başarısız olursa işletmeci kaydı yedek yol olarak tenant muhasebesine yazılmaz; hata audit zarfında görünür kalır."
+  },
+  "development": {
+    "dependencies": [
+      "audit-envelope--contract",
+      "billing-instruction--contract",
+      "billing-instruction--schema",
+      "capability-definition--contract",
+      "kernel-envelope--contract",
+      "native-user-policy--contract",
+      "outbox--contract",
+      "tenant-registry--contract"
+    ],
+    "admission": {
+      "prerequisites": [
+        "T-00 hedef sürüm temeli ve R-00 yeniden kullanım eşlemesi tamamlanmış olmalı.",
+        "İzinli veri tüketicisi olduğu için R-01 de uygulanır.",
+        "development.dependencies içindeki sözleşme ve şema görevleri kabul edilmiş olmalı.",
+        "decisionsPending içindeki işletmeci defteri yeri kararı verilmiş olmalı.",
+        "Tek dar davranış için gerçek RED/GREEN kanıtı üretilecek şekilde kapsam sabitlenmeli."
+      ],
+      "orderAuthority": "Mevcut görev bağımlılıkları ve post_mvp aşaması; küme sırası yalnız sunumdur, yeni seri bağımlılık zinciri değildir."
+    },
+    "steps": [
+      "Uygulama durumu: uygulanmadı. Bu turda yalnız belge; üretim, test, şema veya servis değişikliği yok.",
+      "billing-instruction--contract içinde finance-8 kabulünü ayrı bir alt kabul olarak yaz: işletmeci faturası tenant muhasebesine istemeden yazılmaz; çapraz rapor ve kayıt erişimi reddedilir.",
+      "İşletmeci defteri yeri kararı gelince BillingInstruction'ın hangi sitede yaşadığını ve tenant sitesine hiçbir muhasebe DocType'ı yazmadığını sözleşmeye işle.",
+      "İzin matrisini yaz: satırlar işletmeci finans ve tenant muhasebe kapsamları, sütunlar BillingInstruction, işletmeci raporları ve (varsa) tenant ERPNext muhasebe DocType'ları; hücreler okuma, yazma, rapor ve dışa aktarma. Rol ve bayraklar explicitPermissionFlags kaynağından gelir.",
+      "Kayıt kapsamını User Permission ile tanımla (tenant bağlantı alanı ve ERPNext kuruluysa Company); Permission Query Server Script veya SQL koşulu yazma.",
+      "Rapor yollarını (liste, reportview, Query/Script Report, dışa aktarma) matrise bağla ve ignore_permissions içeren istemci isteğinin reddedildiğini kabul ölçütüne ekle.",
+      "Audit ve outbox bağlantılarını ilgili sözleşmelere referansla yaz; ayrı bir motor, ORM veya CRUD katmanı tasarlama.",
+      "Teknik CI, deploy ve rollback adımlarının sahibi olarak Hüseyin Cengiz'i belirt; bu sözleşme hiçbir ortamda değişiklik yetkisi vermez."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "İşletmeci finans kapsamı olmayan, yalnız kendi tenant'ı için User Permission'a sahip bir kullanıcı, BillingInstruction kaydını güncellemeye çalışır; istek PermissionError ile reddedilir ve kaydın alanları ile modified değeri değişmeden kalır.",
+      "red": "İzin matrisi ve User Permission kapsamı eklenmeden önce, tenant kullanıcısına verilen genel rol nedeniyle güncelleme kabul edilir ve kayıt değişir; test bu kabul nedeniyle başarısız olur. RED, import veya kurulum hatası değildir ve native izin davranışını bozarak üretilmez.",
+      "green": "Rol izinleri explicitPermissionFlags kaynağına göre ve kayıt kapsamı User Permission ile tanımlandığında aynı güncelleme native izin kontrolüyle reddedilir; kayıt değişmez. ignore_permissions, Server Script veya SQL kullanılmaz."
+    },
+    "rollback": "Bu turda geri alınacak üretim değişikliği yoktur. Gelecekte izin satırları ve User Permission kayıtları geri alınırsa önce yazma yolu kapatılır, sonra izin değişikliği geri alınır; işletmeci kayıtları tenant muhasebesine taşınmaz. Teknik geri alma sahibi Hüseyin Cengiz'dir."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "finance-8",
+      "sourceStage": "post_mvp",
+      "existing": "Native parçalar: site başına veritabanı ayrımı (Frappe site oluşturma belgesi; bu turda satır kanıtı yok), DocType rol izinleri, User Permission ve reportview'ın ignore_permissions parametresini istemciden kabul etmemesi. Cloud billing kaynağı iş mantığını Central'da tutan ve erişimi System Manager rolüyle sınırlayan bir desen gösterir.",
+      "gap": "Hazır ayrıştırma politikası yok. İşletmeci defterinin yeri belirsiz; tenant sitesinde ERPNext kurulursa company/site sınırı ve rapor izin matrisi tanımsız; cloud billing'in Frappe Cloud'a özgü olup olmadığı ve işletmeci kimliğinin nasıl eşleneceği belirsiz; paylaşılan billing-instruction görevi içinde bu maddenin kabulü ayrılmamış. Server Script belgesindeki f-string ile SQL koşulu kuran örnek kestirme yol olarak kabul edilmez.",
+      "completionSteps": [
+        "billing-instruction--contract içinde finance-8 için ayrı kabul ölçütü yaz.",
+        "İşletmeci defteri yeri kararından sonra BillingInstruction'ın tenant sitesi dışında tutulup tutulmayacağını sözleşmeye işle.",
+        "İzin matrisini explicitPermissionFlags kaynağına bağlayarak yaz; okuma, yazma, rapor ve dışa aktarma ayrı hücreler.",
+        "Kayıt kapsamını User Permission ile tanımla; Permission Query Server Script ve ham SQL kullanma.",
+        "Tek RED/GREEN senaryosunu development.tdd'ye göre kabul edilmiş görevde uygula."
+      ],
+      "dependencies": [
+        "billing-instruction--contract",
+        "billing-instruction--schema",
+        "native-user-policy--contract",
+        "tenant-registry--contract",
+        "audit-envelope--contract",
+        "outbox--contract"
+      ],
+      "acceptance": "İşletmeci faturası tenant muhasebesine istemeden yazılmaz; tenant kullanıcısının işletmeci kaydına ve raporuna erişimi, işletmeci finans rolünün tenant muhasebesine erişimi native izinlerle reddedilir; reddedilen yazmada kayıt değişmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/integrations/frappe_providers/cloud_billing.py",
+          "line": 4,
+          "quote": "credential. Formatting and business logic live in Central."
+        },
+        {
+          "path": "frappe/frappe/integrations/frappe_providers/cloud_settings.py",
+          "line": 12,
+          "quote": "CLOUD_SETTINGS_ROLE = \"System Manager\""
+        },
+        {
+          "path": "frappe/frappe/desk/reportview.py",
+          "line": 25,
+          "quote": "DISALLOWED_PARAMS = (\"cmd\", \"data\", \"ignore_permissions\", \"view\", \"user\", \"csrf_token\", \"join\")"
+        },
+        {
+          "path": "frappe/frappe/core/doctype/server_script/server_script.js",
+          "line": 125,
+          "quote": "conditions = f'tenant_id = {tenant_id}'"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Uygulama durumu: uygulanmadı; ayrıştırma politikası, izin matrisi ve User Permission kapsamı yazılmadı.",
+    "İşletmeci defterinin yeri belirlenmedi.",
+    "Tenant sitesinde ERPNext kurulursa company/site sınırı ve rapor izin matrisi tanımlı değil.",
+    "Cloud billing deseninin Frappe Cloud dışında geçerliliği ve işletmeci kimlik eşlemesi belirsiz.",
+    "Kaynak kanıtları önceki salt okunur kaynak anlık görüntülerinden alındı; canlı site veya ürün kabulü yok."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "İşletmeci defterinin yeri: Central, ayrı ERPNext sitesi veya harici sistem.",
+      "requirementIds": ["finance-8"],
+      "blocks": "BillingInstruction'ın yaşadığı sitenin sabitlenmesi, izin matrisinin satır/sütunları ve development.tdd senaryosunun uygulanması.",
+      "docStepUntilDecided": "Üç seçenek için ayrı izin matrisi taslağı ve her birinde tenant muhasebesine yazım olmadığını gösteren kabul cümlesi yaz."
+    },
+    {
+      "decision": "Tenant sitesinde ERPNext kurulup kurulmayacağı ve company/site sınırı (tenant topolojisi).",
+      "requirementIds": ["finance-8"],
+      "blocks": "Tenant muhasebe DocType'larının matrise eklenmesi ve Company bazlı User Permission kapsamı.",
+      "docStepUntilDecided": "Matrisi 'ERPNext yok' ve 'ERPNext var' durumları için iki sütun grubu olarak hazırla."
+    },
+    {
+      "decision": "Cloud billing deseninin kullanılıp kullanılmayacağı ve işletmeci kimliğinin tenant kullanıcılarından nasıl ayrılıp eşleneceği.",
+      "requirementIds": ["finance-8"],
+      "blocks": "Faturalama iş mantığının sahip olduğu kapsamın ve işletmeci rollerinin bağlanması.",
+      "docStepUntilDecided": "Kaynak deseni yalnız referans olarak not et; kimlik eşleme ihtiyacını finance-8 kapsamında kaydet, başka maddeleri kapsama ekleme."
+    },
+    {
+      "decision": "Hedef Frappe/ERPNext sürümü (T-00).",
+      "requirementIds": ["finance-8"],
+      "blocks": "Kanıt satırlarının hedef sürümde yeniden doğrulanması ve kabul.",
+      "docStepUntilDecided": "Kanıtları anlık görüntü kanıtı olarak işaretli tut; sürüm doğrulaması gerektiğini not et."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

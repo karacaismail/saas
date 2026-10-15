@@ -1,0 +1,175 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "edge-delivery",
+  "canonicalTaskIds": ["edge-delivery--implementation"],
+  "requirementIds": ["performance-7"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "performance-7": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Uç teslimde public asset ile kimlikli yanıtın önbellek ayrımı. Uygulama durumu: uygulanmadı.",
+    "trigger": "Tarayıcı, Vite/PWA service worker, Tauri2 webview veya WXT/MV3 eklentisi Frappe backend'e kullanıcıdan bağımsız bir build asset'i ya da oturum veya token ile kimliklendirilmiş bir API/medya isteği gönderir; istek reverse proxy katmanından ve ileride karar verilirse CDN katmanından geçer.",
+    "expected": "Kullanıcıdan bağımsız, içerik sürümlü public asset paylaşılan önbellekte tutulur ve sıkıştırılmış sunulur. Kimlikli API yanıtı ve özel medya Cache-Control: private veya no-store ile döner, paylaşılan önbelleğe yazılmaz ve başka kullanıcıya cache hit olarak sunulmaz. İstemci yüzeylerinde kullanıcıya özel cache'ler oturum kapanışında temizlenir; public bundle cache'i korunabilir.",
+    "denied": "Kimlikli yanıtın paylaşılan önbellekten başka kullanıcıya veya oturumsuz isteğe sunulması reddedilir: paylaşılan katman isteği origin'e iletir, native Frappe oturum ve izin kontrolü uygulanır, yetkisiz istek native hata yanıtını alır ve bu hata yanıtı da paylaşılan önbelleğe yazılmaz."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native parçalar: Frappe çekirdeğinde client.py, frappe.utils.caching içindeki http_cache yardımcısını içe aktarıyor; Suite pyproject.toml bench assets bölümünde frontend build dizinini tanımlıyor; Suite Slides cache yardımcısı public bundle dışındaki cache'leri kullanıcıya özel liste olarak ayırıyor. Bu parçalar bütün davranışın var olduğunu göstermez: http_cache'in imzası, ürettiği başlıklar ve kimlikli istekteki davranışı bu alıntılarla doğrulanmadı; reverse proxy/CDN yapılandırması sağlanan alıntılarda yok. Slides kaynağı Vue/Frappe UI'dır; React/Ant Design yüzeyleri için yalnız desen referansıdır, uygulama kanıtı değildir. Aranan yollar sınırlıdır; bulunmayan proxy/CDN yapılandırması için kapsamlı yokluk iddiası değildir.",
+    "evidence": [
+      {
+        "path": "suite/frontend/src/apps/slides/utils/slidesCaches.js",
+        "line": 16,
+        "quote": "// everything but the bundle, which is public and identical for every user"
+      },
+      {
+        "path": "suite/frontend/src/apps/slides/utils/slidesCaches.js",
+        "line": 17,
+        "quote": "export const USER_CACHE_NAMES = ["
+      },
+      {
+        "path": "frappe/frappe/client.py",
+        "line": 13,
+        "quote": "from frappe.utils.caching import http_cache"
+      },
+      {
+        "path": "suite/pyproject.toml",
+        "line": 95,
+        "quote": "build_dir = \"./frontend\""
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/client.py",
+      "suite/frontend/src/apps/slides/utils/slidesCaches.js",
+      "suite/pyproject.toml"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/edge-delivery.json",
+    "plannedProduction": [
+      "operations/edge-delivery/edge_delivery_post_mvp.yml"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "İstek sınıfları: (a) kullanıcıdan bağımsız build asset (React/Vite build çıktısı; Suite'te bench assets çıktısı yalnız referans), (b) kimlikli Frappe API yanıtı, (c) özel ve genel dosya/medya, (d) istemci tarafı cache'ler (Vite/PWA service worker, Tauri2 webview depolaması, WXT/MV3 eklenti depolaması). Sınıflandırma girdisi istek yolu, kimlik bilgisinin varlığı (oturum cookie'si veya Authorization başlığı) ve kaynak sınıfıdır.",
+    "output": "Sınıf başına başlık ve cache tablosu: public asset için içerik hash'li adla public önbellek ve sıkıştırma; kimlikli API için Cache-Control: private, no-store ve kimliğe bağlı içerikte Vary (Cookie, Authorization); paylaşılan katmanın kimlikli isteği hiç saklamaması kuralı Vary'ye güvenmekten önceliklidir; özel medya için paylaşılan cache yok; genel medya için CDN kararı sonrasında public cache. Süre değerleri ve sıkıştırma algoritması karar bekler. İstemci logout'ta kullanıcıya özel cache listesi temizlenir.",
+    "authorization": "Yetki yalnız native Frappe oturum, DocType ve dosya izinleriyle belirlenir; edge katmanı yetki kararı vermez ve yetkili yanıtı paylaşılan önbellekten sunarak native kontrolü atlamaz. ignore_permissions, SQL ile izin bypass veya kimlik başlığını yok sayan cache anahtarı yasaktır. Bu rehber rol veya izin üretmez; üretmesi gerekirse explicitPermissionFlags ortak kaynağına bağlanır ve kendi kabulünde reddedilen yazma ile değişmeyen kayıt kanıtı bulunur.",
+    "persistence": "Şema, DocType veya veri değişikliği yok. Kalıcı çıktı yalnız sürümlü yapılandırma önerisi (operations/edge-delivery/edge_delivery_post_mvp.yml) ve istemci cache temizleme kuralıdır. Paylaşılan önbellekte kimlikli içerik kalıcılaştırılmaz.",
+    "failure": "Proxy/CDN cache katmanı devre dışı kalırsa istek origin'e gider; etkisi yalnız performans kaybıdır. Kimlikli yanıtta cache hit tespit edilirse kural Hüseyin Cengiz tarafından geri alınır ve paylaşılan cache purge edilir. İstemci logout temizliği başarısız olursa kullanıcıya özel cache sonraki oturumda farklı kimlikle okunmaz ve temizlenir; public bundle cache'i bu hatadan etkilenmez."
+  },
+  "development": {
+    "dependencies": ["edge-delivery--contract"],
+    "admission": "Uygulama durumu: uygulanmadı. Önkoşullar: T-00 hedef sürüm tabanı (Frappe, reverse proxy ve istemci yüzeyi sürümleri); R-00 yeniden kullanım eşlemesi (http_cache ve bench assets davranışının hedef sürümde kaynaktan okunması); izinli veri tüketen adımlar için R-01; edge-delivery--contract bağımlılığının tamamlanması; tek dar davranış için gerçek RED/GREEN kanıtı. Proxy, CDN, CI ve deploy değişikliği yalnız Hüseyin Cengiz'in onayı ve yürütmesiyle yapılır; bu sözleşme servis, production, şema veya veri değiştirme yetkisi vermez.",
+    "steps": [
+      "Hedef Frappe sürümünde frappe.utils.caching.http_cache tanımını oku; imzasını, ürettiği başlıkları ve kimlikli istekteki davranışını belgeye işle; okunmadan imza veya davranış varsayma.",
+      "Kaynak sınıfı tablosunu (public asset, kimlikli API, özel medya, genel medya) planlanan operations/edge-delivery/edge_delivery_post_mvp.yml önerisinde belge olarak yaz; süre değerleri karar gelene kadar yer tutucu kalır.",
+      "Hüseyin Cengiz'e teknik devir: kimlik bilgisi taşıyan isteği paylaşılan cache'e yazmama, kimlikli yanıtta private/no-store başlığını koruma veya ekleme, public asset için sıkıştırma kuralı; kabul ölçütü tek senaryodaki cache miss ve başlık kanıtıdır.",
+      "İstemci yüzeyleri için logout temizleme ölçütü: Slides USER_CACHE_NAMES deseni referans alınarak React web PWA service worker, Tauri2 ve WXT/MV3 için kullanıcıya özel depolama listesi çıkarılır; public bundle listeden hariç tutulur.",
+      "Drive medya dağıtımı için özel dosyanın paylaşılan cache dışında kaldığı, genel medyanın yalnız CDN kararından sonra uç cache'e alındığı sınırı yaz; nesne depolama satıcısı karar bekler.",
+      "CDN devreye girme eşiğinin ölçüm yöntemini (medya hacmi ve trafik metriği) belgele; sayısal eşik ve satıcı kararı Hüseyin Cengiz'e devredilir. DNS kaydı gerekirse Hüseyin Cengiz kayıt türü/adı/değerini hazırlar, Asistan Hüseyin GoDaddy'de uygular, Hüseyin Cengiz sonucu doğrular."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Kullanıcı A ile alınan kimlikli Frappe API yanıtı paylaşılan uç önbellekte saklanmaz; aynı URL'ye kullanıcı B veya oturumsuz istek A'nın yanıtını cache hit olarak almaz ve native izin kontrolünden geçer.",
+      "red": "Gelecekteki test, kural eklenmeden önce beklenti hatasıyla kırmızı olmalıdır: kimlikli yanıtta private/no-store eksikliği veya B isteğinde paylaşılan cache hit. Import/altyapı hatası veya native Frappe davranışını bozmak RED sayılmaz. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "Yalnız edge kuralı/başlığı eklendikten sonra aynı test geçer: kimlikli yanıtta private/no-store, B isteğinde cache miss ve native izin sonucu; public asset isteğinde cache ve sıkıştırma korunur."
+    },
+    "rollback": "Hüseyin Cengiz önceki sürümlü proxy/CDN yapılandırmasına döner ve paylaşılan cache'i purge eder; şema veya veri değişikliği olmadığından veri geri alma gerekmez. İstemci temizleme değişikliği önceki istemci sürümüne dönülerek geri alınır; public bundle cache'i etkilenmez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "performance-7",
+      "sourceStage": "post_mvp",
+      "existing": "Native parçalar: Frappe client.py içinde http_cache içe aktarımı; Suite pyproject.toml bench assets build_dir tanımı; Slides cache yardımcısında public bundle dışındaki cache'lerin kullanıcıya özel liste olarak ayrılması. Mevcut talimat kaynağı data/clusters/12.json satır 363 (/groups/1/items/6): destek external, eylem integrate, sahip Frontend ve DevOps ekibi; kabul notu genel asset'in cache/compress edilmesi ve özel yanıtın başka kullanıcıya cache üzerinden sızmamasıdır. Reverse proxy/CDN yapılandırması sağlanan alıntılarda yok.",
+      "gap": "CDN devreye girme koşulu sayısal değil; kimlikli yanıtlar için Cache-Control: private/no-store ve Vary kuralı yazılmamış; PWA/Tauri2/WXT ve service worker kullanıcı cache'lerinin oturum kapanışında temizlenme kuralı yok; Drive medya dağıtımı (S3/boto3) ile uç cache sınırı tanımsız; http_cache davranışı hedef sürümde doğrulanmadı.",
+      "completionSteps": [
+        "Kimlikli yanıt kuralı: kimlik bilgisi taşıyan her Frappe API yanıtı için Cache-Control: private, no-store; kimliğe bağlı içerikte Vary: Cookie, Authorization; paylaşılan katmanda kimlikli isteğin saklanmaması kuralını sözleşme tablosuna yaz.",
+        "Public asset kuralı: içerik hash'li build çıktısı için public cache ve sıkıştırma; süre değeri saklama süresi kararına bağlanır.",
+        "Logout temizleme ölçütü: Slides USER_CACHE_NAMES desenini referans alıp her istemci yüzeyi için kullanıcıya özel cache/depolama adlarını listele ve logout'ta temizlenmesini kabul ölçütü yap; public bundle hariç.",
+        "Medya sınırı: özel dosya paylaşılan cache dışı; genel medya yalnız CDN ve nesne depolama kararlarından sonra uç cache'e alınır.",
+        "CDN eşiği: ölçüm metriğini ve yöntemini belgele; sayısal eşik ve satıcı kararını Hüseyin Cengiz'e devret.",
+        "http_cache: hedef sürümde kaynağı okuyup kimlikli istekte kullanılıp kullanılmayacağını R-00 eşlemesine yaz."
+      ],
+      "dependencies": ["edge-delivery--contract"],
+      "acceptance": "Genel asset cache'lenir ve sıkıştırılır; kullanıcı A'nın kimlikli yanıtı kullanıcı B'ye veya oturumsuz isteğe paylaşılan cache üzerinden sunulmaz; logout sonrası kullanıcıya özel istemci cache'leri boştur, public bundle korunur. Kanıt gelecekteki tek RED/GREEN senaryosundan ve başlık/cache durumu kaydından gelir; bu tur runtime kabulü yoktur.",
+      "evidence": [
+        {
+          "path": "suite/frontend/src/apps/slides/utils/slidesCaches.js",
+          "line": 16,
+          "quote": "// everything but the bundle, which is public and identical for every user"
+        },
+        {
+          "path": "suite/frontend/src/apps/slides/utils/slidesCaches.js",
+          "line": 17,
+          "quote": "export const USER_CACHE_NAMES = ["
+        },
+        {
+          "path": "frappe/frappe/client.py",
+          "line": 13,
+          "quote": "from frappe.utils.caching import http_cache"
+        },
+        {
+          "path": "suite/pyproject.toml",
+          "line": 95,
+          "quote": "build_dir = \"./frontend\""
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "CDN devreye girme koşulu (medya hacmi eşiği) sayısal değil.",
+    "Kimlikli yanıtlar için Cache-Control: private/no-store ve Vary kuralı yazılmamış.",
+    "PWA/Tauri2/WXT ve service worker kullanıcı cache'lerinin oturum kapanışında temizlenme kuralı yok.",
+    "Drive medya dağıtımı (S3/boto3) ile uç cache sınırı tanımsız.",
+    "http_cache imzası ve kimlikli istekteki davranışı hedef sürümde doğrulanmadı.",
+    "Reverse proxy/CDN yapılandırması sağlanan kaynak alıntılarında yok."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "CDN sağlayıcısı ve CDN'in devreye gireceği sayısal medya hacmi/trafik eşiği.",
+      "requirementIds": ["performance-7"],
+      "blocks": "CDN yapılandırması, genel medyanın uç cache'e alınması ve gerekirse DNS kaydı.",
+      "interimDocStep": "Eşik ölçüm metriğini ve yöntemini belgele; reverse proxy düzeyindeki başlık kuralını CDN'den bağımsız yaz."
+    },
+    {
+      "decision": "Drive medyası için S3 uyumlu nesne depolama satıcısı ve veri yerleşimi.",
+      "requirementIds": ["performance-7"],
+      "blocks": "Medya dağıtımı ile uç cache sınırının somut yapılandırması.",
+      "interimDocStep": "Özel dosyanın paylaşılan cache dışında kaldığı sınırı satıcıdan bağımsız kural olarak yaz."
+    },
+    {
+      "decision": "Public asset ve genel medya için önbellek saklama süreleri.",
+      "requirementIds": ["performance-7"],
+      "blocks": "Cache-Control süre değerlerinin yapılandırmaya yazılması.",
+      "interimDocStep": "Süre alanlarını yer tutucu bırak; içerik hash'li adlandırma şartını yaz."
+    },
+    {
+      "decision": "Frappe, reverse proxy ve istemci yüzeyleri için hedef sürüm tabanı (T-00) ve buna bağlı sıkıştırma algoritması.",
+      "requirementIds": ["performance-7"],
+      "blocks": "http_cache davranışının doğrulanması ve sıkıştırma kuralının seçimi.",
+      "interimDocStep": "Okunacak kaynak noktalarını ve doğrulama sorularını R-00 eşlemesine listele."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

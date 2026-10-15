@@ -4,15 +4,21 @@
   "canonicalTaskIds": ["ci-pipeline--implementation"],
   "requirementIds": ["releases-1", "releases-2"],
   "stage": "mvp",
+  "sourceStages": {
+    "releases-1": "mvp",
+    "releases-2": "mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
-    "title": "Başarısız kontrol, artifact işini engeller ve kabul edilen revizyon kaydedilir",
-    "trigger": "Pipeline yalnız elle tetiklenir (workflow_dispatch). Girdi olarak sabit frappe_ref ve suite_ref alır.",
-    "expected": "checks işi sırayla şunları çalıştırır: ruff check, bench run-tests --app suite ve --skip-failing olmadan bench migrate. Hepsi başarılı olursa artifact işi çalışır. artifact işi, frappe_ref ve suite_ref değerlerini job output ve imaj etiketi olarak kaydeder. Push yapılmaz.",
-    "denied": "checks içindeki herhangi bir adım sıfır olmayan kodla çıkarsa artifact işi atlanır ve revizyon kaydı oluşmaz. Pipeline'da --skip-failing kullanılamaz; push veya deploy adımı yoktur."
+    "title": "Başarısız kontrol, artifact işini engeller ve yalnız kabul edilen revizyon kaydedilir",
+    "trigger": "Pipeline yalnız elle tetiklenir (workflow_dispatch). Girdi olarak sabit frappe_ref ve suite_ref alır. schedule veya push tetikleyicisi yoktur.",
+    "expected": "checks işi sırayla şunları çalıştırır: ruff check, geçici test sitesinde bench run-tests --app suite ve --skip-failing olmadan bench migrate. Hepsi başarılı olursa artifact işi çalışır ve frappe_ref ile suite_ref değerlerini job output ve imaj etiketi olarak kaydeder. İmaj push edilmez, deploy yapılmaz.",
+    "denied": "checks içindeki herhangi bir adım sıfır olmayan kodla çıkarsa artifact işi atlanır ve revizyon kaydı oluşmaz; yazma reddedilir, kayıt değişmez. Pipeline'da --skip-failing kullanılamaz. Push, registry yazımı veya deploy adımı yoktur."
   },
   "reuse": {
-    "mechanism": "Yerel kaynak önce kullanılır, yeni adapter yazılmaz. Upstream Suite iş akışı deseni (bench get-app, en az yetki, sha etiketi) yeniden kullanılır. Frappe patch_handler zaten skip_failing kapalıyken durur. Kontrol listesi Suite içindeki mevcut ruff yapılandırmasıdır. Bu tasarım bir CI barındırıcısı veya vendor seçmez; dosya, mevcut upstream sözdizimini kullanan dormant bir şablondur.",
+    "status": "partial_source",
+    "mechanism": "Önce native ve upstream kaynak kullanılır; yeni adapter, motor veya DocType yazılmaz. Upstream Suite iş akışı deseni (bench get-app, en az yetki, sha etiketi) şablon olarak yeniden kullanılır. Frappe patch_handler, skip_failing kapalıyken başarısız patch'te durur ve never_skip_patches hook'unu okur. Kontrol listesi Suite içindeki mevcut ruff yapılandırmasıdır. Frappe Webhook (send_webhook_request), dağıtım sonucu bildirimi için ileride kullanılabilecek native bir adaydır; bu davranışta kullanılmaz. Kanıtlar yalnız upstream Frappe/Suite kaynak parçalarını gösterir; bütün davranışın var olduğunu göstermez ve ürün uygulaması kanıtı değildir. Aranan yollar listesi kapsamlı bir yokluk taraması değildir. Bu tasarım CI barındırıcısı veya vendor seçmez; dosya, upstream sözdizimini kullanan ve etkin olmayan bir şablondur.",
     "evidence": [
       {
         "path": "suite/.github/workflows/suite-ci.yml",
@@ -21,8 +27,28 @@
       },
       {
         "path": "suite/.github/workflows/meet-sfu-build.yml",
+        "line": 19,
+        "quote": "  REGISTRY: ghcr.io"
+      },
+      {
+        "path": "suite/.github/workflows/meet-sfu-build.yml",
         "line": 27,
         "quote": "      packages: write"
+      },
+      {
+        "path": "frappe/frappe/integrations/doctype/webhook/webhook.py",
+        "line": 173,
+        "quote": "\t\tres = send_webhook_request(webhook.request_method, request_url, headers, data, webhook.timeout)"
+      },
+      {
+        "path": "suite/pyproject.toml",
+        "line": 35,
+        "quote": "[deploy.dependencies.apt]"
+      },
+      {
+        "path": "suite/pyproject.toml",
+        "line": 88,
+        "quote": "    # standalone services, each deployed and run outside the Frappe site"
       },
       {
         "path": "frappe/frappe/modules/patch_handler.py",
@@ -39,61 +65,191 @@
         "line": 47,
         "quote": "[tool.ruff]"
       }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/integrations/doctype/webhook/webhook.py",
+      "frappe/frappe/modules/patch_handler.py",
+      "suite/.github/workflows/meet-sfu-build.yml",
+      "suite/.github/workflows/suite-ci.yml",
+      "suite/pyproject.toml"
     ]
   },
   "ownership": {
     "activeContractFile": "docs/frappe-roadmap-contracts/ci-pipeline.json",
     "plannedProduction": ["operations/ci-pipeline/ci_pipeline_mvp.yml"],
-    "plannedTestFile": "operations/ci-pipeline/tests/test_ci_pipeline_mvp_gate.py",
+    "plannedTestFile": null,
     "sharedIntegrationFiles": [
-      "integration/fragments/ci-pipeline--integration.json"
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "frappe_ref: zorunlu, 40 karakter hex; yerel pilotta adf1fd0c2d6215ad4cac9976251198b2a35fbda6. suite_ref: zorunlu, 40 karakter hex; şu an bilinmiyor, bu yüzden boş değer reddedilir. Dal adı veya latest kabul edilmez. Secret içeren girdi yoktur.",
-    "output": "checks.result (success veya failure). artifact.outputs: frappe_ref, suite_ref, image_tag; image_tag kısa sha'dan üretilir. Sürüm şeması: ci-pipeline.v1.",
-    "authorization": "Pipeline düzeyinde permissions yalnız contents: read olur; packages: write bu davranışta verilmez. Migrate yalnız CI içinde geçici olarak oluşturulan test sitesinde çalışır. Müşteri verisine, production sitesine veya registry'ye erişim yoktur. Secret değeri dosyaya yazılmaz.",
-    "persistence": "Frappe migrate, patch'leri native olarak çalıştırır ve sonucu Patch Log'a yazar. Başarısız patch PatchError ile durur. Geçici test sitesi iş bitince atılır. DDL geri alınabilirliği garanti edilmez; staging kopyası kapsam dışıdır.",
-    "failure": "Şu durumların her biri job failure sayılır: ruff'ın sıfır olmayan çıkışı, run-tests'in sıfır olmayan çıkışı, migrate'te PatchError veya 'STOPPED' çıktısı. Bu durumda artifact işi needs: checks nedeniyle skipped olur. suite_ref eksik veya geçersizse input doğrulama adımı checks çalışmadan başarısız olur. Altyapı hataları (runner, DB servisi, bench init) ayrı adım adıyla raporlanır; kapı sonucu sayılmaz."
+    "input": "frappe_ref: zorunlu, 40 karakterlik hex commit. Varsayılan değeri yoktur; hedef revizyon kararıyla (decisionsPending) sağlanır. suite_ref: zorunlu, 40 karakterlik hex commit. Suite commit'i bilinmediği için boş veya eksik değer reddedilir. Dal adı, etiket adı veya latest kabul edilmez. Secret içeren girdi yoktur.",
+    "output": "checks.result: success veya failure. artifact.outputs: frappe_ref, suite_ref, image_tag. image_tag iki ref'in kısa sha değerinden türetilir. Çıktı sürüm şeması: ci-pipeline.v1. checks başarısızsa artifact.outputs üretilmez.",
+    "authorization": "Pipeline düzeyinde permissions yalnız contents: read olur. packages: write bu davranışta verilmez; upstream meet-*-build.yml dosyalarındaki packages: write yalnız push yapan işlere aittir ve buraya taşınmaz. Migrate yalnız CI içinde geçici olarak oluşturulan test sitesinde çalışır. Müşteri verisine, production sitesine veya registry'ye erişim yoktur. Frappe tarafında rol, DocPerm, ignore_permissions veya SQL ile yetki atlama yoktur. Bu rehber Frappe rolü üretmediği için explicitPermissionFlags kaynağına rol eklemez. Servis hesabı ve secret kurulumu Hüseyin Cengiz'e aittir; secret değeri dosyaya, belgeye veya Git'e yazılmaz.",
+    "persistence": "Frappe migrate patch'leri native olarak çalıştırır ve sonucu Patch Log'a yazar. Başarısız patch PatchError ile durur. Geçici test sitesi iş bitince atılır. Kalıcı tek iz CI job output ve imaj etiketidir. DDL geri alınabilirliği garanti edilmez. Staging kopyası bu davranışın kapsamı dışındadır.",
+    "failure": "Şu durumların her biri job failure sayılır: ruff'ın sıfır olmayan çıkışı, run-tests'in sıfır olmayan çıkışı, migrate sırasında PatchError veya 'STOPPED' çıktısı. Bu durumda artifact işi needs: checks nedeniyle skipped olur. suite_ref veya frappe_ref eksik ya da geçersizse validate adımı checks çalışmadan başarısız olur. Altyapı hataları (runner, DB servisi, bench init) ayrı adım adıyla raporlanır ve kapı sonucu sayılmaz."
   },
   "development": {
-    "dependencies": [
-      "ci-pipeline--contract",
-      "yerel pilot frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6"
-    ],
-    "admission": "Ön koşullar: ci-pipeline--contract tamamlanmış olmalı, T-00 ve R-00 eşlemesi bulunmalı. Bilinmeyenler: suite_ref, CI barındırıcısı, dağıtım aracı (frappe_docker veya Press) ve hedef org. Yerel kanıt remote baseline yerine geçmez.",
+    "dependencies": ["ci-pipeline--contract"],
+    "admission": "Uygulama durumu: uygulanmadı. Ön koşullar: ci-pipeline--contract tamamlanmış olmalı. T-00 hedef baseline ve R-00 yeniden kullanım eşlemesi bulunmalı. Tek dar davranış, gerçek RED/GREEN kanıtıyla uygulanır. Açık bilinmeyenler decisionsPending altındadır: hedef frappe_ref ve suite_ref, CI barındırıcısı, dağıtım aracı (frappe_docker veya Press) ve hedef org. Upstream kaynak alıntıları hedef baseline yerine geçmez. Bu sözleşme hiçbir servis, production ortamı, şema, veri veya registry üzerinde değişiklik yetkisi vermez.",
     "steps": [
-      "operations/ci-pipeline/ci_pipeline_mvp.yml dosyasını yaz. Yalnız workflow_dispatch tetikleyicisi olsun; schedule veya push tetikleyicisi olmasın.",
-      "Bir validate adımı ekle: frappe_ref ve suite_ref 40 karakter hex olmalı.",
-      "checks işini yaz: ruff check, ardından bench --site <geçici> run-tests --app suite, ardından --skip-failing olmadan bench migrate.",
-      "artifact işini yaz: needs: checks olsun, docker build push:false ile çalışsın ve iki ref'i output ve etiket olarak üretsin.",
-      "Dosyayı .github/workflows altına taşımak ve etkinleştirmek bu görevin kapsamında değildir; bu iş Hüseyin Cengiz'e devredilir."
+      "Sahiplik kararından sonra operations/ci-pipeline/ci_pipeline_mvp.yml dosyasını upstream Suite iş akışı sözdizimiyle, etkin olmayan bir şablon olarak yaz. Tek tetikleyici workflow_dispatch olsun; schedule veya push tetikleyicisi olmasın.",
+      "validate adımını ekle: frappe_ref ve suite_ref 40 karakterlik hex olmalı. Dal adı, latest veya boş değer reddedilsin.",
+      "checks işini yaz. Önce Suite [tool.ruff] yapılandırmasıyla ruff check çalışsın. Ardından suite-ci.yml desenine uygun olarak bench get-app ile sabit ref'ler alınsın ve geçici sitede bench run-tests --app suite çalışsın. En son --skip-failing olmadan bench migrate çalışsın.",
+      "artifact işini yaz: needs: checks olsun, docker build push: false ile çalışsın ve frappe_ref, suite_ref, image_tag değerlerini output ve etiket olarak üretsin.",
+      "Şablonda --skip-failing, packages: write, schedule ve push tetikleyicisi bulunmadığını yapısal olarak doğrula.",
+      "Dosyayı .github/workflows altına taşımak ve etkinleştirmek bu görevin kapsamında değildir; bu iş Hüseyin Cengiz'e teknik devir olarak verilir."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "Test, ci_pipeline_mvp.yml dosyasını ayrıştırır ve şunları doğrular: artifact.needs içinde checks var, hiçbir adımda --skip-failing yok, migrate ve ruff adımları var, permissions yalnız contents: read, schedule tetikleyicisi yok.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Uygulamadan sonra aynı test aynı komutla geçer. Bu yapısal bir kanıttır; gerçek CI koşusu ayrıca runtimeAcceptance gerektirir."
+      "oneScenario": "Başarısız kontrol artifact işini engeller. Şablon ayrıştırıldığında şu koşullar sağlanmalı: artifact işinin needs alanında checks bulunur, checks içinde ruff, run-tests ve migrate adımları vardır, hiçbir adımda --skip-failing geçmez. Test dosyası yolu sahiplik kararıyla belirlenir; plannedTestFile şimdilik null.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. RED, artifact işi checks'e bağlı olmadığında veya --skip-failing içeren bir adım bulunduğunda oluşan assertion başarısızlığıdır. Import veya altyapı hatası RED sayılmaz; native Frappe davranışı bozularak RED üretilmez. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "Uygulamadan sonra aynı senaryo, değişmeyen assertion ve aynı komutla geçmelidir. Şu an not_run; bu sözleşme veya biçim kontrolü ürün GREEN'i değildir. Bu yapısal bir kanıttır; gerçek CI koşusu ayrıca runtimeAcceptance gerektirir."
     },
-    "rollback": "Yalnız operations/ci-pipeline/ci_pipeline_mvp.yml ve planlanan test dosyası yerelde geri alınır. Production, registry veya cron üzerinde hiçbir işlem yapılmaz."
+    "rollback": "Yalnız operations/ci-pipeline/ci_pipeline_mvp.yml ve sahiplik kararıyla belirlenecek test dosyası yerelde geri alınır. Production, registry, servis veya zamanlanmış iş üzerinde işlem yapılmaz. Etkinleştirilmiş bir iş akışını devre dışı bırakma kararı ve uygulaması Hüseyin Cengiz'e aittir."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "releases-1",
+      "sourceStage": "mvp",
+      "existing": "Upstream Suite'te GitHub Actions tabanlı CI bulunuyor: suite-ci.yml bench get-app ve bench build adımlarını çalıştırıyor. meet-sfu-build.yml, meet-recorder-build.yml ve meet-stt-build.yml ghcr.io'ya sha etiketli imaj itiyor; izinler contents: read ve packages: write ile sınırlı. Frappe çekirdeğindeki Webhook DocType, belge olayında dış HTTP isteği gönderiyor; imza başlığı, yeniden deneme ve Webhook Request Log destekleniyor. Connected App ve OAuth Client genel dış bağlantı sağlıyor. Suite pyproject.toml dosyası ffmpeg apt bağımlılığını ve bench dışında konuşlanan bağımsız servisleri tanımlıyor. Bunlar native veya upstream parçalardır; hedef SaaS için kurulmuş bir DevOps bağlantısı değildir.",
+      "gap": "Hedef SaaS için dağıtım aracı (frappe_docker veya Press) seçilmedi. Frappe ve Suite'i birlikte paketleyen site/bench imajı ve registry yolu tanımlı değil. collab-server için Dockerfile ve imaj build adımı yok. Build çıktısını frappe ve suite revizyonuna bağlayan sözleşme yok. Hedef org'a özel servis hesabı ve kapsamı tanımlı değil. ffmpeg'in imaja nasıl aktarılacağı belli değil. DevOps araçlarına özel bağlayıcı DocType yok; mevcut olan genel Webhook ve OAuth/Connected App.",
+      "completionSteps": [
+        "Hüseyin Cengiz tek dağıtım aracı kararını (frappe_docker veya Press) karar kaydına yazar. Karar gelene kadar şablon araçtan bağımsız kalır.",
+        "Hedef frappe ve suite commit'lerini sabitleyen apps listesiyle site/bench imajı build adımını tanımla. suite/pyproject.toml içindeki [deploy.dependencies.apt] ffmpeg paketini bu build adımına aktar.",
+        "meet-*-build.yml desenini (sha etiketi, en az yetki) hedef org registry'sine uyarla. packages: write yalnız push yapan ayrı işte verilir; bu birimin davranışında verilmez.",
+        "suite/sheets/collab-server için Dockerfile ve imaj build adımını, bench dışı bağımsız servis tanımına uygun ayrı bir iş olarak ekle.",
+        "Build çıktısını frappe_ref ve suite_ref'e bağlayan image_tag ve job output şemasını (ci-pipeline.v1) uygula.",
+        "Servis hesabını yalnız ilgili repo okuma ve paket yazma kapsamıyla Hüseyin Cengiz kurar. Secret değeri belgeye veya Git'e yazılmaz.",
+        "GitHub, GitLab, Jenkins veya ArgoCD için özel bağlayıcı DocType yazma. Dış bildirim gerekirse native Webhook ve Connected App/OAuth Client kullanılır."
+      ],
+      "dependencies": ["ci-pipeline--contract"],
+      "acceptance": "Seçilen araçlar sürüm kaynağına bağlanır; servis hesabı yalnız gerekli repo ve artifact kapsamına erişir. Gelecekteki kabulde her imaj etiketi tek bir frappe_ref ve suite_ref çiftine izlenebilmeli; bu birimde registry'ye yazma yapılmamalıdır.",
+      "evidence": [
+        {
+          "path": "suite/.github/workflows/meet-sfu-build.yml",
+          "line": 19,
+          "quote": "  REGISTRY: ghcr.io"
+        },
+        {
+          "path": "suite/.github/workflows/meet-sfu-build.yml",
+          "line": 27,
+          "quote": "      packages: write"
+        },
+        {
+          "path": "suite/.github/workflows/suite-ci.yml",
+          "line": 128,
+          "quote": "          bench get-app suite $GITHUB_WORKSPACE --skip-assets"
+        },
+        {
+          "path": "frappe/frappe/integrations/doctype/webhook/webhook.py",
+          "line": 173,
+          "quote": "\t\tres = send_webhook_request(webhook.request_method, request_url, headers, data, webhook.timeout)"
+        },
+        {
+          "path": "suite/pyproject.toml",
+          "line": 35,
+          "quote": "[deploy.dependencies.apt]"
+        },
+        {
+          "path": "suite/pyproject.toml",
+          "line": 88,
+          "quote": "    # standalone services, each deployed and run outside the Frappe site"
+        }
+      ]
+    },
+    {
+      "requirementId": "releases-2",
+      "sourceStage": "mvp",
+      "existing": "Frappe patch_handler'da bench migrate varsayılan olarak başarısız patch'te durur. Başarısız patch'i Patch Log'a skipped olarak yazıp devam etmek yalnız --skip-failing bayrağıyla mümkündür. never_skip_patches hook'u okunur. Suite'te [tool.ruff] yapılandırması bulunur. Bunlar engelleme primitifleridir; pipeline aşamaları ve kapıları tanımlı değildir.",
+      "gap": "Hangi kapıların çalışacağı listelenmemiş (ruff, frontend testleri, Frappe testleri, staging migrate). Üretimde --skip-failing yasağı yazılmamış. Kritik Suite patch'lerinin never_skip_patches altında listelendiği görülmedi. Kabul edilen artifact sürümünün kaydı belirsiz: suite version 0.0.1 sabit ve kaynak revizyonu kayıtlı değil.",
+      "completionSteps": [
+        "Kapı listesini sabitle: ruff check, bench run-tests --app suite ve --skip-failing olmadan migrate. Frontend test kapısı, ön yüz paketinin gerçek test komutu belirlendiğinde aynı checks işine eklenir.",
+        "Pipeline'da --skip-failing kullanımını yasakla; şablon doğrulaması bu bayrağı içeren her adımı reddetsin.",
+        "Kritik Suite patch'lerini Suite ve patch sahipleriyle belirle, ardından sahibi olan uygulamanın hooks.py dosyasında never_skip_patches altında listele. Liste bilinmeden ekleme yapılmaz.",
+        "Staging kopyasında migrate kapısını staging veri kopyası kararından sonra ayrı bir iş olarak ekle. O zamana kadar migrate yalnız geçici test sitesinde çalışır.",
+        "Kabul edilen artifact sürümünü frappe_ref, suite_ref ve image_tag olarak kaydet. suite version sabit olduğu için sürüm kimliği commit'ten türetilir.",
+        "Dağıtım sonucunu izleme işini dağıtım aracı kararından sonra Hüseyin Cengiz tasarlar; altyapı adımları ona devredilir."
+      ],
+      "dependencies": ["ci-pipeline--contract"],
+      "acceptance": "Başarısız kontrol dağıtımı engeller; kabul edilen artifact sürümü ve dağıtım sonucu izlenebilir. Bu birimdeki gelecekteki kabul şudur: checks başarısızken artifact işi skipped olur, revizyon kaydı oluşmaz ve hiçbir adımda --skip-failing bulunmaz.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/modules/patch_handler.py",
+          "line": 48,
+          "quote": "`bench migrate --skip-failing` logs a failing patch in Patch Log with `skipped`"
+        },
+        {
+          "path": "frappe/frappe/modules/patch_handler.py",
+          "line": 80,
+          "quote": "never_skip = set(frappe.get_hooks(\"never_skip_patches\"))"
+        },
+        {
+          "path": "suite/pyproject.toml",
+          "line": 47,
+          "quote": "[tool.ruff]"
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "Dağıtım aracı kararı (frappe_docker veya Press) ve CI barındırıcısı seçilmedi; teknik sahibi Hüseyin Cengiz.",
+    "Dağıtım aracı (frappe_docker veya Press) ve CI barındırıcısı seçilmedi; teknik sahibi Hüseyin Cengiz.",
     "Site imajı, registry yolu ve kısıtlı servis hesabı tanımlanmadı. Hedef org için packages: write yetkisi ve secret kurulumu Hüseyin Cengiz'e aittir.",
     "Suite commit'i bilinmiyor; suite_ref sağlanana kadar pipeline bilinçli olarak reddeder.",
     "collab-server için Dockerfile ve build adımı yok; ffmpeg apt bağımlılığının imaja nasıl taşınacağı tanımlı değil.",
     "Suite hooks içinde never_skip_patches görülmedi; kritik patch listesi bilinmiyor.",
     "Staging kopyası üzerinde migrate ve dağıtım sonucu izleme yapılmadı. Native Webhook bu iş için ileride kullanılabilir; bu sözleşmede kapsam dışıdır.",
-    "Headless provider tarafında sürüm kimliği uç noktası yok.",
-    "Pipeline'ın çalıştırılması ve etkinleştirilmesi: runtimeAcceptance not_run."
+    "Frontend test kapısının komutu belirlenmedi.",
+    "Pipeline çalıştırılmadı ve etkinleştirilmedi: runtimeAcceptance not_run."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Tek dağıtım aracı: frappe_docker veya Press. Karar sahibi Hüseyin Cengiz.",
+      "requirementIds": ["releases-1", "releases-2"],
+      "blocks": "Site/bench imajı build adımı, deploy aşaması ve dağıtım sonucunu izleme.",
+      "documentWorkUntilDecided": "Kapı listesi ve artifact kayıt alanları (frappe_ref, suite_ref, image_tag) araçtan bağımsız belgelenir."
+    },
+    {
+      "decision": "CI barındırıcısı ve hedef org.",
+      "requirementIds": ["releases-1"],
+      "blocks": "Şablonun .github/workflows veya başka bir barındırıcıya taşınıp etkinleştirilmesi, servis hesabı kurulumu.",
+      "documentWorkUntilDecided": "Yetki matrisi taslağı yazılır: checks için contents: read; packages: write yalnız ileride push yapan ayrı iş için."
+    },
+    {
+      "decision": "Registry ve imaj yolu.",
+      "requirementIds": ["releases-1"],
+      "blocks": "İmaj push adımı ve collab-server imajının yayımlanması.",
+      "documentWorkUntilDecided": "Etiket şeması belgelenir; build push: false kalır."
+    },
+    {
+      "decision": "Hedef frappe ve suite revizyonu (hedef sürüm).",
+      "requirementIds": ["releases-1", "releases-2"],
+      "blocks": "validate adımının gerçek değerlerle geçmesi ve T-00 hedef baseline.",
+      "documentWorkUntilDecided": "Ref biçim kuralı (40 karakterlik hex; dal adı veya latest yok) belgelenir."
+    },
+    {
+      "decision": "never_skip_patches altına alınacak kritik Suite patch listesi.",
+      "requirementIds": ["releases-2"],
+      "blocks": "Sahibi olan uygulamanın hooks.py kaydı.",
+      "documentWorkUntilDecided": "Aday patch'lerin belirlenme ölçütü ve sahiplerinin onay süreci belgelenir."
+    },
+    {
+      "decision": "Staging veri kopyasının kaynağı, anonimleştirme, saklama süresi ve veri yerleşimi.",
+      "requirementIds": ["releases-2"],
+      "blocks": "Staging kopyasında migrate kapısı.",
+      "documentWorkUntilDecided": "Migrate kapısı geçici test sitesiyle sınırlı tanımlanır ve staging gereksinimleri belgelenir."
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "releases-1": "mvp",
-    "releases-2": "mvp"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,

@@ -1,0 +1,455 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "automation-rule",
+  "canonicalTaskIds": [
+    "automation-rule--implementation",
+    "ui-family-38--implementation-post-mvp"
+  ],
+  "requirementIds": ["rules-1", "rules-2", "rules-3", "rules-4", "rules-5"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "rules-1": "post_mvp",
+    "rules-2": "post_mvp",
+    "rules-3": "post_mvp",
+    "rules-4": "post_mvp",
+    "rules-5": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "AutomationRule: olay-koşul-eylem kuralı ve yan etkisiz deneme. Uygulama durumu: uygulanmadı.",
+    "trigger": "Kapsamdaki bir DocType kaydında native doc event veya zamanlayıcı tabanlı olay oluşur; ya da yetkili kullanıcı bir kuralı örnek kayıt adıyla deneme isteği gönderir.",
+    "expected": "Etkin, geçerlilik aralığında ve kotası dolmamış kurallar (priority, name) sırasıyla değerlendirilir. Filters koşulu sağlanırsa katalogdaki eylem native izinle denetlenir ve dış etki commit sonrasında outbox üzerinden bir kez çalışır. Deneme isteği her koşul ve eylem için yapılandırılmış JSON açıklama döndürür; kalıcı kayıt veya dış etki bırakmaz.",
+    "denied": "İzinsiz eylem, zaman aralığı dışı, kota üstü, derinlik sınırı aşımı veya aynı idempotency anahtarlı tekrar olay yan etkisiz durur: hedef kayıt değişmez, outbox'a yeni dış etki girmez, red nedeni audit zarfına yazılır. ignore_permissions, ham SQL veya Server Script ile yetki atlanmaz."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Uygulama durumu: uygulanmadı. Native parçalar: Notification DocType olay + koşul (Python/Filters) + sabit kanallı eylem modeli; whitelisted preview_meets_condition ve preview_message; evaluate_filters; frappe.permissions.has_permission; API v2 is_whitelisted denetimi; safe_exec içinde doc event commit/rollback kaldırma ve Server Script'in yalnız common_site_config ile açılması; Suite Drive içinde uygulamaya özgü exists tabanlı tekilleştirme. Bu parçalar bütün ECA davranışının var olduğunu göstermez: genel eylem kataloğu, öncelik, döngü/idempotency koruması, yapılandırılmış deneme açıklaması ve sürüm/zaman/kota bütüncül olarak bulunmadı. Kanıtlar önceki salt okunur Frappe/Suite kaynak anlık görüntülerinden alınmıştır; canlı site veya ürün kabulü değildir. searchedPaths yalnız aranan yollardır; listelenmeyen parçalar için kapsamlı yokluk iddiası değildir. Vue/Frappe UI kaynağı React/Ant Design uygulaması kanıtı sayılmaz.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/email/doctype/notification/notification.py",
+        "line": 43,
+        "quote": "condition_type: DF.Literal[\"Python\", \"Filters\"]"
+      },
+      {
+        "path": "frappe/frappe/email/doctype/notification/notification.py",
+        "line": 41,
+        "quote": "channel: DF.Literal[\"Email\", \"Slack\", \"System Notification\", \"SMS\"]"
+      },
+      {
+        "path": "frappe/frappe/utils/safe_exec.py",
+        "line": 88,
+        "quote": "return bool(frappe.get_common_site_config(cached=True).get(SAFE_EXEC_CONFIG_KEY))"
+      },
+      {
+        "path": "frappe/frappe/utils/safe_exec.py",
+        "line": 115,
+        "quote": "# prevent user from using these in docevents"
+      },
+      {
+        "path": "frappe/frappe/email/doctype/notification/notification.py",
+        "line": 107,
+        "quote": "return _(\"Yes\") if evaluate_filters(doc, json.loads(self.filters)) else _(\"No\")"
+      },
+      {
+        "path": "frappe/frappe/permissions.py",
+        "line": 82,
+        "quote": "def has_permission("
+      },
+      {
+        "path": "frappe/frappe/api/v2.py",
+        "line": 68,
+        "quote": "is_whitelisted(method)"
+      },
+      {
+        "path": "frappe/frappe/utils/safe_exec.py",
+        "line": 168,
+        "quote": "frappe.flags.in_safe_exec += 1"
+      },
+      {
+        "path": "frappe/frappe/utils/safe_exec.py",
+        "line": 116,
+        "quote": "exec_globals.frappe.db.pop(\"commit\", None)"
+      },
+      {
+        "path": "suite/suite/drive/api/notifications.py",
+        "line": 124,
+        "quote": "notif = frappe.db.exists(\"Drive Notification\", details)"
+      },
+      {
+        "path": "frappe/frappe/email/doctype/notification/notification.py",
+        "line": 98,
+        "quote": "def preview_meets_condition(self, preview_document: str | int):"
+      },
+      {
+        "path": "frappe/frappe/email/doctype/notification/notification.py",
+        "line": 113,
+        "quote": "def preview_message(self, preview_document: str | int):"
+      },
+      {
+        "path": "frappe/frappe/email/doctype/notification/notification.py",
+        "line": 105,
+        "quote": "return _(\"Yes\") if frappe.safe_eval(self.condition, eval_locals=context) else _(\"No\")"
+      },
+      {
+        "path": "frappe/frappe/email/doctype/notification/notification.py",
+        "line": 46,
+        "quote": "datetime_last_run: DF.Datetime | None"
+      },
+      {
+        "path": "frappe/frappe/email/doctype/notification/notification.py",
+        "line": 171,
+        "quote": "_(\"Please specify at least 10 minutes due to the trigger cadence of the scheduler\")"
+      },
+      {
+        "path": "frappe/frappe/client.py",
+        "line": 246,
+        "quote": "frappe.throw(_(\"Only 200 inserts allowed in one request\"))"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v2.py",
+      "frappe/frappe/client.py",
+      "frappe/frappe/email/doctype/notification/notification.py",
+      "frappe/frappe/permissions.py",
+      "frappe/frappe/utils/safe_exec.py",
+      "suite/suite/drive/api/notifications.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/automation-rule.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/workflow_automation/doctype/automation_rule/automation_rule.py",
+      "frontend/packages/ui/src/components/ui-family-38/post_mvp.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Olay girdisi: doctype, kayıt adı, olay türü, modified ve tetikleyen kullanıcı oturumu. Deneme girdisi: kural adı ve örnek kayıt adı (preview_document imzası örnek alınır). Kural tanımı: document_type, event, condition_type (karar gelene kadar yalnız Filters), filters JSON, katalog eylem anahtarı ve parametreleri, priority, enabled, valid_from/valid_to, kota alanları (birim kararı bekliyor).",
+    "output": "Gerçek çalışma: kural başına sonuç (eşleşti, eşleşmedi, reddedildi, atlandı + neden) audit zarfında; dış etkiler outbox kaydı olarak. Deneme: {rule, ruleVersion, conditions: [{index, result, error}], actions: [{actionKey, wouldRun, deniedReason}], sideEffects: 0} biçiminde JSON. Yanıt JSON model sınırındadır; ReactNode veya callback taşımaz.",
+    "authorization": "AutomationRule kayıt işlemleri native DocType izinleriyle yönetilir. Rol/izin tanımı explicitPermissionFlags ortak kaynağına bağlanır; bu sözleşme yeni rol veya bayrak üretmez. Her katalog eylemi bir whitelisted metot ve bir ptype ile eşlenir; çalıştırmadan önce frappe.permissions.has_permission çağrılır (yetki öznesi decisionsPending içinde). Deneme için kural ve örnek kayıt üzerinde read izni gerekir. ignore_permissions, SQL ile yetki atlama ve Server Script açma yoktur.",
+    "persistence": "Kural tanımı AutomationRule DocType'ında tutulur (automation-rule--schema); ayrı ORM veya CRUD katmanı yazılmaz. Dış etkiler native transaction içinde outbox kaydına yazılır ve commit sonrasında işlenir; doc event bağlamında commit/rollback çağrılmaz. Deneme hiçbir kalıcı kayıt yazmaz, işlem rollback ile kapanır. Bu sözleşme hiçbir servis, production ortamı, şema veya veriyi değiştirme yetkisi vermez.",
+    "failure": "Koşul değerlendirme hatası: kural hata sonucuyla atlanır, kaynak kaydın kaydedilmesi engellenmez, hata audit zarfına yazılır. İzin reddi, zaman dışı, kota üstü ve derinlik aşımı: eylem çalışmaz, hedef kayıt değişmez, neden kaydedilir. Aynı idempotency anahtarı: ikinci dış etki üretilmez. Commit gerçekleşmezse outbox kaydı da geri alınır."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "audit-envelope--contract",
+      "automation-rule--contract",
+      "automation-rule--schema",
+      "capability-definition--contract",
+      "client-rule-parity--contract",
+      "kernel-envelope--contract",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "outbox--contract",
+      "process-definition--contract",
+      "ui-family-38--contract",
+      "ui-family-38--implementation"
+    ],
+    "admission": {
+      "status": "NOT_ADMITTED",
+      "prerequisites": [
+        "T-00 hedef baseline: hedef Frappe release kaynağı eşlenir. Kaynak anlık görüntüsü v17.0.0-dev (adf1fd0c) olarak anılmıştır; hedef sürüm bu sözleşmede seçilmez.",
+        "R-00 yeniden kullanım eşlemesi: reuse.evidence içindeki native parçalar hedef release'te yeniden doğrulanır.",
+        "R-01: izinli veri tüketen adımlara (eylem çalıştırma ve deneme) uygulanır.",
+        "development.dependencies içindeki sözleşmeler kabul edilmiş olmalıdır.",
+        "Rol/izin tanımı explicitPermissionFlags ortak kaynağına bağlanmış olmalıdır.",
+        "İlgili adımı engelleyen decisionsPending kararları kapanmış olmalıdır.",
+        "Tek dar davranış gerçek RED/GREEN kanıtıyla uygulanır (development.tdd)."
+      ]
+    },
+    "steps": [
+      "Hedef release kaynağında Automation Flow ve Test Run envanteri dosya yolu ve satırla çıkarılır; belge URL'si release kanıtı sayılmaz.",
+      "automation-rule--schema kapsamında AutomationRule native DocType alanları tanımlanır: document_type, event, condition_type, filters, action_key, action_params, priority, enabled, valid_from, valid_to ve kararla gelecek kota alanları.",
+      "Eylem kataloğu yalnız whitelisted metot + ptype eşlemesinden oluşur; GenUI capability registry'den ve kaynak registry'den ayrıdır, ortak tanımlayıcı paylaşmaz.",
+      "Değerlendirme tek giriş noktasıdır; hooks.py doc_events kaydı ortak entegrasyon sahibince seri birleştirilir. Sıra (priority, name); Filters için evaluate_filters yeniden kullanılır.",
+      "Dış etkiler outbox--contract üzerinden commit sonrasına bırakılır; sonuçlar audit-envelope--contract zarfıyla yazılır.",
+      "Derinlik sayacı ve idempotency anahtarı rules-3 rehberine göre eklenir.",
+      "Yan etkisiz deneme metodu ve JSON yanıt şeması rules-4 rehberine göre eklenir; ardından ui-family-38 yüzeyi bağlanır.",
+      "Sürüm, zaman aralığı ve kota adımları rules-5 kararları kapandıktan sonra eklenir.",
+      "AutomationRule process-definition--contract kapsamındaki süreç tanımı değildir; iki sözleşme arasındaki sınır belgede korunur."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Tetikleyen kullanıcının hedef DocType üzerinde write izni yokken, Filters koşulu sağlanan bir AutomationRule değer atayan bir katalog eylemine ulaşır: eylem reddedilir, hedef kayıt değişmez (alan değeri ve modified aynı kalır), outbox'a dış etki girmez, red nedeni audit zarfına yazılır.",
+      "red": "Ön koşul: AutomationRule DocType ve tek değerlendirme giriş noktası automation-rule--schema ile mevcuttur. RED, izin denetimi olmayan giriş noktası eylemi uyguladığı için 'kayıt değişmemeli' assertion'ıyla düşmelidir. Import hatası, eksik fixture, altyapı hatası veya native Notification ya da izin davranışını bozarak elde edilen başarısızlık RED sayılmaz. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "Eylemden önce frappe.permissions.has_permission ile katalogdaki ptype denetlenir; red durumunda eylem atlanır ve audit kaydı yazılır. ignore_permissions, SQL veya Server Script kullanılmaz; native Notification, save ve transaction akışı değişmez."
+    },
+    "rollback": "Bu turda geri alınacak üretim değişikliği yoktur. Gelecekte kural bazında durdurma enabled=0 ile yapılır. Uygulama sürümü ve migrasyon geri dönüşü, CI/deploy/rollback teknik sahibi Hüseyin Cengiz'in sürecinde yürür. Bekleyen outbox dış etkileri iptalden önce audit ile listelenir; veri silinmez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "rules-1",
+      "sourceStage": "post_mvp",
+      "existing": "Notification DocType olay + koşul (Python/Filters) + eylem üçlüsünü sunar; eylem kanalları Email, Slack, System Notification ve SMS ile sınırlıdır. Server Script doc event bağlamında commit/rollback kısıtıyla çalışır ve yalnız common_site_config ile açılır. Automation Flow yerel kaynakta doğrulanmadı.",
+      "gap": "Genel eylem tipi, commit sonrası çalışma mekanizması, Automation Flow envanteri, Notification/Server Script ile app tabanlı motor arasındaki seçim ölçütü ve GenUI kayıtlarından ayrım sınırı yazılı değil.",
+      "completionSteps": [
+        "Hedef release kaynağında Automation Flow DocType envanteri çıkarılır; bulunmazsa ona bağımlılık kurulmaz.",
+        "Seçim ölçütü belgelenir: yalnız bildirim gereken kural native Notification ile kalır; kanal dışı eylem gereken kural AutomationRule ile çalışır; Server Script'in açık olduğu varsayılmaz.",
+        "AutomationRule olay ve koşul alanları Notification modelini örnek alır; Notification yeniden yazılmaz veya değiştirilmez.",
+        "Eylemler doc event içinde doğrudan çalışmaz; outbox--contract üzerinden commit sonrasına bırakılır ve doc event içinde commit/rollback çağrılmaz.",
+        "Eylem kataloğu GenUI capability registry'den ve kaynak registry'den ayrı tutulur."
+      ],
+      "dependencies": [
+        "automation-rule--contract",
+        "automation-rule--schema",
+        "outbox--contract",
+        "native-doctype-schema--contract",
+        "kernel-envelope--contract"
+      ],
+      "acceptance": "Hedef release'te bir doc event, Filters koşulu sağlandığında tek eylemi commit sonrasında çalıştırır; işlem geri alınırsa dış etki oluşmaz.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/email/doctype/notification/notification.py",
+          "line": 43,
+          "quote": "condition_type: DF.Literal[\"Python\", \"Filters\"]"
+        },
+        {
+          "path": "frappe/frappe/email/doctype/notification/notification.py",
+          "line": 41,
+          "quote": "channel: DF.Literal[\"Email\", \"Slack\", \"System Notification\", \"SMS\"]"
+        },
+        {
+          "path": "frappe/frappe/utils/safe_exec.py",
+          "line": 88,
+          "quote": "return bool(frappe.get_common_site_config(cached=True).get(SAFE_EXEC_CONFIG_KEY))"
+        },
+        {
+          "path": "frappe/frappe/utils/safe_exec.py",
+          "line": 115,
+          "quote": "# prevent user from using these in docevents"
+        }
+      ]
+    },
+    {
+      "requirementId": "rules-2",
+      "sourceStage": "post_mvp",
+      "existing": "Notification koşul türleri Python ve Filters'tır; Filters evaluate_filters ile değerlendirilir. frappe.permissions.has_permission ptype denetimi ve API v2 is_whitelisted denetimi native olarak vardır. Gruplama, öncelik ve kapsam primitive'i alıntılarda görünmüyor.",
+      "gap": "Katalog sözleşmesi, eylem-metot-ptype eşlemesi, eşit öncelikte bağ bozucu ve kapsam boyutları tanımsız.",
+      "completionSteps": [
+        "Katalog girdisi actionKey, whitelisted metot yolu, hedef DocType ve ptype taşır; whitelisted olmayan metot validate aşamasında reddedilir.",
+        "Kural kaydında ve çalışma anında has_permission ile ptype denetlenir; izin dışı eylem kullanıcıya listelenmez ve kurala eklenemez.",
+        "Sıralama anahtarı (priority, name) artandır; grup alanı yalnız gösterim ve toplu etkinleştirme içindir, sırayı değiştirmez.",
+        "İlk dilimde kapsam site + DocType'tır; rol ve kullanıcı sınırı native izinlerden türetilir, ayrı kapsam motoru yazılmaz.",
+        "Karar gelene kadar kullanıcı tanımlı koşul yalnız Filters'tır; Python türündeki kural kaydı validate aşamasında reddedilir."
+      ],
+      "dependencies": [
+        "automation-rule--schema",
+        "capability-definition--contract",
+        "native-user-policy--contract",
+        "api-middleware--contract"
+      ],
+      "acceptance": "Aynı olaya bağlı eşit öncelikli iki kural her çalışmada name sırasıyla değerlendirilir; kullanıcının ptype izni olmayan eylem kurala eklenemez, kayıt reddedilir ve mevcut kural değişmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/email/doctype/notification/notification.py",
+          "line": 107,
+          "quote": "return _(\"Yes\") if evaluate_filters(doc, json.loads(self.filters)) else _(\"No\")"
+        },
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 82,
+          "quote": "def has_permission("
+        },
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 68,
+          "quote": "is_whitelisted(method)"
+        }
+      ]
+    },
+    {
+      "requirementId": "rules-3",
+      "sourceStage": "post_mvp",
+      "existing": "safe_exec içinde iç içe çağrı sayacı (in_safe_exec), doc event bağlamında commit/rollback kaldırma ve Suite Drive'da frappe.db.exists ile uygulamaya özgü tekilleştirme vardır.",
+      "gap": "Genel derinlik limiti, aşım davranışı, dış etki idempotency anahtarı ve sorumlu katman tanımsız. in_safe_exec yeniden giriş sayacıdır, döngü koruması değildir.",
+      "completionSteps": [
+        "İstek/job kapsamlı, motora özgü adla ayrı bir derinlik sayacı tanımlanır; in_safe_exec yeniden kullanılmaz.",
+        "Sınır aşıldığında zincir yan etkisiz durur ve audit kaydı yazılır; sınır değeri ve hata/sessiz durma seçimi decisionsPending'dedir.",
+        "Idempotency anahtarı (rule, doctype, docname, event, modified) outbox kaydında tekil tutulur; ikinci giriş dış etki üretmez.",
+        "Drive exists deseni yalnız örnek olarak anılır; motor Drive koduna bağımlı olmaz.",
+        "Birbirini tetikleyen iki kural ve aynı olayın iki kez gelmesi, ortak insan bütçesindeki üç senaryodan birine aday olarak işaretlenir; bu turda yazılmaz."
+      ],
+      "dependencies": [
+        "outbox--contract",
+        "audit-envelope--contract",
+        "kernel-envelope--contract"
+      ],
+      "acceptance": "Birbirini tetikleyen iki kural derinlik sınırını aşmadan durur; aynı idempotency anahtarlı olay ikinci dış etki üretmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/utils/safe_exec.py",
+          "line": 168,
+          "quote": "frappe.flags.in_safe_exec += 1"
+        },
+        {
+          "path": "frappe/frappe/utils/safe_exec.py",
+          "line": 116,
+          "quote": "exec_globals.frappe.db.pop(\"commit\", None)"
+        },
+        {
+          "path": "suite/suite/drive/api/notifications.py",
+          "line": 124,
+          "quote": "notif = frappe.db.exists(\"Drive Notification\", details)"
+        }
+      ]
+    },
+    {
+      "requirementId": "rules-4",
+      "sourceStage": "post_mvp",
+      "existing": "Notification üzerindeki whitelisted preview_meets_condition ve preview_message metotları gönderim yapmadan koşul ve mesaj önizlemesi verir; sonuç yalnız Evet/Hayır veya hata metnidir.",
+      "gap": "Adım bazında yapılandırılmış açıklama şeması, dış etki bastırma ve rollback garantisi, Test Run'ın yerel varlığı ve React/Ant Design deneme ekranı sözleşmesi yok.",
+      "completionSteps": [
+        "AutomationRule üzerinde whitelisted bir deneme metodu tanımlanır; girdi kural adı + örnek kayıt adıdır ve preview_* imzası örnek alınır.",
+        "Yanıt contract.output içindeki deneme şemasına uyar ve JSON model sınırında kalır.",
+        "Deneme eylemleri yürütmez; yalnız koşul ve izin sonucunu hesaplar, outbox'a yazmaz ve işlemi rollback ile kapatır.",
+        "Test Run yerel kaynakta doğrulanmadan ona bağımlılık kurulmaz.",
+        "ui-family-38 post_mvp yüzeyi yanıtı TanStack Query ile alıp Ant Design bileşenleriyle gösterir; koşulu istemcide yeniden değerlendirmez (client-rule-parity--contract). Ortak token, 320 px öncelik, 14 CSS px alt sınırı ve çevreleyen odak halkası yasağı geçerlidir."
+      ],
+      "dependencies": [
+        "ui-family-38--contract",
+        "ui-family-38--implementation",
+        "client-rule-parity--contract",
+        "api-middleware--contract",
+        "automation-rule--schema"
+      ],
+      "acceptance": "Denemeden sonra hedef kayıtta, outbox'ta ve e-posta kuyruğunda yeni kayıt veya değişiklik yoktur; her koşul ve eylem sonucu kullanıcıya gösterilir.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/email/doctype/notification/notification.py",
+          "line": 98,
+          "quote": "def preview_meets_condition(self, preview_document: str | int):"
+        },
+        {
+          "path": "frappe/frappe/email/doctype/notification/notification.py",
+          "line": 113,
+          "quote": "def preview_message(self, preview_document: str | int):"
+        },
+        {
+          "path": "frappe/frappe/email/doctype/notification/notification.py",
+          "line": 105,
+          "quote": "return _(\"Yes\") if frappe.safe_eval(self.condition, eval_locals=context) else _(\"No\")"
+        }
+      ]
+    },
+    {
+      "requirementId": "rules-5",
+      "sourceStage": "post_mvp",
+      "existing": "Notification zamanlayıcı olayları için datetime_last_run alanı ve en az 10 dakikalık zamanlayıcı aralığı doğrulaması vardır; frappe/client.py istek başına 200 ekleme sınırı uygular; rol tabanlı izin has_permission ile denetlenir.",
+      "gap": "Kural sürümünün kapsamı, zaman aralığı alanları ve saat dilimi semantiği, kota birimi ve süresi ile yetki öznesi tanımsız.",
+      "completionSteps": [
+        "Sürüm: kararla native değişiklik izleme (Version) kullanılır; çalışma ve deneme kaydı kural sürüm bilgisini taşır.",
+        "valid_from/valid_to alanları eklenir; aralık dışında kural yan etkisiz atlanır ve neden kaydedilir (erteleme seçeneği karar bekliyor).",
+        "Kural başına çalışma sayacı eklenir; birim ve sınır kararla belirlenir, aşımda yan etkisiz durma audit zarfına yazılır.",
+        "Yetki öznesi kararı gelene kadar tetikleyen kullanıcının izni öneri olarak belgelenir; uygulanmaz.",
+        "Zamanlayıcı tabanlı kurallar native 10 dakikalık zamanlayıcı aralığı sınırına uyar; yeni görev kaydı açılmaz."
+      ],
+      "dependencies": [
+        "automation-rule--schema",
+        "native-user-policy--contract",
+        "audit-envelope--contract"
+      ],
+      "acceptance": "Kuralın eski sürümü izlenebilir; zaman dışı, yetkisiz ve kota üstü çalışma yan etkisiz durur ve hedef kayıt değişmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/email/doctype/notification/notification.py",
+          "line": 46,
+          "quote": "datetime_last_run: DF.Datetime | None"
+        },
+        {
+          "path": "frappe/frappe/email/doctype/notification/notification.py",
+          "line": 171,
+          "quote": "_(\"Please specify at least 10 minutes due to the trigger cadence of the scheduler\")"
+        },
+        {
+          "path": "frappe/frappe/client.py",
+          "line": 246,
+          "quote": "frappe.throw(_(\"Only 200 inserts allowed in one request\"))"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Hedef release eşlemesi (T-00) ve Automation Flow/Test Run envanteri yapılmadı.",
+    "Native parçalar hedef release'te R-00 ile yeniden doğrulanmadı.",
+    "explicitPermissionFlags ortak kaynağına bağlantı entegrasyon sahibince doğrulanacak.",
+    "ui-family-38 sözleşmesi ve uygulaması tamamlanmadan deneme ekranı adımı başlamaz.",
+    "Hiçbir runtime kabulü koşulmadı; bu dosya yalnız yönergedir."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Hedef Frappe release'i ve kaynak anlık görüntüsü (v17.0.0-dev adf1fd0c) ile eşlemesi",
+      "requirementIds": ["rules-1", "rules-2", "rules-3", "rules-4", "rules-5"],
+      "blocks": "Admission ve Automation Flow/Test Run'a bağımlılık kararı",
+      "interimDocStep": "Aranacak DocType ve dosya listesi belge olarak hazırlanır."
+    },
+    {
+      "decision": "Server Script'in SaaS'ta açılması (güvenlik kararı)",
+      "requirementIds": ["rules-1"],
+      "blocks": "Server Script tabanlı eylem veya koşul",
+      "interimDocStep": "Tasarım Server Script'e bağımlı olmadan yazılır."
+    },
+    {
+      "decision": "Python (safe_eval) koşul türünün kullanıcıya açılması",
+      "requirementIds": ["rules-2", "rules-4"],
+      "blocks": "Python koşul desteği",
+      "interimDocStep": "Koşullar yalnız Filters olarak belgelenir."
+    },
+    {
+      "decision": "Yetki öznesi: kural sahibi mi, tetikleyen kullanıcı mı",
+      "requirementIds": ["rules-2", "rules-5"],
+      "blocks": "Eylem izin denetiminin GREEN adımı",
+      "interimDocStep": "İki seçenek için red senaryosu belgelenir; öneri tetikleyen kullanıcıdır."
+    },
+    {
+      "decision": "Derinlik sınırı değeri ve aşımda hata mı, sessiz durma mı",
+      "requirementIds": ["rules-3"],
+      "blocks": "Döngü koruması uygulaması",
+      "interimDocStep": "Her iki seçenekte de yan etkisiz durma ve audit kaydı kabulü yazılır."
+    },
+    {
+      "decision": "Kota birimi (çalışma, eylem veya dış çağrı), süresi ve sınır değerleri",
+      "requirementIds": ["rules-5"],
+      "blocks": "Kota alanları ve sayaç",
+      "interimDocStep": "Yalnız aşım davranışı belgelenir; değer seçilmez."
+    },
+    {
+      "decision": "Zaman aralığı saat dilimi semantiği ve aralık dışında atlama mı, erteleme mi",
+      "requirementIds": ["rules-5"],
+      "blocks": "valid_from/valid_to davranışı",
+      "interimDocStep": "Atlama davranışı taslak kabul olarak yazılır."
+    },
+    {
+      "decision": "Sürüm izleme için native Version mı, ayrı sürüm alanı mı",
+      "requirementIds": ["rules-5"],
+      "blocks": "Sürüm adımı",
+      "interimDocStep": "Çalışma kaydında taşınacak sürüm bilgisi belgelenir."
+    },
+    {
+      "decision": "rules-5'in post_mvp içinde ilk dilime alınması (stage değiştirilmez)",
+      "requirementIds": ["rules-5"],
+      "blocks": "rules-5 tamamlama adımları",
+      "interimDocStep": "rules-5 rehberi bağımsız dilim olarak tutulur."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

@@ -1,0 +1,424 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "agent-run",
+  "canonicalTaskIds": [
+    "agent-run--implementation",
+    "agent-step--implementation"
+  ],
+  "requirementIds": ["agents-1", "agents-4", "agents-5", "agents-6"],
+  "stage": "scale",
+  "sourceStages": {
+    "agents-1": "scale",
+    "agents-4": "scale",
+    "agents-5": "scale",
+    "agents-6": "scale"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Kayıtlı ajanın tek araç adımını kendi kısıtlı kimliğiyle, idempotent, limitli ve güven sınırı içinde yürütmesi",
+    "trigger": "Orkestrasyon katmanı kayıtlı bir Agent Run içinde yeni bir Agent Step (araç veya model çağrısı) başlatmak ister; istek ajan kimliği, run, idx, tool ve istemcinin verdiği idempotency_key bilgisini taşır.",
+    "expected": "Sunucu ajanın rolü kısıtlı Frappe User kimliğini her adımda yeniden kurar ve hedef DocType/araç iznini native has_permission ile denetler; çağrıdan önce adım, süre, kaynak ve harcama sayaçlarını kontrol eder; aynı run ve idempotency_key için kayıtlı sonuç varsa aracı yeniden çağırmadan kayıtlı sonucu döndürür; yoksa çağrıyı yapar ve Agent Step kaydını status, result_digest ve effects_delivered ile yazar. Ajanın okuduğu veri yalnız apply_fieldlevel_read_permissions uygulanan uçlardan gelir; araç çıktısı yapılandırılmış veri olarak ayrılır, talimat olarak yorumlanmaz.",
+    "denied": "İzinsiz araç veya yazma isteği PermissionError ile reddedilir ve hedef kayıt değişmez. Limit dolmuşsa yeni çağrı başlatılmaz; run stopped_reason ve kısmi sonuçla kapanır. effects_delivered işaretli ama sonucu kaydedilmemiş adım yeniden denenmez, Failed olur. Devirde izin taşınmaz; hedef ajanın kimliğiyle yetki yeniden denetlenir ve reddedilebilir. Belge veya araç çıktısındaki talimat araç kapsamını veya görünür alanları değiştiremez."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native Frappe parçaları desen olarak yeniden kullanılır; kanıtın bir parçayı göstermesi ajan davranışının tamamının var olduğu anlamına gelmez. İzin: frappe/permissions.py içindeki has_permission. Alan düzeyi okuma: api/v1 okuma ucunda çağrılan doc.apply_fieldlevel_read_permissions(). Kalıcı yürütüm geçmişi, devam ve yeniden deneme: automation_engine içindeki Automation Run, resume, attempt/max_attempts, effects_delivered ve dedup_key benzersiz indeksi deseni; bu altyapı deterministik Automation Flow içindir, AI ajanı değildir. Savunma katmanı: rate_limit dekoratörü (Suite drive ucunda kullanım örneği) ve client içindeki 200 kayıt sınırı. Güven sınırı: safe_exec yürütmesinin common_site_config ile açılması, safe_exec içindeki iç ağ istek engeli, discovery kaynak açmanın expose_discovery_source hook ile opt-in olması. Suite'teki Sheets AI Assist Anthropic bağımlılığı ajan yeteneği değildir; Suite'in Vue/Frappe UI kaynağı React/Ant Design uygulaması kanıtı değildir. Alıntılar önceki salt okunur Frappe/Suite kaynak anlık görüntülerindendir; canlı site veya ürün kabulü yoktur. Aranan yollar listesi kapsamlı bir yokluk veya varlık iddiası değildir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/api/discovery.py",
+        "line": 320,
+        "quote": "helps API clients (e.g. AI"
+      },
+      {
+        "path": "suite/pyproject.toml",
+        "line": 31,
+        "quote": "# sheets — AI Assist (Claude)"
+      },
+      {
+        "path": "frappe/frappe/permissions.py",
+        "line": 82,
+        "quote": "def has_permission("
+      },
+      {
+        "path": "suite/pyproject.toml",
+        "line": 45,
+        "quote": "frappe = \">=16.0.0,<18.0.0\""
+      },
+      {
+        "path": "frappe/frappe/automation_engine/runner.py",
+        "line": 25,
+        "quote": "RUN = \"Automation Run\""
+      },
+      {
+        "path": "frappe/frappe/automation_engine/runner.py",
+        "line": 92,
+        "quote": "\"\"\"Pick a waiting run back up: same Automation Run, its original snapshot and steps.\"\"\""
+      },
+      {
+        "path": "frappe/frappe/automation_engine/drainer.py",
+        "line": 167,
+        "quote": "exhausted = attempt >= cint(settings.get(\"max_attempts\"))"
+      },
+      {
+        "path": "frappe/frappe/automation_engine/drainer.py",
+        "line": 136,
+        "quote": "if effects_delivered(name):"
+      },
+      {
+        "path": "frappe/frappe/automation_engine/dispatch.py",
+        "line": 109,
+        "quote": "The `dedup_key` unique index is the real guard; the lookup below only avoids the failed insert."
+      },
+      {
+        "path": "suite/suite/drive/api/product.py",
+        "line": 127,
+        "quote": "@rate_limit(limit=5, seconds=60)"
+      },
+      {
+        "path": "frappe/frappe/client.py",
+        "line": 245,
+        "quote": "if len(docs) > 200:"
+      },
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 84,
+        "quote": "doc.apply_fieldlevel_read_permissions()"
+      },
+      {
+        "path": "suite/suite/drive/api/product.py",
+        "line": 138,
+        "quote": ").insert(ignore_permissions=True)"
+      },
+      {
+        "path": "frappe/frappe/utils/safe_exec.py",
+        "line": 88,
+        "quote": "return bool(frappe.get_common_site_config(cached=True).get(SAFE_EXEC_CONFIG_KEY))"
+      },
+      {
+        "path": "frappe/frappe/utils/safe_exec.py",
+        "line": 388,
+        "quote": "raise BlockedRequest(\"Requests to internal network addresses are not permitted\")"
+      },
+      {
+        "path": "frappe/frappe/api/discovery.py",
+        "line": 326,
+        "quote": "if not any(frappe.get_hooks(\"expose_discovery_source\", app_name=app)):"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/discovery.py",
+      "frappe/frappe/api/v1.py",
+      "frappe/frappe/automation_engine/dispatch.py",
+      "frappe/frappe/automation_engine/drainer.py",
+      "frappe/frappe/automation_engine/runner.py",
+      "frappe/frappe/client.py",
+      "frappe/frappe/permissions.py",
+      "frappe/frappe/utils/safe_exec.py",
+      "suite/pyproject.toml",
+      "suite/suite/drive/api/product.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/agent-run.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/ai_orchestration/doctype/agent_run/agent_run.py",
+      "backend/saas_platform/saas_platform/ai_orchestration/doctype/agent_step/agent_step.py"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "agent_user (rolü kısıtlı ayrı Frappe User), agent_run, idx, tool (onaylı capability tanımından; capability-definition--contract), araç girdi özeti, istem/bağlam sürümü referansı, istemcinin verdiği ve run içinde tekil idempotency_key, isteğe bağlı devir hedef ajanı. Çağrı yolu mevcut yönerge önerisine göre /api/v2'dir; v2 ucu bu girdide alıntıyla doğrulanmadı ve hedef sürüm eşlemesi açık karardır.",
+    "output": "Agent Step kaydı: run, idx, tool, status, idempotency_key, result_digest, effects_delivered, limit aşımında stopped_reason. Tekrarlanan idempotency_key için ilk kayıtlı sonuç aynen döner. Sonuç JSON model sınırı içinde yapılandırılmış veridir; yerel ReactNode veya callback taşımaz. Kaynak registry ile GenUI capability registry ayrı kalır; GenUI ayrı kullanıcı projesidir ve bu sözleşme GenUI geliştirmez.",
+    "authorization": "Her adımda ajan kimliği yeniden kurulur ve native has_permission / check_permission ile denetlenir. Yasak liste: ignore_permissions kullanan yardımcılar, allow_guest uçları, safe_exec/Server Script ve ham SQL ajan aracı veya kısayolu olamaz. Okumalar yalnız apply_fieldlevel_read_permissions uygulanan uçlardan yapılır. Rol ve izin üretimi explicitPermissionFlags ortak kaynağına (../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy altında; kesin işaretçi entegrasyon sahibince doğrulanır) bağlanır. Prompt metnine yetki verilmez; sunucu politikası üstündür. Devirde izin taşınmaz. Gelecekteki kabulde en az bir reddedilen yazma ve değişmeden kalan hedef kayıt gösterilir.",
+    "persistence": "Gelecekte özel Agent Run ve Agent Step DocType'ları (canonicalArtifact AgentRun, custom_proposed); şema agent-run--schema ve agent-step--schema görevlerine aittir. Native insert/save, transaction ve savepoint deseni kullanılır; idempotency_key benzersiz indeksi gerçek korumadır. Denetim kaydı audit-envelope--contract, veritabanı dışı etkiler outbox--contract üzerinden yürür. Bu sözleşme hiçbir şemayı, veriyi, servisi veya production ortamını değiştirme yetkisi vermez.",
+    "failure": "PermissionError: hedef kayıt değişmez, reddedilen adım denetim kaydına yazılır. Limit aşımı: yeni çağrı yok, stopped_reason ve kısmi sonuç. Benzersiz indeks çakışması: kayıtlı sonuç döner, ikinci yan etki yok. effects_delivered işaretli ve sonuç yok: yeniden deneme yok, Failed. Geçici hata: attempt sayacı max_attempts değerine kadar artar, tükenince Failed. ERPNext kurulu değilken satın alma eylemi: bağımlılık bekliyor gerekçesiyle reddedilir."
+  },
+  "development": {
+    "dependencies": [
+      "agent-run--contract",
+      "agent-run--schema",
+      "agent-step--contract",
+      "agent-step--schema",
+      "audit-envelope--contract",
+      "capability-definition--contract",
+      "kernel-envelope--contract",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "outbox--contract"
+    ],
+    "admission": {
+      "statement": "Uygulama durumu: uygulanmadı.",
+      "prerequisites": [
+        "T-00 hedef temel çizgisi (hedef Frappe sürümü ve API v1/v2 eşlemesi dahil)",
+        "R-00 yeniden kullanım eşlemesi",
+        "R-01 izinli veri tüketicileri ve tenant izolasyonu eşlemesi",
+        "development.dependencies içindeki sözleşme ve şema görevlerinin kabulü",
+        "tek dar davranış için gerçek RED/GREEN kanıtı"
+      ],
+      "orderAuthority": "Mevcut görev bağımlılıkları ve stage belirleyicidir; küme sırası sunumdur, yeni seri DAG değildir. Yeni görev kaydı açılmaz.",
+      "authority": "Bu sözleşme üretim, şema, servis, veri veya production değişikliği yetkisi vermez. Teknik CI/deploy/rollback sahibi Hüseyin Cengiz'dir; GoDaddy işlemleri gerekirse Asistan Hüseyin tarafından yapılır."
+    },
+    "steps": [
+      "1. agent-run--contract ve agent-step--contract bu belgeye bağlanır; ajan = rolü kısıtlı ayrı Frappe User, çağrı yolu = /api/v2 (doğrulanana kadar işaretli), satın alma = bağımlılık bekliyor.",
+      "2. agent-run--schema / agent-step--schema: Automation Run, Automation Run Step ve Trigger Queue deseninden dar alanlar; Agent Step: run, idx, tool, status, idempotency_key (unique), result_digest, effects_delivered, stopped_reason.",
+      "3. agent-step--implementation: tek TDD senaryosu (idempotency) önce RED, sonra GREEN.",
+      "4. Aynı yolda çağrı öncesi sunucu tarafı limit kontrolü ve stopped_reason.",
+      "5. agent-run--implementation güvenlik notu: yasak liste ve alan düzeyi okuma sınırı.",
+      "6. Devir kuralı: izin taşınmaz, hedef ajan kimliğiyle yeniden denetim; tenant izolasyonu R-01'e bağlanır.",
+      "7. Ajan run/step için dış okuma ucu en son, native izin denetimiyle eklenir."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Aynı run ve idempotency_key ile ikinci kez gönderilen Agent Step, aracı yeniden çağırmaz ve ilk kayıtlı sonucu (result_digest) döndürür.",
+      "red": "Gelecekteki test, sayaçlı sahte bir araçla aynı idempotency_key'i iki kez gönderir; beklenen davranış eksikken aracın ikinci kez çağrıldığı ve sonucun yeniden üretildiği gözlenir. RED bir import/altyapı hatası veya native davranışın bozulması değildir.",
+      "green": "Çağrıdan önce run ve idempotency_key ile mevcut Agent Step aranır; kayıt ve sonuç varsa araç çağrılmadan kayıtlı sonuç döner; benzersiz indeks çakışması aynı sonuca yönlenir; effects_delivered işaretli ve sonucu olmayan kayıt Failed yapılır. Native izin ve save akışı değiştirilmez. Bu turda test yazılmaz ve koşulmaz."
+    },
+    "rollback": "Belge düzeyi: entegrasyon sahibi yalnız bu sözleşme dosyasını önceki durumuna döndürür; başka dosyaya dokunulmaz. Gelecekteki uygulama: yeni DocType ve kod ayrı, geri alınabilir değişiklik olarak tutulur; şema/veri geri alma ve deploy rollback adımlarını Hüseyin Cengiz tanımlar ve doğrular. Bu sözleşme rollback yürütme yetkisi vermez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "agents-1",
+      "sourceStage": "scale",
+      "existing": "Native parça: has_permission ile izin denetimi, API v1 okuma ucu ve AI ajanlarını anan opt-in discovery kaynak açma. Yerelde ajan platformu yok; Sheets AI Assist Anthropic bağımlılığı ajan yeteneği değildir. Mevcut yönerge (data/clusters/09.json /groups/4/items/0): ajan yönetimi ayrı orkestrasyon katmanında; LangGraph yalnız seçenek örneği.",
+      "gap": "Satın alma ERPNext Purchase DocType'larına bağlı, ancak ERPNext kurulu değil ve hedef DocType tanımlı değil. Ajan kimlik modeli (servis kullanıcısı, rol seti, Keycloak eşlemesi) tanımsız. API sürümü ve Frappe 17.0.0.dev0 eşlemesi belirtilmemiş. Sheets AI Assist ile ajan katmanı ayrımı ve registry birleştirmeme sınırı yazılmamış.",
+      "completionSteps": [
+        "Ajanı rolü kısıtlı ayrı Frappe User olarak tanımla; rol seti explicitPermissionFlags ortak kaynağından türetilsin ve native-user-policy--contract'a bağlansın.",
+        "Çağrı yolunu /api/v2 olarak not et; hedef sürümde varlığı T-00 ile doğrulanana kadar 'doğrulanmadı' işaretini koru.",
+        "Satın alma eylemini ERPNext kararı ve hedef DocType tanımı gelene kadar 'bağımlılık bekliyor' olarak işaretle; native olduğunu iddia etme.",
+        "Araç listesini capability-definition--contract'tan al; kaynak registry ile GenUI capability registry'yi birleştirme; Sheets AI Assist'i ajan katmanından ayrı tut.",
+        "Keycloak eşlemesini karar gelene kadar yalnız açık karar olarak bırak."
+      ],
+      "dependencies": [
+        "agent-run--contract",
+        "native-user-policy--contract",
+        "capability-definition--contract",
+        "kernel-envelope--contract"
+      ],
+      "acceptance": "Kayıtlı ajan yalnız izinli işi yapar: izinli araç adımı tamamlanır; rolünde yazma izni olmayan DocType'a yazma denemesi PermissionError ile reddedilir ve hedef kayıt değişmeden kalır; satın alma eylemi karar gelene kadar bağımlılık bekliyor gerekçesiyle reddedilir.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/discovery.py",
+          "line": 320,
+          "quote": "helps API clients (e.g. AI"
+        },
+        {
+          "path": "suite/pyproject.toml",
+          "line": 31,
+          "quote": "# sheets — AI Assist (Claude)"
+        },
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 82,
+          "quote": "def has_permission("
+        },
+        {
+          "path": "suite/pyproject.toml",
+          "line": 45,
+          "quote": "frappe = \">=16.0.0,<18.0.0\""
+        }
+      ]
+    },
+    {
+      "requirementId": "agents-4",
+      "sourceStage": "scale",
+      "existing": "Native parça: automation_engine deterministik Automation Flow'lar için Automation Run ve adım kayıtları, aynı run ile snapshot ve adımlardan devam, attempt/max_attempts ile yeniden deneme, dışarı etki etmiş satırı yeniden göndermeyen effects_delivered koruması ve dedup_key benzersiz indeksi sunar. Bu bir AI ajanı değildir.",
+      "gap": "Ajana özgü agent-run/agent-step kaydı (model/araç çağrısı, girdi/çıktı özeti, istem/bağlam sürümü) yok. Görev hafızası, kapsamı/TTL'si ve tenant izolasyonu yok. Araç çağrısı başına istemci idempotency anahtarı ve sonucun yeniden döndürülmesi yok; dedup_key yalnız automation+belge bazında bekleyen tetiklemeyi tekilleştirir. Ajanlar arası devir sözleşmesi ve ajan run/step okuma-yazma ucu yok.",
+      "completionSteps": [
+        "Agent Run + Agent Step dar şemasını Automation Run deseninden türet; Agent Step alanları: run, idx, tool, status, idempotency_key (unique), result_digest, effects_delivered, araç girdi/çıktı özeti, istem/bağlam sürümü referansı.",
+        "Tekrarlanan idempotency_key için kayıtlı sonucu döndür (development.tdd senaryosu).",
+        "effects_delivered işaretli ve sonucu olmayan adımı yeniden denemeden Failed yap.",
+        "Kesintiden sonra devam için aynı run, snapshot ve adımlardan sürdürme desenini kullan; yeniden deneme attempt/max_attempts desenini izlesin.",
+        "Görev hafızasını ayrı kayıt olarak öner; kapsam, saklama süresi ve tenant izolasyonu R-01 ve açık karara bağlı kalsın.",
+        "Devirde hedef ajan ve devralınan geçmiş referansı kaydedilsin; izin taşınmasın, hedef ajan kimliğiyle yeniden denetlensin (girdi gerekçesinde anılan _execution_identity deseni bu girdide alıntıyla doğrulanmadı).",
+        "Ajan run/step dış okuma ucunu en son ve native izin denetimiyle ekle."
+      ],
+      "dependencies": [
+        "agent-run--schema",
+        "agent-step--schema",
+        "native-doctype-schema--contract",
+        "outbox--contract",
+        "audit-envelope--contract"
+      ],
+      "acceptance": "Kesintiden sonra aynı run kaldığı adımdan güvenle devam eder; aynı idempotency_key ile tekrarlanan adım ikinci yan etki üretmez ve kayıtlı sonucu döndürür; devirde geçmiş korunur ve hedef ajanın yetkisi yeniden denetlenir.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/automation_engine/runner.py",
+          "line": 25,
+          "quote": "RUN = \"Automation Run\""
+        },
+        {
+          "path": "frappe/frappe/automation_engine/runner.py",
+          "line": 92,
+          "quote": "\"\"\"Pick a waiting run back up: same Automation Run, its original snapshot and steps.\"\"\""
+        },
+        {
+          "path": "frappe/frappe/automation_engine/drainer.py",
+          "line": 167,
+          "quote": "exhausted = attempt >= cint(settings.get(\"max_attempts\"))"
+        },
+        {
+          "path": "frappe/frappe/automation_engine/drainer.py",
+          "line": 136,
+          "quote": "if effects_delivered(name):"
+        },
+        {
+          "path": "frappe/frappe/automation_engine/dispatch.py",
+          "line": 109,
+          "quote": "The `dedup_key` unique index is the real guard; the lookup below only avoids the failed insert."
+        }
+      ]
+    },
+    {
+      "requirementId": "agents-5",
+      "sourceStage": "scale",
+      "existing": "Native parça: uç başına rate_limit dekoratörü ve client içinde tek istekte 200 kayıt sınırı. Ajan bütçesi yok.",
+      "gap": "Adım, süre, token ve para limitlerinin varsayılan değerleri ve değiştirme yetkisi tanımsız. Atomik sayacın yeri (orkestratör veya Frappe) belirsiz. rate_limit'in ajan kimliği başına kullanımı belirtilmemiş.",
+      "completionSteps": [
+        "Agent Run üzerinde adım, süre, kaynak ve harcama sayaçlarını tanımla; her araç/model çağrısından önce sunucu tarafında kontrol et.",
+        "Sayaç güncellemesini çağrı kaydıyla aynı native transaction içinde yap; orkestratörle paylaşım açık karar olarak kalsın.",
+        "Limit aşımında yeni çağrı başlatma; run'ı stopped_reason ve kısmi sonuçla kaydet.",
+        "Limit değiştirme yetkisini explicitPermissionFlags ortak kaynağına bağla.",
+        "rate_limit'i ek savunma katmanı olarak not et; ajan başına uygulanması karara bağlı."
+      ],
+      "dependencies": [
+        "agent-run--schema",
+        "agent-step--schema",
+        "native-user-policy--contract",
+        "kernel-envelope--contract"
+      ],
+      "acceptance": "Adım veya bütçe limiti dolunca yeni araç/model çağrısı başlamaz; kısmi sonuç ve stopped_reason kaydedilir; yetkisiz kullanıcının limit değiştirme denemesi reddedilir ve değer değişmez.",
+      "evidence": [
+        {
+          "path": "suite/suite/drive/api/product.py",
+          "line": 127,
+          "quote": "@rate_limit(limit=5, seconds=60)"
+        },
+        {
+          "path": "frappe/frappe/client.py",
+          "line": 245,
+          "quote": "if len(docs) > 200:"
+        }
+      ]
+    },
+    {
+      "requirementId": "agents-6",
+      "sourceStage": "scale",
+      "existing": "Native parça: api/v1 okumada alan düzeyi okuma izni uygulanır; safe_exec yürütmesi common_site_config ile açılır; iç ağ adreslerine istek engellenir; discovery kaynak açma hook ile opt-in'dir. Suite'te ignore_permissions kullanan bir yardımcı örneği mevcuttur ve ajan aracı olamaz.",
+      "gap": "Ajanın göreceği alanların permlevel ve apply_fieldlevel_read_permissions ile sınırlanacağı yazılmamış. ignore_permissions ve allow_guest yardımcılarını ajan aracı olmaktan çıkaran kural yok. safe_exec/Server Script ve keyfi SQL yasağı belirtilmemiş. expose_discovery_source ile veri sızıntısı ilişkisi değerlendirilmemiş.",
+      "completionSteps": [
+        "agent-run--implementation güvenlik notuna yasak listeyi yaz: ignore_permissions yardımcıları, allow_guest uçları, safe_exec/Server Script, ham SQL.",
+        "Ajan okumalarını yalnız apply_fieldlevel_read_permissions uygulanan uçlarla sınırla.",
+        "Araç çıktısını yapılandırılmış şemayla veri kanalı olarak ayır; güvenilen talimat kanalını ayrı tut; prompt metnine yetki verme.",
+        "Ajan kapsamındaki app'ler için expose_discovery_source opt-in envanteri çıkar ve sızıntı değerlendirmesini belgeye ekle.",
+        "Ajanın dış URL çağrılarını iç ağ engeli olan yoldan geçir.",
+        "Gizli veri sınıflarını karar gelene kadar açık karar olarak bırak."
+      ],
+      "dependencies": [
+        "capability-definition--contract",
+        "native-user-policy--contract",
+        "audit-envelope--contract"
+      ],
+      "acceptance": "Belge veya araç çıktısındaki talimat gizli veriyi çıkaramaz ve araç kapsamını değiştiremez; permlevel ile gizlenen alan ajan yanıtında yer almaz; yasak listedeki bir yardımcının araç olarak kaydı reddedilir.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 84,
+          "quote": "doc.apply_fieldlevel_read_permissions()"
+        },
+        {
+          "path": "suite/suite/drive/api/product.py",
+          "line": 138,
+          "quote": ").insert(ignore_permissions=True)"
+        },
+        {
+          "path": "frappe/frappe/utils/safe_exec.py",
+          "line": 88,
+          "quote": "return bool(frappe.get_common_site_config(cached=True).get(SAFE_EXEC_CONFIG_KEY))"
+        },
+        {
+          "path": "frappe/frappe/utils/safe_exec.py",
+          "line": 388,
+          "quote": "raise BlockedRequest(\"Requests to internal network addresses are not permitted\")"
+        },
+        {
+          "path": "frappe/frappe/api/discovery.py",
+          "line": 326,
+          "quote": "if not any(frappe.get_hooks(\"expose_discovery_source\", app_name=app)):"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Agent Run / Agent Step şeması ve kodu yok.",
+    "İstemci idempotency anahtarıyla kayıtlı sonuç döndürme yok.",
+    "Ajan görev hafızası ve tenant izolasyonu yok.",
+    "Ajanlar arası devir ve yeniden yetki denetimi yok.",
+    "Sunucu tarafı adım/süre/kaynak/harcama sayaçları ve stopped_reason yok.",
+    "Ajan güven sınırı yasak listesi ve alan düzeyi okuma kısıtı yazılı değil.",
+    "API v2 ucunun hedef sürümde varlığı ve explicitPermissionFlags kesin işaretçisi doğrulanmadı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Orkestratör seçimi (LangGraph yalnız örnek)",
+      "requirementIds": ["agents-1", "agents-4", "agents-5"],
+      "blocks": "Orkestrasyon entegrasyonu ve checkpoint katmanı",
+      "documentStepUntilDecision": "Frappe tarafı Agent Run/Step sözleşmesini orkestratörden bağımsız yaz."
+    },
+    {
+      "decision": "Ajan kimliğinin Keycloak istemcisine ve token'ın Frappe oturumuna eşlenmesi",
+      "requirementIds": ["agents-1"],
+      "blocks": "Ajan kimlik doğrulama yolu",
+      "documentStepUntilDecision": "Rolü kısıtlı ayrı Frappe User modeliyle sözleşmeyi tamamla."
+    },
+    {
+      "decision": "Hedef Frappe sürümü ve API v1/v2 eşlemesi",
+      "requirementIds": ["agents-1"],
+      "blocks": "Çağrı ucunun kesinleşmesi",
+      "documentStepUntilDecision": "T-00'a sürüm ve uç doğrulama maddesi ekle; /api/v2 'doğrulanmadı' olarak kalsın."
+    },
+    {
+      "decision": "ERPNext kurulumu, satın alma hedef DocType'ları ve onay sınırı",
+      "requirementIds": ["agents-1"],
+      "blocks": "Satın alma eylemi",
+      "documentStepUntilDecision": "Satın almayı bağımlılık bekliyor olarak işaretle."
+    },
+    {
+      "decision": "Görev hafızası kapsamı, saklama süresi ve tenant topolojisi",
+      "requirementIds": ["agents-4"],
+      "blocks": "Hafıza kaydı ve tenant izolasyonu",
+      "documentStepUntilDecision": "Hafızayı R-01 eşlemesine bağlı öneri olarak tanımla."
+    },
+    {
+      "decision": "Limit varsayılanları, değiştirme yetkisi, harcama birimi/tarife, sayacın orkestratörle paylaşımı ve ajan başına rate_limit",
+      "requirementIds": ["agents-5"],
+      "blocks": "Limit değerlerinin uygulanması",
+      "documentStepUntilDecision": "Sayaç alanlarını ve stopped_reason davranışını değersiz yaz."
+    },
+    {
+      "decision": "Gizli veri sınıfları ve discovery kaynak açma politikası",
+      "requirementIds": ["agents-6"],
+      "blocks": "Ajanın görebileceği veri sınıflarının kesinleşmesi",
+      "documentStepUntilDecision": "Yasak liste ve alan düzeyi okuma kuralını yaz; opt-in envanterini hazırla."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

@@ -1,0 +1,247 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "analytics-event-spec",
+  "canonicalTaskIds": ["analytics-event-spec--implementation"],
+  "requirementIds": ["analytics-4", "analytics-5"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "analytics-4": "post_mvp",
+    "analytics-5": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Sürümlü analitik olay kataloğuna karşı sunucu tarafında tek uç noktada olay doğrulaması ve mükerrersiz dönüşüm işleme",
+    "trigger": "Kimliği doğrulanmış bir istemci (React web, WXT/MV3 eklentisi veya Tauri2 kabuğu) tenant bağlamı taşıyan bir analitik olayı tek sunucu uç noktasına gönderir.",
+    "expected": "Sunucu olayı AnalyticsEventSpec kataloğundaki yayınlanmış sürümle (event_name ve schema_version) doğrular. Şemaya ve kampanya adlandırma kuralına uyan olay native izin kontrolü ve tek transaction içinde kabul edilir. Katalogda dönüşüm hedefi olarak işaretli olay idempotency anahtarı ile yalnız bir kez işlenir; aynı anahtarla tekrar gönderim yeni kayıt üretmeden önceki sonucu döndürür.",
+    "denied": "Katalogda olmayan, yayınlanmamış veya kullanımdan kaldırılmış sürüme ait, zorunlu alanı eksik ya da kampanya adlandırma kuralına uymayan olay ile yetkisiz çağrı yapılandırılmış hata ile reddedilir; hiçbir olay, dönüşüm veya katalog kaydı oluşmaz ya da değişmez. İstemci tarafı kontrol yalnız kullanıcı deneyimi içindir, güvenlik sınırı sayılmaz."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Katalog kayıtlarının saklanması için native DocType ekleme yolu (frappe.new_doc(...).insert()) ve native izin kontrolü (frappe.permissions.has_permission) yeniden kullanılır. Yerel Website Analytics raporu yalnız barındırılan sayfa görüntüleme ve tekil ziyaretçi ölçümüdür; en fazla 250 satır döndürür ve rol kısıtlıdır. Ürün olay kataloğu, olay şeması doğrulaması, sürümleme, dönüşüm tekilleştirmesi, aktivasyon/kohort/retention hesabı aranan yollarda bulunmadı; bu kapsamlı bir yokluk iddiası değildir. Kanıtlar yalnız native parçaları gösterir, davranışın bütünü var demek değildir. Vue/Frappe UI kaynağı React/Ant Design uygulamasının kanıtı sayılmaz.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 50,
+        "quote": "return frappe.new_doc(doctype, **data).insert()"
+      },
+      {
+        "path": "frappe/frappe/permissions.py",
+        "line": 82,
+        "quote": "def has_permission("
+      },
+      {
+        "path": "frappe/frappe/website/report/website_analytics/website_analytics.py",
+        "line": 53,
+        "quote": "{\"fieldname\": \"unique_count\", \"label\": \"Unique Visitors\", \"fieldtype\": \"Int\", \"width\": 150},"
+      },
+      {
+        "path": "frappe/frappe/website/report/website_analytics/website_analytics.py",
+        "line": 39,
+        "quote": "return columns, data[:250], None, chart, summary"
+      },
+      {
+        "path": "frappe/frappe/website/report/website_analytics/website_analytics.json",
+        "line": 24,
+        "quote": "\"role\": \"Website Manager\""
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "frappe/frappe/permissions.py",
+      "frappe/frappe/website/report/website_analytics/website_analytics.json",
+      "frappe/frappe/website/report/website_analytics/website_analytics.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/analytics-event-spec.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/content_growth/doctype/analytics_event_spec/analytics_event_spec.py"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Olay zarfı kernel-envelope--contract tenant ve aktör bağlamını taşır. Önerilen alanlar: event_name, schema_version, occurred_at, client_event_id (istemcinin ürettiği tekil olay kimliği), payload (yalnız katalogdaki alan tanımlarına uyan JSON veri; ReactNode, callback veya çalıştırılabilir içerik yok), campaign (utm_source, utm_medium, utm_campaign ve katalog kuralında tanımlı ek alanlar). Katalog kaydı girdisi: event_name, schema_version, status (taslak, yayınlı, kullanımdan kaldırıldı), alan tanımları, is_conversion, conversion_goal, idempotency anahtar bileşenleri, campaign_naming_rule ve analytics-5 için activation/retention tanım alanları.",
+    "output": "Kabul: status=accepted ve olay referansı. Tekrar: status=duplicate ve ilk işlemin referansı; yeni kayıt yok. Ret: yapılandırılmış hata kodu (öneri: unknown_event, version_not_published, schema_mismatch, campaign_naming_invalid, permission_denied) ve kayıt değişikliği yok. Kodlar bu sözleşmenin önerisidir; mevcut bir API iddiası değildir.",
+    "authorization": "Katalog okuma ve yazma native DocType izinleriyle ve has_permission ile denetlenir; ignore_permissions, ham SQL veya başka bir yetki atlama yolu kullanılmaz. Katalog yönetim rolü ve olay gönderme izni explicitPermissionFlags ortak kaynağına bağlanır (sharedExecutionPolicy altında; kesin işaretçi entegrasyon sahibince doğrulanır); rol eşlemesi native-user-policy--contract ile hizalanır. Olay gönderimi yalnız çağıranın kernel-envelope tenant kapsamında kabul edilir. Katalog değişiklikleri audit-envelope--contract ile izlenir.",
+    "persistence": "Katalog AnalyticsEventSpec DocType'ında native insert/save ve transaction ile saklanır; yayınlanmış sürüm yerinde değiştirilmez, değişiklik yeni sürüm kaydıdır. Kabul edilen olaylar aynı transaction içinde outbox--contract üzerinden teslim edilmek üzere kaydedilir; idempotency anahtarının tekilliği bu kayıt düzeyinde sağlanır. Yeni ORM, depolama motoru veya genel CRUD katmanı tasarlanmaz. Kalıcı olay deposu, saklama süresi ve veri yerleşimi decisionsPending kararlarına bağlıdır. Katalog, GenUI capability registry (frontend/packages/ui/src/registry.ts) ve query-action kayıtlarından ayrı bir kaynak kaydıdır; oralara kaydedilmez.",
+    "failure": "Doğrulama veya izin hatası yazmadan önce döner; kayıt sayısı değişmez. Outbox yazımı başarısız olursa transaction bütünüyle geri alınır, kısmi olay veya dönüşüm kalmaz. Aynı idempotency anahtarıyla eşzamanlı iki gönderimden yalnız biri kabul edilir, diğeri duplicate döner. Kullanımdan kaldırılan sürüm açık hata koduyla reddedilir, sessizce başka sürüme eşlenmez."
+  },
+  "development": {
+    "dependencies": [
+      "analytics-event-spec--contract",
+      "analytics-event-spec--schema",
+      "audit-envelope--contract",
+      "capability-definition--contract",
+      "kernel-envelope--contract",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "outbox--contract"
+    ],
+    "admission": {
+      "statement": "Uygulama durumu: uygulanmadı. Bu dosya yalnız gelecekteki geliştirme rehberidir; üretim, şema, veri, servis veya production değişikliği yetkisi vermez.",
+      "prerequisites": [
+        "T-00 hedef taban çizgisi",
+        "R-00 yeniden kullanım eşlemesi",
+        "R-01 izinli veri tüketicileri kuralı",
+        "development.dependencies içindeki sözleşmelerin hazır olması",
+        "Tek dar davranış için gerçek RED/GREEN kanıtı"
+      ],
+      "orderAuthority": "Mevcut görev bağımlılıkları ve post_mvp aşaması belirleyicidir; küme sırası yalnız sunumdur, yeni seri bağımlılık zinciri değildir."
+    },
+    "steps": [
+      "T-00 ile hedef Frappe sürümünde new_doc(...).insert() ve has_permission imzalarını yeniden doğrula; sürüm kararı açıksa bu adımı belge olarak bekle.",
+      "analytics-event-spec--schema ve native-doctype-schema--contract ile AnalyticsEventSpec alanlarını, sürüm durumlarını ve native izin satırlarını tanımla.",
+      "Tek sunucu uç noktasında katalog araması, şema doğrulaması, kampanya adlandırma kontrolü ve idempotency kontrolünü bu sırayla, yazmadan önce yap.",
+      "Kabul edilen olayı outbox--contract ile aynı transaction içinde kaydet; dönüşümde idempotency tekilliğini zorunlu tut.",
+      "Katalog değişikliklerini audit-envelope--contract ile izle; yetki kurallarını explicitPermissionFlags ortak kaynağına bağla.",
+      "İstemcilerde (React ve TanStack Query, WXT, Tauri2) yalnız aynı uç noktayı çağır; istemci doğrulaması varsa yalnız UX amaçlıdır.",
+      "Katalogu GenUI capability registry ve query-action kayıtlarından ayrı tut; JSON veri modeli ile yerel ReactNode/callback sınırını koru.",
+      "analytics-5 tanımlarını katalogda belgele; hesaplama yeri kararı gelmeden hesap motoru yazma."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Katalogda yayınlanmış sürümü bulunmayan event_name ile tek sunucu uç noktasına gönderilen olay reddedilir ve olay/dönüşüm kayıt sayısı değişmez.",
+      "red": "Gelecekte: uç nokta olayı katalog doğrulaması yapmadan kabul ettiği sürece test, beklenen ret kodu ve değişmeyen kayıt sayısı iddiasında başarısız olur. RED import hatası, eksik altyapı veya native davranışı bozarak elde edilmez. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "Sunucu doğrulaması eklendiğinde aynı test unknown_event ret kodunu ve değişmemiş kayıt sayısını doğrular; native izin kontrolü atlanmaz."
+    },
+    "rollback": "Bu turda geri alma yalnız bu sözleşme dosyasının önceki durumuna dönmektir. Gelecekte: katalog sürümleri silinmez, status ile kullanımdan kaldırılır; uç noktanın devre dışı bırakılması ve CI/deploy/rollback teknik sahibi Hüseyin Cengiz'dir. Bu davranış DNS değişikliği gerektirmez; gerekirse GoDaddy uygulama sahibi Asistan Hüseyin'dir ve teknik gereksinimi Hüseyin Cengiz hazırlar."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "analytics-4",
+      "sourceStage": "post_mvp",
+      "existing": "Native DocType ekleme yolu ve has_permission izin kontrolü aranan kaynakta var. Ürün olay kataloğu, olay şeması doğrulaması, sürümleme ve dönüşüm tekilleştirmesi aranan yollarda bulunmadı.",
+      "gap": "Şema doğrulamasının otoritesi tanımsız; olay sürümleme ve geriye uyumluluk kuralı yok; dönüşüm idempotency anahtarı yok; katalogun GenUI ve query-action kayıtlarından ayrı olduğu yazılı değil.",
+      "completionSteps": [
+        "AnalyticsEventSpec'i event_name ve schema_version çiftiyle tekil, sürümlü DocType olarak native izinlerle tanımla.",
+        "Sürümleme kuralını yaz: yayınlanmış sürüm değişmez; değişiklik yeni sürümdür; eski sürüm kullanımdan kaldırılana kadar kabul edilir, sonra açık hata koduyla reddedilir.",
+        "Doğrulama otoritesini tek sunucu uç noktası olarak sabitle; istemci veya sağlayıcı tarafı kontrol güvenlik sınırı değildir.",
+        "Dönüşüm olayları için idempotency anahtarını tenant, event_name, schema_version ve client_event_id bileşenlerinden tanımla; tekilliği outbox--contract kaydında zorunlu tut.",
+        "campaign_naming_rule alanında utm parametreleri için izinli değer veya desen tanımla ve sunucuda doğrula; sağlayıcı seçme.",
+        "Katalogun GenUI capability registry ve query-action kayıtlarına eklenmeyeceğini ve onlarla birleştirilmeyeceğini rehbere yaz."
+      ],
+      "dependencies": [
+        "analytics-event-spec--contract",
+        "analytics-event-spec--schema",
+        "native-doctype-schema--contract",
+        "native-user-policy--contract",
+        "kernel-envelope--contract",
+        "outbox--contract",
+        "audit-envelope--contract",
+        "capability-definition--contract"
+      ],
+      "acceptance": "Şema dışı olay reddedilsin ve kayıt değişmesin; tek dönüşüm olayı hedefe doğru ve mükerrersiz işlensin; aynı idempotency anahtarıyla ikinci gönderim duplicate dönsün.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 50,
+          "quote": "return frappe.new_doc(doctype, **data).insert()"
+        },
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 82,
+          "quote": "def has_permission("
+        }
+      ]
+    },
+    {
+      "requirementId": "analytics-5",
+      "sourceStage": "post_mvp",
+      "existing": "Website Analytics raporu sayfa görüntüleme ve tekil ziyaretçi sütunları verir, en fazla 250 satır döndürür ve rol kısıtlıdır (doğrulanmış alıntı Website Manager rolünü gösterir). Aktivasyon, kohort ve retention hesabı aranan yollarda bulunmadı; rapor tenant'a duyarlı değildir.",
+      "gap": "Aktivasyon olayı ve retention penceresi somut değil; hesaplamanın Frappe raporunda mı harici analitik katmanında mı yapılacağı kararı yok; tenant izolasyonu ve rapor rol eşlemesi yazılı değil; Frappe Reports kaynağı hedef sürümle eşlenmemiş.",
+      "completionSteps": [
+        "Katalogda bir aktivasyon tanımı belgele: aktivasyon olayı (katalogdaki event_name ve sürüm), zaman penceresi ve kohort anahtarı; pencere değeri karar bekler.",
+        "Katalogda bir retention tanımı belgele: dönüş olayı, pencere seti ve kohort anahtarı; pencere değerleri karar bekler.",
+        "Hesaplama yeri kararı gelene kadar yalnız tanımları belgele; yeni hesap motoru veya rapor yazma.",
+        "Website Analytics'i yalnız barındırılan sayfa ölçümü olarak etiketle; ürün davranış ölçümü için kullanma ve değiştirme.",
+        "Hesap girdisini kernel-envelope tenant bağlamıyla sınırla; rapor rol eşlemesini native-user-policy--contract ve explicitPermissionFlags ortak kaynağına bağla.",
+        "Hedef sürüm kararından sonra Frappe Reports referansını sürümlü kaynakla eşle."
+      ],
+      "dependencies": [
+        "analytics-event-spec--contract",
+        "analytics-event-spec--schema",
+        "kernel-envelope--contract",
+        "native-user-policy--contract",
+        "outbox--contract"
+      ],
+      "acceptance": "Örnek kullanıcı kohortunun aktivasyon/retention hesabı belgelenen olay ve zaman penceresiyle eşleşsin; başka tenant'ın olayları hesaba girmesin; Website Analytics yalnız barındırılan sayfa ölçümü etiketi taşısın.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/website/report/website_analytics/website_analytics.py",
+          "line": 53,
+          "quote": "{\"fieldname\": \"unique_count\", \"label\": \"Unique Visitors\", \"fieldtype\": \"Int\", \"width\": 150},"
+        },
+        {
+          "path": "frappe/frappe/website/report/website_analytics/website_analytics.py",
+          "line": 39,
+          "quote": "return columns, data[:250], None, chart, summary"
+        },
+        {
+          "path": "frappe/frappe/website/report/website_analytics/website_analytics.json",
+          "line": 24,
+          "quote": "\"role\": \"Website Manager\""
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Ürün olay kataloğu, sunucu şema doğrulaması ve dönüşüm idempotency'si uygulanmadı.",
+    "outbox--contract'ın idempotency tekilliğini sağlayıp sağlamadığı doğrulanmadı; sağlamıyorsa analytics-event-spec--schema kapsamında tekillik alanı tanımlanmalı.",
+    "Aktivasyon ve retention tanımlarının değerleri ve hesaplama yeri belirsiz.",
+    "Website Analytics tenant'a duyarlı değil; ürün ölçümü için kullanılamaz.",
+    "Frappe Reports kaynağı hedef sürümle eşlenmedi.",
+    "explicitPermissionFlags ortak kaynağının kesin JSON işaretçisi bu sözleşmede doğrulanmadı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Analitik hesaplama yeri ve veri deposu (Frappe raporu ya da harici analitik katmanı); satıcı seçimi yapılmaz.",
+      "requirementIds": ["analytics-5", "analytics-4"],
+      "blocks": "Aktivasyon/retention hesabının uygulanması ve kabul edilen olayların outbox sonrası teslim hedefi.",
+      "meanwhile": "Aktivasyon ve retention tanım yapısını ve outbox kayıt biçimini belgede tanımla."
+    },
+    {
+      "decision": "Aktivasyon olayı seçimi ve retention pencere değerleri (ör. D1/D7/D30 seçenekleri).",
+      "requirementIds": ["analytics-5"],
+      "blocks": "Kohort kabul örneğinin somut beklenen değerleri.",
+      "meanwhile": "Tanım alanlarını değer içermeden katalog şemasına yaz."
+    },
+    {
+      "decision": "Olay verisi saklama süresi ve veri yerleşimi.",
+      "requirementIds": ["analytics-4", "analytics-5"],
+      "blocks": "Kalıcı olay deposunun kurulması ve temizleme kuralı.",
+      "meanwhile": "Saklama ve yerleşim alanlarını karar bekliyor olarak işaretle; değer yazma."
+    },
+    {
+      "decision": "Tenant topolojisi.",
+      "requirementIds": ["analytics-4", "analytics-5"],
+      "blocks": "Tenant izolasyonunun fiziksel uygulama biçimi.",
+      "meanwhile": "Tenant bağlamını yalnız kernel-envelope--contract alanına referansla tanımla."
+    },
+    {
+      "decision": "Hedef Frappe sürümü (v17-dev eşlemesi dahil).",
+      "requirementIds": ["analytics-4", "analytics-5"],
+      "blocks": "Native API imzalarının ve Frappe Reports referansının sürümlü doğrulanması.",
+      "meanwhile": "T-00 kapsamındaki doğrulama listesine bu imzaları ekle."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

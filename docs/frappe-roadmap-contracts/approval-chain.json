@@ -1,0 +1,447 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "approval-chain",
+  "canonicalTaskIds": [
+    "approval-chain--implementation",
+    "approval-step--implementation",
+    "ui-family-21--implementation"
+  ],
+  "requirementIds": [
+    "approvals-1",
+    "approvals-2",
+    "approvals-3",
+    "approvals-5",
+    "approvals-6"
+  ],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "approvals-1": "post_mvp",
+    "approvals-2": "post_mvp",
+    "approvals-3": "post_mvp",
+    "approvals-5": "post_mvp",
+    "approvals-6": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Onay zinciri geçişinin tek sunucu tarafı kabul noktasında doğrulanması",
+    "trigger": "Bir kullanıcı veya istemci, onay zincirine bağlı bir belgede Workflow durumunu ya da onay kararını değiştirecek bir yazma isteği gönderir. Bu istek apply_workflow, imzalı e-posta onay bağlantısı, genel REST save veya toplu geçiş yolundan gelebilir.",
+    "expected": "Geçiş yalnız şu koşullar birlikte sağlandığında kabul edilir: istek mevcut durumdan yapılır, kullanıcı izinli role sahiptir, kullanıcı talep eden ya da owner değildir, geçiş koşulu sağlanmıştır ve kararın bağlı olduğu belge sürümü günceldir. Sıralı adımda önceki onay, paralel adımda gerekli kararların tamamı aranır. Kabul edilen geçiş native transaction içinde yazılır ve audit zarfına bağlanır.",
+    "denied": "Koşullardan biri sağlanmazsa istek native hata ile reddedilir. workflow_state, karar kayıtları ve belge alanları değişmez; ret nedeni audit kaydına yazılır. ignore_permissions, doğrudan SQL ya da yalnız istemci tarafı kontrolüne güvenmek gibi bir atlama yolu yoktur."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Uygulama durumu: uygulanmadı. Yeniden kullanılacak native Frappe parçaları şunlardır: Workflow durum makinesi (get_transitions/apply_workflow), Workflow Transition koşulu (safe_eval), Workflow Action kaydı, Allow Self Approval alanı ve Only Allow Edit For durum kısıtı. Kanıtlar yalnız bu parçaların varlığını gösterir; onay zincirinin bütün davranışının hazır olduğunu göstermez. Alıntılar daha önce alınmış salt okunur Frappe kaynak görüntülerindendir. Bunlar canlı bir site ya da ürün kabulü değildir. Arama yalnız searchedPaths içindeki dosyalarla sınırlıdır; bu bir kapsamlı yokluk iddiası değildir. ui-family-21 için React/Ant Design kaynak kanıtı yoktur. Frappe Desk/Vue arayüz kaynağı React/AntD uygulamasının kanıtı sayılmaz.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/model/workflow.py",
+        "line": 72,
+        "quote": "if transition.state == current_state and transition.allowed in roles:"
+      },
+      {
+        "path": "frappe/frappe/model/workflow.py",
+        "line": 118,
+        "quote": "@frappe.whitelist()"
+      },
+      {
+        "path": "frappe/frappe/model/workflow.py",
+        "line": 100,
+        "quote": "return frappe.safe_eval(transition.condition, get_workflow_safe_globals(), dict(doc=doc.as_dict()))"
+      },
+      {
+        "path": "frappe/frappe/model/workflow.py",
+        "line": 37,
+        "quote": "workflow_name = frappe.db.get_value(\"Workflow\", {\"document_type\": doctype, \"is_active\": 1}, \"name\")"
+      },
+      {
+        "path": "frappe/frappe/model/workflow.py",
+        "line": 136,
+        "quote": "if not has_approval_access(user, doc, transition):"
+      },
+      {
+        "path": "frappe/frappe/workflow/doctype/workflow_action/workflow_action.py",
+        "line": 165,
+        "quote": "newdoc = apply_workflow(doc, action)"
+      },
+      {
+        "path": "frappe/frappe/workflow/doctype/workflow_action/workflow_action.py",
+        "line": 46,
+        "quote": "status: DF.Literal[\"Open\", \"Completed\"]"
+      },
+      {
+        "path": "frappe/frappe/workflow/doctype/workflow_document_state/workflow_document_state.json",
+        "line": 64,
+        "quote": "\"label\": \"Only Allow Edit For\","
+      },
+      {
+        "path": "frappe/frappe/workflow/doctype/workflow_transition/workflow_transition.json",
+        "line": 64,
+        "quote": "\"default\": \"1\","
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "frappe/frappe/model/workflow.py",
+      "frappe/frappe/permissions.py",
+      "frappe/frappe/workflow/doctype/workflow/workflow.py",
+      "frappe/frappe/workflow/doctype/workflow_action/workflow_action.py",
+      "frappe/frappe/workflow/doctype/workflow_document_state/workflow_document_state.json",
+      "frappe/frappe/workflow/doctype/workflow_transition/workflow_transition.json"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/approval-chain.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/workflow_automation/doctype/approval_chain/approval_chain.py",
+      "backend/saas_platform/saas_platform/workflow_automation/doctype/approval_step/approval_step.py",
+      "frontend/packages/ui/src/components/ui-family-21/index.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Girdiler şunlardır: belge referansı (doctype, name), istenen Workflow eylemi, istemcinin gördüğü belge sürüm anahtarı ve oturum kullanıcısı. Sürüm anahtarının kaynağı approval-chain--schema ile belirlenir. Kimlik, native-user-policy--contract üzerinden Frappe User/Role'e çözülmüş olmalıdır. İstemci rol, talep eden ya da kullanıcı adı beyan edemez.",
+    "output": "Kabulde şunlar döner: yeni workflow_state, kaydedilen kararın referansı, paralel adım için kalan gerekli karar sayısı ve kernel-envelope--contract zarfında audit referansı. Retteyse sabit bir hata kodu ve okunur bir neden döner; belge değişmez.",
+    "authorization": "Önce native has_permission ve Workflow transition.allowed rol kontrolü çalışır. Ek kontroller yetkiyi yalnız daraltır, hiçbir zaman genişletmez. Rol ve izin bayrakları explicitPermissionFlags ortak kaynağına bağlanır; bu sözleşme yeni bayrak tanımlamaz. ignore_permissions, SQL ile yetki atlama ve Administrator'ın her şeye izinli olmasının sessizce kullanılması yasaktır. Administrator ve servis hesabı istisnaları varsayılan olarak kapalıdır; yalnız açık bir politikayla açılabilir ve her kullanımı audit edilir.",
+    "persistence": "Yazma native apply_workflow/Document.save transaction'ı içinde yapılır. Zincir tanımı (approval-chain--schema), adım tanımı (approval-step--schema) ve karar kaydı (approval-decision--contract) birer özel DocType önerisidir. Workflow tek durum alanını korur; ikinci aktif Workflow ya da Workflow kopyası oluşturulmaz. Bildirim gibi yan etkiler outbox--contract üzerinden commit sonrasına bağlanır.",
+    "failure": "Herhangi bir kontrol başarısız olursa transaction'ın tamamı geri alınır; kısmi karar ya da kısmi durum yazılmaz. Sürüm uyuşmazlığında eski karar kullanılmaz ve yeniden onay gerekir. Zamanlayıcıdan kaynaklanan yükseltme hatası belgeyi değiştirmez; işlem güvenle yeniden denenebilir."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "approval-chain--contract",
+      "approval-chain--schema",
+      "approval-decision--contract",
+      "approval-step--contract",
+      "approval-step--schema",
+      "audit-envelope--contract",
+      "capability-definition--contract",
+      "client-rule-parity--contract",
+      "kernel-envelope--contract",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "native-workflow--contract",
+      "outbox--contract",
+      "process-definition--contract",
+      "ui-family-21--contract"
+    ],
+    "admission": {
+      "statement": "Uygulama durumu: uygulanmadı. Bu sözleşme hiçbir servis, production ortamı, şema ya da veri üzerinde değişiklik yetkisi vermez.",
+      "prerequisites": [
+        "T-00 hedef taban çizgisi ve R-00 yeniden kullanım eşlemesi tamamlanmış olmalı; izinli veri tüketen adımlar ayrıca R-01'e uyar.",
+        "Hedef Frappe sürümü kararı verilmiş olmalı ve o sürümün model/workflow.py ile Document.save workflow doğrulaması satır kanıtıyla okunmuş olmalı.",
+        "Yazma yolu tablosu tamamlanmış olmalı: her yolun aynı kuralı uygulayıp uygulamadığı kanıtla gösterilir.",
+        "Her teslim tek ve dar bir davranış uygular; gerçek RED/GREEN kanıtı olmadan kabul edilmez.",
+        "Sıra yetkisi mevcut görev bağımlılıkları ve stage'dir; küme sırası yalnız sunumdur, yeni bir seri DAG oluşturmaz."
+      ]
+    },
+    "steps": [
+      "1. Hedef sürüm kararı geldikten sonra get_transitions, apply_workflow, has_approval_access, toplu geçiş fonksiyonları ve Document.save workflow doğrulaması o sürüm kaynağından okunur; bulgular path/line/quote ile kaydedilir.",
+      "2. Yazma yolu tablosu hazırlanır. Kapsanacak yollar: apply_workflow, apply_action/confirm_action, api/v1 update_doc (doc.save), v2 execute_doc_method ve toplu geçiş. Her satırda 'aynı kural uygulanıyor mu' sütunu ve kanıtı bulunur.",
+      "3. Zincir kapsamı, talep eden alanı, kritik alanlar, quorum kuralı ve vekalet alanları yalnız approval-chain--schema ve approval-step--schema önerilerine bağlanır.",
+      "4. Tüm yazma yollarının geçtiği tek bir sunucu tarafı kontrol noktası tasarlanır. Bu nokta native kontrolleri tekrar etmez; onlardan sonra çalışarak yetkiyi yalnız daraltır.",
+      "5. Önerilen okuma sırası (yeni bir DAG değildir): approvals-6, approvals-1, approvals-5, approvals-2, approvals-3. Her maddenin kendi dar RED/GREEN teslimi olur.",
+      "6. ui-family-21 yalnız kontrol noktasının sonucunu, yani mevcut durumu, izinli eylemleri, ret nedenini ve audit referansını deterministik biçimde gösterir. İstemci tarafındaki kural client-rule-parity--contract'a göre yalnız ön bilgidir; karar sunucuda verilir. Kaynak registry ile GenUI capability registry ayrı tutulur. JSON model sınırı ile yerel ReactNode/callback sınırı da ayrıdır. Arayüz kabulü, gelecekteki UI tesliminde proje UI kurallarına göre ayrıca yapılır."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Belgede talep eden alanı owner'dan farklı bir kullanıcıyı göstermektedir. Bu kullanıcı, allow_self_approval=0 olan bir onay geçişini apply_workflow ile dener. Beklenen sonuç: istek reddedilir, workflow_state ile karar kayıtları değişmez. Aynı role sahip bağımsız bir kullanıcı ise aynı geçişi yapabilir.",
+      "red": "Native kontrol hedef sürümde yalnız owner ile karşılaştırma yapıyorsa talep eden kullanıcının geçişi kabul edilir ve 'reddedilmeli' doğrulaması başarısız olur. Bu karşılaştırma davranışı önce kaynaktan doğrulanır. RED; import hatası, altyapı hatası ya da native davranışın bozulmasıyla üretilmez. Hedef sürüm talep edeni zaten kapsıyorsa bu bulgu kaydedilir ve senaryo yeniden seçilir.",
+      "green": "Tek kontrol noktası talep eden alanını da karşılaştırır. Ret native hatayla transaction içinde gerçekleşir ve belge değişmez; bağımsız yetkili kullanıcı onaylayabilir. ignore_permissions kullanılmaz. Bu turda test yazılmaz ve koşulmaz."
+    },
+    "rollback": "Bu sözleşme yalnız bir belgedir. Geri alma, bu dosyanın belge revizyonu demektir; hiçbir servis, şema, veri ya da production durumu değişmez. Gelecekteki üretim teslimlerinde CI, deploy ve rollback'in teknik sahibi Hüseyin Cengiz'dir. allow_self_approval gibi Workflow yapılandırma değişikliklerinin geri alma planı o teslimde ayrıca yazılır. Bu birimde GoDaddy/DNS adımı yoktur; böyle bir adım ortaya çıkarsa uygulama sahibi Asistan Hüseyin olur."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "approvals-1",
+      "sourceStage": "post_mvp",
+      "existing": "Geçişler yalnız mevcut durumdan ve izinli rolle listelenir. apply_workflow whitelist'tedir. İmzalı e-posta yolu da apply_workflow'u çağırır. Bu nedenle iki durumlu bir Workflow, sıralı iki seviyeli onayı native olarak sağlar.",
+      "gap": "Kaynak eşlemesi version-15'e ve kurulu olmayan ERPNext belgesine dayanıyor; hedef sürüm eşlemesi yok. Hedef DocType kapsamı ve yazma yolu envanteri eksik. Genel REST save yolunun aynı workflow kuralını uygulayıp uygulamadığı doğrulanmamış. Kimliğin Role'e nasıl eşleneceği tanımsız.",
+      "completionSteps": [
+        "Hedef sürümde Document.save workflow doğrulamasını okuyup kanıtla kaydet.",
+        "Yazma yolu tablosunu çıkar: apply_workflow, apply_action/confirm_action, api/v1 doc.save, v2 execute_doc_method ve toplu geçiş.",
+        "Zincirin uygulanacağı DocType'ları ve standart/custom ayrımını approval-chain--schema'da tanımla.",
+        "Headless yüzeyi yalnız get_transitions/apply_workflow'u sarmalayan biçimde, api-middleware--contract zarfıyla ve ignore_permissions kullanmadan tanımla.",
+        "Kimlik-rol eşlemesini native-user-policy--contract'tan al; bu sözleşme eşleme tanımlamaz."
+      ],
+      "dependencies": [
+        "native-workflow--contract",
+        "native-user-policy--contract",
+        "api-middleware--contract",
+        "approval-chain--schema",
+        "kernel-envelope--contract"
+      ],
+      "acceptance": "İki seviyeli onayda ikinci adım, ilk onaydan önce hiçbir yazma yolundan açılamaz. Reddedilen istekte workflow_state değişmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/model/workflow.py",
+          "line": 72,
+          "quote": "if transition.state == current_state and transition.allowed in roles:"
+        },
+        {
+          "path": "frappe/frappe/model/workflow.py",
+          "line": 118,
+          "quote": "@frappe.whitelist()"
+        },
+        {
+          "path": "frappe/frappe/workflow/doctype/workflow_action/workflow_action.py",
+          "line": 132,
+          "quote": "@frappe.whitelist(allow_guest=True)"
+        },
+        {
+          "path": "frappe/frappe/workflow/doctype/workflow_action/workflow_action.py",
+          "line": 165,
+          "quote": "newdoc = apply_workflow(doc, action)"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 61,
+          "quote": "doc.save()"
+        }
+      ]
+    },
+    {
+      "requirementId": "approvals-2",
+      "sourceStage": "post_mvp",
+      "existing": "Tutar ve koşul yönlendirmesi native transition.condition alanıyla (safe_eval) yapılabiliyor. Rol bazlı sıralı yönlendirme de mevcut. Workflow Action kayıtları rol kümesi için oluşturuluyor. DocType başına yalnız bir aktif Workflow bulunuyor.",
+      "gap": "Kişi bazlı onaycı ve paralel quorum (tümü, çoğunluk ya da N) native kaynakta yok. Koşulu kimin hangi yetkiyle yazacağı tanımsız. Sıralı ve paralel adımların tek aktif Workflow ile nasıl birleşeceği belirtilmemiş.",
+      "completionSteps": [
+        "Tutar eşiğini native transition.condition ile ifade et; ayrı bir kural motoru yazma.",
+        "Workflow'un tek durum alanını koru. Paralel adımda kararları sunucuda tutulan approval-decision kaydı saysın; quorum kuralı approval-step--schema alanında dursun.",
+        "Gerekli kararlar tamamlanmadan geçişin engellenmesini sağla. Bunun koşul globalleriyle mi yoksa geçiş öncesi doğrulamayla mı yapılacağına hedef sürüm kaynağı okunduktan sonra karar ver.",
+        "Kişi bazlı atama rolün yerine geçmez, rolü daraltır: kullanıcının hem transition.allowed rolüne sahip olması hem de adıma atanmış olması gerekir.",
+        "Koşul ifadelerini yalnız Workflow yönetim izni olan rol düzenleyebilsin; bu izni explicitPermissionFlags ortak kaynağına bağla."
+      ],
+      "dependencies": [
+        "approval-step--schema",
+        "approval-step--contract",
+        "approval-decision--contract",
+        "native-workflow--contract",
+        "process-definition--contract"
+      ],
+      "acceptance": "Tutar eşiği belgeyi doğru onaycı rolüne yönlendirir. Paralel adım, gerekli kararların tamamı gelmeden sonraki duruma geçmez; erken geçiş isteğinde kayıt değişmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/model/workflow.py",
+          "line": 100,
+          "quote": "return frappe.safe_eval(transition.condition, get_workflow_safe_globals(), dict(doc=doc.as_dict()))"
+        },
+        {
+          "path": "frappe/frappe/workflow/doctype/workflow_transition/workflow_transition.json",
+          "line": 57,
+          "quote": "\"label\": \"Allowed\","
+        },
+        {
+          "path": "frappe/frappe/workflow/doctype/workflow_action/workflow_action.py",
+          "line": 114,
+          "quote": "roles = {t.allowed for t in next_possible_transitions}"
+        },
+        {
+          "path": "frappe/frappe/model/workflow.py",
+          "line": 37,
+          "quote": "workflow_name = frappe.db.get_value(\"Workflow\", {\"document_type\": doctype, \"is_active\": 1}, \"name\")"
+        }
+      ]
+    },
+    {
+      "requirementId": "approvals-3",
+      "sourceStage": "post_mvp",
+      "existing": "Yapı taşları mevcut: Workflow Action'ın Open/Completed durumu ve user alanı, transition_tasks ve workflow_methods kancaları.",
+      "gap": "Vekalet kaydı, SLA ölçüsü ve takvimi, üst yetkili kaynağı ve yükseltmenin yetki ile audit kuralı tanımsız. HRMS/ERPNext kurulu değil. Hedef sürümün scheduler kancası doğrulanmamış.",
+      "completionSteps": [
+        "Kapsam sınırını yaz: HRMS/ERPNext hiyerarşisi kullanılmaz; üst yetkili kaynağı karar bekler.",
+        "Minimal vekalet alanlarını tanımla: asıl kullanıcı, vekil, kapsam (DocType/rol), başlangıç ve bitiş. Vekalet native rol kontrolünü atlamaz. Vekil talep edenin kendisiyse öz-onay kuralı uygulanır.",
+        "Süre aşımı başlangıç anını (Workflow Action oluşturma zamanı ya da durum giriş zamanı) ve takvim kuralını karar geldikten sonra şemaya bağla.",
+        "Yükseltme, Workflow Action'ın rol tabanlı izin mantığını genişletir, atlamaz: hedef kullanıcı gerekli role sahip değilse yükseltme reddedilir. Her yükseltme audit-envelope ile kaydedilir, bildirim outbox üzerinden gider.",
+        "Scheduler kancasını hedef sürüm hooks kaynağından doğrula. hooks.py yalnız gelecekte paylaşılacak bir entegrasyon dosyasıdır."
+      ],
+      "dependencies": [
+        "approval-step--schema",
+        "approval-decision--contract",
+        "native-user-policy--contract",
+        "audit-envelope--contract",
+        "outbox--contract",
+        "native-workflow--contract"
+      ],
+      "acceptance": "Vekalet yalnız başlangıç-bitiş aralığında geçerlidir. Süre aşımında yükseltme yalnız yetkili kişiye yapılır. Yetkisiz bir hedefe yükseltme reddedilir ve açık Workflow Action değişmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/workflow/doctype/workflow_action/workflow_action.py",
+          "line": 46,
+          "quote": "status: DF.Literal[\"Open\", \"Completed\"]"
+        },
+        {
+          "path": "frappe/frappe/workflow/doctype/workflow_action/workflow_action.py",
+          "line": 47,
+          "quote": "user: DF.Link | None"
+        },
+        {
+          "path": "frappe/frappe/model/workflow.py",
+          "line": 152,
+          "quote": "if transition.transition_tasks:"
+        },
+        {
+          "path": "frappe/frappe/workflow/doctype/workflow/workflow.py",
+          "line": 161,
+          "quote": "return [i[\"name\"] for i in frappe.get_hooks(\"workflow_methods\")] + DEFAULT_WORKFLOW_TASKS"
+        }
+      ]
+    },
+    {
+      "requirementId": "approvals-5",
+      "sourceStage": "post_mvp",
+      "existing": "Durum bazında düzenleme 'Only Allow Edit For' rolüyle sınırlanıyor. E-posta onay yolu belge değiştiyse yalnız uyarı gösteriyor (modified karşılaştırması).",
+      "gap": "Kritik alan listesi, kararın bağlanacağı sürüm anahtarı ve geri dönülecek durum tanımsız. Açık Workflow Action'ların ne olacağı belirtilmemiş. Eski karar uyarıyla geçebiliyor, reddedilmiyor.",
+      "completionSteps": [
+        "DocType başına kritik alan listesini approval-chain--schema'da tut.",
+        "Karar kaydı, karar anındaki sürüm anahtarını saklasın. Seçenekler: modified, Version kaydı ya da içerik hash'i; seçim hedef sürüm doğrulandıktan sonra yapılır.",
+        "Kayıt sırasında kritik alan değişirse önceki kararları geçersiz işaretle, belgeyi tanımlı yeniden onay durumuna açıkça geçir ve açık Workflow Action'ları kapatıp yeniden üret.",
+        "Tüm onay yazma yollarında karar sürümünü güncel sürümle karşılaştır; uyuşmazlıkta uyarı vermek yerine reddet.",
+        "Only Allow Edit For kısıtını koru, gevşetme."
+      ],
+      "dependencies": [
+        "approval-chain--schema",
+        "approval-decision--contract",
+        "native-doctype-schema--contract",
+        "client-rule-parity--contract",
+        "audit-envelope--contract"
+      ],
+      "acceptance": "Onay beklerken tutar değişirse eski kararla ya da eski e-posta bağlantısıyla yapılan geçiş reddedilir ve workflow_state değişmez. Yeni karar yeni sürüme bağlanır.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/workflow/doctype/workflow_document_state/workflow_document_state.json",
+          "line": 64,
+          "quote": "\"label\": \"Only Allow Edit For\","
+        },
+        {
+          "path": "frappe/frappe/workflow/doctype/workflow_action/workflow_action.py",
+          "line": 150,
+          "quote": "if not last_modified or get_datetime(doc.modified) == get_datetime(last_modified):"
+        },
+        {
+          "path": "frappe/frappe/workflow/doctype/workflow_action/workflow_action.py",
+          "line": 153,
+          "quote": "return_action_confirmation_page(doc, action, action_link, alert_doc_change=True)"
+        }
+      ]
+    },
+    {
+      "requirementId": "approvals-6",
+      "sourceStage": "post_mvp",
+      "existing": "allow_self_approval alanı mevcut. apply_workflow, has_approval_access başarısız olursa 'Self approval is not allowed' hatası veriyor. has_permission, Administrator'a her zaman izin veriyor.",
+      "gap": "Alanın varsayılan değeri 1, yani öz-onay varsayılan olarak açık. Hedef sürümün has_approval_access gövdesi doğrulanmamış. Talep edeni owner'dan ayıran alan tanımsız. Genel save ve toplu geçiş yollarının bu kontrolü çağırıp çağırmadığı bilinmiyor. Administrator ve servis hesabı istisnalarının audit kuralı belirtilmemiş.",
+      "completionSteps": [
+        "Hedef sürümde has_approval_access'i ve toplu onay fonksiyonlarını okuyup kanıtla kaydet.",
+        "Zincire bağlı her Workflow tanımında allow_self_approval=0 değerini politika doğrulamasıyla zorunlu kıl.",
+        "Talep eden alanını owner'dan ayrı olarak approval-chain--schema'da tanımla.",
+        "Tek kontrol noktası kullanıcıyı hem owner hem talep eden ile karşılaştırsın; tüm yazma yolları bu noktadan geçsin.",
+        "Administrator ve servis hesabı istisnalarını varsayılan olarak kapalı tut; açık bir politikayla açılırsa her kullanımı audit et."
+      ],
+      "dependencies": [
+        "approval-chain--schema",
+        "native-user-policy--contract",
+        "native-workflow--contract",
+        "audit-envelope--contract",
+        "api-middleware--contract"
+      ],
+      "acceptance": "Talep eden ile owner aynıyken de farklıyken de öz-onay apply_workflow, genel REST/save ve toplu geçiş yollarında reddedilir; bağımsız yetkili kişi onaylayabilir. Administrator ve servis hesabı istisnaları açık politikayla sınırlanır ve audit edilir.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/workflow/doctype/workflow_transition/workflow_transition.json",
+          "line": 64,
+          "quote": "\"default\": \"1\","
+        },
+        {
+          "path": "frappe/frappe/workflow/doctype/workflow_transition/workflow_transition.json",
+          "line": 65,
+          "quote": "\"description\": \"Allow approval for creator of the document\","
+        },
+        {
+          "path": "frappe/frappe/model/workflow.py",
+          "line": 136,
+          "quote": "if not has_approval_access(user, doc, transition):"
+        },
+        {
+          "path": "frappe/frappe/model/workflow.py",
+          "line": 137,
+          "quote": "frappe.throw(_(\"Self approval is not allowed\"))"
+        },
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 109,
+          "quote": "if user == \"Administrator\":"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Uygulama durumu: uygulanmadı. Bu maddelerin hiçbiri ürün kodunda yok.",
+    "Kaynak kanıtları önceki salt okunur görüntülerden alındı; hedef Frappe sürümüyle eşlemesi yapılmadı.",
+    "Document.save workflow doğrulaması, v2 execute_doc_method, confirm_action ve toplu geçiş yolları için doğrulanmış kanıt yok.",
+    "Scheduler kancası ve has_approval_access gövdesi hedef sürümde doğrulanmadı.",
+    "ui-family-21 için React/Ant Design kaynak kanıtı yok; arayüz davranışı da kabul edilmedi.",
+    "Runtime kabulü yapılmadı (not_run)."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Hedef Frappe sürümü: version-15 kaynakları mı, yerel 17.0.0-dev mi",
+      "requirementIds": [
+        "approvals-1",
+        "approvals-2",
+        "approvals-3",
+        "approvals-5",
+        "approvals-6"
+      ],
+      "blocksStep": "development.steps 1 ve 2: kaynak okuma ve yazma yolu tablosunun kanıtlanması",
+      "documentStepUntilDecided": "Okunacak fonksiyon listesini ve yazma yolu tablosunun sütunlarını hazırla; satırları kanıtsız doldurma."
+    },
+    {
+      "decision": "Yükseltme, vekalet ve istisna audit kayıtlarının saklama süresi",
+      "requirementIds": ["approvals-3", "approvals-6"],
+      "blocksStep": "Audit kaydının audit-envelope--contract saklama alanına bağlanması",
+      "documentStepUntilDecided": "Kaydedilecek alanları (aktör, asıl kullanıcı, hedef, neden, zaman) listele."
+    },
+    {
+      "decision": "HRMS/ERPNext olmadan 'üst yetkili' hiyerarşisinin kaynağı",
+      "requirementIds": ["approvals-3"],
+      "blocksStep": "approvals-3 yükseltme hedefinin belirlenmesi",
+      "documentStepUntilDecided": "Yükseltmenin yetki kuralını ve ret davranışını hiyerarşi kaynağından bağımsız olarak yaz."
+    },
+    {
+      "decision": "SLA süre ölçüsünün başlangıç anı ile iş günü/takvim kuralı",
+      "requirementIds": ["approvals-3"],
+      "blocksStep": "Süre aşımı alanlarının approval-step--schema'ya bağlanması",
+      "documentStepUntilDecided": "Seçenekleri (Workflow Action oluşturma zamanı ya da durum giriş zamanı) karşılaştırmalı olarak belgele."
+    },
+    {
+      "decision": "Kimlik sağlayıcı kimliğinin Frappe Role/transition.allowed alanına eşlenmesi (sahibi native-user-policy--contract)",
+      "requirementIds": ["approvals-1"],
+      "blocksStep": "Headless onay yüzeyinde rol çözümlemesi",
+      "documentStepUntilDecided": "Sözleşmede kimliğin yalnız native User/Role üzerinden çözüleceğini ve istemcinin rol beyan edemeyeceğini yaz."
+    },
+    {
+      "decision": "Zincir ve adım tanımlarının tenant topolojisine göre nerede tutulacağı",
+      "requirementIds": ["approvals-1", "approvals-2"],
+      "blocksStep": "approval-chain--schema ve approval-step--schema kapsam alanları",
+      "documentStepUntilDecided": "Alan listesini topolojiden bağımsız olarak hazırla."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

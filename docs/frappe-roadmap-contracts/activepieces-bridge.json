@@ -1,0 +1,190 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "activepieces-bridge",
+  "canonicalTaskIds": ["activepieces-bridge--implementation"],
+  "requirementIds": ["integration-2"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "integration-2": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Activepieces otomasyonunun Frappe'ye tenant kapsamlı ve tekrar tetiklemeye dayanıklı HTTP yazımı. Uygulama durumu: uygulanmadı.",
+    "trigger": "Ayrı ürün olarak barındırılan bir Activepieces akışı, kısıtlı yetkili entegrasyon kimliğiyle yalnız HTTP üzerinden Frappe v1 REST router'ındaki /resource/<doctype> POST kuralına (veya sözleşmede onaylanan, aynı native insert/save yolunu kullanan dar bir uca) oluşturma ya da güncelleme isteği gönderir; istek bir idempotency başlığı taşır.",
+    "expected": "İstek, entegrasyon kimliğinin yetkili olduğu tek tenant kaydında native Frappe insert/save yolu, izin denetimi, transaction ve doküman hook'larıyla işlenir. Aynı tenant ve aynı idempotency anahtarıyla tekrarlanan istek ikinci kayıt veya ikinci yan etki üretmez; ilk işlemin sonuç referansı döner.",
+    "denied": "Kimliği doğrulanmamış, rolü yetmeyen, başka tenant kaydını hedefleyen, idempotency anahtarı eksik ya da aynı anahtarla farklı içerik taşıyan istek reddedilir; hedef kayıt ve tekilleştirme kaydı değişmeden kalır. ignore_permissions, izin bayraklarını kapatma, doğrudan SQL veya Administrator oturumu ile yetki atlatma kullanılmaz."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native Frappe v1 REST router'ı /resource/<doctype> POST isteğini create_doc ucuna bağlar; create_doc frappe.new_doc(...).insert() ile native doküman ekleme yolunu çağırır. Köprü bu native yolu yeniden kullanır; yeni ORM, CRUD veya iş akışı motoru yazılmaz. Kanıt yalnız native oluşturma parçasını gösterir; bütün davranışın var olduğu anlamına gelmez. Idempotency anahtarı ve tekilleştirme, tenant eşlemesi, en az yetkili rol, Activepieces bağlantısı ve Frappe'den Activepieces'e tetik yolu kanıtta yoktur. Bu yolda izin denetiminin hedef sürümde nasıl çalıştığı R-01 kapsamında ayrıca doğrulanır. Aranan yol yalnız frappe/frappe/api/v1.py'dir; eksik parçalar için bu kapsamlı bir yokluk iddiası değildir. Kanıtlar önceki salt okunur Frappe kaynak anlık görüntüsündendir; canlı site veya ürün kabulü değildir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 50,
+        "quote": "return frappe.new_doc(doctype, **data).insert()"
+      },
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 154,
+        "quote": "Rule(\"/resource/<doctype>\", methods=[\"POST\"], endpoint=create_doc),"
+      }
+    ],
+    "searchedPaths": ["frappe/frappe/api/v1.py"]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/activepieces-bridge.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/adapters/ecosystem_bridge/activepieces_bridge_post_mvp.py"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "HTTP isteği: hedef doctype, izinli alan listesiyle sınırlı alanlar, kernel-envelope--contract zarfından gelen tenant bağlamı, idempotency başlığı (başlık adı ve biçimi api-middleware--contract ile sabitlenir) ve entegrasyon kimliği (kimlik doğrulama yolu karar bekliyor). Activepieces tarafında hazır bileşen mi yoksa özel bileşen mi kullanılacağı sürüm/lisans kararına bağlıdır; Frappe tarafındaki sözleşme bundan bağımsızdır.",
+    "output": "Başarılı yanıt: oluşturulan veya güncellenen kaydın doctype ve name referansı ile isteğin tekrar olup olmadığı bilgisi. Tekrar: ilk işlemin referansı döner, yeni kayıt oluşmaz. Hata: makine tarafından okunabilir hata türü döner; iç ayrıntı, secret veya başka tenant verisi döndürülmez.",
+    "authorization": "Entegrasyon kimliğine yalnız gereken doctype ve işlemler için açık izin verilir; rol ve izin bayrakları explicitPermissionFlags ortak kaynağından ('../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy' politikası kapsamında) türetilir. System Manager veya Administrator yetkisi verilmez. Native Frappe izin denetimi ve kernel-envelope--contract tenant kapsamı her istekte çalışır; ignore_permissions, izin bayrağı kapatma veya SQL ile atlatma yoktur. Gelecekteki tek kabul, en az bir reddedilen yazmayı ve hedef kaydın değişmediğini içerir.",
+    "persistence": "İş kaydı yalnız native insert/save ile yazılır; native transaction ve hook zinciri korunur. Tekilleştirme kaydı (tenant, anahtar, içerik özeti, sonuç referansı) iş kaydıyla aynı native transaction içinde yazılır; biri olmadan diğeri kalıcı olmaz. Depolama biçimi api-middleware--contract ve outbox--contract ortak yapısından gelir; bu birimde ayrı depo motoru tasarlanmaz. Saklama süresi karar bekliyor. Frappe'den Activepieces'e giden olaylar kapsama alınırsa outbox--contract üzerinden, transaction tamamlandıktan sonra gönderilir. Bu sözleşme hiçbir şemayı, veriyi, servisi veya production ortamını değiştirme yetkisi vermez.",
+    "failure": [
+      "Kimlik doğrulanamadı veya rol yetmiyor: istek reddedilir, kayıt ve tekilleştirme kaydı değişmez.",
+      "Hedef kayıt başka tenant'a ait: istek reddedilir, kayıt değişmez, yanıt diğer tenant hakkında bilgi sızdırmaz.",
+      "Idempotency anahtarı eksik: köprü ucunda istek reddedilir.",
+      "Aynı anahtar ve aynı içerik özeti: ilk sonucun referansı döner, yeni yan etki oluşmaz.",
+      "Aynı anahtar, farklı içerik özeti: çakışma olarak reddedilir, mevcut kayıt değişmez.",
+      "Aynı anahtarla eşzamanlı iki istek: tekillik kısıtı veya native kilit nedeniyle yalnız biri kayıt üretir; diğeri ilk sonucu alır ya da çakışma ile reddedilir.",
+      "Native doğrulama veya hook hatası: transaction geri alınır; tekilleştirme kaydı yazılmaz, böylece düzeltilmiş içerikle yeniden deneme mümkündür."
+    ]
+  },
+  "development": {
+    "dependencies": [
+      "activepieces-bridge--contract",
+      "api-middleware--contract",
+      "kernel-envelope--contract",
+      "outbox--contract"
+    ],
+    "admission": {
+      "prerequisites": [
+        "T-00 hedef temel ve R-00 yeniden kullanım eşlemesi tamamlanmış olmalı.",
+        "İzinli veri tüketicisi olduğu için R-01 izin doğrulaması da gerekir.",
+        "activepieces-bridge--contract, api-middleware--contract, kernel-envelope--contract ve outbox--contract sözleşmeleri kabul edilmiş olmalı.",
+        "decisionsPending içindeki kimlik doğrulama yolu, Activepieces sürüm/lisans türü ve tenant topolojisi kararları verilmiş olmalı.",
+        "Tek dar davranış gerçek RED/GREEN kanıtıyla uygulanır."
+      ],
+      "orderAuthority": "Mevcut görev bağımlılıkları ve post_mvp aşaması sırayı belirler; küme sırası (5) yalnız sunumdur, yeni seri bağımlılık zinciri değildir."
+    },
+    "steps": [
+      "R-00: v1 router'daki /resource/<doctype> POST kuralı, create_doc ucu ve native insert yolunu hedef Frappe sürümünde yeniden doğrula; güncelleme yolu için aynı eşlemeyi ekle. Hedef sürüm bu sözleşmede seçilmez.",
+      "R-01: entegrasyon kimliğiyle native izin denetiminin bu yolda çalıştığını ve tenant dışı kayıtta reddettiğini kanıtla; en az yetkili rolü explicitPermissionFlags ortak kaynağından türet.",
+      "Idempotency: api-middleware--contract kapsamında başlığı oku; tenant ve anahtar çiftiyle tekilleştirme kaydını kontrol et. Kayıt yoksa native insert/save ile aynı transaction'da yaz. Kayıt varsa ve içerik özeti aynıysa önceki referansı döndür; özet farklıysa çakışma ile reddet. Eşzamanlı istekler için tekillik kısıtı veya native kilit kullan.",
+      "Adaptör: plannedProduction yolunda yalnız eşleme ve doğrulama yapan ince bir katman öner; hooks.py'ye yalnız gerekli kaydı ekle. Ön yüz ortak dosyaları (routes.tsx, registry.ts, wxt.config.ts, Tauri ve paket dosyaları) bu davranış için gerekli görünmez; gereklilik gösterilmeden dokunulmaz. Kaynak registry ile GenUI capability registry bu köprünün kapsamında değildir.",
+      "Activepieces tarafı: bağlantı yalnız HTTP üzerinden kurulur. Kimlik bilgileri Activepieces'in bağlantı/secret yönetiminde tutulur; repoya, belgeye veya sohbet çıktısına yazılmaz. Bağlantı tasarımı sürüm/lisans kararından sonra yapılır.",
+      "Çıkış yönü (Frappe'den Activepieces'e): webhook kaynağı bu pakette doğrulanmadı. Kapsama alınırsa ayrı bir tek davranış olarak outbox--contract üzerinden tasarlanır.",
+      "Kaynak satır, köprünün integration-1 adaptör sözleşmesine bağımlı işaretlenmesini öneriyor. Bu kimlik verilen kanonik bağımlılıklar arasında yok; bu yüzden bağımlılık olarak eklenmedi. Entegrasyon sahibi doğrulamalıdır."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Aynı tenant ve aynı idempotency anahtarıyla iki kez gönderilen oluşturma isteği tek kayıt üretir; ikinci yanıt ilk kaydın referansını döner.",
+      "red": "Köprü katmanı olmadan native create_doc yolunda ikinci istek ikinci kaydı üretir; test bir kayıt beklerken iki kayıt gördüğü için davranışsal olarak başarısız olur. Import hatası, eksik altyapı veya native insert/izin davranışını bozarak elde edilen başarısızlık RED sayılmaz.",
+      "green": "Tekilleştirme kontrolü eklendikten sonra kayıt sayısı bir kalır ve ikinci yanıt ilk referansı döner; native insert, izin denetimi ve doküman hook'ları değişmeden çalışır. Bu turda test yazılmadı ve koşulmadı."
+    },
+    "rollback": "Köprü, hooks.py kaydı geri alınarak devre dışı bırakılır; Activepieces bağlantı kimliği iptal edilir veya döndürülür. Native REST yolu ve mevcut iş kayıtları değiştirilmez, veri silinmez; tekilleştirme kayıtları saklama kararına göre tutulur. CI/deploy/rollback teknik uygulamasının sahibi Hüseyin Cengiz'dir. Activepieces barındırması için DNS kaydı gerekirse kayıt türü, adı ve değerini Hüseyin Cengiz hazırlar, GoDaddy'de Asistan Hüseyin uygular, sonucu Hüseyin Cengiz doğrular. Bu sözleşme deploy veya geri alma işlemi yetkisi vermez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "integration-2",
+      "sourceStage": "post_mvp",
+      "existing": "Native Frappe v1 REST router'ında /resource/<doctype> POST kuralı create_doc ucuna bağlıdır; create_doc native new_doc(...).insert() yolunu kullanır. Activepieces ayrı ürün olarak doğru sınıflanmıştır (support=external, action=integrate). Activepieces kaynağı bu kurulumda yoktur; köprü uygulanmamıştır.",
+      "gap": "create_doc yolunda idempotency anahtarı yoktur; tekrar tetikleme çift kayıt üretir. Kimlik doğrulama yolu ve en az yetkili rol tanımsızdır. Tekilleştirme deposu tanımsızdır. Activepieces sürümü, lisans türü ve barındırma sahibi belirtilmemiştir. Frappe'den Activepieces'e tetik yönü doğrulanamamıştır.",
+      "completionSteps": [
+        "Erişimi yalnız HTTP ile sınırla; köprü ucunu native insert/save yolunu çağıran dar bir uç olarak tanımla.",
+        "explicitPermissionFlags ortak kaynağından yalnız gereken doctype ve işlemleri kapsayan kısıtlı entegrasyon rolünü türet.",
+        "Idempotency başlığını ve tenant ile anahtar çiftine dayalı tekilleştirme kuralını api-middleware--contract kapsamında tanımla; tekilleştirme kaydını iş kaydıyla aynı transaction'da yaz.",
+        "Tenant kapsamını kernel-envelope--contract zarfından çöz ve tenant dışı hedefi reddet.",
+        "Lisans ve sürüm kararını kullanıcıya sor; karar gelmeden Activepieces tarafı bağlantı tasarımına geçme."
+      ],
+      "dependencies": [
+        "activepieces-bridge--contract",
+        "api-middleware--contract",
+        "kernel-envelope--contract",
+        "outbox--contract"
+      ],
+      "acceptance": "Örnek otomasyon yalnız izin verilen tenant kaydına erişir; tekrar tetikleme çift işlem üretmez. Gelecekteki tek kabulde ayrıca yetkisiz veya başka tenant'ı hedefleyen bir yazma reddedilir ve hedef kayıt değişmeden kalır.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 50,
+          "quote": "return frappe.new_doc(doctype, **data).insert()"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 154,
+          "quote": "Rule(\"/resource/<doctype>\", methods=[\"POST\"], endpoint=create_doc),"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Kimlik doğrulama yolu seçilmemiş; en az yetkili rol tanımı yok.",
+    "Tekrar tetiklemeye karşı idempotency anahtarı ve tekilleştirme deposu tanımsız.",
+    "Activepieces sürümü, lisans türü (community/ee) ve barındırma sahibi belirtilmemiş.",
+    "Webhook kaynağı bu pakette görülmedi; Frappe'den Activepieces'e tetik yönü doğrulanamadı.",
+    "Activepieces kaynağı bu kurulumda yok; köprü uygulaması yok.",
+    "integration-1 adaptör sözleşmesine bağımlılık kaynak satırda öneriliyor, kanonik bağımlılık olarak doğrulanmadı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Kimlik doğrulama yolu: API key/secret, OAuth istemcisi veya Keycloak servis hesabı.",
+      "requirementIds": ["integration-2"],
+      "blocks": "Entegrasyon kimliğinin ve kısıtlı rolün oluşturulması (development.steps 2 ve 5).",
+      "allowedBeforeDecision": "Yol bağımsız yetki matrisini ve reddedilen yazma kabul ölçütünü belgelemek."
+    },
+    {
+      "decision": "Activepieces sürümü ve lisans türü (community/ee); kullanıcıyla netleştirilecek.",
+      "requirementIds": ["integration-2"],
+      "blocks": "Activepieces tarafı bağlantı ve bileşen tasarımı (development.steps 5).",
+      "allowedBeforeDecision": "Frappe tarafı HTTP sözleşmesini Activepieces sürümünden bağımsız belgelemek."
+    },
+    {
+      "decision": "Activepieces barındırma sahibi, barındırma yeri ve veri yerleşimi.",
+      "requirementIds": ["integration-2"],
+      "blocks": "Ağ erişimi, varsa DNS kaydı ve deploy/rollback devri.",
+      "allowedBeforeDecision": "Hüseyin Cengiz için teknik gereksinim listesinin taslağını hazırlamak."
+    },
+    {
+      "decision": "Tenant topolojisi.",
+      "requirementIds": ["integration-2"],
+      "blocks": "Tenant kapsamı eşlemesi ve kabul ölçütünün tenant kısmı.",
+      "allowedBeforeDecision": "kernel-envelope--contract üzerinden topolojiden bağımsız tenant çözüm arayüzünü belgelemek."
+    },
+    {
+      "decision": "Tekilleştirme kayıtlarının saklama süresi.",
+      "requirementIds": ["integration-2"],
+      "blocks": "Tekilleştirme kayıtlarının temizleme kuralı.",
+      "allowedBeforeDecision": "Anahtar kapsamı, içerik özeti ve çakışma kuralını belgelemek."
+    },
+    {
+      "decision": "Frappe'den Activepieces'e çıkış yönünün kapsama alınıp alınmayacağı.",
+      "requirementIds": ["integration-2"],
+      "blocks": "Çıkış yönü adımı (development.steps 6).",
+      "allowedBeforeDecision": "Activepieces'ten Frappe'ye giriş yönünün belgesini tamamlamak."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

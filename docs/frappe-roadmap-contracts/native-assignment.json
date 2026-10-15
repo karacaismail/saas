@@ -1,0 +1,256 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "native-assignment",
+  "canonicalTaskIds": [
+    "native-assignment--implementation",
+    "ui-family-25--implementation"
+  ],
+  "requirementIds": ["realtime-7"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "realtime-7": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Modüller arası yetkili atama ve Benim işlerim kuyruğu",
+    "trigger": "Oturum açmış kullanıcı Benim işlerim kuyruğunu açar ya da yetkili kullanıcı bir kayıt için atama, yeniden atama, kapatma veya iptal eylemi başlatır.",
+    "expected": "Kuyruk yalnız kullanıcının güncel tenant, referans kayıt ve alan izniyle görebildiği ToDo satırlarını döndürür. Her satırda sorumlu, atayan, son tarih, öncelik, durum ve kayda dönüş referansı bulunur. En az iki kurulu Suite modülünün atanmış kayıtları aynı kuyrukta görünür; filtre, sıralama ve tarih davranışı tutarlıdır. Atama ve yeniden atama sunucuda native izin kontrolüyle yapılır. Referans kayda denetim yorumu yazılır. Son tarih için atama ve tarih başına tek hatırlatma oluşur.",
+    "denied": "Referans kayıt okuma izni ya da tenant üyeliği olmayan kullanıcıya ilgili ToDo satırı, description veya iç not dönmez. Başka tenantın işi görünmez. Yetkisiz atama veya yeniden atama native izin hatasıyla reddedilir ve kayıt değişmez. Closed ya da Cancelled bir iş üzerinde durum değişikliği veya yeniden atama doğrulama hatasıyla reddedilir ve kayıt değişmez."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native Frappe atama yapı taşları yeniden kullanılır: frappe.desk.form.assign_to akışı (add, remove, close, add_multiple, remove_multiple), ToDo DocType alanları, hooks.py içinde kayıtlı ToDo has_permission hook'u ve permission_query_conditions, ToDo yorum denetim izi, _assign senkronu, Document Follow ve Reminder notified bayrağı. Yeni ORM, CRUD ya da atama motoru tasarlanmaz. Eksikler, native izin, save ve transaction akışının üstünde ince bir adapter ile tamamlanır. Doğrulanmış alıntılar yalnız tek tek native parçaları gösterir; modüller arası yetkili kuyruğun tamamının var olduğunu göstermez. Vue/Frappe UI kaynağı React/Ant Design uygulamasının kanıtı değildir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/desk/form/assign_to.py",
+        "line": 72,
+        "quote": "frappe.get_doc(args[\"doctype\"], args[\"name\"]).check_permission()"
+      },
+      {
+        "path": "frappe/frappe/desk/form/assign_to.py",
+        "line": 211,
+        "quote": "frappe.throw(_(\"Only the assignee can complete this to-do.\"))"
+      },
+      {
+        "path": "frappe/frappe/desk/doctype/todo/todo.py",
+        "line": 174,
+        "quote": "return doc.allocated_to == user or doc.assigned_by == user or doc.owner == user"
+      },
+      {
+        "path": "frappe/frappe/desk/doctype/todo/todo.py",
+        "line": 84,
+        "quote": "frappe.get_doc(self.reference_type, self.reference_name).add_comment(comment_type, text)"
+      },
+      {
+        "path": "frappe/frappe/automation/doctype/reminder/reminder.py",
+        "line": 47,
+        "quote": "self.db_set(\"notified\", 1, update_modified=False)"
+      },
+      {
+        "path": "frappe/frappe/hooks.py",
+        "line": 165,
+        "quote": "\"ToDo\": \"frappe.desk.doctype.todo.todo.has_permission\","
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/automation/doctype/reminder/reminder.py",
+      "frappe/frappe/desk/doctype/todo/todo.py",
+      "frappe/frappe/desk/form/assign_to.py",
+      "frappe/frappe/hooks.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/native-assignment.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/adapters/customer_success/to_do_post_mvp.py",
+      "frontend/packages/ui/src/components/ui-family-25/index.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "my_work okuma isteği şu girdileri alır: durum, son tarih aralığı, referans DocType ve öncelik filtreleri, sıralama alanı ve sayfalama. Tenant bağlamı istemciden alınmaz; oturumdan ve tenant-registry--contract üzerinden çözülür. reassign isteği şunları alır: ToDo adı ya da reference_type, reference_name ve eski sorumlu üçlüsü, yeni sorumlu ve isteğe bağlı son tarih. Girdiler kernel-envelope--contract zarfında taşınır ve api-middleware--contract üzerinden geçer.",
+    "output": "Her satırda şu alanlar bulunur: ToDo adı, reference_type, reference_name, allocated_to, assigned_by, date, priority, status ve kullanıcının referans kaydı takip edip etmediği. description ve iç not alanları, karar bekleyen iç not politikası netleşene kadar çıktıya alınmaz. Hatalar kernel-envelope--contract hata biçimiyle döner. ui-family-25 React/Ant Design bileşeni bu JSON modelini TanStack Query ile tüketir. ReactNode ve callback JSON model sınırına girmez; kaynak registry ile GenUI capability registry ayrı tutulur.",
+    "authorization": "ToDo satırları kullanıcı oturumuyla native frappe.get_list üzerinden okunur; ToDo has_permission ve permission_query_conditions hook'ları devrede kalır. Her satır için referans kayıt, frappe.has_permission ile read iznine göre ayrıca kontrol edilir; okunamayan satır elenir. Tenant süzgeci tenant-registry--contract'a bağlanır. Yazma eylemleri, assign_to akışındaki referans kayıt check_permission adımını kullanır. ignore_permissions=True, izin bayraklarını atlama ve ham SQL ile yetki bypass edilmez. Yeni rol ya da izin bayrağı gerekirse native-user-policy--contract üzerinden explicitPermissionFlags ortak kaynağına bağlanır; yerel rol listesi üretilmez.",
+    "persistence": "Yeni DocType, alan veya şema eklenmez. ToDo, Comment, Reminder, Document Follow ve Notification Log native kayıtlardır. reassign, native kaldırma ve ekleme adımlarını tek istek içinde aynı veritabanı transaction'ında çalıştırır; herhangi bir adım hata verirse tüm istek geri alınır. Hatırlatma, ToDo ve son tarih çifti başına tek Reminder olacak şekilde mevcut kayıt sorgusuyla tekilleştirilir; Reminder notified bayrağı aynı hatırlatmanın çift gönderilmesini önler. Dışa yayılan olay veya bildirim gerekirse outbox--contract'a bağlanır.",
+    "failure": "Referans kaydı okunamayan satır sessizce elenir; toplam sayı ve sayfa bilgisi elenen satırı sızdırmaz. Yetkisiz yazma native izin hatası, Closed ya da Cancelled iş üzerindeki eylem ise native doğrulama hatası döndürür; her iki durumda da ToDo, Comment ve Reminder kayıtları değişmez. Aynı kişiye ikinci açık atama native davranış gereği atlanır. Atanan kişinin kayda yetkisi yoksa ve System Settings paylaşıma izin vermiyorsa işlem reddedilir. İstemci tarafında client-rule-parity--contract'a göre sunucu reddi esas alınır."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "capability-definition--contract",
+      "client-rule-parity--contract",
+      "crm-interaction--contract",
+      "helpdesk-ticket-bridge--contract",
+      "kernel-envelope--contract",
+      "native-assignment--contract",
+      "native-comment--contract",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "outbox--contract",
+      "tenant-registry--contract",
+      "ui-family-25--contract"
+    ],
+    "admission": {
+      "statusNote": "Uygulama durumu: uygulanmadı. Bu dosya yalnız gelecekteki geliştirme rehberidir. Ürün kodu, test, servis, production, şema veya veri değişikliği için yetki vermez.",
+      "prerequisites": [
+        "T-00 hedef taban çizgisi: hedef Frappe sürümü kararı verilmeli ve alıntılanan satırlar o sürümde yeniden doğrulanmalı.",
+        "R-00 yeniden kullanım eşlemesi: sorumlu, son tarih, takipçi ve hatırlatma alanlarının native karşılıkları native-assignment--contract içinde kayıtlı olmalı.",
+        "R-01: kuyruk izinli veri tüketicisi olduğu için referans kayıt izni ve tenant süzgeci R-01 kuralına uymalı.",
+        "tenant-registry--contract, native-user-policy--contract ve kernel-envelope--contract entegre sözleşme olarak mevcut olmalı.",
+        "Bir artımda yalnız tek dar davranış uygulanmalı ve bu davranış gerçek RED/GREEN kanıtıyla kabul edilmeli."
+      ],
+      "firstNarrowBehavior": "Salt okunur my_work, referans kaydı okunamayan ToDo satırını ve description alanını döndürmez."
+    },
+    "steps": [
+      "1. Eşleme: native-assignment--contract içinde şu eşleme belgelenir: sorumlu = ToDo.allocated_to, atayan = ToDo.assigned_by, son tarih = ToDo.date, durum = ToDo.status, kayıt referansı = reference_type ve reference_name, takipçi = Document Follow, hatırlatma = ToDo'yu referans alan Reminder. Yeni alan eklenmez.",
+      "2. Okuma ucu: önerilen adapter yolunda tek salt okunur, whitelisted my_work ucu yazılır. Uç, ToDo'yu kullanıcı oturumuyla frappe.get_list üzerinden çeker. Her satırın referans kaydını frappe.has_permission ile read iznine göre kontrol eder; okunamayan satırları ve description alanını düşürür.",
+      "3. Kayıt izni RED/GREEN: kayıt okuma izni kaldırıldığında işin kuyruktan düştüğü, önce başarısız sonra geçen tek testle kanıtlanır.",
+      "4. Tenant süzgeci: tenant-registry--contract arayüzüne bağlanır. Başka tenantın kaydına bağlı ToDo'nun dönmediği ayrı bir artımla kanıtlanır.",
+      "5. Yeniden atama: tek istekte native kaldırma ve ekleme adımlarını çalıştıran sunucu taraflı reassign eylemi eklenir. Referans kayıt check_permission kontrolü korunur ve denetim yorumu native ToDo akışıyla yazılır.",
+      "6. Geçersiz eylem reddi: Closed ya da Cancelled ToDo üzerindeki reassign ve durum değişikliği açık doğrulama hatasıyla reddedilir. Native close kuralı, yani yalnız atanan kişinin kapatabilmesi, değiştirilmez.",
+      "7. Takipçi: Document Follow ayrı native mekanizma olarak kalır. Kuyruk satırında takip durumu salt okunur gösterilir; takip ekleme native kullanıcı ayarına bırakılır.",
+      "8. Hatırlatma: ToDo.date için ToDo ve tarih çifti başına tek Reminder oluşturan tekilleştirilmiş adım en son eklenir. Tarih değişirse önceki gönderilmemiş Reminder geçersiz sayılır. Ön süre ve kanal kararı beklenir.",
+      "9. Modül entegrasyonu: karar verildikten sonra seçilen iki kurulu Suite modülünün kayıtları atama akışına bağlanır. crm-interaction--contract ve helpdesk-ticket-bridge--contract yalnız tasarım referansıdır.",
+      "10. Arayüz: ui-family-25 React/Ant Design/Pro kuyruk bileşeni ui-family-25--contract'a göre yazılır. registry.ts ve routes.tsx kayıtları, ortak entegrasyon dosyası sahibine seri birleştirme için devredilir. Mevcut UI token, odak, 14 CSS px ve 320 CSS px kuralları uygulanır."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Bir ToDo'nun sorumlusu olan kullanıcının referans kayıt okuma izni kaldırıldığında, o ToDo satırı ve description alanı my_work sonucunda yer almaz.",
+      "red": "İlk sürüm my_work, ToDo'yu yalnız native get_list ile döndürür. Native ToDo has_permission kuralı allocated_to eşleşmesini yeterli saydığı için satır sonuçta kalır ve satırın yokluğunu bekleyen doğrulama, davranış nedeniyle başarısız olur. Bu RED, import veya altyapı hatası değildir ve native davranışı bozarak üretilmez.",
+      "green": "my_work her satır için referans kaydı frappe.has_permission ile read iznine göre kontrol eder ve okunamayan satırı eler. Native ToDo kaydı değişmez, satır sonuçta yer almaz ve izni olan kullanıcıların sonuçları aynı kalır."
+    },
+    "rollback": "Bu sözleşme kapsamında geri alınacak üretim değişikliği yoktur. Gelecekteki uygulamada adapter ucu ve ui-family-25 kaydı ortak entegrasyon dosyalarından kaldırılarak devre dışı bırakılır. Native ToDo ve assign_to davranışı değiştirilmediği ve şema eklenmediği için veri geçişi gerekmez; oluşmuş Comment ve Reminder kayıtları native kayıt olarak kalır. Teknik CI, deploy ve rollback sahibi Hüseyin Cengiz'dir. Bu davranış için GoDaddy veya DNS işlemi gerekmez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "realtime-7",
+      "sourceStage": "post_mvp",
+      "existing": "Uygulama durumu: uygulanmadı. Aşağıdakiler daha önce salt okunur alınmış kaynak anlık görüntüsünün değerlendirmesidir, ürün kabulü değildir. Native Frappe parçaları: assign_to add, remove, close, add_multiple ve remove_multiple uçları. Atamada referans kayıt check_permission ile kontrol edilir (assign_to.py:72). Aynı kişiye ikinci açık atama atlanır. Yetkisi olmayan atanan kişiyle kayıt paylaşılır; System Settings paylaşımı kapalıysa işlem reddedilir. close yalnız atanan kişiye izinlidir (assign_to.py:211). ToDo şu alanları tutar: allocated_to, assigned_by, date, priority, status, reference_type ve reference_name. Atama ve kaldırma referans kayda Comment olarak yazılır (todo.py:84) ve açık atamalar _assign alanına senkronlanır. ToDo has_permission hook'u kayıtlıdır (hooks.py:165) ve allocated_to/assigned_by/owner koşuluyla çalışır (todo.py:174). Document Follow ile özet e-postaları vardır; özet gönderilirken read izni yeniden kontrol edilir. Reminder ve 15 dakikalık send_reminders işi vardır; notified bayrağı çift gönderimi önler (reminder.py:47). Suite'te atama, ToDo veya iş kuyruğu kodu yoktur; Calendar hatırlatmaları yalnız takvim olayları içindir.",
+      "gap": [
+        "Kuyruk görünürlüğü referans kaydın iznine bağlı değil: kayıt izni ya da üyelik kaldırılsa da ToDo ve description görünmeye devam eder.",
+        "ToDo'da tenant alanı ve tenant süzgeci yok.",
+        "Takipçi atamanın parçası değil: Document Follow ayrı bir mekanizma ve ToDo'da takipçi alanı yok.",
+        "Son tarih için otomatik hatırlatma yok. Reminder elle oluşturuluyor, ToDo'ya bağlı değil, atama başına tekilleştirilmiyor ve bağlı kayıt için izin kontrolü yapmıyor.",
+        "Sahiplik devri tek atomik işlem değil; ayrı remove ve add çağrıları gerekiyor.",
+        "Tamamlanmış iş üzerindeki geçersiz eylem açıkça reddedilmiyor; Closed bir iş Cancelled yapılabiliyor.",
+        "description serbest metin ve alan düzeyinde iç not koruması yok.",
+        "En az iki kurulu Suite modülünü atama akışına bağlayan bir entegrasyon ve React/Ant Design kuyruk sözleşmesi yok."
+      ],
+      "completionSteps": [
+        "Sorumlu, son tarih, takipçi ve hatırlatma için native alan eşlemesini native-assignment--contract içinde sabitle.",
+        "my_work ucunu yaz: native get_list ile oku, her satırda referans kaydın read iznini kontrol et, okunamayan satırı ve description alanını düşür.",
+        "Tenant süzgecini tenant-registry--contract'a bağla; başka tenantın işinin dönmediğini ayrı bir artımla kanıtla.",
+        "Tek transaction'da native kaldırma ve ekleme adımlarını çalıştıran reassign eylemini check_permission'ı koruyarak ekle.",
+        "Closed ya da Cancelled iş üzerindeki reassign ve durum değişikliğini doğrulama hatasıyla reddet; kaydın değişmediğini doğrula.",
+        "Takip durumunu Document Follow'dan salt okunur olarak göster; atama ile takip arasında yeni bir mekanizma kurma.",
+        "ToDo ve tarih çifti başına tek Reminder oluşturan tekilleştirilmiş hatırlatmayı, ön süre ve kanal kararından sonra ekle.",
+        "Seçilen iki Suite modülünü bağla ve ui-family-25 kuyruk bileşenini kayda dönüş referansıyla yaz."
+      ],
+      "dependencies": [
+        "native-assignment--contract",
+        "tenant-registry--contract",
+        "native-user-policy--contract",
+        "kernel-envelope--contract",
+        "api-middleware--contract",
+        "native-comment--contract",
+        "outbox--contract",
+        "client-rule-parity--contract",
+        "ui-family-25--contract"
+      ],
+      "acceptance": "En az iki iş modülünün atanmış kayıtları aynı yetkili kuyrukta görünür; filtre, sıralama, tarih ve kayda dönüş tutarlı çalışır. Atama ve yeniden atama sunucuda yetkilendirilir; denetim izi ve tekilleştirilmiş hatırlatma oluşur. Üyelik ya da kayıt izni kaldırılınca iş ve verisi görünmez. Başka tenantın görevi ve iç not sızmaz. Tamamlanmış iş üzerindeki geçersiz eylem reddedilir ve kayıt değişmez. Yetkisiz yazma reddedilir ve kayıt değişmeden kalır.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/desk/form/assign_to.py",
+          "line": 72,
+          "quote": "frappe.get_doc(args[\"doctype\"], args[\"name\"]).check_permission()"
+        },
+        {
+          "path": "frappe/frappe/desk/form/assign_to.py",
+          "line": 211,
+          "quote": "frappe.throw(_(\"Only the assignee can complete this to-do.\"))"
+        },
+        {
+          "path": "frappe/frappe/desk/doctype/todo/todo.py",
+          "line": 174,
+          "quote": "return doc.allocated_to == user or doc.assigned_by == user or doc.owner == user"
+        },
+        {
+          "path": "frappe/frappe/desk/doctype/todo/todo.py",
+          "line": 84,
+          "quote": "frappe.get_doc(self.reference_type, self.reference_name).add_comment(comment_type, text)"
+        },
+        {
+          "path": "frappe/frappe/automation/doctype/reminder/reminder.py",
+          "line": 47,
+          "quote": "self.db_set(\"notified\", 1, update_modified=False)"
+        },
+        {
+          "path": "frappe/frappe/hooks.py",
+          "line": 165,
+          "quote": "\"ToDo\": \"frappe.desk.doctype.todo.todo.has_permission\","
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Hiçbir adım uygulanmadı; runtime kabulü not_run durumunda.",
+    "Referans kayıt iznine bağlı kuyruk görünürlüğü ve description gizleme yok.",
+    "Tenant izolasyonu tenant-registry--contract ve tenant topolojisi kararına bağlı.",
+    "Atomik reassign ve Closed/Cancelled eylem reddi yok.",
+    "Son tarihe bağlı, tekilleştirilmiş ve izin kontrollü hatırlatma yok.",
+    "İki Suite modülü bağlantısı ve ui-family-25 React/Ant Design kuyruk bileşeni yok.",
+    "Kaynak alıntıları önceki bir anlık görüntüden alındı; hedef sürümde yeniden doğrulanmadı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Kabulde kullanılacak iki kurulu Suite modülünün seçimi. Önceki değerlendirmedeki Drive ve Calendar önerisi bir karar değildir.",
+      "requirementIds": ["realtime-7"],
+      "blocksStep": "development.steps 9 ve iki modüllü kabul.",
+      "documentationStepUntilDecided": "my_work ve reassign sözleşmesini reference_type parametresiyle modülden bağımsız belgele; kabul senaryolarını iki modül yer tutucusuyla taslak olarak yaz."
+    },
+    {
+      "decision": "Tenant topolojisi ve ToDo satırının tenant'ının nasıl çözüleceği.",
+      "requirementIds": ["realtime-7"],
+      "blocksStep": "development.steps 4, yani tenant süzgeci.",
+      "documentationStepUntilDecided": "Tenant süzgecini yalnız tenant-registry--contract arayüzüne referansla tanımla; tenant çözümleme biçimini açık bırak."
+    },
+    {
+      "decision": "Hedef Frappe sürümü (T-00).",
+      "requirementIds": ["realtime-7"],
+      "blocksStep": "Uygulama kabulü ve kanıt satırlarının yeniden doğrulanması.",
+      "documentationStepUntilDecided": "Kanıtları anlık görüntü alıntısı olarak koru; davranışları satır numarasından bağımsız tarif et."
+    },
+    {
+      "decision": "Hatırlatmanın son tarihten ne kadar önce ve hangi kanalla (Notification Log veya e-posta) gönderileceği.",
+      "requirementIds": ["realtime-7"],
+      "blocksStep": "development.steps 8, yani tekilleştirilmiş hatırlatma.",
+      "documentationStepUntilDecided": "Tekilleştirme anahtarını (ToDo ve tarih) ve izin kontrolü gereksinimini belgele."
+    },
+    {
+      "decision": "İç notun tanımı ile description alanının kuyrukta hangi izinle gösterileceği.",
+      "requirementIds": ["realtime-7"],
+      "blocksStep": "description alanının my_work çıktısına alınması.",
+      "documentationStepUntilDecided": "description'ı varsayılan olarak çıktıdan düşür. Gerekirse izin bayrağını native-user-policy--contract üzerinden explicitPermissionFlags ortak kaynağına bağlanacak biçimde belgele."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

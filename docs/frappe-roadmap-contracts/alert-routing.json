@@ -4,15 +4,20 @@
   "canonicalTaskIds": ["alert-routing--implementation"],
   "requirementIds": ["observability-7"],
   "stage": "mvp",
+  "sourceStages": {
+    "observability-7": "mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
-    "title": "Recorder kapasite kullanimi esik asiminda tek, tekillestirilmis alarm uretir",
-    "trigger": "Pano ifadesinin instance filtresi kaldirilmis hali (100 * sum(recorder_active_jobs) / sum(recorder_capacity)) onerilen 90 degerine esit veya ustunde, onerilen 'for: 5m' suresi boyunca kalir. Esik ve sure Huseyin Cengiz onayina baglidir.",
-    "expected": "alertname=RecorderCapacityHigh adli tek bir firing alarm uretilir. sum() instance etiketini dusurdugu icin olusan tek seri tekillestirme saglar. Alarm etiketlerinde severity ve route anahtari, annotation'larda da runbook_url ve review_url yer tikutucularini tasir. Ifade esigin altina indiginde alarm resolved durumuna gecer.",
-    "denied": "Deger esigin altinda kalirsa, sure dolmadan duserse veya recorder_capacity sifir ya da yok olursa (NaN veya bos sonuc) alarm uretilmez. Bu durumda instance basina coklu alarm da olusmaz."
+    "title": "Recorder kapasite kullanımı eşik aşımında tek, tekilleştirilmiş alarm üretir",
+    "trigger": "Pano ifadesinin instance filtresi kaldırılmış hâli (100 * sum(recorder_active_jobs) / sum(recorder_capacity)) önerilen 90 değerine eşit veya üstünde, önerilen 'for: 5m' süresi boyunca kalır. Eşik ve süre Hüseyin Cengiz onayına bağlı önerilerdir; pano renk eşiği alarm kuralı sayılmaz.",
+    "expected": "alertname=RecorderCapacityHigh adlı tek bir firing alarm oluşur. sum() instance etiketini düşürdüğü için tek seri oluşur ve instance başına çoğalma olmaz. Alarm etiketleri severity ve route anahtarını, annotation'lar summary, runbook_url ve review_url yer tutucularını taşır. İfade eşiğin altına indiğinde alarm resolved durumuna geçer. Çözüm ve inceleme bağlantısının kalıcı kaydı ayrı karara bağlıdır.",
+    "denied": "Değer eşiğin altında kalırsa, süre dolmadan düşerse veya recorder_capacity sıfır ya da yok olduğu için ifade NaN veya boş sonuç verirse alarm üretilmez; instance başına çoklu alarm da oluşmaz. Boş veya NaN sonuç sağlıklı sayılmaz; bu durum ayrı servis erişilemez alarmının konusudur."
   },
   "reuse": {
-    "mechanism": "Varolan Prometheus metrikleri ve panodaki ayni ifade, sahip olunan YAML dosyasinda Prometheus alarm kurali olarak yeniden kullanilir. Frappe Notification, mevcut talimata gore operasyon vakasi icin yeterli degildir. Yeni DocType, ORM veya olay motoru kopyasi yoktur. Pano esikleri (70/90) gorsel renk esigidir, kanita gore alarm kurali degildir; 90 yalnizca hizalama onerisidir.",
+    "status": "KISMI",
+    "mechanism": "Suite kaynağındaki Grafana recorder panosu Capacity Used göstergesini ve görsel eşikleri gösterir; panodaki aynı metrikler, sahip olunacak YAML dosyasında Prometheus alarm kuralı olarak yeniden kullanılır. Pano eşikleri (70/90) yalnız görsel renk eşiğidir; alarm kuralı, rota veya olay kaydı değildir. 90 yalnız hizalama önerisidir. config.ts alıntısı yalnız metrik tokenının ortam değişkeni olarak zorunlu olduğunu gösterir; kazıma ucunun nasıl korunduğunu kanıtlamaz. Frappe Notification, mevcut talimata göre operasyon vakası için yeterli değildir. Yeni DocType, ORM, CRUD veya olay motoru tasarlanmaz. Kaynak değerlendirmesi ürün uygulaması değildir.",
     "evidence": [
       {
         "path": "suite/suite/meet/observability/grafana/provisioning/dashboards/json/recorder-overview.json",
@@ -29,52 +34,124 @@
         "line": 85,
         "quote": "const metricsToken = required(env, 'RECORDER_METRICS_TOKEN');"
       }
+    ],
+    "searchedPaths": [
+      "suite/suite/meet/observability/grafana/provisioning/dashboards/json/recorder-overview.json",
+      "suite/suite/meet/recorder-server/src/config.ts"
     ]
   },
   "ownership": {
     "activeContractFile": "docs/frappe-roadmap-contracts/alert-routing.json",
     "plannedProduction": ["operations/alert-routing/alert_routing_mvp.yml"],
-    "plannedTestFile": "operations/alert-routing/alert_routing_mvp.test.yml (yalnizca plan; canonical owns listesinde yok, sahipligi Codex entegrasyon onayi gerektirir)",
+    "plannedTestFile": null,
     "sharedIntegrationFiles": [
-      "integration/fragments/alert-routing--integration.json"
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "Prometheus metrikleri recorder_active_jobs ve recorder_capacity (sayisal gauge; capacity 1..1024 araliginda, config.ts maxConcurrent). Kural dosyasinda tek group ve tek rule; Grafana $instance degiskeni kullanilmaz.",
-    "output": "Prometheus alarm nesnesi: labels {alertname, severity, route}, annotations {summary, runbook_url, review_url}. Sema surumu contract-alert-routing v1. Kisisel veri veya secret icermez.",
-    "authorization": "Metrik kazima, RECORDER_METRICS_TOKEN ile korunan uca yapilir. Token degeri repoya ve ciktiya yazilmaz, mevcut secret kaynagindan okunur. Frappe site/kullanici/kayit yetkisi bu davranista uygulanmaz. Tokensiz kazima reddedilir ve up=0 uretir (bu dogrulanmamistir).",
-    "persistence": "Frappe transaction veya hook yoktur. Kural dosyasi yapilandirmadir; alarm durumu Prometheus belleginde tutulur. DDL yoktur. Inceleme kaydi kalici depolama karari beklemektedir.",
-    "failure": "Kural sozdizimi hatasi 'promtool check rules' ile reddedilir. Metrik yoksa ifade bos sonuc verir ve alarm olusmaz; bu durumu ayri 'servis erisilemez' alarmi kapsamalidir (bu alarm acik bosluktur). Tuketici, NaN veya bos sonucu saglikli olarak yorumlamamalidir."
+    "input": "Panodaki ifadede kullanılan Prometheus serileri: recorder_active_jobs ve recorder_capacity. Kural dosyasında tek group ve tek rule bulunur; Grafana $instance değişkeni kullanılmaz. Metrik tipleri ve değer aralıkları hedef ortamda doğrulanmamıştır.",
+    "output": "Prometheus alarm nesnesi: labels {alertname, severity, route}, annotations {summary, runbook_url, review_url}. route ve URL değerleri karar gelene kadar yer tutucudur. Kişisel veri, alıcı adresi veya secret içermez.",
+    "authorization": "Metrik kazımanın, mevcut secret kaynağından okunan RECORDER_METRICS_TOKEN ile yapılması planlanır. Token değeri repoya, sözleşmeye veya çıktıya yazılmaz. Tokensiz kazımanın reddedildiği çalışma zamanında doğrulanmamıştır. Bu davranış Frappe site, kullanıcı veya kayıt yetkisi kullanmaz; ignore_permissions veya SQL ile yetki atlanmaz. İnceleme kaydının yetkili bir Frappe DocType'ında tutulmasına karar verilirse native izin, transaction, save ve hook yolları kullanılır. Rol ve izin tanımı ortak explicitPermissionFlags kaynağına bağlanır. O adımın kabulü, yetkisiz rolün yazma denemesinin reddedildiğini ve kaydın değişmediğini gösterir.",
+    "persistence": "Kural dosyası yapılandırmadır; alarm durumu Prometheus çalışma belleğinde tutulur. Frappe transaction, hook, DDL veya veri değişikliği yoktur. Çözüm ve inceleme kaydının kalıcı yeri ve saklama süresi karar bekler.",
+    "failure": "Kural sözdizimi hatası promtool check rules ile reddedilir. Metrik yoksa ifade boş sonuç verir ve alarm oluşmaz; bu boşluk ayrı servis erişilemez alarmıyla kapatılmalıdır. Tüketici NaN veya boş sonucu sağlıklı olarak yorumlamamalıdır. Rota tanımsızken üretilen alarm, nöbet rotasına gönderilmiş sayılmaz."
   },
   "development": {
     "dependencies": ["alert-routing--contract"],
-    "admission": "T-00 hedef taban ve R-00 yeniden kullanim eslemesi gerekir. Suite kaynak HEAD'i bilinmiyor. Prometheus, Alertmanager ve promtool surumleri ile kurulu olup olmadiklari bilinmiyor. Yerel pilot (Frappe17-dev/suite.localhost) uzak urun tabanini kanitlamaz. Kurulum ve dogrulama sahibi Huseyin Cengiz'dir.",
+    "admission": "Uygulama durumu: uygulanmadı. Ortak önkoşullar: T-00 hedef taban ve R-00 yeniden kullanım eşlemesi; izinli bir veri tüketicisi doğarsa R-01. Bu sözleşmeye özgü önkoşullar şunlardır: Suite kaynak HEAD'i bilinmiyor. Hedef ortamda Prometheus'un, kural yönlendirme bileşeninin ve promtool'un kurulu olup olmadığı ve sürümleri bilinmiyor; bunlar doğrulanmalı. Eşik ve süre Hüseyin Cengiz tarafından onaylanmalı. plannedProduction yolu gözlenen depoya karşı çözülmeli ve sahiplik kiralaması verilmeli. Kurulum, doğrulama, CI, deploy ve rollback işlerinin teknik sahibi Hüseyin Cengiz'dir. Bu sözleşme hiçbir servisi, production ortamını, şemayı veya veriyi değiştirme yetkisi vermez.",
     "steps": [
-      "operations/alert-routing/alert_routing_mvp.yml icinde tek bir RecorderCapacityHigh kurali yazilir: pano ifadesi, instance filtresi olmadan ve esik 90 onerisiyle kullanilir.",
-      "Rota etiketi yer tutucu olarak birakilir; gercek alici veya vendor secilmez.",
-      "Kural, promtool check rules ile yerelde dogrulanir. Hicbir ortamda yukleme, yeniden baslatma veya zamanlama yapilmaz."
+      "Kabulden sonra operations/alert-routing/alert_routing_mvp.yml içinde tek group altında tek RecorderCapacityHigh kuralı yazılır. Kural, pano ifadesini instance filtresi olmadan ve onaylı eşik ile for süresiyle kullanır.",
+      "labels içine severity ve route yer tutucusu, annotations içine summary, runbook_url ve review_url yer tutucusu eklenir. Gerçek alıcı, vendor veya URL seçilmez.",
+      "recorder_capacity sıfır ya da yokken alarm üretilmemesi ifade düzeyinde korunur. Ek koşul eklenmez; boş sonuç servis erişilemez alarmına bırakılır.",
+      "Kural, promtool check rules ve tdd.oneScenario ile yerelde doğrulanır. Hiçbir ortama yükleme, yeniden başlatma veya zamanlama yapılmaz.",
+      "Hedef ortama yükleme ve canlı doğrulama ayrı onayla Hüseyin Cengiz'e devredilir. runtimeAcceptance yalnız bu doğrulamanın kanıtıyla güncellenir."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "promtool test rules senaryosu: recorder_active_jobs=19 ve recorder_capacity=20 (yuzde 95) 10 dakika boyunca surer. eval_time=6m aninda tam olarak bir RecorderCapacityHigh alarmi beklenir.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Kural eklendikten sonra ayni komut (promtool test rules operations/alert-routing/alert_routing_mvp.test.yml) basarili olur."
+      "oneScenario": "promtool test rules senaryosu: recorder_active_jobs=19 ve recorder_capacity=20 (yüzde 95) değerleri 10 dakika sürer. eval_time=6m anında, severity ve route etiketlerini taşıyan tam olarak bir RecorderCapacityHigh alarmı beklenir.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. RED, kural dosyası yüklenebilir durumdayken RecorderCapacityHigh kuralı bulunmadığı için beklenen 1 alarm yerine 0 alarm dönen assertion farkıdır. Dosya bulunamadı, sözdizimi veya araç kurulum hatası RED sayılmaz. Native olarak geçen davranışa RED uydurulmaz. Bu tur test yazılmaz ve koşulmaz.",
+      "green": "Kural eklendikten sonra aynı senaryo, değişmeyen assertion ve aynı promtool test rules komutuyla geçmelidir. Test dosyası yolu, sahiplik onayı gelene kadar atanmamıştır. Şu anda durum not_run'dır; sözleşme veya biçim kontrolü ürün GREEN'i değildir."
     },
-    "rollback": "Yalnizca yerel kural dosyasi geri alinir. Uretim veya uzak ortam yetkisi yoktur; yukleme yapilmadigi icin servis etkisi olmaz."
+    "rollback": "Yerel aşamada yalnız kural dosyası geri alınır; yükleme yapılmadığı için servis etkisi olmaz. Gelecekte hedef ortama yapılacak yüklemenin geri alınması (kural dosyasının önceki sürümüne dönüş ve yeniden yükleme) Hüseyin Cengiz'in teknik sorumluluğundadır ve ayrı onay gerektirir."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "observability-7",
+      "sourceStage": "mvp",
+      "existing": "Uygulama durumu: uygulanmadı. Native Suite kaynağında yalnız şunlar görülür: recorder panosunda Prometheus tabanlı Capacity Used göstergesi, görsel renk eşikleri (70 sarı, 90 kırmızı) ve recorder yapılandırmasında zorunlu metrik tokenı. Alıntılarda alarm kuralı, bildirim rotası, tekilleştirme, nöbet çizelgesi veya olay inceleme kaydı yoktur.",
+      "gap": "Üç alarm (servis erişilemez, hata oranı eşiği, recorder kapasitesi) için eşik, süre, rota ve tekilleştirme kuralı yoktur. Nöbet rotası ve çizelgesi, çözüm ve inceleme bağlantısının kaydı ve inceleme ekranı da eksiktir. Bu sözleşme yalnız recorder kapasite alarmını tanımlar.",
+      "completionSteps": [
+        "Recorder kapasitesi: behavior ve development.steps uygulanır.",
+        "Servis erişilemez: Önce hedef ortamdaki recorder kazıma işinin adı doğrulanır. Ardından Prometheus up serisi üzerinde, aynı dosyada ve aynı etiket/annotation şemasıyla ayrı bir kural eklenir. İş adı doğrulanmadan bu kural yazılmaz.",
+        "Hata oranı eşiği: Kaynakta hata sayacı metriği kanıtlanmamıştır. Önce gerçek metrik adı kaynaktan alıntılanır. Metrik yoksa bu alarm açık boşluk olarak kalır; metrik uydurulmaz.",
+        "Rota ve tekilleştirme: Üç alarm ortak route etiketiyle gruplanır. Yönlendirme bileşeni, alıcılar ve nöbet çizelgesi karar gelene kadar yer tutucudur.",
+        "İnceleme kaydı ve ekranı: Karardan sonra kayıt ya harici araçta tutulup review_url ile bağlanır ya da yetkili bir Frappe DocType'ında native izinle tutulur. Ekran, seçilen kaydın native görünümüdür. Yeni motor, CRUD katmanı veya ayrı React/Ant Design ekranı ayrı onaylı kapsam olmadan eklenmez.",
+        "Kurulum ve canlı doğrulama Hüseyin Cengiz'e atanır."
+      ],
+      "dependencies": ["alert-routing--contract"],
+      "acceptance": "Madde kabulü: Eşik aşımında doğru nöbet rotasına tek alarm gider; çözüm ve inceleme bağlantısı kaydedilir. Bu sözleşmenin dar kabulü: tdd.oneScenario'da tam olarak bir RecorderCapacityHigh alarmı oluşur. Rota ve inceleme kaydı kararları olmadan madde kabulü karşılanmış sayılmaz.",
+      "evidence": [
+        {
+          "path": "suite/suite/meet/observability/grafana/provisioning/dashboards/json/recorder-overview.json",
+          "line": 41,
+          "quote": "{ \"color\": \"yellow\", \"value\": 70 }, { \"color\": \"red\", \"value\": 90 }"
+        },
+        {
+          "path": "suite/suite/meet/observability/grafana/provisioning/dashboards/json/recorder-overview.json",
+          "line": 46,
+          "quote": "\"title\": \"Capacity Used\","
+        },
+        {
+          "path": "suite/suite/meet/recorder-server/src/config.ts",
+          "line": 85,
+          "quote": "const metricsToken = required(env, 'RECORDER_METRICS_TOKEN');"
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "Servis erisilemez ve hata orani esigi alarmlari bu sozlesmede yoktur.",
-    "Gercek nobet rotasi, nobet cizelgesi ve gruplama (Alertmanager veya baska bir bilesen) secilmemistir; vendor karari kullaniciya aittir.",
-    "Cozum ve inceleme kaydinin yeri (harici arac mi, yetkili bir Frappe DocType'i mi) tek bir kararla sabitlenmemistir. Inceleme ekrani kapsam disindadir. Bu nedenle kabul olcutu karsilanmamistir.",
-    "Esik (90) ve 'for' suresi Huseyin Cengiz onayi bekler. Uzak ortama kurulum ve dogrulama Huseyin Cengiz'in bagimliligidir.",
-    "Metrik ucunun token reddi ve kazima davranisi calisma zamaninda dogrulanmamistir."
+    "Servis erişilemez ve hata oranı eşiği alarmları bu sözleşmede yoktur. Hata oranı için kullanılacak metrik kaynakta kanıtlanmamıştır.",
+    "Gerçek nöbet rotası, nöbet çizelgesi ve gruplama bileşeni seçilmemiştir.",
+    "Çözüm ve inceleme kaydının yeri ile inceleme ekranı karara bağlanmamıştır. Bu nedenle madde kabul ölçütü karşılanmamıştır.",
+    "Eşik (90) ve for süresi (5m) Hüseyin Cengiz onayını bekler.",
+    "Metrik ucunun token reddi ve kazıma davranışı çalışma zamanında doğrulanmamıştır. Hedef ortamdaki araç sürümleri bilinmiyor.",
+    "Test dosyasının yolu ve sahipliği atanmamıştır."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Alarm yönlendirme ve gruplama bileşeni ile nöbet aracı (satıcı ve lisans dahil)",
+      "requirementIds": ["observability-7"],
+      "blocks": "Rota, tekilleştirme ve nöbet çizelgesi adımı; madde kabulündeki doğru nöbet rotası koşulu",
+      "documentStepUntilDecided": "route etiketi yer tutucu olarak bırakılır ve gruplama anahtarı (alertname, route) belgelenir."
+    },
+    {
+      "decision": "Çözüm ve inceleme kaydının yeri (harici araç mı, yetkili Frappe DocType'ı mı), saklama süresi ve veri yerleşimi",
+      "requirementIds": ["observability-7"],
+      "blocks": "İnceleme kaydı ve ekranı adımı; madde kabulündeki çözüm ve inceleme bağlantısı koşulu",
+      "documentStepUntilDecided": "review_url annotation'ı yer tutucu olarak tanımlanır. Kayıtta tutulacak alanlar (alarm adı, başlangıç, çözüm zamanı, inceleme bağlantısı) yalnız belge olarak listelenir."
+    },
+    {
+      "decision": "Eşik değeri ve for süresi onayı (Hüseyin Cengiz)",
+      "requirementIds": ["observability-7"],
+      "blocks": "Kural yazımı ve tdd.oneScenario değerlerinin kesinleşmesi",
+      "documentStepUntilDecided": "90 ve 5m değerleri öneri olarak işaretli kalır; senaryo değerleri bu önerilere göre belgelenir."
+    },
+    {
+      "decision": "Hedef ortam ve hedef Prometheus/promtool sürümleri (doğrulama: Hüseyin Cengiz)",
+      "requirementIds": ["observability-7"],
+      "blocks": "development.admission ve canlı doğrulama",
+      "documentStepUntilDecided": "Kural, sürüme bağlı olmayan temel alarm kuralı sözdizimiyle belgelenir. Sürüm doğrulanmadan uyumluluk iddiası yazılmaz."
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "observability-7": "mvp"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,

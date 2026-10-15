@@ -1,0 +1,222 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "crm-interaction",
+  "canonicalTaskIds": [
+    "crm-interaction--implementation",
+    "ui-family-24--implementation-post-mvp",
+    "ui-family-25--implementation"
+  ],
+  "requirementIds": ["crm-3"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "crm-3": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "CRM etkileşimi: görüşme/not, sorumlu atama, hatırlatma ve izinli iletişim geçmişi",
+    "trigger": "Yetkili kullanıcı bir CRM kaydı bağlamında görüşme veya not ekler, sorumlu atar, vade verir ya da kaydın iletişim geçmişini (zaman çizelgesi) açar.",
+    "expected": "Görüşme/not kaydı native insert/save, transaction ve hook zinciriyle tenant kapsamında saklanır; atanan kullanıcı ve vade kayıtla tutarlı görünür; iletişim geçmişi Communication tabanlı, kullanıcının okuma izniyle filtrelenmiş JSON zaman çizelgesi olarak döner; hatırlatma olayı aynı transaction içinde outbox sözleşmesine yazılır. Uygulama durumu: uygulanmadı.",
+    "denied": "Hedef kayıtta okuma veya yazma izni olmayan, başka tenant'a ait kayda erişen ya da Frappe User ile eşlenmemiş kimlikle gelen istek reddedilir; etkileşim kaydı, atama, zaman çizelgesi ve outbox değişmeden kalır. ignore_permissions, doğrudan SQL veya istemci tarafı yetki kararıyla izin aşılmaz."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native parça: iletişim geçmişi için Frappe çekirdeğindeki Communication DocType ile kayıt oluşturma kaynakta görülür. Aynı kaynaktaki web iletişim formu kaydı ignore_permissions ile eklediği için yalnız karşı örnek olarak alınır; headless akışta kısayol olarak çağrılmaz. Kaynaktaki to-do yorumu ToDo/atama bağlantısının bu yolda kurulmadığını gösterir. Not, görev, atama ve hatırlatma için native veya ekosistem kaynak kanıtı bu alıntılarda yoktur; aranan yol tek dosyadır ve bu kapsamlı yokluk iddiası değildir. Kanıtın Communication parçasını göstermesi bütün davranışın var olduğu anlamına gelmez.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/www/contact.py",
+        "line": 61,
+        "quote": "doctype=\"Communication\","
+      },
+      {
+        "path": "frappe/frappe/www/contact.py",
+        "line": 67,
+        "quote": ").insert(ignore_permissions=True)"
+      },
+      {
+        "path": "frappe/frappe/www/contact.py",
+        "line": 59,
+        "quote": "# add to to-do ?"
+      }
+    ],
+    "searchedPaths": ["frappe/frappe/www/contact.py"]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/crm-interaction.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/customer_success/doctype/crminteraction/crminteraction.py",
+      "frontend/packages/ui/src/components/ui-family-24/post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-family-25/index.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "kernel-envelope--contract zarfı ile tenant ve oturum bağlamı; hedef kayıt referansı (DocType adı ve kayıt adı); etkileşim türü (görüşme veya not); içerik; isteğe bağlı sorumlu (Frappe User) ve vade; zaman çizelgesi okuması için sayfalama parametreleri. İstemci yalnız JSON model gönderir; ReactNode veya callback sunucu sınırını geçmez.",
+    "output": "Kaydedilen etkileşimin kimliği ve normalize JSON özeti; zaman çizelgesi için tür, zaman, yazar, özet ve kaynak ayrımcısı (Communication, etkileşim notu, atama) içeren, yalnız okunabilir kayıtları kapsayan sayfalı liste. Ret ve doğrulama hataları kernel envelope hata biçimiyle döner.",
+    "authorization": "Yetki kararı yalnız sunucuda, Frappe native DocType izinleri ve native-user-policy--contract kurallarıyla verilir; tenant sınırı tenant-registry--contract ile denetlenir. Rol ve izin bayrakları yalnız explicitPermissionFlags ortak kaynağından alınır (policyRef: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy); bu sözleşme yeni rol veya izin bayrağı üretmez. ignore_permissions içeren yollar, doğrudan SQL ve istemci tarafı kontroller yetki kaynağı değildir; ui-family-24/25 yalnız sunucunun izin verdiği eylemleri gösterir, gizleme yetki sayılmaz. Kendi gelecekteki tek kabulünde yazma izni olmayan kullanıcının reddedilen yazması ve değişmeyen kayıt doğrulanır.",
+    "persistence": "Önerilen CRMInteraction DocType (canonicalArtifact: doctype, proposed, custom_proposed) yalnız crm-interaction--schema ve native-doctype-schema--contract kabulünden sonra tanımlanır; iletişim geçmişi native Communication, atama native-assignment--contract, yorum native-comment--contract üzerinden bağlanır; hatırlatma olayı aynı transaction içinde outbox--contract'a yazılır. Tüm yazmalar native insert/save ve hook zinciriyle yapılır. Bu sözleşme hiçbir servis, production, şema veya veriyi değiştirme yetkisi vermez.",
+    "failure": "İzin reddi: hata döner, hiçbir kayıt, atama veya outbox satırı oluşmaz. Doğrulama hatası (bilinmeyen hedef kayıt, eşlenmemiş sorumlu, geçersiz vade): transaction geri alınır. Outbox teslim hatası kaydedilmiş etkileşimi geri almaz; outbox sözleşmesinin yeniden deneme kuralı uygulanır. Zaman çizelgesi kaynak kararı verilmeden ikinci kaynak okunmaz ve kısmi sonuç tam geçmiş gibi sunulmaz."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "capability-definition--contract",
+      "client-rule-parity--contract",
+      "crm-interaction--contract",
+      "crm-interaction--schema",
+      "helpdesk-ticket-bridge--contract",
+      "kernel-envelope--contract",
+      "native-assignment--contract",
+      "native-comment--contract",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "outbox--contract",
+      "tenant-registry--contract",
+      "ui-family-24--contract",
+      "ui-family-24--implementation",
+      "ui-family-25--contract"
+    ],
+    "admission": {
+      "statement": "Uygulama durumu: uygulanmadı. Bu sözleşme üretim veya test yazımına kabul vermez.",
+      "prerequisites": [
+        "T-00 hedef taban ve R-00 yeniden kullanım eşlemesi bu birim için tamamlanmış olmalı.",
+        "Birim izinli veri tükettiği için R-01 uygulanmalı.",
+        "Zaman çizelgesi kaynağı ve CRM uygulaması ile özel DocType arasındaki karar decisionsPending listesinden kapanmış olmalı.",
+        "Tek dar davranış için gerçek RED/GREEN kanıtı gelecekteki turda üretilmeli.",
+        "Sıra yetkisi mevcut görev bağımlılıkları ve post_mvp aşamasıdır; küme sırası yeni seri bağımlılık değildir."
+      ]
+    },
+    "steps": [
+      "Communication native parçasını ve native-assignment--contract ile native-comment--contract kapsamındaki atama/yorum parçalarını madde bazında eşle; doğrulanmamış parçayı var sayma.",
+      "Zaman çizelgesi kaynak kararını bekle; karar gelene kadar Communication tabanlı alan sözleşmesini ve kaynak ayrımcısını belgele.",
+      "crm-interaction--schema kabulünden sonra CRMInteraction alanlarını (tür, içerik, hedef referans, sorumlu, vade) native-doctype-schema--contract kurallarıyla öner.",
+      "api-middleware--contract üzerinden izinli yazma ve zaman çizelgesi okuma sınırını tanımla; frappe/frappe/www/contact.py gibi ignore_permissions içeren yolları çağırma veya kopyalama.",
+      "Hatırlatma olayını outbox--contract'a bağla; kanal ve tetikleyici kararı gelene kadar yalnız olay şemasını belgele.",
+      "ui-family-24 ve ui-family-25 yüzeylerini React/Ant Design ile kaynak registry'ye öner; GenUI capability kaydı capability-definition--contract kapsamında ayrı tutulur.",
+      "client-rule-parity--contract ile istemci doğrulamasını yalnız kullanıcı deneyimi için hizala; yetki kararı sunucuda kalır.",
+      "helpdesk-ticket-bridge--contract kabulüyle bilet iletişimlerinin zaman çizelgesine katılım biçimini yalnız referans olarak bağla."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Not ekleme izin sınırı: hedef kayıtta yazma izni olan sorumlu not ekler ve not zaman çizelgesinde görünür; yazma izni olmayan kullanıcının aynı isteği reddedilir ve kayıt ile zaman çizelgesi değişmez.",
+      "red": "Gelecekte yazılacak test, not ekleme sınırının yetkisiz isteği reddetmemesi veya eklenen notun zaman çizelgesinde görünmemesi nedeniyle davranış düzeyinde başarısız olmalı; import, altyapı hatası veya native davranışı bozma RED sayılmaz. Bu tur test yazılmaz ve koşulmaz.",
+      "green": "En küçük uygulama native insert/save ve izin kontrolünü ignore_permissions olmadan kullanarak yetkili notu saklar, zaman çizelgesinde gösterir ve yetkisiz isteği değişiklik olmadan reddeder."
+    },
+    "rollback": "Bu tur yalnız belgedir; geri alma bu sözleşme dosyasının önceki entegre sürümüne dönmekle yapılır, servis, şema veya veri etkilenmez. Gelecekteki uygulamada CI/deploy/rollback teknik sahibi Hüseyin Cengiz'dir; geri alma capability kaydını devreden çıkarma ve uygulama sürümünü geri alma ile yapılır, oluşmuş etkileşim ve Communication verisi silinmez. Şema geri alması ayrı onay gerektirir."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "crm-3",
+      "sourceStage": "post_mvp",
+      "existing": "Kaynakta yalnız Communication DocType ile iletişim kaydı oluşturma görülür (frappe/frappe/www/contact.py:61). Aynı yol kaydı ignore_permissions ile ekler (satır 67) ve ToDo bağlantısı yalnız yorum olarak durur (satır 59). data/clusters/08.json:67 talimatına göre Frappe CRM not, görev, atama ve zaman çizelgesi sunan ekosistem uygulamasıdır; kurulu değildir ve bu girdide kaynak kanıtı yoktur. Vue/Frappe UI tabanlı CRM arayüzü React/Ant Design uygulaması kanıtı değildir.",
+      "gap": [
+        "Zaman çizelgesinin kaynağı belirsiz: Communication mı, Suite Mail/JMAP mı.",
+        "Hatırlatma kanalı ve vadeyi kimin tetikleyeceği tanımsız.",
+        "Kimlik sağlayıcı kullanıcısı ile atanan kişi (Frappe User) eşlemesi yok.",
+        "ui-family-24/25 destek görevleri ile sunucu yetki sınırı ayrımı yazılmamış."
+      ],
+      "completionSteps": [
+        "Zaman çizelgesi okumasını Communication ve atama kayıtlarıyla sınırla; ikinci kaynak yalnız karar sonrası eklenir.",
+        "Atamayı native-assignment--contract, yorum/notu native-comment--contract ile bağla; CRMInteraction yalnız native parçaların karşılamadığı alanları (etkileşim türü, vade) taşır.",
+        "Kimlik eşlemesini bu birimde tasarlama; atanan kişiyi yalnız native-user-policy--contract tarafından çözülmüş Frappe User olarak kabul et, eşlenmemiş kimliği reddet.",
+        "Yazma ve okuma uç noktalarını api-middleware--contract ve kernel-envelope--contract ile tanımla; ignore_permissions içeren yolların kullanılmayacağını uç nokta sözleşmesine yaz.",
+        "Hatırlatma olayını outbox--contract'a bağla; kanal ve tetikleyici kararı gelene kadar teslim mantığı yazma.",
+        "ui-family-24/25 yüzeylerinin yalnız sunucu yanıtındaki izinli eylemleri gösterdiğini ve yetki kararı vermediğini bileşen sözleşmesine yaz."
+      ],
+      "dependencies": [
+        "crm-interaction--contract",
+        "crm-interaction--schema",
+        "native-assignment--contract",
+        "native-comment--contract",
+        "native-user-policy--contract",
+        "native-doctype-schema--contract",
+        "api-middleware--contract",
+        "kernel-envelope--contract",
+        "tenant-registry--contract",
+        "outbox--contract",
+        "capability-definition--contract",
+        "client-rule-parity--contract",
+        "helpdesk-ticket-bridge--contract",
+        "ui-family-24--contract",
+        "ui-family-24--implementation",
+        "ui-family-25--contract"
+      ],
+      "acceptance": "Atanan görev vadesi, notu ve kayıt geçmişi yetkili kullanıcıda tutarlı görünür; yazma izni olmayan kullanıcının not ekleme veya atama isteği reddedilir ve kayıt, atama ve zaman çizelgesi değişmeden kalır; zaman çizelgesi yalnız okuma izni olan kayıtları içerir. Kabul gelecekteki turda gerçek RED/GREEN kanıtıyla yapılır; bu tur not_run.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/www/contact.py",
+          "line": 61,
+          "quote": "doctype=\"Communication\","
+        },
+        {
+          "path": "frappe/frappe/www/contact.py",
+          "line": 67,
+          "quote": ").insert(ignore_permissions=True)"
+        },
+        {
+          "path": "frappe/frappe/www/contact.py",
+          "line": 59,
+          "quote": "# add to to-do ?"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Uygulama durumu: uygulanmadı; üretim, test ve runtime kabulü yok.",
+    "Not, görev, atama ve hatırlatma için native veya ekosistem kaynak kanıtı bu girdide yok; native-assignment--contract ve native-comment--contract ile doğrulanmalı.",
+    "Zaman çizelgesi kaynağı ve hatırlatma kanalı/tetikleyicisi karar bekliyor.",
+    "Kimlik eşlemesi native-user-policy--contract kabulüne bağlı.",
+    "ui-family-24/25 ile sunucu yetki sınırının bileşen sözleşmesine işlenmesi gerekiyor."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Zaman çizelgesinin kaynağı: yalnız Communication mı, Suite Mail/JMAP ile birlikte mi.",
+      "requirementIds": ["crm-3"],
+      "blocks": "Zaman çizelgesi okuma uç noktası ve kaynak ayrımcısının kesinleşmesi.",
+      "allowedDocWorkUntilDecision": "Communication tabanlı alan sözleşmesini ve kaynak ayrımcısını açık değerli olarak belgelemek."
+    },
+    {
+      "decision": "Hatırlatma kanalı ve vadeyi tetikleyecek bileşen.",
+      "requirementIds": ["crm-3"],
+      "blocks": "Hatırlatma teslim mantığı ve outbox tüketicisi.",
+      "allowedDocWorkUntilDecision": "Hatırlatma olay şemasını outbox--contract referansıyla belgelemek."
+    },
+    {
+      "decision": "Frappe CRM uygulamasının ekosistem entegrasyonu mu, önerilen CRMInteraction özel DocType mı; hedef sürüm ve lisans değerlendirmesi.",
+      "requirementIds": ["crm-3"],
+      "blocks": "crm-interaction--schema kapsamındaki şema önerisi ve plannedProduction sahipliği.",
+      "allowedDocWorkUntilDecision": "İki seçenek için madde bazında native parça ve eksik eşlemesini belgelemek; seçim yapmamak."
+    },
+    {
+      "decision": "Kimlik sağlayıcı kullanıcısının Frappe User ile eşleme kuralı (native-user-policy--contract sahipliğinde).",
+      "requirementIds": ["crm-3"],
+      "blocks": "Sorumlu atama girdisinin doğrulanması.",
+      "allowedDocWorkUntilDecision": "Eşlenmemiş kimliğin reddedileceğini sözleşmede belgelemek."
+    },
+    {
+      "decision": "Etkileşim notları ve iletişim geçmişi için saklama süresi.",
+      "requirementIds": ["crm-3"],
+      "blocks": "Saklama ve silme davranışının tanımı.",
+      "allowedDocWorkUntilDecision": "Saklama süresinin açık karar olduğunu ve verinin geri almada silinmediğini belgelemek."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

@@ -1,0 +1,224 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "client-offline-faults",
+  "canonicalTaskIds": [
+    "client-offline-faults--implementation",
+    "ui-family-40--implementation-post-mvp"
+  ],
+  "requirementIds": ["integrity-10"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "integrity-10": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Mutasyon kimliğiyle mükerrer gönderimin sunucuda ikinci kez uygulanmaması. Uygulama durumu: uygulanmadı.",
+    "trigger": "Çevrimdışı kuyruktan (transactional outbox) gelen ve sunucuda daha önce kalıcı commit edilmiş bir mutasyon; commit ile ack arasındaki kesinti, uygulama veya cihaz yeniden başlatması sonrasında aynı mutasyon kimliğiyle yeniden gönderilir.",
+    "expected": "Sunucu aynı mutasyon kimliğine ait alım kaydını (receipt) bulur, hedef belgeyi ikinci kez değiştirmez ve ilk sonuçla tutarlı 'duplicate' türünde receipt döndürür. İstemci receipt'i aldıktan sonra kuyruk girdisini tamamlandı olarak işaretler. Yerel başarı yalnız yerel kalıcı commit tamamlandıktan sonra, sunucu onayı yalnız receipt alındıktan sonra gösterilir.",
+    "denied": "Yetkisiz kullanıcı, süresi dolmuş cihaz yetkisi veya base sürümü uyuşmayan gönderim belgeyi değiştirmez. Sunucu native izin kontrolü veya native iyimser eşzamanlılık hatasıyla reddeder; kayıt değişmeden kalır. İstemcideki bekleyen girdi silinmez; çakışma veya yetki durumu kullanıcıya görünür biçimde korunur."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Yeniden kullanılacak native parça Frappe Document.check_if_latest iyimser eşzamanlılık desenidir: istemcinin okuduğu modified değeri veritabanındakiyle karşılaştırılır, farklıysa TimestampMismatchError ile reddedilir. Upstream Suite'in Vue/frappe-ui frontend'indeki Slides kaydetme akışı (IndexedDB işleminin tamamlanmasına bağlı yerel başarı, çevrimdışıyken kirli kalma, yeniden yüklemede baseModified/modified karşılaştırmasıyla geri yükleme, sunucuda base_modified uyuşmazlığında red) ve Writer'daki y-indexeddb kalıcılığı yalnız referans desendir. Bunlar React/Ant Design, Tauri2 veya Vite-PWA uygulaması kanıtı değildir ve taşınmayacaktır. Kanıtlar tek tek native veya referans parçaları gösterir; genel outbox, mutasyon kimliğiyle idempotent alım, receipt/ack, cihaz yetkisi, simüle saat ve hata enjeksiyonu kabul paketi kanıtlanmamıştır. Aranan yollar listesi kapsamlı bir yokluk iddiası değildir.",
+    "evidence": [
+      {
+        "path": "suite/frontend/src/apps/slides/stores/saving.js",
+        "line": 62,
+        "quote": "tx.oncomplete = () => {"
+      },
+      {
+        "path": "suite/frontend/src/apps/slides/stores/saving.js",
+        "line": 247,
+        "quote": "if (!navigator.onLine) return"
+      },
+      {
+        "path": "suite/frontend/src/apps/slides/stores/presentation.js",
+        "line": 274,
+        "quote": "const servedIsStale = local?.baseModified > doc.modified"
+      },
+      {
+        "path": "suite/suite/slides/api/slides.py",
+        "line": 34,
+        "quote": "if cstr(doc.modified) != cstr(base_modified):"
+      },
+      {
+        "path": "suite/frontend/src/apps/writer/composables/useYjs.ts",
+        "line": 2,
+        "quote": "import { IndexeddbPersistence } from 'y-indexeddb'"
+      },
+      {
+        "path": "frappe/frappe/model/document.py",
+        "line": 1387,
+        "quote": "def check_if_latest(self):"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/model/document.py",
+      "suite/frontend/src/apps/slides/stores/presentation.js",
+      "suite/frontend/src/apps/slides/stores/saving.js",
+      "suite/frontend/src/apps/writer/composables/useYjs.ts",
+      "suite/suite/slides/api/slides.py"
+    ],
+    "searchedPathsNote": "Yalnız sağlanan salt okunur kaynak anlık görüntülerinde aranan yollardır; canlı site veya ürün kabulü yoktur ve kapsamlı yokluk iddiası değildir."
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/client-offline-faults.json",
+    "plannedProduction": [
+      "frontend/packages/platform/src/client-offline-faults/client_offline_faults_post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-family-40/post_mvp.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "kernel-envelope--contract'ın tanımlayacağı mutasyon zarfı: istemcinin ürettiği benzersiz mutasyon kimliği, device-grant--contract'a bağlı cihaz yetkisi referansı, hedef DocType ve belge adı, base sürüm (okunan modified değeri) ve değişiklik yükü. Alan adları, kimlik biçimi ve kimliğin benzersizlik kapsamı bu rehberde seçilmez; zarf sözleşmesine ve açık kararlara bağlanır. Zarf JSON modeldir; ReactNode veya callback taşımaz. Kaynak registry ile GenUI capability registry ayrıdır; GenUI bu birimin parçası değildir.",
+    "output": "sync-receipt--contract'ın tanımlayacağı alım kaydı (receipt): mutasyon kimliği, sonuç türü (applied, duplicate, conflict, denied), uygulandıysa sunucudaki yeni modified değeri ve hata kodu. Aynı mutasyon kimliğiyle tekrar eden çağrılar ilk sonuçla tutarlı yanıt alır; ikinci uygulama yoktur.",
+    "authorization": "Yazma native Frappe izin modeli ve belge save akışı üzerinden yapılır; ignore_permissions, ham SQL ile yazma veya başka izin bypass'ı yoktur. Cihaz yetkisi native izne ek bir daraltmadır, onun yerine geçmez: süresi dolunca istemci yasak işlemleri yerelde engeller, sunucu da aynı kuralı bağımsız uygular. Bu rehber rol veya izin üretmez; ileride rol/izin gerekirse explicitPermissionFlags ortak kaynağına bağlanır ve o işin tek kabulünde reddedilen yazma ile değişmeyen kayıt kanıtı bulunur.",
+    "persistence": "Sunucu: alım kaydı ile belge değişikliği aynı native request transaction'ında yazılır; ayrı commit veya kısmi uygulama yoktur. Alım kaydının şeması sync-receipt--contract'a aittir; bu rehber yeni şema, motor veya CRUD tanımlamaz. İstemci: web/PWA'da kuyruk girdisi IndexedDB işleminde yazılır ve yerel başarı yalnız işlem tamamlandığında bildirilir (Slides'taki tx.oncomplete deseni referans). Tauri2 yerel kalıcılık mekanizması açık karardır. Tek cihaz kopyasının kaybına karşı mutlak garanti yoktur; bağımsız yedek ve geri yükleme ayrı kabul koşuludur.",
+    "failure": "Commit ile ack arası kesinti: aynı mutasyon kimliğiyle yeniden gönderim duplicate receipt alır. Base sürüm uyuşmazlığı: native TimestampMismatchError deseniyle conflict döner; yerel girdi atılmaz ve çakışma görünür kalır (Slides'ın bazı yollarda yerel taslağı atma davranışı örnek alınmaz). Yerel transaction sırasında çökme veya kapanma: tamamlanmamış işlem başarı sayılmaz; girdi ya tamamen vardır ya hiç yoktur. Süresi dolmuş cihaz yetkisi: denied döner, bekleyen girdiler korunur. Tarayıcı depolama kotası ve silinme koşulları MDN kaynağına göre ayrıca belgelenir; kalıcı depolama isteği garanti sayılmaz."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "client-offline-faults--contract",
+      "client-rule-parity--contract",
+      "device-grant--contract",
+      "kernel-envelope--contract",
+      "offline-reservation--contract",
+      "sync-receipt--contract",
+      "ui-family-40--contract",
+      "ui-family-40--implementation"
+    ],
+    "admission": "Uygulama durumu: uygulanmadı. Kabul ön koşulları: T-00 hedef taban çizgisi ve R-00 yeniden kullanım eşlemesi; izinli veri tüketicileri için R-01. client-offline-faults--contract, kernel-envelope--contract, sync-receipt--contract ve device-grant--contract tamamlanmadan implementasyon başlamaz. Tek dar davranış gerçek RED/GREEN kanıtıyla uygulanır. Sıra mevcut görev bağımlılıkları ve aşamadan gelir; küme sırası yeni bir seri bağımlılık grafiği değildir. Bu sözleşme hiçbir servis, production ortamı, şema veya veriyi değiştirme yetkisi vermez.",
+    "steps": [
+      "kernel-envelope--contract'ta mutasyon kimliği, cihaz yetkisi referansı ve base sürüm alanlarını içeren zarfı Frappe provider sözleşmesi olarak yaz; JSON model sınırını ve kimlik kapsamının açık karara bağlı olduğunu belirt.",
+      "sync-receipt--contract'ta idempotent alım kuralını (aynı kimlik, aynı sonuç, ikinci uygulama yok) ve applied/duplicate/conflict/denied sonuç türlerini yaz.",
+      "device-grant--contract'ta süreli yerel yetkinin bitişinde engellenecek işlem sınıflarını ve bekleyen girdilerin korunmasını tanımla; süre değerini karar listesine bırak.",
+      "client-offline-faults--contract içinde hata matrisini tek tabloda tanımla: dört gün kesinti (simüle saat enjeksiyonuyla, gerçek bekleme olmadan), uygulama ve cihaz yeniden başlatma, yerel kayıt transaction'ı sırasında kapanma, push/pull ve commit/ack arası kesinti, mükerrer gönderim, sürüm çakışması, yetki bitişi, yedekten geri yükleme. Her satırda beklenen sonuç ve mutasyon kimliğiyle karşılaştırılacak kanıt alanı bulunsun.",
+      "Frappe backend'de tek davranışı uygula: zarfı al, native izin kontrolünden geçir, alım kaydını mutasyon kimliğiyle ara; varsa saklanan sonucu duplicate olarak döndür; yoksa check_if_latest deseniyle base sürümü doğrula, native save ve alım kaydını aynı transaction'da yaz.",
+      "İstemci outbox'ı (React/Ant Design, TanStack Query, Vite-PWA; Tauri2 kalıcılık kararı geldikten sonra) ayrı ve sonraki dar davranış olarak ele al: yerel commit sonrası yerel başarı, receipt sonrası tamamlandı. ui-family-40 yüzeyi bekleyen, çakışmalı ve yetkisi dolmuş girdileri görünür gösterir, sahte ilerleme göstermez ve ortak tasarım tokenlarını kullanır.",
+      "Kabul paketinde sunucu sonuçları, yerel kuyruk, çakışmalar ve yedekten geri yükleme mutasyon kimlikleriyle karşılaştırılıp kanıt kaydı üretilir. Teknik CI kurulumu Hüseyin Cengiz'in sorumluluğundadır."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "İlk gönderimde kalıcı commit edilmiş bir mutasyon aynı mutasyon kimliğiyle ikinci kez gönderildiğinde belge ikinci kez değişmez ve duplicate receipt döner.",
+      "red": "Gelecekteki test aynı zarfı iki kez gönderir; ikinci yanıtın duplicate sonuç taşıdığını, belgenin alan değeri ile modified değerinin ilk uygulamadan sonra değişmediğini doğrular. İdempotent alım olmadığı için ikinci çağrı base sürüm uyuşmazlığından conflict döndürür; RED bu davranışsal assert hatasıdır. Import, fixture veya altyapı hatası RED sayılmaz; native check_if_latest davranışı bozulmaz. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "Alım kaydı araması native save öncesinde aynı transaction içinde yapılır; kayıt varsa saklanan sonuç döndürülür. En küçük değişiklikle test geçer; native izin kontrolü ve check_if_latest korunur, reddedilen yazmada kayıt değişmez."
+    },
+    "rollback": "Bu belge için geri alma, ana entegrasyon sahibinin seri birleştirmede dosyayı geri almasıdır; ürün, servis veya veri etkilenmez. Gelecekteki uygulamada geri alma değişikliğin revert edilmesidir; mevcut alım kayıtları silinmez. Teknik CI/deploy/rollback sahibi Hüseyin Cengiz'dir. Bu birimde GoDaddy/DNS adımı yoktur; Asistan Hüseyin için uygulanacak iş yoktur."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "integrity-10",
+      "sourceStage": "post_mvp",
+      "existing": "Native parça: Frappe Document.check_if_latest, modified karşılaştırmasıyla iyimser eşzamanlılık sağlar. Referans desen (Vue/frappe-ui; React/Ant Design uygulaması kanıtı değil): Slides yerel başarıyı IndexedDB işleminin tamamlanmasına bağlar, çevrimdışıyken kirli kalıp bağlantı dönünce üstel beklemeyle yeniden dener, yeniden yüklemede baseModified/modified karşılaştırmasıyla taslağı geri yükler, sunucuda base_modified uyuşmazlığında reddeder; Writer y-indexeddb ile Yjs belgesini yerelde kalıcı tutar. Kaynak değerlendirmesinde ayrıca nesil sayacı ve içerik eşitliğine dayalı (holdsOwnRows) ulaştı mı kontrolü anılır; bunlar için doğrulanmış alıntı yoktur.",
+      "gap": "Platformdan bağımsız transactional outbox yok. Mutasyon kimliğiyle idempotent alım ve receipt/ack sözleşmesi yok; Slides'taki mükerrer koruması uygulamaya özel ve tüm belgenin içerik eşitliğine dayanıyor. Cihaz yetkisi ve süre bitişinde engelleme yok. Dört günlük kesinti için simüle saat, yedekten geri yükleme ve mutasyon kimliğiyle karşılaştırılan kanıt kaydı yok. Seçilen React/Ant Design, Tauri2 ve Vite-PWA istemcileri ile Tauri yerel kalıcılığı yok. Slides bazı yollarda sunucuya ulaşmamış yerel değişiklikleri atıyor; bu, kalıcı kaydedilen işlem kaybolmasın ölçütüyle çelişir. Hata enjeksiyonu kabul paketi tanımlı değil.",
+      "completionSteps": [
+        "Mutasyon zarfını kernel-envelope--contract'ta, idempotent alım ve receipt/ack kuralını sync-receipt--contract'ta, süreli cihaz yetkisini device-grant--contract'ta Frappe provider sözleşmesi olarak yaz.",
+        "client-offline-faults--contract'ta hata matrisini ve simüle saat gereksinimini tek tabloda tanımla; dört günlük test süresinin üretimde dört gün yetki verme zorunluluğu olmadığını yaz.",
+        "Sunucuda mutasyon kimliğiyle mükerrer gönderimin ikinci kez uygulanmamasını native izin, check_if_latest ve aynı transaction içinde alım kaydıyla tek dar davranış olarak uygula.",
+        "Çakışmada yerel girdinin atılmamasını, görünür çakışma durumu olarak korunmasını istemci outbox sözleşmesine kural olarak ekle.",
+        "Yedekten geri yükleme sonrasında yerel kuyruk ile sunucu receipt'lerinin mutasyon kimliğiyle karşılaştırılmasını kabul paketinde tanımla."
+      ],
+      "dependencies": [
+        "client-offline-faults--contract",
+        "kernel-envelope--contract",
+        "sync-receipt--contract",
+        "device-grant--contract"
+      ],
+      "acceptance": "Onaylanmış test yetkisiyle dört gün kesinti boyunca başarıyla kalıcı kaydedilen hiçbir işlem kontrollü kapanma, çökme veya yeniden başlatma senaryolarında kaybolmaz; bağlantı gelince hiçbir işlem iki kez uygulanmaz. Süreli yetki bitince yasak işlemler engellenir, bekleyen kayıtlar korunur. Sunucu sonuçları, yerel kuyruk, çakışmalar ve yedekten geri yükleme mutasyon kimlikleriyle karşılaştırılıp kanıt kaydedilir. Tek fiziksel cihazdaki kopyanın kaybına karşı mutlak garanti verilmez.",
+      "evidence": [
+        {
+          "path": "suite/frontend/src/apps/slides/stores/saving.js",
+          "line": 62,
+          "quote": "tx.oncomplete = () => {"
+        },
+        {
+          "path": "suite/frontend/src/apps/slides/stores/saving.js",
+          "line": 247,
+          "quote": "if (!navigator.onLine) return"
+        },
+        {
+          "path": "suite/frontend/src/apps/slides/stores/presentation.js",
+          "line": 274,
+          "quote": "const servedIsStale = local?.baseModified > doc.modified"
+        },
+        {
+          "path": "suite/suite/slides/api/slides.py",
+          "line": 34,
+          "quote": "if cstr(doc.modified) != cstr(base_modified):"
+        },
+        {
+          "path": "suite/frontend/src/apps/writer/composables/useYjs.ts",
+          "line": 2,
+          "quote": "import { IndexeddbPersistence } from 'y-indexeddb'"
+        },
+        {
+          "path": "frappe/frappe/model/document.py",
+          "line": 1387,
+          "quote": "def check_if_latest(self):"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Platformdan bağımsız istemci outbox'ı ve yerel commit sonrası başarı bildirimi tanımlı değil.",
+    "Mutasyon kimliğiyle idempotent alım ve receipt/ack sözleşmesi yazılmadı.",
+    "Süreli cihaz yetkisi ve süre bitişinde yasak işlem engelleme tanımlı değil.",
+    "Simüle saat enjeksiyonu, hata enjeksiyonu kabul paketi ve mutasyon kimliğiyle karşılaştırılan kanıt kaydı yok.",
+    "Yedekten geri yükleme kabul koşulu ve bağımsız yedek hedefi tanımlı değil.",
+    "React/Ant Design, Tauri2 ve Vite-PWA istemcilerinde çevrimdışı kalıcılık uygulanmadı; Tauri yerel kalıcılık mekanizması açık.",
+    "Çakışmada yerel değişikliğin atılmaması kuralı hiçbir istemcide uygulanmadı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Süreli cihaz yetkisinin üretimdeki süresi",
+      "requirementIds": ["integrity-10"],
+      "blocks": "device-grant--contract süre parametresi ve hata matrisindeki yetki bitişi satırının beklenen değeri",
+      "interimDocStep": "Süreyi hata matrisinde parametre olarak yaz; dört günlük test süresinin üretim taahhüdü olmadığını belirt."
+    },
+    {
+      "decision": "Alım kayıtları ve kabul kanıt kayıtlarının saklama süresi",
+      "requirementIds": ["integrity-10"],
+      "blocks": "sync-receipt--contract içindeki saklama ve temizleme kuralı",
+      "interimDocStep": "Mükerrer tespit penceresinin istemci kuyruğunda bir girdinin bekleyebileceği en uzun süreden kısa olamayacağını değişmez kural olarak yaz."
+    },
+    {
+      "decision": "Mutasyon kimliğinin benzersizlik kapsamını belirleyen tenant topolojisi",
+      "requirementIds": ["integrity-10"],
+      "blocks": "kernel-envelope--contract kimlik kapsamı ve alım kaydı arama anahtarı",
+      "interimDocStep": "Kapsamı zarf sözleşmesinde parametre olarak bırak; mükerrer kuralını kapsamdan bağımsız biçimde tarif et."
+    },
+    {
+      "decision": "Tauri2 yerel kalıcılık mekanizması ve hedef sürümler (Frappe, Tauri2, desteklenen tarayıcılar)",
+      "requirementIds": ["integrity-10"],
+      "blocks": "istemci outbox implementasyonu ve kabul matrisinin platform sütunları",
+      "interimDocStep": "Outbox davranışını platformdan bağımsız sözleşme olarak yaz; yerel başarının yalnız kalıcı commit sonrası bildirilmesini ortak kural yap."
+    },
+    {
+      "decision": "Bağımsız yedeğin hedefi ve veri yerleşimi",
+      "requirementIds": ["integrity-10"],
+      "blocks": "yedekten geri yükleme kabul satırı",
+      "interimDocStep": "Geri yükleme sonrası yerel kuyruk ile sunucu receipt'lerinin mutasyon kimliğiyle karşılaştırılma kuralını yaz."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

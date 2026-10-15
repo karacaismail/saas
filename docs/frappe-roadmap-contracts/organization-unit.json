@@ -1,18 +1,26 @@
 {
   "schemaVersion": "saas-existing-work-contract.v1",
   "canonicalUnitId": "organization-unit",
-  "canonicalTaskIds": ["organization-unit--implementation"],
+  "canonicalTaskIds": [
+    "organization-unit--implementation",
+    "ui-family-04--implementation-mvp"
+  ],
   "requirementIds": ["tenant-2"],
   "stage": "mvp",
+  "sourceStages": {
+    "tenant-2": "mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
-    "title": "Sube tasima kurum sinirini asamaz",
-    "trigger": "Yazma yetkili kullanici mevcut bir Organization Unit kaydinin ust dugum Link alanini native belge guncelleme yoluyla (yerel pilot T-08'de dogrulanan native kayit guncelleme yolu) degistirir ve Document.save calisir.",
-    "expected": "Yeni ust dugum ayni kok kuruma aitse kayit native transaction icinde kaydedilir; yanit native belge govdesidir ve guncel ust dugum ile modified surumunu tasir.",
-    "denied": "Yeni ust dugum farkli bir kok kuruma aitse controller validate adiminda frappe.ValidationError firlatilir; kayit degismez, kismi yazim olmaz."
+    "title": "Şube taşıma kurum sınırını aşamaz",
+    "trigger": "Organization Unit üzerinde native DocPerm write iznine sahip, kimliği doğrulanmış bir kullanıcı mevcut bir kaydın üst düğüm Link alanını native belge güncelleme yoluyla değiştirir ve Document.save çalışır.",
+    "expected": "Yeni üst düğüm aynı kök kuruma aitse kayıt native request transaction içinde kaydedilir; yanıt native belge gövdesidir, güncel üst düğümü ve yeni modified değerini taşır.",
+    "denied": "Yeni üst düğüm farklı bir kök kuruma aitse controller validate adımında frappe.ValidationError fırlatılır; üst düğüm ve modified değişmez, kısmi yazım olmaz ve hata mesajı diğer kurumun düğüm adını veya alanlarını ifşa etmez."
   },
   "reuse": {
-    "mechanism": "Native DocType controller validate (Document.save) + native DocPerm write. Yeni API, ORM, olay motoru veya ignore_permissions yardimcisi yok. hooks.py gerektirmedigi icin sahip olunan tek dosyada (organization_unit.py) uygulanabilen en dar davranis secildi. Okuma izolasyonu icin native has_permission/permission_query_conditions ilkelleri sonraki adim olarak ayrildi.",
+    "status": "KISMI",
+    "mechanism": "Native DocType controller validate (Document.save içinde), native DocPerm write ve native request transaction. Doğrulanmış kanıtlar yalnız native parçaları gösterir: frappe permissions has_permission ilkeli, Suite Sheets ayrıcalıklı rol kümesi, Suite Drive genel kullanıcı için 'site' erişim döngüsü ve Desk Workspace varsayılan yüklemesi. Kurum-şirket-şube-ekip-çalışma alanı DocType'ları, üyelik ürünü ve kurum sınırı doğrulaması kanıtlarda yoktur; bir native parçanın varlığı davranışın var olduğu anlamına gelmez. Yeni API, ORM, olay motoru, CRUD katmanı veya ignore_permissions yardımcısı tasarlanmaz. Aranan yollar kapsamlı bir yokluk iddiası değildir.",
     "evidence": [
       {
         "path": "frappe/frappe/permissions.py",
@@ -20,75 +28,183 @@
         "quote": "def has_permission("
       },
       {
+        "path": "suite/suite/drive/api/permissions.py",
+        "line": 85,
+        "quote": "for user, access_type in ((\"Guest\", \"public\"), (GENERAL_USER, \"site\")):"
+      },
+      {
         "path": "suite/suite/sheets/permissions.py",
         "line": 22,
         "quote": "_PRIVILEGED_ROLES = frozenset({\"Administrator\", \"System Manager\"})"
       },
       {
-        "path": "suite/suite/drive/api/permissions.py",
-        "line": 85,
-        "quote": "for user, access_type in ((\"Guest\", \"public\"), (GENERAL_USER, \"site\")):"
+        "path": "frappe/frappe/website/utils.py",
+        "line": 142,
+        "quote": "default_workspace = frappe.get_user().load_user_default_workspace()"
       }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/permissions.py",
+      "frappe/frappe/website/utils.py",
+      "suite/suite/drive/api/permissions.py",
+      "suite/suite/sheets/permissions.py"
     ]
   },
   "ownership": {
     "activeContractFile": "docs/frappe-roadmap-contracts/organization-unit.json",
     "plannedProduction": [
-      "backend/saas_platform/saas_platform/tenant_control/doctype/organization_unit/organization_unit.py"
+      "backend/saas_platform/saas_platform/tenant_control/doctype/organization_unit/organization_unit.py",
+      "frontend/packages/ui/src/components/ui-family-04/mvp.tsx"
     ],
-    "plannedTestFile": "backend/saas_platform/saas_platform/tenant_control/doctype/organization_unit/test_organization_unit.py",
+    "plannedTestFile": null,
     "sharedIntegrationFiles": [
       "backend/saas_platform/saas_platform/hooks.py",
-      "backend/saas_platform/saas_platform/tenant_control/doctype/organization_unit/organization_unit.json",
-      "contracts/organization-unit.v1.json"
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "Belge adi (string, zorunlu) ve ust dugum Link alani (string veya bos; bos yalnizca kok kurum icin gecerli). Alan adlari organization-unit--schema ve contract-organization-unit v1 tarafindan belirlenir; bu sozlesmede bilinmiyor ve uydurulmuyor.",
-    "output": "Basarida native belge govdesi; alanlar native DocPerm/permlevel ile filtrelenir, surum native modified degeridir. Ret durumunda native hata govdesi; diger kurumun dugum bilgisi mesajda ifsa edilmez.",
-    "authorization": "Yalniz native site siniri ve native DocPerm write. Hedef ust dugumun kurumu, cagiranin yetkisinden bagimsiz olarak validate adiminda karsilastirilir; Administrator da ayni dogrulamaya tabidir. Kullanici bazli kurum okuma izolasyonu bu davranisin kapsami disindadir (remainingGaps).",
-    "persistence": "Native Document.save request transaction; validate icindeki throw tum yazimi geri alir. DDL, migration, patch veya yeni tablo garantisi verilmez.",
-    "failure": "frappe.ValidationError (cevrilebilir Turkce mesaj). Native HTTP eslemesi kanitta yok, bilinmiyor. Tuketici (mevcut React19/AntD6/TanStack) hatayi mevcut AntD form hata alaninda gosterir ve otomatik tekrar denemez; mutation sonrasi sorgu yalnizca basarida gecersiz kilinir. UI Outfit 14px, 320 oncelikli yerlesim, cevreleyen odak halkasi olmadan, simetrik pozitif Cubic hareket ile mevcut bilesenleri kullanir."
+    "input": "Belge adı (string, zorunlu) ve üst düğüm Link alanı (string veya boş; boş yalnız kök kurum için geçerlidir). Alan adları, düğüm türü alanı ve kök kurumun belirlenme yolu organization-unit--schema ve organization-unit--contract tarafından belirlenir; bu rehberde bilinmiyor ve uydurulmuyor. İstemci yalnız JSON serileştirilebilir değerler gönderir.",
+    "output": "Başarıda native belge gövdesi; alanlar native DocPerm ve permlevel ile filtrelenir, sürüm native modified değeridir. Retta native hata gövdesi; diğer kurumun düğüm bilgisi mesajda ifşa edilmez.",
+    "authorization": "Native site sınırı ve native DocPerm write. Rol ve izin satırları ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/explicitPermissionFlags ortak kaynağına bağlanır; bu rehber kendi rolünü üretmez. Kurum karşılaştırması çağıranın rolünden bağımsızdır; Administrator ve System Manager da aynı validate kuralına tabidir. ignore_permissions, ham SQL ile yetki atlama veya izin bayraklarını kapatma yoktur. Kullanıcı bazlı kurum okuma izolasyonu (permission_query_conditions ve has_permission bağlantısı) bu davranışın kapsamı dışındadır ve remainingGaps içindedir.",
+    "persistence": "Native Document.save ve request transaction; validate içindeki throw tüm yazımı geri alır. DDL, migration, patch, yeni tablo veya veri taşıma garantisi verilmez; şema organization-unit--schema sahipliğindedir.",
+    "failure": "frappe.ValidationError, çevrilebilir Türkçe mesaj ile. Native HTTP eşlemesi doğrulanmış kanıtta yok, bilinmiyor; hata zarfı kernel-envelope--contract ve api-middleware--contract üzerinden çözülür. Gelecekteki React/Ant Design tüketicisi hatayı Ant Design form hata alanında gösterir, otomatik tekrar denemez; TanStack Query sorguları yalnız başarıda geçersiz kılınır. UI Outfit, minimum 14 CSS px, 320 CSS px öncelikli yerleşim, çevreleyen odak halkası olmayan görünür odak ve merkezi simetrik pozitif süreli Cubic hareket tokenları kurallarına uyar."
   },
   "development": {
     "dependencies": [
+      "api-middleware--contract",
+      "client-rule-parity--contract",
+      "kernel-envelope--contract",
+      "membership--contract",
       "organization-unit--contract",
       "organization-unit--schema",
-      "kernel-envelope--contract"
+      "ui-family-04--contract",
+      "ui-family-04--implementation",
+      "ui-family-33--contract"
     ],
-    "admission": "Organization Unit DocType semasi (ust dugum Link alani ve kok kurum belirleme yolu) yerel Frappe17-dev/suite.localhost uzerinde kurulu olmali; T-00 hedef taban ve R-00 yeniden kullanim eslemesi gecerli olmali. Yerel pilot (frappeHead adf1fd0c, schema f926e9b, record 6ea301c) uzak urun tabani degildir; Suite HEAD ve uzak taban bilinmiyor. Keycloak not_run ve kapsam disi.",
+    "admission": "Uygulama durumu: uygulanmadı. Giriş ön koşulları: (1) ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy kapsamında T-00 hedef taban ve R-00 yeniden kullanım eşlemesi geçerli; izinli veri tüketen UI adımı R-01'i de kullanır. (2) organization-unit--schema ile Organization Unit DocType'ı, üst düğüm Link alanı ve kök kurum belirleme yolu tanımlı. (3) Hedef Frappe/Suite sürümü ve ağaç modeli kararları (decisionsPending) verilmiş. (4) explicitPermissionFlags ortak kaynağında Organization Unit DocPerm satırları tanımlı. (5) Tek davranış için gerçek RED kanıtı alınabilecek test ortamı hazır. Bu sözleşme hiçbir servis, production ortamı, şema veya veri değişikliği yetkisi vermez.",
     "steps": [
-      "organization_unit.py validate icinde ust dugum degistiyse yeni ust dugumun kok kurumunu native get_value ile coz.",
-      "Kok kurum mevcut kaydinkinden farkliysa frappe.throw ile ValidationError firlat; ayniysa native akisa devam et.",
-      "hooks.py, modules.txt, patches.txt ve frontend dosyalarina dokunma."
+      "organization-unit--schema sözleşmesinden üst düğüm alan adını ve kök kurum tanımını oku; alan adı uydurma.",
+      "organization_unit.py validate içinde üst düğümün kayıt öncesi değerden farklı olup olmadığını native Document önceki değer karşılaştırmasıyla belirle; kullanılacak Document API'sini hedef sürümde doğrula.",
+      "Değiştiyse yeni üst düğümün kök kurumunu üst zinciri native frappe.db.get_value ile yukarı yürüyerek çöz; yalnız bütünlük kontrolü için okunur, yanıta veya mesaja veri taşınmaz.",
+      "Kök kurum mevcut kaydınkinden farklıysa frappe.throw ile çevrilebilir mesaj ve frappe.ValidationError fırlat; aynıysa native save akışına dokunmadan devam et.",
+      "hooks.py, modules.txt ve patches.txt değiştirilmez; okuma izolasyonu ayrı bir davranış ve ayrı RED/GREEN olarak entegrasyon sahibine bırakılır.",
+      "ui-family-04--implementation-mvp için mvp.tsx, native güncellemeyi TanStack Query mutation ile çağırır; ValidationError Ant Design Form alan hatasında gösterilir, retry kapalıdır, başarıda yalnız ilgili sorgu geçersiz kılınır.",
+      "registry.ts kaynak registry girdisi yalnız JSON serileştirilebilir prop şeması taşır; ReactNode ve callback'ler yerel kalır. Bu bileşen GenUI capability registry'ye kaydedilmez.",
+      "Paylaşılan entegrasyon dosyaları (routes.tsx, registry.ts, package.json, package-lock.json, Tauri ve WXT yapılandırmaları) yalnız entegrasyon sahibi tarafından seri birleştirilir."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "Kurum A altindaki bir subenin ust dugumu kurum B'ye ait bir dugume ayarlanip save edildiginde frappe.ValidationError beklenir; ayni senaryoda Organization Unit write izni olmayan, kimligi dogrulanmis kullanicinin ayni kayda native save denemesi yan etkiden once frappe.PermissionError ile reddedilir. Her iki retten sonra veritabanindaki ust dugum ve modified degismemis olmalidir.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Ayni test ayni native bench run-tests komutu ve ayni site ile validate mantigi eklendikten sonra gecer. Native olarak zaten calisan davranis icin RED uretilmez."
+      "oneScenario": "Kurum A altındaki bir şubenin üst düğümü, write izni olan kullanıcı tarafından kurum B'ye ait bir düğüme ayarlanıp save edildiğinde frappe.ValidationError beklenir; ret sonrasında veritabanındaki üst düğüm ve modified değişmemiş olmalıdır.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. Şema kurulu ve test import edilebilir durumdayken validate kuralı yokken kurumlar arası save başarılı olur ve ValidationError beklentisi assertion ile düşer. Import, altyapı veya fixture hatası RED sayılmaz; native olarak zaten reddedilen write izni yokluğu RED hedefi yapılmaz. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "Validate kuralı eklendikten sonra aynı senaryo, değişmeyen assertion ve aynı native test komutuyla geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN'i değildir."
     },
-    "rollback": "organization_unit.py icindeki validate eklemesini yerel olarak geri al; veri veya sema degisikligi yok. Production izni yok; uzak dagitim Huseyin Cengiz sorumlulugundaki ayri bir bagimliliktir."
+    "rollback": "organization_unit.py içindeki validate eklemesini ve mvp.tsx değişikliğini tek değişiklik olarak geri al; veri veya şema değişikliği yoktur. Uzak ortamlarda CI, deploy ve rollback teknik sahibi Hüseyin Cengiz'dir; bu sözleşme production yetkisi vermez. DNS veya GoDaddy işlemi gerekmez; gerekirse uygulama sahibi Asistan Hüseyin'dir."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "tenant-2",
+      "sourceStage": "mvp",
+      "existing": "Uygulama durumu: uygulanmadı. Native parçalar: has_permission ilkeli (frappe/frappe/permissions.py:82); Suite Sheets ayrıcalıklı rol kümesi Administrator ve System Manager (suite/suite/sheets/permissions.py:22); Suite Drive genel kullanıcıya 'site' erişimi (suite/suite/drive/api/permissions.py:85); Desk Workspace varsayılan yüklemesi (frappe/frappe/website/utils.py:142). Native DocType, DocPerm ve controller validate yapı taşlarıdır. Kurum-şube-ekip DocType'ları ve üyelik ürünü kanıtlarda yoktur. Mevcut talimat kaynağı: data/clusters/01.json:41 (/groups/0/items/1), support absent, action build.",
+      "gap": "Kullanılacak native izin mekanizması (User Permission, has_permission hook veya permission_query_conditions) belirtilmemiş; Suite Drive 'site' erişimi ve System Manager ayrıcalığı kurum sınırını aşabilir; Desk Workspace ile ürün çalışma alanı terimi çakışıyor; ağaç modeli ve taşıma sonrası izin yeniden hesaplama sözleşmesi yok.",
+      "completionSteps": [
+        "organization-unit--schema ile tek Organization Unit DocType'ını ve düğüm türlerini (kurum, şirket, şube, ekip, çalışma alanı) tanımla; çoklu ekip üyeliği membership--contract kapsamındadır, burada ek DocType önerilmez.",
+        "İzin stratejisini native DocPerm ve permission_query_conditions olarak sabitle; belge düzeyi kontrol gerekiyorsa native has_permission hook'u kullan. Bağlantı hooks.py üzerinden ayrı bir davranış olarak entegrasyon sahibine gider; ignore_permissions yardımcısı yok.",
+        "Bu sözleşmenin tek davranışını uygula: kurumlar arası şube taşımayı validate ile reddet ve kaydın değişmediğini doğrula.",
+        "Suite Drive 'site' erişimi ve Sheets ayrıcalıklı rol kümesi için kurum sınırı garantisini Drive ve Sheets'e genişletme; karar gelene kadar açık gap olarak tut.",
+        "Ürün çalışma alanı terimini Desk Workspace'ten ayıran adlandırma notu yaz; şema alan adları ve UI etiketleri bu karardan sonra sabitlenir."
+      ],
+      "dependencies": [
+        "organization-unit--contract",
+        "organization-unit--schema",
+        "kernel-envelope--contract",
+        "membership--contract",
+        "ui-family-04--contract"
+      ],
+      "acceptance": "Kaynak kabul: şube taşıma, çoklu ekip üyeliği ve kurum sınırı API testleriyle korunmalı. Bu sözleşmenin tek kabulü: kurumlar arası taşıma frappe.ValidationError ile reddedilir ve üst düğüm ile modified değişmez; aynı kurum içi taşıma native olarak kaydedilir. Çoklu ekip üyeliği ve okuma izolasyonu ayrı davranışların kabulleridir.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/permissions.py",
+          "line": 82,
+          "quote": "def has_permission("
+        },
+        {
+          "path": "suite/suite/drive/api/permissions.py",
+          "line": 85,
+          "quote": "for user, access_type in ((\"Guest\", \"public\"), (GENERAL_USER, \"site\")):"
+        },
+        {
+          "path": "suite/suite/sheets/permissions.py",
+          "line": 22,
+          "quote": "_PRIVILEGED_ROLES = frozenset({\"Administrator\", \"System Manager\"})"
+        },
+        {
+          "path": "frappe/frappe/website/utils.py",
+          "line": 142,
+          "quote": "default_workspace = frappe.get_user().load_user_default_workspace()"
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "Kurum okuma izolasyonu: permission_query_conditions ve has_permission baglantisi integration sahibindeki hooks.py dosyasini gerektirir; Codex entegrasyonu ve ayri bir RED/GREEN olmadan kanitlanmis sayilmaz.",
-    "Administrator ve System Manager bypass'i (Sheets _PRIVILEGED_ROLES) kurum sinirini asabilir; politika karari yok.",
-    "Suite Drive 'site' erisimi tum oturumlu kullanicilara aciktir; kurum siniriyla kisitlama yontemi acik.",
-    "Agac modeli (nested set ya da yalniz Link alani) ve dongu (kendi alt dugumune tasima) kontrolu karara bagli degil.",
-    "Coklu ekip uyeligi DocType'i ve tasima sonrasi izin yeniden hesaplama sozlesmesi yok.",
-    "Frappe Desk Workspace (website/utils.py:142 load_user_default_workspace) ile urun calisma alani terim cakismasi cozulmedi."
+    "Kurum okuma izolasyonu: permission_query_conditions ve has_permission bağlantısı entegrasyon sahibindeki hooks.py dosyasını gerektirir; ayrı RED/GREEN olmadan kanıtlanmış sayılmaz.",
+    "Administrator ve System Manager ayrıcalığı (Sheets _PRIVILEGED_ROLES) okuma tarafında kurum sınırını aşabilir; politika kararı yok.",
+    "Suite Drive 'site' erişimi tüm oturumlu genel kullanıcılara açıktır; kurum sınırıyla kısıtlama yöntemi açık.",
+    "Döngü kontrolü (düğümü kendi alt düğümüne taşıma) aynı kök kurum içinde kalır ve bu davranışla yakalanmaz; ağaç modeli kararına bağlı.",
+    "Çoklu ekip üyeliği ve taşıma sonrası izin yeniden hesaplama sözleşmesi membership--contract tarafında tanımlı değil.",
+    "Frappe Desk Workspace ile ürün çalışma alanı terim çakışması çözülmedi.",
+    "Native ValidationError için HTTP durum eşlemesi doğrulanmış kanıtta yok."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Ağaç modeli: Frappe NestedSet mi yalnız üst düğüm Link alanı mı (NestedSet doğrulanmış kanıtta alıntılanmadı).",
+      "requirementIds": ["tenant-2"],
+      "blocksStep": "Kök kurum çözüm yöntemi, döngü kontrolü ve taşıma sonrası izin yeniden hesaplama.",
+      "interimDocStep": "İki seçeneğin taşıma, döngü ve sorgu etkisini karşılaştıran not yaz; validate adımını alan adından bağımsız tarif et."
+    },
+    {
+      "decision": "Hedef Frappe ve Suite sürümü.",
+      "requirementIds": ["tenant-2"],
+      "blocksStep": "Uygulama girişi ve kullanılan Document/permission API'lerinin doğrulanması.",
+      "interimDocStep": "Kullanılacak native API'leri hedef sürümde doğrulanacak kontrol listesi olarak tut."
+    },
+    {
+      "decision": "Administrator ve System Manager kurum sınırını okuma ve yazmada aşabilir mi.",
+      "requirementIds": ["tenant-2"],
+      "blocksStep": "Okuma izolasyonu davranışı ve Sheets entegrasyonu.",
+      "interimDocStep": "Taşıma validate kuralının role bağımsız olduğunu belgede sabit tut; okuma tarafını açık bırak."
+    },
+    {
+      "decision": "Suite Drive 'site' erişiminin kurum sınırıyla kısıtlanma yöntemi.",
+      "requirementIds": ["tenant-2"],
+      "blocksStep": "Drive tüketicilerinde kurum sınırı garantisi.",
+      "interimDocStep": "Drive için kurum sınırı garantisi verilmediğini gap olarak kaydet."
+    },
+    {
+      "decision": "Tenant topolojisi: site başına tenant mı, paylaşılan site içinde kurum mu.",
+      "requirementIds": ["tenant-2"],
+      "blocksStep": "Kurum sınırı ile native site sınırı ilişkisi ve okuma izolasyonu tasarımı.",
+      "interimDocStep": "Taşıma validate davranışının iki topolojide de aynı kaldığını not et."
+    },
+    {
+      "decision": "Ürün çalışma alanı kavramının adı ve Desk Workspace'ten ayrımı.",
+      "requirementIds": ["tenant-2"],
+      "blocksStep": "Şema alan adları ve UI etiketleri.",
+      "interimDocStep": "İki kavramı ayıran terim sözlüğü notu yaz."
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "tenant-2": "mvp"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,
     "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
-    "permissionPolicyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/explicitPermissionFlags",
     "specificPrerequisitesRef": "#/development/admission"
   }
 }

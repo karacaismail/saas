@@ -1,0 +1,247 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "mcp-api",
+  "canonicalTaskIds": [
+    "mcp-api--implementation",
+    "ui-family-36--implementation-post-mvp"
+  ],
+  "requirementIds": ["integration-13"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "integration-13": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Şemalı ve izne göre süzülmüş MCP araç/kaynak kataloğu ile güvenli uzak erişim",
+    "trigger": "Kimliği doğrulanmış bir MCP istemcisi tek MCP uç noktasına JSON-RPC initialize, tools/list, tools/call, resources/list veya resources/read isteği gönderir.",
+    "expected": "Sunucu protokol sürümünü pazarlar. Yalnız açık allowlist'te bulunan ve çağıran Frappe User'ın native izinleriyle erişebildiği araçları inputSchema/outputSchema (JSON Schema) ile listeler. Okuma araçlarını kullanıcı bağlamında native izin denetimiyle çalıştırır. Yazma araçlarını yalnız açık kullanıcı onayından sonra native save/transaction yoluyla uygular. Her çağrıyı ve kararı audit kaydına yazar.",
+    "denied": "Şu istekler reddedilir: eksik veya geçersiz bearer, yanlış issuer/audience, izinsiz Origin, allowlist dışı araç, şemaya uymayan argüman, native izin reddi, onaysız ya da özeti (digest) veya revizyonu uyuşmayan yazma. Reddedilen istekte veri sızmaz ve kayıt değişmez; red audit kaydına düşer. Araç çıktısı veya model metni yetki üretmez."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "MCP sunucusu yeni yazılır, yalnız native Frappe parçaları yeniden kullanılır. Katalog kaynağı /api/v2/discovery rotasıdır: discovery.py içindeki parametre çıkarımı ve DocType metotları için GET=read/POST=write izin eşlemesi JSON Schema'ya çevrilir. Discovery yalnız System Manager'a açık olduğundan kullanıcı kataloğu bu uç noktanın kendisi olmaz; allowlist ve native izinle süzülmüş ayrı bir projeksiyon olur. Yetki keşfi için oauth2.py içindeki RFC 9728 oauth-protected-resource metadata yolu MCP resource ile hizalanır. Kimlik tarafında auth.py içindeki OAuth Bearer Token doğrulaması yalnız Frappe'nin kendi verdiği tokenları tanır; harici JWT doğrulaması eksik parçadır. Kanıtlar tek tek native parçaları gösterir; MCP davranışının bütünü mevcut değildir. Incelenen Frappe yollarında MCP JSON-RPC sunucusu bulunmadı; bu, kapsamlı bir yokluk iddiası değildir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/api/v2.py",
+        "line": 606,
+        "quote": "Rule(\"/discovery\", methods=[\"GET\"], endpoint=discovery.root),"
+      },
+      {
+        "path": "frappe/frappe/api/discovery.py",
+        "line": 29,
+        "quote": "frappe.only_for(\"System Manager\")"
+      },
+      {
+        "path": "frappe/frappe/api/discovery.py",
+        "line": 305,
+        "quote": "\"permission\": {\"GET\": \"read\", \"POST\": \"write\"},"
+      },
+      {
+        "path": "frappe/frappe/integrations/oauth2.py",
+        "line": 307,
+        "quote": "if path.startswith(\"/.well-known/oauth-protected-resource\") and is_oauth_metadata_enabled(\"resource\"):"
+      },
+      {
+        "path": "frappe/frappe/auth.py",
+        "line": 722,
+        "quote": "\"OAuth Bearer Token\", token_filters, (\"scopes\", \"user\"), as_dict=True"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/discovery.py",
+      "frappe/frappe/api/v2.py",
+      "frappe/frappe/auth.py",
+      "frappe/frappe/integrations/oauth2.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/mcp-api.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/adapters/integration_hub/mcp_api_post_mvp.py",
+      "frontend/packages/ui/src/components/ui-family-36/post_mvp.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "JSON-RPC 2.0 istekleri Streamable HTTP üzerinden tek bir MCP yoluna POST edilir. Yöntem kümesi initialize, tools/list, tools/call, resources/list ve resources/read ile sınırlıdır. İstek Authorization: Bearer başlığını, seçilecek protokol sürümünün tanımladığı oturum ve sürüm başlıklarını ve Origin başlığını taşır. tools/call çağrısı araç adı ve inputSchema'ya uyan argümanlar içerir. Yazma çağrısı ayrıca bir onay kimliği ve önizleme özeti (digest) taşır. Yerel stdio taşıması karar gelene kadar kapsam dışıdır.",
+    "output": "initialize yanıtı müzakere edilen protokol sürümünü ve sunucu yeteneklerini (tools, resources) döner. tools/list her araç için ad, açıklama, inputSchema ve uygunsa outputSchema döner. Bu şemalar discovery parametre çıkarımından (ad, zorunluluk, varsayılan, tip) türetilir. tools/call, outputSchema'ya uyan yapılandırılmış içerik ya da isError=true olan bir araç sonucu döner. resources/list ve resources/read yalnız allowlist'teki salt okunur kaynakları döner. Bu MCP kataloğu ne GenUI capability registry'dir ne kaynak registry'si ne de query-action registry'si; yalnız JSON model sınırını taşır, yerel ReactNode veya callback taşımaz.",
+    "authorization": "Bearer token issuer, audience (MCP resource), süre ve imza açısından doğrulanır, ardından mevcut bir Frappe User'a eşlenir. Çağrı o kullanıcının oturum bağlamında çalışır. Katalog allowlist ile kesişen native izinlere göre süzülür. Okuma ve yazma native izin denetiminden geçer; ignore_permissions veya ham SQL ile yetki atlanmaz. Allowlist dışındaki whitelisted metotlar MCP üzerinden çağrılamaz. Yazma araçları ayrı bir politika sınıfıdır ve açık onay/ret ister. Kimlik doğrulaması başarısız olursa 401 ve resource_metadata içeren WWW-Authenticate döner. Bu rehber yeni rol veya izin tanımlamaz; katalog yönetimi ya da yazma aracını etkinleştirmek için rol/izin bayrağı gerekirse explicitPermissionFlags ortak kaynağına native-user-policy--contract üzerinden bağlanır.",
+    "persistence": "Okuma araçları yalnız audit kaydı yazar. Yazma araçları native document save ve transaction ile uygulanır; hook ve validasyonlar atlanmaz. Onay ve audit kaydı kimin, ne zaman, hangi aracı, hangi argümanları, hangi kararla ve hangi sonuçla çalıştırdığını tutar. Kaydın şekli native-doctype-schema--contract, olay yayını outbox--contract üzerinden belirlenir. Saklama süresi ve veri yerleşimi açık karardır. Bu sözleşme hiçbir şemayı, veriyi, servisi veya production ortamını değiştirme yetkisi vermez.",
+    "failure": "Bilinmeyen yöntem ya da araç JSON-RPC hatası döner. Şemaya uymayan argüman çağrı yapılmadan reddedilir. Native izin reddinde isError=true döner ve kaydın varlığı veya içeriği sızdırılmaz. Geçersiz token 401, yetersiz kapsam 403, izinsiz Origin ret ile sonuçlanır. Onayı eksik, süresi dolmuş, özeti ya da revizyonu uyuşmayan yazma reddedilir ve kayıt değişmez. Transaction hatası tam geri alınır. Her ret audit kaydına düşer."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "capability-definition--contract",
+      "client-rule-parity--contract",
+      "field-mapping--contract",
+      "graphql-api--contract",
+      "kernel-envelope--contract",
+      "mcp-api--contract",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "outbox--contract",
+      "soap-api--contract",
+      "tenant-registry--contract",
+      "ui-family-36--contract",
+      "ui-family-36--implementation",
+      "xml-feed--contract"
+    ],
+    "admission": {
+      "statusNote": "Uygulama durumu: uygulanmadı.",
+      "prerequisites": [
+        "T-00 hedef taban çizgisi ve R-00 yeniden kullanım eşlemesi tamamlanmış olmalı. İzinli veri tüketen araçlar için R-01 de uygulanır.",
+        "mcp-api--contract, native-user-policy--contract, api-middleware--contract, kernel-envelope--contract, tenant-registry--contract, capability-definition--contract, native-doctype-schema--contract ve outbox--contract kabul edilmiş olmalı.",
+        "İlgili adımı engelleyen decisionsPending maddeleri kapanmış olmalı.",
+        "Her kabul tek bir dar davranışı ve gerçek RED/GREEN kanıtını içerir. Bu sözleşme üretim kodu veya test yazma yetkisi vermez."
+      ]
+    },
+    "steps": [
+      "1. mcp-api--contract içinde JSON-RPC yöntem kümesi, hata eşlemesi, araç adlandırma kuralı, allowlist biçimi, okuma ve yazma politika sınıfları ile katalog sınırı yazılır. Katalog sınırı MCP kataloğunu GenUI capability registry, kaynak registry ve query-action registry'den ayırır.",
+      "2. Salt okunur katalog projeksiyonu hazırlanır: discovery parametre çıkarımı allowlist'teki metotlar için JSON Schema inputSchema'ya çevrilir. Liste, çağıran kullanıcının native izinleriyle süzülür. Discovery uç noktası System Manager'a açık kalır ve değiştirilmez.",
+      "3. Streamable HTTP uç noktası tek yol üzerinde kurulur: Origin doğrulaması, oturum başlığı, initialize ve sürüm pazarlığı. Rota kaydı paylaşılan hooks.py dosyasına seri birleştirmeyle eklenir.",
+      "4. Okuma amaçlı tools/call eklenir: yalnız native izin uygulayan yollar kullanılır (örneğin frappe.client.get_list/get). Şema doğrulaması çağrıdan önce yapılır, ignore_permissions kullanılmaz.",
+      "5. Bearer doğrulaması eklenir: girdi analizinde belirtilen auth_hooks genişletme noktası, uygulamadan önce hedef sürümde doğrulanır. Harici JWT için iss, aud=MCP resource, exp ve imza/JWKS kontrol edilir; token mevcut bir User'a eşlenir. oauth-protected-resource metadata'sı aynı resource ile hizalanır.",
+      "6. resources/list ve resources/read allowlist'teki salt okunur kaynaklarla sınırlı tutularak eklenir.",
+      "7. Yazma araçları en son eklenir: önce önizleme yapılır, argümanlar ve hedef revizyon üzerinden özet (digest) üretilir. Açık onay veya ret alınır, ardından native save ve transaction çalışır. Revizyon uyuşmazsa istek reddedilir. Onay ve audit kaydı native-doctype-schema--contract ile outbox--contract'a bağlanır.",
+      "8. ui-family-36 post_mvp onay/ret yüzeyi Ant Design X ile JSON model sınırında kurulur. Yüzey araç adını, argümanları, önce/sonra önizlemesini, kararı ve sonucu gösterir. Canlı AI veya sahte ilerleme taklidi yapılmaz; GenUI ayrı projedir.",
+      "9. stdio taşıması yalnız kapsam kararı geldikten sonra ayrı bir davranış olarak ele alınır."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Geçerli bearer'a sahip ve hedef DocType'ta native write izni olan bir kullanıcı, allowlist'te bulunmayan bir yazma metodu için tools/call gönderir. Beklenen sonuç: yanıt ret olur, hedef kaydın değerleri ve modified alanı değişmez, ret audit kaydına düşer.",
+      "red": "Allowlist denetimi yokken test davranışsal olarak başarısız olmalıdır: ret yerine başarı yanıtı alınmalı veya kaydın değiştiği gözlenmelidir. Modül bulunamadı, import, altyapı hatası veya native davranışı bozarak üretilen hata RED sayılmaz.",
+      "green": "Allowlist ve politika denetimi eklendikten sonra aynı istek reddedilir, kayıt değişmeden kalır ve audit kaydı oluşur. Allowlist'teki okuma aracı native izinle çalışmaya devam eder."
+    },
+    "rollback": "MCP uç noktası, rota kaydı hooks.py'den kaldırılarak devre dışı bırakılır. Native discovery, OAuth metadata ve REST davranışı değiştirilmediği için geri alma bunları etkilemez. Onay/audit kaydı için native-doctype-schema--contract kapsamında şema eklenirse geri alma o sözleşmenin rollback adımına uyar; kayıtlar saklama kararına göre korunur. Teknik CI, deploy ve rollback sahibi Hüseyin Cengiz'dir. DNS kaydı gerekirse kaydın değerlerini Hüseyin Cengiz hazırlar, GoDaddy tarafında Asistan Hüseyin uygular, sonucu Hüseyin Cengiz doğrular."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "integration-13",
+      "sourceStage": "post_mvp",
+      "existing": "Native Frappe parçaları: /api/v2/discovery rotası, yalnız System Manager'a açık makinece okunabilir katalog, DocType metotları için GET=read/POST=write izin eşlemesi, RFC 9728 oauth-protected-resource metadata yolu ve Frappe'nin kendi verdiği tokenları OAuth Bearer Token kaydında arayan bearer doğrulaması. Bunlar MCP sunucusu değildir.",
+      "gap": "Eksikler: JSON-RPC MCP sunucusu (initialize ve sürüm pazarlığı, tools/list, tools/call, resources/list, resources/read); Streamable HTTP uç noktası (Origin doğrulaması ve oturum başlığıyla) ve stdio taşıması; JSON Schema araç şemaları; kullanıcıya göre izinle süzülmüş, açık allowlist'li katalog; harici JWT için issuer/audience/JWKS doğrulaması ve User eşlemesi; okuma/yazma politikası, açık onay/ret akışı ve kalıcı audit kaydı; MCP kataloğunu GenUI ve query-action registry'lerinden ayıran sınır sözleşmesi.",
+      "completionSteps": [
+        "Katalog sınırını ve allowlist biçimini mcp-api--contract içinde tanımla.",
+        "Discovery parametre çıkarımını allowlist'teki metotlar için JSON Schema inputSchema'ya çevir ve native izinle süz.",
+        "Streamable HTTP uç noktasını Origin doğrulaması, oturum başlığı ve initialize/sürüm pazarlığıyla kur.",
+        "Okuma amaçlı tools/call ile resources/* çağrılarını kullanıcı bağlamında native izinle çalıştır.",
+        "Bearer doğrulamasını issuer, audience, süre ve imza kontrolleriyle kur, mevcut User'a eşle ve protected-resource metadata'sını aynı resource ile hizala.",
+        "Yazma araçlarını önizleme, digest, açık onay/ret, native save ve audit kaydı sırasıyla ekle.",
+        "ui-family-36 post_mvp onay/ret yüzeyini JSON model sınırında kur."
+      ],
+      "dependencies": [
+        "mcp-api--contract",
+        "native-user-policy--contract",
+        "api-middleware--contract",
+        "kernel-envelope--contract",
+        "tenant-registry--contract",
+        "capability-definition--contract",
+        "native-doctype-schema--contract",
+        "outbox--contract",
+        "ui-family-36--contract",
+        "ui-family-36--implementation"
+      ],
+      "acceptance": "tools ve resources şemaları, protokol sürümü ve audience doğrulaması kanıtlanır. Backend politikası okuma ile yazmayı ayırır, yazma açık onay veya ret alır, güvensiz araç çıktısı yetki üretmez. Allowlist dışı yazma reddedilir ve kayıt değişmeden kalır.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 606,
+          "quote": "Rule(\"/discovery\", methods=[\"GET\"], endpoint=discovery.root),"
+        },
+        {
+          "path": "frappe/frappe/api/discovery.py",
+          "line": 29,
+          "quote": "frappe.only_for(\"System Manager\")"
+        },
+        {
+          "path": "frappe/frappe/api/discovery.py",
+          "line": 305,
+          "quote": "\"permission\": {\"GET\": \"read\", \"POST\": \"write\"},"
+        },
+        {
+          "path": "frappe/frappe/integrations/oauth2.py",
+          "line": 307,
+          "quote": "if path.startswith(\"/.well-known/oauth-protected-resource\") and is_oauth_metadata_enabled(\"resource\"):"
+        },
+        {
+          "path": "frappe/frappe/auth.py",
+          "line": 722,
+          "quote": "\"OAuth Bearer Token\", token_filters, (\"scopes\", \"user\"), as_dict=True"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "MCP JSON-RPC sunucusu yok: initialize/sürüm pazarlığı, tools/list, tools/call, resources/list ve resources/read uygulanmadı.",
+    "Streamable HTTP uç noktası (tek yol, Origin doğrulaması, oturum başlığı) ve yerel stdio taşıması yok.",
+    "Discovery çıktısı JSON Schema'ya çevrilmiyor. Kullanıcıya göre izinle süzülmüş bir katalog ve açık bir araç allowlist'i yok.",
+    "Harici JWT için issuer, audience ve JWKS doğrulaması ve User eşlemesi yok. Mevcut bearer doğrulaması audience kontrolü yapmıyor.",
+    "Okuma/yazma araç politikası, açık onay/ret akışı ve kalıcı audit kaydı yok.",
+    "MCP kataloğunu GenUI capability registry'si ve query-action registry'sinden ayıran bir sınır sözleşmesi yok."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "MCP bearer token doğrulama yöntemi (yerel JWKS ile JWT doğrulaması ya da başka bir yöntem) ve audience/resource tanımı; kimlik ADR'sine bağlı",
+      "requirementIds": ["integration-13"],
+      "blocks": "Adım 5: bearer doğrulaması ve protected-resource metadata hizalaması",
+      "allowedUntilDecision": "Doğrulanacak alanların (iss, aud, exp, imza) ve ret yanıtlarının sözleşmesini belgele."
+    },
+    {
+      "decision": "Hedef MCP protokol sürümü",
+      "requirementIds": ["integration-13"],
+      "blocks": "Adım 3: initialize ve sürüm pazarlığı; başlık adlarının kesinleşmesi",
+      "allowedUntilDecision": "Sürümden bağımsız yöntem kümesini ve hata eşlemesini belgele."
+    },
+    {
+      "decision": "Yerel stdio taşımasının kapsama girip girmeyeceği ve hangi istemcide çalışacağı",
+      "requirementIds": ["integration-13"],
+      "blocks": "Adım 9",
+      "allowedUntilDecision": "Streamable HTTP sözleşmesini taşımadan bağımsız biçimde belgele."
+    },
+    {
+      "decision": "Tenant topolojisi ve tenant/site başına MCP resource URL'si",
+      "requirementIds": ["integration-13"],
+      "blocks": "Adım 3 ve 5: uç nokta yolu ve audience değeri",
+      "allowedUntilDecision": "tenant-registry--contract'a referans veren yer tutucu alanları belgele."
+    },
+    {
+      "decision": "İlk salt okunur araç allowlist'inin içeriği ve yazma araçlarının hangi rolle etkinleşeceği",
+      "requirementIds": ["integration-13"],
+      "blocks": "Adım 2, 4 ve 7",
+      "allowedUntilDecision": "Allowlist biçimini ve explicitPermissionFlags bağlantısını belgele."
+    },
+    {
+      "decision": "Onay/audit kaydının saklama süresi ve veri yerleşimi",
+      "requirementIds": ["integration-13"],
+      "blocks": "Adım 7: kalıcı audit kaydı",
+      "allowedUntilDecision": "Kayıt alanlarını native-doctype-schema--contract ve outbox--contract'a referansla belgele."
+    },
+    {
+      "decision": "Uzak erişimin ağ sınırı (özel ağ ya da Tailscale veya başka bir açıklık modeli); teknik sahibi Hüseyin Cengiz",
+      "requirementIds": ["integration-13"],
+      "blocks": "Uç noktanın herhangi bir ortamda erişime açılması",
+      "allowedUntilDecision": "Origin ve kimlik doğrulama gereksinimlerini ağ modelinden bağımsız biçimde belgele."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

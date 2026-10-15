@@ -1,0 +1,186 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "feature-flag",
+  "canonicalTaskIds": ["feature-flag--implementation"],
+  "requirementIds": ["modules-5"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "modules-5": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Kiracı bazlı özellik bayrağı: tek sunucu kararı, aynı kararın istemcilere aktarımı ve yalnız yetkili değişiklik. Uygulama durumu: uygulanmadı.",
+    "trigger": "Bir kiracı bağlamındaki istek veya oturum açılışı (boot) sırasında belirli bir bayrağın değerlendirilmesi ya da bir kullanıcının bayrak değerini değiştirme denemesi.",
+    "expected": "Aynı sürümde bayrak yalnız seçilen kiracıda açık olarak değerlendirilir. Bayrakla korunan sunucu işlemi ve React istemcilerine aktarılan değer, aynı tek sunucu değerlendirmesinden gelir. Değişiklik native izin ve kayıt akışıyla yapılır ve iz kaydı bırakır.",
+    "denied": "Yetkisiz kullanıcının bayrak yazma denemesi native izin hatasıyla reddedilir ve kayıt değişmez. Bayrak kapalıyken korunan sunucu işlemi hiçbir mutasyon yapmadan reddedilir. Açık bayrak native rol veya izin kontrolünü atlatmaz. İstemci tarafında arayüzü gizlemek sunucu kontrolünün yerine geçmez."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native parçalar: Frappe site yapılandırmasından varsayılan değerle okuma (frappe.conf.get) ve Suite uygulamasında kayıtlı extend_bootinfo hook'u ile boot verisine ekleme noktası. Bu iki parça bayrak okuma ve değeri istemciye aktarma için temel sağlar. Kiracı veya kohort bazlı değerlendirme, bayrağın kaynağı, değiştirme yetkisi, iz kaydı ve kapalı bayrağın sunucuda zorlanması bu kanıtlarda yoktur. Kanıtın bir native parçayı göstermesi, davranışın tamamının mevcut olduğu anlamına gelmez. Vue/Frappe UI kaynağı, React/Ant Design uygulamasının kanıtı sayılmaz.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/api/v2.py",
+        "line": 32,
+        "quote": "conf = frappe.conf.get(\"bulk_operation_async_threshold\", 20)"
+      },
+      {
+        "path": "suite/suite/hooks.py",
+        "line": 336,
+        "quote": "extend_bootinfo = \"suite.suite_core.boot.extend_bootinfo\""
+      }
+    ],
+    "searchedPaths": ["frappe/frappe/api/v2.py", "suite/suite/hooks.py"]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/feature-flag.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/capability_catalog/doctype/feature_flag/feature_flag.py"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Değerlendirme için bayrak anahtarı ve istekteki geçerli kiracı bağlamı gerekir; kiracının site mi yoksa site içi kohort mu olduğu karar bekliyor. Değişiklik için bayrak anahtarı, hedef değer ve kararlaştırılan kaynakta hedef kiracı veya kohort tanımı gerekir. Kiracı bağlamı istemciden gelen bir parametreyle değil, sunucu oturumu ve site bağlamıyla belirlenir.",
+    "output": "Bayrak başına boolean karar. İstemcilere boot verisi veya kernel-envelope sözleşmesindeki yanıt zarfı içinde yalnız değerlendirilmiş sonuçlar gider. Ham kohort listesi, başka kiracıların bilgisi veya yapılandırma ayrıntısı aktarılmaz.",
+    "authorization": "Okuma, yani değerlendirme: oturum açmış kullanıcının kendi kiracısı için yan etkisi olmayan sunucu kararıdır. Yazma: yalnız explicitPermissionFlags ortak kaynağında tanımlanacak rol, native DocType veya Single izinleri ve doc.save akışıyla değiştirebilir. ignore_permissions, doğrudan SQL ya da site config'i uygulama içinden yazmak yasaktır. Bayrak, kullanım hakkı veya yetkinin yerine geçmez. Korunan sunucu işlemi önce native izin kontrolünü yapar, ardından bayrak kararını uygular; ikisi de geçmelidir.",
+    "persistence": "Kaynak karar bekliyor: site_config, Single DocType veya önerilen FeatureFlag DocType. Kaynak site_config seçilirse yazma uygulama içinden yapılmaz; değişiklik operasyon sürecine kalır ve teknik sahibi Hüseyin Cengiz'dir. Kaynak bir DocType seçilirse yazma native transaction ve save akışıyla yapılır, iz kaydı Frappe'nin değişiklik takibiyle (Version) sağlanır. Saklama süresi karar bekliyor. Tanımsız bayrağın varsayılanı kapalıdır.",
+    "failure": "Tanımsız bayrak veya okunamayan kaynakta karar kapalıdır ve korunan işlem mutasyon yapmadan reddedilir. Yetkisiz yazmada native izin hatası döner ve kayıt değişmez. Kiracı bağlamı çözülemezse karar kapalıdır. İstemci, sunucudan gelen karar yoksa özelliği kapalı varsayar ve kendi başına değerlendirme yapmaz."
+  },
+  "development": {
+    "dependencies": [
+      "feature-flag--contract",
+      "feature-flag--schema",
+      "kernel-envelope--contract",
+      "native-user-policy--contract",
+      "tenant-registry--contract"
+    ],
+    "admission": {
+      "status": "NOT_ADMITTED",
+      "prerequisites": [
+        "T-00 hedef sürüm temeli: Frappe/Suite hedef sürümünde frappe.conf okumasının ve extend_bootinfo hook davranışının (birden fazla uygulamanın kaydının zincirlenmesi dahil) doğrulanması.",
+        "R-00 yeniden kullanım eşlemesi: bu sözleşmedeki iki native parçanın hedef sürümde eşlenmesi.",
+        "R-01: bayrak yazma işlemi izinli veri tükettiği için native izin eşlemesi ve explicitPermissionFlags ortak kaynağına bağlantı.",
+        "decisionsPending listesindeki kiracı tanımı ve bayrak kaynağı kararlarının kaydedilmesi.",
+        "Bağımlı sözleşmelerin (feature-flag--contract, feature-flag--schema, kernel-envelope--contract, tenant-registry--contract, native-user-policy--contract) kabul edilmiş olması.",
+        "Tek dar davranış için gerçek RED/GREEN kanıtı."
+      ]
+    },
+    "steps": [
+      "1. Kiracı tanımı ve bayrak kaynağı kararlarını feature-flag--contract'a işle; karar gelmeden şema veya kod yazma.",
+      "2. feature-flag--schema kapsamında kaynağı tanımla. DocType seçilirse izinleri explicitPermissionFlags kaynağındaki rolle sınırla ve değişiklik takibini aç; site_config seçilirse anahtar adlandırmasını belgeye yaz.",
+      "3. Tek bir sunucu değerlendirme fonksiyonu tanımla; adı feature-flag--contract'ta belirlenir. Fonksiyon kiracı bağlamını tenant-registry sözleşmesinden alır, kaynağı native API ile okur, tanımsız bayrağı kapalı döner ve yan etki üretmez. Yeni bir bayrak servisi altyapısı kurma.",
+      "4. Bayrakla korunan her sunucu işleminde önce native izin kontrolünü, ardından aynı değerlendirme fonksiyonunu çağır; bayrak kapalıysa mutasyondan önce reddet.",
+      "5. saas_platform hooks.py içinde extend_bootinfo kaydıyla aynı fonksiyonun sonucunu boot verisine ekle. React istemcileri boot almıyorsa sonucu kernel-envelope zarfı üzerinden oku; istemcide ikinci bir değerlendirme mantığı yazma.",
+      "6. React tarafında TanStack Query ile sunucu kararını önbelleğe al ve rotaları veya bileşen görünürlüğünü bu karara bağla. Bayrak durumu GenUI capability registry'nin yerine geçmez; kaynak registry ile capability registry ayrı kalır.",
+      "7. Yetkisiz yazma reddi ve değişmeyen kayıt senaryosunu tek kabul olarak belgeye yaz; çalıştırılmamış kontrolü geçmiş sayma."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Seçilen kiracıda açık olan bir bayrağı, yetkili rolü olmayan bir kullanıcı kapatmaya çalışır. Yazma native izin hatasıyla reddedilir, kayıt değişmez, sunucu değerlendirmesi ve istemciye aktarılan değer açık kalır.",
+      "red": "Değerlendirme fonksiyonu ve kaynak tanımlıyken, yetkisiz yazmanın ardından kaydın ve kararın değişmediğini doğrulayan davranış iddiası başarısız olur. RED bir import veya altyapı hatası olmamalı; native izin davranışı da bozulmamalıdır.",
+      "green": "Yazma, native izin kontrolü ve save akışından geçer; yetkisiz deneme reddedilir, kayıt değişmez, backend ve boot/zarf aynı açık kararı döner. Bu turda test yazılmaz ve çalıştırılmaz."
+    },
+    "rollback": "Bu sözleşme hiçbir servisi, production ortamını, şemayı veya veriyi değiştirme yetkisi vermez. Gelecekteki uygulamada geri alma için bayrak kapalı varsayılanına dönülür; korunan işlem bayrak kapalıyken native akışta reddedilir. Deploy ve rollback'in teknik sahibi Hüseyin Cengiz'dir. DNS veya GoDaddy değişikliği bu davranışın kapsamında değildir."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "modules-5",
+      "sourceStage": "post_mvp",
+      "existing": "Native parça: Frappe'de site yapılandırmasından varsayılan değerle okuma (frappe.conf.get) ve Suite'te kayıtlı extend_bootinfo hook'u ile boot verisine ekleme noktası.",
+      "gap": "Kiracının site mi yoksa site içi kohort mu olduğu belli değil. Bayrağın kaynağı, kimin değiştirebileceği ve iz kaydı tanımlı değil. Kademeli açılışın kohort tanımı yok. Kapalı bayrağın sunucuda nerede zorlanacağı belirtilmemiş.",
+      "completionSteps": [
+        "Kiracı tanımı kararını kaydet; karar gelmeden değerlendirme anahtarını tasarlama.",
+        "Bayrak kaynağını feature-flag--schema içinde tanımla; yazma rolünü explicitPermissionFlags kaynağına bağla.",
+        "Tek sunucu değerlendirme fonksiyonunu kur; tanımsız bayrak ve çözülemeyen kiracı için karar kapalı olsun.",
+        "Korunan sunucu işlemlerinde native izin kontrolünden sonra aynı fonksiyonla bayrak kararını zorla.",
+        "Aynı sonucu extend_bootinfo veya kernel-envelope zarfı ile React istemcilerine aktar; istemcide yeniden değerlendirme yapma.",
+        "Kademeli açılışı, kohort kararından sonra aynı fonksiyonun girdisi olarak ekle; ayrı bir servis kurma."
+      ],
+      "dependencies": [
+        "feature-flag--contract",
+        "feature-flag--schema",
+        "kernel-envelope--contract",
+        "native-user-policy--contract",
+        "tenant-registry--contract"
+      ],
+      "acceptance": "Aynı sürümde özellik yalnız seçilen kiracıda açılır; backend ve frontend aynı kararı kullanır. Yetkisiz yazma reddedilir ve kayıt değişmez. Kapalı bayrakta korunan işlem mutasyon yapmaz.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 32,
+          "quote": "conf = frappe.conf.get(\"bulk_operation_async_threshold\", 20)"
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 336,
+          "quote": "extend_bootinfo = \"suite.suite_core.boot.extend_bootinfo\""
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Uygulama durumu: uygulanmadı.",
+    "Kiracı veya kohort bazlı değerlendirme fonksiyonu yok.",
+    "Bayrak kaynağı, yazma yetkisi ve iz kaydı tanımsız.",
+    "Kapalı bayrağın sunucuda zorlandığı nokta tanımsız.",
+    "Backend ve React istemcilerinin aynı kararı kullandığı runtime ile doğrulanmadı.",
+    "Kanıtlar yalnız sağlanan iki yolda arandı; bu, kapsamlı bir yokluk iddiası değildir."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Tenant topolojisi: kiracı = site mi, yoksa site içi kohort mu?",
+      "requirementIds": ["modules-5"],
+      "blocksStep": "development.steps 1 ve 3 (değerlendirme anahtarı ve kiracı bağlamı)",
+      "allowedDocWorkUntilDecided": "İki seçeneğin değerlendirme girdisine etkisini feature-flag--contract'ta karşılaştırmalı olarak belgelemek."
+    },
+    {
+      "decision": "Bayrak kaynağı: site_config, Single DocType ya da önerilen FeatureFlag DocType.",
+      "requirementIds": ["modules-5"],
+      "blocksStep": "development.steps 2 (feature-flag--schema)",
+      "allowedDocWorkUntilDecided": "Her kaynağın yazma yolunu, iz kaydı olanağını ve operasyon sahipliğini belgelemek."
+    },
+    {
+      "decision": "Bayrağı değiştirebilecek rol; girdideki aday System Manager'dır.",
+      "requirementIds": ["modules-5"],
+      "blocksStep": "contract.authorization yazma kuralı ve tdd senaryosu",
+      "allowedDocWorkUntilDecided": "explicitPermissionFlags ortak kaynağında açık rol satırı olarak taslağa yazmak."
+    },
+    {
+      "decision": "Kademeli açılışın kohort tanımı (liste, oran veya başka bir ölçüt).",
+      "requirementIds": ["modules-5"],
+      "blocksStep": "requirementGuidance kademeli açılış adımı",
+      "allowedDocWorkUntilDecided": "Kohortun aynı değerlendirme fonksiyonuna girdi olarak nasıl bağlanacağını belgelemek."
+    },
+    {
+      "decision": "İz kaydı saklama süresi.",
+      "requirementIds": ["modules-5"],
+      "blocksStep": "contract.persistence saklama kuralı",
+      "allowedDocWorkUntilDecided": "Hangi alanların iz kaydına girdiğini listelemek."
+    },
+    {
+      "decision": "Hedef Frappe/Suite sürümü (T-00).",
+      "requirementIds": ["modules-5"],
+      "blocksStep": "development.admission",
+      "allowedDocWorkUntilDecided": "Doğrulanacak native API noktalarını listelemek."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

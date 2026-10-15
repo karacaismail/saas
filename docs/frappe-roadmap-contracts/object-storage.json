@@ -1,0 +1,269 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "object-storage",
+  "canonicalTaskIds": [
+    "object-storage--implementation",
+    "ui-family-22--implementation-post-mvp"
+  ],
+  "requirementIds": ["files-4"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "files-4": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "statusNote": "Uygulama durumu: uygulanmadı. Bu dosya yalnız gelecekteki geliştirme rehberidir; hiçbir servis, production ortamı, şema veya veri bu sözleşmeyle değiştirilemez.",
+  "behavior": {
+    "title": "Drive dosyalarının S3 uyumlu nesne depolamada (MinIO veya Amazon S3) native Drive yoluyla yazılması, okunması ve silinmesi",
+    "trigger": "Drive Disk Settings üzerinden S3 hedefi etkinleştirilmiş bir tenantta yetkili kullanıcının Drive dosyası yüklemesi, indirmesi veya silmesi (web arayüzü ya da WebDAV PUT/GET).",
+    "expected": "Yazma native Drive akışıyla yeni bir depolama anahtarına gider ve kayıt yalnız commit ile yayımlanır; okuma native Drive yetki kontrolünden sonra S3 hedefinden sunulur; silme Drive kaydını ve nesneyi tutarlı biçimde kaldırır. Yüklenen içerik aynı SHA-256 özetiyle geri indirilir.",
+    "denied": "Drive izni olmayan kullanıcının yükleme, indirme veya silme isteği native izin kontrolünde reddedilir; Drive kaydı ve bucket nesnesi değişmez. S3 hedefi yanlış yapılandırılmış veya erişilemezse kayıt yayımlanmaz ve hata görünür döner; yeni yazmalar için yerel diske sessiz geri düşüş varsayılmaz."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Suite içindeki Drive uygulamasının native S3 yolu yeniden kullanılır: boto3 bağımlılığı, manager.s3_enabled dalıyla S3/disk sunum ayrımı, WebDAV PUT sırasında commit ile yayımlanan generation key ve Drive Disk Settings yapılandırma DocType'ı. Bu kanıtlar yalnız Drive içindeki parçaları gösterir; bütün davranışın var olduğu anlamına gelmez. MinIO özel endpoint uyumu, Drive dışındaki framework File ekleri, özel ACL süreleri ve backup/restore kapsamı kanıtlanmamıştır. Vue/Frappe UI Drive ekranı React/Ant Design uygulaması için kanıt değildir.",
+    "evidence": [
+      {
+        "path": "suite/pyproject.toml",
+        "line": 15,
+        "quote": "\"boto3~=1.43.29\","
+      },
+      {
+        "path": "suite/suite/drive/webdav/get.py",
+        "line": 41,
+        "quote": "if manager.s3_enabled and not stored_on_disk(row.file_url):"
+      },
+      {
+        "path": "suite/suite/drive/webdav/put.py",
+        "line": 6,
+        "quote": "each PUT writes a fresh generation key that the commit publishes — see"
+      },
+      {
+        "path": "suite/suite/drive/workspace/drive/drive.json",
+        "line": 41,
+        "quote": "\"link_to\": \"Drive Disk Settings\","
+      }
+    ],
+    "searchedPaths": [
+      "suite/pyproject.toml",
+      "suite/suite/drive/webdav/get.py",
+      "suite/suite/drive/webdav/put.py",
+      "suite/suite/drive/workspace/drive/drive.json"
+    ],
+    "searchScopeNote": "Aranan yollar yalnız bu listedir; listede olmayan konular için yokluk iddiası kapsamlı değildir."
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/object-storage.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/adapters/assets/object_storage_post_mvp.py",
+      "frontend/packages/ui/src/components/ui-family-22/post_mvp.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Kernel envelope içinde tenant kimliği ve oturum kullanıcısı; Drive hedef klasörü veya varlık bağlamı; dosya akışı (ad, MIME, boyut, SHA-256); işlem türü (upload, download veya delete). Depolama kimlik bilgileri istek girdisi değildir ve istemcilere (web, Tauri, WXT eklentisi) verilmez.",
+    "output": "Yazma işleminde yayımlanmış Drive kaydı ve depolama anahtarı referansı döner; ham kimlik bilgisi veya kalıcı genel URL dönmez. Okuma işleminde native Drive sunum yolunun (proxy veya süreli imzalı GET) yanıtı döner. Silme işleminde kaydın ve nesnenin kaldırıldığını gösteren sonuç döner. UI'ya giden çıktı JSON model sınırında kalır; ReactNode veya callback taşımaz.",
+    "authorization": "Yalnız native Frappe/Drive izin kontrolü ve tenant kapsamı kullanılır. ignore_permissions, doğrudan SQL veya Drive izinlerini atlayan doğrudan boto3 erişimi yasaktır. Drive Disk Settings değişikliği yalnız native rol izni olan yöneticiye açıktır. Yeni rol veya izin gerekirse explicitPermissionFlags ortak kaynağına bağlanır; bu rehber kendi rolünü üretmez.",
+    "persistence": "Yeni DocType yoktur (doctypeCount 0). Meta veri native Drive kayıtlarında, yapılandırma Drive Disk Settings'te, içerik bucket nesnesinde kalır. Kayıt native save/transaction ile yazılır; commit sonrası nesne silme ve yan etkiler outbox sözleşmesine bağlanır. Kimlik bilgileri Git'e veya bu sözleşmeye yazılmaz.",
+    "failure": "S3/MinIO erişilemezse veya yazma başarısız olursa transaction geri alınır ve yeni generation key yayımlanmaz. Yarım kalan nesneler yetim nesne olarak raporlanır; temizlik politikası karar bekler. İzin reddi native hata ile döner. Yanlış endpoint veya path-style yapılandırması açık bir yapılandırma hatası olarak görünür; tahmini varsayılanla devam edilmez."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "asset-rendition--contract",
+      "client-rule-parity--contract",
+      "file-type-policy--contract",
+      "kernel-envelope--contract",
+      "malware-scan--contract",
+      "native-doctype-schema--contract",
+      "native-file--contract",
+      "native-user-policy--contract",
+      "object-storage--contract",
+      "outbox--contract",
+      "tauri-device-capability--contract",
+      "tenant-registry--contract",
+      "ui-family-22--contract",
+      "ui-family-22--implementation"
+    ],
+    "admission": {
+      "prerequisites": [
+        "T-00: hedef Frappe/Suite sürüm tabanı sabitlenir (karar bekliyor).",
+        "R-00: native Drive S3 parçalarının reuse eşlemesi bu sözleşmedeki kanıtlarla, hedef sürümde yeniden okunarak doğrulanır.",
+        "R-01: izinli veri tüketicisi olduğu için native izin eşlemesi uygulanır.",
+        "Tek dar davranış gerçek RED/GREEN kanıtıyla uygulanır."
+      ],
+      "orderAuthority": "Mevcut görev bağımlılıkları ve aşama belirleyicidir; küme sırası (4) yalnız sunumdur, yeni seri DAG değildir.",
+      "blockingDecisions": "decisionsPending listesindeki sağlayıcı, hedef sürüm ve tenant topolojisi kararları gelmeden kabul başlamaz."
+    },
+    "steps": [
+      "1. Hedef sürümde suite/suite/drive altındaki FileManager S3 istemci kurulumunu salt okunur incele. endpoint, bölge, adresleme stili (path-style) ve imza sürümü değerlerinin Drive Disk Settings alanlarından gelip gelmediğini kaydet. Bu inceleme bu turda yapılmadı.",
+      "2. Kaynak eşlemesini düzelt: data/clusters/05.json içindeki 'ekosistem / ayrı uygulama' değerlendirmesinin suite Drive FileManager ve Drive Disk Settings olarak güncellenmesini entegrasyon sahibine öner.",
+      "3. MinIO desteği native kurulumda yoksa adaptörü yalnız Drive Disk Settings'ten okunan endpoint ve path-style değerini native istemci kurulumuna geçiren ince bir katman olarak tasarla. Native yükleme, sunum ve generation key akışını kopyalama; bağlantıyı yalnız Frappe'nin belgeli hook'larıyla hooks.py ortak dosyasına seri birleştirme ile ekle.",
+      "4. Drive dışındaki framework File eklerini (attached_to_doctype) karar gelene kadar kapsam dışında tut; bunlar native File depolamasında kalır. Desteklenecekse ayrı bir kabul satırı aç.",
+      "5. Özel ACL için presigned GET süresini ve CSP sandbox başlıklarını karar sonrası mevcut ayar yüzeyine bağla; bu rehber değer seçmez.",
+      "6. Backup/restore'u ayrı kabul satırı olarak sabitle. Bench yedeğinin bucket nesnelerini kapsayıp kapsamadığını belgele; kapsamıyorsa operasyonel prosedürü Hüseyin Cengiz tanımlar ve restore sonrası kayıt-nesne tutarlılığını doğrular.",
+      "7. Yükleme commit edilmeden önce file-type-policy ve malware-scan kararlarına bağlanır; rendition'lar asset-rendition sözleşmesiyle aynı native depolama yolunu kullanır.",
+      "8. ui-family-22: React/Ant Design yönetim görünümünde depolama hedefinin durumu (S3 veya disk, erişilebilirlik) ve yükleme hata durumları gösterilir. Veri TanStack Query ile api-middleware üzerinden okunur; routes.tsx ve registry.ts ortak dosyalardır. Kaynak registry ile GenUI capability registry ayrı tutulur ve bu görev GenUI kaydı içermez. Tauri ve WXT istemcileri aynı API'yi kullanır; doğrudan S3 kimlik bilgisi almaz."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Özel endpoint ile MinIO uyumlu olarak yapılandırılmış Drive hedefine yetkili kullanıcının yüklediği dosya, o endpoint'teki bucket'ta yeni bir anahtarla bulunur ve indirildiğinde aynı SHA-256 özetini verir.",
+      "red": "Test, yükleme sonrası nesnenin yapılandırılmış endpoint'teki bucket'ta bulunduğunu ve içerik özetinin eşleştiğini doğrular. Endpoint değeri native istemci kurulumuna geçmediği sürece bu doğrulama başarısız olur. Import hatası, eksik altyapı veya native Drive davranışını bozarak elde edilen kırmızı geçerli sayılmaz. Native kurulum senaryoyu zaten karşılıyorsa bu eksik kapanmış sayılır, reuse olarak kaydedilir ve sıradaki eksik seçilir.",
+      "green": "Yalnız endpoint ve path-style değerini Drive Disk Settings'ten native istemci kurulumuna geçiren en dar değişiklik yapılır. İzin, transaction ve generation key yayımlama akışı değişmez. Yetkisiz kullanıcının yüklemesinin reddedildiği ve bucket ile kaydın değişmediği kontrol de yeşil kalır."
+    },
+    "rollback": "Adaptör değişikliği revert ile geri alınır. Drive Disk Settings kayıtları ve bucket nesneleri bu rehberle taşınmaz veya silinmez. S3 hedefinden diske dönüş veri taşıma gerektirir ve ayrı bir karardır. Deploy ve rollback teknik sahibi Hüseyin Cengiz'dir. Alan adı kaydı gerekirse kayıt değerlerini Hüseyin Cengiz hazırlar, GoDaddy tarafındaki uygulamayı Asistan Hüseyin yapar."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "files-4",
+      "sourceStage": "post_mvp",
+      "existing": "Suite içindeki Drive'da boto3 bağımlılığı, S3 etkinken diskte olmayan dosyaların S3'ten sunulması, her WebDAV PUT için commit ile yayımlanan yeni generation key ve Drive Disk Settings yapılandırma DocType'ı kaynakta görülür. Satır değerlendirmesinde geçen proxy, presigned GET ve LOCK-create ayrıntıları doğrulanmış alıntıyla desteklenmez.",
+      "gap": "Önceki talimat S3'ü ayrı Frappe Drive uygulaması olarak eşliyor. Drive dışındaki framework eklerinin depolama yolu, MinIO endpoint/path-style uyumu ve sürüm doğrulaması, özel ACL süreleri ve backup/restore kapsamı tanımsız.",
+      "parts": [
+        {
+          "item": "Adaptör kaynağı",
+          "nativePart": "Suite Drive ve Drive Disk Settings",
+          "gap": "Ekosistem / ayrı uygulama eşlemesi yanlış",
+          "howToComplete": "Eşlemeyi suite Drive FileManager olarak güncelle (adım 2)."
+        },
+        {
+          "item": "Framework File ekleri",
+          "nativePart": "Kanıt yok",
+          "gap": "attached_to_doctype dosyaları için depolama yolu belirsiz",
+          "howToComplete": "Karar gelene kadar kapsam dışında tut; desteklenecekse ayrı kabul satırı aç (adım 4)."
+        },
+        {
+          "item": "MinIO uyumu",
+          "nativePart": "boto3 ve s3_enabled dalı",
+          "gap": "Özel endpoint ve path-style yapılandırması görülmedi",
+          "howToComplete": "İstemci kurulumunu oku; gerekiyorsa ince adaptör ekle (adım 1 ve 3)."
+        },
+        {
+          "item": "Özel ACL ve yedek",
+          "nativePart": "Kanıt yok",
+          "gap": "Presigned süre, CSP sandbox ve backup/restore tanımsız",
+          "howToComplete": "Karar sonrası ayar yüzeyine bağla; backup/restore için ayrı kabul satırı aç (adım 5 ve 6)."
+        }
+      ],
+      "completionSteps": [
+        "Hedef sürümde FileManager S3 istemci kurulumunu salt okunur incele ve endpoint, bölge ve path-style kaynaklarını kaydet.",
+        "data/clusters/05.json değerlendirmesinin suite Drive olarak düzeltilmesini entegrasyon sahibine öner.",
+        "MinIO endpoint desteği eksikse yalnız istemci kurulumuna değer geçiren adaptör ekle; native akışı kopyalama.",
+        "Framework File ekleri için kapsam kararını decisionsPending üzerinden bekle.",
+        "Presigned süre ve CSP değerlerini karar sonrası bağla.",
+        "Backup/restore için kayıt-nesne tutarlılık kabul satırını Hüseyin Cengiz ile tanımla."
+      ],
+      "dependencies": [
+        "object-storage--contract",
+        "native-file--contract",
+        "native-user-policy--contract",
+        "tenant-registry--contract",
+        "file-type-policy--contract",
+        "malware-scan--contract",
+        "outbox--contract",
+        "kernel-envelope--contract",
+        "native-doctype-schema--contract"
+      ],
+      "acceptance": "Seçilen S3 uyumlu hedefte upload, download ve delete senaryoları yetkili kullanıcıyla başarılı olur ve SHA-256 eşleşir. Yetkisiz kullanıcının yazması reddedilir; kayıt ve bucket değişmez. Özel ACL süresi karar değerine uyar. Backup/restore senaryosu ayrı satırda kayıt-nesne tutarlılığını doğrular.",
+      "evidence": [
+        {
+          "path": "suite/pyproject.toml",
+          "line": 15,
+          "quote": "\"boto3~=1.43.29\","
+        },
+        {
+          "path": "suite/suite/drive/webdav/get.py",
+          "line": 41,
+          "quote": "if manager.s3_enabled and not stored_on_disk(row.file_url):"
+        },
+        {
+          "path": "suite/suite/drive/webdav/put.py",
+          "line": 6,
+          "quote": "each PUT writes a fresh generation key that the commit publishes — see"
+        },
+        {
+          "path": "suite/suite/drive/workspace/drive/drive.json",
+          "line": 41,
+          "quote": "\"link_to\": \"Drive Disk Settings\","
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "FileManager S3 istemci kurulumu okunmadı; MinIO endpoint ve path-style desteği bilinmiyor.",
+    "Drive dışındaki framework File eklerinin depolama yolu belirsiz.",
+    "Presigned GET süresi ve CSP sandbox politikası tanımsız.",
+    "Bench backup/restore işleminin bucket nesnelerini kapsayıp kapsamadığı doğrulanmadı.",
+    "Yetim nesne temizliği ve silme sonrası saklama politikası tanımsız.",
+    "React/Ant Design depolama durum yüzeyi için kaynak kanıtı yok; Vue Drive ekranı bu kanıtın yerine geçmez."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Depolama sağlayıcısı ve lisans: MinIO, Amazon S3 veya ikisi birlikte",
+      "requirementIds": ["files-4"],
+      "blocks": "Adaptör hedefi ve kabul ortamının kurulması",
+      "documentStepUntilDecision": "İki hedef için ortak S3 API parametre listesini ve farklarını belgele."
+    },
+    {
+      "decision": "Hedef sürümler: Frappe/Suite, MinIO ve boto3 aralığı",
+      "requirementIds": ["files-4"],
+      "blocks": "T-00 tabanı ve adım 1 incelemesi",
+      "documentStepUntilDecision": "Kaynakta görülen boto3 aralığını yalnız gözlem olarak kaydet."
+    },
+    {
+      "decision": "Veri yerleşimi ve bölge",
+      "requirementIds": ["files-4"],
+      "blocks": "Bucket yapılandırması ve kabul ortamı",
+      "documentStepUntilDecision": "Bölge parametresinin yapılandırmadaki yerini belgele."
+    },
+    {
+      "decision": "Tenant topolojisi: tenant başına bucket veya ortak bucket içinde prefix",
+      "requirementIds": ["files-4"],
+      "blocks": "Anahtar şeması ve tenant izolasyon kabulü",
+      "documentStepUntilDecision": "İki seçeneğin izin ve yedek etkilerini karşılaştırmalı belgele."
+    },
+    {
+      "decision": "Saklama süresi: silinen nesneler, eski generation'lar ve yedekler",
+      "requirementIds": ["files-4"],
+      "blocks": "Yetim nesne temizliği ve backup/restore kabulü",
+      "documentStepUntilDecision": "Yetim nesnelerin nasıl raporlanacağını belgele."
+    },
+    {
+      "decision": "Özel ACL: presigned GET süresi, proxy ile presigned tercihi ve CSP sandbox başlıkları",
+      "requirementIds": ["files-4"],
+      "blocks": "Özel ACL kabul senaryosu",
+      "documentStepUntilDecision": "Mevcut native sunum yollarını listele."
+    },
+    {
+      "decision": "Drive dışındaki framework File eklerinin S3 kapsamına alınıp alınmayacağı",
+      "requirementIds": ["files-4"],
+      "blocks": "Adım 4 ve ek kabul satırı",
+      "documentStepUntilDecision": "attached_to_doctype dosyalarının mevcut native depolamada kaldığını belgele."
+    },
+    {
+      "decision": "Depolama kimlik bilgisi yönetim yöntemi (sahibi Hüseyin Cengiz)",
+      "requirementIds": ["files-4"],
+      "blocks": "Kabul ortamında Drive Disk Settings yapılandırması",
+      "documentStepUntilDecision": "Kimlik bilgilerinin Git'e ve istemcilere çıkmayacağı kuralını belgele; değer yazma."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

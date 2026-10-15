@@ -1,0 +1,229 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "experiment",
+  "canonicalTaskIds": ["experiment--implementation"],
+  "requirementIds": ["analytics-7"],
+  "stage": "scale",
+  "sourceStages": {
+    "analytics-7": "scale"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Oturumlu kullanıcıyı çalışan bir deneyde deterministik ve kalıcı biçimde tek bir varyanta atama",
+    "trigger": "React/Ant Design istemcisi, oturumlu kullanıcı için bir deney anahtarıyla sunucu tarafındaki whitelist get_or_assign_variant çağrısını yapar. Uygulama durumu: uygulanmadı.",
+    "expected": "Deney 'çalışıyor' durumundaysa ve kullanıcı hedef kitle ile izin koşullarını sağlıyorsa sunucu, deney anahtarı, seed ve konudan (oturumlu kullanıcı + tenant) hesaplanan kovayı trafik oranına göre bir varyanta eşler. Experiment Assignment kaydını bir kez yazar ve sonraki her çağrıda aynı varyantı döndürür. Sonuç sorgusu iki grubu aynı birincil metrik ve aynı zaman penceresiyle hesaplar.",
+    "denied": "Misafir ya da izinsiz kullanıcı, başka tenant'a ait deney, taslak veya durdurulmuş deney, izin durumu (analytics-6) olumsuz kullanıcı ve istemcinin varyant, konu veya seed dayatma girişimi reddedilir. Atama kaydı yazılmaz, mevcut atama değişmez; yanıt varyant içermez ya da native yetki/doğrulama hatası döner."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Yalnız native parçalar yeniden kullanılır. Website Analytics raporundaki frappe.qb group-by ve from_date-to_date pencere kalıbı, sonuç sorgusu için örnek alınır. Atama için Frappe whitelist, DocType izinleri, doc.insert/save transaction'ı ve controller doğrulaması kullanılır. UTM 'content' alanı ve Web Page View kaydı yalnız pazarlama atfı olarak kalır, atama kaynağı yapılmaz. Suite boot özellik bayrakları deney değildir. Bu kanıtlar birer native parçayı gösterir; deney atama, metrik ve karşılaştırma davranışının var olduğunu göstermez. Vue/Frappe UI kaynağı, React/AntD uygulamasının kanıtı değildir. Aranan yollar aşağıdaki sınırlı listedir; listede olmayan yollar için kapsamlı bir yokluk iddiası yoktur.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/public/js/frappe/utils/utils.js",
+        "line": 2178,
+        "quote": "description: \"Use to differentiate ad variants (e.g. A/B testing)\","
+      },
+      {
+        "path": "frappe/frappe/website/doctype/web_page_view/web_page_view.py",
+        "line": 46,
+        "quote": "@frappe.whitelist(allow_guest=True)"
+      },
+      {
+        "path": "frappe/frappe/website/doctype/web_page_view/web_page_view.py",
+        "line": 94,
+        "quote": "view.content = content"
+      },
+      {
+        "path": "frappe/frappe/website/report/website_analytics/website_analytics.js",
+        "line": 41,
+        "quote": "{ value: \"content\", label: __(\"Content\") },"
+      },
+      {
+        "path": "frappe/frappe/website/report/website_analytics/website_analytics.py",
+        "line": 68,
+        "quote": ".groupby(self.group_by)"
+      },
+      {
+        "path": "suite/suite/sheets/tests/test_boot.py",
+        "line": 3,
+        "quote": "\"\"\"Boot info plumbing — the frontend feature flags ride on these keys.\"\"\""
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/public/js/frappe/utils/utils.js",
+      "frappe/frappe/website/doctype/web_page_view/web_page_view.py",
+      "frappe/frappe/website/report/website_analytics/website_analytics.js",
+      "frappe/frappe/website/report/website_analytics/website_analytics.py",
+      "suite/suite/sheets/tests/test_boot.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/experiment.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/content_growth/doctype/experiment/experiment.py"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Zorunlu tek girdi: experiment (Experiment kaydının adı veya anahtarı). Konu kimliği istemciden alınmaz; sunucuda frappe.session.user ile native-user-policy sözleşmesinin çözdüğü tenant'tan türetilir. İstemcinin gönderdiği visitor_id, variant, seed ya da subject alanları yok sayılmaz, reddedilir.",
+    "output": "kernel-envelope sözleşmesine sarılmış salt JSON: deney anahtarı, varyant anahtarı (atama yoksa null) ve atamanın yeni mi mevcut mu olduğu bilgisi. JSON içinde ReactNode, callback veya bileşen tanımı bulunmaz. React tarafında varyant anahtarı, onaylı bileşen registry'si üzerinden yerel bileşene eşlenir. Kaynak registry ile GenUI capability registry ayrı kalır; capability olarak açılması capability-definition sözleşmesine bağlıdır. GenUI ayrı bir kullanıcı projesidir ve bu sözleşmenin kapsamı dışındadır.",
+    "authorization": "Çağrı allow_guest olmadan whitelist edilir. Experiment için native okuma izni ve tenant eşleşmesi gerekir. Experiment Assignment oluşturma izni yalnız kullanıcının kendi konusu için verilir. Controller doğrulaması şunları reddeder: subject oturumla eşleşmiyorsa, variant hesaplanan kovaya eşit değilse veya deney 'çalışıyor' durumunda değilse. Böylece doğrudan REST ile varyant dayatma da reddedilir. Rol ve izin matrisi explicitPermissionFlags ortak kaynağından gelir; bu sözleşme rol adı icat etmez. ignore_permissions, ham SQL veya izin atlatan qb yazma yolu kullanılmaz. Sonuç sorgusu native rapor rol izniyle korunur. Fonksiyonun başında deney okuma izni doğrulanır; qb sorgusu tenant ve deney filtresi olmadan çalıştırılmaz.",
+    "persistence": "Experiment (önerilen canonicalArtifact) ile Experiment Assignment DocType'ları experiment--schema aşamasında tanımlanır. (experiment, subject) çifti benzersizdir. Bu benzersizliğin kayıt adıyla mı yoksa bileşik indeksle mi sağlanacağı, hedef sürümde doğrulanarak schema aşamasında seçilir. Atama aynı transaction içinde doc.insert ile yazılır. Atama olayı, outbox sözleşmesinin tanımladığı yolla kuyruğa alınır. Deneyin yaşam döngüsü geçişleri (taslak, çalışıyor, durdu) audit-envelope sözleşmesine göre izlenir. Kova hesabı bir öneridir: experiment, seed ve subject birleşiminin sha256 özetinden sabit aralıklı bir sayı türetilir, sonra trafik oranlarına eşlenir.",
+    "failure": "Eş zamanlı ilk çağrıda ikinci yazma benzersiz kısıta takılır. Frappe'nin yükselttiği hata yakalanır ve mevcut kayıt izinli okumayla döndürülür; hedef sürümdeki tam hata sınıfı T-00 baseline'da doğrulanır. Hash deterministik olduğu için yarış durumunda da aynı varyant çıkar. Deney taslak veya durmuşsa ya da izin olumsuzsa varyant null döner ve kayıt yazılmaz. Yetki yoksa native PermissionError, sahte varyant veya konu varsa ValidationError döner. Her iki hatada transaction geri alınır ve kayıt sayısı değişmez."
+  },
+  "development": {
+    "dependencies": [
+      "audit-envelope--contract",
+      "capability-definition--contract",
+      "experiment--contract",
+      "experiment--schema",
+      "kernel-envelope--contract",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "outbox--contract"
+    ],
+    "admission": {
+      "implementationStatus": "Uygulama durumu: uygulanmadı.",
+      "prerequisites": [
+        "T-00 hedef sürüm baseline'ı ve R-00 yeniden kullanım eşlemesi tamamlanmış olmalı.",
+        "Bu davranış izinli veri tükettiği için R-01 de uygulanır.",
+        "experiment--contract ve experiment--schema mevcut sıra ve bağımlılıklarla kabul edilmiş olmalı. Sıra otoritesi mevcut görev bağımlılıkları ve aşamadır; küme sırası yalnız sunumdur.",
+        "Atama anahtarındaki tenant bileşeni için tenant topolojisi kararı verilmiş olmalı.",
+        "Yalnız tek ve dar bir davranış, gerçek RED/GREEN kanıtıyla uygulanır."
+      ],
+      "authority": "Bu sözleşme hiçbir servis, production ortamı, şema veya veriyi değiştirme yetkisi vermez."
+    },
+    "steps": [
+      "Experiment controller'ında yaşam döngüsü durum geçişlerini ve trafik oranı toplamının doğrulamasını tanımla.",
+      "get_or_assign_variant whitelist fonksiyonunu yaz: önce izin ve tenant kontrolü, sonra durum kontrolü, ardından mevcut atamanın izinli okunması; atama yoksa kova hesabı ve doc.insert.",
+      "Experiment Assignment controller doğrulamasında subject/oturum ve variant/kova eşitliğini zorunlu kıl.",
+      "Atama olayını outbox, yaşam döngüsü geçişlerini audit-envelope sözleşmesine bağla.",
+      "Yanıtı kernel-envelope ile sar; React tarafında varyant anahtarını onaylı registry eşlemesiyle tüket. Ortak entegrasyon dosyalarına yalnız ana entegrasyon sahibinin seri birleştirmesiyle dokunulur.",
+      "Atama davranışı kabul edildikten sonra ayrı bir adımda sonuç sorgusunu ekle: iki grup, aynı birincil metrik ve aynı from_date-to_date penceresi; Website Analytics group-by kalıbı örnek alınır."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Çalışan bir deneyde aynı oturumlu kullanıcı get_or_assign_variant'ı iki kez çağırır: iki yanıt aynı varyantı döndürür ve tam bir Experiment Assignment kaydı oluşur. Aynı testte başka bir kullanıcı, ilk kullanıcının konusu için farklı bir varyantla doğrudan kayıt eklemeye çalışır; bu reddedilir ve kayıt değişmez.",
+      "red": "Fonksiyon imzası contract aşamasında mevcutken, kova ve kalıcı arama olmadan her çağrıda yeni atama üreten bir gövdeyle test, kayıt sayısı veya varyant eşitliği assertion'ında davranışsal olarak başarısız olur. Import veya altyapı hatası ya da native davranışı bozmak RED sayılmaz.",
+      "green": "Deterministik kova hesabı, mevcut atamanın izinli okunması ve controller doğrulaması eklenince iki çağrı aynı varyantı döndürür, kayıt sayısı 1 kalır ve dayatılan yazma ValidationError ya da PermissionError ile reddedilir."
+    },
+    "rollback": "Gelecekteki değişiklik tek PR ile sınırlı tutulur ve geçmişi yeniden yazmayan bir revert commit'iyle geri alınır. Acil durumda deney 'durdu' durumuna alınır: yeni atama yazılmaz, mevcut atamalar korunur. Experiment Assignment verisi onaysız silinmez. DocType kaldırma ve migration planı ile CI/deploy/rollback'in teknik sahibi Hüseyin Cengiz'dir. DNS veya GoDaddy adımı olmadığından Asistan Hüseyin'e düşen bir adım yoktur."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "analytics-7",
+      "sourceStage": "scale",
+      "existing": "Native parçalar şunlar: Desk UTM URL üreticisindeki 'content' alanı, A/B testi amacıyla reklam varyantlarını ayırmak için tanımlı. Misafir erişimli make_view_log, content değerini Web Page View kaydına yazıyor. Website Analytics raporu content'e göre gruplayabiliyor ve frappe.qb group-by ile tarih penceresi kalıbını kullanıyor. Suite'te yalnız Sheets ön yüzü için özellik bayrağı boot verisi var. Varyantlar dışarıdan, URL etiketiyle elle belirleniyor; sistem kullanıcıyı bir gruba atamıyor ve bir atama saklamıyor.",
+      "gap": "Experiment ve varyant DocType'ı ile yaşam döngüsü yok; hedef kitle, trafik oranı ve başlangıç/bitiş alanları da yok. Deterministik ve kalıcı atama (anahtar, seed, kayıt) yok. Kaynak değerlendirmesine göre mevcut visitor_id istemciden geliyor ve doğrulanmıyor. Sayfa görüntülenmesi dışında iş metriği, dönüşüm olayı, guardrail metriği, istatistiksel karşılaştırma ve örneklem kuralı yok. İzin durumu (analytics-6) ve olay kataloğuyla (analytics-4) bağlantı yok. Deney ile özellik bayrağı ayrımı, sunucu tarafında varyant yetkisi ve atamanın tenant izolasyonu yok. React/AntD tüketicileri için varyant çözümleme ve sonuç sorgusu API sözleşmesi yok.",
+      "completionSteps": [
+        "experiment--contract: atama anahtarını (oturumlu kullanıcı + tenant), deney anahtarı ve seed ile hesaplanan kovayı, tek birincil metriği ve tek zaman penceresini yaz. analytics-4 olay kataloğuna ve analytics-6 izin durumuna bağımlılığı işaretle.",
+        "experiment--schema: Experiment ve Experiment Assignment DocType'larını native-doctype-schema sözleşmesine göre tanımla; (experiment, subject) benzersiz olsun. İzin satırlarını explicitPermissionFlags kaynağından al.",
+        "experiment--implementation: yalnız get_or_assign_variant davranışını tdd.oneScenario'daki RED/GREEN sırasıyla uygula.",
+        "Sonuç sorgusunu ayrı bir adımda ekle: iki grup için aynı metrik ve aynı pencere, izin kontrolü ve zorunlu tenant/deney filtresiyle.",
+        "UTM 'content' alanını ve Web Page View kaydını atama kaynağı yapma. Suite bayraklarını deney olarak yeniden kullanma."
+      ],
+      "dependencies": [
+        "audit-envelope--contract",
+        "capability-definition--contract",
+        "experiment--contract",
+        "experiment--schema",
+        "kernel-envelope--contract",
+        "native-doctype-schema--contract",
+        "native-user-policy--contract",
+        "outbox--contract"
+      ],
+      "acceptance": "Kullanıcı aynı deney grubunda kalır. Örnek sonuçta iki grup aynı metrik ve aynı pencere tanımıyla hesaplanır. Başka tenant'tan, misafirden veya varyant dayatarak yapılan yazma reddedilir ve mevcut atama kaydı değişmeden kalır.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/public/js/frappe/utils/utils.js",
+          "line": 2178,
+          "quote": "description: \"Use to differentiate ad variants (e.g. A/B testing)\","
+        },
+        {
+          "path": "frappe/frappe/website/doctype/web_page_view/web_page_view.py",
+          "line": 46,
+          "quote": "@frappe.whitelist(allow_guest=True)"
+        },
+        {
+          "path": "frappe/frappe/website/doctype/web_page_view/web_page_view.py",
+          "line": 94,
+          "quote": "view.content = content"
+        },
+        {
+          "path": "frappe/frappe/website/report/website_analytics/website_analytics.js",
+          "line": 41,
+          "quote": "{ value: \"content\", label: __(\"Content\") },"
+        },
+        {
+          "path": "frappe/frappe/website/report/website_analytics/website_analytics.py",
+          "line": 68,
+          "quote": ".groupby(self.group_by)"
+        },
+        {
+          "path": "suite/suite/sheets/tests/test_boot.py",
+          "line": 3,
+          "quote": "\"\"\"Boot info plumbing — the frontend feature flags ride on these keys.\"\"\""
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Birincil metrik kaynağı, analytics-4 olay kataloğu sözleşmesi gelene kadar tanımsız.",
+    "İzin koşulu, analytics-6 izin durumu sözleşmesi gelene kadar tanımsız; bu süre boyunca site genelindeki izleme ayarı tek kapı olarak kalıyor.",
+    "İstatistiksel karşılaştırma, guardrail metriği ve örneklem kuralı tanımsız.",
+    "Misafir veya anonim ziyaretçi ataması kapsam dışı; istemci visitor_id'si atama anahtarı yapılmaz.",
+    "Benzersizlik mekanizması, hata sınıfı ve qb API ayrıntıları hedef sürümde doğrulanmadı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Tenant topolojisi",
+      "requirementIds": ["analytics-7"],
+      "blocks": "Atama anahtarının tenant bileşeninin kesinleşmesi, tenant izolasyonu ve experiment--implementation kabulü",
+      "allowedMeanwhile": "Anahtar, belgede 'native-user-policy'nin çözdüğü tenant' adlı soyut bir alan olarak tanımlanır."
+    },
+    {
+      "decision": "Atama ve sonuç verisinin saklama süresi ve veri yerleşimi",
+      "requirementIds": ["analytics-7"],
+      "blocks": "experiment--schema'da arşiv/temizlik alanları ve veri yerleşimi kuralı",
+      "allowedMeanwhile": "Alanlar ve kayıt yapısı belgelenir; süre ve yer boş bırakılır."
+    },
+    {
+      "decision": "Hedef Frappe sürümü (T-00 baseline)",
+      "requirementIds": ["analytics-7"],
+      "blocks": "Benzersiz kısıt mekanizması, yakalanacak hata sınıfı ve qb kalıbının doğrulanması",
+      "allowedMeanwhile": "Sürümden bağımsız davranış, ret yolları ve kabul ölçütü yazılır."
+    },
+    {
+      "decision": "İstatistiksel yöntem, anlamlılık eşiği, minimum örneklem ve guardrail metriği",
+      "requirementIds": ["analytics-7"],
+      "blocks": "Sonuç sorgusunun yorumlanması ve karşılaştırma çıktısı",
+      "allowedMeanwhile": "Ham grup sayımları ile aynı metrik ve pencere tanımı belgelenir."
+    },
+    {
+      "decision": "Misafir kapsamı ve izin (analytics-6) koşulu",
+      "requirementIds": ["analytics-7"],
+      "blocks": "Anonim atama ve izin durumuna bağlı ret yolu",
+      "allowedMeanwhile": "Kapsam yalnız oturumlu kullanıcılarla sınırlı belgelenir; izin olumsuzsa kayıt yazılmaz."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

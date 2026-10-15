@@ -1,0 +1,206 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "client-data-budget",
+  "canonicalTaskIds": [
+    "client-data-budget--implementation",
+    "ui-family-13--implementation"
+  ],
+  "requirementIds": ["channels-9"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "channels-9": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "Düşük veri tüketimi modu: kullanıcı tercihiyle otomatik yenileme, medya ve ağır istekleri azaltma. Uygulama durumu: uygulanmadı.",
+    "trigger": "Kullanıcı istemci ayarlarından düşük veri modunu açık olarak seçer. Tetikleyici tarayıcının Save-Data ipucu, ağ bilgisi ipucu veya cihaz tahmini değildir; bu ipuçları en fazla öneri gösterebilir.",
+    "expected": "Mod açıkken seçilen gerçek yolculukta otomatik yenileme seyrekleşir veya durur. Medya ve küçük resimler istek üzerine yüklenir. Liste istekleri yalnız görünen alanları ve ölçümle gerekçelendirilmiş sayfa boyutunu ister. Sınıflandırılmış ağır istekler ertelenir. Son başarılı veri alım zamanı görünür, elle yenileme tek eylemle her zaman çalışır. Aynı yolculukta mod kapalı ve açıkken aktarılan baytlar aynı ölçüm koşullarında karşılaştırılır. Mod Save-Data desteklemeyen tarayıcıda da aynı biçimde çalışır.",
+    "denied": "Mod kritik hizmet durumlarını, hata ve onay bildirimlerini ve kullanıcının başlattığı kaydetme/gönderme eylemlerini bastırmaz veya geciktirmez. Yetki kontrolünü gevşetmez veya genişletmez. Kullanıcı tercihi olmadan modu kendiliğinden açmaz. Save-Data ipucunun yokluğunu güçlü bağlantı kanıtı saymaz."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native Frappe REST liste uç noktası alan seçimini (fields) ve varsayılan 20 kayıtlık sayfa boyutunu (limit_page_length) destekler. frappe.client içindeki sayım işlevi imzasında cache parametresi bulunur. Suite çevrimdışı kopya deposunda eşzamanlı istek sınırı sabiti vardır; bu Vue/Frappe UI kaynağıdır, React/Ant Design uygulaması kanıtı değildir ve yalnız ağır isteklerin sınırlanmasına örnek desen olarak okunur. Bu parçalar veri bütçesi politikası, mod tercihi, tazelik açıklaması veya bayt ölçümü sağlamaz; davranışın bütünü mevcut değildir. searchedPaths listesi kapsamlı bir yokluk taraması değildir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 13,
+        "quote": "if frappe.form_dict.get(\"fields\"):"
+      },
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 22,
+        "quote": "frappe.form_dict.limit or frappe.form_dict.limit_page_length or 20,"
+      },
+      {
+        "path": "frappe/frappe/client.py",
+        "line": 82,
+        "quote": "cache: int | bool = False,"
+      },
+      {
+        "path": "suite/frontend/src/apps/slides/stores/offlineCopy.js",
+        "line": 13,
+        "quote": "const CONCURRENCY = 4"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "frappe/frappe/client.py",
+      "suite/frontend/src/apps/slides/stores/offlineCopy.js"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/client-data-budget.json",
+    "plannedProduction": [
+      "frontend/packages/platform/src/client-data-budget/client_data_budget_post_mvp.tsx",
+      "frontend/packages/ui/src/components/ui-family-13/index.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Kullanıcı tercihi lowDataMode (açık/kapalı), etkin yolculuk kimliği ve ileride belgelenecek ağır istek sınıf listesi. Ağ ipuçları yalnız yardımcı öneri olabilir, modu tek başına belirlemez.",
+    "output": "Saf istemci politika verisi: TanStack Query yenileme ayarları (staleTime, refetchOnWindowFocus, refetchInterval), liste isteği için fields ve limit_page_length değerleri, sayım isteğinde cache kullanımı, medya yükleme kipi (istek üzerine), ağır istek sınıflarının açık/ertelenmiş durumu, görünür tazelik bilgisi (son başarılı alım zamanı) ve elle yenileme eylemi. Politika JSON ile ifade edilebilir veri olarak kalır; ReactNode veya callback taşımaz, bunlar yerel React/Ant Design bileşen katmanında bağlanır.",
+    "authorization": "Mod yalnız istemcinin ne kadar ve ne sıklıkla istek attığını değiştirir. Tüm okumalar native Frappe REST ve frappe.client yollarından geçer ve native izin kontrolleri aynen uygulanır; ignore_permissions, ham SQL veya izin atlayan başka bir yol kullanılmaz. Bu sözleşme rol veya izin üretmez. İleride rol/izin gerekirse explicitPermissionFlags ortak kaynağına bağlanır ve o rehberin kendi kabulünde reddedilen yazma ile değişmeyen kayıt gösterilir.",
+    "persistence": "Bu sözleşme sunucu şeması, DocType veya veri değişikliği tanımlamaz. Tercihin cihazda yerel olarak mı yoksa kullanıcı ayarında mı saklanacağı ve kanallar arasında taşınıp taşınmayacağı karar bekliyor. Sunucu tarafında saklama seçilirse native kaydetme, transaction ve hook akışı yeniden kullanılır; yeni ORM veya CRUD katmanı tasarlanmaz, yeni sunucu uç noktası şart değildir.",
+    "failure": "Bayt ölçümü alınamazsa mod yine çalışır ve ölçüm not_run olarak raporlanır. Ertelenmiş veya azaltılmış bir istek başarısız olursa son başarılı veri tazelik zamanıyla gösterilir ve elle yenileme sunulur. Tercih okunamazsa önerilen davranış modu kapalı kabul edip bunu ayar yüzeyinde görünür kılmaktır. Kritik hizmet durumu ve kullanıcı eylemi yanıtları hiçbir koşulda ertelenmez."
+  },
+  "development": {
+    "dependencies": [
+      "api-middleware--contract",
+      "client-data-budget--contract",
+      "client-rule-parity--contract",
+      "device-grant--contract",
+      "kernel-envelope--contract",
+      "sync-receipt--contract",
+      "ui-family-12--contract",
+      "ui-family-13--contract"
+    ],
+    "admission": {
+      "status": "NOT_ADMITTED",
+      "prerequisites": [
+        "T-00 hedef temel çizgisi",
+        "R-00 yeniden kullanım eşlemesi",
+        "R-01: izinli veri okuyan tüketiciler için",
+        "decisionsPending içindeki yolculuk seçimi ile ölçüm koşulları ve bütçe değeri kararları"
+      ],
+      "rule": "Gerçek RED/GREEN kanıtıyla tek dar davranış uygulanır.",
+      "orderAuthority": "Mevcut görev bağımlılıkları ve aşama (post_mvp) belirleyicidir; küme sırası 6 yalnız sunumdur ve yeni bir seri DAG değildir.",
+      "statement": "Uygulama durumu: uygulanmadı. Bu sözleşme üretim, test, servis, şema veya veri değişikliği yetkisi vermez."
+    },
+    "steps": [
+      "1. Karar geldikten sonra tek gerçek yolculuğu ve ölçüm koşullarını (ağ profili, tarayıcı, önbellek durumu, bayt bütçesi) projenin tek bütçe seti olarak belgele.",
+      "2. Ağır istek sınıflandırmasını yaz: realtime socket, polling, küçük resim/medya, bağlantılı alan genişletme (expand), sayım istekleri. Her sınıf için mod açıkken davranışı ertele, istek üzerine yükle veya değiştirme olarak belirle.",
+      "3. Liste isteklerinde fields alt kümesini görünür sütunlarla eşle. limit_page_length varsayılanı olan 20'yi koru; değiştirilecekse ölçümle gerekçelendir. Sayım isteklerinde native cache parametresinin etkisini ölç.",
+      "4. Mod bayrağını TanStack Query staleTime, refetchOnWindowFocus ve refetchInterval ayarlarına eşleyen saf politika verisini client_data_budget_post_mvp.tsx için tanımla. Kritik hizmet durumu sorgularını istisna listesine al.",
+      "5. Tazelik etiketi ve elle yenileme kontrolünü ui-family-13 bileşen ailesinde Ant Design ile tasarla. Outfit, minimum 14 CSS px, çevreleyen odak halkası olmadan görünür klavye odağı, merkezi motion ve renk tokenları kullanılır. Bileşen kaydı yerel registry.ts dosyasına yapılır; GenUI capability registry ile karıştırılmaz.",
+      "6. Web (TanStack Router routes.tsx, Vite/PWA), Tauri2 ve WXT/MV3 kanalları aynı politika paketini kullanır. Kanal farkı yalnız tercih saklama kararından doğar.",
+      "7. Aynı yolculukta mod kapalı ve açıkken aktarılan baytları tarayıcı ağ kaydıyla ölçmek için yönergeyi ve kanıt alanlarını belgele. Ölçüm çalıştırılana kadar not_run kalır."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Save-Data ipucu olmayan bir tarayıcıda düşük veri modu açıkken, seçilen liste görünümü pencere odağına döndüğünde otomatik yeniden istek göndermez.",
+      "red": "Gelecekteki test, mod açıkken odak dönüşünde liste uç noktasına giden istek sayısının sıfır olmasını bekler. Politika henüz Query yenileme ayarlarına bağlanmadığı için bu davranış doğrulaması başarısız olur. RED, import/altyapı hatası veya native Frappe davranışının bozulmasıyla elde edilmez.",
+      "green": "Mod bayrağını yalnız bu sorgunun refetchOnWindowFocus ayarına bağlayan en küçük politika eşlemesi eklenir. Mod kapalıyken mevcut yenileme davranışı değişmez ve native izin kontrolü aynen uygulanır. Bu turda test yazılmaz ve koşulmaz."
+    },
+    "rollback": "Mod kapatıldığında istemci politikası varsayılan Query ayarlarına döner. Sunucu şeması ve veri değişmediği için veri geri alma adımı yoktur. Paylaşılan entegrasyon dosyalarındaki gelecekteki değişiklikler tek bir değişiklik birimi olarak geri alınabilir tutulur. CI, deploy ve rollback teknik sahibi Hüseyin Cengiz'dir. Bu sözleşme hiçbir servis veya production değişikliği yetkisi vermez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "channels-9",
+      "sourceStage": "post_mvp",
+      "existing": "Native parçalar: Frappe REST liste uç noktasında fields alan seçimi ve varsayılan 20 kayıtlık limit_page_length, frappe.client sayım işlevinde cache parametresi, Suite çevrimdışı kopyasında eşzamanlılık sınırı deseni (Vue kaynağı; React/Ant Design kanıtı değildir). Kabul metni bayt ölçümünü, tazelik açıklamasını, elle yenilemeyi ve Save-Data olmadan çalışmayı tanımlar.",
+      "gap": "Ölçüm koşulları ve tek bütçe seti yok. Ağır istek sınıflandırması yok. TanStack Query yenileme davranışının mod ile nasıl değişeceği tanımsız. Tercih saklama yeri ve kanallar arası taşınma belirsiz. Tetikleyici yolculuk seçilmedi. Native parçalar bir veri bütçesi politikası değildir.",
+      "completionSteps": [
+        "Karar sonrasında tek gerçek yolculuğu ve ölçüm koşullarını belgele.",
+        "Ağır istek sınıflarını ve mod açıkken her birinin davranışını listele.",
+        "fields ve limit_page_length kullanımını görünür sütunlara ve ölçüme bağla; sayımda cache etkisini ölç.",
+        "Mod bayrağını staleTime, refetchOnWindowFocus ve refetchInterval ayarlarına eşleyen saf politika verisini tanımla; kritik sorguları istisna listesine al.",
+        "ui-family-13 içinde tazelik etiketi ve elle yenileme kontrolünü erişilebilir biçimde tasarla.",
+        "Aynı yolculukta mod kapalı ve açıkken aktarılan bayt karşılaştırmasını kanıt alanlarıyla belgele."
+      ],
+      "dependencies": [
+        "client-data-budget--contract",
+        "kernel-envelope--contract",
+        "sync-receipt--contract",
+        "device-grant--contract",
+        "api-middleware--contract",
+        "ui-family-13--contract"
+      ],
+      "acceptance": "Mod tercihi korunur; gereksiz otomatik yenileme, medya ve ağır yanıtlar azalır. Aynı gerçek yolculukta aktarılan baytlar ölçülür. Kritik hizmet durumları ve kullanıcı eylemleri kaybolmaz. Verinin tazeliği açıklanır ve kullanıcı gerektiğinde elle yenileyebilir. Mod Save-Data desteklemeyen tarayıcıda da çalışır. Ölçüm çalıştırılana kadar kabul not_run kalır.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 13,
+          "quote": "if frappe.form_dict.get(\"fields\"):"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 22,
+          "quote": "frappe.form_dict.limit or frappe.form_dict.limit_page_length or 20,"
+        },
+        {
+          "path": "frappe/frappe/client.py",
+          "line": 82,
+          "quote": "cache: int | bool = False,"
+        },
+        {
+          "path": "suite/frontend/src/apps/slides/stores/offlineCopy.js",
+          "line": 13,
+          "quote": "const CONCURRENCY = 4"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Ölçüm koşulları (ağ profili, yolculuk, bütçe değeri) ve tek bütçe seti tanımlı değil.",
+    "Ağır istek sınıflandırması yok: realtime socket, polling, küçük resim/medya, bağlantılı alan genişletme.",
+    "TanStack Query yenileme davranışının (staleTime, refetchOnWindowFocus, refetchInterval) mod ile nasıl değişeceği tanımsız.",
+    "Tercihin nerede saklanacağı ve kanallar arası taşınıp taşınmayacağı belirsiz.",
+    "Tetikleyici gerçek yolculuk seçilmedi; bayt ölçümü çalıştırılmadı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Bayt ölçümüyle doğrulanacak tek gerçek tetikleyici yolculuğun seçimi.",
+      "requirementIds": ["channels-9"],
+      "blocks": "development.steps 1 ve 7, tdd.oneScenario için hedef liste görünümü, admission.",
+      "documentationStepUntilDecision": "Aday yolculuk listesini ve her aday için ölçüm kanıtı şablonunu belgele; seçim yapma."
+    },
+    {
+      "decision": "Ölçüm koşulları ve bayt bütçesi değeri (ağ profili, tarayıcı, önbellek durumu).",
+      "requirementIds": ["channels-9"],
+      "blocks": "development.steps 1, 3 ve 7, requirementGuidance kabulünün ölçülebilir hale gelmesi.",
+      "documentationStepUntilDecision": "Ölçüm koşulu alanlarını ve kanıt biçimini değer içermeyen bir şablon olarak yaz."
+    },
+    {
+      "decision": "Tercihin saklama yeri (cihazda yerel ya da kullanıcı ayarı) ve kanallar arası taşınması.",
+      "requirementIds": ["channels-9"],
+      "blocks": "contract.persistence, development.step 6 ve gerekirse hooks.py entegrasyonu.",
+      "documentationStepUntilDecision": "İki seçeneğin izin, gizlilik ve kanal etkilerini karşılaştıran tabloyu seçim yapmadan hazırla."
+    },
+    {
+      "decision": "Mod dışında tutulacak kritik hizmet durumu sorgularının listesi.",
+      "requirementIds": ["channels-9"],
+      "blocks": "development.step 4 istisna listesi.",
+      "documentationStepUntilDecision": "Bağımlı sözleşmelerdeki (kernel-envelope, sync-receipt, device-grant) durum sinyallerini aday olarak listele."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

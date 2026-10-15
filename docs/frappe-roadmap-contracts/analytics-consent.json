@@ -1,0 +1,353 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "analytics-consent",
+  "canonicalTaskIds": ["analytics-consent--implementation"],
+  "requirementIds": ["analytics-1", "analytics-2", "analytics-6"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "analytics-1": "post_mvp",
+    "analytics-2": "post_mvp",
+    "analytics-6": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "İzne bağlı ölçüm etiketi yükleme ve hassas veriyi ölçümden çıkarma. Uygulama durumu: uygulanmadı.",
+    "trigger": "React web/PWA (Vite) kabuğu açıldığında, TanStack Router bir rota geçişini tamamladığında veya kullanıcı analitik iznini verip geri çektiğinde.",
+    "expected": "Analitik izin kategorisi açıkça 'granted' ve tenant yapılandırmasında sağlayıcı etkinse yalnız o tenant'a ait GTM konteyneri veya etkin adaptör yüklenir. Yandex Metrica adaptörü yalnız ilgili karar verildikten sonra flag ile açılabilir. Tamamlanan her rota geçişinde tek page_view üretilir. Payload yalnız izinli alan listesindeki alanları taşır. Rota desen yoluna indirilir. Payload'da PII ve tenant verisi bulunmaz.",
+    "denied": "İzin yoksa, bilinmiyorsa, 'denied' ise veya geri çekildiyse hiçbir sağlayıcı script'i eklenmez ve ölçüm alanlarına ağ isteği gitmez. İzin geri çekildiğinde yüklü etiketler durdurulur ve yeni olay üretilmez. Yapılandırma okunamazsa durum 'denied' kabul edilir."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Native Frappe yalnız hosted, yani sunucuda şablonla üretilen sayfalar için yapı taşı sunar: Website Settings içindeki head_html ve google_analytics_id alanları, website_script üzerinden legacy analytics.js enjeksiyonu, Desk GA şablonu ve System Settings içindeki enable_telemetry anahtarı. Bunların hiçbiri izin kontrolü yapmaz ve React/Ant Design kabuğuna kendiliğinden uygulanmaz. Yeniden kullanım, site ayarlarının native okunması ve native izin modeliyle sınırlıdır. frappe/ui telemetry.ts ile Suite router Vue kaynağıdır; yalnız desen referansı olarak kullanılabilir, React/AntD uygulamasının kanıtı sayılmaz. Bir native parçanın var olması davranışın tamamının var olduğu anlamına gelmez.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/website/doctype/website_settings/website_settings.json",
+        "line": 261,
+        "quote": "\"fieldname\": \"head_html\","
+      },
+      {
+        "path": "frappe/frappe/www/website_script.js",
+        "line": 4,
+        "quote": "{% if google_analytics_id -%}"
+      },
+      {
+        "path": "frappe/frappe/templates/includes/app_analytics/google_analytics.html",
+        "line": 22,
+        "quote": "ga('send', 'event', category, label);"
+      },
+      {
+        "path": "frappe/frappe/utils/telemetry/pulse/client.py",
+        "line": 144,
+        "quote": "# Consent gates capture, not delivery: events queued while telemetry was on"
+      },
+      {
+        "path": "frappe/ui/src/telemetry/telemetry.ts",
+        "line": 24,
+        "quote": "client?.stop();"
+      },
+      {
+        "path": "suite/frontend/src/router/index.ts",
+        "line": 233,
+        "quote": "if (appId) loadedAppRuntimes.get(appId)?.afterEach?.(to)"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/templates/includes/app_analytics/google_analytics.html",
+      "frappe/frappe/templates/includes/head.html",
+      "frappe/frappe/utils/telemetry/pulse/client.py",
+      "frappe/frappe/website/doctype/website_settings/website_settings.json",
+      "frappe/frappe/www/desk.html",
+      "frappe/frappe/www/desk.py",
+      "frappe/frappe/www/website_script.js",
+      "frappe/frappe/www/website_script.py",
+      "frappe/ui/src/telemetry/telemetry.ts",
+      "suite/frontend/src/router/index.ts",
+      "suite/suite/www/suite.html",
+      "suite/suite/www/suite.py"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/analytics-consent.json",
+    "plannedProduction": [
+      "backend/saas_platform/saas_platform/adapters/content_growth/analytics_consent_post_mvp.py"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Girdiler üç kaynaktan gelir. (1) Salt okunur tenant analitik yapılandırması: etkin sağlayıcı listesi, sağlayıcı başına herkese açık kimlik (GTM container ID, GA4 ölçüm kimliği, Metrica sayaç kimliği), izin politikası sürümü ve kategorileri. (2) Kullanıcı izin durumu: kategori, sürüm, zaman damgası, kaynak. (3) Rota geçişi: eşleşen rota deseni. Secret, API anahtarı ve ingest kimlik bilgisi girdi olarak kabul edilmez.",
+    "output": "Çıktılar: yükleme kararı (yükle veya yükleme), rota anahtarı başına en çok bir page_view ve izinli alan listesine göre süzülmüş olay. Frappe tarafı yalnız veri döndürür; script veya head_html enjekte etmez. Hosted Website Settings içindeki google_analytics_id ve head_html alanları 'hosted-only, headless'a uygulanmaz' olarak etiketlenir.",
+    "authorization": "Yapılandırma okuması native Frappe oturum ve izin kontrolünden geçer ve yalnız oturumun ait olduğu tenant'ın verisini döndürür. ignore_permissions, ham SQL veya başka bir yetki atlatma yolu kullanılmaz. Bu sözleşme yeni rol veya izin üretmez. İleride rol ya da izin gerekirse explicitPermissionFlags ortak kaynağına bağlanır. O adımın tek kabulünde yetkisiz yazmanın reddedildiği ve kaydın değişmediği gösterilir. Bu sözleşme hiçbir servis, production ortamı, şema veya veri üzerinde değişiklik yetkisi vermez.",
+    "persistence": "Bu sözleşme şema, DocType veya veri değişikliği tanımlamaz; canonicalArtifact için doctypeCount 0'dır. İzin kaydının nerede ve ne kadar süre saklanacağı karar bekliyor. Karar verildikten sonra kalıcı izin değişikliği native save ve transaction ile yapılır; izin olayları outbox--contract ve audit-envelope--contract zarflarına bağlanır. Ölçüm olayları Frappe'de saklanmaz.",
+    "failure": "Yapılandırma okunamazsa veya izin durumu belirsizse durum 'denied' kabul edilir ve hiçbir şey yüklenmez. Sağlayıcı script'i yüklenemezse ya da CSP tarafından engellenirse uygulama akışı etkilenmez ve tekrar deneme döngüsü kurulmaz. Yetkisiz okuma native izin hatasıyla reddedilir ve tenant dışı veri döndürülmez. İzin geri çekildikten sonraki rota geçişlerinde olay üretilmez."
+  },
+  "development": {
+    "dependencies": [
+      "analytics-consent--contract",
+      "audit-envelope--contract",
+      "capability-definition--contract",
+      "kernel-envelope--contract",
+      "native-doctype-schema--contract",
+      "native-user-policy--contract",
+      "outbox--contract"
+    ],
+    "admission": {
+      "statement": "Uygulama durumu: uygulanmadı. Bu sözleşme üretim, test, şema veya servis yazımına izin vermez.",
+      "prerequisites": [
+        "T-00 hedef sürüm tabanı ve R-00 yeniden kullanım eşlemesi",
+        "İzinli veri tüketen adımlar için R-01",
+        "development.dependencies altındaki sözleşmelerin tamamlanması; ilk sırada analytics-consent--contract",
+        "Tek dar davranış için gerçek RED/GREEN kanıtı"
+      ],
+      "orderAuthority": "Sıra, mevcut görev bağımlılıklarına ve stage değerine göre belirlenir. Küme sırası yalnız sunum içindir; yeni bir seri DAG oluşturmaz."
+    },
+    "steps": [
+      "1. analytics-consent--contract içinde tenant yapılandırma ve izin durumu şemasını yalnız belge olarak tanımla; hosted alanları etiketle.",
+      "2. Backend adaptör önerisini (plannedProduction) native izin kontrolünden geçen dar bir salt okuma olarak tasarla; hooks.py yalnız ana entegrasyon sahibi üzerinden bağlanır.",
+      "3. İlk dar davranış: web/PWA kabuğunda izin kapısı. tdd.oneScenario ile başla.",
+      "4. Rota başına tek page_view kuralı ve CSP/nonce kuralı.",
+      "5. Sağlayıcıdan bağımsız adaptör arayüzü, GA4 adaptörü ve PII filtresi; Metrica flag ile kapalı kalır.",
+      "6. Geri çekme davranışı, ardından ilgili kararlar verildikten sonra Tauri2 ve WXT/MV3 yayılımı."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "İzin kaydı yokken web kabuğunda bir rota açıldığında hiçbir ölçüm sağlayıcısı script'i eklenmez ve ölçüm alanlarına ağ isteği gitmez.",
+      "red": "Gelecekte izin kapısı olmadan yükleyici çağrıldığında test, eklenen script etiketi veya ölçüm isteği gözlendiği için davranış doğrulamasında başarısız olmalıdır. Import, altyapı hatası ya da native Frappe davranışını bozma RED sayılmaz. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "İzin 'granted' olmadıkça kapı yükleyiciyi çağırmaz. Aynı test, sıfır script ve sıfır istek gözlenerek geçer. Upstream Frappe kodu değiştirilmez."
+    },
+    "rollback": "Bu sözleşme şema veya veri değiştirmez. Gelecekteki davranış, feature flag kapatılarak ve tenant yapılandırmasından sağlayıcı kimliği kaldırılarak devre dışı bırakılır; bu durumda hiçbir script yüklenmez. Teknik CI, deploy ve rollback sahibi Hüseyin Cengiz'dir. DNS veya GoDaddy adımı beklenmez. Gerekirse kayıt gereksinimini Hüseyin Cengiz hazırlar, Asistan Hüseyin GoDaddy'de uygular, sonucu Hüseyin Cengiz doğrular."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "analytics-1",
+      "sourceStage": "post_mvp",
+      "existing": "Native Frappe'de GTM'ye özel alan, yükleyici veya API yok. Website Settings içindeki head_html alanı includes/head.html üzerinden hosted sayfalara kaçışsız basılır; bu alana elle yapıştırılan bir GTM snippet'i izin kontrolünden geçmez. Suite SPA kabuğu (suite.html) base.html'i genişletmediği için hosted head_html ve website_script ona uygulanmaz. Suite router içindeki afterEach yalnız uygulama runtime'ına aktarım yapar, analitik üretmez. Bu kod Vue tabanlıdır; React/TanStack kanıtı sayılmaz.",
+      "gap": "Tenant'a ait GTM container ID ayarı ya da provider sözleşmesi yok. Consent Mode yok ve analytics-6 iznine bağlı bir yükleme kapısı yok. React/TanStack Router kabuğunda yükleyici ve rota başına tek page_view kuralı yok. CSP/nonce kuralı yok; mevcut enjeksiyonlar ham inline script. Tauri2 ve WXT/MV3 için karar yok.",
+      "completionSteps": [
+        "analytics-consent--contract içinde provider çıktısını tanımla: tenant'a ait GTM container ID ve izin politikası meta verisi salt okunur döner; Frappe script veya head_html enjekte etmez.",
+        "Hosted google_analytics_id ve head_html alanlarını 'hosted-only, headless'a uygulanmaz' diye etiketle; upstream kodu değiştirme.",
+        "Yalnız web/PWA kabuğunu hedefle: Consent Mode varsayılanını yükleyiciden önce 'denied' olarak ayarla; GTM'yi yalnız analytics-6 izni 'granted' olduktan sonra yükle.",
+        "page_view'i TanStack Router'ın tamamlanmış geçiş olayından ve rota anahtarı başına bir kez üret; yeniden render veya ilk yükleme ikinci bir olay üretmesin.",
+        "CSP kuralını aynı adımda belirle: GTM için nonce veya izinli kaynak listesi kullan, inline script ekleme. Domain listesini teknik olarak Hüseyin Cengiz doğrular.",
+        "Tauri2 ve WXT/MV3 kabukları için karar verilene kadar bu kabuklarda GTM yükleme."
+      ],
+      "dependencies": [
+        "analytics-consent--contract",
+        "kernel-envelope--contract",
+        "capability-definition--contract",
+        "analytics-6"
+      ],
+      "acceptance": "İzin politikasına uygun GTM konteyneri yalnız izin verildikten sonra yüklenir. Rota değişimlerinde ölçüm çoğalmaz: N rota geçişi N page_view üretir. İzin yokken GTM alanına giden istek sayısı sıfırdır.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/website/doctype/website_settings/website_settings.json",
+          "line": 261,
+          "quote": "\"fieldname\": \"head_html\","
+        },
+        {
+          "path": "frappe/frappe/templates/includes/head.html",
+          "line": 2,
+          "quote": "{{ head_html or \"\" }}"
+        },
+        {
+          "path": "frappe/frappe/www/website_script.py",
+          "line": 34,
+          "quote": "context[\"google_analytics_id\"] = get_setting(\"google_analytics_id\")"
+        },
+        {
+          "path": "frappe/frappe/www/website_script.js",
+          "line": 15,
+          "quote": "ga('send', 'pageview');"
+        },
+        {
+          "path": "suite/suite/www/suite.html",
+          "line": 37,
+          "quote": "<script type=\"module\" crossorigin src=\"/assets/suite/frontend/assets/index-BmMNnzY_.js\"></script>"
+        },
+        {
+          "path": "suite/frontend/src/router/index.ts",
+          "line": 233,
+          "quote": "if (appId) loadedAppRuntimes.get(appId)?.afterEach?.(to)"
+        }
+      ]
+    },
+    {
+      "requirementId": "analytics-2",
+      "sourceStage": "post_mvp",
+      "existing": "Native Frappe'de yalnız Google Analytics için legacy ve sunucuda şablonla üretilen bir ilkel var: Website Settings içinde google_analytics_id ve google_analytics_anonymize_ip alanları bulunuyor. website_script.py, developer_mode kapalıyken bu değerleri bağlama ekliyor; website_script.js de analytics.js ve ga('send','pageview') çağırıyor. Desk tarafında desk.py değeri frappe.conf'tan okuyor ve desk.html GA şablonunu ekliyor. Bu şablon her mousedown olayında tıklanan öğenin metnini ve route'u olay olarak gönderiyor; bu da PII ve tenant verisi sızıntısı riski taşıyor. web_page_view sunucu içi bir görüntüleme kaydıdır, dış sağlayıcı adaptörü değildir.",
+      "gap": "Yandex Metrica adaptörü yok. Sağlayıcıdan bağımsız bir adaptör arayüzü (page, track, consent) yok. GA, kimlik tanımlıysa koşulsuz yükleniyor. PII ve tenant verisi için yasak alan listesi ve alan eşlemesi yok. analytics-4 ortak olay şemasına sağlayıcı eşlemesi yok. Tenant bazlı sağlayıcı yapılandırmasını sunan bir provider sözleşmesi yok. GA4 gtag ve Consent Mode yok. Webvisor ve oturum kaydının varsayılan olarak kapalı olacağına dair bir kural yok.",
+      "completionSteps": [
+        "Sözleşmede sağlayıcıdan bağımsız page, track ve consent arayüzünü tanımla. Her adaptör yalnız izinli alan listesindeki alanları alsın.",
+        "Yasak alanları yaz: serbest metin, innerText, e-posta, ad, kayıt adı, doküman içeriği ve ham URL sorgu parametreleri gönderilmez; rota desen yoluna indirilir.",
+        "SaaS profilinde native GA yollarını, özellikle Desk'teki mousedown olayını, upstream kodu değiştirmeden kapalı tut: site config'te google_analytics_id tanımlama. Bu adımın uygulanması hosted GA kararına bağlıdır.",
+        "GA4 adaptörünü izin kapısının arkasına, tek izinli örnek olay ve PII filtresiyle ekle. Aynı sağlayıcının hem GTM üzerinden hem doğrudan yüklenmesini engelle.",
+        "Yandex Metrica adaptörünü ilgili karar verilene kadar feature flag ile kapalı tut. Webvisor ve oturum kaydı her durumda varsayılan olarak kapalı olsun.",
+        "analytics-4 olay şeması tanımlandığında sağlayıcı alan eşlemesini ona bağla. Bu sözleşme yeni bir olay şeması tanımlamaz."
+      ],
+      "dependencies": [
+        "analytics-consent--contract",
+        "kernel-envelope--contract",
+        "native-doctype-schema--contract",
+        "analytics-6"
+      ],
+      "acceptance": "Her etkin sağlayıcıda izinli örnek olay bir kez görünür. Payload'da PII ve yasak tenant verisi yoktur. İzin yokken hiçbir sağlayıcı script'i yüklenmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/website/doctype/website_settings/website_settings.json",
+          "line": 220,
+          "quote": "\"fieldname\": \"google_analytics_id\","
+        },
+        {
+          "path": "frappe/frappe/www/website_script.py",
+          "line": 34,
+          "quote": "context[\"google_analytics_id\"] = get_setting(\"google_analytics_id\")"
+        },
+        {
+          "path": "frappe/frappe/www/website_script.js",
+          "line": 15,
+          "quote": "ga('send', 'pageview');"
+        },
+        {
+          "path": "frappe/frappe/www/desk.py",
+          "line": 88,
+          "quote": "\"google_analytics_id\": frappe.conf.get(\"google_analytics_id\"),"
+        },
+        {
+          "path": "frappe/frappe/www/desk.html",
+          "line": 94,
+          "quote": "{% include \"templates/includes/app_analytics/google_analytics.html\" %}"
+        },
+        {
+          "path": "frappe/frappe/templates/includes/app_analytics/google_analytics.html",
+          "line": 22,
+          "quote": "ga('send', 'event', category, label);"
+        }
+      ]
+    },
+    {
+      "requirementId": "analytics-6",
+      "sourceStage": "post_mvp",
+      "existing": "Native parçalar şunlar. System Settings içindeki enable_telemetry, developer_mode kapalıyken site düzeyinde Pulse capture'ı açıp kapatır; Suite get_boot da Sentry DSN'ini aynı ayara bağlar. İzin kapatıldığında Pulse kuyruğu yine gönderilir: izin yeni capture'ı durdurur ama teslimatı durdurmaz. frappe/ui telemetry.ts disable() içinde client.stop() çağırır ve rotayı PII-safe desen yoluna indirir; bu Vue koduna ait bir desen referansıdır, React uygulaması değildir. Website GA, google_analytics_id tanımlıysa izin kontrolü olmadan yüklenir. enable_telemetry bir yönetici ayarıdır, son kullanıcının rızası değildir.",
+      "gap": "Kullanıcı ya da ziyaretçi bazında bir izin kaydı (kategori, hukuki dayanak, sürüm, kanıt) yok. Consent Mode ve izin yokken sıfır istek sağlayan bir kapı yok. İzin geri çekildiğinde kuyruktaki olaylar yine gönderiliyor. Geri çekmenin Tauri2, PWA ve WXT kabuklarına yayılması yok. React/AntD kabuğu için bir izin sağlayıcı sözleşmesi yok. Payload'u Frappe alan izinleri ve permlevel ile süzen bir hassas alan denylist'i yok.",
+      "completionSteps": [
+        "analytics-consent--contract içinde salt okunur izin durumu şemasını tanımla: kategori, sürüm, zaman damgası, kaynak. Saklama kararı verilene kadar şema yalnız belge olarak kalır.",
+        "Web kabuğunda basic blocking uygula: izin 'granted' olmadıkça hiçbir sağlayıcı yükleyicisi çağrılmaz. Kabul kriteri sıfır istek istediğinden, izin yokken ping gönderen advanced Consent Mode bu davranışın parçası değildir.",
+        "İzin geri çekildiğinde yüklü etiketleri durdur, yeni olay üretme ve tarayıcı tarafındaki kuyruğu temizle. Native Pulse send_queued_events davranışı ilgili karar verilene kadar değiştirilmez.",
+        "Hassas alan denylist'ini native DocType meta ve permlevel bilgisinden türet. Filtre, izinli olduğunu bilmediği alanı göndermez (varsayılan: reddet). Native izin kontrolünü atlamaz; yalnız ölçüm payload'unu daraltır.",
+        "İzin kaydının kalıcı hale getirilmesi gerekirse saklama kararından sonra native save ve transaction kullan; olayları outbox--contract ve audit-envelope--contract zarflarına bağla.",
+        "Tauri2, PWA ve WXT/MV3 yayılımını web davranışı kabul edildikten sonra ve kabuk kararıyla birlikte ele al."
+      ],
+      "dependencies": [
+        "analytics-consent--contract",
+        "native-user-policy--contract",
+        "native-doctype-schema--contract",
+        "outbox--contract",
+        "audit-envelope--contract",
+        "kernel-envelope--contract"
+      ],
+      "acceptance": "İzin yokken ölçüm isteği gitmez. İzin geri çekildiğinde etiketler durur ve sonrasında istek gitmez. Hassas alanlar payload'a girmez.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/utils/telemetry/pulse/client.py",
+          "line": 20,
+          "quote": "return bool(not frappe.conf.get(\"developer_mode\", 0) and frappe.get_system_settings(\"enable_telemetry\"))"
+        },
+        {
+          "path": "frappe/frappe/utils/telemetry/pulse/client.py",
+          "line": 144,
+          "quote": "# Consent gates capture, not delivery: events queued while telemetry was on"
+        },
+        {
+          "path": "frappe/ui/src/telemetry/telemetry.ts",
+          "line": 24,
+          "quote": "client?.stop();"
+        },
+        {
+          "path": "frappe/ui/src/telemetry/telemetry.ts",
+          "line": 46,
+          "quote": "// Route → PII-safe string. Defaults to the matched path pattern (e.g. \"/orders/:id\")."
+        },
+        {
+          "path": "frappe/frappe/www/website_script.js",
+          "line": 4,
+          "quote": "{% if google_analytics_id -%}"
+        },
+        {
+          "path": "suite/suite/www/suite.py",
+          "line": 42,
+          "quote": "if frappe.get_system_settings(\"enable_telemetry\"):"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Frontend yükleyicisi ve izin kapısı için bir üretim dosya yolu sahiplik planında yer almıyor; plannedProduction yalnız backend adaptörünü kapsıyor. Bu yolu, sharedIntegrationFiles üzerinden ana entegrasyon sahibi belirler.",
+    "İzin toplama arayüzü (Ant Design bileşeni) bu davranış kapsamında tasarlanmadı, ancak kabul için gerekli. Arayüz 320 CSS px önceliği, en az 14 CSS px metin boyutu, çevreleyen halka kullanmayan odak göstergesi ve merkezi semantik token kurallarına uyar. Bileşen frontend/packages/ui/src/registry.ts içinde yerel ReactNode/callback olarak kalır; GenUI capability registry'ye veya JSON model sınırına alınmaz.",
+    "analytics-4 ortak olay şeması bu sözleşmenin kapsamında değil; sağlayıcı alan eşlemesi o şemaya bağlı kalır.",
+    "Sunucudaki monitor ve request IP kaydı ön yüz izninin kapsamı dışında; ayrı bir saklama maddesi olarak açık duruyor.",
+    "Kaynak alıntıları önceki salt okunur Frappe/Suite anlık görüntülerinden alındı. Canlı bir site veya ürün kabulü yok."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Yandex Metrica'nın etkinleştirilmesi: KVKK kapsamında yurt dışı aktarım, veri yerleşimi ve karar sahibi.",
+      "requirementIds": ["analytics-2"],
+      "blocks": "Metrica adaptörünün feature flag'den çıkarılması.",
+      "untilDecided": "Adaptör arayüzünü ve alan eşlemesini belgeye yaz; flag varsayılan olarak kapalı kalsın."
+    },
+    {
+      "decision": "İzin kaydı: saklama yeri (sunucu veya istemci), saklama süresi, hukuki dayanak, izin metninin sürümlenmesi ve Guest ziyaretçi kaydı.",
+      "requirementIds": ["analytics-6"],
+      "blocks": "Kalıcı izin kaydı ve buna bağlı her şema adımı.",
+      "untilDecided": "Salt okunur izin durumu şemasını yalnız belge olarak tanımla."
+    },
+    {
+      "decision": "İzin geri çekildiğinde kuyruktaki native Pulse olaylarının gönderilip gönderilmeyeceği.",
+      "requirementIds": ["analytics-6"],
+      "blocks": "Geri çekmede tam durdurma kabulünün sunucu tarafı.",
+      "untilDecided": "İstemci tarafında durdurma ve yeni olay üretmeme kuralını belgele."
+    },
+    {
+      "decision": "Tauri2 ve WXT/MV3 kabuklarında ölçüm: bu kabukları kapsam dışında tutmak mı, alternatif bir yol mu? MV3 uzakta barındırılan kodu kabul etmez.",
+      "requirementIds": ["analytics-1", "analytics-6"],
+      "blocks": "Masaüstü ve eklenti kabuklarına yayılım.",
+      "untilDecided": "Bu kabuklarda hiçbir sağlayıcının yüklenmeyeceği kuralını belgele."
+    },
+    {
+      "decision": "Kullanıcı veya tenant tanımlayıcısı gönderilecek mi; gönderilecekse takma ad (hash) kuralı ne olacak?",
+      "requirementIds": ["analytics-2", "analytics-6"],
+      "blocks": "Tanımlayıcı taşıyan her adaptör çağrısı.",
+      "untilDecided": "Hiçbir tanımlayıcının gönderilmeyeceği kuralını belgele."
+    },
+    {
+      "decision": "SaaS profilinde hosted Frappe sayfaları ve Desk'teki native GA yolunun site config ile kapalı tutulması. Uygulama ve doğrulama Hüseyin Cengiz'e aittir.",
+      "requirementIds": ["analytics-1", "analytics-2"],
+      "blocks": "Production site yapılandırmasındaki değişiklik.",
+      "untilDecided": "Hosted-only etiketlemesini ve mousedown olayının risk notunu belgele."
+    },
+    {
+      "decision": "GA4, GTM konteyneri üzerinden mi yoksa doğrudan adaptörle mi yüklenecek?",
+      "requirementIds": ["analytics-1", "analytics-2"],
+      "blocks": "GA4 adaptörü adımı.",
+      "untilDecided": "Aynı sağlayıcının iki yoldan yüklenmeyeceği kuralını belgele."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

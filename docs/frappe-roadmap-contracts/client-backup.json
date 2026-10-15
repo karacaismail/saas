@@ -1,0 +1,239 @@
+{
+  "schemaVersion": "saas-existing-work-contract.v1",
+  "canonicalUnitId": "client-backup",
+  "canonicalTaskIds": ["client-backup--implementation"],
+  "requirementIds": ["backup-7"],
+  "stage": "post_mvp",
+  "sourceStages": {
+    "backup-7": "post_mvp"
+  },
+  "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
+  "behavior": {
+    "title": "İstemci cihazındaki eşitlenmemiş çalışma verisinin şifreli bağımsız yedeği, anahtar kurtarma ve başka cihazda yetkili geri yükleme",
+    "trigger": "Kullanıcı seçilmiş istemcilerden birinde (Tauri2 masaüstü, Vite/PWA web veya WXT/MV3 eklenti; ilk istemci karar bekliyor) yedek dışa aktarmayı ya da başka bir cihazda yedekten geri yüklemeyi başlatır.",
+    "expected": "Yerel çalışma verisi, outbox, mutasyon kimlikleri, işlem zarfları, şema/kural sürümü ve sync imleci tek ve tutarlı bir kurtarma manifestine konur, AEAD sınıfı şifrelemeyle paketlenir ve kaynak cihazdan ayrı bir fiziksel ortama yazılır. Geri yükleme yalnız device-grant--contract ile güncel yetkisi doğrulanmış cihazda, doğru anahtarla ve aynı tenant kapsamında yapılır. Özgün kaynak cihaz kapsamı, işlem zarfı ve mutasyon kimlikleri değişmez. Bağlantı geldikten sonra merkezde kabul edilmiş işlemler sync-receipt--contract sonuç sorgusuyla uzlaştırılır ve tekrar uygulanmaz. Kullanıcıya tenant kapsamı, saklama süresi, gerçek kurtarma noktası ve cihaz kaybı sınırı gösterilir.",
+    "denied": "Bozuk, bütünlük doğrulaması geçmeyen, yanlış anahtarlı, başka tenant'a ait ya da desteklenmeyen manifest sürümlü yedek reddedilir ve hedef cihazın yerel deposu değişmez. Güncel yetkisi doğrulanmamış cihazda geri yükleme ve yeniden gönderim başlamaz. Sunucu tekilleştirme penceresi dışında kalan eski işler otomatik olarak yeni işlem gibi gönderilmez, kontrollü uzlaştırmaya ayrılır. Aynı cihazdaki ikinci bir dosya bağımsız yedek sayılmaz."
+  },
+  "reuse": {
+    "status": "KISMI",
+    "mechanism": "Kaynak değerlendirmesi ile ürün uygulaması birbirinden ayrıdır. Native parçalar yalnız referans olarak kullanılır. (1) Frappe'nin sunucu tarafı site yedeği şifreleme anahtarını site config'den okur. Bu bir bulut DB/dosya yedeğidir ve cihazdaki gönderilmemiş kayıtları içermez. (2) Suite'in Vue Slides istemcisi eşitlenmemiş düzenlemeleri aynı tarayıcı profilindeki IndexedDB'de şifresiz bir taslak olarak tutar ve baseModified/dirty karşılaştırmasıyla geri yükler. Uygun olmayan durumda taslak atılır. Dışa aktarma, şifreleme ve cihazdan bağımsızlık yoktur. Vue/Frappe UI kaynağı, React/Ant Design uygulamasının kanıtı sayılmaz. (3) Frappe v1 create_doc, idempotency anahtarı olmadan doğrudan insert yapar. Tekilleştirme sync-receipt--contract kapsamındadır. Bu parçalar davranışın bütününün var olduğunu göstermez ve yeniden kullanılabilecek bir istemci yedek mekanizması yoktur. Aranan yollar kapsamlı bir yokluk iddiası değildir.",
+    "evidence": [
+      {
+        "path": "frappe/frappe/api/v1.py",
+        "line": 50,
+        "quote": "return frappe.new_doc(doctype, **data).insert()"
+      },
+      {
+        "path": "suite/frontend/src/apps/slides/stores/saving.js",
+        "line": 24,
+        "quote": "const req = indexedDB.open(DRAFTS_DB_NAME, DB_VERSION)"
+      },
+      {
+        "path": "suite/frontend/src/apps/slides/stores/saving.js",
+        "line": 80,
+        "quote": "return savePresentationToLocalDB(record).then(() => true, () => false)"
+      },
+      {
+        "path": "suite/frontend/src/apps/slides/stores/presentation.js",
+        "line": 274,
+        "quote": "const servedIsStale = local?.baseModified > doc.modified"
+      },
+      {
+        "path": "suite/frontend/src/apps/slides/stores/presentation.js",
+        "line": 291,
+        "quote": "if (!landed) toast.warning('Changes that never reached the server were discarded.')"
+      },
+      {
+        "path": "frappe/frappe/utils/backups.py",
+        "line": 778,
+        "quote": "key = frappe.conf.get(BACKUP_ENCRYPTION_CONFIG_KEY)"
+      }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "frappe/frappe/utils/backups.py",
+      "suite/frontend/src/apps/slides/stores/presentation.js",
+      "suite/frontend/src/apps/slides/stores/saving.js"
+    ]
+  },
+  "ownership": {
+    "activeContractFile": "docs/frappe-roadmap-contracts/client-backup.json",
+    "plannedProduction": [
+      "frontend/packages/platform/src/client-backup/client_backup_post_mvp.tsx"
+    ],
+    "plannedTestFile": null,
+    "sharedIntegrationFiles": [
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
+    ],
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
+  },
+  "contract": {
+    "input": "Yedek alma girdileri: aktif tenant, kaynak cihaz kimliği, yerel çalışma verisi deposu, outbox kayıtları (mutasyon kimliği ve kernel-envelope--contract işlem zarfıyla), şema/kural sürümü, sync imleci ve kullanıcının anahtar materyali. Geri yükleme girdileri: şifreli yedek, anahtar veya kurtarma materyali ve hedef cihazın device-grant--contract ile doğrulanmış yetkisi. Manifestin alan adları ve şekli client-backup--contract'ta tanımlanır; bu rehber alan adı uydurmaz.",
+    "output": "Dışa aktarma çıktısı: sürümlü manifest başlığı (sürüm, tenant, kaynak cihaz kimliği, oluşturulma zamanı, anahtar kimliği, şema/kural sürümü, sync imleci), AEAD ile şifrelenmiş içerik ve kullanıcıya gösterilen kurtarma noktası özeti. Geri yükleme çıktısı: özgün kimlikleriyle yerel depoya yazılmış veri ve outbox, uzlaştırma bekleyen işlerin listesi. Ret durumunda hiçbir yerel değişiklik yapılmaz ve açıklayıcı bir hata gösterilir. Manifest saf JSON veridir; yerel ReactNode veya callback içermez.",
+    "authorization": "İstemcideki yerel yedek sunucu yetkisini genişletmez. Geri yüklenen işler sunucuya yalnız native Frappe izinleri, doküman doğrulaması, insert/save transaction'ı ve hook'lar üzerinden ulaşır; ignore_permissions veya SQL ile yetki bypass edilmez. Hedef cihaz device-grant--contract ile güncel yetkisiyle doğrulanmadan yeniden gönderim yapılmaz. Oturum veya token yedeğe konmaz ve yetki kaynağı sayılmaz. Bu rehber yeni rol veya izin üretmez. İleride gerekirse explicitPermissionFlags ortak kaynağına bağlanır ve kendi tek kabulünde reddedilen yazma ile değişmeyen kayıt doğrulanır.",
+    "persistence": "Yedek, kaynak cihazdan ayrı bir fiziksel ortama yazılır; ortam türü ve sağlayıcısı karar bekliyor. Anahtar ve kurtarma materyali yedekten ayrı saklanır. SQLite veya IndexedDB tek başına şifreleme ya da yedekleme sağlamaz; navigator.storage.persist de silinmeme garantisi değildir. Bu birim sunucu tarafında yeni DocType, ORM veya CRUD tanımlamaz; mutasyon makbuzu ve sonuç sorgusu sync-receipt--contract'a aittir. Bu sözleşme hiçbir servis, production ortamı, şema veya veri üzerinde değişiklik yetkisi vermez.",
+    "failure": "Bozuk, yanlış anahtarlı, başka tenant'a ait veya desteklenmeyen sürümlü yedek: reddedilir, yerel depo değiştirilmez ve nedeni gösterilir. Kısmi geri yükleme: geri yükleme tek bir yerel işlemle tamamlanır, aksi halde tamamen geri alınır. Tekilleştirme penceresi dışındaki işler: otomatik yeniden gönderilmez; sonuç sorgusu veya kontrollü uzlaştırma yapılır. Kota aşımı ya da depolama silinmesi: kurtarma noktası ve cihaz kaybı sınırı açıkça gösterilir. Slides taslağındaki taslak atma davranışı örnek alınmaz."
+  },
+  "development": {
+    "dependencies": [
+      "client-backup--contract",
+      "device-grant--contract",
+      "kernel-envelope--contract",
+      "sync-receipt--contract"
+    ],
+    "admission": {
+      "statement": "Uygulama durumu: uygulanmadı. Bu sözleşme üretim veya test yazma yetkisi vermez.",
+      "prerequisites": [
+        "T-00 hedef temel çizgi ve R-00 yeniden kullanım eşlemesi tamamlanmış olmalı; izinli veri tüketen adımlar R-01'i de kullanmalı.",
+        "client-backup--contract, kernel-envelope--contract, sync-receipt--contract ve device-grant--contract kabul edilmiş olmalı.",
+        "İlk istemci ile anahtar saklama ve kurtarma yöntemi kararları kapanmış olmalı.",
+        "Gerçek RED/GREEN kanıtıyla yalnız tek ve dar bir davranış uygulanmalı."
+      ],
+      "orderAuthority": "Mevcut görev bağımlılıkları ve aşama esas alınır; küme sırası yalnız sunum amaçlıdır ve yeni bir seri DAG oluşturmaz."
+    },
+    "steps": [
+      "client-backup--contract kapsamında manifest JSON şemasını sabitle: sürüm, tenant, kaynak cihaz kimliği, outbox, mutasyon kimlikleri, işlem zarfı referansı, şema/kural sürümü, sync imleci, oluşturulma zamanı, şifreleme sınıfı ve anahtar kimliği.",
+      "İşlem zarfını kernel-envelope--contract'tan; mutasyon tekilleştirme penceresini ve sonuç sorgusunu sync-receipt--contract'tan tüket. Bu birimde sunucu ucu tasarlanmaz.",
+      "Yeni cihazın güncel yetkiyle doğrulanmasını device-grant--contract'tan tüket.",
+      "Yalnız ilk seçilen istemcide dışa aktarmayı uygula: manifesti üret, AEAD ile şifrele ve ayrı ortama yaz. Arayüz Ant Design bileşenleriyle kurulur.",
+      "İçe aktarmayı uygula: önce şifreyi çöz ve bütünlüğü doğrula, ardından tenant ve sürümü kontrol et, en son tek yerel işlemle yaz. Kimlikler ve kaynak cihaz kapsamı korunur.",
+      "Bağlantı sonrası her outbox kaydını sonuç sorgusuyla uzlaştır: kabul edilmiş kayıtları tamamlanmış olarak işaretle, pencere dışı kalanları kontrollü uzlaştırmaya ayır.",
+      "Yedekten ayrı saklanan materyalle anahtar kurtarma provasını tanımla ve belgele.",
+      "Tenant kapsamını, saklama süresini, kurtarma noktasını ve cihaz kaybı sınırını kullanıcıya göster.",
+      "Ortak entegrasyon dosyalarını yalnız ana entegrasyon sahibi seri olarak birleştirir. Arayüz kaydı platform bileşen registry'sine yapılır, GenUI capability registry'sine yapılmaz; hooks.py'ye bu birim için sunucu hook'u eklenmesi öngörülmez.",
+      "Diğer istemcilere genişletme, her biri ayrı ve dar bir davranış olarak ele alınır."
+    ],
+    "tdd": {
+      "status": "not_run",
+      "oneScenario": "Ağ yokken oluşturulmuş tek bir eşitlenmemiş outbox kaydı içeren yerel depo şifreli olarak yedeklenir ve boş bir ikinci istemci profiline doğru anahtarla geri yüklenir. Kayıt kuyrukta aynı mutasyon kimliği, işlem zarfı ve kaynak cihaz kimliğiyle görünür.",
+      "red": "Testin davranışsal iddiası başarısız olur: geri yükleme sonrasında hedef kuyruk boştur ya da mutasyon kimliği veya kaynak cihaz kimliği farklıdır. Import, modülün bulunamaması veya altyapı hatası RED sayılmaz; RED, native Frappe veya Suite davranışı bozularak üretilmez.",
+      "green": "En küçük uygulama: manifesti üret, AEAD ile şifrele, şifreyi çöz, bütünlüğü doğrula ve kayıtları kimliklerini değiştirmeden hedef yerel depoya tek işlemle yaz. Yanlış anahtar reddi ve uzlaştırma, sonraki ayrı senaryolardır. Bu turda test yazılmaz ve koşulmaz."
+    },
+    "rollback": "Gelecekteki uygulama, yalnız bu birimin eklediği dosya ve ortak entegrasyon kayıtları geri alınarak kaldırılır. Kullanıcı yedekleri silinmez ve yerel depo geri yükleme öncesindeki haline döner. Bu birim sunucuyu değiştirmediği için sunucu tarafında rollback gerekmez. CI/deploy/rollback'in teknik sahibi Hüseyin Cengiz'dir. Bu sözleşme deploy yetkisi vermez."
+  },
+  "requirementGuidance": [
+    {
+      "requirementId": "backup-7",
+      "sourceStage": "post_mvp",
+      "existing": "Native parçalar: Frappe sunucu yedeğinin şifreleme anahtarı site config'den alınır (yalnız bulut yedeği için). Suite Vue Slides, aynı tarayıcı profilindeki IndexedDB'de şifresiz bir taslak tutar ve baseModified/dirty ile geri yükler. Frappe v1 create_doc, idempotency anahtarı olmadan insert yapar. Bunların hiçbiri istemci yedeği, anahtar kurtarma veya cihazlar arası geri yükleme sağlamaz.",
+      "gap": "Şunlar yok: şifreli manifest şeması ve kodu, ayrı fiziksel ortamda bağımsız yedek, anahtar kurtarma ve erişim politikası, bozuk veya yanlış anahtarlı yedeğin reddi, tenant kapsamı ve saklama süresi gösterimi, kimlik koruyan geri yükleme, yeni cihazın yetki doğrulaması ve sunucu tarafında idempotent sonuç sorgusu.",
+      "completionSteps": [
+        "Manifest şemasını client-backup--contract'ta tanımla.",
+        "Zarf, tekilleştirme ve sonuç sorgusunu kernel-envelope--contract ile sync-receipt--contract'tan tüket.",
+        "Yeni cihaz doğrulamasını device-grant--contract'tan tüket.",
+        "İlk istemcide şifreli dışa ve içe aktarmayı, kimlikleri koruyarak uygula.",
+        "Yanlış anahtar ve bozuk yedek reddini, yerel depoyu değiştirmeyecek şekilde ekle.",
+        "Bağlantı sonrası uzlaştırmayı ve pencere dışı işlerin kontrollü ayrılmasını ekle.",
+        "Anahtar kurtarma provasını yap ve kurtarma noktası gösterimini ekle."
+      ],
+      "dependencies": [
+        "client-backup--contract",
+        "device-grant--contract",
+        "kernel-envelope--contract",
+        "sync-receipt--contract"
+      ],
+      "acceptance": "Ağ yokken üretilmiş ve henüz eşitlenmemiş kayıt ile kuyruk, başka bir cihazda yetkili biçimde geri yüklenir ve anahtar kurtarma provası geçer. Bağlantı sonrası eski mutasyon kimlikleri korunur ve merkezde kabul edilmiş işlem tekrar uygulanmaz. Bozuk veya yanlış anahtarlı yedek reddedilir. Tenant kapsamı, saklama süresi, gerçek kurtarma noktası ve cihaz kaybı sınırı açıkça gösterilir. Geri yükleme özgün kaynak cihaz kapsamını, işlem zarfını ve kimliğini değiştirmez; yeni cihaz güncel yetkiyle doğrulanır. Tekilleştirme penceresi dışındaki eski işler yeni işlem gibi yeniden gönderilmez; sonuç sorgusu veya kontrollü uzlaştırma gereksinimi açıklanır.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 50,
+          "quote": "return frappe.new_doc(doctype, **data).insert()"
+        },
+        {
+          "path": "suite/frontend/src/apps/slides/stores/saving.js",
+          "line": 24,
+          "quote": "const req = indexedDB.open(DRAFTS_DB_NAME, DB_VERSION)"
+        },
+        {
+          "path": "suite/frontend/src/apps/slides/stores/saving.js",
+          "line": 80,
+          "quote": "return savePresentationToLocalDB(record).then(() => true, () => false)"
+        },
+        {
+          "path": "suite/frontend/src/apps/slides/stores/presentation.js",
+          "line": 274,
+          "quote": "const servedIsStale = local?.baseModified > doc.modified"
+        },
+        {
+          "path": "suite/frontend/src/apps/slides/stores/presentation.js",
+          "line": 291,
+          "quote": "if (!landed) toast.warning('Changes that never reached the server were discarded.')"
+        },
+        {
+          "path": "frappe/frappe/utils/backups.py",
+          "line": 778,
+          "quote": "key = frappe.conf.get(BACKUP_ENCRYPTION_CONFIG_KEY)"
+        }
+      ]
+    }
+  ],
+  "remainingGaps": [
+    "Cihaz verisini, outbox'ı, mutasyon kimliklerini, şema/kural sürümünü ve sync imlecini kapsayan şifreli manifest şeması ile bunu üreten ve doğrulayan kod yok.",
+    "Ayrı fiziksel ortama bağımsız yedekleme ve başka cihazda yetkili geri yükleme yok; Slides taslağı yalnız aynı tarayıcı profilinde duruyor.",
+    "Anahtar kurtarma ve yedekten ayrı erişim politikası yok.",
+    "Bozuk veya yanlış anahtarlı yedeğin reddi yok; tenant kapsamı, saklama süresi ve kurtarma noktası da gösterilmiyor.",
+    "Sunucu tarafında idempotent mutasyon ve sonuç sorgusu yok; bu iş sync-receipt--contract kapsamında.",
+    "Geri yüklemede kimlik ve kapsam korunumu ile yeni cihazın device-grant doğrulaması yok.",
+    "İncelenen kaynak snapshot'ında Tauri2, Vite/PWA ve WXT istemci kodu yok."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Bağımsız yedeğin hedef ortam türü ve sağlayıcısı",
+      "requirementIds": ["backup-7"],
+      "blockedStep": "Dışa aktarmanın ayrı ortama yazılması",
+      "documentationStepUntilDecided": "Ortamdan bağımsız manifest ve yazma arayüzü sözleşmesini client-backup--contract'ta belgele."
+    },
+    {
+      "decision": "Saklama süresi ve kurtarma noktası politikası",
+      "requirementIds": ["backup-7"],
+      "blockedStep": "Saklama süresinin gösterimi ve eski yedeklerin ele alınması",
+      "documentationStepUntilDecided": "Gösterilecek alanları karar bekliyor olarak işaretleyip belgele."
+    },
+    {
+      "decision": "Yedeğin veri yerleşimi",
+      "requirementIds": ["backup-7"],
+      "blockedStep": "Uzak hedef ortamın seçilmesi",
+      "documentationStepUntilDecided": "Yerleşim kısıtının manifestte ve gösterimde nerede yer alacağını belgele."
+    },
+    {
+      "decision": "Anahtar saklama ve kurtarma yöntemi (Tauri2 Stronghold, OS keychain veya web için anahtar türetme gibi seçenekler), kurtarma materyalinin sahibi, kriptografi kütüphanesi ve lisansı",
+      "requirementIds": ["backup-7"],
+      "blockedStep": "Şifreleme, şifre çözme ve anahtar kurtarma provası",
+      "documentationStepUntilDecided": "Yalnız AEAD sınıfını ve anahtar kimliği alanını belgele; kütüphane seçme."
+    },
+    {
+      "decision": "İlk uygulanacak istemci (Tauri2, Vite/PWA web veya WXT/MV3)",
+      "requirementIds": ["backup-7"],
+      "blockedStep": "plannedProduction altındaki ilk dar davranış",
+      "documentationStepUntilDecided": "İstemciden bağımsız davranışı ve TDD senaryosunu belgele."
+    },
+    {
+      "decision": "Tenant topolojisi ve yedeğin tenant kapsamı",
+      "requirementIds": ["backup-7"],
+      "blockedStep": "Geri yüklemedeki tenant doğrulaması",
+      "documentationStepUntilDecided": "Başka tenant'a ait yedeğin reddini davranış olarak belgele."
+    },
+    {
+      "decision": "Sunucu tekilleştirme penceresinin süresi ve hedef Frappe sürümü",
+      "requirementIds": ["backup-7"],
+      "blockedStep": "Bağlantı sonrası uzlaştırma",
+      "documentationStepUntilDecided": "Pencere dışı işlerin kontrollü uzlaştırmaya ayrılmasını belgele; süreyi sync-receipt--contract ve T-00'a bırak."
+    }
+  ],
+  "status": "integrated_contract_only",
+  "runtimeAcceptance": "not_run",
+  "implementationAdmission": {
+    "status": "NOT_ADMITTED",
+    "activeProductionLease": false,
+    "policyRef": "../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy",
+    "specificPrerequisitesRef": "#/development/admission"
+  }
+}

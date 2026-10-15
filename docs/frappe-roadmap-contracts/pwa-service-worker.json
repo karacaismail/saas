@@ -4,15 +4,20 @@
   "canonicalTaskIds": ["pwa-service-worker--implementation"],
   "requirementIds": ["channels-11"],
   "stage": "mvp",
+  "sourceStages": {
+    "channels-11": "mvp"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
     "title": "Oturum kapsamı (site+kullanıcı) değişince önceki kapsamın izinli veri önbelleğini temizleme",
-    "trigger": "Çıkış veya mevcut istemcinin oturum kimliğinin (site, kullanıcı) önceki kayıtlı kapsamdan farklı gelmesi.",
-    "expected": "Aktif kapsama ait olmayan tüm 'saas-pwa-data:' önekli Cache Storage girdileri silinir; uygulama kabuğu önbelleği ('saas-pwa-shell:') korunur; silme tamamlanmadan yeni kapsamın verisi render edilmez.",
-    "denied": "Silme başarısız olursa eski kapsamın verisi okunmaz ve gösterilmez; mevcut AntD Alert ile görünür önbellek hatası gösterilir, veri ekranı yalnız çevrimiçi native API yanıtıyla açılır."
+    "trigger": "Çıkış veya mevcut istemcide native Frappe oturum kimliğinin (site, kullanıcı) son kayıtlı kapsamdan farklı gelmesi.",
+    "expected": "Aktif kapsama ait olmayan tüm 'saas-pwa-data:' önekli Cache Storage girdileri silinir; uygulama kabuğu önbelleği ('saas-pwa-shell:') korunur; silme tamamlanmadan yeni kapsamın verisi render edilmez. Veri önbelleği okumaları yalnız aktif kapsamın 'saas-pwa-data:<scopeKey>' önbelleğinden yapılır.",
+    "denied": "Silme başarısız olursa veya Cache Storage desteklenmiyorsa eski kapsamın verisi okunmaz ve gösterilmez; Ant Design Alert (role=alert) ile görünür önbellek hatası gösterilir. Veri ekranı yalnız çevrimiçi native Frappe API yanıtıyla açılır; ağ yoksa eski veri yerine hata durumu gösterilir."
   },
   "reuse": {
-    "mechanism": "Yeni bağımlılık yok: tarayıcının kendi Cache Storage API'si (caches.keys/caches.delete) ve mevcut cookie/CSRF native oturumu. Workbox/Vite PWA eklentisi seçilmedi (frontend/package.json yasak yazım). Suite offlineCopy kontrolsüz sayfayı reddetme ve kota hatasını raporlama için yalnız desen referansıdır; Vue/frappe-ui koduna bağlı olduğu için kopyalanmaz.",
+    "status": "KISMI",
+    "mechanism": "Yeni bağımlılık önerilmez: tarayıcının standart Cache Storage API'si (caches.keys/caches.delete), Web Crypto (crypto.subtle) ve native Frappe oturumu ile native DocType/kayıt/alan izinleri. Suite Slides offlineCopy (Vue + frappe-ui) yalnız desen referansıdır: Service Worker kontrolü yoksa işlemi reddetme, kalıcı depolama isteği ve kota hatasını raporlama. Bu kanıt bir Suite parçasının varlığını gösterir; React/Ant Design PWA uygulaması, kapsam temizleme davranışı veya çalışma kanıtı değildir. Test dosyasının varlığı testin geçtiğini kanıtlamaz. Kod kopyalanmaz.",
     "evidence": [
       {
         "path": "suite/frontend/src/apps/slides/stores/offlineCopy.js",
@@ -34,6 +39,10 @@
         "line": 2,
         "quote": "import { frappeRequest } from 'frappe-ui'"
       }
+    ],
+    "searchedPaths": [
+      "suite/frontend/src/apps/slides/stores/offlineCopy.js",
+      "suite/frontend/src/apps/slides/stores/offlineCopy.test.ts"
     ]
   },
   "ownership": {
@@ -41,55 +50,128 @@
     "plannedProduction": [
       "frontend/packages/platform/src/pwa-service-worker/pwa_service_worker_mvp.tsx"
     ],
-    "plannedTestFile": "frontend/packages/platform/src/pwa-service-worker/pwa_service_worker_mvp.test.tsx",
+    "plannedTestFile": null,
     "sharedIntegrationFiles": [
-      "frontend/package.json",
-      "package-lock.json",
+      "backend/saas_platform/saas_platform/hooks.py",
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
       "frontend/apps/web/src/routes.tsx",
-      "frontend/packages/ui/src/index.ts"
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "activeScope: {site: string (host, <=253), user: string (native oturum kullanıcısı)} veya null (çıkış). Kapsam anahtarı ham kullanıcı adı değil, site+kullanıcıdan türetilen opak SHA-256 hex (crypto.subtle) olur.",
-    "output": "PurgeResult v1: {ok: boolean, removed: number, failed: string[] (yalnız önbellek adı), scopeKey: string|null}. Kişisel alan veya yanıt gövdesi içermez.",
-    "authorization": "Yetki kararı istemcide verilmez; veri yalnız native site oturumu (cookie/CSRF) ve native DocType/kayıt/alan izinleriyle döner. Bu davranış yalnız eski kapsamın yerel kopyasını erişilemez kılar; native 403/401 yanıtı önbelleğe yazılmaz.",
-    "persistence": "Sunucuda transaction, hook, DocType veya DDL yok. Yerelde yalnız Cache Storage silme; son aktif scopeKey localStorage 'saas-pwa-scope' anahtarında tutulur ve tüm silmeler bittikten sonra güncellenir.",
-    "failure": "caches tanımsız (güvenli olmayan bağlam): ok=false, failed=['unsupported'], veri önbelleği kullanılmaz. caches.delete reddi veya false: ok=false, ilgili ad failed'a eklenir, scopeKey güncellenmez, AntD Alert (role=alert) gösterilir; yeni kapsam verisi yalnız çevrimiçi istekle yüklenir."
+    "input": "activeScope: {site: string (host, <=253), user: string (native oturum kullanıcısı)} veya null (çıkış). Kapsam anahtarı ham kullanıcı adı değil, site+kullanıcıdan türetilen opak SHA-256 hex (crypto.subtle) değeridir; bir güvenlik sınırı değil, yalnız önbellek adlandırmasıdır.",
+    "output": "PurgeResult v1: {ok: boolean, removed: number, failed: string[] (yalnız önbellek adı veya 'unsupported'), scopeKey: string|null}. Kişisel alan, ham kullanıcı adı veya yanıt gövdesi içermez.",
+    "authorization": "Yetki kararı istemcide verilmez; veri yalnız native Frappe oturumu ve native DocType/kayıt/alan izinleriyle döner. Bu davranış yalnız eski kapsamın yerel kopyasını erişilemez kılar; native 401/403 yanıtları önbelleğe yazılmaz. Rol veya izin üretilmez; ignore_permissions veya SQL ile yetki atlama yoktur.",
+    "persistence": "Sunucuda transaction, save, hook, DocType, şema/DDL veya veri değişikliği yok. Yerelde yalnız Cache Storage silme yapılır; son aktif scopeKey localStorage 'saas-pwa-scope' anahtarında tutulur ve tüm silmeler başarıyla bittikten sonra güncellenir. Ham site/kullanıcı adı yerel depoya yazılmaz.",
+    "failure": "caches tanımsız (güvenli olmayan bağlam): ok=false, failed=['unsupported'], veri önbelleği kullanılmaz. caches.delete reddi veya false sonucu: ok=false, ilgili ad failed listesine eklenir, scopeKey güncellenmez, Ant Design Alert (role=alert) gösterilir; yeni kapsam verisi yalnız çevrimiçi istekle yüklenir. İşlem sürerken gelen ikinci tetik ilk işlem bitene kadar bekletilir; ok=false iken veri önbelleği okuması kapalı kalır."
   },
   "development": {
     "dependencies": [
-      "pwa-service-worker--contract",
-      "ui-family-01--contract",
       "client-rule-parity--contract",
-      "local pilot: Frappe17-dev/suite.localhost, nativeAuth cookie/CSRF, frappeHead adf1fd0c2d6215ad4cac9976251198b2a35fbda6"
+      "pwa-service-worker--contract",
+      "ui-family-01--contract"
     ],
-    "admission": "T-00 hedef baseline ve R-00 yeniden kullanım eşlemesi; izinli veri tüketicileri için R-01. Oturum kimliğinin mevcut React19/TanStack tüketicisinde hangi native çağrıdan okunduğu bilinmiyor; uygulama öncesi doğrulanmalı. Yerel kanıt uzak ürün baseline'ı değildir; Suite HEAD bilinmiyor.",
+    "admission": "Uygulama durumu: uygulanmadı. Ortak kabul politikası ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy. Özel önkoşullar: T-00 hedef baseline ve R-00 yeniden kullanım eşlemesi; izinli veri tüketicileri için R-01; pwa-service-worker--contract, ui-family-01--contract ve client-rule-parity--contract sözleşmeleri. React/TanStack tüketicisinde oturum kimliğinin (site, kullanıcı) hangi native Frappe çağrısından okunacağı hedef baseline'da doğrulanmalıdır; bu sözleşme bir çağrı adı varsaymaz. Hedef Frappe/Suite sürümü ve frontend bağımlılık sürümleri doğrulanmadan üretim kiralaması verilmez. Tek dar davranış gerçek RED/GREEN kanıtıyla uygulanır.",
     "steps": [
-      "Sahip olunan dosyada önbellek adı sözleşmesini (saas-pwa-shell:<build>, saas-pwa-data:<scopeKey>) ve purgeForeignScopes(activeScope) fonksiyonunu tanımla.",
-      "Oturum kimliği değişimi ve çıkışta fonksiyonu çağıran küçük React kancası ile hata durumunu mevcut AntD Alert ile göster (Outfit, en az 14px, 320 öncelikli, çevreleyen odak halkası yok, simetrik pozitif Cubic hareket).",
-      "Uygulamaya bağlama (routes/index export) entegrasyon sahibine fragman olarak bırakılır."
+      "Sahip olunan dosyada önbellek adı sözleşmesini (saas-pwa-shell:<build>, saas-pwa-data:<scopeKey>) ve PurgeResult v1 döndüren purgeForeignScopes(activeScope) fonksiyonunu tanımla; scopeKey site+kullanıcıdan crypto.subtle SHA-256 hex olarak türetilir.",
+      "Veri önbelleği okuma yardımcısını yalnız aktif scopeKey önbelleğinden okuyacak ve işlem sürerken veya ok=false iken okumayı kapatacak şekilde sınırla.",
+      "Oturum kimliği değişimi ve çıkışta fonksiyonu çağıran küçük bir React kancası yaz; yeni kapsam verisi purge tamamlanana kadar render edilmez.",
+      "Hata durumunu Ant Design Alert ile göster: Outfit, en az 14 CSS px, 320 CSS px öncelikli, semantik tokenlar, çevreleyen odak halkası yok, hareket varsa simetrik cubic-bezier(.65, 0, .35, 1) ve iki yönde pozitif süre, reduced-motion istisnası.",
+      "Uygulamaya bağlama (frontend/apps/web/src/routes.tsx ve ortak dışa aktarım) entegrasyon sahibine fragman olarak bırakılır; frontend/package.json ve package-lock.json dosyalarına bağımlılık eklenmez."
     ],
     "tdd": {
       "status": "not_run",
       "oneScenario": "Kapsam A veri önbelleği ve kabuk önbelleği doluyken aktif kapsam B'ye geçilince A veri önbelleği silinir, kabuk kalır, sonuç ok=true/removed=1 döner.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Aynı test ve aynı komut uygulama sonrası geçer; native çalışan davranış için RED üretilmez."
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. RED, sözleşme imzası mevcutken A veri önbelleğinin kalması veya removed değerinin yanlış olması assertion'ıyla düşmelidir; modül bulunamadı/import veya altyapı hatası RED sayılmaz. Native geçen davranışa RED uydurulmaz. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "Uygulamadan sonra aynı senaryo, değişmeyen assertion ve aynı komutla geçmelidir. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN'i değildir."
     },
-    "rollback": "Yalnız sahip olunan dosya ve planlı test dosyasının yerel geri alınması; production izni veya servis değişikliği yok."
+    "rollback": "Yalnız sahip olunan dosyanın yerel geri alınması; production, servis, şema veya veri değişikliği yetkisi yok. Web derleme, yayın ve dağıtım rollback'inin teknik sahibi Hüseyin Cengiz'dir ve bu sözleşmeyle tetiklenmez."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "channels-11",
+      "sourceStage": "mvp",
+      "existing": "Suite Slides offlineCopy (Vue + frappe-ui) üç desen parçası gösterir: Service Worker kontrolü yokken işlemi reddetme, navigator.storage.persist isteği ve ilk kota hatasında durup raporlama (test tanımı). Bunlar Slides'a özgü ve Vue tabanlıdır; headless React/Ant Design PWA, kapsam temizleme veya çevrimdışı açılış davranışının kendisi değildir ve çalıştığına dair kanıt sayılmaz.",
+      "gap": "PWA/Workbox aracı ve Vite eklentisi ile sürümleri seçilmedi; kimlik doğrulamalı Frappe yanıtlarının Cache Storage/IndexedDB'de tutulma kapsamı ile çıkış/tenant değişiminde temizleme sözleşmesi yoktu; ayrı origin CORS ve oturum modeli bağlanmadı; kota ve tarayıcı silmesinde kullanıcı davranışı yazılmadı.",
+      "completionSteps": [
+        "Bu sözleşmedeki tek davranışı (kapsam değişiminde veri önbelleği temizleme) admission karşılandıktan sonra RED/GREEN ile uygula.",
+        "Araç ve sürüm kararından sonra Service Worker kaydı ve kabuk önbelleğini 'saas-pwa-shell:<build>' adlandırmasıyla ayrı bir davranış sözleşmesinde tanımla; kontrolsüz sayfada veri önbelleğini reddetme desenini offlineCopy'den yalnız referans al.",
+        "Önbellek kapsamı kararından sonra yalnız native izinle dönen yanıtların 'saas-pwa-data:<scopeKey>' önbelleğine yazılmasını ve 401/403 yanıtlarının yazılmamasını ayrı davranış olarak tanımla.",
+        "Service Worker güncellemesinde bekleyen işlemi kaybetmeme ve kota/silinme durumunda görünür hata davranışlarını ayrı davranış sözleşmeleri olarak yaz; yeni kanonik görev açma, mevcut pwa-service-worker--implementation altında sırala.",
+        "Web derleme, HTTPS, yayın ve rollback doğrulamasını Hüseyin Cengiz'e teknik devir olarak bırak; alan adı/DNS gerekirse kayıt gereksinimini Hüseyin Cengiz hazırlar, GoDaddy tarafını Asistan Hüseyin uygular."
+      ],
+      "dependencies": [
+        "pwa-service-worker--contract",
+        "ui-family-01--contract",
+        "client-rule-parity--contract"
+      ],
+      "acceptance": "Bu davranış için: kapsam değişiminde aktif olmayan tüm 'saas-pwa-data:' önbellekleri silinir, kabuk korunur, silme başarısızsa eski veri gösterilmez ve görünür Alert çıkar. Gereksinimin bütünü için (ayrı davranışlarla): ilk çevrimiçi hazırlıktan sonra gerekli uygulama dosyaları ve izinli veri ağ yokken açılır, önbellek hatası açıkça gösterilir, yeni Service Worker bekleyen işlemleri kaybetmeden devreye girer, kullanıcı/tenant değişiminde eski veriye erişim olmaz, web dağıtımı diğer platformların imza/yayın sürecinden ayrı doğrulanır; derleme, imza, yayın ve rollback sahibi Hüseyin Cengiz'dir.",
+      "evidence": [
+        {
+          "path": "suite/frontend/src/apps/slides/stores/offlineCopy.js",
+          "line": 175,
+          "quote": "if (!(await waitForController())) {"
+        },
+        {
+          "path": "suite/frontend/src/apps/slides/stores/offlineCopy.js",
+          "line": 189,
+          "quote": "navigator.storage?.persist?.().catch(() => {})"
+        },
+        {
+          "path": "suite/frontend/src/apps/slides/stores/offlineCopy.test.ts",
+          "line": 217,
+          "quote": "it('stops at the first quota error and reports it', async () => {"
+        },
+        {
+          "path": "suite/frontend/src/apps/slides/stores/offlineCopy.js",
+          "line": 2,
+          "quote": "import { frappeRequest } from 'frappe-ui'"
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "PWA/Workbox aracı ve Vite eklentisi ile sürümleri seçilmedi; frontend/package.json entegrasyon sahibinde.",
-    "Ağ yokken kabuk ve izinli veri açılışı, Service Worker kaydı ve güncellemede bekleyen işlemin korunması bu davranışa dahil değil.",
-    "Depolama kotası ve tarayıcı silmesi için kullanıcı davranışı yazılmadı.",
-    "Ayrı origin CORS ve Keycloak bearer modeli karar bekliyor; yalnız native cookie/CSRF yerel pilotta.",
+    "PWA/Workbox aracı, Vite eklentisi ve sürümleri seçilmedi; frontend/package.json entegrasyon sahibindedir.",
+    "Ağ yokken kabuk ve izinli veri açılışı, Service Worker kaydı ve güncellemede bekleyen işlemin korunması bu davranışa dahil değildir.",
+    "Depolama kotası ve tarayıcı silmesi için kullanıcı davranışı yazılmadı; offlineCopy kota testi yalnız desen referansıdır.",
+    "Bellek içi sorgu önbelleği ve IndexedDB temizliği bu davranışın kapsamı dışındadır; ilgili istemci sözleşmelerinde bağlanmalıdır.",
+    "Oturum kimliğinin okunacağı native Frappe çağrısı hedef baseline'da doğrulanmadı.",
+    "Ayrı origin CORS ve oturum modeli bağlanmadı.",
     "Web derleme, imza, yayın, HTTPS ve rollback sahibi Hüseyin Cengiz; uzak ortam doğrulaması yapılmadı."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "PWA/Service Worker aracı, Vite eklentisi ve hedef sürümleri",
+      "requirementIds": ["channels-11"],
+      "blocks": "Service Worker kaydı, kabuk ön-önbelleği ve güncelleme akışı davranışları; frontend/package.json değişikliği",
+      "interimDocStep": "Araçtan bağımsız önbellek adı sözleşmesini ve bu purge davranışını belgede sabit tut; araç seçildiğinde adlandırmanın araçla uyumu ayrıca doğrulanır."
+    },
+    {
+      "decision": "Frontend dağıtım topolojisi: Frappe ile aynı origin mi ayrı origin mi; ayrı ise oturum modeli ve CORS",
+      "requirementIds": ["channels-11"],
+      "blocks": "Ayrı origin üzerinden kimlik doğrulamalı API çağrıları ve bunların önbelleğe alınması",
+      "interimDocStep": "Bu davranışı kimlik bilgisi türünden bağımsız (site, kullanıcı) kapsam anahtarıyla tanımlı tut; alternatif oturum modeli bu sözleşmenin kapsamına eklenmez."
+    },
+    {
+      "decision": "Tenant topolojisi (tenant başına site mi, tek sitede çok tenant mı)",
+      "requirementIds": ["channels-11"],
+      "blocks": "Kapsam anahtarının site+kullanıcı ile yeterli olup olmadığının kesinleşmesi",
+      "interimDocStep": "Kapsam anahtarı girdisini tek yerde tanımla; karar sonrası ek kapsam bileşeni gerekirse yalnız bu girdi genişletilir."
+    },
+    {
+      "decision": "Çevrimdışı tutulacak izinli veri kapsamı ve saklama süresi",
+      "requirementIds": ["channels-11"],
+      "blocks": "Veri önbelleğine yazma davranışı ve çevrimdışı veri açılışı",
+      "interimDocStep": "Yalnız temizleme ve okuma kısıtını uygula; yazma kapsamını karar gelene kadar belgede açık bırak."
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "channels-11": "mvp"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,

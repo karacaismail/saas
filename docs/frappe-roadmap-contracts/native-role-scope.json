@@ -1,18 +1,33 @@
 {
   "schemaVersion": "saas-existing-work-contract.v1",
   "canonicalUnitId": "native-role-scope",
-  "canonicalTaskIds": ["native-role-scope--implementation"],
+  "canonicalTaskIds": [
+    "native-role-scope--implementation",
+    "ui-family-05--implementation",
+    "ui-family-18--implementation",
+    "ui-family-34--implementation",
+    "ui-provider-permission--implementation",
+    "ui-view-graph--implementation",
+    "ui-view-map--implementation",
+    "ui-view-matrix--implementation",
+    "ui-view-tree--implementation"
+  ],
   "requirementIds": ["access-2"],
   "stage": "poc",
+  "sourceStages": {
+    "access-2": "poc"
+  },
   "deliveryKind": "instruction_contract",
+  "implementationStatus": "uygulanmadi",
   "behavior": {
     "title": "Kapsam dışı kayıt /api/v2 liste yanıtında görünmez",
-    "trigger": "Okuyucu rolündeki kullanıcı, oturum çerezi ve CSRF ile GET /api/v2/document/<pilot_doctype> çağırır.",
-    "expected": "Yanıt yalnız kullanıcıya native User Permission ile atanmış kapsam değerine bağlı kayıtları içerir. has_next_page bu filtrelenmiş küme üzerinden hesaplanır.",
-    "denied": "Başka kapsam değerine bağlı kayıt, filters veya order_by ile zorlansa bile listede yer almaz. Liste yolu 403 döndürmez, filtreler."
+    "trigger": "Okuyucu rolündeki, kimliği doğrulanmış kullanıcı native site oturumu ile GET /api/v2/document/<kapsamli_doctype> çağırır. <kapsamli_doctype> adı tenant/kapsam kararından gelir; bu sözleşme ad seçmez.",
+    "expected": "Yanıt yalnız kullanıcıya native User Permission ile (native yol yetersizse adaptör sorgu koşuluyla) atanmış kapsam değerine bağlı kayıtları içerir. has_next_page bu filtrelenmiş küme üzerinden hesaplanır.",
+    "denied": "Başka kapsam değerine bağlı kayıt, filters veya order_by ile zorlansa bile listede yer almaz. Liste yolu 403 döndürmez, filtreler. Aynı okuyucunun kapsam dışı kayda native yazma isteği yan etkiden önce reddedilir ve kayıt değişmez."
   },
   "reuse": {
-    "mechanism": "Önce native: kapsam alanı CustomField (Link) olarak eklenir, User Permission kaydı ve ignore_permissions=False ile çalışan qb.get_query sorgusu kullanılır. Native yol kapsam dışı kaydı dışlamazsa role_poc.py içinde Suite desenindeki permission_query_conditions + has_permission çifti en küçük adaptör olarak yazılır. Controller get_list yeni bir sorgu motoru olarak kullanılmaz.",
+    "status": "KISMI",
+    "mechanism": "Önce native yol: kapsam değeri, kapsamlı DocType üzerinde native Link alanı olarak tutulur. Okuyucuya kapsam native User Permission kaydı ile atanır. /api/v2 liste yolu ignore_permissions=False ile izinli sorgu üretir. Native yol kapsam dışı kaydı dışlamazsa en küçük adaptör yazılır: backend/saas_platform/saas_platform/adapters/authorization/role_poc.py içinde Suite desenindeki permission_query_conditions + has_permission çifti. Controller get_list kancası yeni bir sorgu motoru olarak kullanılmaz. Yeni ORM veya CRUD katmanı yazılmaz. Kanıtlar yalnız native parçaların varlığını gösterir; kurum/şube kapsamı davranışının bütünüyle var olduğunu göstermez. searchedPaths listesi kapsamlı bir varlık veya yokluk taraması değildir.",
     "evidence": [
       {
         "path": "frappe/frappe/api/v2.py",
@@ -33,63 +48,188 @@
         "path": "suite/suite/sheets/permissions.py",
         "line": 49,
         "quote": "f\"{table_prefix}.sheet IN (\""
+      },
+      {
+        "path": "suite/suite/mail/patches/create_suite_user_role.py",
+        "line": 7,
+        "quote": "role via Frappe's `if_owner`. `if_owner` keys off the standard `owner` field"
       }
+    ],
+    "searchedPaths": [
+      "frappe/frappe/api/v1.py",
+      "frappe/frappe/api/v2.py",
+      "frappe/ui/src/composables/useDocPermissions.ts",
+      "suite/suite/hooks.py",
+      "suite/suite/mail/patches/create_suite_user_role.py",
+      "suite/suite/sheets/permissions.py"
     ]
   },
   "ownership": {
     "activeContractFile": "docs/frappe-roadmap-contracts/native-role-scope.json",
     "plannedProduction": [
-      "backend/saas_platform/saas_platform/adapters/authorization/role_poc.py (yalnız native yol yetersizse)"
+      "backend/saas_platform/saas_platform/adapters/authorization/role_poc.py",
+      "frontend/packages/ui/src/components/ui-family-05/index.tsx",
+      "frontend/packages/ui/src/components/ui-family-18/index.tsx",
+      "frontend/packages/ui/src/components/ui-family-34/index.tsx",
+      "frontend/packages/ui/src/components/ui-provider-permission/index.tsx",
+      "frontend/packages/ui/src/components/ui-view-graph/index.tsx",
+      "frontend/packages/ui/src/components/ui-view-map/index.tsx",
+      "frontend/packages/ui/src/components/ui-view-matrix/index.tsx",
+      "frontend/packages/ui/src/components/ui-view-tree/index.tsx"
     ],
-    "plannedTestFile": "backend/saas_platform/saas_platform/adapters/authorization/test_role_poc.py",
+    "plannedTestFile": null,
     "sharedIntegrationFiles": [
       "backend/saas_platform/saas_platform/hooks.py",
-      "integration/fragments/native-role-scope--integration.json"
+      "frontend/apps/extension/wxt.config.ts",
+      "frontend/apps/tauri/src-tauri/Cargo.toml",
+      "frontend/apps/tauri/src-tauri/tauri.conf.json",
+      "frontend/apps/web/src/routes.tsx",
+      "frontend/package.json",
+      "frontend/packages/ui/src/registry.ts",
+      "package-lock.json"
     ],
-    "plannedPathsStatus": "canonical proposal only; resolve against observed local repositories before production lease"
+    "plannedPathsStatus": "yalnız gelecekteki öneri; aktif üretim veya test sahipliği yok"
   },
   "contract": {
-    "input": "Yol parametresi doctype: string. Sorgu: fields JSON dizi, filters JSON nesne, start int>=0 (varsayılan 0), limit int (varsayılan 20). Native doğrulamaya göre group_by string olmalıdır.",
-    "output": "data: izinli kayıtların istenen alanları; has_next_page: bool. Sürüm: contract-native-role-scope v1. Alan düzeyi (permlevel>0) filtrenin liste yolunda uygulanıp uygulanmadığı bilinmiyor ve bu davranışın kapsamında değil.",
-    "authorization": "Native site oturumu ve kullanıcı rolü. Kayıt kapsamı User Permission ya da adaptör sorgu koşuluyla sağlanır. Ayrıcalıklı kullanıcı muafiyeti Suite desenindeki gibi açık bir kontrolle yapılır. Kapsam atanmamış okuyucu boş liste alır. Bu davranış istemci tarafındaki useDocPermissions sonucuna dayanmaz.",
-    "persistence": "Salt okuma; yazma ya da transaction yok. Test verisi native insert ile oluşturulur ve test transaction'ı geri alınarak temizlenir. CustomField eklemek şema değişikliği gerektirebilir; DDL için garanti verilmez.",
-    "failure": "Geçersiz group_by native FrappeValueError üretir. Adaptör hatası native frappe.throw ile 'Error in ...' hatasına dönüşür ve 5xx olarak ele alınır. İstemci (TanStack) 403 yanıtında yeniden denemez ve erişim reddi durumu gösterir. Boş liste hata sayılmaz."
+    "input": "Yol parametresi doctype: string; kapsamlı DocType adı tenant/kapsam kararından gelir. Sorgu parametreleri: fields JSON dizi, filters JSON nesne, start int>=0 (varsayılan 0), limit int (varsayılan 20) ve string group_by. Parametre doğrulaması native liste yoluna bırakılır; ek doğrulama katmanı yazılmaz.",
+    "output": "data: yalnız izinli kayıtların istenen alanları. has_next_page: bool; filtrelenmiş küme üzerinden hesaplanır. Sürüm etiketi: contract-native-role-scope v1. Liste yolunda permlevel>0 alan filtresinin uygulanıp uygulanmadığı doğrulanmadı ve bu davranışın kapsamında değildir.",
+    "authorization": "Native site oturumu ve kullanıcı rolü kullanılır. Rol ve izin bayrakları ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/explicitPermissionFlags ortak kaynağından alınır; bu sözleşme yeni rol bayrağı üretmez. Kayıt kapsamı native User Permission ile, yalnız gerçek RED sonrasında adaptör sorgu koşuluyla sağlanır. Yetki ignore_permissions=True, ham SQL veya bayrakla atlanamaz. Ayrıcalıklı kullanıcı muafiyeti Suite desenindeki gibi açık ve tek bir kontrolle yapılır. Kapsam atanmamış okuyucu boş liste alır. Sunucu kararı istemci tarafındaki izin hesabına dayanmaz.",
+    "persistence": "Liste davranışı salt okumadır; yazma veya transaction açmaz. Reddedilen yazma isteği native izin kontrolünde yan etkiden önce durur; kaydın kalıcı alanları ve modified değeri değişmez. Kapsam Link alanı eklemek şema değişikliğidir. Bu sözleşme hiçbir şema, veri, servis veya production değişikliğine yetki vermez.",
+    "failure": "Geçersiz sorgu parametreleri native doğrulama hatasıyla döner; kesin hata tipi hedef sürümde doğrulanır. Adaptör hatası yutulmaz, boş listeye çevrilmez ve native hata yolu ile sunucu hatası olarak döner. Kapsam dışı kayıt liste yolunda hata olarak değil, yokluk olarak görünür. İstemci (TanStack Query) 403 yanıtında yeniden denemez ve erişim reddi durumunu gösterir. Boş liste hata sayılmaz."
   },
   "development": {
     "dependencies": [
-      "native-role-scope--contract",
+      "api-middleware--contract",
+      "capability-definition--contract",
+      "client-rule-parity--contract",
+      "device-grant--contract",
       "kernel-envelope--contract",
+      "native-doctype-schema--contract",
+      "native-role-scope--contract",
+      "native-user-policy--contract",
+      "permissioned-metadata--contract",
+      "sync-receipt--contract",
       "tenant-registry--contract",
-      "local pilot t08: existing one Data record read/update with native admin/reader scopes"
+      "ui-family-05--contract",
+      "ui-family-18--contract",
+      "ui-family-34--contract",
+      "ui-provider-permission--contract",
+      "ui-view-graph--contract",
+      "ui-view-map--contract",
+      "ui-view-matrix--contract",
+      "ui-view-tree--contract"
     ],
-    "admission": "tenant-registry--contract, kapsam DocType'ını ve Link alan adını belirlemeden başlanmaz; bu ad şu an bilinmiyor. T-00/R-00/R-01 gerekir. Kanıt yalnız yerel Frappe17-dev/suite.localhost içindir (frappeHead adf1fd0c). Uzak ürün tabanı ve Suite HEAD bilinmiyor.",
+    "admission": "Uygulama durumu: uygulanmadı. Başlamadan önce şunlar gerekir: T-00 hedef taban, R-00 yeniden kullanım eşlemesi ve izinli veri tüketicileri için R-01. Tenant topolojisi ile kapsam DocType/Link alan adı kararı tenant-registry--contract altında yazılı olmalıdır. Hedef Frappe/Suite sürümü T-00 ile sabitlenmelidir. Kaynak alıntıları önceki salt okunur Frappe/Suite kaynak kesitlerindendir ve hedef tabanda yeniden doğrulanır. Ortak yürütme kuralları ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy altındadır. Tek dar davranış gerçek RED/GREEN kanıtıyla uygulanır.",
     "steps": [
-      "Pilot DocType'a kapsam Link alanı CustomField olarak eklenir; ad tenant-registry kararından alınır.",
-      "Test fixture'ı okuyucuya native User Permission ile tek bir kapsam değeri atar ve iki farklı kapsamda birer kayıt oluşturur.",
-      "Test önce adaptör olmadan çalıştırılır. Native filtre geçerse adaptör yazılmaz ve sonuç native_verified olarak raporlanır.",
-      "Yalnız gerçek RED varsa role_poc.py'de get_permission_query_conditions(user) ve has_permission(doc, ptype, user) frappe.db.escape ile yazılır. hooks.py kaydı Codex entegrasyon fragment'i ile yapılır."
+      "Tenant topolojisi ve kapsam modeli kararı decisionsPending içinden alınır. Kapsamlı DocType ve Link alan adı bu karardan gelir; bu sözleşmede seçilmez.",
+      "R-00 eşlemesinde davranış native parçalara bağlanır. Liste için /api/v2 izinli sorgu (ignore_permissions=False), kapsam ataması için native User Permission, sahiplik için if_owner kullanılır. Yeni sorgu motoru, ORM veya CRUD katmanı yazılmaz.",
+      "Kapsam Link alanı native DocType alanı veya Custom Field mekanizmasıyla eklenir. Bunun için ayrı şema onayı ve teknik sahip Hüseyin Cengiz'in hedef ortam planı gerekir.",
+      "Gelecekteki test verisi native insert ile kurulur. Okuyucuya native User Permission ile tek kapsam (A) atanır; A ve B kapsamlarında birer kayıt oluşturulur. Test transaction'ı geri alınarak temizlenir.",
+      "Senaryo önce adaptör olmadan koşulur. Native filtre geçerse adaptör yazılmaz ve sonuç native doğrulandı olarak raporlanır.",
+      "Yalnız gerçek RED varsa role_poc.py içinde Suite desenine benzer get_permission_query_conditions(user) ve has_permission(doc, ptype, user) yazılır. Değerler frappe.db.escape ile kaçırılır. hooks.py kaydı ana entegrasyon sahibinin seri birleştirmesiyle yapılır.",
+      "UI görev kimlikleri (ui-family-05/18/34, ui-provider-permission, ui-view-graph/map/matrix/tree) yalnız sunucunun filtrelenmiş yanıtını TanStack Query ile tüketir. İstemci tarafında kayıt gizlemek yetki sayılmaz. React/Ant Design izin sağlayıcısı rol/meta yüklenene kadar yazma kontrolünü etkin göstermez. Vue kaynağındaki fail-open fieldAccess deseni React/AntD uygulaması için kanıt değildir. Bileşen kaydı frontend/packages/ui/src/registry.ts kaynak registry'sindedir. Bu registry GenUI capability registry'sinden ayrıdır. JSON model sınırı yerel ReactNode/callback'lerden ayrı tutulur. Yeni görünüm tasarımı ilgili *--contract dosyalarına aittir.",
+      "Tek kayıt okuma, ilişki seçeneği araması (search_widget) ve v1 expand yolları bu davranışa eklenmez. Her biri ayrı tek davranış olarak aynı kapsam modeline bağlanır."
     ],
     "tdd": {
       "status": "not_run",
-      "oneScenario": "Okuyucu A kapsamına atanmış; GET /api/v2/document/<pilot_doctype> yanıtı B kapsamındaki kaydı içermez, A kapsamındakini içerir. Aynı senaryoda write izni olmayan, kimliği doğrulanmış okuyucunun B kapsamındaki kayda native yazma isteği yan etkiden önce reddedilir; kaydın kalıcı alan değerleri ve modified değişmez.",
-      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy; tek davranış aşağıdaki oneScenario’dur. Native geçen davranışa RED uydurulmaz.",
-      "green": "Uygulamadan sonra aynı senaryo ve değişmeyen assertion/komut geçmeli. Şu anda not_run; bu sözleşme veya biçim kontrolü ürün GREEN’i değildir. Aynı test ve aynı komut adaptör ve hook kaydı sonrası geçer. Tek komut entegrasyon sırasında proje test betiğinden belirlenir."
+      "oneScenario": "Okuyucu A kapsamına atanmıştır. GET /api/v2/document/<kapsamli_doctype> yanıtı A kapsamındaki kaydı içerir, B kapsamındakini içermez. Aynı senaryoda okuyucunun write izni yoktur ve kimliği doğrulanmıştır. Bu okuyucunun B kapsamındaki kayda native yazma isteği yan etkiden önce reddedilir; kaydın kalıcı alan değerleri ve modified değişmez.",
+      "red": "Ortak gerçek RED kuralı: ../frappe-roadmap-analysis.json#/executionBacklog/sharedExecutionPolicy/realRedPolicy. RED yalnız bu senaryonun beklenen assertion'ında oluşur; örneğin B kaydının listede görünmesi. Import/altyapı hatası veya native davranışı bozarak üretilen hata RED sayılmaz. Native geçen davranışa RED uydurulmaz. Bu turda test yazılmaz ve koşulmaz.",
+      "green": "Uygulamadan sonra aynı senaryo, değişmeyen assertion ve aynı komutla geçmelidir. Komut entegrasyon sırasında proje test betiğinden belirlenir. Şu an not_run; bu sözleşme veya biçim kontrolü ürün GREEN'i değildir."
     },
-    "rollback": "role_poc.py ve hook kaydı yerelde geri alınır, CustomField yerel siteden kaldırılır. Production yetkisi yok, servis yeniden başlatılmaz."
+    "rollback": "Hedef geliştirme ortamında role_poc.py ve hooks.py kaydı geri alınır. Kapsam Link alanı, eklendiği onaylı şema yoluyla kaldırılır. Bu sözleşmenin production yetkisi yoktur. Servis yeniden başlatma, CI, deploy ve rollback işlerinin teknik sahibi Hüseyin Cengiz'dir."
   },
+  "requirementGuidance": [
+    {
+      "requirementId": "access-2",
+      "sourceStage": "poc",
+      "existing": "Kaynakta native parçalar var. /api/v2 liste yolu ignore_permissions=False ile izinli sorgu kullanıyor. Tek kayıt yolunda alan düzeyi okuma filtresi (apply_fieldlevel_read_permissions), v1 link genişletmede read kontrolü ve controller get_list kancası bulunuyor. Suite tarafında permission_query_conditions kaydı, Sheets'te sahip + DocShare alt sorgusu, Mail'de if_owner ile sahiplik kapsamı var. Bu parçalar kurum/şube kapsamı davranışının tamamı değildir. ERPNext kurulu olmadığından Company tabanlı kapsam kullanılamaz.",
+      "gap": "Kurum/şube kapsam modeli ve site/tenant ilişkisi tanımsız. search_widget yolunun izin davranışı incelenen kesitte görülmedi. v1 expand/attach_expanded_links yolunda kayıt ve alan filtresi doğrulanmadı. İstemci izin bileşeni rol/meta yüklenene kadar 'write' döndürüyor (fail-open).",
+      "completionSteps": [
+        "Tenant topolojisi ve kapsam DocType/Link alan adı kararını tenant-registry--contract altında yazılı hale getir.",
+        "Kapsamlı DocType'a native Link alanı ekle; okuyucuya native User Permission ile kapsam ata.",
+        "Liste davranışını önce native yolla doğrula. Yalnız gerçek RED varsa permission_query_conditions + has_permission adaptör çiftini role_poc.py içinde yaz.",
+        "Rol ve izin bayraklarını explicitPermissionFlags ortak kaynağından al. Kapsam dışı yazmanın yan etkiden önce reddedildiğini aynı kabulde doğrula.",
+        "UI tüketicilerini yalnız sunucu filtresine bağla. İstemci izin sonucunu yetki kararı olarak kullanma.",
+        "Tek kayıt, search_widget ve v1 expand yollarını ayrı tek davranışlar olarak sıraya al."
+      ],
+      "dependencies": [
+        "native-role-scope--contract",
+        "tenant-registry--contract",
+        "kernel-envelope--contract",
+        "native-user-policy--contract",
+        "permissioned-metadata--contract",
+        "ui-provider-permission--contract"
+      ],
+      "acceptance": "Bu davranış için kabul: başka kapsamın kaydı /api/v2 liste yanıtında görünmez ve kapsam dışı yazma reddedilir; kayıt değişmez. Gereksinimin tamamı için kabul ölçütü şudur: başka kurumun kaydı, gizli alanı ve ilişki seçeneği liste ve tek kayıt API'sinde görünmemeli. Kalan parçalar ayrı davranışlarla kapatılır.",
+      "evidence": [
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 87,
+          "quote": "doc.apply_fieldlevel_read_permissions()"
+        },
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 164,
+          "quote": "ignore_permissions=False,"
+        },
+        {
+          "path": "frappe/frappe/api/v2.py",
+          "line": 169,
+          "quote": "if hasattr(controller, \"get_list\"):"
+        },
+        {
+          "path": "frappe/frappe/api/v1.py",
+          "line": 104,
+          "quote": "link_doc = frappe.get_doc(doctype, doc_fieldvalue, check_permission=\"read\")"
+        },
+        {
+          "path": "suite/suite/hooks.py",
+          "line": 122,
+          "quote": "permission_query_conditions = {"
+        },
+        {
+          "path": "suite/suite/sheets/permissions.py",
+          "line": 49,
+          "quote": "f\"{table_prefix}.sheet IN (\""
+        },
+        {
+          "path": "suite/suite/mail/patches/create_suite_user_role.py",
+          "line": 7,
+          "quote": "role via Frappe's `if_owner`. `if_owner` keys off the standard `owner` field"
+        },
+        {
+          "path": "frappe/ui/src/composables/useDocPermissions.ts",
+          "line": 51,
+          "quote": "if (permlevel === 0 || !permlevels.value) return \"write\";"
+        }
+      ]
+    }
+  ],
   "remainingGaps": [
-    "Tenant modeli (site başına tenant mı, site içi kurum mu) ve kapsam DocType'ı tenant-registry--contract kararına bağlı ve bilinmiyor.",
-    "Tek kayıt okuması (read_doc: check_permission + apply_fieldlevel_read_permissions) ve gizli alan kabulü bu davranışa dahil değil.",
+    "Uygulama durumu: uygulanmadı. Bu sözleşme yalnız yönergedir; ürün kodu, test veya runtime kabulü yoktur.",
+    "Tenant modeli (site başına tenant mı, site içi kurum mu) ve kapsam DocType'ı tenant-registry--contract kararına bağlıdır ve bilinmiyor.",
+    "Tek kayıt okuması (check_permission + apply_fieldlevel_read_permissions) ve gizli alan kabulü bu davranışa dahil değil.",
     "İlişki seçeneği araması (search_widget) için izin davranışı kaynakta görülmedi ve doğrulama hedefi yok.",
     "v1 expand / attach_expanded_links yolunda kayıt ve alan filtresi doğrulanmadı.",
-    "useDocPermissions yüklenene kadar write döndürüyor (fail-open). Headless istemci bunu yalnız sunum için kullanmalı, yetki kararına dayanak yapmamalı.",
-    "Bu sözleşme UI değiştirmez. Gelecekteki UI işleri Outfit, 14px alt sınır, 320 öncelikli tasarım, çevreleyen odak halkası yasağı, simetrik Cubic hareket kuralı ve mevcut AntD ile yapılır."
+    "Vue kaynağındaki useDocPermissions rol/meta yüklenene kadar write döndürüyor (fail-open). React/AntD izin sağlayıcısında bu desen tekrarlanmamalı ve istemci sonucu yetki kararına dayanak yapılmamalı.",
+    "Bu sözleşme UI değiştirmez. Gelecekteki UI işleri şu kurallarla yapılır: Outfit, 14 CSS px alt sınır, 320 öncelikli tasarım, çevreleyen odak halkası yasağı, simetrik Cubic hareket kuralı ve seçilmiş Ant Design ailesi."
+  ],
+  "decisionsPending": [
+    {
+      "decision": "Tenant topolojisi ve kapsam modeli: site başına tenant mı, site içi kurum/şube mi; kapsam DocType'ı ve Link alan adı.",
+      "requirementIds": ["access-2"],
+      "blocks": "Kapsam Link alanının eklenmesi, User Permission atamasının tanımı ve gelecekteki tek senaryonun test verisi.",
+      "documentationStepUntilDecided": "Seçenekleri ve her birinin native User Permission / hook çifti ile nasıl eşleneceğini tenant-registry--contract altında karar notu olarak yaz; seçim yapma."
+    },
+    {
+      "decision": "Hedef Frappe/Suite sürümü ve ürün tabanı (T-00).",
+      "requirementIds": ["access-2"],
+      "blocks": "Kaynak alıntılarının hedef tabanda yeniden doğrulanması, native hata tiplerinin sabitlenmesi ve test komutunun belirlenmesi.",
+      "documentationStepUntilDecided": "Bu sözleşmedeki kanıt yollarını ve satırlarını T-00 doğrulama listesine aday olarak kaydet; sürüm seçme."
+    }
   ],
   "status": "integrated_contract_only",
   "runtimeAcceptance": "not_run",
-  "sourceStages": {
-    "access-2": "poc"
-  },
   "implementationAdmission": {
     "status": "NOT_ADMITTED",
     "activeProductionLease": false,
